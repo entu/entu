@@ -10,3 +10,8 @@ class UserPreferencesForm(Form):
 																('english', boTranslate('english'))
 																])
 	avatar		= FileField(boTranslate('avatar'))
+
+
+class ClassifiersForm(Form):
+	name = TextField(boTranslate('name'), [validators.Required()])
+	values = TextAreaField(boTranslate('values'), [validators.Required()])

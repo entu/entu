@@ -26,5 +26,6 @@ TRANSLATION = {
 	'old_user':			'Vana kasutaja',
 	'registration_info_sent': 'Registreerumise info saadeti emailile %s!',
 	'avatar':			'Avatar',
-
+	'classifiers':		'Klassifikaatorid',
+	'values':			'Väärtused',	
 }

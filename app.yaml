@@ -1,5 +1,5 @@
 application: bonga-bonga
-version: dev-argo
+version: dev
 runtime: python
 api_version: 1
 
@@ -45,3 +45,8 @@ handlers:
 - url: /user(.*)
   script: controllers/user.py
   login: required
+
+- url: /classifiers(.*)
+  script: controllers/classifier.py
+  login: required
+

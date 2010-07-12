@@ -1,0 +1,26 @@
+{% extends "main.html" %}
+
+{% block content %}
+
+{% include "menu.html" %}
+
+{{ str.classifiers }}
+{% for classifier in classifiers %}
+	{{ classifier.name }}: 
+	{% for value in classifier.values %}
+		{{ value }}, 
+	{% endfor %}
+	<br />
+{% endfor %}
+
+
+<hr />
+
+<form method="post" action="">
+{% for field in form %}
+	{{ field.label }}:<br />
+	{{ field }}
+{% endfor %}
+</form>
+
+{% endblock %}
