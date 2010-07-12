@@ -1,0 +1,47 @@
+application: bonga-bonga
+version: dev-argo
+runtime: python
+api_version: 1
+
+handlers:
+
+#static files
+- url: /css
+  static_dir: static/css
+
+- url: /images
+  static_dir: static/images
+
+- url: /javascript
+  static_dir: static/javascript
+
+- url: /favicon.ico
+  static_files: static/images/favicon.ico
+  upload: static/images/favicon.ico
+
+
+
+#bulka
+- url: /remote_api
+  script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
+  secure: always
+  login: admin
+
+
+
+#public controllers
+- url: /
+  script: controllers/frontpage.py
+
+- url: /_ah/login_required
+  script: controllers/openid_login.py
+
+- url: /activate(.*)
+  script: controllers/activate.py
+
+
+
+#protected controllers
+- url: /user(.*)
+  script: controllers/user.py
+  login: required

@@ -1,0 +1,11 @@
+{% extends "main.html" %}
+
+{% block content %}
+{% load wtforms %}	
+	
+	{% form_field form.title class="css_class" %}
+	
+	<p>Search "{{ search }}":</p>
+	{% include "person_list.html" %}
+{% endblock %}
+
