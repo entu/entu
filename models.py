@@ -27,3 +27,9 @@ class Role(db.Model):
 	create_date 	= db.DateTimeProperty(auto_now_add=True)
 	person 			= db.ReferenceProperty(Person, collection_name='roles')
 	value  			= db.StringProperty()
+
+
+class Classifier(db.Model):
+	name			= db.StringProperty()
+	values			= db.StringListProperty()
+
