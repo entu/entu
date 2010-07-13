@@ -14,11 +14,17 @@ class DisplayClassifiers(webapp.RequestHandler):
 		
 		if form.validate():
 			classifier = db.Query(Classifier).filter('name = ', form.name.data ).get()
+			
 			if not classifier:
 				classifier = Classifier()
 				classifier.name = form.name.data
-			classifier.values = boStrToList(form.values.data)
-			classifier.save()
+			
+			if form.values.data != '':
+				classifier.values =  boStrToList('#' + form.values.data + '#')
+				classifier.save()
+			else:
+				classifier.delete()
+			
 
 		self.redirect('')
 

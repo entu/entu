@@ -14,4 +14,4 @@ class UserPreferencesForm(Form):
 
 class ClassifiersForm(Form):
 	name = TextField(boTranslate('name'), [validators.Required()])
-	values = TextAreaField(boTranslate('values'), [validators.Required()])
+	values = TextAreaField(boTranslate('values'))

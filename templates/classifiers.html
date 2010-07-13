@@ -4,7 +4,8 @@
 
 {% include "menu.html" %}
 
-{{ str.classifiers }}
+<b>{{ str.classifiers }}</b>:<br />
+
 {% for classifier in classifiers %}
 	{{ classifier.name }}: 
 	{% for value in classifier.values %}
@@ -19,7 +20,7 @@
 <form method="post" action="">
 {% for field in form %}
 	{{ field.label }}:<br />
-	{{ field }}
+	{{ field }}<br />
 {% endfor %}
 </form>
 
