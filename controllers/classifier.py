@@ -20,7 +20,7 @@ class DisplayClassifiers(webapp.RequestHandler):
 				classifier.name = form.name.data
 			
 			if form.values.data != '':
-				classifier.values =  boStrToList('#' + form.values.data + '#')
+				classifier.values =  boStrToList(form.values.data)
 				classifier.save()
 			else:
 				classifier.delete()
