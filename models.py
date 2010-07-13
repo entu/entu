@@ -7,10 +7,14 @@ class Person(search.SearchableModel):
 	create_date 	= db.DateTimeProperty(auto_now_add=True)
 	forename   		= db.StringProperty()
 	surname   		= db.StringProperty()
-	person_id  		= db.StringProperty()
+	idcode  		= db.StringProperty()
 	gender     		= db.StringProperty()
 	birth_date 		= db.DateProperty()
 	identities		= db.StringListProperty()
+
+
+class PersonPreferences(db.Model):
+	person 			= db.ReferenceProperty(Person, collection_name='preferences')
 	language		= db.StringProperty()
 	avatar			= db.BlobProperty()
 

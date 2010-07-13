@@ -32,8 +32,8 @@ class DisplayClassifiers(webapp.RequestHandler):
 
 def main():
 	boWSGIApp([
-			 (r'/classifiers(.*)', DisplayClassifiers),
-			])
+			(r'/classifier(.*)', DisplayClassifiers),
+		])
 
 
 if __name__ == '__main__':

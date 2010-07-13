@@ -7,6 +7,9 @@ class OpenIdLoginHandler(webapp.RequestHandler):
 		continue_url = self.request.GET.get('continue')
 		openid_url = self.request.GET.get('openid')
 		
+		if continue_url:
+			continue_url = continue_url.encode('utf8')
+		
 		if not openid_url:
 			boView(self, 'login', 'login.html', { 'continue': continue_url })
 		else:

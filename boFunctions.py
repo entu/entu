@@ -12,7 +12,7 @@ from translations.estonian import *
 
 def boView(self, page_title, templatefile, values={}):
 	values['str'] = TRANSLATION
-	values['page_title'] = self.request.headers.get('host') #boTranslate(page_title)
+	values['page_title'] = boTranslate(page_title)
 	values['user'] = boUser()
 	values['logouturl'] = users.create_logout_url('/')
 	path = os.path.join(os.path.dirname(__file__), 'templates', templatefile)

@@ -22,10 +22,8 @@ handlers:
 
 
 #bulka
-- url: /remote_api
-  script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
-  secure: always
-  login: admin
+- url: /bulka
+  script: controllers/bulka.py
 
 
 
@@ -42,11 +40,18 @@ handlers:
 
 
 #protected controllers
+- url: /dashboard
+  script: controllers/dashboard.py
+  login: required
+
+- url: /person(.*)
+  script: controllers/person.py
+  login: required
+
 - url: /user(.*)
   script: controllers/user.py
   login: required
 
-- url: /classifiers(.*)
+- url: /classifier(.*)
   script: controllers/classifier.py
   login: required
-

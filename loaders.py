@@ -42,7 +42,7 @@ class PersonLoader(bulkloader.Loader):
 			[('key_name', get_utf8_str),
 			 ('forename', get_utf8_str),
 			 ('surname', get_utf8_str),
-			 ('person_id', get_utf8_str),
+			 ('idcode', get_utf8_str),
 			 ('gender', get_utf8_str),
 			 ('birth_date', get_date_from_str),
 			])
