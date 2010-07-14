@@ -40,6 +40,10 @@ handlers:
 
 
 #protected controllers
+- url: /delete(.*)
+  script: controllers/delete.py
+  login: required
+
 - url: /dashboard
   script: controllers/dashboard.py
   login: required
