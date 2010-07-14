@@ -39,6 +39,18 @@ class Classifier(db.Model):
 	values			= db.StringListProperty()
 
 
+class Curriculum(search.SearchableModel):
+	name				= db.StringProperty()
+	code				= db.StringProperty()
+	tags				= db.StringListProperty()
+	level_of_education	= db.StringProperty()
+	form_of_training	= db.StringProperty()
+	nominalYears		= db.IntegerProperty()
+	nominalCreditPoints	= db.IntegerProperty()
+	degree				= db.StringProperty()
+	manager				= db.ReferenceProperty(Person, collection_name='managed_curriculums')
+
+
 class RatingScale(db.Model):
 	name			= db.StringProperty()
 

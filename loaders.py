@@ -48,11 +48,11 @@ def get_list(s):
 class PersonLoader(bulkloader.Loader):
 	def __init__(self):
 		bulkloader.Loader.__init__(self, 'Person',
-			[('key_name', get_utf8_str),
+			[('key_name', get_utf8_str),			# old_id
 			 ('forename', get_utf8_str),
 			 ('surname', get_utf8_str),
 			 ('idcode', get_utf8_str),
-			 ('gender', get_utf8_str),
+			 ('gender', get_utf8_str),				# Classifier
 			 ('birth_date', get_date_from_str),
 			])
 	
@@ -83,6 +83,24 @@ class RoleLoader(bulkloader.Loader):
 		entity.save()
 
 
+class CurriculumLoader(bulkloader.Loader):
+	def __init__(self):
+		bulkloader.Loader.__init__(self, 'Curriculum',
+			[('key_name', get_utf8_str),			# old_id
+			 ('name', get_utf8_str),
+			 ('code', get_utf8_str),
+			 ('tags', get_list),
+			 ('level_of_education', get_utf8_str),	# Classifier
+			 ('form_of_training', get_utf8_str),	# Classifier
+			 ('nominalYears', int),
+			 ('nominalCreditPoints', int),
+			 ('degree', get_utf8_str),				# Classifier
+			])
+		
+	def handle_entity(self, entity):
+		entity.save()
+
+
 class RatingScaleLoader(bulkloader.Loader):
 	def __init__(self):
 		bulkloader.Loader.__init__(self, 'RatingScale',
@@ -108,4 +126,4 @@ class SubjectLoader(bulkloader.Loader):
 		entity.save()
 
 
-loaders = [PersonLoader, ContactLoader, RoleLoader, RatingScaleLoader, SubjectLoader]
+loaders = [PersonLoader, ContactLoader, RoleLoader, CurriculumLoader, RatingScaleLoader, SubjectLoader]
