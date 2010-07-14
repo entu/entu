@@ -86,6 +86,30 @@ class RoleLoader(bulkloader.Loader):
 		entity.save()
 
 
+# Common
+
+
+Class DictionaryLoader(bulkloader.Loader):
+	def __init__(self):
+		bulkloader.Loader.__init__(self, 'Dictionary',
+			[('kind', get_utf8_str),
+			 ('entity_key', get_utf8_str),
+			 ('property', get_utf8_str),
+			 ('language', get_utf8_str),			# Classifier
+			 ('value', get_utf8_str),
+			])
+
+
+Class ClassifierLoader(bulkloader.Loader):
+	def __init__(self):
+		bulkloader.Loader.__init__(self, 'Classifier',
+			[('key_name', get_utf8_str),			# old_id
+			 ('type', get_utf8_str),
+			 ('language', get_utf8_str),			# Classifier
+			 ('value', get_utf8_str),
+			])
+
+
 #CURRICULUM
 
 class CurriculumLoader(bulkloader.Loader):
@@ -132,4 +156,12 @@ class SubjectLoader(bulkloader.Loader):
 		entity.save()
 
 
-loaders = [PersonLoader, ContactLoader, RoleLoader, CurriculumLoader, RatingScaleLoader, SubjectLoader]
+loaders = [ ClassifierLoader,
+			PersonLoader,
+			ContactLoader,
+			RoleLoader,
+			CurriculumLoader,
+			RatingScaleLoader,
+			SubjectLoader,
+			DictionaryLoader
+		  ]

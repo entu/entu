@@ -33,22 +33,35 @@ class Role(db.Model):
 	value  			= db.StringProperty()
 
 
+# Common
+
+
+class Dictionary(search.SearchableModel):
+	kind			= db.StringProperty()
+	entity_key		= db.StringProperty()
+	property		= db.StringProperty()
+	language		= db.StringProperty()
+	value			= db.StringProperty()
+
+
 class Classifier(db.Model):
 	create_date 	= db.DateTimeProperty(auto_now_add=True)
 	name			= db.StringProperty()
 	values			= db.StringListProperty()
 
 
+# Curriculum
+
 class Curriculum(search.SearchableModel):
-	name				= db.StringProperty()
-	code				= db.StringProperty()
-	tags				= db.StringListProperty()
-	level_of_education	= db.StringProperty()
-	form_of_training	= db.StringProperty()
-	nominal_years		= db.IntegerProperty()
+	name					= db.StringProperty()
+	code					= db.StringProperty()
+	tags					= db.StringListProperty()
+	level_of_education		= db.StringProperty()
+	form_of_training		= db.StringProperty()
+	nominal_years			= db.IntegerProperty()
 	nominal_credit_points	= db.IntegerProperty()
-	degree				= db.StringProperty()
-	manager				= db.ReferenceProperty(Person, collection_name='managed_curriculums')
+	degree					= db.StringProperty()
+	manager					= db.ReferenceProperty(Person, collection_name='managed_curriculums')
 
 
 class RatingScale(db.Model):
