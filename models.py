@@ -1,5 +1,5 @@
 from google.appengine.ext import db
-from google.appengine.ext import search  
+from google.appengine.ext import search
 from google.appengine.api import users
 
 
@@ -45,8 +45,8 @@ class Curriculum(search.SearchableModel):
 	tags				= db.StringListProperty()
 	level_of_education	= db.StringProperty()
 	form_of_training	= db.StringProperty()
-	nominalYears		= db.IntegerProperty()
-	nominalCreditPoints	= db.IntegerProperty()
+	nominal_years		= db.IntegerProperty()
+	nominal_credit_points	= db.IntegerProperty()
 	degree				= db.StringProperty()
 	manager				= db.ReferenceProperty(Person, collection_name='managed_curriculums')
 

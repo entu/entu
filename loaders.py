@@ -1,6 +1,6 @@
 from google.appengine.tools import bulkloader
-from google.appengine.ext import db 
-from google.appengine.ext import search  
+from google.appengine.ext import db
+from google.appengine.ext import search
 import datetime
 import sys
 import os.path
@@ -21,13 +21,11 @@ def get_date_from_str(s):
 	else:
 		return None
 
-
 def get_utf8_str(s):
 	if s:
 		return s.decode('utf-8')
 	else:
 		return None
-
 
 def get_person_key(s):
 	if s:
@@ -35,6 +33,11 @@ def get_person_key(s):
 	else:
 		return None
 
+def get_ratingscale_key(s):
+	if s:
+		return db.Key.from_path('RatingScale', s.decode('utf-8'))
+	else:
+		return None
 
 def get_list(s):
 	if s:
@@ -43,7 +46,7 @@ def get_list(s):
 		return None
 
 
-
+#PERSONS DATA
 
 class PersonLoader(bulkloader.Loader):
 	def __init__(self):
@@ -55,7 +58,7 @@ class PersonLoader(bulkloader.Loader):
 			 ('gender', get_utf8_str),				# Classifier
 			 ('birth_date', get_date_from_str),
 			])
-	
+
 	def handle_entity(self, entity):
 		entity.save()
 
@@ -67,7 +70,7 @@ class ContactLoader(bulkloader.Loader):
 			 ('type', get_utf8_str),
 			 ('value', get_utf8_str),
 			])
-	
+
 	def handle_entity(self, entity):
 		entity.save()
 
@@ -78,10 +81,12 @@ class RoleLoader(bulkloader.Loader):
 			[('person', get_person_key),
 			 ('value', get_utf8_str),
 			])
-	
+
 	def handle_entity(self, entity):
 		entity.save()
 
+
+#CURRICULUM
 
 class CurriculumLoader(bulkloader.Loader):
 	def __init__(self):
@@ -92,11 +97,11 @@ class CurriculumLoader(bulkloader.Loader):
 			 ('tags', get_list),
 			 ('level_of_education', get_utf8_str),	# Classifier
 			 ('form_of_training', get_utf8_str),	# Classifier
-			 ('nominalYears', int),
-			 ('nominalCreditPoints', int),
+			 ('nominal_years', int),
+			 ('nominal_credit_points', int),
 			 ('degree', get_utf8_str),				# Classifier
 			])
-		
+
 	def handle_entity(self, entity):
 		entity.save()
 
@@ -104,9 +109,10 @@ class CurriculumLoader(bulkloader.Loader):
 class RatingScaleLoader(bulkloader.Loader):
 	def __init__(self):
 		bulkloader.Loader.__init__(self, 'RatingScale',
-			[('name', get_utf8_str),
+			[('key_name', get_utf8_str),
+			 ('name', get_utf8_str),
 			])
-	
+
 	def handle_entity(self, entity):
 		entity.save()
 
@@ -119,9 +125,9 @@ class SubjectLoader(bulkloader.Loader):
 			 ('code', get_utf8_str),
 			 ('tags', get_list),
 			 ('credit_points', float),
-			 ('rating_scale', get_utf8_str),
+			 ('rating_scale', get_ratingscale_key),
 			])
-	
+
 	def handle_entity(self, entity):
 		entity.save()
 
