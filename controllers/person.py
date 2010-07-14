@@ -22,7 +22,7 @@ class Search(webapp.RequestHandler):
 
 			boView(self, '', 'person_search.html', {'persons': persons, 'search': searchstr})
 		else:
-			boView(self, '', 'search_error.html')
+			boView(self, '', 'person_search.html')
 
 
 
