@@ -39,11 +39,15 @@ class Classifier(db.Model):
 	values			= db.StringListProperty()
 
 
+class RatingScale(db.Model):
+	name			= db.StringProperty()
+
+
 class Subject(search.SearchableModel):
 	create_date 	= db.DateTimeProperty(auto_now_add=True)
 	code			= db.StringProperty()
 	name			= db.StringProperty()
 	tags			= db.StringListProperty()
 	credit_points	= db.FloatProperty()
-	valuation		= db.StringProperty()
+	rating_scale	= db.ReferenceProperty(RatingScale, collection_name='subjects')
 

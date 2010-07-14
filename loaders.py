@@ -83,6 +83,16 @@ class RoleLoader(bulkloader.Loader):
 		entity.save()
 
 
+class RatingScaleLoader(bulkloader.Loader):
+	def __init__(self):
+		bulkloader.Loader.__init__(self, 'RatingScale',
+			[('name', get_utf8_str),
+			])
+	
+	def handle_entity(self, entity):
+		entity.save()
+
+
 class SubjectLoader(bulkloader.Loader):
 	def __init__(self):
 		bulkloader.Loader.__init__(self, 'Subject',
@@ -91,11 +101,11 @@ class SubjectLoader(bulkloader.Loader):
 			 ('code', get_utf8_str),
 			 ('tags', get_list),
 			 ('credit_points', float),
-			 ('valuation', get_utf8_str),
+			 ('rating_scale', get_utf8_str),
 			])
 	
 	def handle_entity(self, entity):
 		entity.save()
 
 
-loaders = [PersonLoader, ContactLoader, RoleLoader, SubjectLoader]
+loaders = [PersonLoader, ContactLoader, RoleLoader, RatingScaleLoader, SubjectLoader]
