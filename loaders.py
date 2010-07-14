@@ -36,6 +36,15 @@ def get_person_key(s):
 		return None
 
 
+def get_list(s):
+	if s:
+		return [s.decode('utf-8')]
+	else:
+		return None
+
+
+
+
 class PersonLoader(bulkloader.Loader):
 	def __init__(self):
 		bulkloader.Loader.__init__(self, 'Person',
@@ -74,4 +83,19 @@ class RoleLoader(bulkloader.Loader):
 		entity.save()
 
 
-loaders = [PersonLoader, ContactLoader, RoleLoader]
+class SubjectLoader(bulkloader.Loader):
+	def __init__(self):
+		bulkloader.Loader.__init__(self, 'Subject',
+			[('key_name', get_utf8_str),
+			 ('name', get_utf8_str),
+			 ('code', get_utf8_str),
+			 ('tags', get_list),
+			 ('credit_points', float),
+			 ('valuation', get_utf8_str),
+			])
+	
+	def handle_entity(self, entity):
+		entity.save()
+
+
+loaders = [PersonLoader, ContactLoader, RoleLoader, SubjectLoader]

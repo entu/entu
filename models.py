@@ -34,6 +34,16 @@ class Role(db.Model):
 
 
 class Classifier(db.Model):
+	create_date 	= db.DateTimeProperty(auto_now_add=True)
 	name			= db.StringProperty()
 	values			= db.StringListProperty()
+
+
+class Subject(search.SearchableModel):
+	create_date 	= db.DateTimeProperty(auto_now_add=True)
+	code			= db.StringProperty()
+	name			= db.StringProperty()
+	tags			= db.StringListProperty()
+	credit_points	= db.FloatProperty()
+	valuation		= db.StringProperty()
 
