@@ -25,7 +25,7 @@ class Person(search.SearchableModel):
     forename    = db.StringProperty()
     surname     = db.StringProperty()
     idcode      = db.StringProperty()
-    gender      = db.ReferenceProperty(Classifier, collection_name='person_genders')
+    gender      = db.StringProperty()
     birth_date  = db.DateProperty()
     identities  = db.StringListProperty()
 
@@ -37,7 +37,7 @@ class PersonPreferences(db.Model):
 class Contact(db.Model):
     create_date     = db.DateTimeProperty(auto_now_add=True)
     person          = db.ReferenceProperty(Person, collection_name='contacts')
-    type            = db.ReferenceProperty(Classifier, collection_name='contact_types')
+    type            = db.StringProperty()
     value           = db.StringProperty()
     activation_key  = db.StringProperty()
 

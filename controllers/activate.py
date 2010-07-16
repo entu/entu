@@ -41,7 +41,7 @@ class Activate(webapp.RequestHandler):
             message.html = boTranslate('activation_email') % link
             message.send()
 
-            self.response.out.write(boTranslate('registration_info_sent') % email)
+            self.response.out.write(boTranslate('registration_sent') % email)
 
 def main():
     boWSGIApp([

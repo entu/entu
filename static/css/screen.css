@@ -27,21 +27,7 @@ hr {
 
 
 #header {
-	background-position: 10px bottom;
-	background-repeat: no-repeat;
-	background-image: url(/images/logo_small.png);
-	height: 20px;
-}
-
-#header p a {
-	color: gray;
-	margin-left: 10px;
-
-}
-
-#menu {
-	padding: 30px 5px 0px 5px;
-	text-align: right;
+	padding: 0px 0px 0px 0px;
 	background-position: 10px bottom;
 	background-repeat: no-repeat;
 	background-image: url(/images/logo_small.png);
@@ -65,8 +51,22 @@ hr {
 	color: gray;
 }
 
+h1 {
+    margin: 0px;
+    padding: 0px;
+}
 
-h2 , h2 a, h2 a:visited {
+h1 a, h1 a:hover, h1 a:active, h1 a:visited {
+	font-family: 'Reenie Beanie', arial, serif;
+    font-size: 25px;
+    padding: 15px 0px 5px 100px;
+    margin: 0px;
+    display: block;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+h2, h2 a, h2 a:visited {
 	margin: 0px;
 	margin-top: -0.3em;
 	margin-bottom: 5px;
