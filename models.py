@@ -37,9 +37,9 @@ class Role(db.Model):
 
 
 class Dictionary(search.SearchableModel):
-	kind			= db.StringProperty()
+	kind_name		= db.StringProperty()
 	entity_key		= db.StringProperty()
-	property		= db.StringProperty()
+	name			= db.StringProperty()
 	language		= db.StringProperty()
 	value			= db.StringProperty()
 
@@ -47,7 +47,7 @@ class Dictionary(search.SearchableModel):
 class Classifier(db.Model):
 	create_date 	= db.DateTimeProperty(auto_now_add=True)
 	name			= db.StringProperty()
-	values			= db.StringListProperty()
+	value			= db.StringProperty() 	# Represents name in Dictionary
 
 
 # Curriculum
