@@ -5,7 +5,9 @@ from boFunctions import *
 class Dashboard(webapp.RequestHandler):
 	def get(self):
 		
-		boView(self, 'dashboard', 'dashboard.html')
+		page_meta = '<link rel="stylesheet" type="text/css" media="screen" href="/css/slickmap.css" />'
+		
+		boView(self, 'dashboard', 'dashboard.html', { 'page_meta': page_meta })
 
 
 def main():
