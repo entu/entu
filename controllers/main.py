@@ -3,10 +3,10 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 
 
 class MainHandler(webapp.RequestHandler):
-    
+
     def get(self, path = None):
-		print ''
-    	
+        print ''
+
 
 
 def main():

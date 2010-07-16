@@ -6,23 +6,23 @@ import urllib
 
 
 class List(webapp.RequestHandler):
-	def get(self, a = None):
-		b = a.split('/')
-		print b[-2:]
+    def get(self, a = None):
+        b = a.split('/')
+        print b[-2:]
 
 
 class Search(webapp.RequestHandler):
 
-	def get(self, searchstr = None):
+    def get(self, searchstr = None):
 
-		searchstr = urllib.unquote(searchstr).decode('utf8')[1:]
+        searchstr = urllib.unquote(searchstr).decode('utf8')[1:]
 
-		if searchstr:
-			persons = Person.all().search(searchstr).fetch(100)
+        if searchstr:
+            persons = Person.all().search(searchstr).fetch(100)
 
-			boView(self, '', 'person_search.html', {'persons': persons, 'search': searchstr})
-		else:
-			boView(self, '', 'person_search.html')
+            boView(self, '', 'person_search.html', {'persons': persons, 'search': searchstr})
+        else:
+            boView(self, '', 'person_search.html')
 
 
 
@@ -30,10 +30,10 @@ class Search(webapp.RequestHandler):
 
 
 def main():
-	boWSGIApp([
-			(r'/person/search(.*)', Search),
-			(r'/person/(.*)', List)
-		])
+    boWSGIApp([
+            (r'/person/search(.*)', Search),
+            (r'/person/(.*)', List)
+        ])
 
 
 if __name__ == '__main__':
