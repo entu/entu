@@ -1,25 +1,25 @@
 <ul>
 {% for person in persons %}
-	<li>
-		{{ person.forename }}, {{ person.surname }}
-		<ul>
-			<li>
-				Contacts:
-				<ul>
-				{% for contact in person.contacts %}
-					<li>{{ contact.type }}: {{ contact.value }}</li>
-				{% endfor %}
-				</ul>
-			</li>
-			<li>
-				Roles:
-				<ul>
-				{% for role in person.roles %}
-					<li>{{ role.value }}</li>
-				{% endfor %}
-				</ul>
-			</li>
-		</ul>
-	</li>
+    <li>
+        {{ person.forename }}, {{ person.surname }}
+        <ul>
+            <li>
+                Contacts:
+                <ul>
+                {% for contact in person.contacts %}
+                    <li>{{ contact.type }}: {{ contact.value }}</li>
+                {% endfor %}
+                </ul>
+            </li>
+            <li>
+                Roles:
+                <ul>
+                {% for role in person.roles %}
+                    <li>{{ role.value }}</li>
+                {% endfor %}
+                </ul>
+            </li>
+        </ul>
+    </li>
 {% endfor %}
 </ul>

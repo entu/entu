@@ -7,11 +7,11 @@
 <b>{{ str.classifiers }}</b>:<br />
 
 {% for classifier in classifiers %}
-	{{ classifier.name }}: 
-	{% for value in classifier.values %}
-		{{ value }}, 
-	{% endfor %}
-	<br />
+    {{ classifier.name }}:
+    {% for value in classifier.values %}
+        {{ value }},
+    {% endfor %}
+    <br />
 {% endfor %}
 
 
@@ -19,8 +19,8 @@
 
 <form method="post" action="">
 {% for field in form %}
-	{{ field.label }}:<br />
-	{{ field }}<br />
+    {{ field.label }}:<br />
+    {{ field }}<br />
 {% endfor %}
 </form>
 
