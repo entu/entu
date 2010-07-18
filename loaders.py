@@ -172,5 +172,5 @@ loaders = [
             CurriculumLoader,
             RatingScaleLoader,
             SubjectLoader,
-            DictionaryLoader
+#            DictionaryLoader,
           ]
