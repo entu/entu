@@ -92,19 +92,19 @@ class RoleLoader(bulkloader.Loader):
 # Common
 
 
-#Class DictionaryLoader(bulkloader.Loader):
-#    def __init__(self):
-#        bulkloader.Loader.__init__(self, 'Dictionary',
-#            [
-#             ('kind', get_utf8_str),
-#             ('entity_key', get_utf8_str),
-#             ('property', get_utf8_str),
-#             ('language', get_utf8_str),            # Classifier
-#             ('value', get_utf8_str),
-#            ])
+class DictionaryLoader(bulkloader.Loader):
+    def __init__(self):
+        bulkloader.Loader.__init__(self, 'Dictionary',
+            [
+             ('kind', get_utf8_str),
+             ('entity_key', get_utf8_str),
+             ('property', get_utf8_str),
+             ('language', get_utf8_str),            # Classifier
+             ('value', get_utf8_str),
+            ])
 
 
-Class ClassifierLoader(bulkloader.Loader):
+class ClassifierLoader(bulkloader.Loader):
     def __init__(self):
         bulkloader.Loader.__init__(self, 'Classifier',
             [
@@ -172,5 +172,5 @@ loaders = [
             CurriculumLoader,
             RatingScaleLoader,
             SubjectLoader,
-#            DictionaryLoader,
+            DictionaryLoader,
           ]
