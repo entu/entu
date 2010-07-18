@@ -52,6 +52,10 @@ handlers:
   script: controllers/person.py
   login: required
 
+- url: /curriculum(.*)
+  script: controllers/curriculum.py
+  login: required
+
 - url: /user(.*)
   script: controllers/user.py
   login: required
