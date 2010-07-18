@@ -92,16 +92,16 @@ class RoleLoader(bulkloader.Loader):
 # Common
 
 
-Class DictionaryLoader(bulkloader.Loader):
-    def __init__(self):
-        bulkloader.Loader.__init__(self, 'Dictionary',
-            [
-             ('kind', get_utf8_str),
-             ('entity_key', get_utf8_str),
-             ('property', get_utf8_str),
-             ('language', get_utf8_str),            # Classifier
-             ('value', get_utf8_str),
-            ])
+#Class DictionaryLoader(bulkloader.Loader):
+#    def __init__(self):
+#        bulkloader.Loader.__init__(self, 'Dictionary',
+#            [
+#             ('kind', get_utf8_str),
+#             ('entity_key', get_utf8_str),
+#             ('property', get_utf8_str),
+#             ('language', get_utf8_str),            # Classifier
+#             ('value', get_utf8_str),
+#            ])
 
 
 Class ClassifierLoader(bulkloader.Loader):
@@ -121,15 +121,15 @@ class CurriculumLoader(bulkloader.Loader):
     def __init__(self):
         bulkloader.Loader.__init__(self, 'Curriculum',
             [
-             ('key_name', get_utf8_str),            # old_id
+             ('key_name', get_utf8_str),          		# old_id
              ('name', get_utf8_str),
              ('code', get_utf8_str),
              ('tags', get_list),
-             ('level_of_education', get_utf8_str),    # Classifier
-             ('form_of_training', get_utf8_str),    # Classifier
+             ('level_of_education', get_utf8_str),    	# Classifier
+             ('form_of_training', get_utf8_str),    	# Classifier
              ('nominal_years', int),
              ('nominal_credit_points', int),
-             ('degree', get_utf8_str),                # Classifier
+             ('degree', get_utf8_str),                	# Classifier
             ])
 
     def handle_entity(self, entity):
