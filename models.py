@@ -14,21 +14,17 @@ class AccessLog(db.Model):
 
 class Dictionary(db.Model):
     name        = db.StringProperty()
+    value       = db.StringProperty()
 #------
     access_log  = db.StringListProperty()
 
 class Translation(search.SearchableModel):
-    language    = db.StringProperty()
-    value       = db.StringProperty()
-    dictionary  = db.ReferenceProperty(Dictionary, collection_name='translations')
+    dictionary      = db.ReferenceProperty(Dictionary, collection_name='translations')
+    language        = db.StringProperty()
+    value           = db.StringProperty()
 #------
     access_log  = db.StringListProperty()
 
-class Classifier(db.Model):
-    name        = db.StringProperty()
-    value       = db.ReferenceProperty(Dictionary, collection_name='classifiers')
-#------
-    access_log  = db.StringListProperty()
 
 
 # Person
@@ -45,7 +41,7 @@ class Person(search.SearchableModel):
 
 class PersonPreferences(db.Model):
     person      = db.ReferenceProperty(Person, collection_name='preferences')
-    language    = db.ReferenceProperty(Classifier, collection_name='person_languages')
+    language    = db.ReferenceProperty(Dictionary, collection_name='person_languages')
     avatar      = db.BlobProperty()
 #------
     access_log  = db.StringListProperty()
@@ -76,15 +72,15 @@ class PersonRole(db.Model):
 
 # Curriculum
 
-class Curriculum(search.SearchableModel):
+class Curriculum(db.Model):
     name                    = db.ReferenceProperty(Dictionary, collection_name='curriculums')
     code                    = db.StringProperty()
     tags                    = db.StringListProperty()
-    level_of_education      = db.ReferenceProperty(Classifier, collection_name='curriculum_level_of_educations')
-    form_of_training        = db.ReferenceProperty(Classifier, collection_name='curriculum_form_of_trainings')
+    level_of_education      = db.ReferenceProperty(Dictionary, collection_name='curriculum_level_of_educations')
+    form_of_training        = db.ReferenceProperty(Dictionary, collection_name='curriculum_form_of_trainings')
     nominal_years           = db.IntegerProperty()
     nominal_credit_points   = db.IntegerProperty()
-    degree                  = db.ReferenceProperty(Classifier, collection_name='curriculum_degree')
+    degree                  = db.ReferenceProperty(Dictionary, collection_name='curriculum_degrees')
     manager                 = db.ReferenceProperty(Person, collection_name='managed_curriculums')
 #------
     access_log  = db.StringListProperty()
@@ -158,8 +154,8 @@ class ModuleSubject(db.Model):
     subject     = db.ReferenceProperty(Subject, collection_name='modules')
 #------
     access_log  = db.StringListProperty()
-    
-    
+
+
 class SubjectSession(db.Model):
     subscription_start_date = db.DateTimeProperty(auto_now_add=True)
     subscription_end_date   = db.DateTimeProperty(auto_now_add=True)

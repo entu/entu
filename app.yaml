@@ -60,6 +60,6 @@ handlers:
   script: controllers/user.py
   login: required
 
-- url: /classifier(.*)
-  script: controllers/classifier.py
+- url: /dictionary(.*)
+  script: controllers/dictionary.py
   login: required

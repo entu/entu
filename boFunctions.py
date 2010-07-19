@@ -10,6 +10,12 @@ from models import *
 from translations.estonian import *
 
 
+
+SYSTEM_LANGUAGES = ['estonian', 'english']
+
+
+
+
 def boView(self, page_title, templatefile, values={}):
     values['str'] = TRANSLATION
     if page_title:
@@ -43,6 +49,20 @@ def boUser():
     if user:
         if user.federated_identity():
             return db.Query(Person).filter('identities =', user.federated_identity()).get()
+
+
+def boUserLanguage():
+    return 'estonian'
+
+
+def boGetDictionary(name):
+    dic = db.Query(Dictionary).filter('name = ', name).fetch(1000)
+
+    result = []
+    for value in dic:
+        result.append({'key': value.key, 'value': value.translations[boUserLanguage()] })
+
+    return result
 
 
 def boRescale(img_data, width, height, halign='middle', valign='middle'):

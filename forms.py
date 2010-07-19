@@ -11,6 +11,7 @@ class PersonForm(Form):
                                                                ])
 
 
-class ClassifiersForm(Form):
+class DictionariesForm(Form):
     name = TextField(boTranslate('name'), [validators.Required()])
-    values = TextAreaField(boTranslate('values'))
+    value = TextField(boTranslate('value'), [validators.Required()])
+    translations = FieldList(TextField('Name', [validators.required()]), min_entries=3)

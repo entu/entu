@@ -4,12 +4,10 @@
 
 {% include "header.html" %}
 
-<b>{{ str.classifiers }}</b>:<br />
-
-{% for classifier in classifiers %}
-    {{ classifier.name }}:
-    {% for value in classifier.values %}
-        {{ value }},
+{% for dic in dictionaries %}
+    {{ dic.name }} - {{ dic.value }}:
+    {% for translation in dic.translations %}
+        {{ translation.value }}: {{ translation.value }}<br />
     {% endfor %}
     <br />
 {% endfor %}
