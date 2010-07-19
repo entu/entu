@@ -2,10 +2,13 @@
 
 TRANSLATION = {
     '':                     '',
+    'add_new':				'Lisa uus',
     'activation_email':     'Kutsun Sind kasutama ÕIS\'i.<br /><br />Kutse aktsepteerimiseks kliki alloleval viitel, või kopeeri see enda brauseri aadressiribale:<br /><br />%s<br /><br /><br /><br />Tänud!',
     'activation_subject':   ' ÕIS\'i kutse',
     'avatar':               'Avatar',
     'classifiers':          'Klassifikaatorid',
+    'code':					'Kood',
+    'curriculum':           'Õppekava',
     'curriculums':          'Õppekavad',
     'dashboard':            'Armatuurlaud',
     'degree':               'Kraad',
@@ -37,8 +40,11 @@ TRANSLATION = {
     'send_invate':          'Saada kutse',
     'surname':              'Perekonnanimi',
     'system_preferences':   'Süsteemi sätungid',
+    'tag':					'Silt',
     'tags':                 'Sildid',
+    'title':				'Nimetus',
     'user_preferences':     'Kasutaja seaded',
+    'value':                'Väärtus',
     'values':               'Väärtused',
     'version':              'Versioon',
 

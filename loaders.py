@@ -103,6 +103,9 @@ class DictionaryLoader(bulkloader.Loader):
              ('value', get_utf8_str),
             ])
 
+    def handle_entity(self, entity):
+        entity.save()
+
 
 class ClassifierLoader(bulkloader.Loader):
     def __init__(self):
@@ -113,6 +116,9 @@ class ClassifierLoader(bulkloader.Loader):
              ('language', get_utf8_str),            # Classifier
              ('value', get_utf8_str),
             ])
+
+    def handle_entity(self, entity):
+        entity.save()
 
 
 #CURRICULUM
