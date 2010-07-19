@@ -39,6 +39,18 @@ def get_ratingscale_key(s):
     else:
         return None
 
+def get_classifier_key(s):
+    if s:
+        return db.Key.from_path('Classifier', s.decode('utf-8'))
+    else:
+        return None
+
+def get_dictionary_key(s):
+    if s:
+        return db.Key.from_path('Dictionary', s.decode('utf-8'))
+    else:
+        return None
+
 def get_list(s):
     if s:
         return [s.decode('utf-8')]
@@ -128,14 +140,14 @@ class CurriculumLoader(bulkloader.Loader):
         bulkloader.Loader.__init__(self, 'Curriculum',
             [
              ('key_name', get_utf8_str),          		# old_id
-             ('name', get_utf8_str),
+             ('name', get_dictionary_key),
              ('code', get_utf8_str),
              ('tags', get_list),
-             ('level_of_education', get_utf8_str),    	# Classifier
-             ('form_of_training', get_utf8_str),    	# Classifier
+             ('level_of_education', get_classifier_key),    	# Classifier
+             ('form_of_training', get_classifier_key),    	# Classifier
              ('nominal_years', int),
              ('nominal_credit_points', int),
-             ('degree', get_utf8_str),                	# Classifier
+             ('degree', get_classifier_key),                	# Classifier
             ])
 
     def handle_entity(self, entity):
