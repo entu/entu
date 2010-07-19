@@ -16,17 +16,12 @@ class Search(webapp.RequestHandler):
     def get(self, searchstr = None):
 
         searchstr = urllib.unquote(searchstr).decode('utf8')[1:]
+        persons = []
 
         if searchstr:
             persons = Person.all().search(searchstr).fetch(100)
 
-            boView(self, '', 'person_search.html', {'persons': persons, 'search': searchstr})
-        else:
-            boView(self, '', 'person_search.html')
-
-
-
-
+        boView(self, 'persons', 'person_search.html', {'persons': persons, 'search': searchstr})
 
 
 def main():

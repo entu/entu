@@ -25,7 +25,6 @@ class DisplayClassifiers(webapp.RequestHandler):
             else:
                 classifier.delete()
 
-
         self.redirect('')
 
 
