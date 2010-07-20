@@ -33,7 +33,7 @@ class Person(search.SearchableModel):
     forename    = db.StringProperty()
     surname     = db.StringProperty()
     idcode      = db.StringProperty()
-    gender      = db.StringProperty()
+    gender      = db.ReferenceProperty(Dictionary, collection_name='genders')
     birth_date  = db.DateProperty()
     identities  = db.StringListProperty()
 #------
@@ -115,7 +115,7 @@ class GradeDefinition(db.Model):
     name            = db.ReferenceProperty(Dictionary, collection_name='grade_definitions')
     positive        = db.BooleanProperty()
     equivivalent    = db.RatingProperty()
-    rating_scale    = db.ReferenceProperty(RatingScale, collection_name='grades')
+    scale           = db.ReferenceProperty(RatingScale, collection_name='grades')
 #------
     access_log      = db.StringListProperty()
 
@@ -126,6 +126,7 @@ class Subject(search.SearchableModel):
     tags            = db.StringListProperty()
     credit_points   = db.FloatProperty()
     rating_scale    = db.ReferenceProperty(RatingScale, collection_name='subjects')
+    manager         = db.ReferenceProperty(Person, collection_name='managed_subjects')
 #------
     access_log      = db.StringListProperty()
 
@@ -134,8 +135,9 @@ class Module(search.SearchableModel):
     name            = db.ReferenceProperty(Dictionary, collection_name='modules')
     code            = db.StringProperty()
     tags            = db.StringListProperty()
-    curriculum      = db.ReferenceProperty(Curriculum, collection_name='modules')
+    orientation     = db.ReferenceProperty(Orientation, collection_name='modules')
     manager         = db.ReferenceProperty(Person, collection_name='managed_modules')
+    minimal_credit_points
 #------
     access_log      = db.StringListProperty()
 
