@@ -137,7 +137,7 @@ class CurriculumLoader(bulkloader.Loader):
              ('level_of_education', get_dictionary_key),
              ('form_of_training', get_dictionary_key),
              ('nominal_years', int),
-             ('nominal_credit_points', float),
+             ('nominal_credit_points', long),
              ('degree', get_dictionary_key),
             ])
 
