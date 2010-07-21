@@ -79,7 +79,7 @@ class Curriculum(db.Model):
     level_of_education      = db.ReferenceProperty(Dictionary, collection_name='curriculum_level_of_educations')
     form_of_training        = db.ReferenceProperty(Dictionary, collection_name='curriculum_form_of_trainings')
     nominal_years           = db.IntegerProperty()
-    nominal_credit_points   = db.IntegerProperty()
+    nominal_credit_points   = db.FloatProperty()
     degree                  = db.ReferenceProperty(Dictionary, collection_name='curriculum_degrees')
     manager                 = db.ReferenceProperty(Person, collection_name='managed_curriculums')
 #------
