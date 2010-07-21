@@ -62,7 +62,7 @@ class PersonLoader(bulkloader.Loader):
              ('forename', get_utf8_str),
              ('surname', get_utf8_str),
              ('idcode', get_utf8_str),
-             ('gender', get_utf8_str),                # Classifier
+             ('gender', get_dictionary_key),
              ('birth_date', get_date_from_str),
             ])
 
@@ -75,7 +75,7 @@ class ContactLoader(bulkloader.Loader):
         bulkloader.Loader.__init__(self, 'Contact',
             [
              ('person', get_person_key),
-             ('type', get_utf8_str),
+             ('type', get_dictionary_key),
              ('value', get_utf8_str),
             ])
 
@@ -102,10 +102,8 @@ class DictionaryLoader(bulkloader.Loader):
     def __init__(self):
         bulkloader.Loader.__init__(self, 'Dictionary',
             [
-             ('kind', get_utf8_str),
-             ('entity_key', get_utf8_str),
-             ('property', get_utf8_str),
-             ('language', get_utf8_str),            # Classifier
+             ('key_name', get_utf8_str),          		# old_id
+             ('name', get_utf8_str),
              ('value', get_utf8_str),
             ])
 
@@ -113,13 +111,12 @@ class DictionaryLoader(bulkloader.Loader):
         entity.save()
 
 
-class ClassifierLoader(bulkloader.Loader):
+class TranslationLoader(bulkloader.Loader):
     def __init__(self):
-        bulkloader.Loader.__init__(self, 'Classifier',
+        bulkloader.Loader.__init__(self, 'Translation',
             [
-             ('key_name', get_utf8_str),            # old_id
-             ('type', get_utf8_str),
-             ('language', get_utf8_str),            # Classifier
+             ('dictionary', get_dictionary_key),
+             ('language', get_utf8_str),
              ('value', get_utf8_str),
             ])
 
@@ -137,11 +134,11 @@ class CurriculumLoader(bulkloader.Loader):
              ('name', get_dictionary_key),
              ('code', get_utf8_str),
              ('tags', get_list),
-             ('level_of_education', get_dictionary_key),    	# Classifier
-             ('form_of_training', get_dictionary_key),    	# Classifier
+             ('level_of_education', get_dictionary_key),
+             ('form_of_training', get_dictionary_key),
              ('nominal_years', int),
              ('nominal_credit_points', int),
-             ('degree', get_dictionary_key),                	# Classifier
+             ('degree', get_dictionary_key),
             ])
 
     def handle_entity(self, entity):
@@ -153,7 +150,7 @@ class RatingScaleLoader(bulkloader.Loader):
         bulkloader.Loader.__init__(self, 'RatingScale',
             [
              ('key_name', get_utf8_str),
-             ('name', get_utf8_str),
+             ('name', get_dictionary_key),
             ])
 
     def handle_entity(self, entity):
@@ -165,7 +162,7 @@ class SubjectLoader(bulkloader.Loader):
         bulkloader.Loader.__init__(self, 'Subject',
             [
              ('key_name', get_utf8_str),
-             ('name', get_utf8_str),
+             ('name', get_dictionary_key),
              ('code', get_utf8_str),
              ('tags', get_list),
              ('credit_points', float),
@@ -177,7 +174,6 @@ class SubjectLoader(bulkloader.Loader):
 
 
 loaders = [
-            ClassifierLoader,
             PersonLoader,
             ContactLoader,
             RoleLoader,
@@ -185,4 +181,5 @@ loaders = [
             RatingScaleLoader,
             SubjectLoader,
             DictionaryLoader,
+            TranslationLoader,
           ]

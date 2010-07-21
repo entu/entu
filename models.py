@@ -135,7 +135,6 @@ class Module(search.SearchableModel):
     name                    = db.ReferenceProperty(Dictionary, collection_name='modules')
     code                    = db.StringProperty()
     tags                    = db.StringListProperty()
-    orientation             = db.ReferenceProperty(Orientation, collection_name='modules')
     manager                 = db.ReferenceProperty(Person, collection_name='managed_modules')
     minimum_credit_points   = db.FloatProperty()
     minimum_subject_count   = db.IntegerProperty()
