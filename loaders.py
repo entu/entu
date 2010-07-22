@@ -45,6 +45,12 @@ def get_dictionary_key(s):
     else:
         return None
 
+def get_curriculum_key(s):
+    if s:
+        return db.Key.from_path('Curriculum', s.decode('utf-8'))
+    else:
+        return None
+
 def get_list(s):
     if s:
         return [s.decode('utf-8')]
@@ -130,15 +136,30 @@ class CurriculumLoader(bulkloader.Loader):
     def __init__(self):
         bulkloader.Loader.__init__(self, 'Curriculum',
             [
-             ('key_name', get_utf8_str),          		# old_id
+             ('key_name', get_utf8_str),
              ('name', get_dictionary_key),
              ('code', get_utf8_str),
              ('tags', get_list),
              ('level_of_education', get_dictionary_key),
              ('form_of_training', get_dictionary_key),
              ('nominal_years', int),
-             ('nominal_credit_points', long),
+             ('nominal_credit_points', float),
              ('degree', get_dictionary_key),
+            ])
+
+    def handle_entity(self, entity):
+        entity.save()
+
+
+class OrientationLoader(bulkloader.Loader):
+    def __init__(self):
+        bulkloader.Loader.__init__(self, 'Subject',
+            [
+             ('key_name', get_utf8_str),
+             ('name', get_dictionary_key),
+             ('code', get_utf8_str),
+             ('tags', get_list),
+             ('curriculum', get_curriculum_key),
             ])
 
     def handle_entity(self, entity):
@@ -178,6 +199,7 @@ loaders = [
             ContactLoader,
             RoleLoader,
             CurriculumLoader,
+            OrientationLoader,
             RatingScaleLoader,
             SubjectLoader,
             DictionaryLoader,
