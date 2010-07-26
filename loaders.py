@@ -153,7 +153,7 @@ class CurriculumLoader(bulkloader.Loader):
 
 class OrientationLoader(bulkloader.Loader):
     def __init__(self):
-        bulkloader.Loader.__init__(self, 'Subject',
+        bulkloader.Loader.__init__(self, 'Orientation',
             [
              ('key_name', get_utf8_str),
              ('name', get_dictionary_key),
