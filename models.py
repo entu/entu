@@ -72,7 +72,7 @@ class PersonRole(db.Model):
 
 # Curriculum
 
-class Curriculum(db.Model):
+class Curriculum(search.SearchableModel):
     name                    = db.ReferenceProperty(Dictionary, collection_name='curriculums')
     code                    = db.StringProperty()
     tags                    = db.StringListProperty()
