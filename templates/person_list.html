@@ -4,10 +4,11 @@
         {{ person.forename }}, {{ person.surname }}
         <ul>
             <li>
-                Contacts:
+                {{ str.contacts }}:
                 <ul>
                 {% for contact in person.contacts %}
-                    <li>{{ contact.type }}: {{ contact.value }}</li>
+                    <li>
+                        {{ contact.contact_type }}: {{ contact.value }}</li>
                 {% endfor %}
                 </ul>
             </li>

@@ -81,7 +81,7 @@ class ContactLoader(bulkloader.Loader):
         bulkloader.Loader.__init__(self, 'Contact',
             [
              ('person', get_person_key),
-             ('type', get_dictionary_key),
+             ('contact_type', get_dictionary_key),
              ('value', get_utf8_str),
             ])
 

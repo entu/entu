@@ -48,7 +48,7 @@ class PersonPreferences(db.Model):
 
 class Contact(db.Model):
     person          = db.ReferenceProperty(Person, collection_name='contacts')
-    type            = db.StringProperty()
+    contact_type    = db.ReferenceProperty(Dictionary, collection_name='contact_types')
     value           = db.StringProperty()
     activation_key  = db.StringProperty()
 #------
