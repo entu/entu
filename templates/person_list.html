@@ -8,13 +8,13 @@
                 <ul>
                 {% for contact in person.contacts %}
                     <li>
-                        {{ contact.contact_type }}: {{ contact.value }}
+                        {{ contact.contact_type.value }}: {{ contact.value }}
                     </li>
                 {% endfor %}
                 </ul>
             </li>
             <li>
-                Roles:
+                {{ str.roles }}:
                 <ul>
                 {% for role in person.roles %}
                     <li>{{ role.value }}</li>

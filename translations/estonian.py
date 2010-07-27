@@ -35,6 +35,7 @@ TRANSLATION = {
     'persons':              'Persoonid',
     'preferences':          'Seaded',
     'registration_sent':    'Registreerumise info saadeti emailile %s!',
+    'roles':                'Rollid',
     'save':                 'Salvesta',
     'search':               'Otsi',
     'send':                 'Saada',

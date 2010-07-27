@@ -94,3 +94,8 @@ def boRescale(img_data, width, height, halign='middle', valign='middle'):
             image.crop(trim_x, 0.0, 1 - trim_x, 1.0)
 
     return image.execute_transforms()
+
+
+def boTranslate(d):
+    #d = Dictionary.get_by_key_name(str(dictionary_key))
+    return d   #d.translations[boUserLanguage()].value
