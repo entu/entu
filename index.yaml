@@ -1,0 +1,12 @@
+indexes:
+
+- kind: Person
+  properties:
+  - name: __searchable_text_index
+  - name: forename
+  - name: surname
+
+- kind: Person
+  properties:
+  - name: forename
+  - name: surname

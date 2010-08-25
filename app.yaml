@@ -1,0 +1,79 @@
+application: bonga-bonga
+version: dev
+runtime: python
+api_version: 1
+
+
+
+error_handlers:
+- error_code: over_quota
+  file: errors/quota.html
+
+- error_code: dos_api_denial
+  file: errors/dos.html
+
+- error_code: timeout
+  file: errors/timeout.html
+
+
+
+handlers:
+
+#static files
+- url: /css
+  static_dir: static/css
+
+- url: /images
+  static_dir: static/images
+
+- url: /javascript
+  static_dir: static/javascript
+
+- url: /favicon.ico
+  static_files: static/images/favicon.ico
+  upload: static/images/favicon.ico
+
+
+
+#bulka
+- url: /bulka
+  script: controllers/bulka.py
+
+
+
+#public controllers
+- url: /
+  script: controllers/frontpage.py
+
+- url: /_ah/login_required
+  script: controllers/openid_login.py
+
+- url: /activate(.*)
+  script: controllers/activate.py
+
+
+
+#protected controllers
+- url: /delete(.*)
+  script: controllers/delete.py
+  login: required
+
+- url: /dashboard
+  script: controllers/dashboard.py
+  login: required
+
+- url: /person(.*)
+  script: controllers/person.py
+  login: required
+
+- url: /curriculum(.*)
+  script: controllers/curriculum.py
+  login: required
+
+- url: /user(.*)
+  script: controllers/user.py
+  login: required
+
+- url: /dictionary(.*)
+  script: controllers/dictionary.py
+  login: required
