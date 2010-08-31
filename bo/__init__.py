@@ -6,7 +6,6 @@ from google.appengine.ext.webapp import util
 
 from bo.user import *
 from bo.settings import *
-from translations.russian import *
 
 
 def Route(url_mapping):
@@ -30,14 +29,18 @@ def View(self, page_title, templatefile, values={}):
 
 
 def Translate(key = None):
-    language = User().language()
+
+    languagefile = 'translations.' + User().current().language
+
+    l = __import__(languagefile, globals(), locals(), ['translation'], -1)
+
     if key:
-        if key in TRANSLATION:
-            return TRANSLATION[key].decode('utf8')
+        if key in l.translation():
+            return l.translation()[key].decode('utf8')
         else:
             return key
     else:
-        return TRANSLATION
+        return l.translation()
 
 
 def SendMail(to, subject, message):

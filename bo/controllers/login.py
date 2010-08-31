@@ -18,10 +18,10 @@ class OpenIdLoginHandler(webapp.RequestHandler):
         else:
             continue_url = ''
 
-        if not openid_url:
-            View(self, 'login', TEMPLATE_LOGIN, { 'continue': continue_url })
-        else:
+        if openid_url:
             self.redirect(users.create_login_url(continue_url, None, openid_url))
+        else:
+            View(self, 'login', TEMPLATE_LOGIN, { 'continue': continue_url })
 
 
 class RedirectActivate(webapp.RequestHandler):
