@@ -1,10 +1,10 @@
-import bo
+from bo import *
 from database import *
 
 import urllib
 
 
-class Search(bo.webapp.RequestHandler):
+class Search(webapp.RequestHandler):
 
     def get(self, searchstr = None):
 
@@ -15,11 +15,11 @@ class Search(bo.webapp.RequestHandler):
         if searchstr:
             d = Dictionary.all().search(searchstr).fetch(100)
 
-        bo.view(self, 'dictionary', 'dictionary_search.html', {'dictionaries': d, 'search': searchstr, 'form': form})
+        View(self, 'dictionary', 'dictionary_search.html', {'dictionaries': d, 'search': searchstr, 'form': form})
 
 
 def main():
-    bo.app([
+    Route([
             (r'/dictionary/search(.*)', Search),
         ])
 

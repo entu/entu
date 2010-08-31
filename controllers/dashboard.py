@@ -1,17 +1,17 @@
-import bo
+from bo import *
 
-class Dashboard(bo.webapp.RequestHandler):
+class Show(webapp.RequestHandler):
     def get(self):
 
         page_meta = '<link rel="stylesheet" type="text/css" media="screen" href="/css/slickmap.css" />'
 
-        bo.view(self, 'dashboard', 'dashboard.html', { 'page_meta': page_meta })
+        View(self, 'dashboard', 'dashboard.html', { 'page_meta': page_meta })
 
 
 def main():
-    bo.app([
-             ('/dashboard', Dashboard),
-            ])
+    Route([
+            ('/dashboard', Show)
+        ])
 
 
 if __name__ == '__main__':

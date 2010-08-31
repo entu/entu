@@ -2,11 +2,10 @@ from google.appengine.api import users
 from google.appengine.api import images
 import urllib
 
-import bo
-from database.person import *
+from bo import *
 
 
-class Activate(bo.webapp.RequestHandler):
+class Activate(webapp.RequestHandler):
 
     def get(self, email = None, key = None):
 
@@ -14,29 +13,26 @@ class Activate(bo.webapp.RequestHandler):
         key = urllib.unquote(key).decode('utf8')
 
         if email and key and users.get_current_user().federated_identity():
-            c = Contact().filter('type =', 'email').filter('value =', email).filter('activation_key =', key).get()
+            u = db.Query(User).filter('email =', email).filter('activation_key =', key).get()
 
-        if c:
-            c.activation_key = None
-            c.save()
+        if u:
+            ids = u.identities
+            ids.append(users.get_current_user().federated_identity())
+            u.identities = list(set(ids))
+            u.activation_key = None
+            u.save()
 
-            p = Contact().filter('__key__ =',c.person).get()
-            p.identities.append(users.get_current_user().federated_identity())
-            p.save()
-
-            self.redirect('/user/preferences')
-        else:
-            self.redirect('/')
+        self.redirect('/')
 
 
-class Preferences(bo.webapp.RequestHandler):
+class Preferences(webapp.RequestHandler):
 
     def get(self):
         p = Person.current()
         form = UserPreferencesForm(self.request.POST, p)
         form.avatar.data = None
 
-        bo.view(self, 'user_preferences', 'user_preferences.html', { 'form': form, 'person': p })
+        View(self, 'user_preferences', 'user_preferences.html', { 'form': form, 'person': p })
 
     def post(self):
         form = UserPreferencesForm(self.request.POST)
@@ -53,7 +49,7 @@ class Preferences(bo.webapp.RequestHandler):
         self.redirect('')
 
 
-class ShowAvatar(bo.webapp.RequestHandler):
+class ShowAvatar(webapp.RequestHandler):
 
     def get(self, key = None):
         try:
@@ -67,8 +63,9 @@ class ShowAvatar(bo.webapp.RequestHandler):
         except:
             pass
 
+
 def main():
-    bo.app([
+    Route([
               (r'/user/activate/(.*)/(.*)', Activate),
               (r'/user/preferences', Preferences),
               (r'/user/avatar/(.*)', ShowAvatar),

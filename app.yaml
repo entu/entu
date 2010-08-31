@@ -15,9 +15,27 @@ error_handlers:
 - error_code: timeout
   file: errors/timeout.html
 
+#- file: errors/default.html
+
 
 
 handlers:
+
+#BO Framework
+- url: /_ah/login_required
+  script: bo/controllers/login.py
+
+- url: /login(.*)
+  script: bo/controllers/login.py
+
+- url: /user(.*)
+  script: bo/controllers/user.py
+  login: required
+
+- url: /bulka
+  script: bo/controllers/bulka.py
+
+
 
 #static files
 - url: /css
@@ -35,29 +53,13 @@ handlers:
 
 
 
-#bulka
-- url: /bulka
-  script: controllers/bulka.py
-
-
-
 #public controllers
 - url: /
   script: controllers/frontpage.py
 
-- url: /_ah/login_required
-  script: controllers/openid_login.py
-
-- url: /activate(.*)
-  script: controllers/activate.py
-
 
 
 #protected controllers
-- url: /delete(.*)
-  script: controllers/delete.py
-  login: required
-
 - url: /dashboard
   script: controllers/dashboard.py
   login: required
@@ -70,10 +72,14 @@ handlers:
   script: controllers/curriculum.py
   login: required
 
-- url: /user(.*)
-  script: controllers/user.py
-  login: required
-
 - url: /dictionary(.*)
   script: controllers/dictionary.py
+  login: required
+
+- url: /delete(.*)
+  script: controllers/delete.py
+  login: required
+
+- url: /update(.*)
+  script: controllers/update.py
   login: required

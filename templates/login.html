@@ -80,7 +80,7 @@
         function registration_submit() {
             if($("input#email").val() != "") {
                 $("div#register_form").hide();
-                $.post("/activate", { "email": $("input#email").val() },
+                $.post("/login/new", { "email": $("input#email").val() },
                     function(data){
                         $("div#register_form").replaceWith(data);
                     });

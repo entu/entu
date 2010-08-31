@@ -1,17 +1,17 @@
-import bo
+from bo import *
 from database.person import *
 
 
-class Frontpage(bo.webapp.RequestHandler):
+class Frontpage(webapp.RequestHandler):
     def get(self):
-        if Person().current():
+        if User().current():
             self.redirect('/dashboard')
 
-        bo.view(self, '', 'frontpage.html')
+        View(self, '', 'frontpage.html')
 
 
 def main():
-    bo.app([
+    Route([
              ('/', Frontpage),
             ])
 

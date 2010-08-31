@@ -1,30 +1,30 @@
-import bo
+from bo import *
 from database import *
 
-import urllib
+from urllib import unquote
 
 
-class List(bo.webapp.RequestHandler):
+class List(webapp.RequestHandler):
     def get(self, a = None):
         b = a.split('/')
         print b[-2:]
 
 
-class Search(bo.webapp.RequestHandler):
+class Search(webapp.RequestHandler):
 
     def get(self, searchstr = None):
 
-        searchstr = urllib.unquote(searchstr).decode('utf8')[1:]
+        searchstr = unquote(searchstr).decode('utf8')[1:]
         curriculums = []
 
         if searchstr:
             curriculums = Curriculum.all().search(searchstr).fetch(100)
 
-        bo.view(self, 'curriculums', 'curriculum_search.html', {'curriculums': curriculums, 'search': searchstr})
+        View(self, 'curriculums', 'curriculum_search.html', {'curriculums': curriculums, 'search': searchstr})
 
 
 def main():
-    bo.app([
+    Route([
             (r'/curriculum/search(.*)', Search),
             (r'/curriculum/(.*)', List)
         ])
