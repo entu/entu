@@ -121,7 +121,7 @@ a:visited:before {
 	background-color: #e7f1d7;
 }
 #primaryNav li li:first-child {
-	padding-top: 30px;
+	padding-top: 20px;
 }
 #primaryNav li li:last-child {
 	background: url('/images/slickmaps/vertical-line.png') center bottom repeat-y;
@@ -134,7 +134,7 @@ a:visited:before {
 /* --------	Third Level --------- */
 
 #primaryNav li li ul {
-	margin: 10px 0 0 0;
+	margin: 10px 0 0 2px;
 	width: 100%;
 	float: right;
 	padding: 9px 0 10px 0;
@@ -147,9 +147,9 @@ a:visited:before {
 #primaryNav li li li a {
 	background-color: #fff7aa;
 	border-color: #e3ca4b;
-	font-size: 12px;
-	padding: 5px 0;
-	width: 80%;
+	font-size: 10px;
+	padding: 2px 5px;
+	width: 85%;
 	float: right;
 }
 #primaryNav li li li a:hover {
