@@ -1,11 +1,38 @@
 from bo import *
+from database import *
 
 class Show(webapp.RequestHandler):
     def get(self):
 
-        page_meta = '<link rel="stylesheet" type="text/css" media="screen" href="/css/slickmap.css" />'
+        c = []
+        for l in db.Query(Translation).filter('dictionary_name', 'level_of_education').filter('language', User().current().language).order('value').fetch(100):
+            c.append({
+                'link': '/curriculum/level/' + str(l.dictionary.key()),
+                'title': l.dictionary.translate(),
+            })
 
-        View(self, 'dashboard', 'dashboard.html', { 'page_meta': page_meta })
+        childs = []
+        childs.append({
+            'link': '/person',
+            'title': Translate('persons'),
+        })
+
+        childs.append({
+            'link': '/curriculum',
+            'title': Translate('curriculums'),
+            'childs': c
+        })
+
+        tree = {
+            'link': SYSTEM_URL,
+            'title': SYSTEM_TITLE,
+            'columns': 3,
+            'childs': childs,
+        }
+
+        View(self, 'dashboard', 'dashboard.html', {
+            'tree': tree,
+        })
 
 
 def main():
