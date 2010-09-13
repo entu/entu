@@ -1,0 +1,1 @@
+python2.5 /usr/local/bin/bulkloader.py --url=https://bonga-bonga.appspot.com/bulka --kind=${1} --filename="../../SVN2/trunc/Export/CSV/${2}" --config_file=../database/loaders.py --has_header
