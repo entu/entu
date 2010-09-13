@@ -12,7 +12,7 @@ sys.path.append(
             os.path.realpath(__file__))))
 
 
-from models import *
+from ..database import *
 
 
 def get_date_from_str(s):
@@ -27,15 +27,25 @@ def get_utf8_str(s):
     else:
         return None
 
-def get_person_key(s):
+def get_list(s):
     if s:
-        return db.Key.from_path('Person', s.decode('utf-8'))
+        return [s.decode('utf-8')]
     else:
         return None
 
-def get_ratingscale_key(s):
+def get_boolean(s):
     if s:
-        return db.Key.from_path('RatingScale', s.decode('utf-8'))
+        if s.decode('utf-8').strip().lower() == 'true':
+            return True
+        else:
+            return False
+    else:
+        return False
+
+
+def get_person_key(s):
+    if s:
+        return db.Key.from_path('Person', s.decode('utf-8'))
     else:
         return None
 
@@ -51,9 +61,27 @@ def get_curriculum_key(s):
     else:
         return None
 
-def get_list(s):
+def get_orientation_key(s):
     if s:
-        return [s.decode('utf-8')]
+        return db.Key.from_path('Orientation', s.decode('utf-8'))
+    else:
+        return None
+
+def get_module_key(s):
+    if s:
+        return db.Key.from_path('Module', s.decode('utf-8'))
+    else:
+        return None
+
+def get_subject_key(s):
+    if s:
+        return db.Key.from_path('Subject', s.decode('utf-8'))
+    else:
+        return None
+
+def get_ratingscale_key(s):
+    if s:
+        return db.Key.from_path('RatingScale', s.decode('utf-8'))
     else:
         return None
 
@@ -122,6 +150,7 @@ class TranslationLoader(bulkloader.Loader):
         bulkloader.Loader.__init__(self, 'Translation',
             [
              ('dictionary', get_dictionary_key),
+             ('dictionary_name', get_utf8_str),
              ('language', get_utf8_str),
              ('value', get_utf8_str),
             ])
@@ -166,12 +195,13 @@ class OrientationLoader(bulkloader.Loader):
         entity.save()
 
 
-class RatingScaleLoader(bulkloader.Loader):
+class ModuleLoader(bulkloader.Loader):
     def __init__(self):
-        bulkloader.Loader.__init__(self, 'RatingScale',
+        bulkloader.Loader.__init__(self, 'Module',
             [
              ('key_name', get_utf8_str),
              ('name', get_dictionary_key),
+             ('orientation', get_orientation_key),
             ])
 
     def handle_entity(self, entity):
@@ -194,14 +224,41 @@ class SubjectLoader(bulkloader.Loader):
         entity.save()
 
 
+class ModuleSubjectLoader(bulkloader.Loader):
+    def __init__(self):
+        bulkloader.Loader.__init__(self, 'ModuleSubject',
+            [
+             ('mandatory', get_boolean),
+             ('module', get_module_key),
+             ('subject', get_subject_key),
+            ])
+
+    def handle_entity(self, entity):
+        entity.save()
+
+
+class RatingScaleLoader(bulkloader.Loader):
+    def __init__(self):
+        bulkloader.Loader.__init__(self, 'RatingScale',
+            [
+             ('key_name', get_utf8_str),
+             ('name', get_dictionary_key),
+            ])
+
+    def handle_entity(self, entity):
+        entity.save()
+
+
 loaders = [
             PersonLoader,
             ContactLoader,
             RoleLoader,
             CurriculumLoader,
             OrientationLoader,
+            ModuleLoader,
             RatingScaleLoader,
             SubjectLoader,
+            ModuleSubjectLoader,
             DictionaryLoader,
             TranslationLoader,
           ]
