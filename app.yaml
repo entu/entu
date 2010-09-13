@@ -64,6 +64,10 @@ handlers:
   script: controllers/dashboard.py
   login: required
 
+- url: /search(.*)
+  script: controllers/search.py
+  login: required
+
 - url: /person(.*)
   script: controllers/person.py
   login: required

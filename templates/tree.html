@@ -1,0 +1,33 @@
+<div class="sitemap">
+    <ul id="primaryNav" 1class="col{{ tree.columns }}">
+        <li id="home">
+            <a href="http://{{ tree.link }}" alt="{{ tree.alt }}">{{ tree.title }}</a>
+        </li>
+
+        {% for t in tree.childs %}
+        <li>
+            <a href="{{ t.link }}" alt="{{ t.alt }}">{{ t.title }}</a>
+            {% if t.childs %}
+            <ul>
+                {% for c1 in t.childs %}
+                <li>
+                    <a href="{{ c1.link }}" alt="{{ c1.alt }}">{{ c1.title }}</a>
+                    {% if c1.childs %}
+                    <ul>
+                        {% for c2 in c1.childs %}
+                        <li>
+                            <a href="{{ c2.link }}" alt="{{ c2.alt }}">{{ c2.title }}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </li>
+        {% endfor %}
+
+
+    </ul>
+</div>
