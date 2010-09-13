@@ -1,15 +1,18 @@
-from bo import *
-
+from google.appengine.ext.remote_api import handler
+from google.appengine.ext import webapp
+from google.appengine.ext.webapp.util import run_wsgi_app
 
 class ApiCallHandler(handler.ApiCallHandler):
     def CheckIsAdmin(self):
-        return False
+
+        return True
+
+
+application = webapp.WSGIApplication([('.*', ApiCallHandler)])
 
 
 def main():
-    Route([
-        ('.*', ApiCallHandler)
-    ])
+    run_wsgi_app(application)
 
 
 if __name__ == '__main__':
