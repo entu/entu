@@ -10,3 +10,25 @@ indexes:
   properties:
   - name: forename
   - name: surname
+
+- kind: Person
+  properties:
+  - name: surname
+  - name: forename
+
+- kind: Translation
+  properties:
+  - name: __searchable_text_index
+  - name: dictionary_name
+  - name: value
+
+- kind: Translation
+  properties:
+  - name: dictionary_name
+  - name: language
+  - name: value
+
+- kind: Translation
+  properties:
+  - name: dictionary_name
+  - name: value
