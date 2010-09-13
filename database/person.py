@@ -1,6 +1,5 @@
 from google.appengine.ext import db
 from google.appengine.ext import search
-from google.appengine.api import users
 
 from database import *
 from bo.user import *
@@ -16,6 +15,9 @@ class Person(search.SearchableModel):
     user        = db.ReferenceProperty(User, collection_name='person')
 #------
     access_log  = db.StringListProperty()
+
+    def current(self):
+        return db.Query(Person).filter('user =', User().current()).get()
 
 
 class Contact(db.Model):
