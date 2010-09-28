@@ -1,4 +1,4 @@
-application: bonga-bonga
+application: bongapp
 version: dev
 runtime: python
 api_version: 1
@@ -21,22 +21,6 @@ error_handlers:
 
 handlers:
 
-#BO Framework
-- url: /_ah/login_required
-  script: bo/controllers/login.py
-
-- url: /login(.*)
-  script: bo/controllers/login.py
-
-- url: /user(.*)
-  script: bo/controllers/user.py
-  login: required
-
-- url: /bulka
-  script: bo/controllers/bulka.py
-
-
-
 #static files
 - url: /css
   static_dir: static/css
@@ -51,12 +35,21 @@ handlers:
   static_files: static/images/favicon.ico
   upload: static/images/favicon.ico
 
+- url: /favicon.ico
+  static_files: static/images/favicon.png
+  upload: static/images/favicon.png
+
+- url: /robots.txt
+  static_files: static/robots.txt
+  upload: static/robots.txt
 
 
 #public controllers
 - url: /
   script: controllers/frontpage.py
 
+- url: /bulka
+  script: controllers/bulka.py
 
 
 #protected controllers

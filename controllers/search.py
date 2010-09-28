@@ -2,7 +2,7 @@ from google.appengine.api import memcache
 
 from urllib import unquote
 
-from bo import *
+from helpers import *
 from database import *
 
 
@@ -28,6 +28,7 @@ class Search(webapp.RequestHandler):
                 curriculums.append({
                     'link': '/curriculum/' + str(l.key()),
                     'title': l.dictionary.translate(),
+                    'alt': l.dictionary.curriculum_names[0].level_of_education.translate()
                 })
 
             childs = []
@@ -52,7 +53,7 @@ class Search(webapp.RequestHandler):
 
             memcache.add('search_' + searchstr, tree, 300)
 
-        View(self, 'dashboard', 'search.html', {
+        View(self, 'search', 'search.html', {
             'tree': tree,
         })
 

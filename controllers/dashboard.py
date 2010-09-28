@@ -1,11 +1,11 @@
-from bo import *
+from helpers import *
 from database import *
 
 class Show(webapp.RequestHandler):
     def get(self):
 
         c = []
-        for l in db.Query(Translation).filter('dictionary_name', 'level_of_education').filter('language', User().current().language).order('value').fetch(100):
+        for l in db.Query(Translation).filter('dictionary_name', 'level_of_education').filter('language', Language()).order('value').fetch(100):
             c.append({
                 'link': '/curriculum/level/' + str(l.dictionary.key()),
                 'title': l.dictionary.translate(),

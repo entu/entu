@@ -1,6 +1,6 @@
 from wtforms import *
 
-from bo import *
+from helpers import *
 
 
 class PersonForm(Form):

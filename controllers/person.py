@@ -1,34 +1,65 @@
-from bo import *
+from helpers import *
 from database import *
 
 import urllib
 
 
-class List(webapp.RequestHandler):
-    def get(self, a = None):
-        b = a.split('/')
-        print b[-2:]
+class ShowPersonStart(webapp.RequestHandler):
+
+    def get(self):
+
+        levels = []
+        for l in db.Query(Translation).filter('dictionary_name', 'level_of_education').filter('language', User().current().language).order('value').fetch(100):
+            levels.append({
+                'link': '/person/level/' + str(l.key()),
+                'title': l.dictionary.translate(),
+            })
+
+        childs = []
+        childs.append({
+            'link': '/person',
+            'title': Translate('level_of_education'),
+            'childs': levels
+        })
+        childs.append({
+            'link': '/person',
+            'title': Translate('facuty'),
+        })
+        childs.append({
+            'link': '/person',
+            'title': Translate('role'),
+        })
 
 
-class Search(webapp.RequestHandler):
 
-    def get(self, searchstr = None):
+        tree = {
+            'link': SYSTEM_URL,
+            'title': SYSTEM_TITLE,
+            'columns': 3,
+            'childs': childs,
+        }
 
-        searchstr = urllib.unquote(searchstr).decode('utf8')[1:]
-        persons = []
+        View(self, 'persons', 'person.html', {
+            'tree': tree,
+            'levels': levels
+        })
 
-        if searchstr:
-            persons = Person.all().search(searchstr).fetch(100)
 
-        count = Person.all().count()
+class ShowPerson(webapp.RequestHandler):
 
-        View(self, 'persons', 'person_search.html', {'persons': persons, 'search': searchstr, 'count': count})
+    def get(self, key = None):
+
+        p = db.Query(Person).filter('__key__', db.Key(key.strip('/'))).get()
+
+        View(self, p.forename + ' ' + p.surname, 'person_tree.html', {
+            'person': p,
+        })
 
 
 def main():
     Route([
-            (r'/person/search(.*)', Search),
-            (r'/person/(.*)', List)
+            ('/person', ShowPersonStart),
+            (r'/person(.*)', ShowPerson),
         ])
 
 

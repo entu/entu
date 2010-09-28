@@ -1,16 +1,17 @@
-from bo import *
+from helpers import *
 from database import *
 
 
-class Search(webapp.RequestHandler):
+class Update(webapp.RequestHandler):
 
     def get(self):
+        for c in db.Query(Translation).fetch(1000):
+            try:
+                c.dictionary_name = c.dictionary.name
+                c.save()
+            except:
+                self.response.out.write(str(c.key()) + '\n')
 
-        p = Person.all().filter(searchstr).fetch(100)
-
-        count = Person.all().count()
-
-        View(self, 'persons', 'person_search.html', {'persons': persons, 'search': searchstr, 'count': count})
 
 
 def main():
