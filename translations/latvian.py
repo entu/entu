@@ -3,8 +3,6 @@
 def translation():
     return {
         '':                     '',
-        'activation_email':     'Aicinu tevi izmantot GLMS\'i.<br /><br />Aktivizēšana, uzklikšķiniet uz saites zemāk vai nokopējiet to savā pārlūkprogrammā:<br /><br />%s<br /><br /><br /><br />Paldies!',
-        'activation_subject':   'GLMS\'apstiprinu',
         'add_new':              'Pievienot',
         'avatar':               'Foto',
         'classifiers':          'Klasifikātori',
@@ -16,7 +14,6 @@ def translation():
         'degree':               'Grāds',
         'dictionary':           'Vārdnīca',
         'english':              'Angliski',
-        'enter_emails':         'Ievadiet e- mailu',
         'estonian':             'Igauņu',
         'forename':             'Vārds',
         'form_of_training':     'Apmācības forma',
@@ -27,15 +24,11 @@ def translation():
         'manager':              'Vadītājs',
         'message':              'Paziņojums',
         'name':                 'Vārds',
-        'new_user':             'Jauns lietotājs',
         'nominal_credit_points':'Kredītpunktu skaits studiju beigās',
         'nominal_years':        'Studiju ilgums',
-        'old_user':             'Sen reģistrējies lietotājs',
-        'openid_info':          'GLMS izmanto lietotāju autentifikācijai<a href="http://en.wikipedia.org/wiki/OpenID">OpenID</a> standartu. Tas nozīmē, ka nav nepieciešams izmantot mūsu vietni (atkal!), lai atcerētos Jūsu lietotājvārdu un paroli. Atpazīšanai tiek izmantotas individuāli piemērotas ID- kartes vai mobilais- ID. Tas ir piemērots arī Google, Yahoo vai jebkurām citām vietnēm, kas piedāvā OpenID konta izmantošanu. Ja izvēlaties ID, GLMS lūgt Jūs \' Ieiet. Sākotnējās identifikātoru paroles ir pieejamas mūsu serverī. Tie kalpos kā identifikācija, kā arī ID- karti var izmantot identifikācijai esošajam kontam vai citā vietā.<br /><br />Piemēram: Jums ir \'i Google rēķins. Lai izmantotu GLMS, vienkārši noklikšķiniet uz Google logo kreisajā pusē. Ja esat iegājis \'Google, Jūs uzreiz varat pāriet uz lapu GLMS. Ja Jūsu Google konts vēl nav pieejams, tad Jums tiks piedāvāts ievadīt paroli un lietotājvārdu. Nii polegi sul vaja luua ega meeles pidada üht eraldi kontot.',
-        'openid_url':           'OpenID URL',
         'persons':              'Personas',
         'preferences':          'Iestatījumi',
-        'registration_sent':    'Informācija par reģistrāciju tika nosūtīta uz e- mailu %s!',
+        'role':                 'Loma',
         'roles':                'Lomas',
         'save':                 'Saglabāt',
         'search':               'Meklēt',
@@ -49,6 +42,5 @@ def translation():
         'user_preferences':     'Lietotāja iestatījumi',
         'value':                'Nozīme',
         'values':               'Nozīme',
-        'version':              'Versija',
 
 }
