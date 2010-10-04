@@ -46,17 +46,19 @@ handlers:
 
 #public controllers
 - url: /
-  script: controllers/frontpage.py
+  script: controllers/dashboard.py
 
 - url: /bulka
   script: controllers/bulka.py
 
 
-#protected controllers
-- url: /dashboard
-  script: controllers/dashboard.py
+#ois.artun.ee login/out
+- url: /logi_bonga(.*)
+  script: controllers/logi_bonga.py
   login: required
 
+
+#protected controllers
 - url: /search(.*)
   script: controllers/search.py
   login: required
