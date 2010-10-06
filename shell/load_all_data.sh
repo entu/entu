@@ -8,3 +8,5 @@
 ./bulka.sh Person        ~/Dropbox/Work/ois_export/person.csv
 ./bulka.sh Subject       ~/Dropbox/Work/ois_export/subject.csv
 ./bulka.sh Translation   ~/Dropbox/Work/ois_export/translation.csv
+./bulka.sh Role          ~/Dropbox/Work/ois_export/role.csv
+./bulka.sh PersonRole    ~/Dropbox/Work/ois_export/personRole.csv

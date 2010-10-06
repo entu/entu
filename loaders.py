@@ -156,8 +156,8 @@ class Contact_loader(bulkloader.Loader):
 class Role_loader(bulkloader.Loader):
     def __init__(self):
         bulkloader.Loader.__init__(self, 'Role', [
-            ('person', get_person_key),
-            ('value', get_utf8),
+            ('key_name', get_utf8),
+            ('name', get_dictionary_key),
         ])
     def handle_entity(self, entity):
         entity.save()
@@ -166,10 +166,10 @@ class Role_loader(bulkloader.Loader):
 class PersonRole_loader(bulkloader.Loader):
     def __init__(self):
         bulkloader.Loader.__init__(self, 'PersonRole', [
+            ('key_name', get_utf8),
             ('person', get_person_key),
             ('role', get_role_key),
-            ('department', get_role_key),
-            ('value', get_utf8),
+            ('department', get_department_key),
         ])
     def handle_entity(self, entity):
         entity.save()
@@ -275,6 +275,7 @@ loaders = [
     Person_loader,
     Contact_loader,
     Role_loader,
+    PersonRole_loader,
     Curriculum_loader,
     Orientation_loader,
     Module_loader,
