@@ -27,6 +27,19 @@
     <body>
         <div id="container" class="container">
 
+            <div id="header" class="span-95 prepend-1 prepend-top last">
+                <div id="header_title" class="prepend-10">
+                    <a href="/">{{ site_name }}</a>
+                </div>
+                <div id="header_menu" class="span-60">
+                    {% if user %}
+                    <span style="padding-right:7px; font-style:italic;">{{ str.welcome }} {{ user.nickname }}!</span> <a href="{{ logouturl }}">{{ str.logout }}</a>
+                    {% else %}
+                    <a href="{{ loginurl }}" style="border:none;">{{ str.login }}</a>
+                    {% endif %}
+                </div>
+            </div>
+
             <div id="content" class="span-95 last">
 
             {% block content %}

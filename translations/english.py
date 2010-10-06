@@ -42,5 +42,6 @@ def translation():
         'user_preferences':     'User Preferences',
         'value':                'Value',
         'values':               'Values',
+        'welcome':              'Welcome',
 
 }

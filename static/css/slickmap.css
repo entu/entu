@@ -5,6 +5,11 @@
 	be 16.6%, etc.
 ------------------------------------------------------------ */
 
+.sitemap {
+    padding-top: 30px;
+
+}
+
 #primaryNav li {
 	width:25%;
 }
@@ -27,18 +32,9 @@
 /* ------------------------------------------------------------
 	General Styles
 ------------------------------------------------------------ */
-
-h2 {
-	font-family: "Lucida Grande", Verdana, sans-serif;
-	font-size: 10px;
-	color: #777777;
-	margin: 0px;
-}
-a, a:hover {
-	text-decoration: none;
-}
 ol, ul {
 	list-style: none;
+	margin: 0px;
 }
 
 
@@ -56,50 +52,55 @@ ol, ul {
 #primaryNav #home {
 	display: block;
 	float: none;
-	background: #ffffff url('/images/slickmaps/L1-left.png') center bottom no-repeat;
+	background: #ffffff url('/images/slickmap/L1-left.png') center bottom no-repeat;
 	position: relative;
 	z-index: 2;
 	padding: 0 0 30px 0;
 }
+
+#primaryNav #first {
+	background: #ffffff url('/images/slickmap/L1-first.png') center top no-repeat;
+}
+
 #primaryNav li {
 	float: left;
-	background: url('/images/slickmaps/L1-center.png') center top no-repeat;
+	background: url('/images/slickmap/L1-center.png') center top no-repeat;
 	padding: 30px 0;
 	margin-top: -30px;
 }
 #primaryNav li a {
 	margin: 0 20px 0 0;
-	padding: 3px 10px 6px 10px;
+	padding: 0px 0px 3px 3px;
 	display: block;
-	font-size: 12px;
+	font-size: 13px;
 	font-weight: bold;
-	text-align: left;
-	color: black;
-	background: #c3eafb url('/images/slickmaps/white-highlight.png') top left repeat-x;
+    text-align: center;
+	color: #2E2E2E;
+	background: #c3eafb url('/images/slickmap/white-highlight.png') top left repeat-x;
 	border: 1px solid #b5d9ea;
-	-moz-border-radius: 5px;
-	-webkit-border-radius: 5px;
-	-webkit-box-shadow: rgba(0,0,0,0.3) 1px 2px 3px;
-	-moz-box-shadow: rgba(0,0,0,0.3) 1px 2px 3px; /* FF 3.5+ */
+	-webkit-box-shadow: rgba(0,0,0,0.2) 1px 1px 3px;
+	-moz-box-shadow: rgba(0,0,0,0.3) 1px 1px 3px; /* FF 3.5+ */
+}
+#primaryNav li a img {
+	vertical-align: middle;
+	margin-right: 10px;
 }
 #primaryNav li a:hover {
 	background-color: #e2f4fd;
 	border-color: #97bdcf;
+    text-decoration: none;
 }
 #primaryNav li:last-child {
-	background: url('/images/slickmaps/L1-right.png') center top no-repeat;
+	background: url('/images/slickmap/L1-right.png') center top no-repeat;
 }
-a:link:before,
-a:visited:before {
+#primaryNav li a:link:before,
+#primaryNav li a:visited:before {
 	content: " "attr(alt)" ";
 	display: block;
 	text-transform: uppercase;
 	font-size: 10px;
 	margin-bottom: 5px;
 	word-wrap: break-word;
-}
-#primaryNav li a:link:before,
-#primaryNav li a:visited:before {
 	color: #78a9c0;
 }
 
@@ -110,9 +111,10 @@ a:visited:before {
 	clear: left;
 	margin-top: 0;
 	padding: 10px 0 0 0;
-	background: url('/images/slickmaps/vertical-line.png') center bottom repeat-y;
+	background: url('/images/slickmap/vertical-line.png') center bottom repeat-y;
 }
 #primaryNav li li a {
+	font-weight: normal;
 	background-color: #cee3ac;
 	border-color: #b8da83;
 }
@@ -121,10 +123,10 @@ a:visited:before {
 	background-color: #e7f1d7;
 }
 #primaryNav li li:first-child {
-	padding-top: 20px;
+	padding-top: 30px;
 }
 #primaryNav li li:last-child {
-	background: url('/images/slickmaps/vertical-line.png') center bottom repeat-y;
+	background: url('/images/slickmap/vertical-line.png') center bottom repeat-y;
 }
 #primaryNav li li a:link:before,
 #primaryNav li li a:visited:before {
@@ -134,22 +136,22 @@ a:visited:before {
 /* --------	Third Level --------- */
 
 #primaryNav li li ul {
-	margin: 10px 0 0 2px;
+	margin: 10px 0 0 0;
 	width: 100%;
 	float: right;
 	padding: 9px 0 10px 0;
-	background: #ffffff url('/images/slickmaps/L3-ul-top.png') center top no-repeat;
+	background: #ffffff url('/images/slickmap/L3-ul-top.png') center top no-repeat;
 }
 #primaryNav li li li {
-	background: url('/images/slickmaps/L3-center.png') left center no-repeat;
+	background: url('/images/slickmap/L3-center.png') left center no-repeat;
 	padding: 5px 0;
 }
 #primaryNav li li li a {
 	background-color: #fff7aa;
 	border-color: #e3ca4b;
 	font-size: 10px;
-	padding: 2px 5px;
-	width: 85%;
+	padding: 5px 0;
+	width: 80%;
 	float: right;
 }
 #primaryNav li li li a:hover {
@@ -158,10 +160,10 @@ a:visited:before {
 }
 #primaryNav li li li:first-child {
 	padding: 15px 0 5px 0;
-	background: url('/images/slickmaps/L3-li-top.png') left center no-repeat;
+	background: url('/images/slickmap/L3-li-top.png') left center no-repeat;
 }
 #primaryNav li li li:last-child {
-	background: url('/images/slickmaps/L3-bottom.png') left center no-repeat;
+	background: url('/images/slickmap/L3-bottom.png') left center no-repeat;
 }
 #primaryNav li li li a:link:before,
 #primaryNav li li li a:visited:before {
@@ -177,7 +179,7 @@ a:visited:before {
 #utilityNav {
 	float: right;
 	max-width: 50%;
-	margin-right: 5px;
+	margin-right: 10px;
 }
 #utilityNav li {
 	float: left;
@@ -185,18 +187,18 @@ a:visited:before {
 }
 #utilityNav li a {
 	margin: 0 10px 0 0;
-	padding: 3px 10px 4px 10px;
+	padding: 5px 10px;
 	display: block;
 	border: 1px solid #e3ca4b;
 	font-size: 10px;
 	font-weight: bold;
-	text-align: left;
+	text-align: center;
 	color: black;
-	background: #fff7aa url('/images/slickmaps/white-highlight.png') top left repeat-x;
+	background: #fff7aa url('/images/slickmap/white-highlight.png') top left repeat-x;
 	-moz-border-radius: 5px;
 	-webkit-border-radius: 5px;
-	-webkit-box-shadow: rgba(0,0,0,0.3) 1px 1px 2px;
-	-moz-box-shadow: rgba(0,0,0,0.3) 1px 1px 2px; /* FF 3.5+ */
+	-webkit-box-shadow: rgba(0,0,0,0.5) 2px 2px 2px;
+	-moz-box-shadow: rgba(0,0,0,0.5) 2px 2px 2px; /* FF 3.5+ */
 }
 #utilityNav li a:hover {
 	background-color: #fffce5;

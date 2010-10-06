@@ -42,4 +42,7 @@ def translation():
         'user_preferences':     'Kasutaja seaded',
         'value':                'Väärtus',
         'values':               'Väärtused',
+        'department':           'Osakond',
+        'welcome':              'Tere tulemast',
+
 }
