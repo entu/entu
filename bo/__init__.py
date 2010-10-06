@@ -5,42 +5,34 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp import util
 from google.appengine.api import users
 
-from settings import *
-from database.person import *
+from bo.user import *
+from bo.settings import *
 
 
 def Route(url_mapping):
-    application = webapp.WSGIApplication(url_mapping, debug=False)
+    application = webapp.WSGIApplication(url_mapping, debug=True)
     util.run_wsgi_app(application)
 
 
 def View(self, page_title, templatefile, values={}):
     values['str'] = Translate()
     if page_title:
-        values['site_name'] = SYSTEM_TITLE + ' - ' + Translate(page_title)
+        values['site_name'] = SYSTEM_TITLE.decode('utf8') + ' - ' + Translate(page_title)
         values['page_title'] = Translate(page_title)
     else:
-        values['site_name'] = SYSTEM_TITLE
+        values['site_name'] = SYSTEM_TITLE.decode('utf8')
         values['page_title'] = '&nbsp;'
     values['site_url'] = self.request.headers.get('host')
-    values['user'] = Person().current()
+    values['user'] = User().current()
     values['loginurl'] = users.create_login_url('/')
     values['logouturl'] = users.create_logout_url('/')
-    path = os.path.join(os.path.dirname(__file__), 'templates', templatefile)
+    path = os.path.join(os.path.dirname(__file__), '..', 'templates', templatefile)
     self.response.out.write(template.render(path, values))
 
 
-def Language():
-    p = Person().current()
-    if p and p.language:
-        return p.language
-    else:
-        return SYSTEM_LANGUAGE
-
-
 def Translate(key = None):
-    if Person().current():
-        languagefile = 'translations.' + Language()
+    if User().current():
+        languagefile = 'translations.' + User().current().language
     else:
         languagefile = 'translations.' + SYSTEM_LANGUAGE
 
