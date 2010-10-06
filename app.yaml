@@ -1,5 +1,5 @@
 application: bongapp
-version: dev
+version: 1
 runtime: python
 api_version: 1
 
@@ -48,17 +48,20 @@ handlers:
 - url: /
   script: controllers/dashboard.py
 
-- url: /bulka
-  script: controllers/bulka.py
-
-
 #Old systems login/logout
-- url: /oldauth(.*)
+- url: /oldauth
   script: controllers/oldauth.py
   login: required
 
+- url: /oldauth_exit
+  script: controllers/oldauth.py
+
 
 #protected controllers
+- url: /bulka
+  script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
+  login: admin
+
 - url: /search(.*)
   script: controllers/search.py
   login: required

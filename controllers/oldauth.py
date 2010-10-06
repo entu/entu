@@ -35,8 +35,8 @@ class Logout(webapp.RequestHandler):
 
 def main():
     Route([
-             ('/oldauth/exit', Logout),
              ('/oldauth', Login),
+             ('/oldauth_exit', Logout),
             ])
 
 
