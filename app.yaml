@@ -52,9 +52,9 @@ handlers:
   script: controllers/bulka.py
 
 
-#ois.artun.ee login/out
-- url: /logi_bonga(.*)
-  script: controllers/logi_bonga.py
+#Old systems login/logout
+- url: /oldauth(.*)
+  script: controllers/oldauth.py
   login: required
 
 
