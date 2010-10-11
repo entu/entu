@@ -2,28 +2,20 @@ from google.appengine.ext import db
 from google.appengine.ext import search
 from google.appengine.api import users
 
-from settings import *
-from database.dictionary import *
+from bo.user import *
+from database import *
 
 
 class Person(search.SearchableModel):
-    google_user_id  = db.StringProperty()
     forename        = db.StringProperty()
     surname         = db.StringProperty()
     idcode          = db.StringProperty()
     gender          = db.ReferenceProperty(Dictionary, collection_name='genders')
     birth_date      = db.DateProperty()
-    language        = db.StringProperty(default=SYSTEM_LANGUAGE)
-    last_seen       = db.DateTimeProperty()
+    user            = db.ReferenceProperty(User, collection_name='persons')
 
     def current(self):
-        user = users.get_current_user()
-        if user:
-            p = db.Query(Person).filter('google_user_id =', user.user_id()).get()
-            if p:
-                p.last_seen = datetime.today()
-                p.save()
-                return p
+        return db.Query(Person).filter('user =', User().current()).get()
 
 
 class Department(db.Model):

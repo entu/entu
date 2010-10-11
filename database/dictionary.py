@@ -1,7 +1,7 @@
 from google.appengine.ext import db
 from google.appengine.ext import search
 
-from helpers import *
+from bo.user import *
 
 
 class Dictionary(db.Model):
@@ -10,7 +10,7 @@ class Dictionary(db.Model):
     languages   = db.StringListProperty()
 
     def translate(self):
-        t = db.Query(Translation).filter('dictionary = ', self).filter('language =', Language()).get()
+        t = db.Query(Translation).filter('dictionary = ', self).filter('language =', User().current().language).get()
 
         if t and t.value:
             return t.value
