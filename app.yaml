@@ -1,5 +1,5 @@
 application: bongapp
-version: 1
+version: dev
 runtime: python
 api_version: 1
 
@@ -84,4 +84,8 @@ handlers:
 
 - url: /update(.*)
   script: controllers/update.py
+  login: required
+
+- url: /feedback(.*)
+  script: controllers/feedback.py
   login: required
