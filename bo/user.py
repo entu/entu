@@ -18,10 +18,10 @@ class User(db.Model):
     def current(self):
         user = users.get_current_user()
         if user:
-            u = db.Query(User).filter('user_id =', user.user_id()).get()
+            u = db.Query(User).filter('google_user_id =', user.user_id()).get()
             if not u:
                 u = User()
-                u.user_id = user.user_id()
+                u.google_user_id = user.user_id()
                 u.email = user.email()
                 u.nickname = user.nickname()
 
