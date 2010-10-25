@@ -43,5 +43,13 @@ def translation():
         'value':                'Value',
         'values':               'Values',
         'welcome':              'Welcome',
-
-}
+        'unanswered_questionaries': 'Unanswered questionaries: ',
+        'strongly_disagree':    'Strongly disagree',
+        'disagree':             'Disagree',
+        'neither_agree_nor_disagree': 'Neither agree or disagree',
+        'agree':                'Agree',
+        'strongly_agree':       'Strongly agree',
+        'teacher':              'Teacher',
+        'submit':               'Submit',
+        'answer_mandatory_question': 'Please answer a mandatory question: ',
+     }  

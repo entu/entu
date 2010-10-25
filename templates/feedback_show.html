@@ -2,7 +2,65 @@
 
 {% block content %}
 
-efkjsdlökfjgölkjdföldfjkglökjfdglkj
+<form action="/feedback" method="post">
+{% if errorMessage %}
+<p>{{ errorMessage }}</p>
+{% endif %}
 
+<p> {{ str.unanswered_questionaries }}{{ count }}</p>
+	<h2>{{ personQuestionary.questionary.name.translate }}</h2>
+	<ol>
+	{% for qa in personQuestionary.questionary_answers %}
+	
+		<li>{{ qa.question.question.translate }}
+		
+		{% if qa.question.is_teacher_specific %}
+			({{ str.teacher }} {{ qa.teacher.forename }} {{ qa.teacher.surname }})
+		{% endif %}
+		</li>
+		
+		{% ifequal qa.question.type "lickert" %}
+			<input type="radio" name= "{{ qa.key }}" value="strongly_disagree"
+			{% ifequal qa.answer 'strongly_disagree' %}
+				checked
+			{% endifequal %}
+			>{{ str.strongly_disagree }}<br>
+			
+			<input type="radio" name="{{ qa.key }}" value="disagree"
+			{% ifequal qa.answer 'disagree' %}
+				checked
+			{% endifequal %}
+			>{{ str.disagree }}<br>
+			
+			<input type="radio" name="{{ qa.key }}" value="neither_agree_nor_disagree"
+			{% ifequal qa.answer 'neither_agree_nor_disagree' %}
+				checked
+			{% endifequal %}
+			>{{ str.neither_agree_nor_disagree }}<br>
+			
+			<input type="radio" name="{{ qa.key }}" value="agree"
+			{% ifequal qa.answer 'agree' %}
+				checked
+			{% endifequal %}
+			>{{ str.agree }}<br>
+			
+			<input type="radio" name="{{ qa.key }}" value="strongly_agree"
+			{% ifequal qa.answer 'strongly_agree' %}
+				checked
+			{% endifequal %}
+			>{{ str.strongly_agree }}<br>
+		{% endifequal %}
+		
+		{% ifequal qa.question.type "freetext" %}
+			<textarea name="{{ qa.key }}">{% if qa.answer %}{{ qa.answer }}{% endif %}</textarea>
+		{% endifequal %}
+		<br>
+		<br>
+	{% endfor %}
+	</ol>
+
+<input type="hidden" name="personQuestionaryId" value="{{ personQuestionary.key }}"/>
+<input type="submit" value="{{ str.submit }}" />
+</form>
 
 {% endblock %}

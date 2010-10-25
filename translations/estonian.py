@@ -44,5 +44,13 @@ def translation():
         'values':               'Väärtused',
         'department':           'Osakond',
         'welcome':              'Tere tulemast',
-
+        'unanswered_questionaries': 'Vastamata küsimustike: ',
+        'strongly_disagree':    'Ei ole nõus',
+        'disagree':             'Osaliselt ei ole nõus',
+        'neither_agree_nor_disagree': 'Ei oska öelda',
+        'agree':                'Osaliselt nõus',
+        'strongly_agree':       'Täiesti nõus',
+        'teacher':              'Õppejõud',
+        'submit':               'Saada',
+        'answer_mandatory_question':  'Palun vastake kohustuslikule küsimusele: ',
 }
