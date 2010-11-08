@@ -1,0 +1,76 @@
+{% extends "main.html" %}
+
+{% block head %}
+<script src="/javascript/jquery.validate.min.js" type="text/javascript"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="table">
+    {% for q in questionaries %}
+    <div class="table_row">
+        <a href="/questionary/{{ q.key }}" class="table_cell">
+            {{ q.name.translate }}
+        </a>
+        <div class="table_cell">
+            {{ q.start_date|default:"" }}
+        </div>
+        <div class="table_cell">
+            {{ q.end_date|default:"" }}
+        </div>
+        <div class="table_cell">
+            {{ q.description.translate }}
+        </div>
+        <div class="table_cell">
+        </div>
+    </div>
+    {% endfor %}
+    <form id="newform" class="table_row" method="post" action="" >
+        <div class="table_cell">
+            <input type="text" name="name" placeholder="{{ str.name }}" required />
+        </div>
+        <div class="table_cell">
+            <input type="date" name="start_date" placeholder="{{ str.start_date }}" />
+        </div>
+        <div class="table_cell">
+            <input type="date" name="end_date" placeholder="{{ str.end_date }}" />
+        </div>
+        <div class="table_cell">
+            <input type="text" name="description" placeholder="{{ str.description }}" style="width:350px;" />
+        </div>
+        <div class="table_cell">
+            <a href="javascript:void();" id="save_new" class="button">{{ str.save }}</a>
+        </div>
+    </form>
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        $("#newform").validate({
+            rules: {
+                name: {
+                    required: true,
+                    minlength: 3
+                },
+            },
+            messages: {
+                name: {
+                    required: "{{ str.form_err_name }}",
+                    minlength: jQuery.format("{{ str.form_err_minlength }}")
+                },
+            },
+            submitHandler: function(form) {
+   	            form.submit();
+            }
+        });
+
+        $("#save_new").click(function() {
+            $("#newform").submit();
+        });
+
+    });
+</script>
+
+{% endblock %}

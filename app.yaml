@@ -5,6 +5,11 @@ api_version: 1
 
 
 
+builtins:
+- datastore_admin: on
+
+
+
 error_handlers:
 - error_code: over_quota
   file: errors/quota.html
@@ -88,4 +93,8 @@ handlers:
 
 - url: /feedback(.*)
   script: controllers/feedback.py
+  login: required
+
+- url: /questionary(.*)
+  script: controllers/questionary.py
   login: required

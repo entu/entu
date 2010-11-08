@@ -112,6 +112,7 @@ h2, h2 a, h2 a:hover, h2 a:active, h2 a:visited {
 }
 
 #content {
+    padding: 10px;
     min-height: 500px;
     background-color: #FFFFFF;
     border: 1px solid #D5D4D1;
@@ -162,6 +163,46 @@ h2, h2 a, h2 a:hover, h2 a:active, h2 a:visited {
 
 
 
+/* TABLE */
+
+.table {
+    display: table;
+    margin: 20px 0px;
+    width: 100%;
+}
+
+.table_row {
+    display: table-row;
+}
+
+.table_row:nth-child(even) {
+        background: white;
+}
+
+.table_row:nth-child(odd) {
+        background: #E9F4FA;
+}
+
+.table_cell {
+    display: table-cell;
+    padding: 5px 10px;
+}
+
+
+
+label.error {
+    padding: 10px 2px;
+    text-transform: none;
+    font-size: 11px;
+    color: #CC0000;
+    background: none;
+    border: none;
+}
+
+input.error {
+    border: 1px solid #CC0000;
+}
+
 
 
 
@@ -175,7 +216,6 @@ h2, h2 a, h2 a:hover, h2 a:active, h2 a:visited {
     padding: 1px 15px 4px 15px;
     text-align: center;
     text-decoration: none;
-    display: block;
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
     box-shadow: #CCCCCC 1px 2px 3px;
