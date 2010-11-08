@@ -9,6 +9,9 @@ from database.oldauth import *
 class Login(webapp.RequestHandler):
     def get(self):
         if self.request.get('site'):
+
+            u = User().current()
+
             user = users.get_current_user()
             site = self.request.get('site')
             oa = db.Query(OldAuth).filter('site', site).get()
