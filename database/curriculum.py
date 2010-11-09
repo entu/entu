@@ -89,6 +89,7 @@ class Course(db.Model):
     subscription_close_date = db.DateProperty()
     course_start_date       = db.DateProperty()
     course_end_date         = db.DateProperty()
+    teachers                = db.ListProperty(db.Key)
 
 
 class Subscription(db.Model):

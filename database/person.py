@@ -7,6 +7,7 @@ from database import *
 
 
 class Person(search.SearchableModel):
+    apps_username   = db.StringProperty()
     forename        = db.StringProperty()
     surname         = db.StringProperty()
     idcode          = db.StringProperty()
@@ -15,7 +16,7 @@ class Person(search.SearchableModel):
     user            = db.ReferenceProperty(User, collection_name='persons')
 
     def current(self):
-        return db.Query(Person).filter('user =', User().current()).get()
+        return db.Query(Person).filter('user', User().current()).get()
 
 
 class Department(db.Model):

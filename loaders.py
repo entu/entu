@@ -16,7 +16,7 @@ from database import *
 
 def get_date(s):
     if s:
-        return datetime.datetime.strptime(s, '%Y-%m-%d').date()
+        return datetime.strptime(s, '%Y-%m-%d').date()
     else:
         return None
 
@@ -51,6 +51,12 @@ def get_dictionary_key(s):
 def get_person_key(s):
     if s:
         return db.Key.from_path('Person', s.decode('utf-8'))
+    else:
+        return None
+
+def get_person_key_list(s):
+    if s:
+        return [db.Key.from_path('Person', s.decode('utf-8'))]
     else:
         return None
 
@@ -96,6 +102,12 @@ def get_ratingscale_key(s):
     else:
         return None
 
+def get_course_key(s):
+    if s:
+        return db.Key.from_path('Course', s.decode('utf-8'))
+    else:
+        return None
+
 
 
 # DICTIONARY
@@ -136,6 +148,7 @@ class Person_loader(bulkloader.Loader):
             ('idcode', get_utf8),
             ('gender', get_dictionary_key),
             ('birth_date', get_date),
+            ('apps_username', get_utf8),
         ])
     def handle_entity(self, entity):
         entity.save()
@@ -271,6 +284,38 @@ class RatingScale_loader(bulkloader.Loader):
         entity.save()
 
 
+class Course_loader(bulkloader.Loader):
+    def __init__(self):
+        bulkloader.Loader.__init__(self, 'Course', [
+            ('key_name', get_utf8),
+            ('subject', get_subject_key),
+            ('subscription_open_date', get_date),
+            ('subscription_close_date', get_date),
+            ('course_start_date', get_date),
+            ('course_end_date', get_date),
+            ('teachers', get_person_key_list),
+        ])
+    def handle_entity(self, entity):
+        c = Course().get(entity.key())
+        if c:
+            entity.teachers = list(set(entity.teachers + c.teachers))
+        else:
+            entity.teachers = entity.teachers
+        entity.save()
+
+
+class Subscription_loader(bulkloader.Loader):
+    def __init__(self):
+        bulkloader.Loader.__init__(self, 'Subscription', [
+            ('key_name', get_utf8),
+            ('course', get_course_key),
+            ('student', get_person_key),
+        ])
+    def handle_entity(self, entity):
+
+        entity.save()
+
+
 loaders = [
     Person_loader,
     Contact_loader,
@@ -285,4 +330,6 @@ loaders = [
     Dictionary_loader,
     Translation_loader,
     Department_loader,
+    Course_loader,
+    Subscription_loader,
 ]
