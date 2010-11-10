@@ -64,5 +64,8 @@ def translation():
         'value':                'Väärtus',
         'values':               'Väärtused',
         'welcome':              'Tere tulemast',
-
+        'edit':                 'Muuda',
+        'delete':               'Kustuta',
+        'confirm_delete':       'Oled kindel, et soovid küsimustiku kustutada?',
+        'edit_questionary':     'Küsimustiku muutmine',
     }

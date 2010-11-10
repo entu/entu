@@ -22,6 +22,10 @@
             {{ q.description.translate }}
         </div>
         <div class="table_cell">
+        	<a href="/questionary/edit/{{ q.key }}" id="edit_questionary" class="button">{{ str.edit }}</a>
+        </div>
+        <div class="table_cell">
+        	<a href="javascript:show_confirm('{{ q.key }}');" id="delete_questionary" class="button">{{ str.delete }}</a>
         </div>
     </div>
     {% endfor %}
@@ -71,6 +75,12 @@
         });
 
     });
+
+    function show_confirm(key)
+    {
+    	if (confirm("{{ str.confirm_delete }}")) location.href = "/questionary/delete/" + key;
+    }
 </script>
+
 
 {% endblock %}

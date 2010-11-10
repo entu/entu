@@ -25,10 +25,10 @@ class ShowFeedback(webapp.RequestHandler):
         
         message = ''
         for qanswer in qanswers:
-            answer = self.request.get(str(qanswer.key()))    
+            answer = self.request.get(str(qanswer.key())).strip() 
 
-            if answer and len((str(answer)).strip()) > 0:
-                qanswer.question_string = qanswer.question.question.translate()
+            if answer and len(str(answer)) > 0:
+                qanswer.question_string = qanswer.question.name.translate()
                 qanswer.answer = cgi.escape(answer)
                 qanswer.datetime = datetime.now()
                 qanswer.put()
@@ -39,8 +39,8 @@ class ShowFeedback(webapp.RequestHandler):
         if(len(message) == 0):
                 qp.is_completed = True
                 qp.put()
-                #self.redirect('/')
-                self.get()
+                self.redirect('')
+                #self.get()
         else:
             View(self, 'feedback', 'feedback_show.html', {
                 'personQuestionary': qp,

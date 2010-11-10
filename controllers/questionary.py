@@ -54,11 +54,43 @@ class ShowQuestionary(webapp.RequestHandler):
         q.put()
 
         self.redirect('')
+        
+class EditQuestionary(webapp.RequestHandler):
+    def get(self, key):
+        q = db.Query(Questionary).filter('__key__', db.Key(key)).get()
 
+        View(self, 'questionary', 'questionary_edit.html', {
+            'questionary': q,
+        })
+        
+    def post(self, key):
+        name = self.request.get('name').strip()
+        start_date = self.request.get('start_date').strip()
+        end_date = self.request.get('end_date').strip()
+        description = self.request.get('description').strip()
+        
+        q = db.get(key)
+        q.name = DictionaryAdd('questionary_name', name)
+        if start_date:
+            q.start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+        if end_date:
+            q.end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+        q.description = DictionaryAdd('questionary_description', description)
+        q.put()
 
+        self.redirect('/questionary')
+        
+class DeleteQuestionary(webapp.RequestHandler):
+    def get(self, key):
+        q = db.Query(Questionary).filter('__key__', db.Key(key)).get()
+        q.delete()
+        self.redirect('/questionary')
+        
 def main():
     Route([
             ('/questionary', ShowQuestionaries),
+            ('/questionary/edit/(.*)', EditQuestionary),
+            ('/questionary/delete/(.*)', DeleteQuestionary),
             ('/questionary/(.*)', ShowQuestionary),
         ])
 

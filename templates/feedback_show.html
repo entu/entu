@@ -12,7 +12,7 @@
 	<ol>
 	{% for qa in personQuestionary.questionary_answers %}
 	
-		<li>{{ qa.question.question.translate }}
+		<li>{{ qa.question.name.translate }}
 		
 		{% if qa.question.is_teacher_specific %}
 			({{ str.teacher }} {{ qa.teacher.forename }} {{ qa.teacher.surname }})
@@ -24,38 +24,38 @@
 			{% ifequal qa.answer 'strongly_disagree' %}
 				checked
 			{% endifequal %}
-			>{{ str.strongly_disagree }}<br>
+			>{{ str.strongly_disagree }}<br />
 			
 			<input type="radio" name="{{ qa.key }}" value="disagree"
 			{% ifequal qa.answer 'disagree' %}
 				checked
 			{% endifequal %}
-			>{{ str.disagree }}<br>
+			>{{ str.disagree }}<br />
 			
 			<input type="radio" name="{{ qa.key }}" value="neither_agree_nor_disagree"
 			{% ifequal qa.answer 'neither_agree_nor_disagree' %}
 				checked
 			{% endifequal %}
-			>{{ str.neither_agree_nor_disagree }}<br>
+			>{{ str.neither_agree_nor_disagree }}<br />
 			
 			<input type="radio" name="{{ qa.key }}" value="agree"
 			{% ifequal qa.answer 'agree' %}
 				checked
 			{% endifequal %}
-			>{{ str.agree }}<br>
+			>{{ str.agree }}<br />
 			
 			<input type="radio" name="{{ qa.key }}" value="strongly_agree"
 			{% ifequal qa.answer 'strongly_agree' %}
 				checked
 			{% endifequal %}
-			>{{ str.strongly_agree }}<br>
+			>{{ str.strongly_agree }}<br />
 		{% endifequal %}
 		
 		{% ifequal qa.question.type "freetext" %}
 			<textarea name="{{ qa.key }}">{% if qa.answer %}{{ qa.answer }}{% endif %}</textarea>
 		{% endifequal %}
-		<br>
-		<br>
+		<br />
+		<br />
 	{% endfor %}
 	</ol>
 
