@@ -66,6 +66,7 @@ def translation():
         'welcome':              'Tere tulemast',
         'edit':                 'Muuda',
         'delete':               'Kustuta',
-        'confirm_delete':       'Oled kindel, et soovid küsimustiku kustutada?',
+        'confirm_delete_questionary': 'Oled kindel, et soovid küsimustiku kustutada?',
+        'confirm_delete_question': 'Oled kindel, et soovid küsimust kustutada?',
         'edit_questionary':     'Küsimustiku muutmine',
     }

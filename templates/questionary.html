@@ -23,6 +23,7 @@
             {{ q.is_teacher_specific|yesno:"Teacher specific,," }}
         </div>
         <div class="table_cell">
+        	<a href="javascript:show_confirm('{{ q.key }}');" id="delete_question" class="button">{{ str.delete }}</a>
         </div>
     </div>
     {% endfor %}
@@ -75,6 +76,11 @@
         });
 
     });
+
+    function show_confirm(key)
+    {
+    	if (confirm("{{ str.confirm_delete_question }}")) location.href = "/questionary/{{ questionary.key }}/delete/" + key;
+    }
 </script>
 
 {% endblock %}

@@ -66,6 +66,7 @@ def translation():
         'welcome':              'Welcome',
         'edit':                 'Edit',
         'delete':               'Delete',
-        'confirm_delete':       'Are you sure you want to delete this questionary?',
+        'confirm_delete_questionary': 'Are you sure you want to delete this questionary?',
+        'confirm_delete_question': 'Are you sure you want to delete this question?',
         'edit_questionary':     'Edit questionary',
      }
