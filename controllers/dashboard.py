@@ -1,15 +1,8 @@
-from helpers import *
+from bo import *
 from database import *
 
 class Show(webapp.RequestHandler):
     def get(self):
-
-        c = []
-        for l in db.Query(Translation).filter('dictionary_name', 'level_of_education').filter('language', Language()).order('value').fetch(100):
-            c.append({
-                'link': '/curriculum/level/' + str(l.dictionary.key()),
-                'title': l.dictionary.translate(),
-            })
 
         childs = []
         childs.append({
@@ -20,7 +13,11 @@ class Show(webapp.RequestHandler):
         childs.append({
             'link': '/curriculum',
             'title': Translate('curriculums'),
-            'childs': c
+        })
+
+        childs.append({
+            'link': '/questionary',
+            'title': Translate('questionaries'),
         })
 
         tree = {
@@ -37,7 +34,7 @@ class Show(webapp.RequestHandler):
 
 def main():
     Route([
-            ('/dashboard', Show)
+            ('/', Show)
         ])
 
 

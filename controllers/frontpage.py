@@ -1,9 +1,12 @@
-from helpers import *
+from bo import *
 
 
 class Frontpage(webapp.RequestHandler):
     def get(self):
-        View(self, '', 'frontpage.html')
+        if users.get_current_user():
+            self.redirect('/dashboard')
+        else:
+            View(self, '', 'frontpage.html')
 
 
 def main():
