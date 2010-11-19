@@ -90,6 +90,7 @@ class Course(db.Model):
     course_start_date       = db.DateProperty()
     course_end_date         = db.DateProperty()
     teachers                = db.ListProperty(db.Key)
+    is_feedback_started     = db.BooleanProperty(default=False)
 
 
 class Subscription(db.Model):

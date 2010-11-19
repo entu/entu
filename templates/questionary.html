@@ -1,51 +1,101 @@
 {% extends "main.html" %}
 
 {% block head %}
-<script src="/javascript/jquery.validate.min.js" type="text/javascript"></script>
+<script src="http://cdn.jquerytools.org/1.2.5/form/jquery.tools.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/css/dateinput.css"/>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav>
+    <ul id="crumbs">
+        <li><a href="/">{{ system_title }}</a></li>
+        <li><a href="/questionary">{{ str.questionaries }}</a></li>
+        <li id="crumb_title">{{ questionary.name.translate }}</li>
+    </ul>
+</nav>
 {% endblock %}
 
 {% block content %}
-<h2>{{ questionary.name.translate }}</h2>
-
-<div class="table">
-    {% for q in questionary.questions %}
-    <div class="table_row">
-        <a href="/questionary/{{ q.key }}" class="table_cell">
-            {{ q.name.translate }}
-        </a>
-        <div class="table_cell">
-            {{ q.type }}
+<div style="display:table-row;">
+    <div id="content">
+        {% if questionary.key %}
+        <div id="questions_table" class="table">
+            <div class="table_header_row">
+                <div class="table_cell">
+                    {{ str.question }}
+                </div>
+                <div class="table_cell" style="text-align:center;">
+                    {{ str.type }}
+                </div>
+                <div class="table_cell" style="text-align:center;">
+                    {{ str.mandatory }}
+                </div>
+                <div class="table_cell" style="text-align:center;">
+                    {{ str.teacher_specific }}
+                </div>
+                <div class="table_cell">
+                </div>
+            </div>
+            {% for q in questionary.questions %}
+            <div id="question_{{ q.key }}" class="table_row">
+                <div class="table_cell">
+                    {{ q.name.translate }}
+                </div>
+                <div class="table_cell" style="text-align:center;">
+                    {% ifequal q.type "likert" %}{{ str.likert }}{% endifequal %}
+                    {% ifequal q.type "freetext" %}{{ str.text }}{% endifequal %}
+                </div>
+                <div class="table_cell" style="text-align:center;">
+                    {{ q.is_mandatory|yesno:"✓,," }}
+                </div>
+                <div class="table_cell" style="text-align:center;">
+                    {{ q.is_teacher_specific|yesno:"✓,," }}
+                </div>
+                <a href="javascript:void(0);" class="table_cell buttons delete_question" style="width:20px; height:25px; background: url('/images/delete.png') center center no-repeat;" alt="{{ q.key }}">
+                </a>
+            </div>
+            {% endfor %}
+            <form id="newform" class="table_row" method="post" action="/questionary/{{ questionary.key }}/question/edit/" >
+                <div class="table_cell">
+                    <input type="text" name="name" id="question_name" placeholder="{{ str.question }}" style="width:210px;" />
+                </div>
+                <div class="table_cell" style="text-align:center;">
+                    <select name="type" id="question_type">
+                        <option value="likert">{{ str.likert }}</option>
+                        <option value="freetext">{{ str.text }}</option>
+                    </select>
+                </div>
+                <div class="table_cell" style="text-align:center;">
+                    <input type="checkbox" name="mandatory" id="question_mandatory" />
+                </div>
+                <div class="table_cell" style="text-align:center;">
+                    <input type="checkbox" name="teacher_specific" id="question_teacherspecific" />
+                </div>
+                <div class="table_cell">
+                    <a href="javascript:void(0);" id="save_question_form" class="button">{{ str.add }}</a>
+                </div>
+            </form>
         </div>
-        <div class="table_cell">
-            {{ q.is_mandatory|yesno:"Mandatory,," }}
-        </div>
-        <div class="table_cell">
-            {{ q.is_teacher_specific|yesno:"Teacher specific,," }}
-        </div>
-        <div class="table_cell">
-        	<a href="javascript:show_confirm('{{ q.key }}');" id="delete_question" class="button">{{ str.delete }}</a>
-        </div>
+        {% else %}
+        <script type="text/javascript">
+            $(document).ready(function(){
+                $("#name").focus();
+            });
+        </script>
+        {% endif %}
     </div>
-    {% endfor %}
-    <form id="newform" class="table_row" method="post" action="" >
-        <div class="table_cell">
-            <input type="text" name="name" placeholder="{{ str.question }}" style="width:300px;" />
-        </div>
-        <div class="table_cell">
-            <select name="type">
-                <option value="lickert">{{ str.lickert }}</option>
-                <option value="freetext">{{ str.text }}</option>
-            </select>
-        </div>
-        <div class="table_cell">
-            <input type="checkbox" name="mandatory" id="new_mandatory" /><label for="new_mandatory">{{ str.mandatory }}</label>
-        </div>
-        <div class="table_cell">
-            <input type="checkbox" name="teacher_specific" id="new_teacher_specific" /><label for="new_teacher_specific">{{ str.teacher_specific }}</label>
-        </div>
-        <div class="table_cell">
-            <a href="javascript:void();" id="save_new" class="button">{{ str.save }}</a>
-        </div>
+
+    <form id="rightbox" method="post" action="" >
+        <label for="name">{{ str.questionary }}</label>
+        <input type="text" id="name" name="name" placeholder="{{ str.name }}" value="{{ questionary.name.translate|default:"" }}" required /><br /><br />
+        <label for="name">{{ str.start_date }}</label>
+        <input type="date" id="start_date" name="start_date" placeholder="{{ str.start_date }}" value="{{ questionary.start_date|default:"" }}" /><br /><br />
+        <label for="name">{{ str.end_date }}</label>
+        <input type="date" id="end_date" name="end_date" placeholder="{{ str.end_date }}" value="{{ questionary.end_date|default:"" }}" /><br /><br />
+        <label for="name">{{ str.description }}</label>
+        <input type="text" id="description" name="description" placeholder="{{ str.description|default:"" }}" value="{{ questionary.description.translate }}" /><br /><br />
+        <a href="javascript:void(0);" id="save_questionary_form" class="button">{{ str.save }}</a>
+        <a href="javascript:void(0);" id="delete_questionary" style="color:red; float:right; font-size:12px; padding-top:10px;">{{ str.delete }}</a>
     </form>
 </div>
 
@@ -53,34 +103,76 @@
 <script type="text/javascript">
     $(document).ready(function(){
 
-        $("#newform").validate({
-            rules: {
-                name: {
-                    required: true,
-                    minlength: 3
-                },
-            },
-            messages: {
-                name: {
-                    required: "{{ str.form_err_name }}",
-                    minlength: jQuery.format("{{ str.form_err_minlength }}")
-                },
-            },
-            submitHandler: function(form) {
-   	            form.submit();
-            }
+        //DATE FIELDS
+        $.tools.dateinput.localize('ee',  {
+            months:         '{{ str.list_months }}',
+            shortMonths:    '{{ str.list_shortmonths }}',
+            days:           '{{ str.list_days }}',
+            shortDays:      '{{ str.list_shortdays }}'
         });
 
-        $("#save_new").click(function() {
-            $("#newform").submit();
+        $(':date').dateinput({
+            lang: 'ee',
+            format: 'dd.mm.yyyy',
+            firstDay: 1
+        });
+
+        $('#start_date').data('dateinput').change(function() {
+	       $('#end_date').data('dateinput').setMin(this.getValue(), true);
+        });
+
+        $('#end_date').data('dateinput').change(function() {
+	       $('#start_date').data('dateinput').setMax(this.getValue(), true);
+        });
+
+
+        //QUESTIONARY
+
+        $("#save_questionary_form").click(function() {
+            $.post('/questionary/{{ questionary.key }}', {
+                    name: $("#name").val(),
+                    start_date: $("#start_date").val(),
+                    end_date: $("#end_date").val(),
+                    description: $("#description").val(),
+                }
+                , function(data) {
+                    $('#crumb_title').html($("#name").val());
+                    if(data) {
+                        location.href = '/questionary/' + data;
+                    };
+                });
+        });
+
+        $('#delete_questionary').click(function() {
+            if (confirm('{{ str.confirm_delete_questionary }}')) location.href = '/questionary/delete/{{ questionary.key }}';
+        });
+
+
+        //QUESTION
+        $("#save_question_form").click(function() {
+            $.post('/questionary/question', {
+                    questionary: '{{ questionary.key }}',
+                    name: $("#question_name").val(),
+                    type: $("#question_type").val(),
+                    mandatory: $("#question_mandatory:checked").val(),
+                    teacher_specific: $("#question_teacherspecific:checked").val(),
+                }
+                , function(data) {
+                    location.href = '/questionary/{{ questionary.key }}';
+                });
+        });
+
+        $('.delete_question').click(function() {
+            key = $(this).attr('alt')
+            if (confirm('{{ str.confirm_delete_question }}')) {
+                $.get('/questionary/question/delete/' + key, function(data) {
+                    $('#question_' + key).hide();
+                });
+            }
         });
 
     });
 
-    function show_confirm(key)
-    {
-    	if (confirm("{{ str.confirm_delete_question }}")) location.href = "/questionary/{{ questionary.key }}/delete/" + key;
-    }
 </script>
 
 {% endblock %}

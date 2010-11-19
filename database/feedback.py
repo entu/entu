@@ -16,7 +16,7 @@ class Questionary(db.Model):
 class Question(db.Model):
     questionary         = db.ReferenceProperty(Questionary, collection_name='questions')
     name                = db.ReferenceProperty(Dictionary, collection_name='questions')
-    type                = db.StringProperty(choices=['freetext', 'lickert'])
+    type                = db.StringProperty(choices=['freetext', 'likert'])
     is_mandatory        = db.BooleanProperty(default=False)
     is_teacher_specific = db.BooleanProperty(default=False)
 
