@@ -1,15 +1,16 @@
 {% extends "main.html" %}
 
+{% block head %}
+<link rel="stylesheet" href="/css/slickmap.css" />
+{% endblock %}
+
 {% block content %}
 
-{% include "header.html" %}
+<section id="wide_content">
+    <img src="/images/logo.png" width="200" height="200" alt="logo" style="margin:20px auto; display:block;" />
 
-{% include "search_box.html" %}
+    {% include "tree.html" %}
 
-<ul id="utilityNav">
-    <li><a href="{{ logouturl }}">{{ str.logout }}</a></li>
-</ul>
-
-{% include "tree.html" %}
+</section>
 
 {% endblock %}

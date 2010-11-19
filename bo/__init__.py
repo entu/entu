@@ -16,6 +16,7 @@ def Route(url_mapping):
 
 def View(self, page_title, templatefile, values={}):
     values['str'] = Translate()
+    values['system_title'] = SYSTEM_TITLE.decode('utf8')
     if page_title:
         values['site_name'] = SYSTEM_TITLE.decode('utf8') + ' - ' + Translate(page_title)
         values['page_title'] = Translate(page_title)
