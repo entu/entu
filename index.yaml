@@ -1,5 +1,12 @@
 indexes:
 
+- kind: Course
+  properties:
+  - name: is_feedback_started
+  - name: course_end_date
+    direction: desc
+
+
 - kind: Person
   properties:
   - name: __searchable_text_index
