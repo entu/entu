@@ -7,47 +7,55 @@ import cgi
 class ShowFeedback(webapp.RequestHandler):
 
     def get(self):
-        count = db.Query(QuestionaryPerson).filter('person', Person().current()).filter('is_completed', False).count()
-        if count > 0:
-            personQuestionary = db.Query(QuestionaryPerson).filter('person', Person().current()).filter('is_completed', False).get()
-            
-            View(self, 'feedback', 'feedback_show.html', {
-                'personQuestionary': personQuestionary,
-                'count': count
-            })
-        # if there are no unanswered questionaries
-        #else:
+        personQuestionary = db.Query(QuestionaryPerson).filter('person', Person().current()).filter('is_completed', False).order('__key__').fetch(1000)
+        if len(personQuestionary) > 0:
+            questions = []
+            for question in personQuestionary[0].questionary_answers:
+                if question.teacher:
+                    teacher = question.teacher.forename + ' ' + question.teacher.surname
+                else:
+                    teacher = ''
+                questions.append({
+                    'key': str(question.key()),
+                    'question': question.question.name.translate(),
+                    'answer': question.answer,
+                    'type': question.question.type,
+                    'teacher': teacher,
+                    'is_mandatory': question.question.is_mandatory,
+                })
 
+            View(self, 'feedback', 'feedback_show.html', {
+                'questionary': personQuestionary[0],
+                'questions': questions,
+                'count': len(personQuestionary)
+            })
+        else:
+            self.redirect('/')
 
     def post(self):
-        qp = db.get(self.request.get("personQuestionaryId"))
-        qanswers = qp.questionary_answers
-        
-        message = ''
-        for qanswer in qanswers:
-            answer = self.request.get(str(qanswer.key())).strip() 
+        qp = db.Query(QuestionaryPerson).filter('person', Person().current()).filter('__key__', db.Key(self.request.get("person_questionary"))).get()
 
-            if answer and len(str(answer)) > 0:
+        if qp:
+            mandatory_ok = True
+            for qanswer in qp.questionary_answers:
+                answer = self.request.get(str(qanswer.key())).strip()
+
                 qanswer.question_string = qanswer.question.name.translate()
-                qanswer.answer = cgi.escape(answer)
                 qanswer.datetime = datetime.now()
+                qanswer.answer = answer
                 qanswer.put()
-            elif qanswer.is_mandatory and (len((str(answer)).strip()) == 0 or not answer):
-                message += Translate('answer_mandatory_question') + qanswer.question.question.translate() + '<br/>'    
-        
-        count = db.Query(QuestionaryPerson).filter('person', Person().current()).filter('is_completed', False).count()        
-        if(len(message) == 0):
+
+                if qanswer.question.is_mandatory == True and ((qanswer.question.type != 'likert' and len(answer) < 1) or (qanswer.question.type == 'likert' and int(answer) < 1)):
+                    mandatory_ok = False
+
+            if mandatory_ok == True:
                 qp.is_completed = True
                 qp.put()
+                self.redirect('/')
+            else:
                 self.redirect('')
-                #self.get()
-        else:
-            View(self, 'feedback', 'feedback_show.html', {
-                'personQuestionary': qp,
-                'count': count,
-                'errorMessage': message
-                })
-        
+
+
 def main():
     Route([
             ('/feedback', ShowFeedback),

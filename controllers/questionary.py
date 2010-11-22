@@ -85,21 +85,47 @@ class DeleteQuestion(webapp.RequestHandler):
 
 class GenerateQuestionaryPersons(webapp.RequestHandler):
     def get(self):
+
+        self.response.headers['Content-Type'] = 'text/plain; charset=UTF-8'
+
         currentdate = datetime.now().date()
-        courses = db.Query(Course).filter('course_end_date', currentdate)
-        for course in courses:
-            #db.Query(Questionary).filter('start_date <=', currentdate).filter('end_date >=', currentdate).count()
-            for q in db.Query(Questionary).filter('end_date >=', currentdate):
-                if q.start_date <= currentdate:
-                    qpCount = db.Query(QuestionaryPerson).filter('course', course).filter('questionary', q).count()
-                    if qpCount == 0:
-                        for s in course.subscribers:
-                            qp = QuestionaryPerson()
-                            qp.person = s.student
-                            qp.is_completed = False
-                            qp.questionary = q
-                            qp.course = course
-                            qp.put()
+        #for course in db.Query(Course).filter('course_end_date <=', currentdate).filter('is_feedback_started', False).order('-course_end_date').fetch(1000):
+        for course in db.Query(Course).filter('__key__', db.Key('agdib25nYXBwchcLEgZDb3Vyc2UiC2NvdXJzZV84MzYxDA')).fetch(1000):
+            for questionary in db.Query(Questionary).filter('end_date >=', course.course_end_date).fetch(1000):
+                if questionary.start_date <= course.course_end_date:
+                    self.response.out.write(questionary.name.translate() + ':\n')
+                    for subscription in course.subscribers:
+                        qp = QuestionaryPerson()
+                        qp.person = subscription.student
+                        qp.is_completed = False
+                        qp.questionary = questionary
+                        qp.course = course
+                        qp.put()
+
+                        self.response.out.write('    ' + subscription.student.forename + ' ' + subscription.student.surname + ':\n')
+
+                        for question in questionary.questions:
+                            if question.is_teacher_specific:
+                                teachers = Person().get(course.teachers)
+                                for teacher in teachers:
+                                    qa = QuestionAnswer()
+                                    qa.question = question
+                                    qa.questionary_person = qp
+                                    qa.teacher = teacher
+                                    qa.put()
+                                    self.response.out.write('        ' + question.name.translate() + ' (' + teacher.forename + ' ' + teacher.surname + ')\n')
+                            else:
+                                qa = QuestionAnswer()
+                                qa.question = question
+                                qa.questionary_person = qp
+                                qa.is_mandatory = question.is_mandatory
+                                qa.put()
+                                self.response.out.write('        ' + question.name.translate() + '\n')
+                        self.response.out.write('\n')
+
+                    self.response.out.write('\n\n')
+            course.is_feedback_started = True
+            course.put()
 
 
 def main():

@@ -1,7 +1,8 @@
 {% extends "main.html" %}
 
 {% block head %}
-<script src="http://cdn.jquerytools.org/1.2.5/form/jquery.tools.min.js"></script>
+<script src="/javascript/jquery.elastic.js" type="text/javascript"></script>
+<script src="http://cdn.jquerytools.org/1.2.5/form/jquery.tools.min.js" type="text/javascript"></script>
 <link rel="stylesheet" type="text/css" href="/css/dateinput.css"/>
 {% endblock %}
 
@@ -93,7 +94,8 @@
         <label for="name">{{ str.end_date }}</label>
         <input type="date" id="end_date" name="end_date" placeholder="{{ str.end_date }}" value="{{ questionary.end_date|default:"" }}" /><br /><br />
         <label for="name">{{ str.description }}</label>
-        <input type="text" id="description" name="description" placeholder="{{ str.description|default:"" }}" value="{{ questionary.description.translate }}" /><br /><br />
+        <textarea name="{{ item.key }}" id="description" name="description" placeholder="{{ str.description }}">{{ questionary.description.translate|default:"" }}</textarea>
+        <br /><br />
         <a href="javascript:void(0);" id="save_questionary_form" class="button">{{ str.save }}</a>
         <a href="javascript:void(0);" id="delete_questionary" style="color:red; float:right; font-size:12px; padding-top:10px;">{{ str.delete }}</a>
     </form>
@@ -102,6 +104,8 @@
 
 <script type="text/javascript">
     $(document).ready(function(){
+
+        $('textarea').elastic();
 
         //DATE FIELDS
         $.tools.dateinput.localize('ee',  {

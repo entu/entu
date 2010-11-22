@@ -22,7 +22,8 @@ class Translation(search.SearchableModel):
     dictionary      = db.ReferenceProperty(Dictionary, collection_name='translations')
     dictionary_name = db.StringProperty()
     language        = db.StringProperty()
-    value           = db.StringProperty()
+    value           = db.StringProperty(multiline=True)
+    is_verified     = db.BooleanProperty()
 
 
 def DictionaryAdd(name, value):
@@ -33,11 +34,11 @@ def DictionaryAdd(name, value):
     if t:
         return t.dictionary.key()
 
-    d = db.Query(Dictionary).filter('name', name).filter('value', value).get()
+    d = db.Query(Dictionary).filter('name', name).filter('value', value.replace('\n',' ')).get()
     if not d:
         d = Dictionary()
         d.name = name
-        d.value = value
+        d.value = value.replace('\n',' ')
         d.languages = []
     d.languages.append(User().current().language)
     d.put()

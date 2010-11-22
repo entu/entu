@@ -1,66 +1,92 @@
 {% extends "main.html" %}
 
+{% block head %}
+<script src="/javascript/jquery.elastic.js" type="text/javascript"></script>
+<script src="/javascript/jquery.raty.min.js" type="text/javascript"></script>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav>
+    <ul id="crumbs">
+        <li><a href="/">{{ system_title }}</a></li>
+        <li><a href="/feedback">{{ str.questionary }} 1/{{ count }}</a></li>
+        <li>{{ questionary.questionary.name.translate }}</li>
+    </ul>
+</nav>
+{% endblock %}
+
 {% block content %}
 
-<form action="/feedback" method="post">
-{% if errorMessage %}
-<p>{{ errorMessage }}</p>
-{% endif %}
+<section id="wide_content">
+    <form id="feedback_form" action="/feedback" method="post">
+        <input type="hidden" name="person_questionary" value="{{ questionary.key }}"/>
 
-<p> {{ str.unanswered_questionaries }}{{ count }}</p>
-	<h2>{{ personQuestionary.questionary.name.translate }}</h2>
-	<ol>
-	{% for qa in personQuestionary.questionary_answers %}
-	
-		<li>{{ qa.question.name.translate }}
-		
-		{% if qa.question.is_teacher_specific %}
-			({{ str.teacher }} {{ qa.teacher.forename }} {{ qa.teacher.surname }})
-		{% endif %}
-		</li>
-		
-		{% ifequal qa.question.type "lickert" %}
-			<input type="radio" name= "{{ qa.key }}" value="strongly_disagree"
-			{% ifequal qa.answer 'strongly_disagree' %}
-				checked
-			{% endifequal %}
-			>{{ str.strongly_disagree }}<br />
-			
-			<input type="radio" name="{{ qa.key }}" value="disagree"
-			{% ifequal qa.answer 'disagree' %}
-				checked
-			{% endifequal %}
-			>{{ str.disagree }}<br />
-			
-			<input type="radio" name="{{ qa.key }}" value="neither_agree_nor_disagree"
-			{% ifequal qa.answer 'neither_agree_nor_disagree' %}
-				checked
-			{% endifequal %}
-			>{{ str.neither_agree_nor_disagree }}<br />
-			
-			<input type="radio" name="{{ qa.key }}" value="agree"
-			{% ifequal qa.answer 'agree' %}
-				checked
-			{% endifequal %}
-			>{{ str.agree }}<br />
-			
-			<input type="radio" name="{{ qa.key }}" value="strongly_agree"
-			{% ifequal qa.answer 'strongly_agree' %}
-				checked
-			{% endifequal %}
-			>{{ str.strongly_agree }}<br />
-		{% endifequal %}
-		
-		{% ifequal qa.question.type "freetext" %}
-			<textarea name="{{ qa.key }}">{% if qa.answer %}{{ qa.answer }}{% endif %}</textarea>
-		{% endifequal %}
-		<br />
-		<br />
+    <div class="table" style="margin-bottom:20px; margin-top:10px;">
+        <div class="table_header_row">
+            <div class="table_cell">
+                {{ questionary.questionary.name.translate }}
+            </div>
+        </div>
+        <div class="table_row" style="width:100%">
+            <div class="table_cell" style="width:100%">
+                {{ questionary.questionary.description.translate|linebreaksbr }}
+            </div>
+        </div>
+    </div>
+
+    {% regroup questions|dictsort:"teacher" by teacher as grouped %}
+	{% for group in grouped %}
+    <div class="table" style="margin-bottom:20px; margin-top:10px;">
+        <div class="table_header_row">
+            <div class="table_cell">
+                {% if group.grouper %}{{ group.grouper }}{% else %}{{ str.general_questions }}{% endif %}
+            </div>
+        </div>
+
+        {% for item in group.list|dictsort:"question" %}
+        <div class="table_row" style="width:100%">
+            <div class="table_cell" style="width:100%">
+                {{ item.question }}{% if item.is_mandatory %} *{% endif %}
+                {% ifequal item.type "likert" %}
+                <div class="range" style="float:right;"><input type="hidden" class="range_input" name="{{ item.key }}" value="{{ item.answer|default:"0" }}"/></div>
+                {% endifequal %}
+
+                {% ifequal item.type "freetext" %}
+                <br /><textarea name="{{ item.key }}" rows="1" style="width:99%; height:20px;">{{ item.answer|default:"" }}</textarea>
+                {% endifequal %}
+            </div>
+        </div>
+	   {% endfor %}
+    </div>
 	{% endfor %}
-	</ol>
 
-<input type="hidden" name="personQuestionaryId" value="{{ personQuestionary.key }}"/>
-<input type="submit" value="{{ str.submit }}" />
-</form>
+    </form>
+    <a href="javascript:void(0);" id="feedback_submit" class="button" style="float:right;">{{ str.submit }}</a>
+    <span style="float:left; font-style:italic; font-size:11px;">{{ str.mandatory_questions }}</span>
+</section>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('textarea').elastic();
+
+        $('.range').each(function(){
+            rating = $(this)
+            value = rating.children('input').val()
+            rating.raty({
+                number: 5,
+                path: '/images/rating/',
+                showCancel: true,
+                start: value,
+                onClick: function(score) {
+                    $(this).children('input').val(score);
+                }
+            });
+        });
+
+        $('#feedback_submit').click(function(){
+            $('#feedback_form').submit();
+        });
+    });
+</script>
 
 {% endblock %}
