@@ -56,7 +56,10 @@ def get_person_key(s):
 
 def get_person_key_list(s):
     if s:
-        return [db.Key.from_path('Person', s.decode('utf-8'))]
+        klist = []
+        for key in s.decode('utf-8').split('@@@'):
+            klist.append(db.Key.from_path('Person', key))
+        return klist
     else:
         return None
 
@@ -294,13 +297,14 @@ class Course_loader(bulkloader.Loader):
             ('course_start_date', get_date),
             ('course_end_date', get_date),
             ('teachers', get_person_key_list),
+            ('is_feedback_started', get_boolean),
         ])
     def handle_entity(self, entity):
-        c = Course().get(entity.key())
-        if c:
-            entity.teachers = list(set(entity.teachers + c.teachers))
-        else:
-            entity.teachers = entity.teachers
+        #c = Course().get(entity.key())
+        #if c:
+        #    entity.teachers = list(set(entity.teachers + c.teachers))
+        #else:
+        #    entity.teachers = entity.teachers
         entity.save()
 
 
