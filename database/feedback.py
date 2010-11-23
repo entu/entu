@@ -13,6 +13,7 @@ class Questionary(db.Model):
 
 
 class Question(db.Model):
+    ordinal             = db.IntegerProperty(default=999);
     questionary         = db.ReferenceProperty(Questionary, collection_name='questions')
     name                = db.ReferenceProperty(Dictionary, collection_name='question_names')
     type                = db.StringProperty(choices=['freetext', 'likert'])

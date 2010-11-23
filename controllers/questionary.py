@@ -45,6 +45,17 @@ class ShowQuestionary(webapp.RequestHandler):
             self.response.out.write(str(q.key()))
 
 
+class SortQuestionary(webapp.RequestHandler):
+    def post(self, key):
+        questions = self.request.get_all('question[]')
+
+        ordinal = 0
+        for question in questions:
+            ordinal = ordinal + 1
+            q = db.Query(Question).filter('__key__', db.Key(question)).get()
+            q.ordinal = ordinal
+            q.put()
+
 
 class DeleteQuestionary(webapp.RequestHandler):
     def get(self, key):
@@ -132,6 +143,7 @@ def main():
     Route([
             ('/questionary', ShowQuestionariesList),
             ('/questionary/generate', GenerateQuestionaryPersons),
+            ('/questionary/sort/(.*)', SortQuestionary),
             ('/questionary/delete/(.*)', DeleteQuestionary),
             ('/questionary/question/delete/(.*)', DeleteQuestion),
             ('/questionary/question', EditQuestion),

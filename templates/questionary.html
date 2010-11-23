@@ -23,6 +23,8 @@
         <div id="questions_table" class="table">
             <div class="table_header_row">
                 <div class="table_cell">
+                </div>
+                <div class="table_cell">
                     {{ str.question }}
                 </div>
                 <div class="table_cell" style="text-align:center;">
@@ -37,19 +39,21 @@
                 <div class="table_cell">
                 </div>
             </div>
-            {% for q in questionary.questions %}
-            <div id="question_{{ q.key }}" class="table_row">
-                <div class="table_cell">
+            {% for q in questionary.questions|dictsort:"ordinal" %}
+            <div id="question_{{ q.key }}" class="table_row sortable">
+                <div class="table_cell sort" style="width:20px; height:25px; background: url('/images/sort.png') center center no-repeat;">
+                </div>
+                <div class="table_cell" style="width:255px;">
                     {{ q.name.translate }}
                 </div>
-                <div class="table_cell" style="text-align:center;">
+                <div class="table_cell" style="text-align:center; width:86px;">
                     {% ifequal q.type "likert" %}{{ str.likert }}{% endifequal %}
                     {% ifequal q.type "freetext" %}{{ str.text }}{% endifequal %}
                 </div>
-                <div class="table_cell" style="text-align:center;">
+                <div class="table_cell" style="text-align:center; width:100px;">
                     {{ q.is_mandatory|yesno:"✓,," }}
                 </div>
-                <div class="table_cell" style="text-align:center;">
+                <div class="table_cell" style="text-align:center; width:186px;">
                     {{ q.is_teacher_specific|yesno:"✓,," }}
                 </div>
                 <a href="javascript:void(0);" class="table_cell buttons delete_question" style="width:20px; height:25px; background: url('/images/delete.png') center center no-repeat;" alt="{{ q.key }}">
@@ -57,6 +61,8 @@
             </div>
             {% endfor %}
             <form id="newform" class="table_row" method="post" action="/questionary/{{ questionary.key }}/question/edit/" >
+                <div class="table_cell">
+                </div>
                 <div class="table_cell">
                     <input type="text" name="name" id="question_name" placeholder="{{ str.question }}" style="width:210px;" />
                 </div>
@@ -106,6 +112,17 @@
     $(document).ready(function(){
 
         $('textarea').elastic();
+        $( "#questions_table" ).sortable({
+            items: '.sortable',
+            axis: 'y',
+            cursor: 'move',
+            handle: '.sort',
+            forceHelperSize: true,
+            opacity: 0.6,
+            update: function(event, ui) {
+                $.post('/questionary/sort/{{ questionary.key }}', $(this).sortable('serialize'));
+            },
+        });
 
         //DATE FIELDS
         $.tools.dateinput.localize('ee',  {

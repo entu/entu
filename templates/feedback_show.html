@@ -10,7 +10,7 @@
     <ul id="crumbs">
         <li><a href="/">{{ system_title }}</a></li>
         <li><a href="/feedback">{{ str.questionary }} 1/{{ count }}</a></li>
-        <li>{{ questionary.questionary.name.translate }}</li>
+        <li>{{ questionary.questionary.name.translate }} "{{ questionary.course.subject.name.translate }}"</li>
     </ul>
 </nav>
 {% endblock %}
@@ -24,7 +24,7 @@
     <div class="table" style="margin-bottom:20px; margin-top:10px;">
         <div class="table_header_row">
             <div class="table_cell">
-                {{ questionary.questionary.name.translate }}
+                {{ questionary.questionary.name.translate }} <span style="color:#0099FF; text-transform:uppercase; letter-spacing:2px;">"{{ questionary.course.subject.name.translate }}"</span>
             </div>
         </div>
         <div class="table_row" style="width:100%">
@@ -43,7 +43,7 @@
             </div>
         </div>
 
-        {% for item in group.list|dictsort:"question" %}
+        {% for item in group.list|dictsort:"ordinal" %}
         <div class="table_row" style="width:100%">
             <div class="table_cell" style="width:100%">
                 {{ item.question }}{% if item.is_mandatory %} *{% endif %}
@@ -70,8 +70,8 @@
         $('textarea').elastic();
 
         $('.range').each(function(){
-            rating = $(this)
-            value = rating.children('input').val()
+            rating = $(this);
+            value = rating.children('input').val();
             rating.raty({
                 number: 5,
                 path: '/images/rating/',

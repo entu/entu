@@ -17,6 +17,7 @@ class ShowFeedback(webapp.RequestHandler):
                     teacher = ''
                 questions.append({
                     'key': str(question.key()),
+                    'ordinal': question.question.ordinal,
                     'question': question.question.name.translate(),
                     'answer': question.answer,
                     'type': question.question.type,
