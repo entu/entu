@@ -14,7 +14,7 @@ class Show(boRequestHandler):
                     {'link': 'http://gmail.artun.ee', 'title': Translate('inbox')},
                     {'link': 'http://calendar.artun.ee', 'title': Translate('calendar')},
                     {'link': 'http://docs.artun.ee', 'title': Translate('documents')},
-                    {'link': 'http://ois.artun.ee', 'title': '<b>' + Translate('old_ois') + '</b>'},
+                    {'link': '/oldauth?site=ois', 'title': '<b>' + Translate('old_ois') + '</b>'},
                 ]
             })
 

@@ -7,7 +7,7 @@
 {% block content %}
 
 <section id="wide_content">
-    <img src="/images/logo.png" width="200" height="200" alt="logo" style="margin:20px auto; display:block;" />
+    <img src="{{ system_logo|default:"/images/logo.png" }}" alt="logo" style="margin:20px auto; display:block;" />
 
     {% include "tree.html" %}
 

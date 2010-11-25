@@ -41,6 +41,7 @@ class boRequestHandler(webapp.RequestHandler):
         from database.person import *
         values['str'] = Translate()
         values['system_title'] = SYSTEM_TITLE.decode('utf8')
+        values['system_logo'] = SYSTEM_LOGO_URL.decode('utf8')
         if page_title:
             values['site_name'] = SYSTEM_TITLE.decode('utf8') + ' - ' + Translate(page_title)
             values['page_title'] = Translate(page_title)
