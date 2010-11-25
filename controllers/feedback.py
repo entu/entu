@@ -4,10 +4,10 @@ from datetime import datetime
 import cgi
 
 
-class ShowFeedback(webapp.RequestHandler):
+class ShowFeedback(boRequestHandler):
 
     def get(self):
-        personQuestionary = db.Query(QuestionaryPerson).filter('person', Person().current()).filter('is_completed', False).order('__key__').fetch(1000)
+        personQuestionary = db.Query(QuestionaryPerson).filter('person', Person().current).filter('is_completed', False).order('__key__').fetch(1000)
         if len(personQuestionary) > 0:
             questions = []
             for question in personQuestionary[0].questionary_answers:
@@ -25,16 +25,20 @@ class ShowFeedback(webapp.RequestHandler):
                     'is_mandatory': question.question.is_mandatory,
                 })
 
-            View(self, 'feedback', 'feedback_show.html', {
+            self.view('feedback', 'feedback_show.html', {
                 'questionary': personQuestionary[0],
                 'questions': questions,
                 'count': len(personQuestionary)
             })
         else:
-            self.redirect('/')
+            url = Cache().get('redirect_after_feedback')
+            Cache().set('redirect_after_feedback')
+            if not url:
+                url = '/'
+            self.redirect(url)
 
     def post(self):
-        qp = db.Query(QuestionaryPerson).filter('person', Person().current()).filter('__key__', db.Key(self.request.get("person_questionary"))).get()
+        qp = db.Query(QuestionaryPerson).filter('person', Person().current).filter('__key__', db.Key(self.request.get("person_questionary"))).get()
 
         if qp:
             mandatory_ok = True
@@ -52,7 +56,7 @@ class ShowFeedback(webapp.RequestHandler):
             if mandatory_ok == True:
                 qp.is_completed = True
                 qp.put()
-                self.redirect('/')
+                self.redirect('/feedback')
             else:
                 self.redirect('')
 

@@ -51,7 +51,7 @@ class boRequestHandler(webapp.RequestHandler):
         values['user'] = Person().current
         values['loginurl'] = users.create_login_url('/')
         values['logouturl'] = users.create_logout_url('/')
-        path = os.path.join(os.path.dirname(__file__), '..', 'templates', templatefile)
+        path = os.path.join(os.path.dirname(__file__), 'templates', templatefile)
         self.response.out.write(template.render(path, values))
 
 
