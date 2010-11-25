@@ -41,22 +41,22 @@
             </div>
             {% for q in questionary.questions|dictsort:"ordinal" %}
             <div id="question_{{ q.key }}" class="table_row sortable">
-                <div class="table_cell sort" style="width:20px; height:25px; background: url('/images/sort.png') center center no-repeat;">
+                <div class="table_cell sort" style="width:30px; height:25px; background: url('/images/sort.png') center center no-repeat;">
                 </div>
-                <div class="table_cell" style="width:255px;">
+                <div class="table_cell" style="width:340px;">
                     {{ q.name.translate }}
                 </div>
-                <div class="table_cell" style="text-align:center; width:86px;">
+                <div class="table_cell" style="text-align:center; width:70px;">
                     {% ifequal q.type "likert" %}{{ str.likert }}{% endifequal %}
                     {% ifequal q.type "freetext" %}{{ str.text }}{% endifequal %}
                 </div>
                 <div class="table_cell" style="text-align:center; width:100px;">
                     {{ q.is_mandatory|yesno:"✓,," }}
                 </div>
-                <div class="table_cell" style="text-align:center; width:186px;">
+                <div class="table_cell" style="text-align:center; width:100px;">
                     {{ q.is_teacher_specific|yesno:"✓,," }}
                 </div>
-                <a href="javascript:void(0);" class="table_cell buttons delete_question" style="width:20px; height:25px; background: url('/images/delete.png') center center no-repeat;" alt="{{ q.key }}">
+                <a href="javascript:void(0);" class="table_cell buttons delete_question" style="width:30px; height:25px; background: url('/images/delete.png') center center no-repeat;" alt="{{ q.key }}">
                 </a>
             </div>
             {% endfor %}
@@ -64,7 +64,7 @@
                 <div class="table_cell">
                 </div>
                 <div class="table_cell">
-                    <input type="text" name="name" id="question_name" placeholder="{{ str.question }}" style="width:210px;" />
+                    <input type="text" name="name" id="question_name" placeholder="{{ str.question }}" style="width:310px;" />
                 </div>
                 <div class="table_cell" style="text-align:center;">
                     <select name="type" id="question_type">
@@ -78,9 +78,8 @@
                 <div class="table_cell" style="text-align:center;">
                     <input type="checkbox" name="teacher_specific" id="question_teacherspecific" />
                 </div>
-                <div class="table_cell">
-                    <a href="javascript:void(0);" id="save_question_form" class="button">{{ str.add }}</a>
-                </div>
+                <a href="javascript:void(0);" id="save_question_form" class="table_cell buttons" style="width:30px; height:25px; background: url('/images/add.png') center center no-repeat;" alt="{{ q.key }}">
+                </a>
             </form>
         </div>
         {% else %}

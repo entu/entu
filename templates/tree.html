@@ -1,11 +1,7 @@
-<div class="sitemap">
-    <ul id="primaryNav" class="col{{ tree.columns }}" style="padding:20px 0px 0px 10px;">
-        <li id="home">
-            <a href="http://{{ tree.link }}" alt="{{ tree.alt }}">{{ tree.title }}</a>
-        </li>
-
-        {% for t in tree.childs %}
-        <li>
+<nav>
+    <ul id="primaryNav" class="col{{ tree|length }}" style="padding:20px 0px 0px 10px;">
+        {% for t in tree %}
+        <li {% if forloop.first %} id="first"{% endif %}>
             <a href="{{ t.link }}" alt="{{ t.alt }}">{{ t.title }}</a>
             {% if t.childs %}
             <ul>
@@ -27,7 +23,5 @@
             {% endif %}
         </li>
         {% endfor %}
-
-
     </ul>
-</div>
+</nav>

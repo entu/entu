@@ -5,28 +5,28 @@ class Show(boRequestHandler):
     def get(self):
         if self.authorize():
 
-            childs = []
-            childs.append({
-                'link': '/person',
-                'title': Translate('persons'),
+            tree = []
+
+            tree.append({
+                'link': 'http://www.artun.ee',
+                'title': Translate('artun.ee'),
+                'childs': [
+                    {'link': 'http://gmail.artun.ee', 'title': Translate('inbox')},
+                    {'link': 'http://calendar.artun.ee', 'title': Translate('calendar')},
+                    {'link': 'http://docs.artun.ee', 'title': Translate('documents')},
+                    {'link': 'http://ois.artun.ee', 'title': '<b>' + Translate('old_ois') + '</b>'},
+                ]
             })
 
-            childs.append({
-                'link': '/curriculum',
-                'title': Translate('curriculums'),
+            tree.append({
+                'link': '/tasks',
+                'title': Translate('tasks')
             })
 
-            childs.append({
+            tree.append({
                 'link': '/questionary',
-                'title': Translate('questionaries'),
+                'title':  Translate('questionaries'),
             })
-
-            tree = {
-                'link': SYSTEM_URL,
-                'title': SYSTEM_TITLE,
-                'columns': 3,
-                'childs': childs,
-            }
 
             self.view('dashboard', 'dashboard.html', {
                 'tree': tree,

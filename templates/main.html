@@ -46,7 +46,7 @@
             <h1><a href="/">{{ system_title }}</a></h1>
             <nav>
                 {% if user %}
-                <i>{{ str.welcome }} <a href="/preferences">{{ user.nickname }}</a>!</i> | <a href="{{ logouturl|escape }}">{{ str.logout }}</a>
+                <i>{{ str.welcome }} {{ user.forename|default:"" }}!</i> | <a href="{{ logouturl|escape }}">{{ str.logout }}</a>
                 {% else %}
                 <a href="{{ loginurl|escape }}" style="border:none;">{{ str.login }}</a>
                 {% endif %}

@@ -1,15 +1,3 @@
-/* ------------------------------------------------------------
-	NUMBER OF COLUMNS: Adjust #primaryNav li to set the number
-	of columns required in your site map. The default is
-	4 columns (25%). 5 columns would be 20%, 6 columns would
-	be 16.6%, etc.
------------------------------------------------------------- */
-
-.sitemap {
-    padding-top: 30px;
-
-}
-
 #primaryNav li {
 	width:25%;
 }
@@ -52,14 +40,14 @@ ol, ul {
 #primaryNav #home {
 	display: block;
 	float: none;
-	background: #ffffff url('/images/slickmap/L1-left.png') center bottom no-repeat;
+	background: url('/images/slickmap/L1-left.png') center bottom no-repeat;
 	position: relative;
 	z-index: 2;
 	padding: 0 0 30px 0;
 }
 
 #primaryNav #first {
-	background: #ffffff url('/images/slickmap/L1-first.png') center top no-repeat;
+	background: url('/images/slickmap/L1-first.png') center top no-repeat;
 }
 
 #primaryNav li {
@@ -78,8 +66,6 @@ ol, ul {
 	color: #2E2E2E;
 	background: #c3eafb url('/images/slickmap/white-highlight.png') top left repeat-x;
 	border: 1px solid #b5d9ea;
-	-webkit-box-shadow: rgba(0,0,0,0.2) 1px 1px 3px;
-	-moz-box-shadow: rgba(0,0,0,0.3) 1px 1px 3px; /* FF 3.5+ */
 }
 #primaryNav li a img {
 	vertical-align: middle;
@@ -169,44 +155,4 @@ ol, ul {
 #primaryNav li li li a:visited:before {
 	color: #ccae14;
 	font-size: 9px;
-}
-
-
-/* ------------------------------------------------------------
-	Utility Navigation
------------------------------------------------------------- */
-
-#utilityNav {
-	float: right;
-	max-width: 50%;
-	margin-right: 10px;
-}
-#utilityNav li {
-	float: left;
-	margin-bottom: 10px;
-}
-#utilityNav li a {
-	margin: 0 10px 0 0;
-	padding: 5px 10px;
-	display: block;
-	border: 1px solid #e3ca4b;
-	font-size: 10px;
-	font-weight: bold;
-	text-align: center;
-	color: black;
-	background: #fff7aa url('/images/slickmap/white-highlight.png') top left repeat-x;
-	-moz-border-radius: 5px;
-	-webkit-border-radius: 5px;
-	-webkit-box-shadow: rgba(0,0,0,0.5) 2px 2px 2px;
-	-moz-box-shadow: rgba(0,0,0,0.5) 2px 2px 2px; /* FF 3.5+ */
-}
-#utilityNav li a:hover {
-	background-color: #fffce5;
-	border-color: #d1b62c;
-}
-#utilityNav li a:link:before,
-#utilityNav li a:visited:before {
-	color: #ccae14;
-	font-size: 9px;
-	margin-bottom: 3px;
 }
