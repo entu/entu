@@ -28,6 +28,11 @@ class Show(boRequestHandler):
                 'title':  Translate('questionaries'),
             })
 
+            tree.append({
+                'link': '/preferences',
+                'title':  Translate('preferences'),
+            })
+
             self.view('dashboard', 'dashboard.html', {
                 'tree': tree,
             })

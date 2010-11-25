@@ -28,12 +28,12 @@ footer{padding:10px;text-align:center;white-space:nowrap;font-size:11px;font-fam
 #signupform input.error{border:1px solid #CC0000;}
 #signupform_submit{width:200px;margin:20px auto;padding:10px 20px;text-align:center;1text-transform:uppercase;font-family:HelveticaNeue-Regular,'Helvetica Neue',Helvetica,Arial,Tahoma,Verdana,sans-serif;font-size:13px;font-weight:bold;letter-spacing:1px;color:#FFFFFF;cursor:pointer;background:#0e81c5 url('/images/slickmap/white-highlight.png') top left repeat-x;1border:1px solid #b9b9b9;-moz-border-radius:5px;-webkit-border-radius:5px;box-shadow:#CCCCCC 1px 2px 3px;-moz-box-shadow:#CCCCCC 1px 2px 3px;-webkit-box-shadow:#CCCCCC 1px 2px 3px;}#signupform_submit :hover{color:#FFFFFF;}
 #signupform_submit :active{position:relative;top:1px;color:#FFFFFF;box-shadow:none;-moz-box-shadow:none;-webkit-box-shadow:none;}
-.table{display:table;margin:0px 0px;width:100%;}.table .sort{cursor:move;}
-.table_row,.table_header_row{display:table-row;}
-.table_header_row .table_cell{border-bottom:1px solid #D1D1D1;font-weight:bold;vertical-align:bottom;}
-.table_row .buttons{text-align:right;}
-.table_row:nth-child(even){background:white;}
-.table_row:nth-child(odd){background:#E9F4FA;}
-.table_cell{display:table-cell;padding:5px 10px;text-align:left;vertical-align:middle;}
-.table_cell:first-child{border-left:none;}
+.table,.vertical_table{display:table;margin:0px 0px;width:100%;}
+.table .sort{cursor:move;}
+.table .table_row:nth-child(even){background:#FFFFFF;}
+.table .table_row:nth-child(odd){background:#E9F4FA;}
+.table .header_cell{background:#FFFFFF;border-bottom:1px solid #D1D1D1;font-weight:bold;}
+.vertical_table .header_cell{background:#FFFFFF;font-weight:bold;text-align:right;}
+.table_row{display:table-row;}
+.table_cell,.header_cell{display:table-cell;padding:5px 10px;text-align:left;vertical-align:middle;}
 .button{width:200px;margin:20px auto;padding:5px 10px 4px 10px;text-align:center;text-transform:uppercase;font-family:HelveticaNeue-Regular,'Helvetica Neue',Helvetica,Arial,Tahoma,Verdana,sans-serif;font-size:12px;white-space:nowrap;letter-spacing:1px;color:#FFFFFF;cursor:pointer;background:#6DA00B;-moz-border-radius:4px;-webkit-border-radius:4px;}

@@ -32,6 +32,6 @@ class QuestionAnswer(db.Model):
     question            = db.ReferenceProperty(Question, collection_name='question_answers')
     question_string     = db.StringProperty()
     questionary_person  = db.ReferenceProperty(QuestionaryPerson, collection_name='questionary_answers')
-    answer              = db.StringProperty(multiline=True)
+    answer              = db.TextProperty()
     datetime            = db.DateTimeProperty()
     teacher             = db.ReferenceProperty(Person, collection_name='teacher_question_answers')

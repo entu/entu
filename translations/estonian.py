@@ -5,6 +5,7 @@ def translation():
         '':                     '',
         'add':                  'Lisa',
         'add_new':              'Lisa uus',
+        'artun.ee':             'Eesti Kunstiakadeemia',
         'avatar':               'Avatar',
         'calendar':             'Kalender',
         'classifiers':          'Klassifikaatorid',
@@ -32,6 +33,9 @@ def translation():
         'general_questions':    'Üldised küsimused',
         'inbox':                'Postkast',
         'language':             'Keel',
+        'lang_english':         'English',
+        'lang_estonian':        'Eesti',
+        'lang_russian':         'Русский',
         'level_of_education':   'Õppetase',
         'likert':               'Likert',
         'list_days':            'pühapäev,esmaspäev,teisipäev,kolmapäev,neljapäev,reede,laupäev',
@@ -75,5 +79,4 @@ def translation():
         'value':                'Väärtus',
         'values':               'Väärtused',
         'welcome':              'Tere tulemast',
-        'artun.ee':             'Eesti Kunstiakadeemia',
     }

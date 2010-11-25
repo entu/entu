@@ -69,6 +69,14 @@ class UserPreferences(db.Model):
                 u.put()
             return u
 
+    def set_language(self, language):
+        user = users.get_current_user()
+        if user and language in ['estonian', 'english']:
+            u = UserPreferences().get_by_key_name(user.user_id())
+            if u:
+                u.language = language
+                u.put()
+
 
 def Translate(key = None):
     if users.get_current_user():

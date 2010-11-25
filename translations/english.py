@@ -5,6 +5,7 @@ def translation():
         '':                     '',
         'add':                  'Add',
         'add_new':              'Add new',
+        'artun.ee':             'Estonian Academy of Arts',
         'avatar':               'Avatar',
         'calendar':             'Calendar',
         'classifiers':          'Classifications',
@@ -32,6 +33,9 @@ def translation():
         'general_questions':    'General questions',
         'inbox':                'Inbox',
         'language':             'Language',
+        'lang_english':         'English',
+        'lang_estonian':        'Eesti',
+        'lang_russian':         'Русский',
         'level_of_education':   'Level of education',
         'likert':               'Likert',
         'list_days':            'pühapäev,esmaspäev,teisipäev,kolmapäev,neljapäev,reede,laupäev',
@@ -75,5 +79,4 @@ def translation():
         'value':                'Value',
         'values':               'Values',
         'welcome':              'Welcome',
-        'artun.ee':             'Estonian Academy of Arts',
      }

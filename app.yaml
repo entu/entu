@@ -1,5 +1,5 @@
 application: bongapp
-version: dev
+version: 1
 runtime: python
 api_version: 1
 
@@ -50,8 +50,8 @@ handlers:
 
 
 #public controllers
-- url: /
-  script: controllers/dashboard.py
+
+
 
 #Old systems login/logout
 - url: /oldauth
@@ -67,25 +67,29 @@ handlers:
   script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
   login: admin
 
-- url: /search(.*)
-  script: controllers/search.py
+- url: /
+  script: controllers/dashboard.py
   login: required
 
-- url: /person(.*)
-  script: controllers/person.py
+- url: /preferences(.*)
+  script: controllers/preferences.py
   login: required
 
-- url: /curriculum(.*)
-  script: controllers/curriculum.py
-  login: required
+#- url: /search(.*)
+#  script: controllers/search.py
+#  login: required
 
-- url: /dictionary(.*)
-  script: controllers/dictionary.py
-  login: required
+#- url: /person(.*)
+#  script: controllers/person.py
+#  login: required
 
-- url: /delete(.*)
-  script: controllers/delete.py
-  login: required
+#- url: /curriculum(.*)
+#  script: controllers/curriculum.py
+#  login: required
+
+#- url: /dictionary(.*)
+#  script: controllers/dictionary.py
+#  login: required
 
 - url: /update(.*)
   script: controllers/update.py

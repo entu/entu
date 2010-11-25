@@ -29,6 +29,7 @@ def DictionaryAdd(name, value):
     if len(value) < 1:
         return None
 
+    from bo import *
     language = UserPreferences().current.language
 
     t = db.Query(Translation).filter('dictionary_name', name).filter('value', value).filter('language', language).get()

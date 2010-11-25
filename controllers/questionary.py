@@ -48,6 +48,12 @@ class ShowQuestionary(boRequestHandler):
                 self.response.out.write(str(q.key()))
 
 
+class ShowQuestionaryResults(boRequestHandler):
+    def get(self, key):
+        if self.authorize('questionary'):
+            pass
+
+
 class SortQuestionary(boRequestHandler):
     def post(self, key):
         if self.authorize('questionary'):
@@ -154,6 +160,7 @@ def main():
             ('/questionary/generate', GenerateQuestionaryPersons),
             ('/questionary/sort/(.*)', SortQuestionary),
             ('/questionary/delete/(.*)', DeleteQuestionary),
+            ('/questionary/results/(.*)', ShowQuestionaryResults),
             ('/questionary/question/delete/(.*)', DeleteQuestion),
             ('/questionary/question', EditQuestion),
             ('/questionary/(.*)', ShowQuestionary),

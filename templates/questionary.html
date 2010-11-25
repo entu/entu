@@ -21,22 +21,22 @@
     <div id="content">
         {% if questionary.key %}
         <div id="questions_table" class="table">
-            <div class="table_header_row">
-                <div class="table_cell">
+            <div class="table_row">
+                <div class="header_cell">
                 </div>
-                <div class="table_cell">
+                <div class="header_cell">
                     {{ str.question }}
                 </div>
-                <div class="table_cell" style="text-align:center;">
+                <div class="header_cell" style="text-align:center;">
                     {{ str.type }}
                 </div>
-                <div class="table_cell" style="text-align:center;">
+                <div class="header_cell" style="text-align:center;">
                     {{ str.mandatory }}
                 </div>
-                <div class="table_cell" style="text-align:center;">
+                <div class="header_cell" style="text-align:center;">
                     {{ str.teacher_specific }}
                 </div>
-                <div class="table_cell">
+                <div class="header_cell">
                 </div>
             </div>
             {% for q in questionary.questions|dictsort:"ordinal" %}
