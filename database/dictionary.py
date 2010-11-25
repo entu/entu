@@ -1,8 +1,6 @@
 from google.appengine.ext import db
 from google.appengine.ext import search
 
-from bo.user import *
-
 
 class Dictionary(db.Model):
     name        = db.StringProperty()
@@ -10,8 +8,9 @@ class Dictionary(db.Model):
     languages   = db.StringListProperty(default=[])
 
     def translate(self):
-        t = db.Query(Translation).filter('dictionary', self).filter('language', User().current().language).get()
+        from bo import *
 
+        t = db.Query(Translation).filter('dictionary', self).filter('language', UserPreferences().current.language).get()
         if t and t.value:
             return t.value
         else:
@@ -30,7 +29,9 @@ def DictionaryAdd(name, value):
     if len(value) < 1:
         return None
 
-    t = db.Query(Translation).filter('dictionary_name', name).filter('value', value).filter('language', User().current().language).get()
+    language = UserPreferences().current.language
+
+    t = db.Query(Translation).filter('dictionary_name', name).filter('value', value).filter('language', language).get()
     if t:
         return t.dictionary.key()
 
@@ -40,13 +41,13 @@ def DictionaryAdd(name, value):
         d.name = name
         d.value = value.replace('\n',' ')
         d.languages = []
-    d.languages.append(User().current().language)
+    d.languages.append(language)
     d.put()
 
     t = Translation()
     t.dictionary = d
     t.dictionary_name = name
-    t.language = User().current().language
+    t.language = language
     t.value = value
     t.save()
 

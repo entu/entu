@@ -1,35 +1,36 @@
 from bo import *
 from database import *
 
-class Show(webapp.RequestHandler):
+class Show(boRequestHandler):
     def get(self):
+        if self.authorize():
 
-        childs = []
-        childs.append({
-            'link': '/person',
-            'title': Translate('persons'),
-        })
+            childs = []
+            childs.append({
+                'link': '/person',
+                'title': Translate('persons'),
+            })
 
-        childs.append({
-            'link': '/curriculum',
-            'title': Translate('curriculums'),
-        })
+            childs.append({
+                'link': '/curriculum',
+                'title': Translate('curriculums'),
+            })
 
-        childs.append({
-            'link': '/questionary',
-            'title': Translate('questionaries'),
-        })
+            childs.append({
+                'link': '/questionary',
+                'title': Translate('questionaries'),
+            })
 
-        tree = {
-            'link': SYSTEM_URL,
-            'title': SYSTEM_TITLE,
-            'columns': 3,
-            'childs': childs,
-        }
+            tree = {
+                'link': SYSTEM_URL,
+                'title': SYSTEM_TITLE,
+                'columns': 3,
+                'childs': childs,
+            }
 
-        View(self, 'dashboard', 'dashboard.html', {
-            'tree': tree,
-        })
+            self.view('dashboard', 'dashboard.html', {
+                'tree': tree,
+            })
 
 
 def main():

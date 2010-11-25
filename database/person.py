@@ -1,22 +1,44 @@
 from google.appengine.ext import db
 from google.appengine.ext import search
 from google.appengine.api import users
+from datetime import datetime
 
-from bo.user import *
 from database import *
 
 
 class Person(search.SearchableModel):
+    google_user_id  = db.StringProperty()
     apps_username   = db.StringProperty()
     forename        = db.StringProperty()
     surname         = db.StringProperty()
     idcode          = db.StringProperty()
     gender          = db.ReferenceProperty(Dictionary, collection_name='genders')
     birth_date      = db.DateProperty()
-    user            = db.ReferenceProperty(User, collection_name='persons')
+    created         = db.DateTimeProperty(auto_now_add=True)
+    last_seen       = db.DateTimeProperty()
 
+    @property
     def current(self):
-        return db.Query(Person).filter('user', User().current()).get()
+        user = users.get_current_user()
+        if user:
+            person = db.Query(Person).filter('google_user_id =', user.user_id()).get()
+            if person:
+                person.last_seen = datetime.today()
+                person.save()
+                return person
+
+            person = db.Query(Person).filter('apps_username', user.nickname()).get()
+            if person:
+                person.google_user_id = user.user_id()
+                person.last_seen = datetime.today()
+                person.save()
+                return person
+
+            person = Person(key_name=user.nickname())
+            person.google_user_id = user.user_id()
+            person.apps_username = user.nickname()
+            person.save()
+            return person
 
 
 class Department(db.Model):
@@ -34,6 +56,7 @@ class Contact(db.Model):
 
 class Role(db.Model):
     name        = db.ReferenceProperty(Dictionary, collection_name='role_names')
+    rights      = db.StringListProperty()
 
 
 class PersonRole(db.Model):

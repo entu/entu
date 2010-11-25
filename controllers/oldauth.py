@@ -1,32 +1,30 @@
 import hashlib
 import base64
-from datetime import date
+from datetime import *
 
 from bo import *
-from database.oldauth import *
+from database import *
 
 
-class Login(webapp.RequestHandler):
+class Login(boRequestHandler):
     def get(self):
-        if self.request.get('site'):
+        if self.authorize():
+            if self.request.get('site'):
 
-            u = User().current()
-
-            user = users.get_current_user()
-            site = self.request.get('site')
-            oa = db.Query(OldAuth).filter('site', site).get()
-            if not oa:
-                oa = OldAuth()
-                oa.site = site
-                oa.put()
-            user_name = user.nickname()
-            user_key = hashlib.md5(user.nickname() + date.today().strftime('%Y-%m-%d') + oa.salt).hexdigest()
-            key = base64.b64encode(user_key + user_name)
-            if oa.loginurl:
-                self.redirect(oa.loginurl % key)
+                p = Person().current
+                site = self.request.get('site')
+                oa = db.Query(OldAuth).filter('site', site).get()
+                if not oa:
+                    oa = OldAuth()
+                    oa.site = site
+                    oa.put()
+                user_key = hashlib.md5(p.apps_username + (datetime.today() + timedelta(hours=2)).strftime('%Y-%m-%d') + oa.salt).hexdigest()
+                key = base64.b64encode(user_key + p.apps_username)
+                if oa.loginurl:
+                    self.redirect(oa.loginurl % key)
 
 
-class Logout(webapp.RequestHandler):
+class Logout(boRequestHandler):
     def get(self):
         if self.request.get('site'):
             user = users.get_current_user()
