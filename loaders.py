@@ -28,7 +28,7 @@ def get_utf8(s):
 
 def get_list(s):
     if s:
-        return [s.decode('utf-8')]
+        return [x.strip() for x in s.decode('utf-8').strip().replace('\n', ' ').replace(',', ' ').replace(';', ' ').split(' ') if len(x.strip()) > 0]
     else:
         return []
 
@@ -151,7 +151,6 @@ class Person_loader(bulkloader.Loader):
             ('idcode', get_utf8),
             ('gender', get_dictionary_key),
             ('birth_date', get_date),
-            ('apps_username', get_utf8),
         ])
     def handle_entity(self, entity):
         entity.save()
@@ -174,6 +173,7 @@ class Role_loader(bulkloader.Loader):
         bulkloader.Loader.__init__(self, 'Role', [
             ('key_name', get_utf8),
             ('name', get_dictionary_key),
+            ('rights', get_list),
         ])
     def handle_entity(self, entity):
         entity.save()

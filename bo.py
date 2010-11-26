@@ -1,11 +1,11 @@
 import os
 from google.appengine.api import mail
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp import template
-from google.appengine.ext.webapp import util
 from google.appengine.api import users
 from google.appengine.api import memcache
 from google.appengine.ext import db
+from google.appengine.ext import webapp
+from google.appengine.ext.webapp import template
+from google.appengine.ext.webapp import util
 
 from settings import *
 
@@ -26,16 +26,16 @@ class boRequestHandler(webapp.RequestHandler):
             self.redirect('/feedback')
             return False
         else:
-            return True
-
-        """if right:
-            rights = []
-            for role in Person().current.roles:
-                rights = rights + role.role.rights
-            if right in rights:
-                return True
+            if controller:
+                rights = []
+                for role in Person().current.roles:
+                    rights = rights + role.role.rights
+                if controller in rights:
+                    return True
+                else:
+                    return False
             else:
-                return False"""
+                return True
 
     def view(self, page_title, templatefile, values={}):
         from database.person import *

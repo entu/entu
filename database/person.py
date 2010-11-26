@@ -7,8 +7,6 @@ from database import *
 
 
 class Person(search.SearchableModel):
-    google_user_id  = db.StringProperty()
-    apps_username   = db.StringProperty()
     forename        = db.StringProperty()
     surname         = db.StringProperty()
     idcode          = db.StringProperty()
@@ -21,22 +19,10 @@ class Person(search.SearchableModel):
     def current(self):
         user = users.get_current_user()
         if user:
-            person = db.Query(Person).filter('google_user_id =', user.user_id()).get()
-            if person:
-                person.last_seen = datetime.today()
-                person.save()
-                return person
-
-            person = db.Query(Person).filter('apps_username', user.nickname()).get()
-            if person:
-                person.google_user_id = user.user_id()
-                person.last_seen = datetime.today()
-                person.save()
-                return person
-
-            person = Person(key_name=user.nickname())
-            person.google_user_id = user.user_id()
-            person.apps_username = user.nickname()
+            person = Person().get_by_key_name(user.email())
+            if not person:
+                person = Person(key_name=user.email())
+            person.last_seen = datetime.today()
             person.save()
             return person
 

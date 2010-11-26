@@ -18,8 +18,8 @@ class Login(boRequestHandler):
                     oa = OldAuth()
                     oa.site = site
                     oa.put()
-                user_key = hashlib.md5(p.apps_username + (datetime.today() + timedelta(hours=2)).strftime('%Y-%m-%d') + oa.salt).hexdigest()
-                key = base64.b64encode(user_key + p.apps_username)
+                user_key = hashlib.md5(p.key().name() + (datetime.today() + timedelta(hours=2)).strftime('%Y-%m-%d') + oa.salt).hexdigest()
+                key = base64.b64encode(user_key + p.key().name())
                 if oa.loginurl:
                     self.redirect(oa.loginurl % key)
 
