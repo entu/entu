@@ -1,16 +1,27 @@
-./bulka.sh Contact       ~/Dropbox/Work/ois_export/contact.csv
-./bulka.sh Course        ~/Dropbox/Work/ois_export/course.csv
-./bulka.sh Curriculum    ~/Dropbox/Work/ois_export/curriculum.csv
-./bulka.sh Department    ~/Dropbox/Work/ois_export/department.csv
-./bulka.sh Dictionary    ~/Dropbox/Work/ois_export/dictionary.csv
-./bulka.sh Module        ~/Dropbox/Work/ois_export/module.csv
-./bulka.sh ModuleSubject ~/Dropbox/Work/ois_export/moduleSubject.csv
-./bulka.sh Orientation   ~/Dropbox/Work/ois_export/orientation.csv
-./bulka.sh Person        ~/Dropbox/Work/ois_export/person.csv
-./bulka.sh PersonRole    ~/Dropbox/Work/ois_export/personRole.csv
-./bulka.sh Role          ~/Dropbox/Work/ois_export/role.csv
-./bulka.sh Subject       ~/Dropbox/Work/ois_export/subject.csv
-./bulka.sh Subscription  ~/Dropbox/Work/ois_export/subscription.csv
-./bulka.sh Translation   ~/Dropbox/Work/ois_export/translation.csv
-
-rm bulkloader-*
+~/Dropbox/Work/EKA/OIS/SVN/trunk/shell/bulka.sh Contact       ~/Dropbox/Work/EKA_Export/contact.csv &
+sleep 3
+~/Dropbox/Work/EKA/OIS/SVN/trunk/shell/bulka.sh Course        ~/Dropbox/Work/EKA_Export/course.csv &
+sleep 3
+~/Dropbox/Work/EKA/OIS/SVN/trunk/shell/bulka.sh Curriculum    ~/Dropbox/Work/EKA_Export/curriculum.csv &
+sleep 3
+~/Dropbox/Work/EKA/OIS/SVN/trunk/shell/bulka.sh Department    ~/Dropbox/Work/EKA_Export/department.csv &
+sleep 3
+~/Dropbox/Work/EKA/OIS/SVN/trunk/shell/bulka.sh Dictionary    ~/Dropbox/Work/EKA_Export/dictionary.csv &
+sleep 3
+~/Dropbox/Work/EKA/OIS/SVN/trunk/shell/bulka.sh Module        ~/Dropbox/Work/EKA_Export/module.csv &
+sleep 3
+~/Dropbox/Work/EKA/OIS/SVN/trunk/shell/bulka.sh ModuleSubject ~/Dropbox/Work/EKA_Export/moduleSubject.csv &
+sleep 3
+~/Dropbox/Work/EKA/OIS/SVN/trunk/shell/bulka.sh Orientation   ~/Dropbox/Work/EKA_Export/orientation.csv &
+sleep 3
+~/Dropbox/Work/EKA/OIS/SVN/trunk/shell/bulka.sh Person        ~/Dropbox/Work/EKA_Export/person.csv &
+sleep 3
+~/Dropbox/Work/EKA/OIS/SVN/trunk/shell/bulka.sh PersonRole    ~/Dropbox/Work/EKA_Export/personRole.csv &
+sleep 3
+~/Dropbox/Work/EKA/OIS/SVN/trunk/shell/bulka.sh Role          ~/Dropbox/Work/EKA_Export/role.csv &
+sleep 3
+~/Dropbox/Work/EKA/OIS/SVN/trunk/shell/bulka.sh Subject       ~/Dropbox/Work/EKA_Export/subject.csv &
+sleep 3
+~/Dropbox/Work/EKA/OIS/SVN/trunk/shell/bulka.sh Subscription  ~/Dropbox/Work/EKA_Export/subscription.csv &
+sleep 3
+~/Dropbox/Work/EKA/OIS/SVN/trunk/shell/bulka.sh Translation   ~/Dropbox/Work/EKA_Export/translation.csv &
