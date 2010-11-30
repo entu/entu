@@ -39,21 +39,27 @@ class boRequestHandler(webapp.RequestHandler):
 
     def view(self, page_title, templatefile, values={}):
         from database.person import *
-        values['str'] = Translate()
-        values['system_title'] = SYSTEM_TITLE.decode('utf8')
-        values['system_logo'] = SYSTEM_LOGO_URL.decode('utf8')
-        if page_title:
-            values['site_name'] = SYSTEM_TITLE.decode('utf8') + ' - ' + Translate(page_title)
-            values['page_title'] = Translate(page_title)
+
+        browser = str(self.request.headers['User-Agent'])
+        if browser.find('MSIE 5') > -1 or browser.find('MSIE 6') > -1:
+            path = os.path.join(os.path.dirname(__file__), 'templates', 'brausererror.html')
+            self.response.out.write(template.render(path, {}))
         else:
-            values['site_name'] = SYSTEM_TITLE.decode('utf8')
-            values['page_title'] = '&nbsp;'
-        values['site_url'] = self.request.headers.get('host')
-        values['user'] = Person().current
-        values['loginurl'] = users.create_login_url('/')
-        values['logouturl'] = users.create_logout_url('/')
-        path = os.path.join(os.path.dirname(__file__), 'templates', templatefile)
-        self.response.out.write(template.render(path, values))
+            values['str'] = Translate()
+            values['system_title'] = SYSTEM_TITLE.decode('utf8')
+            values['system_logo'] = SYSTEM_LOGO_URL.decode('utf8')
+            if page_title:
+                values['site_name'] = SYSTEM_TITLE.decode('utf8') + ' - ' + Translate(page_title)
+                values['page_title'] = Translate(page_title)
+            else:
+                values['site_name'] = SYSTEM_TITLE.decode('utf8')
+                values['page_title'] = '&nbsp;'
+            values['site_url'] = self.request.headers.get('host')
+            values['user'] = Person().current
+            values['loginurl'] = users.create_login_url('/')
+            values['logouturl'] = users.create_logout_url('/')
+            path = os.path.join(os.path.dirname(__file__), 'templates', templatefile)
+            self.response.out.write(template.render(path, values))
 
 
 class UserPreferences(db.Model):
