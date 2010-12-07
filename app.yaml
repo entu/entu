@@ -29,24 +29,20 @@ handlers:
 #static files
 - url: /css
   static_dir: static/css
+  expiration: "1d"
 
 - url: /images
   static_dir: static/images
+  expiration: "1d"
 
 - url: /javascript
   static_dir: static/javascript
-
-- url: /favicon.ico
-  static_files: static/images/favicon.ico
-  upload: static/images/favicon.ico
-
-- url: /favicon.ico
-  static_files: static/images/favicon.png
-  upload: static/images/favicon.png
+  expiration: "90d"
 
 - url: /robots.txt
   static_files: static/robots.txt
   upload: static/robots.txt
+  expiration: "90d"
 
 
 #public controllers
