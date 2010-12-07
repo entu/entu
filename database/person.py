@@ -16,6 +16,10 @@ class Person(search.SearchableModel):
     last_seen       = db.DateTimeProperty()
 
     @property
+    def displayname(self):
+        return ' '.join([self.forename, self.surname])
+
+    @property
     def current(self):
         user = users.get_current_user()
         if user:

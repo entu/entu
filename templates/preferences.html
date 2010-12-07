@@ -19,7 +19,7 @@
                 {{ str.name }}:
             </div>
             <div class="table_cell">
-                {{ person.forename|default:"" }} {{ person.surname|default:"" }}
+                {{ person.displayname|default:"" }}
             </div>
         </div>
         <div class="table_row">
@@ -27,7 +27,7 @@
                 {{ str.user }}:
             </div>
             <div class="table_cell">
-                {{ person.apps_username }}
+                {{ person.key.name }}
             </div>
         </div>
         <div class="table_row">
