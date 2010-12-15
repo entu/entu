@@ -59,10 +59,6 @@ handlers:
 
 
 #protected controllers
-- url: /bulka
-  script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
-  login: admin
-
 - url: /
   script: controllers/dashboard.py
   login: required
@@ -98,3 +94,13 @@ handlers:
 - url: /questionary(.*)
   script: controllers/questionary.py
   login: required
+
+
+#admin only controllers
+- url: /bulka
+  script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
+  login: admin
+
+- url: /aggregate(.*)
+  script: controllers/aggregation.py
+  login: admin
