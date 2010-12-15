@@ -20,6 +20,16 @@ class Login(boRequestHandler):
                     oa.put()
                 user_key = hashlib.md5(p.key().name() + (datetime.today() + timedelta(hours=2)).strftime('%Y-%m-%d') + oa.salt).hexdigest()
                 key = base64.b64encode(user_key + p.key().name())
+
+                aggr = Aggregation()
+                aggr.type = 'oldauth'
+                aggr.dimensions = [
+                    site + '@site',
+                    str(p.gender.key()) + '@gender',
+                ]
+                aggr.add()
+
+
                 if oa.loginurl:
                     self.redirect(oa.loginurl % key)
 
