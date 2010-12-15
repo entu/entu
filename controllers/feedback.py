@@ -1,7 +1,7 @@
+from datetime import datetime
+
 from bo import *
 from database import *
-from datetime import datetime
-import cgi
 
 
 class ShowFeedback(boRequestHandler):
@@ -10,18 +10,18 @@ class ShowFeedback(boRequestHandler):
         personQuestionary = db.Query(QuestionaryPerson).filter('person', Person().current).filter('is_completed', False).order('__key__').fetch(1000)
         if len(personQuestionary) > 0:
             questions = []
-            for question in personQuestionary[0].questionary_answers:
-                if question.teacher:
-                    teacher = question.teacher.forename + ' ' + question.teacher.surname
+            for question in personQuestionary[0].answers:
+                if question.target_person:
+                    target_person = question.target_person.displayname
                 else:
-                    teacher = ''
+                    target_person = ''
                 questions.append({
                     'key': str(question.key()),
                     'ordinal': question.question.ordinal,
                     'question': question.question.name.translate(),
                     'answer': question.answer,
                     'type': question.question.type,
-                    'teacher': teacher,
+                    'target_person': target_person,
                     'is_mandatory': question.question.is_mandatory,
                 })
 
@@ -42,7 +42,7 @@ class ShowFeedback(boRequestHandler):
 
         if qp:
             mandatory_ok = True
-            for qanswer in qp.questionary_answers:
+            for qanswer in qp.answers:
                 answer = self.request.get(str(qanswer.key())).strip()
 
                 qanswer.question_string = qanswer.question.name.translate()
@@ -50,8 +50,13 @@ class ShowFeedback(boRequestHandler):
                 qanswer.answer = answer
                 qanswer.put()
 
-                if qanswer.question.is_mandatory == True and ((qanswer.question.type != 'likert' and len(answer) < 1) or (qanswer.question.type == 'likert' and int(answer) < 1)):
-                    mandatory_ok = False
+                if qanswer.question.is_mandatory == True:
+                    if qanswer.question.type == 'like' and int(answer) == 0:
+                        mandatory_ok = False
+                    if qanswer.question.type == 'rating' and int(answer) < 1:
+                        mandatory_ok = False
+                    if qanswer.question.type == 'text' and len(answer) < 1:
+                        mandatory_ok = False
 
             if mandatory_ok == True:
                 qp.is_completed = True

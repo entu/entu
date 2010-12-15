@@ -40,15 +40,16 @@
                 </div>
             </div>
             {% for q in questionary.questions|dictsort:"ordinal" %}
-            <div id="question_{{ q.key }}" class="table_row sortable">
+            <div id="question_{{ q.key }}" class="table_row sortable" alt="{{ q.key }}">
                 <div class="table_cell sort" style="width:30px; height:25px; background: url('/images/sort.png') center center no-repeat;">
                 </div>
                 <div class="table_cell" style="width:340px;">
                     {{ q.name.translate }}
                 </div>
                 <div class="table_cell" style="text-align:center; width:70px;">
-                    {% ifequal q.type "likert" %}{{ str.likert }}{% endifequal %}
-                    {% ifequal q.type "freetext" %}{{ str.text }}{% endifequal %}
+                    {% ifequal q.type "like" %}{{ str.questiontype_like }}{% endifequal %}
+                    {% ifequal q.type "rating" %}{{ str.questiontype_rating }}{% endifequal %}
+                    {% ifequal q.type "text" %}{{ str.questiontype_text }}{% endifequal %}
                 </div>
                 <div class="table_cell" style="text-align:center; width:100px;">
                     {{ q.is_mandatory|yesno:"✓,," }}
@@ -68,8 +69,9 @@
                 </div>
                 <div class="table_cell" style="text-align:center;">
                     <select name="type" id="question_type">
-                        <option value="likert">{{ str.likert }}</option>
-                        <option value="freetext">{{ str.text }}</option>
+                        <option value="like">{{ str.questiontype_like }}</option>
+                        <option value="rating">{{ str.questiontype_rating }}</option>
+                        <option value="text">{{ str.questiontype_text }}</option>
                     </select>
                 </div>
                 <div class="table_cell" style="text-align:center;">
@@ -111,6 +113,9 @@
     $(document).ready(function(){
 
         $('textarea').elastic();
+
+
+        //SORT
         $( "#questions_table" ).sortable({
             items: '.sortable',
             axis: 'y',
@@ -119,7 +124,8 @@
             forceHelperSize: true,
             opacity: 0.6,
             update: function(event, ui) {
-                $.post('/questionary/sort/{{ questionary.key }}', $(this).sortable('serialize'));
+                var order = $(this).sortable('serialize',{key:'question', attribute:'alt', expression: '(.*)'});
+                $.post('/questionary/sort/{{ questionary.key }}', order);
             },
         });
 
@@ -154,13 +160,14 @@
                     start_date: $("#start_date").val(),
                     end_date: $("#end_date").val(),
                     description: $("#description").val(),
-                }
-                , function(data) {
+                },
+                function(data) {
                     $('#crumb_title').html($("#name").val());
                     if(data) {
                         location.href = '/questionary/' + data;
                     };
-                });
+                }
+            );
         });
 
         $('#delete_questionary').click(function() {
@@ -183,7 +190,7 @@
         });
 
         $('.delete_question').click(function() {
-            key = $(this).attr('alt')
+            key = $(this).attr('alt');
             if (confirm('{{ str.confirm_delete_question }}')) {
                 $.get('/questionary/question/delete/' + key, function(data) {
                     $('#question_' + key).hide();

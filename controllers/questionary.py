@@ -57,7 +57,7 @@ class ShowQuestionaryResults(boRequestHandler):
 class SortQuestionary(boRequestHandler):
     def post(self, key):
         if self.authorize('questionary'):
-            questions = self.request.get_all('question[]')
+            questions = self.request.get_all('question')
 
             ordinal = 0
             for question in questions:
@@ -135,16 +135,21 @@ class GenerateQuestionaryPersons(boRequestHandler):
                                     teachers = Person().get(course.teachers)
                                     for teacher in teachers:
                                         qa = QuestionAnswer()
-                                        qa.question = question
                                         qa.questionary_person = qp
-                                        qa.teacher = teacher
+                                        qa.person = subscription.student
+                                        qa.target_person = teacher
+                                        qa.questionary = questionary
+                                        qa.course = course
+                                        qa.question = question
                                         qa.put()
                                         self.response.out.write('        ' + question.name.translate() + ' (' + teacher.forename + ' ' + teacher.surname + ')\n')
                                 else:
                                     qa = QuestionAnswer()
-                                    qa.question = question
                                     qa.questionary_person = qp
-                                    qa.is_mandatory = question.is_mandatory
+                                    qa.person = subscription.student
+                                    qa.questionary = questionary
+                                    qa.course = course
+                                    qa.question = question
                                     qa.put()
                                     self.response.out.write('        ' + question.name.translate() + '\n')
                             self.response.out.write('\n')

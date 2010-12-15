@@ -22,8 +22,8 @@
         <input type="hidden" name="person_questionary" value="{{ questionary.key }}"/>
 
     <div class="table" style="margin-bottom:20px; margin-top:10px;">
-        <div class="table_header_row">
-            <div class="table_cell">
+        <div class="table_row">
+            <div class="header_cell">
                 {{ questionary.questionary.name.translate }} <span style="color:#0099FF; text-transform:uppercase; letter-spacing:2px;">"{{ questionary.course.subject.name.translate }}"</span>
             </div>
         </div>
@@ -34,11 +34,11 @@
         </div>
     </div>
 
-    {% regroup questions|dictsort:"teacher" by teacher as grouped %}
+    {% regroup questions|dictsort:"target_person" by target_person as grouped %}
 	{% for group in grouped %}
     <div class="table" style="margin-bottom:20px; margin-top:10px;">
-        <div class="table_header_row">
-            <div class="table_cell">
+        <div class="table_row">
+            <div class="header_cell">
                 {% if group.grouper %}{{ group.grouper }}{% else %}{{ str.general_questions }}{% endif %}
             </div>
         </div>
@@ -47,11 +47,17 @@
         <div class="table_row" style="width:100%">
             <div class="table_cell" style="width:100%">
                 {{ item.question }}{% if item.is_mandatory %} *{% endif %}
-                {% ifequal item.type "likert" %}
+                {% ifequal item.type "like" %}
+                <div style="float:right;">
+                    <input type="hidden" name="{{ item.key }}" value="{{ item.answer|default:"0" }}"/>
+                    <img class="unlike" src="/images/like/unlike-off.png" height="20" width="20" alt="0" />
+                    <img class="like" src="/images/like/like-off.png" height="20" width="20" alt="0" />
+                </div>
+                {% endifequal %}
+                {% ifequal item.type "rating" %}
                 <div class="range" style="float:right;"><input type="hidden" class="range_input" name="{{ item.key }}" value="{{ item.answer|default:"0" }}"/></div>
                 {% endifequal %}
-
-                {% ifequal item.type "freetext" %}
+                {% ifequal item.type "text" %}
                 <br /><textarea name="{{ item.key }}" rows="1" style="width:99%; height:20px;">{{ item.answer|default:"" }}</textarea>
                 {% endifequal %}
             </div>
@@ -67,13 +73,50 @@
 
 <script type="text/javascript">
     $(document).ready(function(){
-        $('textarea').elastic();
 
+        /* LIKE */
+        $('.unlike').each(function(){
+            set_like_img($(this).parent());
+        });
+
+        $('.like').css('cursor', 'pointer');
+        $('.unlike').css('cursor', 'pointer');
+
+        $('.unlike').click(function() {
+            set_like($(this).parent(), 'unlike');
+        });
+
+        $('.like').click(function() {
+            set_like($(this).parent(), 'like');
+        });
+
+        function set_like(div, button) {
+            score = div.children('input').val()
+            if((score === '0' || score === '1') && button === 'unlike') score = -1;
+            if((score === '0' || score === '-1') && button === 'like') score = 1;
+            if((score === '1') && button === 'like') score = 0;
+            if((score === '-1') && button === 'unlike') score = 0;
+            div.children('input').val(score);
+            set_like_img(div);
+        };
+
+        function set_like_img(div) {
+            score = div.children('input').val()
+            div.children('.unlike').attr('src', '/images/like/unlike-off.png');
+            div.children('.like').attr('src', '/images/like/like-off.png');
+            if(score === '-1') div.children('.unlike').attr('src', '/images/like/unlike.png');
+            if(score === '1') div.children('.like').attr('src', '/images/like/like.png');
+        };
+
+
+        /* RATING */
         $('.range').each(function(){
             rating = $(this);
             value = rating.children('input').val();
             rating.raty({
                 number: 5,
+                hintList: ['1', '2', '3', '4', '5'],
+                cancelHint: '',
                 path: '/images/rating/',
                 showCancel: true,
                 start: value,
@@ -83,9 +126,16 @@
             });
         });
 
+
+        /* TEXT */
+        $('textarea').elastic();
+
+
+        /* SUBMIT */
         $('#feedback_submit').click(function(){
             $('#feedback_form').submit();
         });
+
     });
 </script>
 

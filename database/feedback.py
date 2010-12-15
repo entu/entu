@@ -1,4 +1,5 @@
 from google.appengine.ext import db
+from datetime import date
 
 from database import *
 
@@ -16,7 +17,7 @@ class Question(db.Model):
     ordinal             = db.IntegerProperty(default=999);
     questionary         = db.ReferenceProperty(Questionary, collection_name='questions')
     name                = db.ReferenceProperty(Dictionary, collection_name='question_names')
-    type                = db.StringProperty(choices=['freetext', 'likert'])
+    type                = db.StringProperty(choices=['like', 'rating', 'text'])
     is_mandatory        = db.BooleanProperty(default=False)
     is_teacher_specific = db.BooleanProperty(default=False)
 
@@ -29,9 +30,13 @@ class QuestionaryPerson(db.Model):
 
 
 class QuestionAnswer(db.Model):
-    question            = db.ReferenceProperty(Question, collection_name='question_answers')
+    questionary_person  = db.ReferenceProperty(QuestionaryPerson, collection_name='answers')
+    person              = db.ReferenceProperty(Person, collection_name='person_answers')
+    target_person       = db.ReferenceProperty(Person, collection_name='target_person_answers')
+    questionary         = db.ReferenceProperty(Questionary, collection_name='answers')
+    course              = db.ReferenceProperty(Course, collection_name='questionary_answers')
+    question            = db.ReferenceProperty(Question, collection_name='answers')
     question_string     = db.StringProperty()
-    questionary_person  = db.ReferenceProperty(QuestionaryPerson, collection_name='questionary_answers')
     answer              = db.TextProperty()
     datetime            = db.DateTimeProperty()
-    teacher             = db.ReferenceProperty(Person, collection_name='teacher_question_answers')
+    aggregation_date    = db.DateProperty(default=date(2000, 1, 1))
