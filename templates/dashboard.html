@@ -7,10 +7,11 @@
 {% block content %}
 
 <section id="wide_content">
-    <img src="{{ system_logo|default:"/images/logo.png" }}" alt="logo" style="margin:20px auto; display:block;" />
+    {% if system_logo %}
+    <img src="{{ system_logo }}" alt="logo" style="margin:20px auto; display:block;" />
+    {% endif %}
 
     {% include "tree.html" %}
-
 </section>
 
 {% endblock %}
