@@ -6,6 +6,7 @@ class Dictionary(db.Model):
     name        = db.StringProperty()
     value       = db.StringProperty()
     languages   = db.StringListProperty(default=[])
+    version     = db.StringProperty(default='A')
 
     def translate(self):
         from bo import *
@@ -23,6 +24,7 @@ class Translation(search.SearchableModel):
     language        = db.StringProperty()
     value           = db.StringProperty(multiline=True)
     is_verified     = db.BooleanProperty()
+    version         = db.StringProperty(default='A')
 
 
 def DictionaryAdd(name, value):

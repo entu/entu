@@ -7,6 +7,7 @@ class Aggregation(db.Model):
     dimensions      = db.StringListProperty()
     count           = db.IntegerProperty()
     sum             = db.FloatProperty()
+    version         = db.StringProperty(default='A')
 
     def add(self):
 

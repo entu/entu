@@ -15,7 +15,7 @@ class Person(search.SearchableModel):
     birth_date      = db.DateProperty()
     created         = db.DateTimeProperty(auto_now_add=True)
     last_seen       = db.DateTimeProperty()
-    general         = db.StringProperty(default='A')
+    version         = db.StringProperty(default='A')
 
     @property
     def displayname(self):
