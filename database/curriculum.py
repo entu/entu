@@ -19,20 +19,20 @@ class Curriculum(db.Model):
     state                   = db.StringProperty()
 
 
-class Orientation(db.Model):
-    name        = db.ReferenceProperty(Dictionary, collection_name='orientations')
+class Concentration(db.Model):
+    name        = db.ReferenceProperty(Dictionary, collection_name='contcentrations')
     code        = db.StringProperty()
     tags        = db.StringListProperty()
-    curriculum  = db.ReferenceProperty(Curriculum, collection_name='orientations')
-    manager     = db.ReferenceProperty(Person, collection_name='managed_orientations')
+    curriculum  = db.ReferenceProperty(Curriculum, collection_name='contcentrations')
+    manager     = db.ReferenceProperty(Person, collection_name='managed_contcentrations')
     state       = db.StringProperty()
 
 
-class StudentOrientation(db.Model):
-    student     = db.ReferenceProperty(Person, collection_name='orientations')
-    orientation = db.ReferenceProperty(Orientation, collection_name='students')
-    start_date  = db.DateProperty()
-    end_date    = db.DateProperty()
+class StudentConcentration(db.Model):
+    student         = db.ReferenceProperty(Person, collection_name='contcentrations')
+    contcentration  = db.ReferenceProperty(Concentration, collection_name='students')
+    start_date      = db.DateProperty()
+    end_date        = db.DateProperty()
 
 
 class Module(db.Model):
@@ -45,10 +45,10 @@ class Module(db.Model):
     state                   = db.StringProperty()
 
 
-class ModuleOrientation(db.Model):
+class Modulecontcentration(db.Model):
     is_mandatory    = db.BooleanProperty()
-    module          = db.ReferenceProperty(Module, collection_name='orientations')
-    orientation     = db.ReferenceProperty(Orientation, collection_name='modules')
+    module          = db.ReferenceProperty(Module, collection_name='contcentrations')
+    contcentration     = db.ReferenceProperty(Concentration, collection_name='modules')
 
 
 class RatingScale(db.Model):

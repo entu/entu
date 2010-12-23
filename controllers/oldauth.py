@@ -18,14 +18,19 @@ class Login(boRequestHandler):
                     oa = OldAuth()
                     oa.site = site
                     oa.put()
-                user_key = hashlib.md5(p.key().name() + (datetime.today() + timedelta(hours=2)).strftime('%Y-%m-%d') + oa.salt).hexdigest()
-                key = base64.b64encode(user_key + p.key().name())
+                user_key = hashlib.md5(p.apps_username + (datetime.today() + timedelta(hours=2)).strftime('%Y-%m-%d') + oa.salt).hexdigest()
+                key = base64.b64encode(user_key + p.apps_username)
+
+                if p.gender:
+                    gender = str(p.gender.key())
+                else:
+                    gender = 'None'
 
                 aggr = Aggregation()
                 aggr.type = 'oldauth'
                 aggr.dimensions = [
                     site + '@site',
-                    str(p.gender.key()) + '@gender',
+                    gender + '@gender',
                 ]
                 aggr.add()
 

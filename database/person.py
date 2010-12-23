@@ -7,6 +7,7 @@ from database import *
 
 
 class Person(search.SearchableModel):
+    apps_username   = db.StringProperty()
     forename        = db.StringProperty()
     surname         = db.StringProperty()
     idcode          = db.StringProperty()
@@ -14,6 +15,7 @@ class Person(search.SearchableModel):
     birth_date      = db.DateProperty()
     created         = db.DateTimeProperty(auto_now_add=True)
     last_seen       = db.DateTimeProperty()
+    general         = db.StringProperty(default='A')
 
     @property
     def displayname(self):
@@ -23,9 +25,11 @@ class Person(search.SearchableModel):
     def current(self):
         user = users.get_current_user()
         if user:
-            person = Person().get_by_key_name(user.email())
+            person = db.Query(Person).filter('apps_username', user.email()).get()
             if not person:
-                person = Person(key_name=user.email())
+                person = Person()
+                person.apps_username = user.email()
+                person.idcode = 'guest'
             person.last_seen = datetime.today()
             person.save()
             return person

@@ -81,9 +81,9 @@ def get_curriculum_key(s):
     else:
         return None
 
-def get_orientation_key(s):
+def get_contcentration_key(s):
     if s:
-        return db.Key.from_path('Orientation', s.decode('utf-8'))
+        return db.Key.from_path('contcentration', s.decode('utf-8'))
     else:
         return None
 
@@ -146,6 +146,7 @@ class Person_loader(bulkloader.Loader):
     def __init__(self):
         bulkloader.Loader.__init__(self, 'Person', [
             ('key_name', get_utf8),
+            ('apps_username', get_utf8),
             ('forename', get_utf8),
             ('surname', get_utf8),
             ('idcode', get_utf8),
@@ -227,9 +228,9 @@ class Curriculum_loader(bulkloader.Loader):
         entity.save()
 
 
-class Orientation_loader(bulkloader.Loader):
+class Concentration_loader(bulkloader.Loader):
     def __init__(self):
-        bulkloader.Loader.__init__(self, 'Orientation', [
+        bulkloader.Loader.__init__(self, 'Concentration', [
             ('key_name', get_utf8),
             ('name', get_dictionary_key),
             ('code', get_utf8),
@@ -245,7 +246,7 @@ class Module_loader(bulkloader.Loader):
         bulkloader.Loader.__init__(self, 'Module', [
             ('key_name', get_utf8),
             ('name', get_dictionary_key),
-            ('orientation', get_orientation_key),
+            ('contcentration', get_contcentration_key),
         ])
     def handle_entity(self, entity):
         entity.save()
@@ -326,7 +327,7 @@ loaders = [
     Role_loader,
     PersonRole_loader,
     Curriculum_loader,
-    Orientation_loader,
+    Concentration_loader,
     Module_loader,
     RatingScale_loader,
     Subject_loader,

@@ -69,11 +69,15 @@ class UserPreferences(db.Model):
     def current(self):
         user = users.get_current_user()
         if user:
-            u = UserPreferences().get_by_key_name(user.user_id())
-            if not u:
-                u = UserPreferences(key_name=user.user_id())
-                u.put()
-            return u
+            user_id = user.user_id()
+        else:
+            user_id = 'guest'
+
+        u = UserPreferences().get_by_key_name(user_id)
+        if not u:
+            u = UserPreferences(key_name=user_id)
+            u.put()
+        return u
 
     def set_language(self, language):
         user = users.get_current_user()
@@ -127,12 +131,15 @@ class Cache:
         return memcache.get(key)
 
 
-def SendMail(to, subject, message):
+def SendMail(to, subject, message, html=True):
     m = mail.EmailMessage()
     m.sender = SYSTEM_EMAIL
     m.to = to
-    m.subject = subject
-    m.html = message
+    m.subject = SYSTEM_EMAIL_PREFIX + subject
+    if html == True:
+        m.html = message
+    else:
+        m.body = message
     m.send()
 
 

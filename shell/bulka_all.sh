@@ -1,3 +1,5 @@
+./bulka.sh Concentration &
+sleep 3
 ./bulka.sh Contact &
 sleep 3
 ./bulka.sh Course &
@@ -11,8 +13,6 @@ sleep 3
 ./bulka.sh Module &
 sleep 3
 ./bulka.sh ModuleSubject &
-sleep 3
-./bulka.sh Orientation &
 sleep 3
 ./bulka.sh Person &
 sleep 3
