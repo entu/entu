@@ -1,5 +1,5 @@
 application: bongapp
-version: 1
+version: 20101221
 runtime: python
 api_version: 1
 
@@ -99,6 +99,10 @@ handlers:
 #admin only controllers
 - url: /bulka
   script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
+  login: admin
+
+- url: /cron(.*)
+  script: controllers/cron.py
   login: admin
 
 - url: /aggregate(.*)

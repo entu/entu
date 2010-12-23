@@ -107,62 +107,9 @@ class DeleteQuestion(boRequestHandler):
             q.delete()
 
 
-class GenerateQuestionaryPersons(boRequestHandler):
-    def get(self):
-        if self.authorize('questionary'):
-
-            self.response.headers['Content-Type'] = 'text/plain; charset=UTF-8'
-
-            currentdate = datetime.now().date()
-            #for course in db.Query(Course).filter('course_end_date <=', currentdate).filter('is_feedback_started', False).order('-course_end_date').fetch(1000):
-            course = Course().get_by_key_name('course_8361')
-            if course:
-                for questionary in db.Query(Questionary).filter('end_date >=', course.course_end_date).fetch(1000):
-                    if questionary.start_date <= course.course_end_date:
-                        self.response.out.write(questionary.name.translate() + ':\n')
-                        for subscription in course.subscribers:
-                            qp = QuestionaryPerson()
-                            qp.person = subscription.student
-                            qp.is_completed = False
-                            qp.questionary = questionary
-                            qp.course = course
-                            qp.put()
-
-                            self.response.out.write('    ' + subscription.student.forename + ' ' + subscription.student.surname + ':\n')
-
-                            for question in questionary.questions:
-                                if question.is_teacher_specific:
-                                    teachers = Person().get(course.teachers)
-                                    for teacher in teachers:
-                                        qa = QuestionAnswer()
-                                        qa.questionary_person = qp
-                                        qa.person = subscription.student
-                                        qa.target_person = teacher
-                                        qa.questionary = questionary
-                                        qa.course = course
-                                        qa.question = question
-                                        qa.put()
-                                        self.response.out.write('        ' + question.name.translate() + ' (' + teacher.forename + ' ' + teacher.surname + ')\n')
-                                else:
-                                    qa = QuestionAnswer()
-                                    qa.questionary_person = qp
-                                    qa.person = subscription.student
-                                    qa.questionary = questionary
-                                    qa.course = course
-                                    qa.question = question
-                                    qa.put()
-                                    self.response.out.write('        ' + question.name.translate() + '\n')
-                            self.response.out.write('\n')
-
-                        self.response.out.write('\n\n')
-                course.is_feedback_started = True
-                course.put()
-
-
 def main():
     Route([
             ('/questionary', ShowQuestionariesList),
-            ('/questionary/generate', GenerateQuestionaryPersons),
             ('/questionary/sort/(.*)', SortQuestionary),
             ('/questionary/delete/(.*)', DeleteQuestionary),
             ('/questionary/results/(.*)', ShowQuestionaryResults),

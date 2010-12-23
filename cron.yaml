@@ -1,0 +1,8 @@
+cron:
+#- description: Generate questionaries
+#  url: /cron/generate_questionary
+#  schedule: every 10 minutes
+
+#- description: Generate questionary persons
+#  url: /cron/test
+#  schedule: every 5 minutes
