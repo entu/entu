@@ -3,19 +3,20 @@ from google.appengine.ext import search
 from google.appengine.api import users
 from datetime import datetime
 
-from database import *
+from database.dictionary import *
+from database.general import *
 
 
 class Person(search.SearchableModel):
-    apps_username   = db.StringProperty()
-    forename        = db.StringProperty()
-    surname         = db.StringProperty()
-    idcode          = db.StringProperty()
-    gender          = db.ReferenceProperty(Dictionary, collection_name='genders')
-    birth_date      = db.DateProperty()
-    created         = db.DateTimeProperty(auto_now_add=True)
-    last_seen       = db.DateTimeProperty()
-    version         = db.StringProperty(default='A')
+    apps_username       = db.StringProperty() # forename.surname@domain
+    forename            = db.StringProperty()
+    surname             = db.StringProperty()
+    idcode              = db.StringProperty()
+    gender              = db.ReferenceProperty(Dictionary, collection_name='genders')
+    birth_date          = db.DateProperty()
+    created             = db.DateTimeProperty(auto_now_add=True)
+    last_seen           = db.DateTimeProperty()
+    model_version       = db.StringProperty(default='A')
 
     @property
     def displayname(self):
@@ -40,31 +41,24 @@ class Department(db.Model):
     is_academic         = db.BooleanProperty()
     parent_department   = db.SelfReferenceProperty(collection_name='child_departments')
     manager             = db.ReferenceProperty(Person, collection_name='managed_departments')
+    model_version       = db.StringProperty(default='A')
 
 
 class Contact(db.Model):
-    person      = db.ReferenceProperty(Person, collection_name='contacts')
-    type        = db.ReferenceProperty(Dictionary, collection_name='contact_types')
-    value       = db.StringProperty()
+    person              = db.ReferenceProperty(Person, collection_name='contacts')
+    type                = db.ReferenceProperty(Dictionary, collection_name='contact_types')
+    value               = db.StringProperty()
+    model_version       = db.StringProperty(default='A')
 
 
 class Role(db.Model):
     name        = db.ReferenceProperty(Dictionary, collection_name='role_names')
     rights      = db.StringListProperty()
+    model_version       = db.StringProperty(default='A')
 
 
 class PersonRole(db.Model):
-    person      = db.ReferenceProperty(Person, collection_name='roles')
-    role        = db.ReferenceProperty(Role, collection_name='persons')
-    department  = db.ReferenceProperty(Department, collection_name='persons')
-
-
-class Grade(db.Model):
-    student         = db.ReferenceProperty(Person, collection_name='grades')
-    date            = db.DateProperty()
-    name            = db.ReferenceProperty(Dictionary, collection_name='grade_names')
-    equivalent      = db.IntegerProperty()
-    credit_points   = db.FloatProperty()
-    school          = db.ReferenceProperty(Dictionary, collection_name='school_names')
-    subject         = db.ReferenceProperty(Dictionary, collection_name='grade_subject_names')
-    teacher_name    = db.StringProperty()
+    person              = db.ReferenceProperty(Person, collection_name='roles')
+    role                = db.ReferenceProperty(Role, collection_name='persons')
+    department          = db.ReferenceProperty(Department, collection_name='persons')
+    model_version       = db.StringProperty(default='A')
