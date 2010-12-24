@@ -3,10 +3,15 @@ from google.appengine.ext import search
 
 
 class Dictionary(db.Model):
-    name        = db.StringProperty()
-    value       = db.StringProperty()
-    languages   = db.StringListProperty(default=[])
-    version     = db.StringProperty(default='A')
+    name            = db.StringProperty()
+    value           = db.StringProperty()
+    languages       = db.StringListProperty(default=[]) """ list-property with language names of existing translations
+                                                            to enable the functionality to find missing translations.
+                                                            To find all curriculums, that have no french translation,
+                                                            one could search for:
+                                                                dictionary_name = 'curriculum_name'
+                                                                languages != 'french' """
+    model_version   = db.StringProperty(default='A')
 
     def translate(self):
         from bo import *
@@ -23,8 +28,11 @@ class Translation(search.SearchableModel):
     dictionary_name = db.StringProperty()
     language        = db.StringProperty()
     value           = db.StringProperty(multiline=True)
-    is_verified     = db.BooleanProperty()
-    version         = db.StringProperty(default='A')
+    is_verified     = db.BooleanProperty()          """ When new dictionary object is created, the source translation
+                                                        is marked as verified.
+                                                        If multiple translations are merged, then all verified
+                                                        translations remain the same and also remain marked as verified """
+    model_version   = db.StringProperty(default='A')
 
 
 def DictionaryAdd(name, value):
