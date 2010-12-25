@@ -68,5 +68,5 @@ class PersonDocument(db.Model):
     person              = db.ReferenceProperty(Person, collection_name='documents')
     document            = db.ReferenceProperty(Document, collection_name='persons')
     relation            = db.ReferenceProperty(Dictionary, collection_name='person_document_relations')
-    dateTime            = db.DateTimeProperty(auto_now_add=True)
+    date_time           = db.DateTimeProperty(auto_now_add=True)
     model_version       = db.StringProperty(default='A')
