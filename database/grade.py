@@ -9,7 +9,8 @@ from database.person import *
 
 
 class Grade(db.Model):
-    student         = db.ReferenceProperty(Person, collection_name='grades')
+    student         = db.ReferenceProperty(Person, collection_name='received_grades')
+    teacher         = db.ReferenceProperty(Person, collection_name='given_grades')
     date            = db.DateProperty()
     name            = db.ReferenceProperty(Dictionary, collection_name='grade_names')
     equivalent      = db.IntegerProperty()
