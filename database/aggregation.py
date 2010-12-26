@@ -86,3 +86,8 @@ def combinations(iterable, r):
         for j in range(i+1, r):
             indices[j] = indices[j-1] + 1
         yield tuple(pool[i] for i in indices)
+
+
+class AggregationValues(db.Model):
+    aggregations    = db.ListProperty(db.Key)
+    value           = db.StringProperty()
