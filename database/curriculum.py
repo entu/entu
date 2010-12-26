@@ -7,20 +7,30 @@ from database.grade import *
 
 
 class Curriculum(db.Model):
+    """
+    It is common in Learning Systems to give a code for almost everything.
+    This makes it easy to perform searches and also these codes are commonly used in communication.
+
+    Sometimes there is a need to change a "code". Reason could be internal academic restructuring or
+    it might be requirement from government. On such case the previous code will be stored in tags
+    list so curriculum will remain findable by old code.
+
+    One of following:
+        current  - New relations can be created, searchable;
+        obsolete - No new relations are accepted, searchable;
+        archived - No new relations are accepted, searchable only with archive search.
+    """
     name                    = db.ReferenceProperty(Dictionary, collection_name='curriculum_names')
     department              = db.ReferenceProperty(Department, collection_name='curriculums')
-    code                    = db.StringProperty()           """ It is common in Learning Systems to give a code for almost everything. This makes it easy to perform searches and also these codes are commonly used in communication. """
-    tags                    = db.StringListProperty()       """ Sometimes there is a need to change a “code”. Reason could be internal academic restructuring or it might be requirement from government. On such case the previous code will be stored in tags list so curriculum will remain findable by old code. """
+    code                    = db.StringProperty()
+    tags                    = db.StringListProperty()
     level_of_education      = db.ReferenceProperty(Dictionary, collection_name='curriculum_level_of_educations')
     form_of_training        = db.ReferenceProperty(Dictionary, collection_name='curriculum_form_of_trainings')
     nominal_years           = db.IntegerProperty()
     nominal_credit_points   = db.FloatProperty()
     degree                  = db.ReferenceProperty(Dictionary, collection_name='curriculum_degrees')
     manager                 = db.ReferenceProperty(Person, collection_name='managed_curriculums')
-    state                   = db.StringProperty()           """ One of following:
-                current  - New relations can be created, searchable;
-                obsolete - No new relations are accepted, searchable;
-                archived - No new relations are accepted, searchable only with archive search. """
+    state                   = db.StringProperty()
     model_version           = db.StringProperty(default='A')
 
 
@@ -30,7 +40,7 @@ class Concentration(db.Model):
     tags            = db.StringListProperty()
     curriculum      = db.ReferenceProperty(Curriculum, collection_name='concentrations')
     manager         = db.ReferenceProperty(Person, collection_name='managed_concentrations')
-    state           = db.StringProperty()                   # Valid states are current/obsolete/archived.
+    state           = db.StringProperty(choices=['current', 'obsolete', 'archived'], default='current')
     model_version   = db.StringProperty(default='A')
 
 
@@ -47,16 +57,19 @@ class Module(db.Model):
     code                    = db.StringProperty()
     tags                    = db.StringListProperty()
     manager                 = db.ReferenceProperty(Person, collection_name='managed_modules')
-    minimum_credit_points   = db.FloatProperty(default=0)   # Minimum amount of credit points student has to earn in this module. Defaults to 0
+    minimum_credit_points   = db.FloatProperty(default=0) # Minimum amount of credit points student has to earn in this module. Defaults to 0
     minimum_subject_count   = db.IntegerProperty(default=0) # Minimum number of subjects student has to pass in this module. Defaults to 0
-    state                   = db.StringProperty()           # Valid states are current/obsolete/archived.
+    state                   = db.StringProperty(choices=['current', 'obsolete', 'archived'], default='current')
     model_version           = db.StringProperty(default='A')
 
 
 class ModuleConcentration(db.Model):
-    is_mandatory    = db.BooleanProperty()  """ If module is set mandatory in concentration
-                                               and student has subscribed to concentration
-                                              then student has to satisfy minimum requirements in Module. """
+    """
+    If module is set mandatory in concentration
+    and student has subscribed to concentration
+    then student has to satisfy minimum requirements in Module.
+    """
+    is_mandatory    = db.BooleanProperty()
     module          = db.ReferenceProperty(Module, collection_name='concentrations')
     concentration   = db.ReferenceProperty(Concentration, collection_name='modules')
     model_version   = db.StringProperty(default='A')
@@ -69,7 +82,7 @@ class Subject(db.Model):
     credit_points   = db.FloatProperty()
     rating_scale    = db.ReferenceProperty(RatingScale, collection_name='subjects')
     manager         = db.ReferenceProperty(Person, collection_name='managed_subjects')
-    state           = db.StringProperty()                   # Valid states are current/obsolete/archived.
+    state           = db.StringProperty(choices=['current', 'obsolete', 'archived'], default='current')
     model_version   = db.StringProperty(default='A')
 
 
@@ -80,7 +93,7 @@ class PrerequisiteSubject(db.Model):
 
 
 class ModuleSubject(db.Model):
-    is_mandatory    = db.BooleanProperty()  # Subject could be marked mandatory to pass the module
+    is_mandatory    = db.BooleanProperty() # Subject could be marked mandatory to pass the module
     module          = db.ReferenceProperty(Module, collection_name='subjects')
     subject         = db.ReferenceProperty(Subject, collection_name='modules')
     model_version   = db.StringProperty(default='A')
@@ -92,7 +105,7 @@ class Course(db.Model):
     subscription_close_date = db.DateProperty()
     course_start_date       = db.DateProperty()
     course_end_date         = db.DateProperty()
-    teachers                = db.ListProperty(db.Key)       # References to persons
+    teachers                = db.ListProperty(db.Key) # References to persons
     is_feedback_started     = db.BooleanProperty(default=False)
     model_version           = db.StringProperty(default='A')
 
@@ -105,8 +118,7 @@ class Subscription(db.Model):
 
 
 class CourseExam(db.Model):
-    name            = db.ReferenceProperty(Dictionary, collection_name='course_exam_names') """
-                    usually "Scheduled", could be set to "Extraordinary" or any other arbitrary name"""
+    name            = db.ReferenceProperty(Dictionary, collection_name='course_exam_names') # usually "Scheduled", could be set to "Extraordinary" or any other arbitrary name
     course          = db.ReferenceProperty(Course, collection_name='exams')
     exam            = db.ReferenceProperty(Exam, collection_name='courses')
     model_version   = db.StringProperty(default='A')

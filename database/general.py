@@ -24,7 +24,7 @@ class AccessLog(db.Model):
 
         user = users.get_current_user()
         if user:
-            system_user_key = user.email()).get()
+            system_user_key = user.email()
 
         al.save()
         return al.key()

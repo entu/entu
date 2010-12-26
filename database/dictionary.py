@@ -3,14 +3,17 @@ from google.appengine.ext import search
 
 
 class Dictionary(db.Model):
+    """
+    list-property with language names of existing translations
+    to enable the functionality to find missing translations.
+    To find all curriculums, that have no french translation,
+    one could search for:
+        dictionary_name = 'curriculum_name'
+        languages != 'french'
+    """
     name            = db.StringProperty()
     value           = db.StringProperty()
-    languages       = db.StringListProperty(default=[]) """ list-property with language names of existing translations
-                                                            to enable the functionality to find missing translations.
-                                                            To find all curriculums, that have no french translation,
-                                                            one could search for:
-                                                                dictionary_name = 'curriculum_name'
-                                                                languages != 'french' """
+    languages       = db.StringListProperty(default=[])
     model_version   = db.StringProperty(default='A')
 
     def translate(self):
@@ -24,14 +27,17 @@ class Dictionary(db.Model):
 
 
 class Translation(search.SearchableModel):
+    """
+    When new dictionary object is created, the source translation
+    is marked as verified.
+    If multiple translations are merged, then all verified
+    translations remain the same and also remain marked as verified
+    """
     dictionary      = db.ReferenceProperty(Dictionary, collection_name='translations')
     dictionary_name = db.StringProperty()
     language        = db.StringProperty()
     value           = db.StringProperty(multiline=True)
-    is_verified     = db.BooleanProperty()          """ When new dictionary object is created, the source translation
-                                                        is marked as verified.
-                                                        If multiple translations are merged, then all verified
-                                                        translations remain the same and also remain marked as verified """
+    is_verified     = db.BooleanProperty()
     model_version   = db.StringProperty(default='A')
 
 

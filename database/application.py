@@ -22,11 +22,11 @@ class Reception(db.Model):
     version                 = db.StringProperty(default='A')
 
 
-"""
-there can be only single applicant for any person or document
-so "applicant" is used as back-reference instead of "applicants"
-"""
 class Applicant(db.Model):
+    """
+    There can be only single applicant for any person or document
+    so "applicant" is used as back-reference instead of "applicants"
+    """
     auto_id                 = db.IntegerProperty() # auto-increment
     forename                = db.StringProperty()
     surname                 = db.StringProperty()
@@ -39,7 +39,9 @@ class Applicant(db.Model):
     password                = db.StringProperty()
     person                  = db.ReferenceProperty(Person, collection_name='applicant')
     version                 = db.StringProperty(default='A')
-#    documents              TODO: pseudo-property
+
+    def documents():
+        pass
 
 
 class Application(db.Model):
@@ -65,4 +67,3 @@ class ReceptionExamGroupRegistration(db.Model):
     is_passed       = db.BooleanProperty()
     applicant       = db.ReferenceProperty(Applicant, collection_name='exam_registrations')
     model_version   = db.StringProperty(default='A')
-        
