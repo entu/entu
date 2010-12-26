@@ -81,9 +81,9 @@ def get_curriculum_key(s):
     else:
         return None
 
-def get_contcentration_key(s):
+def get_concentration_key(s):
     if s:
-        return db.Key.from_path('contcentration', s.decode('utf-8'))
+        return db.Key.from_path('Concentration', s.decode('utf-8'))
     else:
         return None
 
@@ -246,7 +246,7 @@ class Module_loader(bulkloader.Loader):
         bulkloader.Loader.__init__(self, 'Module', [
             ('key_name', get_utf8),
             ('name', get_dictionary_key),
-            ('contcentration', get_contcentration_key),
+            ('concentration', get_concentration_key),
         ])
     def handle_entity(self, entity):
         entity.save()
