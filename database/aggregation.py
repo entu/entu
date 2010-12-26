@@ -30,12 +30,15 @@ class Aggregation(db.Model):
     - FQ: The feedback questionary                          - defining dimension;
     - F:  Fact, that we are aggregating feedback results    - defining dimension.
     """
-    type            = db.StringProperty()
-    level           = db.IntegerProperty()              # number of important dimensions
-    dimensions      = db.StringListProperty()           # key@entity.property or key@entity
-    count           = db.IntegerProperty()              # count of data units submitted to aggregation
-    sum             = db.FloatProperty()                # sum of data units submitted to aggregation
-    model_version   = db.StringProperty(default='A')
+    level               = db.IntegerProperty()              # number of important dimensions
+    dimensions          = db.StringListProperty()           # key@entity.property or key@entity
+    count               = db.IntegerProperty()              # count of data units submitted to aggregation
+    sum                 = db.FloatProperty()                # sum of data units submitted to aggregation
+    model_version       = db.StringProperty(default='A')
+    # Defining dimensions and value are class-only properties and should not pass to database
+    defining_dimensions = db.StringListProperty()
+    float_value         = db.FloatProperty
+    string_value        = db.StringProperty()
 
     def add(self):
 
@@ -44,29 +47,34 @@ class Aggregation(db.Model):
                 dimensions = list(t)
 
                 a = db.Query(Aggregation)
-                a.filter('type', self.type)
                 a.filter('level', level)
-                for d in dimensions:
+                for d in dimensions + self.defining_dimensions:
                     a.filter('dimensions', d)
                 aggr = a.get()
 
                 if aggr:
                     aggr.count = int(aggr.count) + 1
-                    if self.sum:
+                    if self.float_value:
                         if aggr.sum:
-                            aggr.sum = aggr.sum + self.sum
+                            aggr.sum = aggr.sum + self.float_value
                         else:
-                            aggr.sum = self.sum
+                            aggr.sum = self.float_value
 
                 else:
                     aggr = Aggregation()
-                    aggr.type = self.type
                     aggr.level = level
-                    aggr.dimensions = dimensions
+                    aggr.dimensions = dimensions + self.defining_dimensions
                     aggr.count = 1
-                    if self.sum:
-                        aggr.sum = self.sum
+                    if self.float_value:
+                        aggr.sum = self.float_value
                 aggr.put()
+                
+                if av.float_value or av.string_value:
+                    av = AggregationValue()
+                    av.aggregation = aggr
+                    av.float_value = self.float_value
+                    av.string_value = self.string_value
+                    av.put()
 
 
 def combinations(iterable, r):
@@ -88,6 +96,7 @@ def combinations(iterable, r):
         yield tuple(pool[i] for i in indices)
 
 
-class AggregationValues(db.Model):
-    aggregations    = db.ListProperty(db.Key)
-    value           = db.StringProperty()
+class AggregationValue(db.Model):
+    aggregation     = db.ReferenceProperty(Aggregation, collection_name='values')
+    float_value     = db.FloatProperty()
+    string_value    = db.StringProperty()

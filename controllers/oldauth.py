@@ -27,10 +27,12 @@ class Login(boRequestHandler):
                     gender = 'None'
 
                 aggr = Aggregation()
-                aggr.type = 'oldauth'
                 aggr.dimensions = [
                     site + '@site',
                     gender + '@gender',
+                ]
+                aggr.defining_dimensions = [
+                    'oldauth',
                 ]
                 aggr.add()
 
