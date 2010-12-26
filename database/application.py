@@ -19,7 +19,7 @@ class Reception(db.Model):
     end_date                = db.DateProperty()
     manager                 = db.ReferenceProperty(Person, collection_name='managed_receptions')
     is_published            = db.BooleanProperty(default=False)
-    version                 = db.StringProperty(default='A')
+    model_version           = db.StringProperty(default='A')
 
 
 class Applicant(db.Model):
@@ -38,7 +38,7 @@ class Applicant(db.Model):
     email                   = db.StringProperty()
     password                = db.StringProperty()
     person                  = db.ReferenceProperty(Person, collection_name='applicant')
-    version                 = db.StringProperty(default='A')
+    model_version           = db.StringProperty(default='A')
 
     def documents():
         pass
@@ -48,7 +48,7 @@ class Application(db.Model):
     applicant               = db.ReferenceProperty(Applicant, collection_name='applications')
     reception               = db.ReferenceProperty(Reception, collection_name='applications')
     is_approved             = db.BooleanProperty() # can be set to true by department if documents are valid and application is approved
-    version                 = db.StringProperty(default='A')
+    model_version           = db.StringProperty(default='A')
 
 
 class ReceptionExam(db.Model):
@@ -57,13 +57,13 @@ class ReceptionExam(db.Model):
     is_milestone            = db.BooleanProperty()
     exam                    = db.ReferenceProperty(Exam, collection_name='receptions')
     reception               = db.ReferenceProperty(Reception, collection_name='exams')
-    version                 = db.StringProperty(default='A')
+    model_version           = db.StringProperty(default='A')
 
 
 class ReceptionExamGroupRegistration(db.Model):
     exam_group      = db.ReferenceProperty(ExamGroup, collection_name='reception_registrations')
     time            = db.TimeProperty()
-    grade           = db.ReferenceProperty(GradeDefinition, collection_name='reception_registrations')
+    grade           = db.ReferenceProperty(Grade, collection_name='reception_registrations')
     is_passed       = db.BooleanProperty()
     applicant       = db.ReferenceProperty(Applicant, collection_name='exam_registrations')
     model_version   = db.StringProperty(default='A')

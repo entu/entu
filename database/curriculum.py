@@ -15,7 +15,7 @@ class Curriculum(db.Model):
     it might be requirement from government. On such case the previous code will be stored in tags
     list so curriculum will remain findable by old code.
 
-    One of following:
+    State can be one of following:
         current  - New relations can be created, searchable;
         obsolete - No new relations are accepted, searchable;
         archived - No new relations are accepted, searchable only with archive search.
@@ -30,7 +30,7 @@ class Curriculum(db.Model):
     nominal_credit_points   = db.FloatProperty()
     degree                  = db.ReferenceProperty(Dictionary, collection_name='curriculum_degrees')
     manager                 = db.ReferenceProperty(Person, collection_name='managed_curriculums')
-    state                   = db.StringProperty()
+    state                   = db.StringProperty(choices=['current', 'obsolete', 'archived'], default='current')
     model_version           = db.StringProperty(default='A')
 
 
@@ -53,7 +53,7 @@ class StudentConcentration(db.Model):
 
 
 class Module(db.Model):
-    name                    = db.ReferenceProperty(Dictionary, collection_name='modules')
+    name                    = db.ReferenceProperty(Dictionary, collection_name='module_names')
     code                    = db.StringProperty()
     tags                    = db.StringListProperty()
     manager                 = db.ReferenceProperty(Person, collection_name='managed_modules')
@@ -127,7 +127,7 @@ class CourseExam(db.Model):
 class CourseExamGroupRegistration(db.Model):
     exam_group      = db.ReferenceProperty(ExamGroup, collection_name='course_registrations')
     time            = db.TimeProperty()
-    grade           = db.ReferenceProperty(GradeDefinition, collection_name='course_registrations')
+    grade           = db.ReferenceProperty(Grade, collection_name='course_registrations')
     is_passed       = db.BooleanProperty()
     student         = db.ReferenceProperty(Person, collection_name='exam_registrations')
     model_version   = db.StringProperty(default='A')

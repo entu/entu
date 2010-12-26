@@ -22,7 +22,7 @@ class Grade(db.Model):
 
 
 class RatingScale(db.Model):
-    name            = db.ReferenceProperty(Dictionary, collection_name='rating_scales')
+    name            = db.ReferenceProperty(Dictionary, collection_name='rating_scale_names')
     model_version   = db.StringProperty(default='A')
 
 
