@@ -35,7 +35,7 @@ class Aggregation(db.Model):
     count               = db.IntegerProperty()              # count of data units submitted to aggregation
     sum                 = db.FloatProperty()                # sum of data units submitted to aggregation
     model_version       = db.StringProperty(default='A')
-    # Defining dimensions and value are class-only properties and should not pass to database
+    # Defining dimensions and values are class-only properties and should not pass to database
     defining_dimensions = db.StringListProperty()
     float_value         = db.FloatProperty
     string_value        = db.StringProperty()
