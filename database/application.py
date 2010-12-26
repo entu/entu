@@ -63,7 +63,7 @@ class ReceptionExam(db.Model):
 class ReceptionExamGroupRegistration(db.Model):
     exam_group      = db.ReferenceProperty(ExamGroup, collection_name='reception_registrations')
     time            = db.TimeProperty()
-    grade           = db.ReferenceProperty(GradeDefinition, collection_name='course_registrations')
+    grade           = db.ReferenceProperty(GradeDefinition, collection_name='reception_registrations')
     is_passed       = db.BooleanProperty()
     applicant       = db.ReferenceProperty(Applicant, collection_name='exam_registrations')
     model_version   = db.StringProperty(default='A')
