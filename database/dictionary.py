@@ -19,11 +19,16 @@ class Dictionary(db.Model):
     def translate(self):
         from bo import *
 
-        t = db.Query(Translation).filter('dictionary', self).filter('language', UserPreferences().current.language).get()
-        if t and t.value:
-            return t.value
-        else:
-            return self.value
+        cache_key = 'DictionaryTranslate_' + UserPreferences().current.language + '_' + str(self.key())
+        translation = Cache().get(cache_key, False)
+        if not translation:
+            t = db.Query(Translation).filter('dictionary', self).filter('language', UserPreferences().current.language).get()
+            if t and t.value:
+                translation = t.value
+            else:
+                translation = self.value
+            Cache().set(cache_key, translation, False, 3600)
+        return translation
 
 
 class Translation(search.SearchableModel):
