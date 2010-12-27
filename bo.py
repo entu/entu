@@ -26,7 +26,7 @@ class boRequestHandler(webapp.RequestHandler):
             self.redirect('/feedback')
             return False
         else:
-            if controller:
+            if controller and users.is_current_user_admin() == False:
                 rights = []
                 for role in Person().current.roles:
                     rights = rights + role.role.rights
