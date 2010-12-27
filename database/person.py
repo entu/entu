@@ -52,9 +52,9 @@ class Contact(db.Model):
 
 
 class Role(db.Model):
-    name        = db.ReferenceProperty(Dictionary, collection_name='role_names')
-    rights      = db.StringListProperty()
-    model_version       = db.StringProperty(default='A')
+    name            = db.ReferenceProperty(Dictionary, collection_name='role_names')
+    rights          = db.StringListProperty()
+    model_version   = db.StringProperty(default='A')
 
 
 class PersonRole(db.Model):

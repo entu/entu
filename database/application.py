@@ -58,12 +58,3 @@ class ReceptionExam(db.Model):
     exam                    = db.ReferenceProperty(Exam, collection_name='receptions')
     reception               = db.ReferenceProperty(Reception, collection_name='exams')
     model_version           = db.StringProperty(default='A')
-
-
-class ReceptionExamGroupRegistration(db.Model):
-    exam_group      = db.ReferenceProperty(ExamGroup, collection_name='reception_registrations')
-    time            = db.TimeProperty()
-    grade           = db.ReferenceProperty(Grade, collection_name='reception_registrations')
-    is_passed       = db.BooleanProperty()
-    applicant       = db.ReferenceProperty(Applicant, collection_name='exam_registrations')
-    model_version   = db.StringProperty(default='A')

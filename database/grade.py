@@ -47,11 +47,19 @@ class Exam(db.Model):
 
 class ExamGroup(db.Model):
     exam                = db.ReferenceProperty(Exam, collection_name='exam_groups')
-    date                = db.DateProperty()
-    first_entry_time    = db.TimeProperty()         # Time of first student entry
-    last_entry_time     = db.TimeProperty()         # Time of last student entry
+    first_entry_time    = db.DateTimeProperty()         # Time of first student entry
+    last_entry_time     = db.DateTimeProperty()         # Time of last student entry
     group_size          = db.IntegerProperty()      # Number of students entering at the same time
     interval_minutes    = db.IntegerProperty()      # Interval between groups entering
     location            = db.ReferenceProperty(Location, collection_name='exam_groups')
     duration_minutes    = db.IntegerProperty()      # Estimated time student has to spend
     model_version       = db.StringProperty(default='A')
+
+
+class ExamGroupRegistration(db.Model):
+    exam_group      = db.ReferenceProperty(ExamGroup, collection_name='registrations')
+    time            = db.TimeProperty()
+    grade           = db.ReferenceProperty(Grade, collection_name='registrations')
+    is_passed       = db.BooleanProperty()
+    person          = db.ListProperty(db.Key) # Applicant and/or Person key.
+    model_version   = db.StringProperty(default='A')

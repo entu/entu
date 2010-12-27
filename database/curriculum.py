@@ -1,5 +1,6 @@
 from google.appengine.ext import db
 
+from bo import *
 from database.dictionary import *
 from database.general import *
 from database.person import *
@@ -33,6 +34,20 @@ class Curriculum(db.Model):
     state                   = db.StringProperty(choices=['current', 'obsolete', 'archived'], default='current')
     model_version           = db.StringProperty(default='A')
 
+    def GetList(self):
+        cache_key = 'CurriculumGetList_' +  UserPreferences().current.language
+        curriculums = Cache().get(cache_key, False)
+        if not curriculums:
+            curriculums = []
+            for c in db.Query(Curriculum).filter('state', 'current').fetch(1000):
+                curriculums.append({
+                    'group': c.level_of_education.translate(),
+                    'key': c.key(),
+                    'name': c.name.translate() + ' (' + c.code + ')',
+                })
+            Cache().set(cache_key, curriculums, False, 120)
+        return curriculums
+
 
 class Concentration(db.Model):
     name            = db.ReferenceProperty(Dictionary, collection_name='concentration_names')
@@ -57,7 +72,7 @@ class Module(db.Model):
     code                    = db.StringProperty()
     tags                    = db.StringListProperty()
     manager                 = db.ReferenceProperty(Person, collection_name='managed_modules')
-    minimum_credit_points   = db.FloatProperty(default=0) # Minimum amount of credit points student has to earn in this module. Defaults to 0
+    minimum_credit_points   = db.FloatProperty(default=0.0) # Minimum amount of credit points student has to earn in this module. Defaults to 0
     minimum_subject_count   = db.IntegerProperty(default=0) # Minimum number of subjects student has to pass in this module. Defaults to 0
     state                   = db.StringProperty(choices=['current', 'obsolete', 'archived'], default='current')
     model_version           = db.StringProperty(default='A')
@@ -121,13 +136,4 @@ class CourseExam(db.Model):
     name            = db.ReferenceProperty(Dictionary, collection_name='course_exam_names') # usually "Scheduled", could be set to "Extraordinary" or any other arbitrary name
     course          = db.ReferenceProperty(Course, collection_name='exams')
     exam            = db.ReferenceProperty(Exam, collection_name='courses')
-    model_version   = db.StringProperty(default='A')
-
-
-class CourseExamGroupRegistration(db.Model):
-    exam_group      = db.ReferenceProperty(ExamGroup, collection_name='course_registrations')
-    time            = db.TimeProperty()
-    grade           = db.ReferenceProperty(Grade, collection_name='course_registrations')
-    is_passed       = db.BooleanProperty()
-    student         = db.ReferenceProperty(Person, collection_name='exam_registrations')
     model_version   = db.StringProperty(default='A')
