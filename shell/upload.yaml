@@ -271,56 +271,34 @@ transformers:
       export_transform: transform.key_id_or_name_as_string
 
 
-- kind: Person
+- kind: zPerson
   connector: csv
   property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: __searchable_text_index
-      external_name: __searchable_text_index
+    - property: key_name
+      external_name: key_name
+      import_transform: transform.create_foreign_key('zPerson')
 
     - property: apps_username
       external_name: apps_username
 
-    - property: birth_date
-      external_name: birth_date
-      import_transform: transform.import_date_time('%Y-%m-%dT%H:%M:%S')
-      export_transform: transform.export_date_time('%Y-%m-%dT%H:%M:%S')
-
-    - property: created
-      external_name: created
-      import_transform: transform.import_date_time('%Y-%m-%dT%H:%M:%S')
-      export_transform: transform.export_date_time('%Y-%m-%dT%H:%M:%S')
-
     - property: forename
       external_name: forename
 
-    - property: gender
-      external_name: gender
-      import_transform: transform.create_foreign_key('Dictionary')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: general
-      external_name: general
-
-    - property: google_user_id
-      external_name: google_user_id
-
-    - property: idcode
-      external_name: idcode
-
-    - property: language
-      external_name: language
-
-    - property: last_seen
-      external_name: last_seen
-      import_transform: transform.import_date_time('%Y-%m-%dT%H:%M:%S')
-      export_transform: transform.export_date_time('%Y-%m-%dT%H:%M:%S')
-
     - property: surname
       external_name: surname
+
+    - property: idcode
+      external_name: personId
+
+    - property: gender_estonian
+      external_name: gender_estonian
+
+    - property: gender_english
+      external_name: gender_english
+
+    - property: birth_date
+      external_name: birth_date
+      import_transform: transform.import_date_time('%Y-%m-%d')
 
 
 - kind: QuestionAnswer
