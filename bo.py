@@ -1,4 +1,5 @@
 import os
+from types import ListType
 from google.appengine.api import mail
 from google.appengine.api import users
 from google.appengine.api import memcache
@@ -6,6 +7,7 @@ from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp import util
+from django.core.validators import email_re
 
 from settings import *
 
@@ -133,15 +135,26 @@ class Cache:
 
 
 def SendMail(to, subject, message, html=True):
-    m = mail.EmailMessage()
-    m.sender = SYSTEM_EMAIL
-    m.to = to
-    m.subject = SYSTEM_EMAIL_PREFIX + subject
-    if html == True:
-        m.html = message
+    valid_to = []
+    if isinstance(to, ListType):
+        for t in to:
+            if email_re.match(t):
+                valid_to.append(t)
     else:
-        m.body = message
-    m.send()
+        if email_re.match(to):
+            valid_to.append(to)
+    if len(valid_to) > 0:
+        m = mail.EmailMessage()
+        m.sender = SYSTEM_EMAIL
+        m.to = to
+        m.subject = SYSTEM_EMAIL_PREFIX + subject
+        if html == True:
+            m.html = message
+        else:
+            m.body = message
+        m.send()
+
+        return True
 
 
 def StrToList(string):
