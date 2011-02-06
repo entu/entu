@@ -20,11 +20,12 @@ class boRequestHandler(webapp.RequestHandler):
         from database.person import *
         from database.feedback import *
 
-        if db.Query(QuestionaryPerson).filter('person', Person().current).filter('is_completed', False).get():
+        if db.Query(QuestionaryPerson).filter('person', Person().current).filter('is_completed', False).filter('is_obsolete', False).get():
             path = str(self.request.url)
             Cache().set('redirect_after_feedback', path)
             self.redirect('/feedback')
             return False
+            #return True
         else:
             if controller and users.is_current_user_admin() == False:
                 rights = []
@@ -41,7 +42,7 @@ class boRequestHandler(webapp.RequestHandler):
         from database.person import *
 
         browser = str(self.request.headers['User-Agent'])
-        if browser.find('MSIE 5') > -1 or browser.find('MSIE 6') > -1:
+        if browser.find('MSIE 5') > -1 or browser.find('MSIE 6') > -1 or browser.find('MSIE 7') > -1:
             path = os.path.join(os.path.dirname(__file__), 'templates', 'brausererror.html')
             self.response.out.write(template.render(path, {}))
         else:
@@ -146,6 +147,12 @@ def SendMail(to, subject, message, html=True):
 def StrToList(string):
     return [x.strip() for x in string.strip().replace('\n', ' ').replace(',', ' ').replace(';', ' ').split(' ') if len(x.strip()) > 0]
 
+def AddToList(s_value, s_list=[], unique=True):
+    s_list.append(s_value)
+    if unique==True:
+        return list(set(s_list))
+    else:
+        return s_list
 
 def ImageRescale(img_data, width, height, halign='middle', valign='middle'):
     image = images.Image(img_data)
