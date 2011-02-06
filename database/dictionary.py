@@ -3,47 +3,41 @@ from google.appengine.ext import search
 
 
 class Dictionary(db.Model):
-    """
-    list-property with language names of existing translations
-    to enable the functionality to find missing translations.
-    To find all curriculums, that have no french translation,
-    one could search for:
-        dictionary_name = 'curriculum_name'
-        languages != 'french'
-    """
     name            = db.StringProperty()
-    value           = db.StringProperty()
-    languages       = db.StringListProperty(default=[])
+    english         = db.StringProperty(multiline=True)
+    estonian        = db.StringProperty(multiline=True)
     model_version   = db.StringProperty(default='A')
+
+    @property
+    def value(self):
+        from bo import *
+
+        language = UserPreferences().current.language
+        cache_key = 'DictionaryTranslation_' + language + '_' + str(self.key())
+        translation = Cache().get(cache_key, False)
+        if not translation:
+            translation = getattr(self, language)
+            Cache().set(cache_key, translation, False, 3600)
+        return translation
 
     def translate(self):
         from bo import *
 
-        cache_key = 'DictionaryTranslate_' + UserPreferences().current.language + '_' + str(self.key())
+        language = UserPreferences().current.language
+        cache_key = 'DictionaryTranslation_' + language + '_' + str(self.key())
         translation = Cache().get(cache_key, False)
         if not translation:
-            t = db.Query(Translation).filter('dictionary', self).filter('language', UserPreferences().current.language).get()
-            if t and t.value:
-                translation = t.value
-            else:
-                translation = self.value
+            translation = getattr(self, language)
             Cache().set(cache_key, translation, False, 3600)
         return translation
 
+    def add(self):
+        d = db.Query(Dictionary).filter('name', self.name).filter('estonian', self.estonian).filter('english', self.english).get()
+        if not d:
+            self.put()
+            d = self
+        return d
 
-class Translation(search.SearchableModel):
-    """
-    When new dictionary object is created, the source translation
-    is marked as verified.
-    If multiple translations are merged, then all verified
-    translations remain the same and also remain marked as verified
-    """
-    dictionary      = db.ReferenceProperty(Dictionary, collection_name='translations')
-    dictionary_name = db.StringProperty()
-    language        = db.StringProperty()
-    value           = db.StringProperty(multiline=True)
-    is_verified     = db.BooleanProperty()
-    model_version   = db.StringProperty(default='A')
 
 
 def DictionaryAdd(name, value):
