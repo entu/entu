@@ -1,3 +1,5 @@
+<h2 style="margin-top:30px;">{{ str.application_edu_higher }} <span>{{ str.application_edu_higher_desc }}</span></h2>
+
 <div class="table">
     {% for s in highschools|dictsort:"start" %}
     <div class="table_row" alt="{{ q.key }}">
@@ -5,8 +7,8 @@
             <input type="text" class="autosave_highschool" name="organisation" value="{{ s.organisation|default:"" }}" alt="{{ s.key }}" placeholder="{{ str.school_name }}" style="width:200px;"{% if application_submitted %} readonly{% endif %}>
         </div>
         <div class="table_cell">
-            <input type="text" class="autosave_highschool" name="start" value="{{ s.start|default:"" }}" maxlength="10" placeholder="{{ str.start_date }}" style="width:100px;"{% if application_submitted %} readonly{% endif %}> -
-            <input type="text" class="autosave_highschool" name="end" value="{{ s.end|default:"" }}" maxlength="10" placeholder="{{ str.end_date }}" style="width:100px;"{% if application_submitted %} readonly{% endif %}>
+            <input type="text" class="autosave_highschool" name="start" value="{{ s.start|default:"" }}" placeholder="{{ str.start_date }}" style="width:100px;"{% if application_submitted %} readonly{% endif %}> -
+            <input type="text" class="autosave_highschool" name="end" value="{{ s.end|default:"" }}" placeholder="{{ str.end_date }}" style="width:100px;"{% if application_submitted %} readonly{% endif %}>
         </div>
         <div class="table_cell" style="">
             <input type="text" class="autosave_highschool" name="description" value="{{ s.description|default:"" }}" placeholder="{{ str.additional_info }}" style="width:410px;"{% if application_submitted %} readonly{% endif %}>
@@ -19,8 +21,8 @@
             <input type="text" class="autosave_highschool new_highschool" name="organisation" placeholder="{{ str.school_name }}" style="width:200px;">
         </div>
         <div class="table_cell">
-            <input type="text" class="autosave_highschool new_highschool" name="start" maxlength="10" placeholder="{{ str.start_date }}" style="width:100px;"> -
-            <input type="text" class="autosave_highschool new_highschool" name="end" maxlength="10" placeholder="{{ str.end_date }}" style="width:100px;">
+            <input type="text" class="autosave_highschool new_highschool" name="start" placeholder="{{ str.start_date }}" style="width:100px;"> -
+            <input type="text" class="autosave_highschool new_highschool" name="end" placeholder="{{ str.end_date }}" style="width:100px;">
         </div>
         <div class="table_cell" style="">
             <input type="text" class="autosave_highschool new_highschool" name="description" placeholder="{{ str.additional_info }}" style="width:410px;">

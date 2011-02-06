@@ -1,3 +1,5 @@
+<h2 style="margin-top:30px;">{{ str.application_edu_secondary }} <span>{{ str.application_edu_secondary_desc }}</span></h2>
+
 <div class="table">
     {% for s in secondaryschools|dictsort:"start" %}
     <div class="table_row" alt="{{ q.key }}">
@@ -5,8 +7,8 @@
             <input type="text" class="autosave_secondaryschool" name="organisation" value="{{ s.organisation|default:"" }}" alt="{{ s.key }}" placeholder="{{ str.school_name }}" style="width:200px;"{% if application_submitted %} disabled{% endif %}>
         </div>
         <div class="table_cell">
-            <input type="text" class="autosave_secondaryschool" name="start" value="{{ s.start|default:"" }}" maxlength="10" placeholder="{{ str.start_date }}" style="width:100px;"{% if application_submitted %} disabled{% endif %}> -
-            <input type="text" class="autosave_secondaryschool" name="end" value="{{ s.end|default:"" }}" maxlength="10" placeholder="{{ str.end_date }}" style="width:100px;"{% if application_submitted %} disabled{% endif %}>
+            <input type="text" class="autosave_secondaryschool" name="start" value="{{ s.start|default:"" }}" placeholder="{{ str.start_date }}" style="width:100px;"{% if application_submitted %} disabled{% endif %}> -
+            <input type="text" class="autosave_secondaryschool" name="end" value="{{ s.end|default:"" }}" placeholder="{{ str.end_date }}" style="width:100px;"{% if application_submitted %} disabled{% endif %}>
         </div>
         <div class="table_cell" style="">
             <input type="text" class="autosave_secondaryschool" name="description" value="{{ s.description|default:"" }}" placeholder="{{ str.additional_info }}" style="width:410px;"{% if application_submitted %} disabled{% endif %}>
@@ -19,8 +21,8 @@
             <input type="text" class="autosave_secondaryschool new_secondaryschool" name="organisation" placeholder="{{ str.school_name }}" style="width:200px;">
         </div>
         <div class="table_cell">
-            <input type="text" class="autosave_secondaryschool new_secondaryschool" name="start" maxlength="10" placeholder="{{ str.start_date }}" style="width:100px;"> -
-            <input type="text" class="autosave_secondaryschool new_secondaryschool" name="end" maxlength="10" placeholder="{{ str.end_date }}" style="width:100px;">
+            <input type="text" class="autosave_secondaryschool new_secondaryschool" name="start" placeholder="{{ str.start_date }}" style="width:100px;"> -
+            <input type="text" class="autosave_secondaryschool new_secondaryschool" name="end" placeholder="{{ str.end_date }}" style="width:100px;">
         </div>
         <div class="table_cell" style="">
             <input type="text" class="autosave_secondaryschool new_secondaryschool" name="description" placeholder="{{ str.additional_info }}" style="width:410px;">

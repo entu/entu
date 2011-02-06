@@ -57,11 +57,13 @@ class ShowSignin(boRequestHandler):
             p.password = password
             p.put()
 
-            SendMail(
+            if SendMail(
                 to = email,
                 subject = Translate('application_signup_mail_subject'),
                 message = Translate('application_signup_mail_message') % p.password
-            )
+            ):
+                self.response.out.write('OK')
+
         else:
             if password:
                 p = db.Query(Person).filter('password', password).get()
@@ -69,8 +71,7 @@ class ShowSignin(boRequestHandler):
                     sess = Session(self, timeout=86400)
                     sess['application_person_key'] = p.key()
                     sess.save()
-
-            self.redirect('/application')
+                    self.response.out.write('OK')
 
 
 class ShowApplication(boRequestHandler):
@@ -168,21 +169,26 @@ class SubmitApplication(boRequestHandler):
                 for contact in db.Query(Contact).ancestor(p).filter('type', 'email').fetch(1000):
                     emails = AddToList(contact.value, emails)
 
-                for email in emails:
-                    SendMail(
-                        to = email,
-                        subject = Translate('application_submit_email2_subject') % p.displayname,
-                        message = Translate('application_submit_email2_message')
-                    )
+                SendMail(
+                    to = emails,
+                    subject = Translate('application_submit_email2_subject') % p.displayname,
+                    message = Translate('application_submit_email2_message')
+                )
 
-                self.view('application', 'application/submitted.html', {
-                    'message': Translate('application_submit_success_message')
-                })
+                sess = Session(self, timeout=86400)
+                sess.invalidate()
+                self.redirect(users.create_logout_url('/application/thanks'))
+
             else:
                 self.redirect('/application')
                 return
 
 
+class ShowSubmitApplication(boRequestHandler):
+    def get(self):
+        self.view('application', 'application/submitted.html', {
+            'message': Translate('application_submit_success_message')
+        })
 
 
 class EditPerson(boRequestHandler):
@@ -277,6 +283,7 @@ def main():
             ('/application/contact', EditContact),
             ('/application/cv', EditCV),
             ('/application/submit', SubmitApplication),
+            ('/application/thanks', ShowSubmitApplication),
         ])
 
 

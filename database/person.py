@@ -25,7 +25,12 @@ class Person(search.SearchableModel):
 
     @property
     def displayname(self):
-        return ' '.join([self.forename, self.surname])
+        name = ''
+        if self.forename:
+            name = name + self.forename
+        if self.surname:
+            name = name + ' ' + self.surname
+        return name
 
     @property
     def photo(self):

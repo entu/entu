@@ -1,12 +1,14 @@
+<h2 style="margin-top:30px;">{{ str.application_workplaces }} <span>{{ str.application_workplaces_desc }}</span></h2>
+
 <div class="table">
     {% for s in workplaces|dictsort:"start" %}
     <div class="table_row" alt="{{ q.key }}">
         <div class="table_cell">
-            <input type="text" class="autosave_workplace" name="organisation" value="{{ s.organisation|default:"" }}" alt="{{ s.key }}" placeholder="{{ str.school_name }}" style="width:200px;"{% if application_submitted %} disabled{% endif %}>
+            <input type="text" class="autosave_workplace" name="organisation" value="{{ s.organisation|default:"" }}" alt="{{ s.key }}" placeholder="{{ str.workplace_name }}" style="width:200px;"{% if application_submitted %} disabled{% endif %}>
         </div>
         <div class="table_cell">
-            <input type="text" class="autosave_workplace" name="start" value="{{ s.start|default:"" }}" maxlength="10" placeholder="{{ str.start_date }}" style="width:100px;"{% if application_submitted %} disabled{% endif %}> -
-            <input type="text" class="autosave_workplace" name="end" value="{{ s.end|default:"" }}" maxlength="10" placeholder="{{ str.end_date }}" style="width:100px;"{% if application_submitted %} disabled{% endif %}>
+            <input type="text" class="autosave_workplace" name="start" value="{{ s.start|default:"" }}" placeholder="{{ str.start_date }}" style="width:100px;"{% if application_submitted %} disabled{% endif %}> -
+            <input type="text" class="autosave_workplace" name="end" value="{{ s.end|default:"" }}" placeholder="{{ str.end_date }}" style="width:100px;"{% if application_submitted %} disabled{% endif %}>
         </div>
         <div class="table_cell" style="">
             <input type="text" class="autosave_workplace" name="description" value="{{ s.description|default:"" }}" placeholder="{{ str.additional_info }}" style="width:410px;"{% if application_submitted %} disabled{% endif %}>
@@ -16,11 +18,11 @@
     {% if application_submitted %}{% else %}
     <div id="new_workplace" class="table_row" alt="{{ q.key }}">
         <div class="table_cell">
-            <input type="text" class="autosave_workplace new_workplace" name="organisation" placeholder="{{ str.school_name }}" style="width:200px;">
+            <input type="text" class="autosave_workplace new_workplace" name="organisation" placeholder="{{ str.workplace_name }}" style="width:200px;">
         </div>
         <div class="table_cell">
-            <input type="text" class="autosave_workplace new_workplace" name="start" maxlength="10" placeholder="{{ str.start_date }}" style="width:100px;"> -
-            <input type="text" class="autosave_workplace new_workplace" name="end" maxlength="10" placeholder="{{ str.end_date }}" style="width:100px;">
+            <input type="text" class="autosave_workplace new_workplace" name="start" placeholder="{{ str.start_date }}" style="width:100px;"> -
+            <input type="text" class="autosave_workplace new_workplace" name="end" placeholder="{{ str.end_date }}" style="width:100px;">
         </div>
         <div class="table_cell" style="">
             <input type="text" class="autosave_workplace new_workplace" name="description" placeholder="{{ str.additional_info }}" style="width:410px;">

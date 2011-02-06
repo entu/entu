@@ -1,24 +1,16 @@
-<div class="table">
-    {% for reception in receptions %}
-    <div class="table_row" alt="{{ q.key }}">
-        <div class="table_cell">
-            {{ reception.reception.name.translate }}
-            <span style="color:gray; font-size:11px;"><br />{{ reception.reception.description.translate|urlize|linebreaks }}</span>
-            <div id="comment_{{ reception.reception.key }}"{% ifequal reception.application.status "selected" %}{% else %} style="display:none;"{% endifequal%}>
-                <textarea class="autosave_application_comment" name="comment" alt="{{ reception.reception.key }}" style="width:100%; margin-top:10px;" rows="3"{% if application_submitted %} readonly{% endif %}>{{ reception.application.comment|default:"" }}</textarea>
-            </div>
-        </div>
-        <div class="table_cell" style="width:260px; vertical-align:top; padding-top:10px;">
-            <p class="field switch" style=" float:right;">
-                <input type="radio" id="radio1" class="autosave_reception" name="field" checked />
-                <input type="radio" id="radio2" class="autosave_reception" name="field" />
-                <label for="radio1" class="cb-enable{% ifequal reception.application.status "selected" %} selected{% endifequal%}" alt="{{ reception.reception.key }}"><span>{{ str.application_apply }}</span></label>
-                <label for="radio2" class="cb-disable{% ifequal reception.application.status "selected" %}{% else %} selected{% endifequal%}" alt="{{ reception.reception.key }}"><span>{{ str.application_dont_apply }}</span></label>
-            </p>
-        </div>
-    </div>
-    {% endfor %}
+{% for reception in receptions %}
+<h2 style="margin-top:30px;">{{ reception.reception.name.translate }}</h2>
+<p class="field switch" style="vertical-align:top; padding:10px 5px 5px 10px; float:right;">
+    <input type="radio" id="radio1" class="autosave_reception" name="field" checked />
+    <input type="radio" id="radio2" class="autosave_reception" name="field" />
+    <label for="radio1" class="cb-enable{% if reception.application.status %}{% ifequal reception.application.status "unselected" %}{% else %} selected{% endifequal %}{% endif %}" alt="{{ reception.reception.key }}"><span>{{ str.application_apply }}</span></label>
+    <label for="radio2" class="cb-disable{% if reception.application.status %}{% ifequal reception.application.status "unselected" %} selected{% endifequal %}{% endif %}" alt="{{ reception.reception.key }}"><span>{{ str.application_dont_apply }}</span></label>
+</p>
+<span style="color:gray; font-size:12px;">{{ reception.reception.description.translate|urlize|linebreaks }}</span>
+<div id="comment_{{ reception.reception.key }}"{% ifequal reception.application.status "unselected" %} style="display:none;"{% endifequal%}>
+    <textarea class="autosave_application_comment" name="comment" alt="{{ reception.reception.key }}" style="width:99%; margin-top:10px;" rows="3"{% if application_submitted %} readonly{% endif %}>{{ reception.application.comment|default:"" }}</textarea>
 </div>
+{% endfor %}
 
 {% if application_submitted %}{% else %}
 <script>

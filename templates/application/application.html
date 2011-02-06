@@ -14,22 +14,11 @@
 
     <h1 style="margin-top:30px; text-align:center; color:black;">{{ str.application }}</h1>
 
-    <h2 style="margin-top:30px;">{{ str.application_specialities }} <span>{{ str.application_specialities_desc }}</span></h2>
     {% include "receptions.html" %}
-
-    <h2 style="margin-top:30px;">{{ str.application_personal }} <span>{{ str.application_personal_desc }}</span></h2>
     {% include "person.html" %}
-
-    <h2 style="margin-top:30px;">{{ str.application_edu_secondary }} <span>{{ str.application_edu_secondary_desc }}</span></h2>
     {% include "cv_secondaryschools.html" %}
-
-    <h2 style="margin-top:30px;">{{ str.application_edu_higher }} <span>{{ str.application_edu_higher_desc }}</span></h2>
     {% include "cv_highschools.html" %}
-
-    <h2 style="margin-top:30px;">{{ str.application_workplaces }} <span>{{ str.application_workplaces_desc }}</span></h2>
     {% include "cv_workplaces.html" %}
-
-    <h2 style="margin-top:30px;">{{ str.application_documents }} <span>{{ str.application_documents_desc }}</span></h2>
     {% include "documents.html" %}
 
     <!--h2>{{ str.application_comments }}</h2>
