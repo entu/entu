@@ -1,5 +1,6 @@
 from google.appengine.ext import db
 from google.appengine.ext import blobstore
+from google.appengine.api import images
 
 from database.dictionary import *
 
@@ -37,7 +38,24 @@ class Location(db.Model):
 
 
 class Document(db.Model):
-    title       = db.ReferenceProperty(Dictionary, collection_name='document_titles')
-    type        = db.ReferenceProperty(Dictionary, collection_name='document_types')
-    document    = blobstore.BlobReferenceProperty()
-    entities    = db.StringListProperty()
+    file            = blobstore.BlobReferenceProperty()
+    external_link   = db.StringProperty()
+    types           = db.StringListProperty()
+    entities        = db.StringListProperty()
+    title           = db.ReferenceProperty(Dictionary, collection_name='document_titles')
+    uploader        = db.StringProperty()
+    owners          = db.StringListProperty()
+    editors         = db.StringListProperty()
+    viewers         = db.StringListProperty()
+    created         = db.DateTimeProperty(auto_now_add=True)
+
+    @property
+    def url(self):
+        try:
+            image_types = ('image/bmp', 'image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/tiff', 'image/x-icon')
+            if self.file.content_type in image_types:
+                return images.get_serving_url(self.file.key())
+            else:
+                return '/document/' + str(self.key())
+        except:
+            pass

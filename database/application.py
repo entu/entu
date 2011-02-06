@@ -1,5 +1,4 @@
 from google.appengine.ext import db
-from google.appengine.ext import blobstore
 
 from database.dictionary import *
 from database.general import *
@@ -18,36 +17,15 @@ class Reception(db.Model):
     start_date              = db.DateProperty()
     end_date                = db.DateProperty()
     manager                 = db.ReferenceProperty(Person, collection_name='managed_receptions')
+    communication_email     = db.StringProperty()
     is_published            = db.BooleanProperty(default=False)
     model_version           = db.StringProperty(default='A')
 
 
-class Applicant(db.Model):
-    """
-    There can be only single applicant for any person or document
-    so "applicant" is used as back-reference instead of "applicants"
-    """
-    auto_id                 = db.IntegerProperty() # auto-increment
-    forename                = db.StringProperty()
-    surname                 = db.StringProperty()
-    gender                  = db.ReferenceProperty(Dictionary, collection_name='applicant_genders')
-    idcode                  = db.StringProperty() # isikukood
-    birth_date              = db.DateProperty()
-    photo                   = blobstore.BlobReferenceProperty()
-    could_be_subsidised     = db.BooleanProperty(default=True)
-    email                   = db.StringProperty()
-    password                = db.StringProperty()
-    person                  = db.ReferenceProperty(Person, collection_name='applicant')
-    model_version           = db.StringProperty(default='A')
-
-    def documents():
-        pass
-
-
 class Application(db.Model):
-    applicant               = db.ReferenceProperty(Applicant, collection_name='applications')
     reception               = db.ReferenceProperty(Reception, collection_name='applications')
-    is_approved             = db.BooleanProperty() # can be set to true by department if documents are valid and application is approved
+    status                  = db.StringProperty(default='selected', choices=['selected', 'unselected', 'submitted'])
+    comment                 = db.TextProperty()
     model_version           = db.StringProperty(default='A')
 
 

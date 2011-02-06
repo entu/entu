@@ -3,7 +3,6 @@ from database.general import *
 from database.person import *
 from database.grade import *
 from database.curriculum import *
-from database.application import *
 from database.feedback import *
 from database.oldauth import *
 from database.aggregation import *

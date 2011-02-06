@@ -1,0 +1,78 @@
+{% extends "../main.html" %}
+
+{% block breadcrumb %}
+{% endblock %}
+
+{% block content %}
+
+<section id="wide_content">
+
+    {% if system_logo %}
+    <img src="{{ system_logo }}" alt="logo" style="margin:10px auto; display:block;" />
+    {% endif %}
+
+    <h1>{{ str.application }}</h1>
+    {{ str.application_signup_desc }}
+
+    <div id="login" class="box" style="margin-top:20px; margin-bottom:10px;">
+        <a id="signup_show" href="javascript:void();" style="font-weight:bold; display:block;">{{ str.application_create_account }}</a>
+        <div id="signup_form" style="display:none; padding:10px;">
+            {{ str.email }}: <input type="email" id="signup_email" name="signup_email" style="width:200px;" /> <a id="signup_send" href="javascript:void();" class="button">{{ str.send_invitation }}</a> <span id="signup_sent" style="display:none; margin-left:20px; color:red;">{{ str.invitation_sent }}</span>
+        </div>
+    </div>
+
+    <div id="login" class="box" style="margin-bottom:10px;">
+        <a id="applicant_pass_show" href="javascript:void();" style="font-weight:bold; display:block;">{{ str.application_login_with_password }}</a>
+        <form id="applicant_pass_form" method="post" action="" style="display:none; padding:10px;">
+            {{ str.password }}: <input type="password" id="applicant_pass" name="applicant_pass" /> <a id="applicant_pass_send" href="javascript:void();" class="button">{{ str.login }}</a>
+        </form>
+    </div>
+
+    <div id="login" class="box">
+        <a href="{{ account_login_url }}" style="font-weight:bold; display:block;">{{ str.application_login_with_account }}</a>
+    </div>
+
+</section>
+
+<script>
+    $(document).ready(function(){
+        $('#top_nav').hide();
+
+        $('#applicant_pass_show').click(function() {
+            $('#signup_form').hide();
+            $('#applicant_pass_form').show();
+            $('#applicant_pass').focus();
+        });
+        $('#applicant_pass_send').click(function() {
+            $('#applicant_pass_form').submit();
+        });
+
+        $('#signup_show').click(function() {
+            $('#applicant_pass_form').hide();
+            $('#signup_form').show();
+            $('#signup_email').focus();
+        });
+        $('#signup_send').click(function() {
+            if($('#signup_email').val()) {
+                $.post('/application/signin', { email: $('#signup_email').val() }, function() {
+                    $('#signup_email').val('');
+                    $('#signup_sent').fadeIn(300).delay(3000).fadeOut(1000);
+                });
+            } else {
+                $('#signup_email').focus();
+            }
+        });
+        $('#signup_email').keyup(function(e) {
+            if(e.keyCode == 13 && $('#signup_email').val()) {
+                $.post('/application/signin', { email: $(this).val() }, function() {
+                    $('#signup_email').val('');
+                    $('#signup_sent').fadeIn(300).delay(3000).fadeOut(1000);
+                });
+            } else {
+                $('#signup_email').focus();
+            }
+        });
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "../main.html" %}
+
+{% block breadcrumb %}
+<script src="/javascript/jquery.elastic.js" type="text/javascript"></script>
+<script src="/javascript/jquery.placeholder.js" type="text/javascript"></script>
+{% endblock %}
+
+{% block content %}
+
+<section id="wide_content">
+    {% if system_logo %}
+    <img src="{{ system_logo }}" alt="logo" style="margin:20px auto; display:block;" />
+    {% endif %}
+
+    <h1 style="margin-top:30px; text-align:center; color:black;">{{ str.application }}</h1>
+
+    <h2 style="margin-top:30px;">{{ str.application_specialities }} <span>{{ str.application_specialities_desc }}</span></h2>
+    {% include "receptions.html" %}
+
+    <h2 style="margin-top:30px;">{{ str.application_personal }} <span>{{ str.application_personal_desc }}</span></h2>
+    {% include "person.html" %}
+
+    <h2 style="margin-top:30px;">{{ str.application_edu_secondary }} <span>{{ str.application_edu_secondary_desc }}</span></h2>
+    {% include "cv_secondaryschools.html" %}
+
+    <h2 style="margin-top:30px;">{{ str.application_edu_higher }} <span>{{ str.application_edu_higher_desc }}</span></h2>
+    {% include "cv_highschools.html" %}
+
+    <h2 style="margin-top:30px;">{{ str.application_workplaces }} <span>{{ str.application_workplaces_desc }}</span></h2>
+    {% include "cv_workplaces.html" %}
+
+    <h2 style="margin-top:30px;">{{ str.application_documents }} <span>{{ str.application_documents_desc }}</span></h2>
+    {% include "documents.html" %}
+
+    <!--h2>{{ str.application_comments }}</h2>
+    <textarea style="margin: 10px; width:890px;" rows="10"></textarea-->
+
+{% if application_submitted %}{% else %}
+    <div id="confirm_application" class="button" style="margin: 20px auto 10px auto; width:200px;">{{ str.application_submit }}</div>
+{% endif %}
+</section>
+
+{% if application_submitted %}
+<script>
+    $(document).ready(function(){
+        $("input").placeholder({css_class: "placeholder"});
+        $('#top_nav').hide();
+    });
+</script>
+{% else %}
+<script>
+    $(document).ready(function(){
+        $("input").placeholder({css_class: "placeholder"});
+        $('textarea').elastic();
+        $('#top_nav').hide();
+
+        $("#confirm_application").click(function(){
+            location.href = '/application/submit';
+        });
+    });
+
+    function autoSave(input, url, data) {
+        if(!data['key']) data['key'] = input.attr('alt');
+        if(!data['field']) data['field'] = input.attr('name');
+        if(!data['value']) data['value'] = input.val();
+
+        $.post(url, data, function(json) {
+            input.effect("highlight", {}, 1000);
+            input.attr('alt', json['key']);
+        }, "json");
+    }
+</script>
+{% endif %}
+
+{% endblock %}

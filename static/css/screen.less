@@ -91,6 +91,16 @@ h2, h2 a, h2 a:hover, h2 a:active, h2 a:visited {
     text-decoration: none;
     color: gray;
     border-bottom: 1px solid #B9B9B9;
+
+    span {
+        float: right;
+        text-transform: none;
+        font-weight: normal;
+        font-style: italic;
+        font-size: 12px;
+        padding-top: 3px;
+
+    }
 }
 
 
@@ -349,6 +359,12 @@ footer {
 
 /* FORMS */
 
+.placeholder {
+    color: @bordercolor;
+}
+
+
+
 #signupform {
     margin: 20px 0px;
     padding: 10px 20px;
@@ -478,7 +494,102 @@ footer {
     letter-spacing: 1px;
     color: #FFFFFF;
     cursor: pointer;
-    background: #6DA00B;
+    background: #6DA00B url('/images/switch.gif') repeat-x  0 -60px;
     -moz-border-radius: 4px;
     -webkit-border-radius: 4px;
+}
+
+
+/* BOXES */
+.box {
+    border: 1px solid @bordercolor;
+    padding: 10px;
+	background: #EEEEEE url('/images/slickmap/white-highlight.png') top left repeat-x;
+}
+
+
+
+/* SWITCH */
+.cb-enable, .cb-disable, .cb-enable span, .cb-disable span {
+    background: url('/images/switch.gif') repeat-x;
+    display: block;
+    float: left;
+    font-size: 10px;
+}
+.cb-enable span, .cb-disable span {
+    line-height: 30px;
+    display: block;
+    background-repeat: no-repeat;
+    font-weight: bold;
+}
+.cb-enable span {
+    background-position: left -90px;
+    padding: 0 10px;
+}
+.cb-disable span {
+    background-position: right -180px;
+    padding: 0 10px;
+}
+.cb-disable.selected {
+    background-position: 0 -30px;
+}
+.cb-disable.selected span {
+    background-position: right -210px;
+    color: #fff;
+}
+.cb-enable.selected {
+    background-position: 0 -60px;
+}
+.cb-enable.selected span {
+    background-position: left -150px;
+    color: #fff;
+}
+.switch {
+    white-space: nowrap;
+}
+.switch label {
+    cursor: pointer;
+}
+.switch input {
+    display: none;
+}
+
+
+
+
+
+
+.ui-menu {
+    list-style:none;
+    padding: 2px;
+    margin: 0;
+    display:block;
+    float: left;
+
+    .ui-menu {
+        margin-top: -3px;
+    }
+
+    .ui-menu-item {
+        margin:0;
+        padding: 0;
+        zoom: 1;
+        float: left;
+        clear: left;
+        width: 100%;
+    }
+
+    .ui-menu-item a {
+        text-decoration:none;
+        display:block;
+        padding:.2em .4em;
+        line-height:1.5;
+        zoom:1;
+    }
+
+    .ui-menu-item a.ui-state-hover,
+    .ui-menu-item a.ui-state-active {
+        font-weight: normal;
+        margin: -1px;
+    }
 }

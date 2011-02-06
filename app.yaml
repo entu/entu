@@ -1,5 +1,6 @@
 application: bongapp
-version: 20101221
+#application: bongadev
+version: 2011-01-30
 runtime: python
 api_version: 1
 
@@ -7,6 +8,9 @@ api_version: 1
 
 builtins:
 - datastore_admin: on
+
+inbound_services:
+- warmup
 
 
 
@@ -29,7 +33,7 @@ handlers:
 #static files
 - url: /css
   static_dir: static/css
-  expiration: "1d"
+  #expiration: "1d"
 
 - url: /images
   static_dir: static/images
@@ -46,7 +50,14 @@ handlers:
 
 
 #public controllers
+- url: /application(.*)
+  script: controllers/application.py
 
+- url: /document(.*)
+  script: controllers/document.py
+
+- url: /assets
+  script: controllers/asset.py
 
 
 #Old systems login/logout
@@ -85,7 +96,7 @@ handlers:
 
 - url: /update(.*)
   script: controllers/update.py
-  login: required
+  login: admin
 
 - url: /feedback(.*)
   script: controllers/feedback.py
@@ -93,6 +104,10 @@ handlers:
 
 - url: /questionary(.*)
   script: controllers/questionary.py
+  login: required
+
+- url: /reception(.*)
+  script: controllers/reception.py
   login: required
 
 
@@ -103,6 +118,10 @@ handlers:
 
 - url: /cron(.*)
   script: controllers/cron.py
+  login: admin
+
+- url: /zimport(.*)
+  script: controllers/zimport.py
   login: admin
 
 - url: /aggregate(.*)

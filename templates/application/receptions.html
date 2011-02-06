@@ -1,0 +1,63 @@
+<div class="table">
+    {% for reception in receptions %}
+    <div class="table_row" alt="{{ q.key }}">
+        <div class="table_cell">
+            {{ reception.reception.name.translate }}
+            <span style="color:gray; font-size:11px;"><br />{{ reception.reception.description.translate|urlize|linebreaks }}</span>
+            <div id="comment_{{ reception.reception.key }}"{% ifequal reception.application.status "selected" %}{% else %} style="display:none;"{% endifequal%}>
+                <textarea class="autosave_application_comment" name="comment" alt="{{ reception.reception.key }}" style="width:100%; margin-top:10px;" rows="3"{% if application_submitted %} readonly{% endif %}>{{ reception.application.comment|default:"" }}</textarea>
+            </div>
+        </div>
+        <div class="table_cell" style="width:260px; vertical-align:top; padding-top:10px;">
+            <p class="field switch" style=" float:right;">
+                <input type="radio" id="radio1" class="autosave_reception" name="field" checked />
+                <input type="radio" id="radio2" class="autosave_reception" name="field" />
+                <label for="radio1" class="cb-enable{% ifequal reception.application.status "selected" %} selected{% endifequal%}" alt="{{ reception.reception.key }}"><span>{{ str.application_apply }}</span></label>
+                <label for="radio2" class="cb-disable{% ifequal reception.application.status "selected" %}{% else %} selected{% endifequal%}" alt="{{ reception.reception.key }}"><span>{{ str.application_dont_apply }}</span></label>
+            </p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if application_submitted %}{% else %}
+<script>
+    $(document).ready( function(){
+        $(".cb-enable").click(function(){
+            var select = $(this);
+            var parent = select.parents('.switch');
+            $('.cb-disable',parent).removeClass('selected');
+            select.addClass('selected');
+            $('.checkbox',parent).attr('checked', true);
+
+            $('#comment_' + select.attr('alt')).slideDown();
+
+            autoSave(null, '/application', {
+                key: select.attr('alt'),
+                field: 'selected',
+                value: 'true',
+            });
+        });
+
+        $(".cb-disable").click(function(){
+            var select = $(this);
+            var parent = select.parents('.switch');
+            $('.cb-enable',parent).removeClass('selected');
+            select.addClass('selected');
+            $('.checkbox',parent).attr('checked', false);
+
+            $('#comment_' + select.attr('alt')).slideUp();
+
+            autoSave(null, '/application', {
+                key: select.attr('alt'),
+                field: 'selected',
+                value: 'false',
+            });
+        });
+
+        $('.autosave_application_comment').change(function() {
+            autoSave($(this), '/application', {});
+        });
+    });
+</script>
+{% endif %}

@@ -40,7 +40,7 @@ class Exam(db.Model):
     examiner                = db.ReferenceProperty(Person, collection_name='examiner_of_exams')
     registration_start_date = db.DateProperty()
     rankings_date           = db.DateProperty()
-    type                    = db.ReferenceProperty(Dictionary, collection_name='exam_types') # reception exam, course exam, ...
+    type                    = db.StringProperty(choices=['reception_exam'])
     manager                 = db.ReferenceProperty(Person, collection_name='managed_exams')
     model_version           = db.StringProperty(default='A')
 

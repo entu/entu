@@ -1,6 +1,6 @@
 from google.appengine.ext import db
 
-from bo import *
+#from bo import *
 from database.dictionary import *
 from database.general import *
 from database.person import *
