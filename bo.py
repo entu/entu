@@ -9,6 +9,8 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp import util
 from django.core.validators import email_re
 
+from datetime import timedelta
+
 from settings import *
 
 
@@ -67,6 +69,7 @@ class boRequestHandler(webapp.RequestHandler):
 
 class UserPreferences(db.Model):
     language = db.StringProperty(default=SYSTEM_LANGUAGE)
+    timezone = db.IntegerProperty(default=SYSTEM_TIMEZONE)
 
     @property
     def current(self):
@@ -146,7 +149,8 @@ def SendMail(to, subject, message, html=True):
     if len(valid_to) > 0:
         m = mail.EmailMessage()
         m.sender = SYSTEM_EMAIL
-        m.to = to
+        m.bcc = SYSTEM_EMAIL
+        m.to = valid_to
         m.subject = SYSTEM_EMAIL_PREFIX + subject
         if html == True:
             m.html = message
@@ -159,6 +163,18 @@ def SendMail(to, subject, message, html=True):
 
 def StrToList(string):
     return [x.strip() for x in string.strip().replace('\n', ' ').replace(',', ' ').replace(';', ' ').split(' ') if len(x.strip()) > 0]
+
+def StrToKeyList(string):
+    strlist = StrToList(string)
+    keylist = []
+    for key in strlist:
+        keylist.append(db.Key(key))
+    return keylist
+
+
+def UtcToLocalDateTime(utc_time):
+    return utc_time + timedelta(minutes=UserPreferences().current.timezone)
+
 
 def AddToList(s_value, s_list=[], unique=True):
     s_list.append(s_value)
