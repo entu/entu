@@ -7,7 +7,280 @@ python_preamble:
 - import: google.appengine.api.datastore
 - import: google.appengine.api.users
 
+
 transformers:
+
+- kind: zCurriculum
+  connector: csv
+  connector_options:
+    encoding: utf16
+  property_map:
+    - property: __key__
+      external_name: key_name
+      import_transform: transform.create_foreign_key('zCurriculum')
+
+    - property: name_estonian
+      external_name: name_estonian
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: name_english
+      external_name: name_english
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: code
+      external_name: code
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: tag
+      external_name: tag
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: level_of_education_estonian
+      external_name: level_of_education_estonian
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: level_of_education_english
+      external_name: level_of_education_english
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: form_of_training_estonian
+      external_name: form_of_training_english
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: nominal_years
+      external_name: nominal_years
+      import_transform: transform.none_if_empty(int)
+
+    - property: nominal_credit_points
+      external_name: nominal_credit_points
+      import_transform: transform.none_if_empty(float)
+
+    - property: degree_estonian
+      external_name: degree_estonian
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: degree_english
+      external_name: degree_english
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: state
+      external_name: state
+      import_transform: transform.none_if_empty(unicode)
+
+
+- kind: zDictionary
+  connector: csv
+  connector_options:
+    encoding: utf16
+  property_map:
+    - property: __key__
+      external_name: key_name
+      import_transform: transform.create_foreign_key('zDictionary')
+
+    - property: name
+      external_name: name
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: estonian
+      external_name: estonian
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: english
+      external_name: english
+      import_transform: transform.none_if_empty(unicode)
+
+
+- kind: zExam
+  connector: csv
+  connector_options:
+    #encoding: utf16
+  property_map:
+    - property: __key__
+      external_name: key_name
+      import_transform: transform.create_foreign_key('zExam')
+
+    - property: name_estonian
+      external_name: name_estonian
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: name_english
+      external_name: name_english
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: description_estonian
+      external_name: description_estonian
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: description_english
+      external_name: description_english
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: subsidized_places
+      external_name: subsidized_places
+      import_transform: transform.none_if_empty(int)
+
+    - property: examiner
+      external_name: examiner
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: registration_start_date
+      external_name: registration_start_date
+      import_transform: transform.import_date_time('%Y-%m-%d')
+
+    - property: rankings_date
+      external_name: rankings_date
+      import_transform: transform.import_date_time('%Y-%m-%d')
+
+    - property: type
+      external_name: type
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: manager
+      external_name: manager
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: rating_scale
+      external_name: rating_scale
+      import_transform: transform.none_if_empty(unicode)
+
+
+- kind: zPerson
+  connector: csv
+  connector_options:
+    encoding: utf16
+  property_map:
+    - property: __key__
+      external_name: key_name
+      import_transform: transform.create_foreign_key('zPerson')
+
+    - property: apps_username
+      external_name: apps_username
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: forename
+      external_name: forename
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: surname
+      external_name: surname
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: idcode
+      external_name: idcode
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: gender_estonian
+      external_name: gender_estonian
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: gender_english
+      external_name: gender_english
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: birth_date
+      external_name: birth_date
+      import_transform: transform.import_date_time('%Y-%m-%d')
+
+
+- kind: zReception
+  connector: csv
+  connector_options:
+    #encoding: utf16
+  property_map:
+    - property: __key__
+      external_name: key_name
+      import_transform: transform.create_foreign_key('zReception')
+
+    - property: curriculum
+      external_name: curriculum
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: name_estonian
+      external_name: name_estonian
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: name_english
+      external_name: name_english
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: description_estonian
+      external_name: description_estonian
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: description_english
+      external_name: description_english
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: subsidized_places
+      external_name: subsidized_places
+      import_transform: transform.none_if_empty(int)
+
+    - property: non_subsidized_places
+      external_name: non_subsidized_places
+      import_transform: transform.none_if_empty(int)
+
+    - property: start_date
+      external_name: start_date
+      import_transform: transform.import_date_time('%Y-%m-%d')
+
+    - property: end_date
+      external_name: end_date
+      import_transform: transform.import_date_time('%Y-%m-%d')
+
+    - property: manager
+      external_name: manager
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: communication_email
+      external_name: communication_email
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: is_published
+      external_name: is_published
+      import_transform: transform.regexp_bool('true', re.IGNORECASE)
+
+
+- kind: zSchoolList
+  connector: csv
+  property_map:
+    - property: name
+      external_name: name
+      import_transform: transform.none_if_empty(unicode)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 - kind: Aggregation
   connector: csv
@@ -269,36 +542,6 @@ transformers:
       external_name: role
       import_transform: transform.create_foreign_key('Role')
       export_transform: transform.key_id_or_name_as_string
-
-
-- kind: zPerson
-  connector: csv
-  property_map:
-    - property: key_name
-      external_name: key_name
-      import_transform: transform.create_foreign_key('zPerson')
-
-    - property: apps_username
-      external_name: apps_username
-
-    - property: forename
-      external_name: forename
-
-    - property: surname
-      external_name: surname
-
-    - property: idcode
-      external_name: personId
-
-    - property: gender_estonian
-      external_name: gender_estonian
-
-    - property: gender_english
-      external_name: gender_english
-
-    - property: birth_date
-      external_name: birth_date
-      import_transform: transform.import_date_time('%Y-%m-%d')
 
 
 - kind: QuestionAnswer

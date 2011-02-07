@@ -1,8 +1,5 @@
 from google.appengine.ext import db
 
-from database.import.zoin import *
-
-
 
 class zPerson(db.Model):
     apps_username       = db.StringProperty() # forename.surname@domain
@@ -14,12 +11,10 @@ class zPerson(db.Model):
     birth_date          = db.StringProperty()
 
     def Import(self):
-        return ' '.join([self.forename, self.surname])
+        pass
 
 
-
-
-class zDepartment(db.Model):
+"""class zDepartment(db.Model):
     name                = db.StringProperty()
     is_academic         = db.StringProperty()
     parent_department   = db.StringProperty()
@@ -52,4 +47,4 @@ class zPersonDocument(db.Model):
     document            = db.StringProperty()
     relation            = db.StringProperty()
     date_time           = db.StringProperty()
-    model_version       = db.StringProperty(default='A')
+    model_version       = db.StringProperty(default='A')"""
