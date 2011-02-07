@@ -34,7 +34,7 @@ class Person(search.SearchableModel):
 
     @property
     def photo(self):
-        return db.Query(Document).filter('types', 'person_photo').filter('entities', str(self.key())).get()
+        return db.Query(Document).filter('types', 'person_photo').filter('entities', self.key()).get()
 
     @property
     def contacts(self):
@@ -100,9 +100,41 @@ class PersonRole(db.Model):
     model_version       = db.StringProperty(default='A')
 
 
-class PersonDocument(db.Model):
-    person              = db.ReferenceProperty(Person, collection_name='documents')
-    document            = db.ReferenceProperty(Document, collection_name='persons')
-    relation            = db.ReferenceProperty(Dictionary, collection_name='person_document_relations')
-    date_time           = db.DateTimeProperty(auto_now_add=True)
-    model_version       = db.StringProperty(default='A')
+class Document(db.Model):
+    file            = blobstore.BlobReferenceProperty()
+    external_link   = db.StringProperty()
+    types           = db.StringListProperty()
+    entities        = db.ListProperty(db.Key)
+    title           = db.ReferenceProperty(Dictionary, collection_name='document_titles')
+    uploader        = db.ReferenceProperty(Person, collection_name='uploaded_documents')
+    owners          = db.ListProperty(db.Key)
+    editors         = db.ListProperty(db.Key)
+    viewers         = db.ListProperty(db.Key)
+    created         = db.DateTimeProperty(auto_now_add=True)
+    model_version   = db.StringProperty(default='A')
+
+    @property
+    def url(self):
+        try:
+            image_types = ('image/bmp', 'image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/tiff', 'image/x-icon')
+            if self.file.content_type in image_types:
+                return images.get_serving_url(self.file.key())
+            else:
+                return '/document/' + str(self.key())
+        except:
+            pass
+
+
+class Conversation(db.Model):
+    types           = db.StringListProperty()
+    entities        = db.ListProperty(db.Key)
+    participants    = db.ListProperty(db.Key)
+    created         = db.DateTimeProperty(auto_now_add=True)
+    model_version   = db.StringProperty(default='A')
+
+
+class Message(db.Model):
+    person          = db.ReferenceProperty(Person, collection_name='messages')
+    text            = db.TextProperty()
+    created         = db.DateTimeProperty(auto_now_add=True)
+    model_version   = db.StringProperty(default='A')

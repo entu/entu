@@ -49,6 +49,19 @@ class ShowSignin(boRequestHandler):
                     c.value = email
                     c.put()
 
+                    con = db.Query(Conversation).filter('entities', p.key()).filter('types', 'application').get()
+                    if not con:
+                        con = Conversation()
+                        con.types = ['application']
+                        con.entities = [p.key()]
+                    con.participants = AddToList(p.key(), con.participants)
+                    con.put()
+
+                    mes = Message(parent=con)
+                    mes.text = Translate('application_newuser_log_message') % email
+                    mes.put()
+
+
             password = ''.join(random.choice(string.ascii_letters) for x in range(2))
             password += str(p.key().id())
             password += ''.join(random.choice(string.ascii_letters) for x in range(3))
@@ -94,10 +107,18 @@ class ShowApplication(boRequestHandler):
 
             photo_upload_url = blobstore.create_upload_url('/document/upload')
             document_upload_url = blobstore.create_upload_url('/document/upload')
-            documents = db.Query(Document).filter('entities', str(p.key())).filter('types', 'application_document').fetch(1000)
+            documents = db.Query(Document).filter('entities', p.key()).filter('types', 'application_document').fetch(1000)
             secondaryschools = db.Query(Cv).ancestor(p).filter('type', 'secondary_education').fetch(1000)
             highschools = db.Query(Cv).ancestor(p).filter('type', 'higher_education').fetch(1000)
             workplaces = db.Query(Cv).ancestor(p).filter('type', 'workplace').fetch(1000)
+
+            conversation = db.Query(Conversation).filter('entities', p.key()).filter('types', 'application').get()
+            if conversation:
+                messages = db.Query(Message).ancestor(conversation).fetch(1000)
+                for message in messages:
+                    message.created = UtcToLocalDateTime(message.created)
+            else:
+                messages = {}
 
             self.view('application', 'application/application.html', {
                 'application_submitted': application_submitted,
@@ -113,6 +134,7 @@ class ShowApplication(boRequestHandler):
                 'secondaryschools': secondaryschools,
                 'highschools': highschools,
                 'workplaces': workplaces,
+                'messages': messages,
             })
 
     def post(self):
@@ -161,6 +183,19 @@ class SubmitApplication(boRequestHandler):
                 )
 
             if selected:
+
+                con = db.Query(Conversation).filter('entities', p.key()).filter('types', 'application').get()
+                if not con:
+                    con = Conversation()
+                    con.types = ['application']
+                    con.entities = [p.key()]
+                con.participants = AddToList(p.key(), con.participants)
+                con.put()
+
+                mes = Message(parent=con)
+                mes.text = Translate('application_submit_log_message')
+                mes.put()
+
                 emails = []
                 if p.email:
                     emails = AddToList(p.email, emails)
@@ -275,6 +310,62 @@ class EditCV(boRequestHandler):
             self.response.out.write(simplejson.dumps(respond))
 
 
+class PostMessage(boRequestHandler):
+    def post(self):
+        p =  Person().current_s(self)
+        if p:
+            message = self.request.get('message').strip()
+            respond = {}
+
+            if message:
+                con = db.Query(Conversation).filter('entities', p.key()).filter('types', 'application').get()
+                if not con:
+                    con = Conversation()
+                    con.types = ['application']
+                    con.entities = [p.key()]
+                con.participants = AddToList(p.key(), con.participants)
+                con.put()
+
+                mes = Message(parent=con)
+                mes.person = p
+                mes.text = message
+                mes.put()
+
+                emails = []
+                for a in db.Query(Application).ancestor(p).filter('status', 'submitted').fetch(1000):
+                    emails = AddToList(a.reception.communication_email, emails)
+
+                if len(emails) < 1:
+                    for reception in db.Query(Reception).fetch(1000):
+                        emails = AddToList(reception.communication_email, emails)
+
+                SendMail(
+                    to = emails,
+                    subject = Translate('application_message_email1_subject') % p.displayname,
+                    message = Translate('application_message_email1_message') % {'name': p.displayname, 'link': SYSTEM_URL + '/reception/' + str(p.key()), 'text': mes.text }
+                )
+
+                emails = []
+                if p.email:
+                    emails = AddToList(p.email, emails)
+                if p.apps_username:
+                    emails = AddToList(p.apps_username, emails)
+                for contact in db.Query(Contact).ancestor(p).filter('type', 'email').fetch(1000):
+                    emails = AddToList(contact.value, emails)
+
+                SendMail(
+                    to = emails,
+                    subject = Translate('application_message_email2_subject') % p.displayname,
+                    message = Translate('application_message_email2_message') % mes.text
+                )
+
+                respond['date'] = UtcToLocalDateTime(mes.created).strftime('%d.%m.%Y %H:%M')
+                respond['person'] = mes.person.displayname
+                respond['message'] = mes.text
+
+                self.response.out.write(simplejson.dumps(respond))
+
+
 def main():
     Route([
             ('/application', ShowApplication),
@@ -282,6 +373,7 @@ def main():
             ('/application/person', EditPerson),
             ('/application/contact', EditContact),
             ('/application/cv', EditCV),
+            ('/application/message', PostMessage),
             ('/application/submit', SubmitApplication),
             ('/application/thanks', ShowSubmitApplication),
         ])

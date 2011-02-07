@@ -15,16 +15,16 @@
     {{ str.application_signup_desc }}
 
     <div id="login" class="box" style="margin-top:20px; margin-bottom:10px;">
-        <a id="signup_show" href="javascript:void();" style="font-weight:bold; display:block;">{{ str.application_create_account }}</a>
+        <a id="signup_show" href="javascript:void(0);" style="font-weight:bold; display:block;">{{ str.application_create_account }}</a>
         <div id="signup_form" style="display:none; padding:10px;">
-            {{ str.email }}: <input type="email" id="signup_email" name="signup_email" style="width:200px;" /> <a id="signup_send" href="javascript:void();" class="button">{{ str.send_invitation }}</a> <span id="signup_sent" style="display:none; margin-left:20px; color:red;">{{ str.invitation_sent }}</span>
+            {{ str.email }}: <input type="email" id="signup_email" name="signup_email" style="width:200px;" /> <a id="signup_send" href="javascript:void(0);" class="button">{{ str.send_invitation }}</a> <span id="signup_sent" style="display:none; margin-left:20px; color:red;">{{ str.invitation_sent }}</span>
         </div>
     </div>
 
     <div id="login" class="box" style="margin-bottom:10px;">
-        <a id="applicant_pass_show" href="javascript:void();" style="font-weight:bold; display:block;">{{ str.application_login_with_password }}</a>
+        <a id="applicant_pass_show" href="javascript:void(0);" style="font-weight:bold; display:block;">{{ str.application_login_with_password }}</a>
         <div id="applicant_pass_form" style="display:none; padding:10px;">
-            {{ str.password }}: <input type="password" id="applicant_pass" name="applicant_pass" /> <a id="applicant_pass_send" href="javascript:void();" class="button">{{ str.login }}</a>
+            {{ str.password }}: <input type="password" id="applicant_pass" name="applicant_pass" /> <a id="applicant_pass_send" href="javascript:void(0);" class="button">{{ str.login }}</a>
         </div>
     </div>
 
@@ -61,6 +61,7 @@
                         location.href = '/application';
                     } else {
                         $('#applicant_pass_form').effect("shake", { times:3 }, 90);
+                        $('#applicant_pass').val('');
                     }
                 });
             } else {

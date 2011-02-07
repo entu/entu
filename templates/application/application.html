@@ -27,12 +27,16 @@
 {% if application_submitted %}{% else %}
     <div id="confirm_application" class="button" style="margin: 20px auto 10px auto; width:200px;">{{ str.application_submit }}</div>
 {% endif %}
+
+    {% include "conversation.html" %}
+
 </section>
 
 {% if application_submitted %}
 <script>
     $(document).ready(function(){
         $("input").placeholder({css_class: "placeholder"});
+        $('textarea').elastic();
         $('#top_nav').hide();
     });
 </script>

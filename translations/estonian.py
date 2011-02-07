@@ -106,9 +106,9 @@ def translation():
         'application_documents':            'Dokumendid',
         'application_documents_desc':       'Siin saab avaldusele lisada dokumente. Lisamine pole kohustuslik.',
         'application_edu_higher':           'Kõrgharidus',
-        'application_edu_higher_desc':      'Kui oled õppinud/õppimas mõnes kõrgkoolis, sisesta siia kus ja millal õppisid/õpid',
+        'application_edu_higher_desc':      'Kui oled õppinud/õppimas mõnes kõrgkoolis, sisesta siia kus ja millal õppisid/õpid.',
         'application_edu_secondary':        'Keskharidus',
-        'application_edu_secondary_desc':   'Kui oled õppinud/õppimas mõnes keskkoolis, sisesta siia kus ja millal õppisid/õpid',
+        'application_edu_secondary_desc':   'Kui oled õppinud/õppimas mõnes keskkoolis, sisesta siia kus ja millal õppisid/õpid.',
         'application_edu_been_subsidised':  'Olen õppinud riigieelarvelisel kohal',
         'application_login_with_account':   'Mul on @artun.ee konto. Sisenen sellega...',
         'application_login_with_password':  'Mul on sisseastuja parool. Sisenen sellega...',
@@ -116,9 +116,9 @@ def translation():
         'application_signup_mail_message':  'Tere tulemast Eesti Kunstiakadeemiasse!<br /><br />Meil on hea meel, et oled otsustanud asuda õppima meie kooli.<br /><br />Sinu konto Eesti Kunstiakadeemia sisseastumisavalduse esitamiseks on loodud.<br />Konto parool on: <b>%s</b><br /><br />Sisseastumisavalduse saad täita aadressil <a href="http://bonga.artun.ee/application">http://bonga.artun.ee/application</a><br /><br />Täname!',
         'application_signup_mail_subject':  'Sisseastuja konto',
         'application_specialities':         'Erialad',
-        'application_specialities_desc':    'Vali millistele erialadele soovid kandideerida',
+        'application_specialities_desc':    'Vali millistele erialadele soovid kandideerida.',
         'application_workplaces':           'Töökohad',
-        'application_workplaces_desc':      'Kui sul on, siis sisesta siia enda endised ja praegused töökohad',
+        'application_workplaces_desc':      'Kui sul on, siis sisesta siia enda endised ja praegused töökohad.',
         'application_submit':               'Esita avaldus',
         'application_documents_types':      ',Tunnistus/diplom,Akadeemiline oiend/hinneteleht,Riigieksamite tunnistus,Isikut toendav dokument',
         'contact_address':      'Postiaadress',
@@ -134,12 +134,24 @@ def translation():
         'workplace_name':       'Asutuse nimi',
 
         'application_submit_success_message': 'Avaldus vastu võetud. Täname!',
+        'application_converstion': 'Logiraamat',
+        'application_converstion_desc': 'Avaldusega seaotud mured ja küsimused kirjuta siia.',
+        'application_converstion_new_message': 'Uus teade',
+        'application_converstion_submit_message': 'Saada teade',
+
+        'application_newuser_log_message': 'Loodi sisseastuja konto (%s).',
+        'application_submit_log_message': 'Esitati avaldus.',
 
         'application_submit_email1_subject': '%s esitas sisseastumisavalduse',
         'application_submit_email1_message': '%(name)s esitas <a href="%(link)s">sisseastumisavalduse</a>',
 
         'application_submit_email2_subject': '%s, Sinu avaldus on laekunud ja läbivaatamisel',
         'application_submit_email2_message': 'Tere,<br /><br />Sa täitsid ja esitasid Eesti Kunstiakadeemia <a href="http://bonga.artun.ee/application">sisseastumisavalduse</a>.<br />Sinu esitatud avaldus vaadatakse õppeosakonna poolt üle ning teave selle kohta saadetakse Sulle emailile hiljemalt 3 tööpäeva jooksul.<br /><br />Kogu Sind puudutav suhtlus toimub <a href="http://bonga.artun.ee/application">sisseastumisavalduse</a> juures, küsimuste korral, kirjuta otse sinna. Kogu sealne suhtlus saadetakse ka Sinu postkasti, aga vasta palun alati <a href="http://bonga.artun.ee/application">avalduse</a> juures.<br /><br />Meil on hea meel, et oled otsustanud asuda õppima meie kooli.',
+
+        'application_message_email1_subject': '%s lisas avaldusele kommentaari',
+        'application_message_email1_message': '%(name)s kirjutas oma <a href="%(link)s">avalduse</a> juurde:<br /><br />%(text)s',
+        'application_message_email2_subject': '%s, lisasid avaldusele kommentaari',
+        'application_message_email2_message': 'Tere,<br /><br />Kirjutasid oma <a href="http://bonga.artun.ee/application">avalduse</a> juurde:<br /><br />%s<br /><br />Märge selle kohta jõudis ka vastuvõtutöötajatele. Vastusest anname teada emaili teel.',
 
 
 
