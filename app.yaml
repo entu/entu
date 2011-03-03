@@ -1,6 +1,5 @@
 application: bongapp
-#application: bongadev
-version: 2011-01-30
+version: 2011-02-25
 runtime: python
 api_version: 1
 
@@ -46,6 +45,11 @@ handlers:
 - url: /robots.txt
   static_files: static/robots.txt
   upload: static/robots.txt
+  expiration: "90d"
+
+- url: /favicon.ico
+  static_files: static/images/favicon.ico
+  upload: static/images/favicon.ico
   expiration: "90d"
 
 
