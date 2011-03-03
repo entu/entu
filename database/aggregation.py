@@ -1,4 +1,7 @@
 from google.appengine.ext import db
+from hashlib import md5
+
+from bo import *
 
 
 class Aggregation(db.Model):
@@ -37,8 +40,8 @@ class Aggregation(db.Model):
     model_version       = db.StringProperty(default='A')
     # Defining dimensions and values are class-only properties and should not pass to database
     defining_dimensions = db.StringListProperty()
-    float_value         = db.FloatProperty
-    string_value        = db.StringProperty()
+    float_value         = db.FloatProperty()
+    text_value          = db.TextProperty()
 
     def add(self):
 
@@ -46,11 +49,11 @@ class Aggregation(db.Model):
             for t in list(combinations(self.dimensions, level)):
                 dimensions = list(t)
 
-                a = db.Query(Aggregation)
-                a.filter('level', level)
-                for d in dimensions + self.defining_dimensions:
-                    a.filter('dimensions', d)
-                aggr = a.get()
+                aggr_key_list = dimensions + self.defining_dimensions
+                aggr_key_list.sort()
+                aggr_key = md5('|'.join(aggr_key_list)).hexdigest()
+
+                aggr = Aggregation().get_by_key_name(aggr_key)
 
                 if aggr:
                     aggr.count = int(aggr.count) + 1
@@ -61,20 +64,24 @@ class Aggregation(db.Model):
                             aggr.sum = self.float_value
 
                 else:
-                    aggr = Aggregation()
+                    aggr = Aggregation(key_name=aggr_key)
                     aggr.level = level
                     aggr.dimensions = dimensions + self.defining_dimensions
                     aggr.count = 1
                     if self.float_value:
                         aggr.sum = self.float_value
                 aggr.put()
-                
-                if av.float_value or av.string_value:
-                    av = AggregationValue()
-                    av.aggregation = aggr
+
+                if self.float_value or self.text_value:
+                    av = AggregationValue(parent=aggr)
                     av.float_value = self.float_value
-                    av.string_value = self.string_value
+                    av.text_value = self.text_value
                     av.put()
+
+
+class AggregationValue(db.Model):
+    float_value     = db.FloatProperty()
+    text_value    = db.TextProperty()
 
 
 def combinations(iterable, r):
@@ -94,9 +101,3 @@ def combinations(iterable, r):
         for j in range(i+1, r):
             indices[j] = indices[j-1] + 1
         yield tuple(pool[i] for i in indices)
-
-
-class AggregationValue(db.Model):
-    aggregation     = db.ReferenceProperty(Aggregation, collection_name='values')
-    float_value     = db.FloatProperty()
-    string_value    = db.StringProperty()
