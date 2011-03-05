@@ -3,35 +3,47 @@
 <div class="table">
     {% for s in secondaryschools|dictsort:"start" %}
     <div class="table_row" alt="{{ q.key }}">
-        <div class="table_cell">
-            <input type="text" class="autosave_secondaryschool" name="organisation" value="{{ s.organisation|default:"" }}" alt="{{ s.key }}" placeholder="{{ str.school_name }}" style="width:200px;"{% if application_submitted %} disabled{% endif %}>
+        <div class="table_cell" style="white-space:nowrap;">
+            {% if application_readonly %}
+            {{ s.organisation|default:"" }}
+            {% else %}
+            <input type="text" class="autosave_secondaryschool" name="organisation" value="{{ s.organisation|default:"" }}" alt="{{ s.key }}" placeholder="{{ str.school_name }}" maxlength="500" style="width:200px;" />
+            {% endif %}
+        </div>
+        <div class="table_cell" style="white-space:nowrap;">
+            {% if application_readonly %}
+            {{ s.start|default:"" }} - {{ s.end|default:"" }}
+            {% else %}
+            <input type="text" class="autosave_secondaryschool" name="start" value="{{ s.start|default:"" }}" placeholder="{{ str.start_date }}" maxlength="500" style="width:100px;" /> -
+            <input type="text" class="autosave_secondaryschool" name="end" value="{{ s.end|default:"" }}" placeholder="{{ str.end_date }}" maxlength="500" style="width:100px;" />
+            {% endif %}
         </div>
         <div class="table_cell">
-            <input type="text" class="autosave_secondaryschool" name="start" value="{{ s.start|default:"" }}" placeholder="{{ str.start_date }}" style="width:100px;"{% if application_submitted %} disabled{% endif %}> -
-            <input type="text" class="autosave_secondaryschool" name="end" value="{{ s.end|default:"" }}" placeholder="{{ str.end_date }}" style="width:100px;"{% if application_submitted %} disabled{% endif %}>
-        </div>
-        <div class="table_cell" style="">
-            <input type="text" class="autosave_secondaryschool" name="description" value="{{ s.description|default:"" }}" placeholder="{{ str.additional_info }}" style="width:410px;"{% if application_submitted %} disabled{% endif %}>
+            {% if application_readonly %}
+            {{ s.description|default:"" }}
+            {% else %}
+            <input type="text" class="autosave_secondaryschool" name="description" value="{{ s.description|default:"" }}" placeholder="{{ str.additional_info }}" maxlength="500" style="width:410px;" />
+            {% endif %}
         </div>
     </div>
     {% endfor %}
-    {% if application_submitted %}{% else %}
+    {% if application_readonly %}{% else %}
     <div id="new_secondaryschool" class="table_row" alt="{{ q.key }}">
         <div class="table_cell">
-            <input type="text" class="autosave_secondaryschool new_secondaryschool" name="organisation" placeholder="{{ str.school_name }}" style="width:200px;">
+            <input type="text" class="autosave_secondaryschool new_secondaryschool" name="organisation" placeholder="{{ str.school_name }}" maxlength="500" style="width:200px;">
         </div>
         <div class="table_cell">
-            <input type="text" class="autosave_secondaryschool new_secondaryschool" name="start" placeholder="{{ str.start_date }}" style="width:100px;"> -
-            <input type="text" class="autosave_secondaryschool new_secondaryschool" name="end" placeholder="{{ str.end_date }}" style="width:100px;">
+            <input type="text" class="autosave_secondaryschool new_secondaryschool" name="start" placeholder="{{ str.start_date }}" maxlength="500" style="width:100px;"> -
+            <input type="text" class="autosave_secondaryschool new_secondaryschool" name="end" placeholder="{{ str.end_date }}" maxlength="500" style="width:100px;">
         </div>
         <div class="table_cell" style="">
-            <input type="text" class="autosave_secondaryschool new_secondaryschool" name="description" placeholder="{{ str.additional_info }}" style="width:410px;">
+            <input type="text" class="autosave_secondaryschool new_secondaryschool" name="description" placeholder="{{ str.additional_info }}" maxlength="500" style="width:410px;">
         </div>
     </div>
     {% endif %}
 </div>
 
-{% if application_submitted %}{% else %}
+{% if application_readonly %}{% else %}
 <script>
     $(document).ready(function(){
         $('.new_secondaryschool').keypress(function() {
@@ -49,7 +61,7 @@
 
         $('.autosave_secondaryschool').change(function() {
             var input = $(this);
-            autoSave(input, '/application/cv', {
+            autoSave(input, '{{ post_url }}/cv', {
                 type: 'secondary_education',
                 key: input.parent().parent().find('input[alt!=""]').attr('alt')
             });

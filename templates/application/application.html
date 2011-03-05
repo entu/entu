@@ -1,8 +1,20 @@
 {% extends "../main.html" %}
 
-{% block breadcrumb %}
+{% block head %}
 <script src="/javascript/jquery.elastic.js" type="text/javascript"></script>
-<script src="/javascript/jquery.placeholder.js" type="text/javascript"></script>
+<script src="/javascript/jquery.placeholder.min.js" type="text/javascript"></script>
+{% endblock %}
+
+{% block breadcrumb %}
+{% ifequal post_url "/reception" %}
+<nav>
+    <ul id="crumbs">
+        <li><a href="/">{{ system_title }}</a></li>
+        <li><a href="/reception">{{ str.reception }}</a></li>
+        <li>{{ person.displayname }}</li>
+    </ul>
+</nav>
+{% endifequal %}
 {% endblock %}
 
 {% block content %}
@@ -13,6 +25,12 @@
     {% endif %}
 
     <h1 style="margin-top:30px; text-align:center; color:black;">{{ str.application }}</h1>
+    {% ifequal application_status "submitted" %}
+    <h1 style="margin-top:30px; text-align:center; color:#00AFF0; font-weight:bold;">{{ str.application_status_submitted }}</h1>
+    {% endifequal %}
+    {% ifequal application_status "accepted" %}
+    <h1 style="margin-top:30px; text-align:center; color:green; font-weight:bold;">{{ str.application_status_accepted }}</h1>
+    {% endifequal %}
 
     {% include "receptions.html" %}
     {% include "person.html" %}
@@ -21,21 +39,20 @@
     {% include "cv_workplaces.html" %}
     {% include "documents.html" %}
 
-    <!--h2>{{ str.application_comments }}</h2>
-    <textarea style="margin: 10px; width:890px;" rows="10"></textarea-->
+    {% if application_readonly %}
 
-{% if application_submitted %}{% else %}
+    {% else %}
     <div id="confirm_application" class="button" style="margin: 20px auto 10px auto; width:200px;">{{ str.application_submit }}</div>
-{% endif %}
+    {% endif %}
 
     {% include "conversation.html" %}
 
 </section>
 
-{% if application_submitted %}
+{% if application_readonly %}
 <script>
     $(document).ready(function(){
-        $("input").placeholder({css_class: "placeholder"});
+        $("input").placeholder();
         $('textarea').elastic();
         $('#top_nav').hide();
     });
@@ -48,7 +65,7 @@
         $('#top_nav').hide();
 
         $("#confirm_application").click(function(){
-            location.href = '/application/submit';
+            location.href = '{{ post_url }}/submit';
         });
     });
 

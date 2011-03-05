@@ -3,12 +3,13 @@ from google.appengine.ext import search
 from google.appengine.api import users
 from datetime import datetime
 
+from bo import *
 from database.dictionary import *
 from database.general import *
 from database.person import *
 
 
-class Grade(db.Model):
+class Grade(ChangeLogModel):
     student         = db.ReferenceProperty(Person, collection_name='received_grades')
     teacher         = db.ReferenceProperty(Person, collection_name='given_grades')
     date            = db.DateProperty()
@@ -21,12 +22,12 @@ class Grade(db.Model):
     model_version   = db.StringProperty(default='A')
 
 
-class RatingScale(db.Model):
+class RatingScale(ChangeLogModel):
     name            = db.ReferenceProperty(Dictionary, collection_name='rating_scale_names')
     model_version   = db.StringProperty(default='A')
 
 
-class GradeDefinition(db.Model):
+class GradeDefinition(ChangeLogModel):
     rating_scale    = db.ReferenceProperty(RatingScale, collection_name='grade_definitions')
     name            = db.ReferenceProperty(Dictionary, collection_name='grade_definition_names')
     is_positive     = db.BooleanProperty()
@@ -34,7 +35,7 @@ class GradeDefinition(db.Model):
     model_version   = db.StringProperty(default='A')
 
 
-class Exam(db.Model):
+class Exam(ChangeLogModel):
     name                    = db.ReferenceProperty(Dictionary, collection_name='exam_names')
     description             = db.ReferenceProperty(Dictionary, collection_name='exam_descriptions')
     examiner                = db.ReferenceProperty(Person, collection_name='examiner_of_exams')
@@ -45,7 +46,7 @@ class Exam(db.Model):
     model_version           = db.StringProperty(default='A')
 
 
-class ExamGroup(db.Model):
+class ExamGroup(ChangeLogModel):
     exam                = db.ReferenceProperty(Exam, collection_name='exam_groups')
     first_entry_time    = db.DateTimeProperty()         # Time of first student entry
     last_entry_time     = db.DateTimeProperty()         # Time of last student entry
@@ -56,7 +57,7 @@ class ExamGroup(db.Model):
     model_version       = db.StringProperty(default='A')
 
 
-class ExamGroupRegistration(db.Model):
+class ExamGroupRegistration(ChangeLogModel):
     exam_group      = db.ReferenceProperty(ExamGroup, collection_name='registrations')
     time            = db.TimeProperty()
     grade           = db.ReferenceProperty(Grade, collection_name='registrations')

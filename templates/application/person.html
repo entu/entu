@@ -12,7 +12,11 @@
             {{ str.forename }}:
         </div>
         <div class="table_cell">
-            <input type="text" name="forename" class="autosave_person" value="{{ person.forename|default:"" }}"{% if application_submitted %} readonly{% endif %} />
+            {% if application_readonly %}
+            {{ person.forename|default:"" }}
+            {% else %}
+            <input type="text" name="forename" class="autosave_person" value="{{ person.forename|default:"" }}" maxlength="500" />
+            {% endif %}
         </div>
     </div>
     <div class="table_row">
@@ -20,7 +24,11 @@
             {{ str.surname }}:
         </div>
         <div class="table_cell">
-            <input type="text" name="surname" class="autosave_person" value="{{ person.surname|default:"" }}"{% if application_submitted %} readonly{% endif %} />
+            {% if application_readonly %}
+            {{ person.surname|default:"" }}
+            {% else %}
+            <input type="text" name="surname" class="autosave_person" value="{{ person.surname|default:"" }}" maxlength="500" />
+            {% endif %}
         </div>
     </div>
     <div class="table_row">
@@ -28,7 +36,11 @@
             {{ str.idcode }}:
         </div>
         <div class="table_cell">
-            <input type="text" id="idcode" class="autosave_person" name="idcode" value="{{ person.idcode|default:"" }}"{% if application_submitted %} readonly{% endif %} />
+            {% if application_readonly %}
+            {{ person.idcode|default:"" }}
+            {% else %}
+            <input type="text" id="idcode" class="autosave_person" name="idcode" value="{{ person.idcode|default:"" }}" maxlength="500" />
+            {% endif %}
         </div>
     </div>
     <div class="table_row">
@@ -36,25 +48,29 @@
             {{ str.birthdate }}:
         </div>
         <div class="table_cell">
-            <select id="birthdate_day" name="birthdate_day" class="autosave_birthdate"{% if application_submitted %} disabled{% endif %}>
+            {% if application_readonly %}
+            {{ person.birth_date|date:"d.m.Y" }}
+            {% else %}
+            <select id="birthdate_day" name="birthdate_day" class="autosave_birthdate" >
                 <option value=""></option>
                 {% for d in date_days %}
                 <option value="{{ d }}"{% if person.birth_date %}{% ifequal person.birth_date.day d %} selected{% endifequal %}{% endif %}>{{ d }}</option>
                 {% endfor %}
             </select>
-            <select id="birthdate_month" name="birthdate_month" class="autosave_birthdate"{% if application_submitted %} disabled{% endif %}>
+            <select id="birthdate_month" name="birthdate_month" class="autosave_birthdate"{% if application_readonly %} disabled{% endif %}>
                 <option value=""></option>
                 {% for m in date_months %}
                 <option value="{{ forloop.counter }}"{% if person.birth_date %}{% ifequal person.birth_date.month forloop.counter %} selected{% endifequal %}{% endif %}>{{ m|capfirst }}</option>
                 {% endfor %}
             </select>
-            <select id="birthdate_year" name="birthdate_year" class="autosave_birthdate"{% if application_submitted %} disabled{% endif %}>
+            <select id="birthdate_year" name="birthdate_year" class="autosave_birthdate"{% if application_readonly %} disabled{% endif %}>
                 <option value=""></option>
                 {% for y in date_years %}
                 <option value="{{ y }}"{% if person.birth_date %}{% ifequal person.birth_date.year y %} selected{% endifequal %}{% endif %}>{{ y }}</option>
                 {% endfor %}
             </select>
-            <input type="hidden" id="birthdate" name="birthdate"{% if application_submitted %} readonly{% endif %} />
+            <input type="hidden" id="birthdate" name="birthdate" />
+            {% endif %}
         </div>
     </div>
     <div class="table_row">
@@ -62,14 +78,19 @@
             {{ str.gender }}:
         </div>
         <div class="table_cell">
-            <select id="gender" class="autosave_person" name="gender" {% if application_submitted %} disabled{% endif %}>
+            {% if application_readonly %}
+            {% ifequal person.gender "male" %}{{ str.gender_male }}{% endifequal %}
+            {% ifequal person.gender "female" %}{{ str.gender_female }}{% endifequal %}
+            {% else %}
+            <select id="gender" class="autosave_person" name="gender" {% if application_readonly %} disabled{% endif %}>
                 <option value=""></option>
                 <option value="female"{% ifequal person.gender "female" %} selected{% endifequal %}>{{ str.gender_female }}</option>
                 <option value="male"{% ifequal person.gender "male" %} selected{% endifequal %}>{{ str.gender_male }}</option>
+            {% endif %}
             </select>
         </div>
     </div>
-    {% if application_submitted %}{% else %}
+    {% if application_readonly %}{% else %}
     <div class="table_row">
         <div class="header_cell">
             {{ str.photo }}:
@@ -90,19 +111,31 @@
     {% for contact in person.contacts|dictsort:"type" %}
     <div class="table_row">
         <div class="header_cell">
-            <select id="autosave_contact_type" class="autosave_contact_type" name="contact_type"{% if application_submitted %} disabled{% endif %}>
+            {% if application_readonly %}
+            {% ifequal contact.type "phone" %}{{ str.contact_phone }}{% endifequal %}
+            {% ifequal contact.type "email" %}{{ str.contact_email }}{% endifequal %}
+            {% ifequal contact.type "address" %}{{ str.contact_address }}{% endifequal %}
+            {% ifequal contact.type "skype" %}{{ str.contact_skype }}{% endifequal %}
+            :
+            {% else %}
+            <select id="autosave_contact_type" class="autosave_contact_type" name="contact_type"{% if application_readonly %} disabled{% endif %}>
                 <option value="phone"{% ifequal contact.type "phone" %} selected{% endifequal %}>{{ str.contact_phone }}</option>
                 <option value="email"{% ifequal contact.type "email" %} selected{% endifequal %}>{{ str.contact_email }}</option>
                 <option value="address"{% ifequal contact.type "address" %} selected{% endifequal %}>{{ str.contact_address }}</option>
                 <option value="skype"{% ifequal contact.type "skype" %} selected{% endifequal %}>{{ str.contact_skype }}</option>
             </select>:
+            {% endif %}
         </div>
         <div class="table_cell">
-            <input type="text" class="autosave_contact_value" name="contact_value" value="{{ contact.value }}" alt="{{ contact.key }}" style="width:300px;"{% if application_submitted %} readonly{% endif %}>
+            {% if application_readonly %}
+            {{ contact.value|default:"" }}
+            {% else %}
+            <input type="text" class="autosave_contact_value" name="contact_value" value="{{ contact.value }}" alt="{{ contact.key }}" maxlength="500" style="width:300px;" />
+            {% endif %}
         </div>
     </div>
     {% endfor %}
-    {% if application_submitted %}{% else %}
+    {% if application_readonly %}{% else %}
     <div id="new_contact" class="table_row">
         <div class="header_cell">
             <select id="new_ontact_type" class="autosave_contact_type" name="contact_type">
@@ -113,13 +146,13 @@
             </select>:
         </div>
         <div class="table_cell">
-            <input type="text" id="new_contact_value" class="autosave_contact_value" name="contact_value" style="width:300px;">
+            <input type="text" id="new_contact_value" class="autosave_contact_value" name="contact_value" maxlength="500" style="width:300px;">
         </div>
     </div>
     {% endif %}
 </div>
 
-{% if application_submitted %}{% else %}
+{% if application_readonly %}{% else %}
 <script>
     $(document).ready(function(){
 
@@ -146,7 +179,7 @@
             } else {
                 input.val('');
             }
-            autoSave(input, '/application/person', {});
+            autoSave(input, '{{ post_url }}/person', {});
 
             g = parseInt(idcode.substring(0, 1));
             if (g%2 == 0) {
@@ -156,14 +189,14 @@
             }
 
             var input = $('#gender');
-            autoSave(input, '/application/person', {});
+            autoSave(input, '{{ post_url }}/person', {});
 
         });
 
 
         //AUTOSAVE
         $('.autosave_person').change(function() {
-            autoSave($(this), '/application/person', {});
+            autoSave($(this), '{{ post_url }}/person', {});
         });
 
         $('.autosave_birthdate').change(function() {
@@ -173,7 +206,7 @@
             } else {
                 input.val('');
             }
-            autoSave(input, '/application/person', {});
+            autoSave(input, '{{ post_url }}/person', {});
         });
 
 
@@ -189,7 +222,7 @@
         $('.autosave_contact_value').change(function() {
             var value = $(this);
             var type = value.parent('.table_cell').prev('.header_cell').children('select');
-            autoSave(value, '/application/contact', {
+            autoSave(value, '{{ post_url }}/contact', {
                 type: type.val(),
             });
         });
@@ -197,7 +230,7 @@
         $('.autosave_contact_type').change(function() {
             var type = $(this);
             var value = type.parent('.header_cell').next('.table_cell').children('input');
-            autoSave(value, '/application/contact', {
+            autoSave(value, '{{ post_url }}/contact', {
                 type: type.val(),
             });
         });

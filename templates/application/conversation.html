@@ -2,7 +2,7 @@
 
 <div class="table" style="font-size:12px;">
     {% for message in messages|dictsort:"created" %}
-    <div class="table_row" style="white-space:nowrap;">
+    <div class="table_row">
         <div class="table_cell" style="white-space:nowrap; vertical-align:top;">
             {{ message.created|date:"d.m.Y H:i" }}
         </div>
@@ -12,7 +12,7 @@
         </div>
     </div>
     {% endfor %}
-    <div id="new_message" class="table_row" style="white-space:nowrap; display:none;">
+    <div id="new_message" class="table_row" style="display:none;">
         <div class="table_cell message_date" style="white-space:nowrap; vertical-align:top;">
         </div>
         <div class="table_cell message_message" style="width:100%; vertical-align:top;">
@@ -21,13 +21,45 @@
 </div>
 
 <textarea id="converstion_message" placeholder="{{ str.application_converstion_new_message }}" style="width:99%; margin-top:10px;" rows="3"></textarea>
-<a id="converstion_message_send" href="javascript:void(0);" class="button" style="float:right; width:100px; margin:5px;">{{ str.application_converstion_submit_message }}</a>
 
+{% ifequal post_url "/reception" %}
+<a id="converstion_message_send_open" href="javascript:void(0);" class="button" style="float:right; margin:5px;">{{ str.application_converstion_submit_message_open }}</a>
+
+<a id="converstion_message_send_accept" href="javascript:void(0);" class="button" style="float:left; margin:5px;">{{ str.application_converstion_submit_message_accept }}</a>
+<script>
+    $(document).ready(function(){
+        $('#converstion_message_send_open').click(function() {
+            if( $('#converstion_message').val()) {
+                $.post('{{ post_url }}/message', { message: $('#converstion_message').val(), person: '{{ person.key }}' }, function(json) {
+                    var newmessage = $('#new_message').clone(true);
+                    $('#new_message').before(newmessage);
+                    newmessage.find('div.message_date').html(json['date']);
+                    newmessage.find('div.message_message').html('<b>' + json['person'] + '</b><br />' + json['message']);
+                    newmessage.show();
+                    $('#converstion_message').val('')
+                }, "json");
+            }
+        });
+
+        $('#converstion_message_send_accept').click(function() {
+            $.post('{{ post_url }}/accept', { person: '{{ person.key }}' }, function(json) {
+                var newmessage = $('#new_message').clone(true);
+                $('#new_message').before(newmessage);
+                newmessage.find('div.message_date').html(json['date']);
+                newmessage.find('div.message_message').html('<b>' + json['person'] + '</b><br />' + json['message']);
+                newmessage.show();
+                $('#converstion_message').val('')
+            }, "json");
+        });
+    });
+</script>
+{% else %}
+<a id="converstion_message_send" href="javascript:void(0);" class="button" style="float:right; margin:5px;">{{ str.application_converstion_submit_message }}</a>
 <script>
     $(document).ready(function(){
         $('#converstion_message_send').click(function() {
             if( $('#converstion_message').val()) {
-                $.post('/application/message', { message: $('#converstion_message').val() }, function(json) {
+                $.post('{{ post_url }}/message', { message: $('#converstion_message').val(), person: '{{ person.key }}' }, function(json) {
                     var newmessage = $('#new_message').clone(true);
                     $('#new_message').before(newmessage);
                     newmessage.find('div.message_date').html(json['date']);
@@ -39,3 +71,4 @@
         });
     });
 </script>
+{% endifequal %}

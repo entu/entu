@@ -1,13 +1,13 @@
 from google.appengine.ext import db
 
-#from bo import *
+from bo import *
 from database.dictionary import *
 from database.general import *
 from database.person import *
 from database.grade import *
 
 
-class Curriculum(db.Model):
+class Curriculum(ChangeLogModel):
     """
     It is common in Learning Systems to give a code for almost everything.
     This makes it easy to perform searches and also these codes are commonly used in communication.
@@ -49,7 +49,7 @@ class Curriculum(db.Model):
         return curriculums
 
 
-class Concentration(db.Model):
+class Concentration(ChangeLogModel):
     name            = db.ReferenceProperty(Dictionary, collection_name='concentration_names')
     code            = db.StringProperty()
     tags            = db.StringListProperty()
@@ -59,7 +59,7 @@ class Concentration(db.Model):
     model_version   = db.StringProperty(default='A')
 
 
-class StudentConcentration(db.Model):
+class StudentConcentration(ChangeLogModel):
     student         = db.ReferenceProperty(Person, collection_name='student_concentrations')
     concentration   = db.ReferenceProperty(Concentration, collection_name='students')
     start_date      = db.DateProperty()
@@ -67,7 +67,7 @@ class StudentConcentration(db.Model):
     model_version   = db.StringProperty(default='A')
 
 
-class Module(db.Model):
+class Module(ChangeLogModel):
     name                    = db.ReferenceProperty(Dictionary, collection_name='module_names')
     code                    = db.StringProperty()
     tags                    = db.StringListProperty()
@@ -78,7 +78,7 @@ class Module(db.Model):
     model_version           = db.StringProperty(default='A')
 
 
-class ModuleConcentration(db.Model):
+class ModuleConcentration(ChangeLogModel):
     """
     If module is set mandatory in concentration
     and student has subscribed to concentration
@@ -90,7 +90,7 @@ class ModuleConcentration(db.Model):
     model_version   = db.StringProperty(default='A')
 
 
-class Subject(db.Model):
+class Subject(ChangeLogModel):
     name            = db.ReferenceProperty(Dictionary, collection_name='subject_names')
     code            = db.StringProperty()
     tags            = db.StringListProperty()
@@ -101,20 +101,20 @@ class Subject(db.Model):
     model_version   = db.StringProperty(default='A')
 
 
-class PrerequisiteSubject(db.Model):
+class PrerequisiteSubject(ChangeLogModel):
     prerequisite    = db.ReferenceProperty(Subject, collection_name='postrequisites')
     postrequisite   = db.ReferenceProperty(Subject, collection_name='prerequisites')
     model_version   = db.StringProperty(default='A')
 
 
-class ModuleSubject(db.Model):
+class ModuleSubject(ChangeLogModel):
     is_mandatory    = db.BooleanProperty() # Subject could be marked mandatory to pass the module
     module          = db.ReferenceProperty(Module, collection_name='subjects')
     subject         = db.ReferenceProperty(Subject, collection_name='modules')
     model_version   = db.StringProperty(default='A')
 
 
-class Course(db.Model):
+class Course(ChangeLogModel):
     subject                 = db.ReferenceProperty(Subject, collection_name='courses')
     subscription_open_date  = db.DateProperty()
     subscription_close_date = db.DateProperty()
@@ -125,14 +125,14 @@ class Course(db.Model):
     model_version           = db.StringProperty(default='A')
 
 
-class Subscription(db.Model):
+class Subscription(ChangeLogModel):
     student         = db.ReferenceProperty(Person, collection_name='subscribed_courses')
     course          = db.ReferenceProperty(Course, collection_name='subscriptions')
     grade           = db.ReferenceProperty(GradeDefinition, collection_name='subscriptions')
     model_version   = db.StringProperty(default='A')
 
 
-class CourseExam(db.Model):
+class CourseExam(ChangeLogModel):
     name            = db.ReferenceProperty(Dictionary, collection_name='course_exam_names') # usually "Scheduled", could be set to "Extraordinary" or any other arbitrary name
     course          = db.ReferenceProperty(Course, collection_name='exams')
     exam            = db.ReferenceProperty(Exam, collection_name='courses')

@@ -23,19 +23,30 @@ indexes:
   - name: surname
   - name: forename
 
-- kind: Translation
-  properties:
-  - name: __searchable_text_index
-  - name: dictionary_name
-  - name: value
 
-- kind: Translation
-  properties:
-  - name: dictionary_name
-  - name: language
-  - name: value
 
-- kind: Translation
+- kind: Application
   properties:
-  - name: dictionary_name
-  - name: value
+  - name: reception
+  - name: status
+
+- kind: Application
+  ancestor: yes
+  properties:
+  - name: status
+
+
+
+- kind: ChangeLog
+  ancestor: yes
+  properties:
+  - name: datetime
+    direction: desc
+
+
+
+- kind: QuestionaryPerson
+  properties:
+  - name: aggregation_date
+  - name: is_completed
+  - name: is_obsolete

@@ -3,39 +3,51 @@
 <div class="table">
     {% for s in highschools|dictsort:"start" %}
     <div class="table_row" alt="{{ q.key }}">
-        <div class="table_cell">
-            <input type="text" class="autosave_highschool" name="organisation" value="{{ s.organisation|default:"" }}" alt="{{ s.key }}" placeholder="{{ str.school_name }}" style="width:200px;"{% if application_submitted %} readonly{% endif %}>
+        <div class="table_cell" style="white-space:nowrap;">
+            {% if application_readonly %}
+            {{ s.organisation|default:"" }}
+            {% else %}
+            <input type="text" class="autosave_highschool" name="organisation" value="{{ s.organisation|default:"" }}" alt="{{ s.key }}" placeholder="{{ str.school_name }}" maxlength="500" style="width:200px;" />
+            {% endif %}
+        </div>
+        <div class="table_cell" style="white-space:nowrap;">
+            {% if application_readonly %}
+            {{ s.start|default:"" }} - {{ s.end|default:"" }}
+            {% else %}
+            <input type="text" class="autosave_highschool" name="start" value="{{ s.start|default:"" }}" placeholder="{{ str.start_date }}" maxlength="500" style="width:100px;" /> -
+            <input type="text" class="autosave_highschool" name="end" value="{{ s.end|default:"" }}" placeholder="{{ str.end_date }}" maxlength="500" style="width:100px;" />
+            {% endif %}
         </div>
         <div class="table_cell">
-            <input type="text" class="autosave_highschool" name="start" value="{{ s.start|default:"" }}" placeholder="{{ str.start_date }}" style="width:100px;"{% if application_submitted %} readonly{% endif %}> -
-            <input type="text" class="autosave_highschool" name="end" value="{{ s.end|default:"" }}" placeholder="{{ str.end_date }}" style="width:100px;"{% if application_submitted %} readonly{% endif %}>
-        </div>
-        <div class="table_cell" style="">
-            <input type="text" class="autosave_highschool" name="description" value="{{ s.description|default:"" }}" placeholder="{{ str.additional_info }}" style="width:410px;"{% if application_submitted %} readonly{% endif %}>
+            {% if application_readonly %}
+            {{ s.description|default:"" }}
+            {% else %}
+            <input type="text" class="autosave_highschool" name="description" value="{{ s.description|default:"" }}" placeholder="{{ str.additional_info }}" maxlength="500" style="width:410px;" />
+            {% endif %}
         </div>
     </div>
     {% endfor %}
-    {% if application_submitted %}{% else %}
+    {% if application_readonly %}{% else %}
     <div id="new_highschool" class="table_row" alt="{{ q.key }}">
         <div class="table_cell">
-            <input type="text" class="autosave_highschool new_highschool" name="organisation" placeholder="{{ str.school_name }}" style="width:200px;">
+            <input type="text" class="autosave_highschool new_highschool" name="organisation" placeholder="{{ str.school_name }}" maxlength="500" style="width:200px;">
         </div>
         <div class="table_cell">
-            <input type="text" class="autosave_highschool new_highschool" name="start" placeholder="{{ str.start_date }}" style="width:100px;"> -
-            <input type="text" class="autosave_highschool new_highschool" name="end" placeholder="{{ str.end_date }}" style="width:100px;">
+            <input type="text" class="autosave_highschool new_highschool" name="start" placeholder="{{ str.start_date }}" maxlength="500" style="width:100px;"> -
+            <input type="text" class="autosave_highschool new_highschool" name="end" placeholder="{{ str.end_date }}" maxlength="500" style="width:100px;">
         </div>
         <div class="table_cell" style="">
-            <input type="text" class="autosave_highschool new_highschool" name="description" placeholder="{{ str.additional_info }}" style="width:410px;">
+            <input type="text" class="autosave_highschool new_highschool" name="description" placeholder="{{ str.additional_info }}" maxlength="500" style="width:410px;">
         </div>
     </div>
     {% endif %}
 </div>
 
 <div style="margin-top:10px;">
-    <input type="checkbox" id="have_been_subsidised" name="have_been_subsidised"{% if person.have_been_subsidised %} checked{% endif %} style="margin:0px padding:0px; border:none;"{% if application_submitted %} disabled{% endif %} /><label for="have_been_subsidised" id="have_been_subsidised_label">{{ str.application_edu_been_subsidised }}</label>
+    <input type="checkbox" id="have_been_subsidised" name="have_been_subsidised"{% if person.have_been_subsidised %} checked{% endif %} style="margin:0px padding:0px; border:none;"{% if application_readonly %} disabled{% endif %} /><label for="have_been_subsidised" id="have_been_subsidised_label">{{ str.application_edu_been_subsidised }}</label>
 </div>
 
-{% if application_submitted %}{% else %}
+{% if application_readonly %}{% else %}
 <script>
     $(document).ready(function(){
         $('.new_highschool').keypress(function() {
@@ -53,7 +65,7 @@
 
         $('.autosave_highschool').change(function() {
             var input = $(this);
-            autoSave(input, '/application/cv', {
+            autoSave(input, '{{ post_url }}/cv', {
                 type: 'higher_education',
                 key: input.parent().parent().find('input[alt!=""]').attr('alt')
             });
@@ -61,7 +73,7 @@
 
         $('#have_been_subsidised').change(function() {
             var checkbox = $(this);
-            autoSave(checkbox, '/application/person', {
+            autoSave(checkbox, '{{ post_url }}/person', {
                 value: checkbox.is(':checked'),
             });
         });

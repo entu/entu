@@ -23,15 +23,15 @@ class Show(boRequestHandler):
                 'title': Translate('tasks')
             })
 
-            tree.append({
-                'link': '/questionary',
-                'title':  Translate('questionaries'),
-            })
-
-            tree.append({
-                'link': '/preferences',
-                'title':  Translate('preferences'),
-            })
+            if self.authorize('questionary') or self.authorize('reception'):
+                tree.append({
+                    'link': '',
+                    'title': Translate('administration'),
+                    'childs': [
+                        {'link': '/reception', 'title': Translate('reception')},
+                        {'link': '/questionary', 'title': Translate('questionaries')},
+                    ]
+                })
 
             self.view('dashboard', 'dashboard.html', {
                 'tree': tree,

@@ -1,5 +1,6 @@
 from google.appengine.ext import db
 
+from bo import *
 from database.dictionary import *
 from database.general import *
 from database.person import *
@@ -8,7 +9,7 @@ from database.curriculum import *
 
 
 # Application module
-class Reception(db.Model):
+class Reception(ChangeLogModel):
     curriculum              = db.ReferenceProperty(Curriculum, collection_name='receptions')
     name                    = db.ReferenceProperty(Dictionary, collection_name='reception_names')
     description             = db.ReferenceProperty(Dictionary, collection_name='reception_descriptions')
@@ -22,14 +23,14 @@ class Reception(db.Model):
     model_version           = db.StringProperty(default='A')
 
 
-class Application(db.Model):
+class Application(ChangeLogModel):
     reception               = db.ReferenceProperty(Reception, collection_name='applications')
-    status                  = db.StringProperty(default='selected', choices=['selected', 'unselected', 'submitted'])
+    status                  = db.StringProperty(default='selected', choices=['selected', 'unselected', 'submitted', 'accepted'])
     comment                 = db.TextProperty()
     model_version           = db.StringProperty(default='A')
 
 
-class ReceptionExam(db.Model):
+class ReceptionExam(ChangeLogModel):
     name                    = db.ReferenceProperty(Dictionary, collection_name='reception_exam_names')
     weight                  = db.IntegerProperty()
     is_milestone            = db.BooleanProperty()

@@ -8,11 +8,11 @@
 </p>
 <span style="color:gray; font-size:12px;">{{ reception.reception.description.translate|urlize|linebreaks }}</span>
 <div id="comment_{{ reception.reception.key }}"{% ifequal reception.application.status "unselected" %} style="display:none;"{% endifequal%}>
-    <textarea class="autosave_application_comment" name="comment" alt="{{ reception.reception.key }}" style="width:99%; margin-top:10px;" rows="3"{% if application_submitted %} readonly{% endif %}>{{ reception.application.comment|default:"" }}</textarea>
+    <textarea class="autosave_application_comment" name="comment" alt="{{ reception.reception.key }}" style="width:99%; margin-top:10px;" rows="3"{% if application_readonly %} disabled{% endif %}>{{ reception.application.comment|default:"" }}</textarea>
 </div>
 {% endfor %}
 
-{% if application_submitted %}{% else %}
+{% if application_readonly %}{% else %}
 <script>
     $(document).ready( function(){
         $(".cb-enable").click(function(){
@@ -24,7 +24,7 @@
 
             $('#comment_' + select.attr('alt')).slideDown();
 
-            autoSave(null, '/application', {
+            autoSave(null, '{{ post_url }}', {
                 key: select.attr('alt'),
                 field: 'selected',
                 value: 'true',
@@ -40,7 +40,7 @@
 
             $('#comment_' + select.attr('alt')).slideUp();
 
-            autoSave(null, '/application', {
+            autoSave(null, '{{ post_url }}', {
                 key: select.attr('alt'),
                 field: 'selected',
                 value: 'false',
@@ -48,7 +48,7 @@
         });
 
         $('.autosave_application_comment').change(function() {
-            autoSave($(this), '/application', {});
+            autoSave($(this), '{{ post_url }}', {});
         });
     });
 </script>

@@ -1,10 +1,11 @@
 from google.appengine.ext import db
 from datetime import date
 
+from bo import *
 from database import *
 
 
-class Questionary(db.Model):
+class Questionary(ChangeLogModel):
     name            = db.ReferenceProperty(Dictionary, collection_name='questionary_names')
     description     = db.ReferenceProperty(Dictionary, collection_name='questionary_descriptions')
     start_date      = db.DateProperty()
@@ -14,7 +15,7 @@ class Questionary(db.Model):
     model_version   = db.StringProperty(default='A')
 
 
-class Question(db.Model):
+class Question(ChangeLogModel):
     ordinal             = db.IntegerProperty(default=999);
     questionary         = db.ReferenceProperty(Questionary, collection_name='questions')
     name                = db.ReferenceProperty(Dictionary, collection_name='question_names')
@@ -24,15 +25,17 @@ class Question(db.Model):
     model_version       = db.StringProperty(default='A')
 
 
-class QuestionaryPerson(db.Model):
-    questionary     = db.ReferenceProperty(Questionary, collection_name='questionary_persons')
-    person          = db.ReferenceProperty(Person, collection_name='questionary_persons')
-    course          = db.ReferenceProperty(Course, collection_name='questionary_persons')
-    is_completed    = db.BooleanProperty(default=False)
-    model_version   = db.StringProperty(default='A')
+class QuestionaryPerson(ChangeLogModel):
+    questionary         = db.ReferenceProperty(Questionary, collection_name='questionary_persons')
+    person              = db.ReferenceProperty(Person, collection_name='questionary_persons')
+    course              = db.ReferenceProperty(Course, collection_name='questionary_persons')
+    is_completed        = db.BooleanProperty(default=False)
+    is_obsolete         = db.BooleanProperty(default=False)
+    model_version       = db.StringProperty(default='A')
+    aggregation_date    = db.DateProperty(default=date(2000, 1, 1))
 
 
-class QuestionAnswer(db.Model):
+class QuestionAnswer(ChangeLogModel):
     questionary_person  = db.ReferenceProperty(QuestionaryPerson, collection_name='answers')
     person              = db.ReferenceProperty(Person, collection_name='person_answers')
     target_person       = db.ReferenceProperty(Person, collection_name='target_person_answers')
@@ -42,5 +45,4 @@ class QuestionAnswer(db.Model):
     question_string     = db.StringProperty()
     answer              = db.TextProperty()
     datetime            = db.DateTimeProperty()
-    aggregation_date    = db.DateProperty(default=date(2000, 1, 1))
     model_version       = db.StringProperty(default='A')

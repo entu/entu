@@ -1,15 +1,17 @@
 from google.appengine.ext import db
 from google.appengine.ext import search
 from google.appengine.ext import blobstore
+from google.appengine.api import images
 from google.appengine.api import users
 from datetime import datetime
 
+from bo import *
 from database.dictionary import *
 from database.general import *
 from libraries.gmemsess import *
 
 
-class Person(search.SearchableModel):
+class Person(ChangeLogModel):
     apps_username           = db.StringProperty() # forename.surname@domain
     email                   = db.StringProperty()
     password                = db.StringProperty()
@@ -31,6 +33,13 @@ class Person(search.SearchableModel):
         if self.surname:
             name = name + ' ' + self.surname
         return name
+
+    @property
+    def primary_email(self):
+        if self.apps_username:
+            return self.apps_username
+        if self.email:
+            return self.email
 
     @property
     def photo(self):
@@ -63,7 +72,7 @@ class Person(search.SearchableModel):
                 return Person().get(sess['application_person_key'])
 
 
-class Cv(db.Model):
+class Cv(ChangeLogModel):
     type                = db.StringProperty(choices=['secondary_education', 'higher_education', 'workplace'])
     organisation        = db.StringProperty()
     start               = db.StringProperty()
@@ -72,7 +81,7 @@ class Cv(db.Model):
     model_version       = db.StringProperty(default='A')
 
 
-class Department(db.Model):
+class Department(ChangeLogModel):
     name                = db.ReferenceProperty(Dictionary, collection_name='department_names')
     is_academic         = db.BooleanProperty()
     parent_department   = db.SelfReferenceProperty(collection_name='child_departments')
@@ -80,27 +89,27 @@ class Department(db.Model):
     model_version       = db.StringProperty(default='A')
 
 
-class Contact(db.Model):
+class Contact(ChangeLogModel):
     #person              = db.ReferenceProperty(Person, collection_name='contacts')
     type                = db.StringProperty(choices=['email', 'phone', 'address', 'skype'])
     value               = db.StringProperty()
     model_version       = db.StringProperty(default='A')
 
 
-class Role(db.Model):
+class Role(ChangeLogModel):
     name            = db.ReferenceProperty(Dictionary, collection_name='role_names')
     rights          = db.StringListProperty()
     model_version   = db.StringProperty(default='A')
 
 
-class PersonRole(db.Model):
+class PersonRole(ChangeLogModel):
     person              = db.ReferenceProperty(Person, collection_name='roles')
     role                = db.ReferenceProperty(Role, collection_name='persons')
     department          = db.ReferenceProperty(Department, collection_name='persons')
     model_version       = db.StringProperty(default='A')
 
 
-class Document(db.Model):
+class Document(ChangeLogModel):
     file            = blobstore.BlobReferenceProperty()
     external_link   = db.StringProperty()
     types           = db.StringListProperty()
@@ -125,7 +134,7 @@ class Document(db.Model):
             pass
 
 
-class Conversation(db.Model):
+class Conversation(ChangeLogModel):
     types           = db.StringListProperty()
     entities        = db.ListProperty(db.Key)
     participants    = db.ListProperty(db.Key)
@@ -133,7 +142,7 @@ class Conversation(db.Model):
     model_version   = db.StringProperty(default='A')
 
 
-class Message(db.Model):
+class Message(ChangeLogModel):
     person          = db.ReferenceProperty(Person, collection_name='messages')
     text            = db.TextProperty()
     created         = db.DateTimeProperty(auto_now_add=True)

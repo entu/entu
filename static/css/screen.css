@@ -95,6 +95,7 @@ input, textarea {
   font-size: 13px;
   border: 1px solid #b9b9b9;
   height: auto;
+  color: #454a4e;
 }
 label {
   1display: block;
@@ -236,6 +237,57 @@ header nav a {
   padding: 10px;
   text-align: justify;
 }
+/* LEFTBOX */
+#leftbox {
+  width: 150px;
+  display: table-cell;
+  padding: 10px;
+  color: #FFFFFF;
+  background: #545454;
+  border: 2px #FFFFFF solid;
+  -moz-border-radius-topleft: 4px;
+  -moz-border-radius-bottomleft: 4px;
+  -webkit-border-top-left-radius: 4px;
+  -webkit-border-bottom-left-radius: 4px;
+}
+#leftbox label {
+  margin: 0px;
+  color: #E0E0E0;
+  letter-spacing: 2px;
+  font-weight: bold;
+}
+#leftbox input, #leftbox textarea {
+  padding: 2px;
+  color: #FFFFFF;
+  border: none;
+  background: #737373;
+  width: 200px;
+}
+/* RIGHTBOX */
+#rightbox {
+  width: 200px;
+  display: table-cell;
+  padding: 10px;
+  color: #FFFFFF;
+  background: #545454;
+  border: 2px #FFFFFF solid;
+  -moz-border-radius-topright: 4px;
+  -moz-border-radius-bottomright: 4px;
+  -webkit-border-top-right-radius: 4px;
+  -webkit-border-bottom-right-radius: 4px;
+}
+#rightbox label {
+  color: #E0E0E0;
+  letter-spacing: 2px;
+  font-weight: bold;
+}
+#rightbox input, #rightbox textarea {
+  padding: 2px;
+  color: #FFFFFF;
+  border: none;
+  background: #737373;
+  width: 200px;
+}
 /* LEFT MENU */
 #leftmenu {
   margin: 0px;
@@ -286,30 +338,6 @@ header nav a {
   border-top: 15px solid transparent;
   border-bottom: 15px solid transparent;
   border-right: 15px solid white;
-}
-/* RIGHTBOX */
-#rightbox {
-  width: 200px;
-  display: table-cell;
-  padding: 10px;
-  background: #545454;
-  border: 2px #FFFFFF solid;
-  -moz-border-radius-topright: 4px;
-  -moz-border-radius-bottomright: 4px;
-  -webkit-border-top-right-radius: 4px;
-  -webkit-border-bottom-right-radius: 4px;
-}
-#rightbox label {
-  color: #E0E0E0;
-  letter-spacing: 2px;
-  font-weight: bold;
-}
-#rightbox input, #rightbox textarea {
-  padding: 2px;
-  color: #FFFFFF;
-  border: none;
-  background: #737373;
-  width: 200px;
 }
 /* FOOTER */
 footer {
@@ -435,8 +463,6 @@ footer a {
 }
 /* BUTTONS */
 .button {
-  width: 200px;
-  margin: 20px auto;
   padding: 5px 10px 4px 10px;
   text-align: center;
   text-transform: uppercase;

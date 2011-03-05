@@ -75,13 +75,13 @@ class UserPreferences(db.Model):
     def current(self):
         user = users.get_current_user()
         if user:
-            user_id = user.user_id()
+            email = user.email()
         else:
-            user_id = 'guest'
+            email = 'guest'
 
-        u = UserPreferences().get_by_key_name(user_id)
+        u = UserPreferences().get_by_key_name(email)
         if not u:
-            u = UserPreferences(key_name=user_id)
+            u = UserPreferences(key_name=email)
             u.put()
         return u
 
@@ -92,6 +92,41 @@ class UserPreferences(db.Model):
             if u:
                 u.language = language
                 u.put()
+
+
+class ChangeLog(db.Model):
+    kind_name       = db.StringProperty()
+    property_name   = db.StringProperty()
+    user            = db.StringProperty()
+    datetime        = db.DateTimeProperty(auto_now_add=True)
+    old_value       = db.TextProperty()
+    new_value       = db.TextProperty()
+    model_version   = db.StringProperty(default='A')
+
+
+class ChangeLogModel(db.Model):
+    def put(self, email=None):
+        if not email:
+            user = users.get_current_user()
+            if user:
+                email = user.email()
+        if self.is_saved():
+            old = db.get(self.key())
+            for prop_key, prop_value in self.properties().iteritems():
+                if old:
+                    old_value = '%s' % prop_value.get_value_for_datastore(old)
+                else:
+                    old_value = None
+                new_value = '%s' % prop_value.get_value_for_datastore(self)
+                if old_value != new_value:
+                    cl = ChangeLog(parent=self)
+                    cl.kind_name = self.kind()
+                    cl.property_name = prop_key
+                    cl.user = email
+                    cl.old_value = old_value
+                    cl.new_value = new_value
+                    cl.put()
+        return db.Model.put(self)
 
 
 def Translate(key = None):
@@ -162,14 +197,20 @@ def SendMail(to, subject, message, html=True):
 
 
 def StrToList(string):
-    return [x.strip() for x in string.strip().replace('\n', ' ').replace(',', ' ').replace(';', ' ').split(' ') if len(x.strip()) > 0]
+    if string:
+        return [x.strip() for x in string.strip().replace('\n', ' ').replace(',', ' ').replace(';', ' ').split(' ') if len(x.strip()) > 0]
+    else:
+        return []
 
 def StrToKeyList(string):
-    strlist = StrToList(string)
-    keylist = []
-    for key in strlist:
-        keylist.append(db.Key(key))
-    return keylist
+    if string:
+        strlist = StrToList(string)
+        keylist = []
+        for key in strlist:
+            keylist.append(db.Key(key))
+        return keylist
+    else:
+        return []
 
 
 def UtcToLocalDateTime(utc_time):

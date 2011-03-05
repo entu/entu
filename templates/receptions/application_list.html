@@ -1,0 +1,68 @@
+{% extends "../main.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block breadcrumb %}
+<nav>
+    <ul id="crumbs">
+        <li><a href="/">{{ system_title }}</a></li>
+        <li><a href="/reception">{{ str.reception }}</a></li>
+        <li>{{ reception.name.translate }} ({{ reception.start_date|date:"d.m.Y" }} - {{ reception.end_date|date:"d.m.Y" }})</li>
+    </ul>
+</nav>
+{% endblock %}
+
+{% block content %}
+
+{% regroup applications|dictsortreversed:"status" by status as grouped %}
+
+<div id="content">
+    {% for group in grouped %}
+    <h2>{{ group.grouper }} <span>{{ group.list|length }}</span></h2>
+    <div class="table" style="margin-bottom:10px;">
+        {% for a in group.list|dictsort:"person" %}
+        <div class="table_row" alt="{{ a.application.parent.key }}">
+            {% if a.application.parent.photo.url %}
+            <img class="table_cell" src="{{ a.application.parent.photo.url }}=s32-c" style="width:32px;">
+            {% else %}
+            <div class="table_cell" style="width:32px;"></div>
+            {% endif %}
+            <div class="table_cell" style="width:250px">
+                {{ a.application.parent.displayname|default:"" }}
+            </div>
+            <div class="table_cell" style="width:200px">
+                {{ a.application.parent.primary_email }}
+            </div>
+            <div class="table_cell" style="width:100px">
+                {{ a.application.parent.idcode|default:"" }}
+            </div>
+            <div class="table_cell" style="width:100px; text-align:center;">
+                {{ a.application.parent.birth_date|date:"d.m.Y" }}
+            </div>
+            <div class="table_cell" style="width:20px; text-align:center;">
+                {{ a.application.parent.have_been_subsidised|yesno:"€, , " }}
+            </div>
+            <div class="table_cell" style="width:50px">
+                {% ifequal a.application.parent.gender "male" %}{{ str.gender_male }}{% endifequal %}
+                {% ifequal a.application.parent.gender "female" %}{{ str.gender_female }}{% endifequal %}
+            </div>
+            <a href="/reception/application/{{ a.application.parent.key }}" class="table_cell buttons" style="width:20px; height:25px; background: url('/images/edit.png') center center no-repeat;">
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $(".table_row").dblclick(function() {
+            key = $(this).attr('alt');
+            location.href = '/reception/application/' + key;
+            return false;
+        });
+    });
+</script>
+
+{% endblock %}

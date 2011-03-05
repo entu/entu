@@ -1,8 +1,10 @@
 from google.appengine.ext import db
 from google.appengine.ext import search
 
+from bo import *
 
-class Dictionary(db.Model):
+
+class Dictionary(ChangeLogModel):
     name            = db.StringProperty()
     english         = db.StringProperty(multiline=True)
     estonian        = db.StringProperty(multiline=True)

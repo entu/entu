@@ -8,7 +8,11 @@
             <span style="color:gray; font-size:11px; padding-left:10px;">({{ doc.file.size|filesizeformat }})</span>
         </div>
         <div class="table_cell" style="width:98%;">
-            <input type="text" class="document_name" name="name" value="{{ doc.title.translate }}" alt="{{ doc.key }}" placeholder="{{ str.additional_info }}" style="width:98%;"{% if application_submitted %} disabled{% endif %}>
+            {% if application_readonly %}
+            {{ doc.title.translate|default:"" }}
+            {% else %}
+            <input type="text" class="document_name" name="name" value="{{ doc.title.translate }}" alt="{{ doc.key }}" placeholder="{{ str.additional_info }}" style="width:98%;" />
+            {% endif %}
         </div>
     </div>
     {% endfor %}
@@ -18,11 +22,11 @@
             <span style="color:gray; font-size:11px; padding-left:10px;"></span>
         </div>
         <div class="table_cell" style="width:98%;">
-            <input type="text" class="document_name" name="name" placeholder="{{ str.additional_info }}" style="width:98%;">
+            <input type="text" class="document_name" name="name" placeholder="{{ str.additional_info }}" style="width:99%;" />
         </div>
     </div>
 </div>
-{% if application_submitted %}{% else %}
+{% if application_readonly %}{% else %}
 <div style="margin:10px;">
     <iframe name="document_iframe" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML);" style="display:none;"></iframe>
     <form id="document_form" method="post" action="{{ document_upload_url }}" target="document_iframe" enctype="multipart/form-data">

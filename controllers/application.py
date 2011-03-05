@@ -1,6 +1,3 @@
-from google.appengine.ext import blobstore
-from google.appengine.ext.webapp import blobstore_handlers
-from google.appengine.api import images
 from google.appengine.api import users
 from django.utils import simplejson
 import datetime
@@ -88,22 +85,28 @@ class ShowSignin(boRequestHandler):
 
 
 class ShowApplication(boRequestHandler):
-    def get(self):
-
+    def get(self, url):
         p =  Person().current_s(self)
-        now = datetime.now()
-
         if not p:
             self.redirect('/application/signin')
         else:
+            now = datetime.now()
             receptions = []
-            application_submitted = False
-            for reception in db.Query(Reception).order('end_date').fetch(1000):
-                a = db.Query(Application).ancestor(p).filter('reception', reception).get()
-                receptions.append({'reception': reception, 'application': a})
-                if a:
-                    if a.status == 'submitted':
-                        application_submitted = True
+            application_statuses = []
+            for a in db.Query(Application).ancestor(p).fetch(1000):
+                receptions.append({'reception': a.reception, 'application': a})
+                application_statuses = AddToList(a.status, application_statuses)
+
+            application_status = 'unselected'
+            application_readonly = False
+            if 'selected' in application_statuses:
+                application_status = 'selected'
+            if 'submitted' in application_statuses:
+                application_status = 'submitted'
+                application_readonly = True
+            if 'accepted' in application_statuses:
+                application_status = 'accepted'
+                application_readonly = True
 
             photo_upload_url = blobstore.create_upload_url('/document/upload')
             document_upload_url = blobstore.create_upload_url('/document/upload')
@@ -121,7 +124,9 @@ class ShowApplication(boRequestHandler):
                 messages = {}
 
             self.view('application', 'application/application.html', {
-                'application_submitted': application_submitted,
+                'post_url': '/application',
+                'application_status': application_status,
+                'application_readonly': application_readonly,
                 'receptions': receptions,
                 'person': p,
                 'date_days': range(1, 32),
@@ -137,7 +142,7 @@ class ShowApplication(boRequestHandler):
                 'messages': messages,
             })
 
-    def post(self):
+    def post(self, url):
         p =  Person().current_s(self)
         if p:
             key = self.request.get('key').strip()
@@ -179,7 +184,7 @@ class SubmitApplication(boRequestHandler):
                 SendMail(
                     to = a.reception.communication_email,
                     subject = Translate('application_submit_email1_subject') % p.displayname,
-                    message = Translate('application_submit_email1_message') % {'name': p.displayname, 'link': SYSTEM_URL + '/reception/' + str(p.key()) }
+                    message = Translate('application_submit_email1_message') % {'name': p.displayname, 'link': SYSTEM_URL + '/reception/application/' + str(p.key()) }
                 )
 
             if selected:
@@ -194,6 +199,7 @@ class SubmitApplication(boRequestHandler):
 
                 mes = Message(parent=con)
                 mes.text = Translate('application_submit_log_message')
+                mes.person = p
                 mes.put()
 
                 emails = []
@@ -342,7 +348,7 @@ class PostMessage(boRequestHandler):
                 SendMail(
                     to = emails,
                     subject = Translate('application_message_email1_subject') % p.displayname,
-                    message = Translate('application_message_email1_message') % {'name': p.displayname, 'link': SYSTEM_URL + '/reception/' + str(p.key()), 'text': mes.text }
+                    message = Translate('application_message_email1_message') % {'name': p.displayname, 'link': SYSTEM_URL + '/reception/application/' + str(p.key()), 'text': mes.text }
                 )
 
                 emails = []
@@ -368,7 +374,6 @@ class PostMessage(boRequestHandler):
 
 def main():
     Route([
-            ('/application', ShowApplication),
             ('/application/signin', ShowSignin),
             ('/application/person', EditPerson),
             ('/application/contact', EditContact),
@@ -376,6 +381,7 @@ def main():
             ('/application/message', PostMessage),
             ('/application/submit', SubmitApplication),
             ('/application/thanks', ShowSubmitApplication),
+            (r'/application(.*)', ShowApplication),
         ])
 
 

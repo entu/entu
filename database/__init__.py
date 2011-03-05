@@ -6,3 +6,4 @@ from database.curriculum import *
 from database.feedback import *
 from database.oldauth import *
 from database.aggregation import *
+from database.application import *
