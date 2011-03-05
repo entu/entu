@@ -33,20 +33,17 @@ class zReception(db.Model):
         description.estonian = self.description_estonian
         description.english = self.description_english
 
-        curriculum = GetZoin('Curriculum', self.curriculum)
-        manager = GetZoin('Person', self.manager)
-
-        r.curriculum = curriculum
+        r.curriculum = GetZoin('Curriculum', self.curriculum)
         r.name = name.add()
         r.description = description.add()
         r.subsidized_places = self.subsidized_places
         r.start_date = self.start_date
         r.end_date = self.end_date
-        r.manager = manager
+        r.manager = GetZoin('Person', self.manager)
         r.communication_email = self.communication_email
         r.is_published = self.is_published
 
-        r.put()
+        r.put('zimport')
 
         AddZoin(
             entity_kind = 'Reception',

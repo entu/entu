@@ -169,17 +169,35 @@ transformers:
       external_name: idcode
       import_transform: transform.none_if_empty(unicode)
 
-    - property: gender_estonian
-      external_name: gender_estonian
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: gender_english
-      external_name: gender_english
+    - property: gender
+      external_name: gender
       import_transform: transform.none_if_empty(unicode)
 
     - property: birth_date
       external_name: birth_date
       import_transform: transform.import_date_time('%Y-%m-%d')
+
+
+- kind: zPersonRole
+  connector: csv
+  connector_options:
+    #encoding: utf16
+  property_map:
+    - property: __key__
+      external_name: key_name
+      import_transform: transform.create_foreign_key('zPersonRole')
+
+    - property: person
+      external_name: person
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: role
+      external_name: role
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: department
+      external_name: department
+      import_transform: transform.none_if_empty(unicode)
 
 
 - kind: zReception
@@ -238,6 +256,28 @@ transformers:
     - property: is_published
       external_name: is_published
       import_transform: transform.regexp_bool('true', re.IGNORECASE)
+
+
+- kind: zRole
+  connector: csv
+  connector_options:
+    #encoding: utf16
+  property_map:
+    - property: __key__
+      external_name: key_name
+      import_transform: transform.create_foreign_key('zRole')
+
+    - property: name_estonian
+      external_name: name_estonian
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: name_english
+      external_name: name_english
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: rights
+      external_name: rights
+      import_transform: transform.none_if_empty(unicode)
 
 
 - kind: zSchoolList

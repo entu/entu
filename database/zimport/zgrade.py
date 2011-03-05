@@ -4,32 +4,6 @@ from database.zimport.zoin import *
 from database.grade import *
 
 
-"""class zGrade(db.Model):
-    student         = db.ReferenceProperty(Person, collection_name='received_grades')
-    teacher         = db.ReferenceProperty(Person, collection_name='given_grades')
-    date            = db.DateProperty()
-    name            = db.ReferenceProperty(Dictionary, collection_name='grade_names')
-    equivalent      = db.IntegerProperty()
-    credit_points   = db.FloatProperty()
-    school          = db.ReferenceProperty(Dictionary, collection_name='school_names')
-    subject         = db.ReferenceProperty(Dictionary, collection_name='grade_subject_names')
-    teacher_name    = db.StringProperty()
-    model_version   = db.StringProperty(default='A')
-
-
-class zRatingScale(db.Model):
-    name            = db.ReferenceProperty(Dictionary, collection_name='rating_scale_names')
-    model_version   = db.StringProperty(default='A')
-
-
-class zGradeDefinition(db.Model):
-    rating_scale    = db.ReferenceProperty(RatingScale, collection_name='grade_definitions')
-    name            = db.ReferenceProperty(Dictionary, collection_name='grade_definition_names')
-    is_positive     = db.BooleanProperty()
-    equivalent      = db.IntegerProperty()
-    model_version   = db.StringProperty(default='A')"""
-
-
 class zExam(db.Model):
     name_estonian           = db.StringProperty()
     name_english            = db.StringProperty()
@@ -57,18 +31,15 @@ class zExam(db.Model):
         description.estonian = self.description_estonian
         description.english = self.description_english
 
-        examiner = GetZoin('Person', self.examiner)
-        manager = GetZoin('Person', self.manager)
-
         e.name = name.add()
         e.description = description.add()
-        e.examiner = examiner
+        e.examiner = GetZoin('Person', self.examiner)
         e.registration_start_date = self.registration_start_date
         e.rankings_date = self.rankings_date
         e.type = self.type
-        e.manager = manager
+        e.manager = GetZoin('Person', self.manager)
         e.rating_scale = self.rating_scale
-        e.put()
+        e.put('zimport')
 
         AddZoin(
             entity_kind = 'Exam',
@@ -79,7 +50,33 @@ class zExam(db.Model):
         self.delete()
 
 
-"""class zExamGroup(db.Model):
+"""class zGrade(db.Model):
+    student         = db.ReferenceProperty(Person, collection_name='received_grades')
+    teacher         = db.ReferenceProperty(Person, collection_name='given_grades')
+    date            = db.DateProperty()
+    name            = db.ReferenceProperty(Dictionary, collection_name='grade_names')
+    equivalent      = db.IntegerProperty()
+    credit_points   = db.FloatProperty()
+    school          = db.ReferenceProperty(Dictionary, collection_name='school_names')
+    subject         = db.ReferenceProperty(Dictionary, collection_name='grade_subject_names')
+    teacher_name    = db.StringProperty()
+    model_version   = db.StringProperty(default='A')
+
+
+class zRatingScale(db.Model):
+    name            = db.ReferenceProperty(Dictionary, collection_name='rating_scale_names')
+    model_version   = db.StringProperty(default='A')
+
+
+class zGradeDefinition(db.Model):
+    rating_scale    = db.ReferenceProperty(RatingScale, collection_name='grade_definitions')
+    name            = db.ReferenceProperty(Dictionary, collection_name='grade_definition_names')
+    is_positive     = db.BooleanProperty()
+    equivalent      = db.IntegerProperty()
+    model_version   = db.StringProperty(default='A')
+
+
+class zExamGroup(db.Model):
     exam                = db.ReferenceProperty(Exam, collection_name='exam_groups')
     first_entry_time    = db.DateTimeProperty()         # Time of first student entry
     last_entry_time     = db.DateTimeProperty()         # Time of last student entry

@@ -54,7 +54,7 @@ class zCurriculum(db.Model):
         c.degree = degree.add()
         c.state = self.state
 
-        c.put()
+        c.put('zimport')
 
         AddZoin(
             entity_kind = 'Curriculum',
