@@ -10,6 +10,7 @@ from google.appengine.ext.webapp import util
 from django.core.validators import email_re
 
 from datetime import timedelta
+import random
 
 from settings import *
 
@@ -25,11 +26,11 @@ class boRequestHandler(webapp.RequestHandler):
         from database.feedback import *
 
         if db.Query(QuestionaryPerson).filter('person', Person().current).filter('is_completed', False).filter('is_obsolete', False).get():
-            path = str(self.request.url)
-            Cache().set('redirect_after_feedback', path)
-            self.redirect('/feedback')
-            return False
-            #return True
+            #path = str(self.request.url)
+            #Cache().set('redirect_after_feedback', path)
+            #self.redirect('/feedback')
+            #return False
+            return True
         else:
             if controller and users.is_current_user_admin() == False:
                 rights = []
@@ -65,6 +66,14 @@ class boRequestHandler(webapp.RequestHandler):
             values['logouturl'] = users.create_logout_url('/')
             path = os.path.join(os.path.dirname(__file__), 'templates', templatefile)
             self.response.out.write(template.render(path, values))
+
+    def echo(self, string, newline=True):
+        self.response.out.write(string)
+        if newline:
+            self.response.out.write('\n')
+
+    def header(self, key, value):
+        self.response.headers[key] = value
 
 
 class UserPreferences(db.Model):
@@ -172,7 +181,7 @@ class Cache:
         return memcache.get(key)
 
 
-def SendMail(to, subject, message, html=True):
+def SendMail(to, subject, message, reply_to=None, html=True, attachments=None):
     valid_to = []
     if isinstance(to, ListType):
         for t in to:
@@ -184,6 +193,9 @@ def SendMail(to, subject, message, html=True):
     if len(valid_to) > 0:
         m = mail.EmailMessage()
         m.sender = SYSTEM_EMAIL
+        if reply_to:
+            if email_re.match(reply_to):
+                m.reply_to = reply_to
         m.bcc = SYSTEM_EMAIL
         m.to = valid_to
         m.subject = SYSTEM_EMAIL_PREFIX + subject
@@ -191,6 +203,8 @@ def SendMail(to, subject, message, html=True):
             m.html = message
         else:
             m.body = message
+        if attachments:
+            m.attachments = attachments
         m.send()
 
         return True
@@ -213,16 +227,26 @@ def StrToKeyList(string):
         return []
 
 
+def rReplace(s, old, new, occurrence):
+    li = s.rsplit(old, occurrence)
+    return new.join(li)
+
+
 def UtcToLocalDateTime(utc_time):
     return utc_time + timedelta(minutes=UserPreferences().current.timezone)
 
 
-def AddToList(s_value, s_list=[], unique=True):
-    s_list.append(s_value)
+def AddToList(s_value=None, s_list=[], unique=True):
+    if s_value:
+        s_list.append(s_value)
     if unique==True:
         return list(set(s_list))
     else:
         return s_list
+
+def RandomColor(r1=0, r2=255, g1=0, g2=255, b1=0, b2=255):
+    return (('0'+(hex(random.randint(r1, r2))[2:]))[-2:] + ('0'+(hex(random.randint(g1, g2))[2:]))[-2:] + ('0'+(hex(random.randint(b1, b2))[2:]))[-2:]).upper()
+
 
 def ImageRescale(img_data, width, height, halign='middle', valign='middle'):
     image = images.Image(img_data)
