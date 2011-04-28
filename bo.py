@@ -1,5 +1,6 @@
 import os
 from types import ListType
+from pytz.gae import pytz
 from google.appengine.api import mail
 from google.appengine.api import users
 from google.appengine.api import memcache
@@ -8,9 +9,13 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp import util
 from django.core.validators import email_re
+from django.template.defaultfilters import striptags
+from django.utils import simplejson
 
 from datetime import timedelta
 import random
+import time
+import logging
 
 from settings import *
 
@@ -21,11 +26,16 @@ def Route(url_mapping):
 
 
 class boRequestHandler(webapp.RequestHandler):
+    def __init__(self, *args, **kwargs):
+        self.starttime = time.time()
+        webapp.RequestHandler.__init__(self, *args, **kwargs)
+
     def authorize(self, controller=None):
         from database.person import *
-        from database.feedback import *
+        #from database.feedback import *
 
-        if db.Query(QuestionaryPerson).filter('person', Person().current).filter('is_completed', False).filter('is_obsolete', False).get():
+        #if db.Query(QuestionaryPerson).filter('person', Person().current).filter('is_completed', False).filter('is_obsolete', False).get():
+        if 1==2:
             #path = str(self.request.url)
             #Cache().set('redirect_after_feedback', path)
             #self.redirect('/feedback')
@@ -44,6 +54,8 @@ class boRequestHandler(webapp.RequestHandler):
                 return True
 
     def view(self, page_title, templatefile, values={}):
+        controllertime = (time.time() - self.starttime)
+        logging.debug('Controller: %ss' % round(controllertime, 2))
         from database.person import *
 
         browser = str(self.request.headers['User-Agent'])
@@ -66,11 +78,17 @@ class boRequestHandler(webapp.RequestHandler):
             values['logouturl'] = users.create_logout_url('/')
             path = os.path.join(os.path.dirname(__file__), 'templates', templatefile)
             self.response.out.write(template.render(path, values))
+        viewtime = (time.time() - self.starttime)
+        logging.debug('View: %ss' % round((viewtime - controllertime), 2))
+        logging.debug('Total: %ss' % round(viewtime, 2))
 
     def echo(self, string, newline=True):
         self.response.out.write(string)
         if newline:
             self.response.out.write('\n')
+
+    def echo_json(self, dictionary):
+        self.response.out.write(simplejson.dumps(dictionary))
 
     def header(self, key, value):
         self.response.headers[key] = value
@@ -78,7 +96,7 @@ class boRequestHandler(webapp.RequestHandler):
 
 class UserPreferences(db.Model):
     language = db.StringProperty(default=SYSTEM_LANGUAGE)
-    timezone = db.IntegerProperty(default=SYSTEM_TIMEZONE)
+    timezone = db.StringProperty(default=SYSTEM_TIMEZONE)
 
     @property
     def current(self):
@@ -94,23 +112,21 @@ class UserPreferences(db.Model):
             u.put()
         return u
 
-    def set_language(self, language):
+    def set(self, field, value):
         user = users.get_current_user()
-        if user and language in ['estonian', 'english']:
-            u = UserPreferences().get_by_key_name(user.user_id())
+        if user:
+            u = UserPreferences().get_by_key_name(user.email())
             if u:
-                u.language = language
+                setattr(u, field, value)
                 u.put()
 
 
-class ChangeLog(db.Model):
+class ChangeLog(db.Expando):
     kind_name       = db.StringProperty()
     property_name   = db.StringProperty()
     user            = db.StringProperty()
     datetime        = db.DateTimeProperty(auto_now_add=True)
-    old_value       = db.TextProperty()
-    new_value       = db.TextProperty()
-    model_version   = db.StringProperty(default='A')
+    model_version   = db.StringProperty(default='B')
 
 
 class ChangeLogModel(db.Model):
@@ -123,19 +139,47 @@ class ChangeLogModel(db.Model):
             old = db.get(self.key())
             for prop_key, prop_value in self.properties().iteritems():
                 if old:
-                    old_value = '%s' % prop_value.get_value_for_datastore(old)
+                    old_value = prop_value.get_value_for_datastore(old)
+                    if old_value == []:
+                        old_value = None
                 else:
                     old_value = None
-                new_value = '%s' % prop_value.get_value_for_datastore(self)
+                new_value = prop_value.get_value_for_datastore(self)
+                if new_value == []:
+                    new_value = None
                 if old_value != new_value:
                     cl = ChangeLog(parent=self)
                     cl.kind_name = self.kind()
                     cl.property_name = prop_key
                     cl.user = email
-                    cl.old_value = old_value
-                    cl.new_value = new_value
+                    if old_value:
+                        cl.old_value = old_value
+                    if new_value:
+                        cl.new_value = new_value
                     cl.put()
         return db.Model.put(self)
+
+    @property
+    def last_change(self):
+        return db.Query(ChangeLog).ancestor(self).order('-datetime').get()
+
+
+    def history(self, property=None, datetime=None):
+        cl = db.Query(ChangeLog).ancestor(self)
+        """if property:
+            cl.filter('property_name', property)
+        if datetime:
+            cl.filter('datetime <=', datetime)
+        cl.order('datetime')
+        cl.fetch(10000)
+
+        h = []
+        for c in cl:
+            h.append({
+                'datetime' = c.datetime,
+                'value' = c.new_value,
+            })"""
+
 
 
 def Translate(key = None):
@@ -156,7 +200,7 @@ def Translate(key = None):
 
 
 class Cache:
-    def set(self, key, value=None, user_specific=True, time=1209600):
+    def set(self, key, value=None, user_specific=True, time=3600):
         if user_specific == True:
             user = users.get_current_user()
             if user:
@@ -175,9 +219,10 @@ class Cache:
         return value
 
     def get(self, key, user_specific=True):
-        user = users.get_current_user()
-        if user_specific == True and user:
-            key = key + '_' + user.user_id()
+        if user_specific == True:
+            user = users.get_current_user()
+            if user:
+                key = key + '_' + user.user_id()
         return memcache.get(key)
 
 
@@ -233,16 +278,37 @@ def rReplace(s, old, new, occurrence):
 
 
 def UtcToLocalDateTime(utc_time):
-    return utc_time + timedelta(minutes=UserPreferences().current.timezone)
+    utc = pytz.timezone('UTC')
+    tz = pytz.timezone(UserPreferences().current.timezone)
+    d_tz = utc.normalize(utc.localize(utc_time))
+    d_utc = d_tz.astimezone(tz)
+    return d_utc
+
+
+def UtcFromLocalDateTime(local_time):
+    utc = pytz.timezone('UTC')
+    tz = pytz.timezone(UserPreferences().current.timezone)
+    d_tz = tz.normalize(tz.localize(local_time))
+    d_utc = d_tz.astimezone(utc)
+    return d_utc
 
 
 def AddToList(s_value=None, s_list=[], unique=True):
     if s_value:
         s_list.append(s_value)
     if unique==True:
-        return list(set(s_list))
+        return GetUniqueList(s_list)
     else:
         return s_list
+
+
+def GetUniqueList(s_list):
+    return list(set(s_list))
+
+
+def StripTags(string):
+    return striptags(string)
+
 
 def RandomColor(r1=0, r2=255, g1=0, g2=255, b1=0, b2=255):
     return (('0'+(hex(random.randint(r1, r2))[2:]))[-2:] + ('0'+(hex(random.randint(g1, g2))[2:]))[-2:] + ('0'+(hex(random.randint(b1, b2))[2:]))[-2:]).upper()

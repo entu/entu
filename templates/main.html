@@ -7,7 +7,7 @@
 
         <link rel="stylesheet" href="/css/screen.css" />
 
-        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
         <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
 
         {% block head %}
@@ -35,9 +35,9 @@
     <body>
         <header>
             <h1><a href="/">{{ system_title }}</a></h1>
-            <nav>
+            <nav id="top_nav">
                 {% if user %}
-                <i>{{ str.welcome }} {{ user.displayname|default:"" }}!</i> | <a href="{{ logouturl|escape }}">{{ str.logout }}</a>
+                <i>{{ str.welcome }} <a href="/preferences">{{ user.displayname|default:"" }}</a>!</i> | <a href="{{ logouturl|escape }}">{{ str.logout }}</a>
                 {% else %}
                 <a href="{{ loginurl|escape }}" style="border:none;">{{ str.login }}</a>
                 {% endif %}
@@ -55,7 +55,6 @@
         </section>
 
         <footer>
-            <a href="http://validator.w3.org/check?uri=referer">Copyright ©2010</a>
         </footer>
     </body>
 </html>

@@ -24,10 +24,10 @@
         </div>
         <div class="table_row">
             <div class="header_cell">
-                {{ str.user }}:
+                {{ str.email }}:
             </div>
             <div class="table_cell">
-                {{ person.key.name }}
+                {{ person.email }}
             </div>
         </div>
         <div class="table_row">
@@ -35,11 +35,23 @@
                 {{ str.language }}:
             </div>
             <div class="table_cell">
-                <select id="language" name="language">
+                <select id="language" name="language" class="autosave">
                     <option value="estonian"{% ifequal preferences.language "estonian" %} selected{% endifequal %}>{{ str.lang_estonian }}</option>
-                    <option value="english"{% ifequal preferences.language "english" %} selected{% endifequal %}>{{ str.lang_english }}</option>
-                    <option value="russian"{% ifequal preferences.language "russian" %} selected{% endifequal %}>{{ str.lang_russian }}</option>
-                </select><br />
+                    <!--option value="english"{% ifequal preferences.language "english" %} selected{% endifequal %}>{{ str.lang_english }}</option>
+                    <option value="russian"{% ifequal preferences.language "russian" %} selected{% endifequal %}>{{ str.lang_russian }}</option-->
+                </select>
+            </div>
+        </div>
+        <div class="table_row">
+            <div class="header_cell">
+                {{ str.timezone }}:
+            </div>
+            <div class="table_cell">
+                <select id="timezone" name="timezone" class="autosave">
+                    {% for tz in timezones %}
+                    <option value="{{ tz }}"{% ifequal preferences.timezone tz %} selected{% endifequal %}>{{ tz }}</option>
+                    {% endfor %}
+                </select>
             </div>
         </div>
     </div>
@@ -48,11 +60,18 @@
 
 <script>
     $(document).ready(function(){
-        $('#language').change(function() {
-            $.post('/preferences', { language: $(this).val() }, function(data) {
-                window.location = '';
-            });
+        $('.autosave').change(function() {
+            autoSave($(this), {});
         });
+
+        function autoSave(input, data) {
+            if(!data['field']) data['field'] = input.attr('name');
+            if(!data['value']) data['value'] = input.val();
+
+            $.post('/preferences', data, function(json) {
+                input.effect("highlight", {}, 1000);
+            }, "json");
+        }
     });
 </script>
 
