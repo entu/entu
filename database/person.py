@@ -25,6 +25,7 @@ class Person(ChangeLogModel):
     birth_date              = db.DateProperty()
     created                 = db.DateTimeProperty(auto_now_add=True)
     have_been_subsidised    = db.BooleanProperty(default=False)
+    roles                   = db.ListProperty(db.Key)
     last_seen               = db.DateTimeProperty()
     model_version           = db.StringProperty(default='A')
     seeder                  = db.ListProperty(db.Key)
@@ -81,6 +82,11 @@ class Person(ChangeLogModel):
     @property
     def contacts(self):
         return db.Query(Contact).ancestor(self).fetch(1000)
+
+    @property
+    def roles2(self):
+        if self.roles:
+            return Roles().Get(self.roles)
 
     @property
     def current(self, web=None):
@@ -162,12 +168,12 @@ class Role(ChangeLogModel):
     rights          = db.StringListProperty()
     model_version   = db.StringProperty(default='A')
 
-
-class PersonRole(ChangeLogModel):
-    person              = db.ReferenceProperty(Person, collection_name='roles')
-    role                = db.ReferenceProperty(Role, collection_name='persons')
-    department          = db.ReferenceProperty(Department, collection_name='persons')
-    model_version       = db.StringProperty(default='A')
+    @property
+    def displayname(self):
+        if self.name:
+            return self.name.translate()
+        else:
+            return ''
 
 
 class Document(ChangeLogModel):
