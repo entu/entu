@@ -3,6 +3,8 @@ from google.appengine.ext import search
 from google.appengine.ext import blobstore
 from google.appengine.api import images
 from google.appengine.api import users
+from google.appengine.api import taskqueue
+from datetime import date
 from datetime import datetime
 
 from bo import *
@@ -12,6 +14,7 @@ from libraries.gmemsess import *
 
 
 class Person(ChangeLogModel):
+    user                    = db.UserProperty()
     apps_username           = db.StringProperty() # forename.surname@domain
     email                   = db.StringProperty()
     password                = db.StringProperty()
@@ -24,14 +27,20 @@ class Person(ChangeLogModel):
     have_been_subsidised    = db.BooleanProperty(default=False)
     last_seen               = db.DateTimeProperty()
     model_version           = db.StringProperty(default='A')
+    seeder                  = db.ListProperty(db.Key)
+    leecher                 = db.ListProperty(db.Key)
 
     @property
     def displayname(self):
         name = ''
-        if self.forename:
-            name = name + self.forename
-        if self.surname:
-            name = name + ' ' + self.surname
+        if self.forename or self.surname:
+            if self.forename:
+                name = name + self.forename
+            if self.surname:
+                name = name + ' ' + self.surname
+        else:
+            if self.primary_email:
+                name = self.primary_email
         return name
 
     @property
@@ -42,8 +51,32 @@ class Person(ChangeLogModel):
             return self.email
 
     @property
+    def emails(self):
+        emails = []
+        if self.email:
+            emails = AddToList(self.email, emails)
+        if self.apps_username:
+            emails = AddToList(self.apps_username, emails)
+        for contact in db.Query(Contact).ancestor(self).filter('type', 'email').fetch(1000):
+            emails = AddToList(contact.value, emails)
+        return emails
+
+    @property
     def photo(self):
         return db.Query(Document).filter('types', 'person_photo').filter('entities', self.key()).get()
+
+    @property
+    def age(self):
+        if self.birth_date:
+            today = date.today()
+            try: # raised when birth date is February 29 and the current year is not a leap year
+                birthday = self.birth_date.replace(year=today.year)
+            except ValueError:
+                birthday = self.birth_date.replace(year=today.year, day=self.birth_date.day-1)
+            if birthday > today:
+                return today.year - self.birth_date.year - 1
+            else:
+                return today.year - self.birth_date.year
 
     @property
     def contacts(self):
@@ -58,8 +91,7 @@ class Person(ChangeLogModel):
                 person = Person()
                 person.apps_username = user.email()
                 person.idcode = 'guest'
-            person.last_seen = datetime.today()
-            person.save()
+                person.put()
             return person
 
 
@@ -71,8 +103,38 @@ class Person(ChangeLogModel):
             if 'application_person_key' in sess:
                 return Person().get(sess['application_person_key'])
 
+    @property
+    def changed(self):
+        date = self.last_change.datetime
 
-class Cv(ChangeLogModel):
+        document = db.Query(Document).filter('entities', self.key()).filter('types', 'application_document').order('-created').get()
+        if document:
+            docs_date = document.created
+            if docs_date > date:
+                date = docs_date
+
+        conversation = db.Query(Conversation).filter('entities', self.key()).filter('types', 'application').get()
+        if conversation:
+            message = db.Query(Message).ancestor(conversation).order('-created').get()
+            if message:
+                mess_date = message.created
+                if mess_date > date:
+                    date = mess_date
+
+        return date
+
+    def add_leecher(self, bubble_key):
+        self.leecher = AddToList(bubble_key, self.leecher)
+        self.put()
+        taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'add', 'bubble_key': str(bubble_key), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
+
+    def remove_leecher(self, bubble_key):
+        self.leecher.remove(bubble_key)
+        self.put()
+        taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'remove', 'bubble_key': str(bubble_key), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
+
+
+class Cv(ChangeLogModel): #parent=Person()
     type                = db.StringProperty(choices=['secondary_education', 'higher_education', 'workplace'])
     organisation        = db.StringProperty()
     start               = db.StringProperty()
@@ -89,8 +151,7 @@ class Department(ChangeLogModel):
     model_version       = db.StringProperty(default='A')
 
 
-class Contact(ChangeLogModel):
-    #person              = db.ReferenceProperty(Person, collection_name='contacts')
+class Contact(ChangeLogModel): #parent=Person()
     type                = db.StringProperty(choices=['email', 'phone', 'address', 'skype'])
     value               = db.StringProperty()
     model_version       = db.StringProperty(default='A')
@@ -115,23 +176,18 @@ class Document(ChangeLogModel):
     types           = db.StringListProperty()
     entities        = db.ListProperty(db.Key)
     title           = db.ReferenceProperty(Dictionary, collection_name='document_titles')
+    content_type    = db.StringProperty()
     uploader        = db.ReferenceProperty(Person, collection_name='uploaded_documents')
     owners          = db.ListProperty(db.Key)
     editors         = db.ListProperty(db.Key)
     viewers         = db.ListProperty(db.Key)
     created         = db.DateTimeProperty(auto_now_add=True)
+    visibility      = db.StringProperty(default='private', choices=['private', 'domain', 'public'])
     model_version   = db.StringProperty(default='A')
 
     @property
     def url(self):
-        try:
-            image_types = ('image/bmp', 'image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/tiff', 'image/x-icon')
-            if self.file.content_type in image_types:
-                return images.get_serving_url(self.file.key())
-            else:
-                return '/document/' + str(self.key())
-        except:
-            pass
+        return '/document/' + str(self.key())
 
 
 class Conversation(ChangeLogModel):
@@ -141,8 +197,18 @@ class Conversation(ChangeLogModel):
     created         = db.DateTimeProperty(auto_now_add=True)
     model_version   = db.StringProperty(default='A')
 
+    def add_message(self, message, person = None):
+        self.participants = AddToList(person, self.participants)
+        self.put()
 
-class Message(ChangeLogModel):
+        mes = Message(parent=self)
+        if person:
+            mes.person = person
+        mes.text = message
+        mes.put()
+
+
+class Message(ChangeLogModel): #parent=Conversation()
     person          = db.ReferenceProperty(Person, collection_name='messages')
     text            = db.TextProperty()
     created         = db.DateTimeProperty(auto_now_add=True)
