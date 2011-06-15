@@ -37,7 +37,14 @@
             <h1><a href="/">{{ system_title }}</a></h1>
             <nav id="top_nav">
                 {% if user %}
-                <i>{{ str.welcome }} <a href="/preferences">{{ user.displayname|default:"" }}</a>!</i> | <a href="{{ logouturl|escape }}">{{ str.logout }}</a>
+                <i>{{ str.welcome }} <a href="/preferences">{{ user.displayname|default:"" }}</a>!</i>
+                | 
+                <select id="current_role" name="current_role" class="autosave">
+                    {% for pr in user.roles %}
+                    <option value="{{ pr }}"{% ifequal user.current_role pr %} selected{% endifequal %}>{{ pr }}</option>
+                    {% endfor %}
+                </select>                
+                | <a href="{{ logouturl|escape }}">{{ str.logout }}</a>
                 {% else %}
                 <a href="{{ loginurl|escape }}" style="border:none;">{{ str.login }}</a>
                 {% endif %}
