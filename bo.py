@@ -16,6 +16,8 @@ from datetime import timedelta
 import random
 import time
 import logging
+import string
+import re
 
 from settings import *
 
@@ -56,6 +58,14 @@ class boRequestHandler(webapp.RequestHandler):
     def view(self, page_title, templatefile, values={}):
         controllertime = (time.time() - self.starttime)
         logging.debug('Controller: %ss' % round(controllertime, 2))
+
+        al = AccessLog()
+        al.remote_addr = self.request.remote_addr
+        al.path = self.request.path[:500]
+        al.query_string = self.request.query_string[:500]
+        al.url = self.request.url[:500]
+        al.put()
+
         from database.person import *
 
         browser = str(self.request.headers['User-Agent'])
@@ -121,6 +131,15 @@ class UserPreferences(db.Model):
                 u.put()
 
 
+class AccessLog(db.Model):
+    datetime        = db.DateTimeProperty(auto_now_add=True)
+    user            = db.UserProperty(auto_current_user_add=True)
+    remote_addr     = db.StringProperty()
+    url             = db.TextProperty()
+    path            = db.StringProperty()
+    model_version   = db.StringProperty(default='A')
+
+
 class ChangeLog(db.Expando):
     kind_name       = db.StringProperty()
     property_name   = db.StringProperty()
@@ -162,7 +181,6 @@ class ChangeLogModel(db.Model):
     @property
     def last_change(self):
         return db.Query(ChangeLog).ancestor(self).order('-datetime').get()
-
 
     def history(self, property=None, datetime=None):
         cl = db.Query(ChangeLog).ancestor(self)
@@ -225,21 +243,24 @@ class Cache:
                 key = key + '_' + user.user_id()
         return memcache.get(key)
 
+def CheckMailAddress(email):
+    return email_re.match((email))
+
 
 def SendMail(to, subject, message, reply_to=None, html=True, attachments=None):
     valid_to = []
     if isinstance(to, ListType):
         for t in to:
-            if email_re.match(t):
+            if CheckMailAddress(t):
                 valid_to.append(t)
     else:
-        if email_re.match(to):
+        if CheckMailAddress(to):
             valid_to.append(to)
     if len(valid_to) > 0:
         m = mail.EmailMessage()
         m.sender = SYSTEM_EMAIL
         if reply_to:
-            if email_re.match(reply_to):
+            if CheckMailAddress(reply_to):
                 m.reply_to = reply_to
         m.bcc = SYSTEM_EMAIL
         m.to = valid_to
@@ -275,6 +296,10 @@ def StrToKeyList(string):
 def rReplace(s, old, new, occurrence):
     li = s.rsplit(old, occurrence)
     return new.join(li)
+
+
+def StringToSortable(s):
+    return re.sub('[%s]' % re.escape(string.punctuation), '', s).lower().strip()
 
 
 def UtcToLocalDateTime(utc_time):
