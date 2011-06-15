@@ -1,3 +1,4 @@
+from google.appengine.api import users
 from google.appengine.ext import db
 
 from bo import *
@@ -6,24 +7,29 @@ from database.person import *
 
 
 class zPerson(db.Model):
-    apps_username       = db.StringProperty() # forename.surname@domain
+    user                = db.StringProperty() # forename.surname@domain
     forename            = db.StringProperty()
     surname             = db.StringProperty()
     idcode              = db.StringProperty()
     gender              = db.StringProperty()
     birth_date          = db.DateProperty()
+    leecher             = db.TextProperty()
+    seeder              = db.TextProperty()
 
     def zimport(self):
         p = GetZoin('Person', self.key().name())
         if not p:
             p = Person()
 
-        p.apps_username = self.apps_username
+        if self.user:
+            p.user = users.User(self.user)
         p.forename = self.forename
         p.surname = self.surname
         p.idcode = self.idcode
         p.gender = self.gender
         p.birth_date = self.birth_date
+        p.leecher = GetZoinKeyList('Bubble', self.leecher)
+        p.seeder = GetZoinKeyList('Bubble', self.seeder)
         p.put('zimport')
 
         AddZoin(
