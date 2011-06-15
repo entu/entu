@@ -3,6 +3,7 @@ from datetime import date
 
 from bo import *
 from database.bubble import *
+from database.person import *
 from database.zimport.zbubble import *
 from database.zimport.zoin import *
 
@@ -79,6 +80,20 @@ class Log(boRequestHandler):
         bubble.put()
 
 
+class PRUpdate(boRequestHandler): # copy roles from PersonRole
+    def get(self):
+
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+
+        for pr in PersonRole().all():
+            if not pr.person.roles:
+                pr.person.roles = []
+            
+            pr.person.roles = AddToList(pr.role.key(), pr.person.roles)
+            
+            pr.person.put()
+
+
 
 
 def main():
@@ -90,6 +105,7 @@ def main():
             ('/update/user2', PersonUser2),
             ('/update/grade', GradeI),
             ('/update/log3', Log),
+            ('/update/prupdate', PRUpdate),
         ])
 
 
