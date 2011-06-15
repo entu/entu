@@ -89,6 +89,11 @@ class Person(ChangeLogModel):
             return Roles().Get(self.roles)
 
     @property
+    def current_role(self):
+        if self.roles:
+            return Roles().Get(self.roles)[0]
+
+    @property
     def current(self, web=None):
         user = users.get_current_user()
         if user:
