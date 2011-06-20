@@ -13,6 +13,19 @@ from database.general import *
 from libraries.gmemsess import *
 
 
+class Role(ChangeLogModel):
+    name            = db.ReferenceProperty(Dictionary, collection_name='role_names')
+    rights          = db.StringListProperty()
+    model_version   = db.StringProperty(default='A')
+
+    @property
+    def displayname(self):
+        if self.name:
+            return self.name.translate()
+        else:
+            return ''
+
+
 class Person(ChangeLogModel):
     user                    = db.UserProperty()
     apps_username           = db.StringProperty() # forename.surname@domain
@@ -166,19 +179,6 @@ class Contact(ChangeLogModel): #parent=Person()
     type                = db.StringProperty(choices=['email', 'phone', 'address', 'skype'])
     value               = db.StringProperty()
     model_version       = db.StringProperty(default='A')
-
-
-class Role(ChangeLogModel):
-    name            = db.ReferenceProperty(Dictionary, collection_name='role_names')
-    rights          = db.StringListProperty()
-    model_version   = db.StringProperty(default='A')
-
-    @property
-    def displayname(self):
-        if self.name:
-            return self.name.translate()
-        else:
-            return ''
 
 
 class Document(ChangeLogModel):
