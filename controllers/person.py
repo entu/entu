@@ -14,10 +14,7 @@ class SetRole(boRequestHandler):
 
 def main():
     Route([
-            ('/person', ShowPersonFilter),
-            ('/person/list', ShowPersonList),
             ('/person/set_role', SetRole),
-            (r'/person(.*)', ShowPerson),
         ])
 
 
