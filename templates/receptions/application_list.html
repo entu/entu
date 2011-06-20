@@ -8,61 +8,47 @@
     <ul id="crumbs">
         <li><a href="/">{{ system_title }}</a></li>
         <li><a href="/reception">{{ str.reception }}</a></li>
-        <li>{{ reception.name.translate }} ({{ reception.start_date|date:"d.m.Y" }} - {{ reception.end_date|date:"d.m.Y" }})</li>
+        <li>{{ reception.name.translate|striptags }} ({{ reception.start_datetime|date:"d.m.Y" }} - {{ reception.end_datetime|date:"d.m.Y" }})</li>
     </ul>
 </nav>
 {% endblock %}
 
 {% block content %}
 
-{% regroup applications|dictsortreversed:"status" by status as grouped %}
-
 <div id="content">
-    {% for group in grouped %}
-    <h2>{{ group.grouper }} <span>{{ group.list|length }}</span></h2>
+    {% regroup leechers|dictsort:"grade_displayname" by grade_displayname as gradegroup %}
+    {% for grade in gradegroup %}
+    <h2>{{ grade.grouper }}<span>{{ grade.list|length }}</span></h2>
     <div class="table" style="margin-bottom:10px;">
-        {% for a in group.list|dictsort:"person" %}
-        <div class="table_row" alt="{{ a.application.parent.key }}">
-            {% if a.application.parent.photo.url %}
-            <img class="table_cell" src="{{ a.application.parent.photo.url }}=s32-c" style="width:32px;">
-            {% else %}
-            <div class="table_cell" style="width:32px;"></div>
-            {% endif %}
-            <div class="table_cell" style="width:250px">
-                {{ a.application.parent.displayname|default:"" }}
+        {% for p in grade.list|dictsort:"displayname" %}
+        <div class="table_row" alt="{{ p.key }}"{% if p.is_new %} style="font-weight:bold;"{% endif %}>
+            <div class="table_cell" style="padding:5px 0px 0px 0px;">
+                {% if p.is_new %}<img src="/images/unread.png" width="16" height="16" title="access:{{ p.access|date:"d.m.Y H:i:s" }} - change:{{ p.changed|date:"d.m.Y H:i:s" }}">{% endif %}
             </div>
+            {% if p.photo %}
+            <img class="table_cell" src="{{ p.photo.url }}/24/c" style="width:24px; height:24px;">
+            {% else %}
+            <div class="table_cell" style="width:24px; height:24px;"></div>
+            {% endif %}
+            <a class="table_cell" style="width:360px" href="/reception/application/{{ p.key }}">
+                {{ p.displayname|default:"" }}
+            </a>
             <div class="table_cell" style="width:200px">
-                {{ a.application.parent.primary_email }}
+                {{ p.primary_email }}
             </div>
             <div class="table_cell" style="width:100px">
-                {{ a.application.parent.idcode|default:"" }}
+                {{ p.idcode|default:"" }}
             </div>
             <div class="table_cell" style="width:100px; text-align:center;">
-                {{ a.application.parent.birth_date|date:"d.m.Y" }}
+                {{ p.birth_date|date:"d.m.Y" }}
             </div>
             <div class="table_cell" style="width:20px; text-align:center;">
-                {{ a.application.parent.have_been_subsidised|yesno:"€, , " }}
+                {{ p.have_been_subsidised|yesno:"€, , " }}
             </div>
-            <div class="table_cell" style="width:50px">
-                {% ifequal a.application.parent.gender "male" %}{{ str.gender_male }}{% endifequal %}
-                {% ifequal a.application.parent.gender "female" %}{{ str.gender_female }}{% endifequal %}
-            </div>
-            <a href="/reception/application/{{ a.application.parent.key }}" class="table_cell buttons" style="width:20px; height:25px; background: url('/images/edit.png') center center no-repeat;">
-            </a>
         </div>
         {% endfor %}
     </div>
     {% endfor %}
+    <a href="/rating/lock/{{ reception.key.id }}" class="button" style="float:right;">{{ str.rating_lock }}</a>
 </div>
-
-<script type="text/javascript">
-    $(document).ready(function(){
-        $(".table_row").dblclick(function() {
-            key = $(this).attr('alt');
-            location.href = '/reception/application/' + key;
-            return false;
-        });
-    });
-</script>
-
 {% endblock %}

@@ -1,4 +1,4 @@
-<h2 style="margin-top:30px;">{{ str.application_converstion }} <span>{{ str.application_converstion_desc }}</span></h2>
+<h2 style="margin-top:30px;">{{ str.application_converstion }} <span>{{ str.application_converstion_desc2 }}</span></h2>
 
 <div class="table" style="font-size:12px;">
     {% for message in messages|dictsort:"created" %}
@@ -23,9 +23,9 @@
 <textarea id="converstion_message" placeholder="{{ str.application_converstion_new_message }}" style="width:99%; margin-top:10px;" rows="3"></textarea>
 
 {% ifequal post_url "/reception" %}
-<a id="converstion_message_send_open" href="javascript:void(0);" class="button" style="float:right; margin:5px;">{{ str.application_converstion_submit_message_open }}</a>
+<a id="converstion_message_send_open" href="javascript:void(0);" class="button" style="float:right; margin:5px;">{{ str.application_converstion_submit_message }}</a>
 
-<a id="converstion_message_send_accept" href="javascript:void(0);" class="button" style="float:left; margin:5px;">{{ str.application_converstion_submit_message_accept }}</a>
+<!--a id="converstion_message_send_accept" href="javascript:void(0);" class="button" style="float:left; margin:5px;">{{ str.application_converstion_submit_message_accept }}</a-->
 <script>
     $(document).ready(function(){
         $('#converstion_message_send_open').click(function() {

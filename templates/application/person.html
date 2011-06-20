@@ -1,7 +1,7 @@
 <h2 style="margin-top:30px;">{{ str.application_personal }} <span>{{ str.application_personal_desc }}</span></h2>
 
 {% if person.photo %}
-<img id="application_photo_img" class="box" src="{{ person.photo.url }}=s150-c" width="150" height="150" style="float:right; margin-top:15px; margin-right:10px;" />
+<img id="application_photo_img" class="box" src="{{ person.photo.url }}/150/c" width="150" height="150" style="float:right; margin-top:15px; margin-right:10px;" />
 {% else %}
 <img id="application_photo_img" class="box" src="" width="150" height="150" style="float:right; margin-top:15px; margin-right:10px; display:none;" />
 {% endif %}
@@ -15,7 +15,7 @@
             {% if application_readonly %}
             {{ person.forename|default:"" }}
             {% else %}
-            <input type="text" name="forename" class="autosave_person" value="{{ person.forename|default:"" }}" maxlength="500" />
+            <input id="person_forename" type="text" name="forename" class="autosave_person" value="{{ person.forename|default:"" }}" maxlength="500" />
             {% endif %}
         </div>
     </div>
@@ -254,6 +254,7 @@
             }
             if(key) {
                 $('#application_photo_key').val(key);
+                $('#person_forename').change();
             }
         }
         $('#application_photo_uploading').hide();

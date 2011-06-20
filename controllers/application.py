@@ -5,10 +5,33 @@ import random
 import string
 
 from bo import *
-from database.application import *
+from database.bubble import *
 from database.person import *
-from database.zimport.zgeneral import *
 from libraries.gmemsess import *
+
+def CheckApplication(person):
+    missing = []
+    if not person.forename:
+        missing.append('forename')
+    if not person.surname:
+        missing.append('surname')
+    if not person.idcode:
+        missing.append('idcode')
+    if not person.gender:
+        missing.append('gender')
+    if not person.birth_date:
+        missing.append('birthdate')
+    if not person.photo:
+        missing.append('photo')
+
+    if db.Query(Cv).ancestor(person).filter('type', 'secondary_education').count() < 1:
+        missing.append('application_edu_secondary')
+
+
+    if len(missing) > 0:
+        return '<span style="color:red">' + (Translate('application_info_missing') % rReplace(', '.join([Translate(m).lower() for m in missing]), ',', ' ' + Translate('and'), 1)) + '</span>'
+    else:
+        return Translate('application_info_complete')
 
 
 class ShowSignin(boRequestHandler):
@@ -31,48 +54,56 @@ class ShowSignin(boRequestHandler):
         password = self.request.get('applicant_pass').strip()
 
         if email:
-            p = db.Query(Person).filter('email', email).get()
-            if not p:
-                p = db.Query(Person).filter('apps_username', email).get()
+            if CheckMailAddress(email):
+                p = db.Query(Person).filter('email', email).get()
                 if not p:
-                    p = Person()
-                    p.email = email
-                    p.idcode = ''
-                    p.model_version = 'SSS'
-                    p.put()
+                    p = db.Query(Person).filter('apps_username', email).get()
+                    if not p:
+                        p = Person()
+                        p.email = email
+                        p.idcode = ''
+                        if self.request.get('receptionist').strip() == 'receptionist':
+                            p.model_version = 'QQQ'
+                        else:
+                            p.model_version = 'SSS'
+                        p.put()
 
-                    c = Contact(parent=p)
-                    c.type = 'email'
-                    c.value = email
-                    c.put()
+                        c = Contact(parent=p)
+                        c.type = 'email'
+                        c.value = email
+                        c.put()
 
-                    con = db.Query(Conversation).filter('entities', p.key()).filter('types', 'application').get()
-                    if not con:
-                        con = Conversation()
-                        con.types = ['application']
-                        con.entities = [p.key()]
-                    con.participants = AddToList(p.key(), con.participants)
-                    con.put()
+                        con = db.Query(Conversation).filter('entities', p.key()).filter('types', 'application').get()
+                        if not con:
+                            con = Conversation()
+                            con.types = ['application']
+                            con.entities = [p.key()]
+                        con.participants = AddToList(p.key(), con.participants)
+                        con.put()
 
-                    mes = Message(parent=con)
-                    mes.text = Translate('application_newuser_log_message') % email
-                    mes.put()
+                        mes = Message(parent=con)
+                        mes.text = Translate('application_newuser_log_message') % email
+                        mes.put()
 
 
-            password = ''.join(random.choice(string.ascii_letters) for x in range(2))
-            password += str(p.key().id())
-            password += ''.join(random.choice(string.ascii_letters) for x in range(3))
-            password = password.replace('O', random.choice(string.ascii_lowercase))
+                password = ''.join(random.choice(string.ascii_letters) for x in range(2))
+                password += str(p.key().id())
+                password += ''.join(random.choice(string.ascii_letters) for x in range(3))
+                password = password.replace('O', random.choice(string.ascii_lowercase))
 
-            p.password = password
-            p.put()
+                p.password = password
+                p.put()
 
-            if SendMail(
-                to = email,
-                subject = Translate('application_signup_mail_subject'),
-                message = Translate('application_signup_mail_message') % p.password
-            ):
-                self.response.out.write('OK')
+                SendMail(
+                    to = email,
+                    reply_to = 'sisseastumine@artun.ee',
+                    subject = Translate('application_signup_mail_subject'),
+                    message = Translate('application_signup_mail_message') % p.password
+                )
+                if self.request.get('receptionist').strip() == 'receptionist':
+                    self.echo(str(p.key()), False)
+                else:
+                    self.echo('OK', False)
 
         else:
             if password:
@@ -91,25 +122,22 @@ class ShowApplication(boRequestHandler):
             self.redirect('/application/signin')
         else:
             now = datetime.now()
+
             receptions = []
-            application_statuses = []
-            for a in db.Query(Application).ancestor(p).fetch(1000):
-                receptions.append({'reception': a.reception, 'application': a})
-                application_statuses = AddToList(a.status, application_statuses)
+            for r in db.Query(Bubble).filter('type', 'submission').filter('start_datetime <', datetime.now()).filter('is_deleted', False).fetch(1000):
+                if r.end_datetime:
+                    if r.end_datetime > datetime.now():
+                        r.end = Translate('reception_will_end_on') % r.end_datetime.strftime('%d.%m.%Y')
+                        if r.key() in p.leecher:
+                            r.selected = True
+                        level_r = db.Query(Bubble).filter('type', 'reception').filter('optional_bubbles', r.key()).get()
+                        level_rs = db.Query(Bubble).filter('type', 'receptions').filter('optional_bubbles', level_r.key()).get()
+                        if level_rs:
+                            r.level = level_rs.displayname
+                        else:
+                            r.level = ''
+                        receptions.append(r)
 
-            application_status = 'unselected'
-            application_readonly = False
-            if 'selected' in application_statuses:
-                application_status = 'selected'
-            if 'submitted' in application_statuses:
-                application_status = 'submitted'
-                application_readonly = True
-            if 'accepted' in application_statuses:
-                application_status = 'accepted'
-                application_readonly = True
-
-            photo_upload_url = blobstore.create_upload_url('/document/upload')
-            document_upload_url = blobstore.create_upload_url('/document/upload')
             documents = db.Query(Document).filter('entities', p.key()).filter('types', 'application_document').fetch(1000)
             secondaryschools = db.Query(Cv).ancestor(p).filter('type', 'secondary_education').fetch(1000)
             highschools = db.Query(Cv).ancestor(p).filter('type', 'higher_education').fetch(1000)
@@ -125,21 +153,20 @@ class ShowApplication(boRequestHandler):
 
             self.view('application', 'application/application.html', {
                 'post_url': '/application',
-                'application_status': application_status,
-                'application_readonly': application_readonly,
                 'receptions': receptions,
                 'person': p,
                 'date_days': range(1, 32),
                 'date_months': Translate('list_months').split(','),
                 'document_types': Translate('application_documents_types').split(','),
                 'date_years': range((now.year-15), (now.year-90), -1),
-                'photo_upload_url': photo_upload_url,
-                'document_upload_url': document_upload_url,
+                'photo_upload_url': blobstore.create_upload_url('/document/upload'),
+                'document_upload_url': blobstore.create_upload_url('/document/upload'),
                 'documents': documents,
                 'secondaryschools': secondaryschools,
                 'highschools': highschools,
                 'workplaces': workplaces,
                 'messages': messages,
+                'application_completed_info': CheckApplication(p),
             })
 
     def post(self, url):
@@ -150,86 +177,13 @@ class ShowApplication(boRequestHandler):
             value = self.request.get('value').strip()
             respond = {}
 
-            r = Reception().get(key)
-            if r:
-                a = db.Query(Application).ancestor(p).filter('reception', r).get()
-                if not a:
-                    a = Application(parent=p)
-                    a.reception = r
-
-                if field == 'selected':
-                    if value.lower() == 'true':
-                        a.status = 'selected'
-                    else:
-                        a.status = 'unselected'
-
-                if field == 'comment':
-                    a.comment = value
-
-                a.put()
+            if value.lower() == 'true':
+                p.add_leecher(db.Key(key))
+            else:
+                p.remove_leecher(db.Key(key))
 
             respond['key'] = key
             self.response.out.write(simplejson.dumps(respond))
-
-
-class SubmitApplication(boRequestHandler):
-    def get(self):
-        p =  Person().current_s(self)
-        if p:
-            selected = False
-            for a in db.Query(Application).ancestor(p).filter('status', 'selected').fetch(1000):
-                a.status = 'submitted'
-                a.put()
-                selected = True
-                SendMail(
-                    to = a.reception.communication_email,
-                    subject = Translate('application_submit_email1_subject') % p.displayname,
-                    message = Translate('application_submit_email1_message') % {'name': p.displayname, 'link': SYSTEM_URL + '/reception/application/' + str(p.key()) }
-                )
-
-            if selected:
-
-                con = db.Query(Conversation).filter('entities', p.key()).filter('types', 'application').get()
-                if not con:
-                    con = Conversation()
-                    con.types = ['application']
-                    con.entities = [p.key()]
-                con.participants = AddToList(p.key(), con.participants)
-                con.put()
-
-                mes = Message(parent=con)
-                mes.text = Translate('application_submit_log_message')
-                mes.person = p
-                mes.put()
-
-                emails = []
-                if p.email:
-                    emails = AddToList(p.email, emails)
-                if p.apps_username:
-                    emails = AddToList(p.apps_username, emails)
-                for contact in db.Query(Contact).ancestor(p).filter('type', 'email').fetch(1000):
-                    emails = AddToList(contact.value, emails)
-
-                SendMail(
-                    to = emails,
-                    subject = Translate('application_submit_email2_subject') % p.displayname,
-                    message = Translate('application_submit_email2_message')
-                )
-
-                sess = Session(self, timeout=86400)
-                sess.invalidate()
-                self.redirect(users.create_logout_url('/application/thanks'))
-
-            else:
-                self.redirect('/application')
-                return
-
-
-class ShowSubmitApplication(boRequestHandler):
-    def get(self):
-        self.view('application', 'application/submitted.html', {
-            'message': Translate('application_submit_success_message')
-        })
 
 
 class EditPerson(boRequestHandler):
@@ -256,6 +210,9 @@ class EditPerson(boRequestHandler):
                     p.have_been_subsidised = False
 
             p.put()
+
+            respond['application_completed_info'] = CheckApplication(p)
+
             self.response.out.write(simplejson.dumps(respond))
 
 
@@ -312,6 +269,7 @@ class EditCV(boRequestHandler):
 
             cv.put()
             respond['key'] = str(cv.key())
+            respond['application_completed_info'] = CheckApplication(p)
 
             self.response.out.write(simplejson.dumps(respond))
 
@@ -337,30 +295,16 @@ class PostMessage(boRequestHandler):
                 mes.text = message
                 mes.put()
 
-                emails = []
-                for a in db.Query(Application).ancestor(p).filter('status', 'submitted').fetch(1000):
-                    emails = AddToList(a.reception.communication_email, emails)
-
-                if len(emails) < 1:
-                    for reception in db.Query(Reception).fetch(1000):
-                        emails = AddToList(reception.communication_email, emails)
-
                 SendMail(
-                    to = emails,
+                    to = 'sisseastumine@artun.ee',
+                    reply_to = 'sisseastumine@artun.ee',
                     subject = Translate('application_message_email1_subject') % p.displayname,
                     message = Translate('application_message_email1_message') % {'name': p.displayname, 'link': SYSTEM_URL + '/reception/application/' + str(p.key()), 'text': mes.text }
                 )
 
-                emails = []
-                if p.email:
-                    emails = AddToList(p.email, emails)
-                if p.apps_username:
-                    emails = AddToList(p.apps_username, emails)
-                for contact in db.Query(Contact).ancestor(p).filter('type', 'email').fetch(1000):
-                    emails = AddToList(contact.value, emails)
-
                 SendMail(
-                    to = emails,
+                    to = p.emails,
+                    reply_to = 'sisseastumine@artun.ee',
                     subject = Translate('application_message_email2_subject') % p.displayname,
                     message = Translate('application_message_email2_message') % mes.text
                 )
@@ -372,6 +316,55 @@ class PostMessage(boRequestHandler):
                 self.response.out.write(simplejson.dumps(respond))
 
 
+class Stats(boRequestHandler):
+    def get(self):
+
+        grades = db.Query(Grade).filter('bubble_type', 'submission').filter('is_deleted', False).filter('is_locked', True).filter('is_positive', True).fetch(1000000)
+        bubbles = {}
+        genders = {}
+        ages = {}
+        bubbles_list = []
+        persons_list = []
+        for g in grades:
+            bubbles_list = AddToList(g.key(), bubbles_list)
+            persons_list = AddToList(g.person.key(), persons_list)
+
+            b_key = str(g.bubble.key())
+            if b_key not in bubbles:
+                bubbles[b_key] = {'name': g.bubble.displayname, 'value': 1}
+            else:
+                bubbles[b_key]['value'] += 1
+
+            if g.person.gender:
+                g_key = str(g.person.gender)
+            else:
+                g_key = 'NONE'
+            if g_key not in genders:
+                genders[g_key] = {'name': Translate('gender_' + g.person.gender), 'value': 1, 'list': [str(g.person.key())]}
+            else:
+                genders[g_key]['list'] = AddToList(str(g.person.key()), genders[g_key]['list'])
+                genders[g_key]['value'] = len(genders[g_key]['list'])
+
+            if g.person.age:
+                a_key = g.person.age
+            else:
+                a_key = 'NONE'
+            if a_key not in ages:
+                ages[a_key] = {'name': a_key, 'value': 1, 'list': [str(g.person.key())]}
+            else:
+                ages[a_key]['list'] = AddToList(str(g.person.key()), ages[a_key]['list'])
+                ages[a_key]['value'] = len(ages[a_key]['list'])
+
+
+        self.view('application', 'application/stats.html', {
+            'bubbles': list(bubbles.values()),
+            'genders': list(genders.values()),
+            'ages': list(ages.values()),
+            'bubbles_total': len(bubbles_list),
+            'persons_total': len(persons_list),
+        })
+
+
 def main():
     Route([
             ('/application/signin', ShowSignin),
@@ -379,8 +372,7 @@ def main():
             ('/application/contact', EditContact),
             ('/application/cv', EditCV),
             ('/application/message', PostMessage),
-            ('/application/submit', SubmitApplication),
-            ('/application/thanks', ShowSubmitApplication),
+            ('/application/stats', Stats),
             (r'/application(.*)', ShowApplication),
         ])
 

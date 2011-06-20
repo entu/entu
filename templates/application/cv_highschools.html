@@ -44,10 +44,9 @@
 </div>
 
 <div style="margin-top:10px;">
-    <input type="checkbox" id="have_been_subsidised" name="have_been_subsidised"{% if person.have_been_subsidised %} checked{% endif %} style="margin:0px padding:0px; border:none;"{% if application_readonly %} disabled{% endif %} /><label for="have_been_subsidised" id="have_been_subsidised_label">{{ str.application_edu_been_subsidised }}</label>
+    <input type="checkbox" id="have_been_subsidised" name="have_been_subsidised"{% if person.have_been_subsidised %} checked{% endif %} style="margin:0px padding:0px; border:none;" /><label for="have_been_subsidised" id="have_been_subsidised_label">{{ str.application_edu_been_subsidised }}</label>
 </div>
 
-{% if application_readonly %}{% else %}
 <script>
     $(document).ready(function(){
         $('.new_highschool').keypress(function() {
@@ -79,4 +78,3 @@
         });
     });
 </script>
-{% endif %}

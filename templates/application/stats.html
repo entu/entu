@@ -1,0 +1,102 @@
+{% extends "../main.html" %}
+
+{% block head %}
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script type="text/javascript">
+      google.load("visualization", "1", {packages:["corechart"]});
+
+      google.setOnLoadCallback(drawChart_specialty);
+      google.setOnLoadCallback(drawChart_gender);
+      google.setOnLoadCallback(drawChart_age);
+
+      function drawChart_specialty() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Name');
+        data.addColumn('number', 'Leechers');
+        data.addRows({{ bubbles|length }});
+
+        {% for b in bubbles|dictsortreversed:"value" %}
+        data.setValue({{ forloop.counter0 }}, 0, '{{ b.name }}');
+        data.setValue({{ forloop.counter0 }}, 1, {{ b.value }});
+        {% endfor %}
+
+        var chart = new google.visualization.PieChart(document.getElementById('chart_specialty'));
+        chart.draw(data, {
+            width: 900,
+            height: 400,
+            chartArea:{top:0,width:"60%",height:"100%"},
+            pieSliceText: 'value',
+            fontSize: 11,
+        });
+      }
+
+      function drawChart_gender() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Name');
+        data.addColumn('number', 'Leechers');
+        data.addRows({{ genders|length }});
+
+        {% for g in genders|dictsortreversed:"value" %}
+        data.setValue({{ forloop.counter0 }}, 0, '{{ g.name }}');
+        data.setValue({{ forloop.counter0 }}, 1, {{ g.value }});
+        {% endfor %}
+
+        var chart = new google.visualization.PieChart(document.getElementById('chart_gender'));
+        chart.draw(data, {
+            width: 900,
+            height: 200,
+            chartArea:{top:0,width:"60%",height:"100%"},
+            pieSliceText: 'value',
+            fontSize: 11,
+        });
+      }
+
+      function drawChart_age() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Name');
+        data.addColumn('number', 'Leechers');
+        data.addRows({{ ages|length }});
+
+        {% for a in ages|dictsort:"name" %}
+        data.setValue({{ forloop.counter0 }}, 0, '{{ a.name }}');
+        data.setValue({{ forloop.counter0 }}, 1, {{ a.value }});
+        {% endfor %}
+
+        var chart = new google.visualization.ColumnChart(document.getElementById('chart_age'));
+        chart.draw(data, {
+            width: 900,
+            height: 400,
+            chartArea:{top:20,width:"60%",height:"80%"},
+            fontSize: 11,
+            legend: 'none',
+        });
+      }
+
+    </script>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav>
+    <ul id="crumbs">
+        <li><a href="/">{{ system_title }}</a></li>
+        <li>{{ str.statistics }}</li>
+    </ul>
+</nav>
+{% endblock %}
+
+{% block content %}
+
+<section id="wide_content">
+
+    <h2>{{ str.statistics_by_specialty }}<span>{{ bubbles_total }}</span></h2>
+    <div id="chart_specialty" style="padding:20px 0px;"></div>
+
+    <h2>{{ str.statistics_by_gender }}<span>{{ persons_total }} </span></h2>
+    <div id="chart_gender" style="padding:20px 0px;"></div>
+
+    <h2>{{ str.statistics_by_age }}<span>{{ persons_total }} </span></h2>
+    <div id="chart_age" style="padding:20px 0px;"></div>
+
+</section>
+
+{% endblock %}

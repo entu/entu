@@ -38,26 +38,14 @@
     {% include "cv_highschools.html" %}
     {% include "cv_workplaces.html" %}
     {% include "documents.html" %}
-
-    {% if application_readonly %}
-
-    {% else %}
-    <div id="confirm_application" class="button" style="margin: 20px auto 10px auto; width:200px;">{{ str.application_submit }}</div>
-    {% endif %}
-
     {% include "conversation.html" %}
+
+    <div id="application_completed_info" style="clear:both; margin-top:50px; display:block; text-align:center; font-weight:bold; color:green;">
+        {{ application_completed_info }}
+    </div>
 
 </section>
 
-{% if application_readonly %}
-<script>
-    $(document).ready(function(){
-        $("input").placeholder();
-        $('textarea').elastic();
-        $('#top_nav').hide();
-    });
-</script>
-{% else %}
 <script>
     $(document).ready(function(){
         $("input").placeholder({css_class: "placeholder"});
@@ -73,13 +61,14 @@
         if(!data['key']) data['key'] = input.attr('alt');
         if(!data['field']) data['field'] = input.attr('name');
         if(!data['value']) data['value'] = input.val();
+        data['person'] = '{{ person.key }}';
 
         $.post(url, data, function(json) {
             input.effect("highlight", {}, 1000);
             input.attr('alt', json['key']);
+            $('#application_completed_info').html(json['application_completed_info']);
         }, "json");
     }
 </script>
-{% endif %}
 
 {% endblock %}

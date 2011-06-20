@@ -1,18 +1,60 @@
-{% for reception in receptions %}
-<h2 style="margin-top:30px;">{{ reception.reception.name.translate }}</h2>
-<p class="field switch" style="vertical-align:top; padding:10px 5px 5px 10px; float:right;">
-    <input type="radio" id="radio1" class="autosave_reception" name="field" checked />
-    <input type="radio" id="radio2" class="autosave_reception" name="field" />
-    <label for="radio1" class="cb-enable{% if reception.application.status %}{% ifequal reception.application.status "unselected" %}{% else %} selected{% endifequal %}{% endif %}" alt="{{ reception.reception.key }}"><span>{{ str.application_apply }}</span></label>
-    <label for="radio2" class="cb-disable{% if reception.application.status %}{% ifequal reception.application.status "unselected" %} selected{% endifequal %}{% endif %}" alt="{{ reception.reception.key }}"><span>{{ str.application_dont_apply }}</span></label>
-</p>
-<span style="color:gray; font-size:12px;">{{ reception.reception.description.translate|urlize|linebreaks }}</span>
-<div id="comment_{{ reception.reception.key }}"{% ifequal reception.application.status "unselected" %} style="display:none;"{% endifequal%}>
-    <textarea class="autosave_application_comment" name="comment" alt="{{ reception.reception.key }}" style="width:99%; margin-top:10px;" rows="3"{% if application_readonly %} disabled{% endif %}>{{ reception.application.comment|default:"" }}</textarea>
+{% regroup receptions|dictsort:"level" by level as grouped %}
+{% for group in grouped %}
+<h2 style="margin-top:30px;">{{ group.grouper }} <span>{{ str.application_specialities_desc }}</span></h2>
+<div class="table">
+    {% for reception in group.list|dictsort:"displayname" %}
+    <div class="table_row" alt="{{ q.key }}">
+        <div class="table_cell" style="white-space:nowrap;">
+            {% ifequal post_url "/reception" %}
+                <a href="/reception/{{ reception.key.id }}">{{ reception.displayname }}</a>
+            {% else %}
+                {% if reception.url %}
+                <a href="{{ reception.url }}" target="_blank">{{ reception.displayname }}</a>
+                {% else %}
+                {{ reception.displayname }}
+                {% endif %}
+            {% endifequal %}
+        </div>
+        <div class="table_cell" style="white-space:nowrap; text-align:right;">
+            <span style="color: gray; font-size:11px; margin-right:30px;">{{ reception.end }}</span>
+        </div>
+        <div class="table_cell" style="white-space:nowrap; width:300px;">
+            {% ifequal post_url "/reception" %}
+            <select name="radio_{{ reception.key.id }}" class="grade" bubble="{{ reception.key }}" style="float:right;"{% if reception.grade_is_locked %} disabled{% endif %}>
+                <option value=""></option>
+                {% for gd in reception.gradedefinitions %}
+                <option value="{{ gd.key }}" {% ifequal gd.key reception.grade_key %}selected {% endifequal %}>{{ gd.displayname }}</option>
+                {% endfor %}
+            </select>
+            {% else %}
+            <p class="field switch" style="vertical-align:top; padding:0px; float:right;">
+                <input type="radio" id="radio1" class="autosave_reception" name="field" checked />
+                <input type="radio" id="radio2" class="autosave_reception" name="field" />
+                <label for="radio1" class="cb-enable{% if reception.selected %} selected{% endif %}" alt="{{ reception.key }}"><span>{{ str.application_apply }}</span></label>
+                <label for="radio2" class="cb-disable{% if reception.selected %}{% else %} selected{% endif %}" alt="{{ reception.key }}"><span>{{ str.application_dont_apply }}</span></label>
+            </p>
+            {% endifequal %}
+        </div>
+    </div>
+    {% endfor %}
 </div>
 {% endfor %}
 
-{% if application_readonly %}{% else %}
+{% ifequal post_url "/reception" %}
+<script>
+    $(document).ready( function(){
+
+        $(".grade").change(function(){
+            var grade = $(this);
+            $.post('/reception/rate', { person: '{{ person.key }}', bubble: grade.attr('bubble'), grade: grade.val() }, function(json) {
+
+            }, 'json');
+
+        });
+
+    });
+</script>
+{% else %}
 <script>
     $(document).ready( function(){
         $(".cb-enable").click(function(){
@@ -21,8 +63,6 @@
             $('.cb-disable',parent).removeClass('selected');
             select.addClass('selected');
             $('.checkbox',parent).attr('checked', true);
-
-            $('#comment_' + select.attr('alt')).slideDown();
 
             autoSave(null, '{{ post_url }}', {
                 key: select.attr('alt'),
@@ -38,18 +78,12 @@
             select.addClass('selected');
             $('.checkbox',parent).attr('checked', false);
 
-            $('#comment_' + select.attr('alt')).slideUp();
-
             autoSave(null, '{{ post_url }}', {
                 key: select.attr('alt'),
                 field: 'selected',
                 value: 'false',
             });
         });
-
-        $('.autosave_application_comment').change(function() {
-            autoSave($(this), '{{ post_url }}', {});
-        });
     });
 </script>
-{% endif %}
+{% endifequal %}
