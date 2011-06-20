@@ -1,13 +1,13 @@
 from datetime import datetime
 
 from bo import *
-from database import *
+#from database import *
 
 
 class ShowFeedback(boRequestHandler):
 
     def get(self):
-        personQuestionary = db.Query(QuestionaryPerson).filter('person', Person().current).filter('is_completed', False).order('__key__').fetch(1000)
+        personQuestionary = db.Query(QuestionaryPerson).filter('person', Person().current).filter('is_completed', False).filter('is_obsolete', False).order('__key__').fetch(1000)
         if len(personQuestionary) > 0:
             questions = []
             for question in personQuestionary[0].answers:
