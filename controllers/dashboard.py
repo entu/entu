@@ -1,5 +1,5 @@
 from bo import *
-from database import *
+from database.bubble import *
 
 class Show(boRequestHandler):
     def get(self):
@@ -18,17 +18,30 @@ class Show(boRequestHandler):
                 ]
             })
 
-            tree.append({
-                'link': '/tasks',
-                'title': Translate('tasks')
-            })
+            if self.authorize('bubbler'):
+                bubbletypes = []
+                for bt in db.Query(BubbleType).fetch(1000):
+                    bubbletypes.append({
+                        'link': '/bubbletype/%s' % bt.key().id(),
+                        'title': bt.displayname,
+                        'alt': db.Query(Bubble).filter('type', bt.type).filter('is_deleted', False).count(limit=1000000)
+                    })
+                bubbletypes = sorted(bubbletypes, key=lambda k: k['title'])
+
+                tree.append({
+                    'link': '/',
+                    'title': Translate('bubbles'),
+                    'childs': bubbletypes
+                })
 
             if self.authorize('questionary') or self.authorize('reception'):
                 tree.append({
                     'link': '',
                     'title': Translate('administration'),
                     'childs': [
-                        {'link': '/reception', 'title': Translate('reception')},
+                        {'link': '/reception', 'title': Translate('reception'), 'childs': [{
+                            'link': '/application/stats', 'title': Translate('statistics')
+                            }]},
                         {'link': '/questionary', 'title': Translate('questionaries')},
                     ]
                 })

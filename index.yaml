@@ -1,39 +1,74 @@
 indexes:
 
-- kind: Course
+- kind: Bubble
   properties:
-  - name: is_feedback_started
-  - name: course_end_date
+  - name: type
+  - name: start_datetime
+
+- kind: Bubble
+  properties:
+  - name: is_deleted
+  - name: type
+  - name: start_datetime
+
+- kind: Bubble
+  properties:
+  - name: is_deleted
+  - name: type
+  - name: sort_estonian
+
+
+
+- kind: GradeDefinition
+  properties:
+  - name: rating_scale
+  - name: equivalent
+
+
+
+- kind: Grade
+  properties:
+  - name: bubble_type
+  - name: is_deleted
+  - name: datetime
+
+
+
+- kind: Person
+  properties:
+  - name: forename
+  - name: surname
+
+- kind: Person
+  properties:
+  - name: surname
+  - name: forename
+
+
+
+- kind: Document
+  properties:
+  - name: entities
+  - name: types
+  - name: created
     direction: desc
 
 
-- kind: Person
-  properties:
-  - name: __searchable_text_index
-  - name: forename
-  - name: surname
 
-- kind: Person
-  properties:
-  - name: forename
-  - name: surname
-
-- kind: Person
-  properties:
-  - name: surname
-  - name: forename
-
-
-
-- kind: Application
-  properties:
-  - name: reception
-  - name: status
-
-- kind: Application
+- kind: Message
   ancestor: yes
   properties:
-  - name: status
+  - name: created
+    direction: desc
+
+
+
+- kind: AccessLog
+  properties:
+  - name: path
+  - name: user
+  - name: datetime
+    direction: desc
 
 
 
@@ -43,10 +78,21 @@ indexes:
   - name: datetime
     direction: desc
 
-
-
-- kind: QuestionaryPerson
+- kind: ChangeLog
+  ancestor: yes
   properties:
-  - name: aggregation_date
-  - name: is_completed
-  - name: is_obsolete
+  - name: property_name
+  - name: datetime
+
+- kind: ChangeLog
+  properties:
+  - name: kind_name
+  - name: model_version
+  - name: property_name
+
+- kind: ChangeLog
+  properties:
+  - name: kind_name
+  - name: property_name
+  - name: user
+  - name: old_value

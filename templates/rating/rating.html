@@ -1,0 +1,66 @@
+{% extends "../main.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block breadcrumb %}
+<nav>
+    <ul id="crumbs">
+        <li><a href="/">{{ system_title }}</a></li>
+        <li><a href="/bubbletype/{{ bubble.type2.key.id }}">{{ bubble.type2.displayname }}</a></li>
+        <li><a href="/bubble/{{ bubble.key.id }}">{{ bubble.displayname|striptags }}</a></li>
+        <li>{{ str.bubble_rating }}</li>
+    </ul>
+</nav>
+{% endblock %}
+
+{% block content %}
+
+<div id="content">
+{% regroup leechers|dictsortreversed:"grade_equivalent" by grade_displayname as grouped %}
+{% for group in grouped %}
+    <h2>{{ group.grouper }}<span>{{ group.list|length }}</span></h2>
+    <div class="table" style="margin-bottom:10px;">
+        {% for p in group.list|dictsort:"displayname" %}
+            <div class="table_row" alt="{{ p.key }}">
+                {% if p.photo %}
+                <img class="table_cell" src="{{ p.photo.url }}/24/c" style="width:24px;">
+                {% else %}
+                <div class="table_cell" style="width:24px;"></div>
+                {% endif %}
+                <div class="table_cell" style="white-space:nowrap;">
+                    <a href="/reception/application/{{ p.key }}">{{ p.displayname|default:"" }}</a>
+                </div>
+                <div class="table_cell" style="width:100%; text-align:right;">
+                    {{ p.subgrades|join:", " }}
+                </div>
+                <div class="table_cell radio" style="white-space:nowrap;">
+                    <select name="radio_{{ p.key.id }}" class="grade" person="{{ p.key }}"{% if p.grade_is_locked %} disabled{% endif %}>
+                        <option value=""></option>
+                        {% for gd in gradedefinitions %}
+                        <option value="{{ gd.key }}" {% ifequal gd.key p.grade_key %}selected {% endifequal %}>{{ gd.displayname }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+    {% endfor %}
+    </div>
+{% endfor %}
+    <a href="/rating/lock/{{ bubble.key.id }}" class="button" style="float:right;">{{ str.rating_lock }}</a>
+</div>
+
+<script>
+    $(document).ready(function(){
+
+        $(".grade").change(function(){
+            var grade = $(this);
+            $.post('/rating/{{ bubble.key.id }}', { person: grade.attr('person'), grade: grade.val() }, function(json) {
+
+            }, 'json');
+
+        });
+
+    });
+</script>
+
+{% endblock %}

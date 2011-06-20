@@ -1,5 +1,7 @@
 application: bongapp
-version: 2011-02-25
+#application: bubbledu
+#version: 2011-06-13
+version: dev
 runtime: python
 api_version: 1
 
@@ -7,9 +9,6 @@ api_version: 1
 
 builtins:
 - datastore_admin: on
-
-inbound_services:
-- warmup
 
 
 
@@ -48,8 +47,8 @@ handlers:
   expiration: "90d"
 
 - url: /favicon.ico
-  static_files: static/images/favicon.ico
-  upload: static/images/favicon.ico
+  static_files: static/images/favicon.png
+  upload: static/images/favicon.png
   expiration: "90d"
 
 
@@ -62,6 +61,12 @@ handlers:
 
 - url: /assets
   script: controllers/asset.py
+
+- url: /xml(.*)
+  script: controllers/public_xml.py
+
+- url: /ical(.*)
+  script: controllers/ical.py
 
 
 #Old systems login/logout
@@ -78,25 +83,21 @@ handlers:
   script: controllers/dashboard.py
   login: required
 
+- url: /bubble(.*)
+  script: controllers/bubble.py
+  login: required
+
+- url: /rating(.*)
+  script: controllers/rating.py
+  login: required
+
 - url: /preferences(.*)
   script: controllers/preferences.py
   login: required
 
-#- url: /search(.*)
-#  script: controllers/search.py
-#  login: required
-
-#- url: /person(.*)
-#  script: controllers/person.py
-#  login: required
-
-#- url: /curriculum(.*)
-#  script: controllers/curriculum.py
-#  login: required
-
-#- url: /dictionary(.*)
-#  script: controllers/dictionary.py
-#  login: required
+- url: /spam(.*)
+  script: controllers/spam.py
+  login: required
 
 - url: /update(.*)
   script: controllers/update.py
@@ -108,7 +109,7 @@ handlers:
 
 - url: /questionary(.*)
   script: controllers/questionary.py
-  login: required
+  #login: required
 
 - url: /reception(.*)
   script: controllers/reception.py
@@ -122,6 +123,10 @@ handlers:
 
 - url: /cron(.*)
   script: controllers/cron.py
+  login: admin
+
+- url: /taskqueue(.*)
+  script: controllers/taskqueue.py
   login: admin
 
 - url: /zimport(.*)

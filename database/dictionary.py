@@ -12,8 +12,6 @@ class Dictionary(ChangeLogModel):
 
     @property
     def value(self):
-        from bo import *
-
         language = UserPreferences().current.language
         cache_key = 'DictionaryTranslation_' + language + '_' + str(self.key())
         translation = Cache().get(cache_key, False)
@@ -23,15 +21,14 @@ class Dictionary(ChangeLogModel):
         return translation
 
     def translate(self):
-        from bo import *
-
-        language = UserPreferences().current.language
-        cache_key = 'DictionaryTranslation_' + language + '_' + str(self.key())
+        return self.estonian
+        """language = UserPreferences().current.language
+        cache_key = 'dTranslation_' + language + '_' + str(self.key())
         translation = Cache().get(cache_key, False)
         if not translation:
             translation = getattr(self, language)
             Cache().set(cache_key, translation, False, 3600)
-        return translation
+        return translation"""
 
     def add(self):
         d = db.Query(Dictionary).filter('name', self.name).filter('estonian', self.estonian).filter('english', self.english).get()
@@ -49,24 +46,11 @@ def DictionaryAdd(name, value):
     from bo import *
     language = UserPreferences().current.language
 
-    t = db.Query(Translation).filter('dictionary_name', name).filter('value', value).filter('language', language).get()
-    if t:
-        return t.dictionary.key()
-
-    d = db.Query(Dictionary).filter('name', name).filter('value', value.replace('\n',' ')).get()
+    d = db.Query(Dictionary).filter('name', name).filter(language, value).get()
     if not d:
         d = Dictionary()
         d.name = name
-        d.value = value.replace('\n',' ')
-        d.languages = []
-    d.languages.append(language)
-    d.put()
-
-    t = Translation()
-    t.dictionary = d
-    t.dictionary_name = name
-    t.language = language
-    t.value = value
-    t.save()
+        setattr(d, language, value)
+        d.put()
 
     return d.key()

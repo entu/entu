@@ -86,15 +86,15 @@ class Person(ChangeLogModel):
     @property
     def roles2(self):
         if users.is_current_user_admin():
-            return Roles().all()
-            
+            return Role().all()
+
         if self.roles:
-            return Roles().get(self.roles)
+            return Role().get(self.roles)
 
     @property
     def current_role(self):
         if self.roles:
-            return Roles().get(self.roles)[0]
+            return Role().get(self.roles)[0]
 
     @property
     def current(self, web=None):
@@ -119,6 +119,7 @@ class Person(ChangeLogModel):
 
     @property
     def changed(self):
+        return datetime.today()
         date = self.last_change.datetime
 
         document = db.Query(Document).filter('entities', self.key()).filter('types', 'application_document').order('-created').get()
