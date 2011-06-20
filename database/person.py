@@ -26,6 +26,7 @@ class Person(ChangeLogModel):
     created                 = db.DateTimeProperty(auto_now_add=True)
     have_been_subsidised    = db.BooleanProperty(default=False)
     roles                   = db.ListProperty(db.Key)
+    current_role            = db.ReferenceProperty(Role, collection_name='persons')
     last_seen               = db.DateTimeProperty()
     model_version           = db.StringProperty(default='A')
     seeder                  = db.ListProperty(db.Key)
@@ -90,11 +91,6 @@ class Person(ChangeLogModel):
 
         if self.roles:
             return Role().get(self.roles)
-
-    @property
-    def current_role(self):
-        if self.roles:
-            return Role().get(self.roles)[0]
 
     @property
     def current(self, web=None):

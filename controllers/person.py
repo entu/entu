@@ -25,6 +25,7 @@ class ShowPersonFilter(boRequestHandler):
             'roles': roles,
         })
 
+
 class ShowPersonList(boRequestHandler):
     def post(self):
         level = self.request.get('level')
@@ -56,10 +57,21 @@ class ShowPerson(boRequestHandler):
         })
 
 
+class SetRole(boRequestHandler):
+    def post(self):
+
+        role_key = self.request.get('role').strip()
+        if role_key:
+            p = Person().current
+            p.current_role = db.Key(role_key)
+            p.put()
+
+
 def main():
     Route([
             ('/person', ShowPersonFilter),
             ('/person/list', ShowPersonList),
+            ('/person/set_role', SetRole),
             (r'/person(.*)', ShowPerson),
         ])
 
