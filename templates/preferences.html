@@ -16,6 +16,14 @@
     <div class="vertical_table">
         <div class="table_row">
             <div class="header_cell">
+                {{ str.user }}:
+            </div>
+            <div class="table_cell">
+                {{ person.apps_username|default:"" }}
+            </div>
+        </div>
+        <div class="table_row">
+            <div class="header_cell">
                 {{ str.name }}:
             </div>
             <div class="table_cell">
