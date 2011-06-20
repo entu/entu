@@ -83,6 +83,10 @@ handlers:
   script: controllers/dashboard.py
   login: required
 
+- url: /person(.*)
+  script: controllers/person.py
+  login: required
+
 - url: /bubble(.*)
   script: controllers/bubble.py
   login: required
