@@ -1,4 +1,4 @@
-{% extends "main.html" %}
+{% extends "../main.html" %}
 
 {% block head %}
 <script src="/javascript/jquery.elastic.js" type="text/javascript"></script>
@@ -57,7 +57,7 @@
                 <div class="table_cell" style="text-align:center; width:100px;">
                     {{ q.is_teacher_specific|yesno:"✓,," }}
                 </div>
-                <a href="javascript:void(0);" class="table_cell buttons delete_question" style="width:30px; height:25px; background: url('/images/delete.png') center center no-repeat;" alt="{{ q.key }}">
+                <a href="javascript:void(0);" class="table_cell buttons delete_question" style="width:40px; height:25px; background: url('/images/delete.png') center center no-repeat;" alt="{{ q.key }}">
                 </a>
             </div>
             {% endfor %}
@@ -80,7 +80,7 @@
                 <div class="table_cell" style="text-align:center;">
                     <input type="checkbox" name="teacher_specific" id="question_teacherspecific" />
                 </div>
-                <a href="javascript:void(0);" id="save_question_form" class="table_cell buttons" style="width:30px; height:25px; background: url('/images/add.png') center center no-repeat;" alt="{{ q.key }}">
+                <a href="javascript:void(0);" id="save_question_form" class="table_cell buttons" style="width:40px; height:25px; background: url('/images/add.png') center center no-repeat;" alt="{{ q.key }}">
                 </a>
             </form>
         </div>

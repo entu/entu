@@ -1,14 +1,14 @@
 import datetime
 
 from bo import *
-from database import *
+from database.feedback import *
 from datetime import datetime
 
 class ShowQuestionariesList(boRequestHandler):
     def get(self):
         if self.authorize('questionary'):
             q = db.Query(Questionary).order('-start_date').fetch(1000)
-            self.view('questionary', 'questionary_list.html', {
+            self.view('questionary', 'questionary/questionary_list.html', {
                 'questionaries': q,
             })
 
@@ -21,7 +21,7 @@ class ShowQuestionary(boRequestHandler):
             else:
                 questionary = None
 
-            self.view('questionary', 'questionary.html', {
+            self.view('questionary', 'questionary/questionary.html', {
                 'questionary': questionary,
             })
 
@@ -50,8 +50,87 @@ class ShowQuestionary(boRequestHandler):
 
 class ShowQuestionaryResults(boRequestHandler):
     def get(self, key):
-        if self.authorize('questionary'):
-            pass
+        message = ','
+        message += '"Aine",'
+        message += '"Oppejoud",'
+        message += '"Kysimus",'
+        message += '"Ankeete",'
+        message += '"Vastajaid",'
+        message += '"Noustujaid",'
+        #message += '"Osalus",'
+        message += '\n'
+        courses = []
+        questions = db.Query(Question).filter('type', 'like').fetch(10000)
+        for course in db.Query(Course).filter('is_feedback_started', True).fetch(10000):
+            for question in questions:
+                teachers = {}
+                for a in db.Query(QuestionAnswer).filter('course', course).filter('question', question).fetch(10000):
+
+                    if a.target_person:
+                        teacher_name = a.target_person.displayname
+                    else:
+                        teacher_name = '...'
+                    if teacher_name not in teachers:
+                        teachers[teacher_name] = {
+                            'totalcount': 0,
+                            'count': 0,
+                            'sum': 0,
+                        }
+                    teachers[teacher_name]['totalcount'] += 1
+                    if a.answer:
+                        teachers[teacher_name]['count'] += 1
+                        if int(a.answer) > 0:
+                            teachers[teacher_name]['sum'] += int(a.answer)
+
+                for t_name, t_sums in teachers.iteritems():
+                    message += '"' + str(course.key()) + '",'
+                    message += '"' + course.subject.name.translate().replace('"','""') + '",'
+                    message += '"' + t_name + '",'
+                    message += '"' + question.name.translate().replace('"','""') + '",'
+                    message += str(t_sums['totalcount']) + ','
+                    message += str(t_sums['count']) + ','
+                    if t_sums['count'] > 0:
+                        message += str(float(t_sums['sum'])/float(t_sums['count'])*100.0) + ','
+                    else:
+                        message += '0,'
+                    #if t_sums['totalcount'] > 0:
+                    #    message += str(float(t_sums['count'])/float(t_sums['totalcount'])*100.0) + ','
+                    #else:
+                    #    message += '0,'
+                message += '\n'
+
+        #self.echo(message)
+
+        SendMail(
+            to = 'argo.roots@artun.ee',
+            subject = 'Feedback',
+            message = '...',
+            attachments = [('feedback_rating.csv', message)]
+        )
+
+
+class ShowQuestionaryResults2(boRequestHandler):
+    def get(self, key):
+        message = ''
+        message += '"Aine",'
+        message += '"Vastus",'
+        message += '\n'
+
+        for a in db.Query(QuestionAnswer).filter('question', db.Key('agdib25nYXBwchALEghRdWVzdGlvbhi74kkM')).fetch(100000):
+
+            if a.answer:
+                message += '"' + a.course.subject.name.translate().replace('"','""') + '",'
+                message += '"' + a.answer.strip().replace('"','""') + '",'
+                message += '\n'
+
+        #self.echo(message)
+
+        SendMail(
+            to = 'argo.roots@artun.ee',
+            subject = 'Feedback',
+            message = '...',
+            attachments = [('feedback_text.csv', message)]
+        )
 
 
 class SortQuestionary(boRequestHandler):
@@ -113,6 +192,7 @@ def main():
             ('/questionary/sort/(.*)', SortQuestionary),
             ('/questionary/delete/(.*)', DeleteQuestionary),
             ('/questionary/results/(.*)', ShowQuestionaryResults),
+            ('/questionary/results2/(.*)', ShowQuestionaryResults2),
             ('/questionary/question/delete/(.*)', DeleteQuestion),
             ('/questionary/question', EditQuestion),
             ('/questionary/(.*)', ShowQuestionary),

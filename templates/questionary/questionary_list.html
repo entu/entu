@@ -1,4 +1,4 @@
-{% extends "main.html" %}
+{% extends "../main.html" %}
 
 {% block head %}
 {% endblock %}
@@ -39,8 +39,8 @@
 <script type="text/javascript">
     $(document).ready(function(){
         $(".table_row").dblclick(function() {
-            questionary = $(this).attr('alt');
-            location.href = '/questionary/' + questionary;
+            key = $(this).attr('alt');
+            location.href = '/questionary/' + key;
             return false;
         });
     });
