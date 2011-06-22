@@ -10,14 +10,18 @@ python_preamble:
 
 transformers:
 
-- kind: zCurriculum
+- kind: zBubble
   connector: csv
   connector_options:
-    encoding: utf16
+    #encoding: utf16
   property_map:
     - property: __key__
       external_name: key_name
-      import_transform: transform.create_foreign_key('zCurriculum')
+      import_transform: transform.create_foreign_key('zBubble')
+
+    - property: order
+      external_name: order
+      import_transform: transform.none_if_empty(int)
 
     - property: name_estonian
       external_name: name_estonian
@@ -27,77 +31,103 @@ transformers:
       external_name: name_english
       import_transform: transform.none_if_empty(unicode)
 
-    - property: code
-      external_name: code
+    - property: description_estonian
+      external_name: description_estonian
+      import_transform: db.Text
+
+    - property: description_english
+      external_name: description_english
+      import_transform: db.Text
+
+    - property: start_datetime
+      external_name: start_datetime
+      import_transform: transform.import_date_time('%Y-%m-%d %H:%M:%S')
+
+    - property: end_datetime
+      external_name: end_datetime
+      import_transform: transform.import_date_time('%Y-%m-%d %H:%M:%S')
+
+    - property: location
+      external_name: location
       import_transform: transform.none_if_empty(unicode)
 
-    - property: tag
-      external_name: tag
+    - property: owner
+      external_name: owner
       import_transform: transform.none_if_empty(unicode)
 
-    - property: level_of_education_estonian
-      external_name: level_of_education_estonian
+    - property: editors
+      external_name: editors
       import_transform: transform.none_if_empty(unicode)
 
-    - property: level_of_education_english
-      external_name: level_of_education_english
+    - property: viewers
+      external_name: viewers
       import_transform: transform.none_if_empty(unicode)
 
-    - property: form_of_training_estonian
-      external_name: form_of_training_english
+    - property: type
+      external_name: type
       import_transform: transform.none_if_empty(unicode)
 
-    - property: nominal_years
-      external_name: nominal_years
-      import_transform: transform.none_if_empty(int)
+    - property: typed_tags
+      external_name: typed_tags
+      import_transform: transform.none_if_empty(unicode)
 
-    - property: nominal_credit_points
-      external_name: nominal_credit_points
+    - property: rating_scale
+      external_name: rating_scale
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: badge_estonian
+      external_name: badge_estonian
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: badge_english
+      external_name: badge_english
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: points
+      external_name: points
       import_transform: transform.none_if_empty(float)
 
-    - property: degree_estonian
-      external_name: degree_estonian
+    - property: minimum_points
+      external_name: minimum_points
+      import_transform: transform.none_if_empty(float)
+
+    - property: minimum_bubble_count
+      external_name: minimum_bubble_count
+      import_transform: transform.none_if_empty(int)
+
+    - property: mandatory_bubbles
+      external_name: mandatory_bubbles
       import_transform: transform.none_if_empty(unicode)
 
-    - property: degree_english
-      external_name: degree_english
+    - property: optional_bubbles
+      external_name: optional_bubbles
+      import_transform: db.Text
+
+    - property: prerequisite_bubbles
+      external_name: prerequisite_bubbles
       import_transform: transform.none_if_empty(unicode)
 
     - property: state
       external_name: state
       import_transform: transform.none_if_empty(unicode)
 
-
-- kind: zDictionary
-  connector: csv
-  connector_options:
-    encoding: utf16
-  property_map:
-    - property: __key__
-      external_name: key_name
-      import_transform: transform.create_foreign_key('zDictionary')
-
-    - property: name
-      external_name: name
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: estonian
-      external_name: estonian
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: english
-      external_name: english
+    - property: entities
+      external_name: entities
       import_transform: transform.none_if_empty(unicode)
 
 
-- kind: zExam
+- kind: zBubbleType
   connector: csv
   connector_options:
     #encoding: utf16
   property_map:
     - property: __key__
       external_name: key_name
-      import_transform: transform.create_foreign_key('zExam')
+      import_transform: transform.create_foreign_key('zBubbleType')
+
+    - property: type
+      external_name: type
+      import_transform: transform.none_if_empty(unicode)
 
     - property: name_estonian
       external_name: name_estonian
@@ -115,45 +145,113 @@ transformers:
       external_name: description_english
       import_transform: transform.none_if_empty(unicode)
 
-    - property: subsidized_places
-      external_name: subsidized_places
+    - property: allowed_subtypes
+      external_name: allowed_subtypes
+      import_transform: transform.none_if_empty(unicode)
+
+
+- kind: zGrade
+  connector: csv
+  connector_options:
+    #encoding: utf16
+  property_map:
+    - property: __key__
+      external_name: key_name
+      import_transform: transform.create_foreign_key('zGrade')
+
+    - property: person
+      external_name: person
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: bubble
+      external_name: bubble
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: datetime
+      external_name: datetime
+      import_transform: transform.import_date_time('%Y-%m-%d %H:%M:%S')
+
+    - property: name_estonian
+      external_name: name_estonian
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: name_english
+      external_name: name_english
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: is_positive
+      external_name: is_positive
+      import_transform: transform.regexp_bool('true', re.IGNORECASE)
+
+    - property: equivalent
+      external_name: equivalent
       import_transform: transform.none_if_empty(int)
 
-    - property: examiner
-      external_name: examiner
+    - property: credit_points
+      external_name: credit_points
+      import_transform: transform.none_if_empty(float)
+
+    - property: school_name_estonian
+      external_name: school_name_estonian
       import_transform: transform.none_if_empty(unicode)
 
-    - property: registration_start_date
-      external_name: registration_start_date
-      import_transform: transform.import_date_time('%Y-%m-%d')
-
-    - property: rankings_date
-      external_name: rankings_date
-      import_transform: transform.import_date_time('%Y-%m-%d')
-
-    - property: type
-      external_name: type
+    - property: school_name_english
+      external_name: school_name_english
       import_transform: transform.none_if_empty(unicode)
 
-    - property: manager
-      external_name: manager
+    - property: teacher
+      external_name: teacher
       import_transform: transform.none_if_empty(unicode)
+
+    - property: teacher_name
+      external_name: teacher_name
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: bubbletype
+      external_name: bubbletype
+      import_transform: transform.none_if_empty(unicode)
+
+
+- kind: zGradeDefinition
+  connector: csv
+  connector_options:
+    #encoding: utf16
+  property_map:
+    - property: __key__
+      external_name: key_name
+      import_transform: transform.create_foreign_key('zGradeDefinition')
 
     - property: rating_scale
       external_name: rating_scale
       import_transform: transform.none_if_empty(unicode)
 
+    - property: name_estonian
+      external_name: name_estonian
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: name_english
+      external_name: name_english
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: is_positive
+      external_name: is_positive
+      import_transform: transform.regexp_bool('true', re.IGNORECASE)
+
+    - property: equivalent
+      external_name: equivalent
+      import_transform: transform.none_if_empty(int)
+
 
 - kind: zPerson
   connector: csv
   connector_options:
-    encoding: utf16
+    #encoding: utf16
   property_map:
     - property: __key__
       external_name: key_name
       import_transform: transform.create_foreign_key('zPerson')
 
-    - property: apps_username
+    - property: user
       external_name: apps_username
       import_transform: transform.none_if_empty(unicode)
 
@@ -176,6 +274,14 @@ transformers:
     - property: birth_date
       external_name: birth_date
       import_transform: transform.import_date_time('%Y-%m-%d')
+
+    - property: leecher
+      external_name: leecher
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: seeder
+      external_name: seeder
+      import_transform: transform.none_if_empty(db.Text)
 
 
 - kind: zPersonRole
@@ -200,18 +306,14 @@ transformers:
       import_transform: transform.none_if_empty(unicode)
 
 
-- kind: zReception
+- kind: zRatingScale
   connector: csv
   connector_options:
     #encoding: utf16
   property_map:
     - property: __key__
       external_name: key_name
-      import_transform: transform.create_foreign_key('zReception')
-
-    - property: curriculum
-      external_name: curriculum
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.create_foreign_key('zRatingScale')
 
     - property: name_estonian
       external_name: name_estonian
@@ -220,42 +322,6 @@ transformers:
     - property: name_english
       external_name: name_english
       import_transform: transform.none_if_empty(unicode)
-
-    - property: description_estonian
-      external_name: description_estonian
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: description_english
-      external_name: description_english
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: subsidized_places
-      external_name: subsidized_places
-      import_transform: transform.none_if_empty(int)
-
-    - property: non_subsidized_places
-      external_name: non_subsidized_places
-      import_transform: transform.none_if_empty(int)
-
-    - property: start_date
-      external_name: start_date
-      import_transform: transform.import_date_time('%Y-%m-%d')
-
-    - property: end_date
-      external_name: end_date
-      import_transform: transform.import_date_time('%Y-%m-%d')
-
-    - property: manager
-      external_name: manager
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: communication_email
-      external_name: communication_email
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: is_published
-      external_name: is_published
-      import_transform: transform.regexp_bool('true', re.IGNORECASE)
 
 
 - kind: zRole
@@ -280,12 +346,16 @@ transformers:
       import_transform: transform.none_if_empty(unicode)
 
 
-- kind: zSchoolList
-  connector: csv
-  property_map:
-    - property: name
-      external_name: name
-      import_transform: transform.none_if_empty(unicode)
+
+
+
+
+
+
+
+#    - property: is_published
+#      external_name: is_published
+#      import_transform: transform.regexp_bool('true', re.IGNORECASE)
 
 
 
@@ -316,55 +386,6 @@ transformers:
 
 
 
-
-
-
-
-
-
-- kind: Aggregation
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: count
-      external_name: count
-      import_transform: transform.none_if_empty(int)
-
-    - property: dimensions
-      external_name: dimensions
-
-    - property: level
-      external_name: level
-      import_transform: transform.none_if_empty(int)
-
-    - property: sum
-      external_name: sum
-      import_transform: transform.none_if_empty(float)
-
-    - property: type
-      external_name: type
-
-
-- kind: Concentration
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-      import_transform: transform.key_id_or_name_as_string
-
-    - property: curriculum
-      external_name: curriculum
-      import_transform: transform.create_foreign_key('Curriculum')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: name
-      external_name: name
-      import_transform: transform.create_foreign_key('Dictionary')
-      export_transform: transform.key_id_or_name_as_string
 
 
 - kind: Contact
@@ -386,80 +407,6 @@ transformers:
 
     - property: value
       external_name: value
-
-
-- kind: Course
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: course_end_date
-      external_name: course_end_date
-      import_transform: transform.import_date_time('%Y-%m-%dT%H:%M:%S')
-      export_transform: transform.export_date_time('%Y-%m-%dT%H:%M:%S')
-
-    - property: course_start_date
-      external_name: course_start_date
-      import_transform: transform.import_date_time('%Y-%m-%dT%H:%M:%S')
-      export_transform: transform.export_date_time('%Y-%m-%dT%H:%M:%S')
-
-    - property: is_feedback_started
-      external_name: is_feedback_started
-      import_transform: transform.regexp_bool('true', re.IGNORECASE)
-
-    - property: subject
-      external_name: subject
-      import_transform: transform.create_foreign_key('Subject')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: teachers
-      external_name: teachers
-      import_transform: transform.create_foreign_key('Person')
-      export_transform: transform.key_id_or_name_as_string
-
-
-- kind: Curriculum
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: code
-      external_name: code
-
-    - property: degree
-      external_name: degree
-      import_transform: transform.create_foreign_key('Dictionary')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: form_of_training
-      external_name: form_of_training
-      import_transform: transform.create_foreign_key('Dictionary')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: level_of_education
-      external_name: level_of_education
-      import_transform: transform.create_foreign_key('Dictionary')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: name
-      external_name: name
-      import_transform: transform.create_foreign_key('Dictionary')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: nominal_credit_points
-      external_name: nominal_credit_points
-      import_transform: transform.none_if_empty(float)
-
-    - property: nominal_years
-      external_name: nominal_years
-      import_transform: transform.none_if_empty(int)
-
-    - property: tags
-      external_name: tags
 
 
 - kind: Department
@@ -486,379 +433,3 @@ transformers:
       external_name: parent_department
       import_transform: transform.create_foreign_key('Department')
       export_transform: transform.key_id_or_name_as_string
-
-
-- kind: Dictionary
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: languages
-      external_name: languages
-
-    - property: name
-      external_name: name
-
-    - property: value
-      external_name: value
-
-
-- kind: ModuleSubject
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: module
-      external_name: module
-      import_transform: transform.create_foreign_key('Module')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: subject
-      external_name: subject
-      import_transform: transform.create_foreign_key('Subject')
-      export_transform: transform.key_id_or_name_as_string
-
-
-- kind: Module
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: name
-      external_name: name
-      import_transform: transform.create_foreign_key('Dictionary')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: orientation
-      external_name: orientation
-      import_transform: transform.create_foreign_key('Orientation')
-      export_transform: transform.key_id_or_name_as_string
-
-
-- kind: OldAuth
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: loginurl
-      external_name: loginurl
-
-    - property: logouturl
-      external_name: logouturl
-
-    - property: salt
-      external_name: salt
-
-    - property: site
-      external_name: site
-
-
-- kind: PersonRole
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: department
-      external_name: department
-      import_transform: transform.create_foreign_key('Department')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: person
-      external_name: person
-      import_transform: transform.create_foreign_key('Perosn')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: role
-      external_name: role
-      import_transform: transform.create_foreign_key('Role')
-      export_transform: transform.key_id_or_name_as_string
-
-
-- kind: QuestionAnswer
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: aggregation_date
-      external_name: aggregation_date
-      import_transform: transform.import_date_time('%Y-%m-%dT%H:%M:%S')
-      export_transform: transform.export_date_time('%Y-%m-%dT%H:%M:%S')
-
-    - property: answer
-      external_name: answer
-      import_transform: db.Text
-
-    - property: course
-      external_name: course
-      import_transform: transform.create_foreign_key('Course')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: datetime
-      external_name: datetime
-      import_transform: transform.import_date_time('%Y-%m-%dT%H:%M:%S')
-      export_transform: transform.export_date_time('%Y-%m-%dT%H:%M:%S')
-
-    - property: is_mandatory
-      external_name: is_mandatory
-      import_transform: transform.regexp_bool('true', re.IGNORECASE)
-
-    - property: person
-      external_name: person
-      import_transform: transform.create_foreign_key('Person')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: question
-      external_name: question
-      import_transform: transform.create_foreign_key('Question')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: question_string
-      external_name: question_string
-
-    - property: questionary
-      external_name: questionary
-      import_transform: transform.create_foreign_key('Questionary')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: questionary_person
-      external_name: questionary_person
-      import_transform: transform.create_foreign_key('QuestionaryPerson')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: target_person
-      external_name: target_person
-      import_transform: transform.create_foreign_key('Person')
-      export_transform: transform.key_id_or_name_as_string
-
-
-- kind: Question
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: is_mandatory
-      external_name: is_mandatory
-      import_transform: transform.regexp_bool('true', re.IGNORECASE)
-
-    - property: is_teacher_specific
-      external_name: is_teacher_specific
-      import_transform: transform.regexp_bool('true', re.IGNORECASE)
-
-    - property: name
-      external_name: name
-      import_transform: transform.create_foreign_key('Dictionary')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: ordinal
-      external_name: ordinal
-      import_transform: transform.none_if_empty(int)
-
-    - property: questionary
-      external_name: questionary
-      import_transform: transform.create_foreign_key('Questionary')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: type
-      external_name: type
-
-
-- kind: QuestionaryPerson
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: course
-      external_name: course
-      import_transform: transform.create_foreign_key('Course')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: is_completed
-      external_name: is_completed
-      import_transform: transform.regexp_bool('true', re.IGNORECASE)
-
-    - property: person
-      external_name: person
-      import_transform: transform.create_foreign_key('Person')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: questionary
-      external_name: questionary
-      import_transform: transform.create_foreign_key('Questionary')
-      export_transform: transform.key_id_or_name_as_string
-
-
-- kind: Questionary
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: description
-      external_name: description
-      import_transform: transform.create_foreign_key('Dictionary')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: end_date
-      external_name: end_date
-      import_transform: transform.import_date_time('%Y-%m-%dT%H:%M:%S')
-      export_transform: transform.export_date_time('%Y-%m-%dT%H:%M:%S')
-
-    - property: is_template
-      external_name: is_template
-      import_transform: transform.regexp_bool('true', re.IGNORECASE)
-
-    - property: name
-      external_name: name
-      import_transform: transform.create_foreign_key('Dictionary')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: start_date
-      external_name: start_date
-      import_transform: transform.import_date_time('%Y-%m-%dT%H:%M:%S')
-      export_transform: transform.export_date_time('%Y-%m-%dT%H:%M:%S')
-
-
-- kind: Role
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: name
-      external_name: name
-      import_transform: transform.create_foreign_key('Dictionary')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: rights
-      external_name: rights
-
-
-- kind: Subject
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: code
-      external_name: code
-
-    - property: credit_points
-      external_name: credit_points
-      import_transform: transform.none_if_empty(float)
-
-    - property: name
-      external_name: name
-      import_transform: transform.create_foreign_key('Dictionary')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: rating_scale
-      external_name: rating_scale
-      import_transform: transform.create_foreign_key('RatingScale')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: tags
-      external_name: tags
-
-
-- kind: Subscription
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: course
-      external_name: course
-      import_transform: transform.create_foreign_key('Course')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: student
-      external_name: student
-      import_transform: transform.create_foreign_key('Person')
-      export_transform: transform.key_id_or_name_as_string
-
-
-- kind: Translation
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: __searchable_text_index
-      external_name: __searchable_text_index
-
-    - property: dictionary
-      external_name: dictionary
-      import_transform: transform.create_foreign_key('Dictionary')
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: dictionary_name
-      external_name: dictionary_name
-
-    - property: language
-      external_name: language
-
-    - property: value
-      external_name: value
-
-
-- kind: UserPreferences
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: language
-      external_name: language
-
-
-- kind: User
-  connector: csv
-  property_map:
-    - property: __key__
-      external_name: key
-      export_transform: transform.key_id_or_name_as_string
-
-    - property: created
-      external_name: created
-      import_transform: transform.import_date_time('%Y-%m-%dT%H:%M:%S')
-      export_transform: transform.export_date_time('%Y-%m-%dT%H:%M:%S')
-
-    - property: email
-      external_name: email
-
-    - property: google_user_id
-      external_name: google_user_id
-
-    - property: language
-      external_name: language
-
-    - property: last_seen
-      external_name: last_seen
-      import_transform: transform.import_date_time('%Y-%m-%dT%H:%M:%S')
-      export_transform: transform.export_date_time('%Y-%m-%dT%H:%M:%S')
-
-    - property: nickname
-      external_name: nickname
-      # Type: String Stats: 615 properties of this type in this kind.
