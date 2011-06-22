@@ -2,7 +2,8 @@ from google.appengine.ext import db
 from datetime import date
 
 from bo import *
-from database import *
+from database.dictionary import *
+from database.person import *
 
 
 class Questionary(ChangeLogModel):
@@ -28,7 +29,7 @@ class Question(ChangeLogModel):
 class QuestionaryPerson(ChangeLogModel):
     questionary         = db.ReferenceProperty(Questionary, collection_name='questionary_persons')
     person              = db.ReferenceProperty(Person, collection_name='questionary_persons')
-    course              = db.ReferenceProperty(Course, collection_name='questionary_persons')
+    #course              = db.ReferenceProperty(Course, collection_name='questionary_persons')
     is_completed        = db.BooleanProperty(default=False)
     is_obsolete         = db.BooleanProperty(default=False)
     model_version       = db.StringProperty(default='A')
@@ -40,7 +41,7 @@ class QuestionAnswer(ChangeLogModel):
     person              = db.ReferenceProperty(Person, collection_name='person_answers')
     target_person       = db.ReferenceProperty(Person, collection_name='target_person_answers')
     questionary         = db.ReferenceProperty(Questionary, collection_name='answers')
-    course              = db.ReferenceProperty(Course, collection_name='questionary_answers')
+    #course              = db.ReferenceProperty(Course, collection_name='questionary_answers')
     question            = db.ReferenceProperty(Question, collection_name='answers')
     question_string     = db.StringProperty()
     answer              = db.TextProperty()
