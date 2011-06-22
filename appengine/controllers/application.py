@@ -126,7 +126,7 @@ class ShowApplication(boRequestHandler):
             receptions = []
             for r in db.Query(Bubble).filter('type', 'submission').filter('start_datetime <', datetime.now()).filter('is_deleted', False).fetch(1000):
                 if r.end_datetime:
-                    if r.end_datetime > datetime.now():
+                    if r.end_datetime >= datetime.now():
                         r.end = Translate('reception_will_end_on') % r.end_datetime.strftime('%d.%m.%Y')
                         if r.key() in p.leecher:
                             r.selected = True

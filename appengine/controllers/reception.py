@@ -75,6 +75,18 @@ class ShowApplication(boRequestHandler):
             p = Person().get(key)
             if p:
 
+                submissions = []
+                for s in db.Query(Bubble).filter('type', 'submission').filter('start_datetime <', datetime.now()).filter('is_deleted', False).fetch(1000):
+                    if s.end_datetime:
+                        if s.end_datetime > datetime.now():
+                            level_r = db.Query(Bubble).filter('type', 'reception').filter('optional_bubbles', s.key()).get()
+                            level_rs = db.Query(Bubble).filter('type', 'receptions').filter('optional_bubbles', level_r.key()).get()
+                            if level_rs:
+                                s.level = level_rs.displayname
+                            else:
+                                s.level = ''
+                            submissions.append(s)
+
                 receptions = db.Query(Bubble).filter('leechers', p).filter('type', 'submission').fetch(1000)
                 for r in receptions:
                     r.name_str = r.name.translate()
@@ -113,6 +125,7 @@ class ShowApplication(boRequestHandler):
                 self.view('application', 'application/application.html', {
                     'post_url': '/reception',
                     'receptions': receptions,
+                    'submissions': submissions,
                     'person': p,
                     'date_days': range(1, 32),
                     'date_months': Translate('list_months').split(','),
@@ -319,6 +332,17 @@ class EditCV(boRequestHandler):
                     self.response.out.write(simplejson.dumps(respond))
 
 
+class AddSubmission(boRequestHandler):
+    def post(self):
+        if self.authorize('bubbler'):
+            bubble_key = self.request.get('bubble').strip()
+            person_key = self.request.get('person').strip()
+
+            person = Person().get(person_key)
+            person.add_leecher(db.Key(bubble_key))
+            person.put()
+
+
 class RateApplication(boRequestHandler):
     def post(self):
         if self.authorize('bubbler'):
@@ -358,6 +382,7 @@ class RateApplication(boRequestHandler):
 def main():
     Route([
             (r'/reception/application/(.*)', ShowApplication),
+            ('/reception/add_submission', AddSubmission),
             ('/reception/rate', RateApplication),
             ('/reception/person', EditPerson),
             ('/reception/contact', EditContact),

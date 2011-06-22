@@ -1,7 +1,6 @@
 application: bongapp
-#application: bubbledu
-#version: 2011-06-13
-version: dev
+version: 2011-06-21
+#version: dev
 runtime: python
 api_version: 1
 
