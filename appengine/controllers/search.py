@@ -2,11 +2,11 @@ from google.appengine.api import memcache
 
 from urllib import unquote
 
-from helpers import *
+from bo import *
 from database import *
 
 
-class Search(webapp.RequestHandler):
+class Search(boRequestHandler):
 
     def get(self, searchstr = None):
 
@@ -19,14 +19,14 @@ class Search(webapp.RequestHandler):
 
             persons = []
             for p in Person.all().search(searchstr).order('forename').order('surname').fetch(100):             persons.append({
-                    'link': '/person/' + str(p.key()),
+                    'link': '',
                     'title': p.forename + ' ' + p.surname,
                 })
 
             curriculums = []
             for l in Translation.all().search(searchstr).order('value').filter('dictionary_name', 'curriculum_name').fetch(100):
                 curriculums.append({
-                    'link': '/curriculum/' + str(l.key()),
+                    'link': '',
                     'title': l.dictionary.translate(),
                     'alt': l.dictionary.curriculum_names[0].level_of_education.translate()
                 })
@@ -53,7 +53,7 @@ class Search(webapp.RequestHandler):
 
             memcache.add('search_' + searchstr, tree, 300)
 
-        View(self, 'search', 'search.html', {
+        self.view('search', 'search.html', {
             'tree': tree,
         })
 
