@@ -1,1 +1,0 @@
-python /usr/local/bin/appcfg.py -verbose --no_cookies --email=argoroots@gmail.com --passin rollback ../
