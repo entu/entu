@@ -41,6 +41,18 @@
 {% endfor %}
 
 {% ifequal post_url "/reception" %}
+<h2 style="margin-top:30px;">{{ str.add_new }}</h2>
+<select id="add_submission" name="add_submission" style="margin-top:10px;">
+    <option value=""></option>
+    {% regroup submissions|dictsort:"level" by level as subs %}
+    {% for s in subs %}
+    <optgroup label="{{ s.grouper }}">
+        {% for add in s.list|dictsort:"displayname" %}
+        <option value="{{ add.key }}">{{ add.displayname }}</option>
+        {% endfor %}
+    </optgroup>
+    {% endfor %}
+</select>
 <script>
     $(document).ready( function(){
 
@@ -49,7 +61,13 @@
             $.post('/reception/rate', { person: '{{ person.key }}', bubble: grade.attr('bubble'), grade: grade.val() }, function(json) {
 
             }, 'json');
+        });
 
+        $("#add_submission").change(function(){
+            var submission = $(this);
+            $.post('/reception/add_submission', { person: '{{ person.key }}', bubble: submission.val() }, function(json) {
+                location.href = '';
+            }, 'json');
         });
 
     });
