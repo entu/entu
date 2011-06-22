@@ -162,8 +162,8 @@ class zBubble(db.Model):
     order                   = db.IntegerProperty()
     name_estonian           = db.StringProperty()
     name_english            = db.StringProperty()
-    description_estonian    = db.StringProperty()
-    description_english     = db.StringProperty()
+    description_estonian    = db.TextProperty()
+    description_english     = db.TextProperty()
     start_datetime          = db.DateTimeProperty()
     end_datetime            = db.DateTimeProperty()
     location                = db.StringProperty()   #not imported
