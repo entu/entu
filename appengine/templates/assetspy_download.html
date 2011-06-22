@@ -1,0 +1,75 @@
+{% extends "main.html" %}
+
+{% block breadcrumb %}
+<nav>
+    <ul id="crumbs">
+        <li><a href="/">{{ system_title }}</a></li>
+        <li id="crumb_title">{{ str.assets }}</li>
+    </ul>
+</nav>
+{% endblock %}
+
+{% block content %}
+
+<section id="wide_content">
+
+    <form id="place" class="vertical_table" action="" method="post">
+        <div class="table_row">
+            <div class="header_cell">
+                {{ str.location }}:
+            </div>
+            <div class="table_cell">
+                <select name="location" autofocus>
+                    <option value="Estonia pst 7">Estonia pst 7</option>
+                    <option value="Kiriku plats 1">Kiriku plats 1</option>
+                    <option value="Suur-Kloostri 11 ja 11a">Suur-Kloostri 11 ja 11a</option>
+                    <option value="Pikk 20">Pikk 20</option>
+                    <option value="Gonsiori 9">Gonsiori 9</option>
+                    <option value="Raja tn 11a">Raja tn 11a</option>
+                </select>
+            </div>
+        </div>
+        <div class="table_row">
+            <div class="header_cell">
+                {{ str.room_name }}:
+            </div>
+            <div class="table_cell">
+                <input name="room">
+            </div>
+        </div>
+        <div class="table_row">
+            <div class="header_cell">
+                {{ str.user }} ({{ str.email }}):
+            </div>
+            <div class="table_cell">
+                <input name="user" style="width:250px;">
+            </div>
+        </div>
+        <div class="table_row">
+            <div class="header_cell">
+                {{ str.asset_id }}:
+            </div>
+            <div class="table_cell">
+                <input name="asset_id">
+            </div>
+        </div>
+        <div class="table_row">
+            <div class="header_cell">
+            </div>
+            <div class="table_cell">
+                <a href="javascript:void();" id="submit_form" class="button">{{ str.download }}</a>
+            </div>
+        </div>
+    </form>
+
+</section>
+
+<script>
+    $(document).ready(function(){
+        $('#submit_form').click(function() {
+            $('#place').submit();
+        });
+    });
+</script>
+
+{% endblock %}

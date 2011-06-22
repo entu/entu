@@ -1,0 +1,82 @@
+<h2 style="margin-top:30px;">{{ str.application_documents }} <span>{{ str.application_documents_desc }}</span></h2>
+
+<div class="table">
+    {% for doc in documents|dictsort:"created" %}
+    <div class="table_row">
+        <div class="table_cell" style="white-space:nowrap;">
+            <a href="{{ doc.url }}" target="_blank">{{ doc.file.filename }}</a>
+            <span style="color:gray; font-size:11px; padding-left:10px;">({{ doc.file.size|filesizeformat }})</span>
+        </div>
+        <div class="table_cell" style="width:98%;">
+            {% if application_readonly %}
+            {{ doc.title.translate|default:"" }}
+            {% else %}
+            <input type="text" class="document_name" name="name" value="{{ doc.title.translate }}" alt="{{ doc.key }}" placeholder="{{ str.additional_info }}" style="width:98%;" />
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    <div id="new_document" class="table_row" style="display:none;">
+        <div class="table_cell" style="white-space:nowrap;">
+            <a href="{{ doc.url }}" target="_blank"></a>
+            <span style="color:gray; font-size:11px; padding-left:10px;"></span>
+        </div>
+        <div class="table_cell" style="width:98%;">
+            <input type="text" class="document_name" name="name" placeholder="{{ str.additional_info }}" style="width:99%;" />
+        </div>
+    </div>
+</div>
+{% if application_readonly %}{% else %}
+<div style="margin:10px;">
+    <iframe name="document_iframe" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML);" style="display:none;"></iframe>
+    <form id="document_form" method="post" action="{{ document_upload_url }}" target="document_iframe" enctype="multipart/form-data">
+        <select name="title">
+            {% for dtype in document_types %}
+            <option value="{{ dtype }}">{{ dtype }}</option>
+            {% endfor %}
+        </select>
+        <input type="file" id="document_file" name="file" style="margin-top:5px; border:none; width:80px;" />
+        <input type="hidden" name="types" value="application_document" />
+        <input type="hidden" name="visibility" value="domain" />
+        <input type="hidden" name="entities" value="{{ person.key }}" />
+    </form>
+    <img id="document_uploading" src="/images/ajax-loader.gif" style="display:none;" />
+    <a name="docs"></a>
+</div>
+<script>
+    $(document).ready(function(){
+
+        $('.document_name').change(function() {
+            autoSave($(this), '/document/update', {});
+        });
+
+        $('#document_file').change(function() {
+            $('#document_form').hide();
+            $('#document_uploading').show();
+            $('#document_form').submit();
+        });
+
+    });
+
+    function showDocument(json_string){
+        if(json_string) {
+            var json = jQuery.parseJSON(json_string)
+            key = json['key'];
+            url = json['url'];
+            filename = json['filename'];
+            title = json['title'];
+            if(key) {
+                var newdoc = $('#new_document').clone(true);
+                $('#new_document').before(newdoc);
+                newdoc.find('a').attr('href', url);
+                newdoc.find('a').html(filename);
+                newdoc.find('input').val(title);
+                newdoc.find('input').attr('alt', key);
+                newdoc.show();
+            }
+        }
+        $('#document_uploading').hide();
+        $('#document_form').show();
+    };
+</script>
+{% endif %}
