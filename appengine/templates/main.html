@@ -38,12 +38,12 @@
             <nav id="top_nav">
                 {% if user %}
                 <i>{{ str.welcome }} <a href="/preferences">{{ user.displayname|default:"" }}</a>!</i>
-                | 
+                |
                 <select id="current_role" name="current_role">
                     {% for pr in user.roles2 %}
-                    <option value="{{ pr.key }}"{% ifequal user.current_role pr.key %} selected{% endifequal %}>{{ pr.displayname }}</option>
+                    <option value="{{ pr.key }}"{% ifequal user.current_role.key pr.key %} selected{% endifequal %}>{{ pr.displayname }}</option>
                     {% endfor %}
-                </select>                
+                </select>
                 | <a href="{{ logouturl|escape }}">{{ str.logout }}</a>
                 {% else %}
                 <a href="{{ loginurl|escape }}" style="border:none;">{{ str.login }}</a>
@@ -63,15 +63,16 @@
 
         <footer>
         </footer>
-        
-        <script>
-        $(document).ready(function(){
-            $('#current_role').change(function() {
-                $.post('/person/set_role', {role: $(this).val()}, function(json) {
-                    $(this).effect("highlight", {}, 1000);
-                }, "json");
+
+        <script type="text/javascript">
+            $(document).ready(function(){
+                $('#current_role').change(function() {
+                    select = $(this);
+                    $.post('/person/set_role', { role: select.val() }, function(json) {
+                        select.effect("highlight", {}, 1000);
+                    }, "json");
+                });
             });
-        });
         </script>
     </body>
 </html>
