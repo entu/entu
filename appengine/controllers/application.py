@@ -124,7 +124,7 @@ class ShowApplication(boRequestHandler):
             now = datetime.now()
 
             receptions = []
-            for r in db.Query(Bubble).filter('type', 'submission').filter('start_datetime <', datetime.now()).filter('is_deleted', False).fetch(1000):
+            for r in db.Query(Bubble).filter('type', 'submission').filter('start_datetime <=', datetime.now()).filter('is_deleted', False).fetch(1000):
                 if r.end_datetime:
                     if r.end_datetime >= datetime.now():
                         r.end = Translate('reception_will_end_on') % r.end_datetime.strftime('%d.%m.%Y')
@@ -142,6 +142,12 @@ class ShowApplication(boRequestHandler):
             secondaryschools = db.Query(Cv).ancestor(p).filter('type', 'secondary_education').fetch(1000)
             highschools = db.Query(Cv).ancestor(p).filter('type', 'higher_education').fetch(1000)
             workplaces = db.Query(Cv).ancestor(p).filter('type', 'workplace').fetch(1000)
+            stateexams = db.Query(Bubble).filter('type', 'state_exam').filter('start_datetime <=', datetime.now()).filter('is_deleted', False).fetch(1000)
+
+            for se in stateexams:
+                se_grade = db.Query(Grade).filter('person', p).filter('bubble', se).filter('is_deleted', False).get()
+                if se_grade:
+                    se.grade = se_grade.gradedefinition.key()
 
             conversation = db.Query(Conversation).filter('entities', p.key()).filter('types', 'application').get()
             if conversation:
@@ -154,6 +160,7 @@ class ShowApplication(boRequestHandler):
             self.view('application', 'application/application.html', {
                 'post_url': '/application',
                 'receptions': receptions,
+                'stateexams': stateexams,
                 'person': p,
                 'date_days': range(1, 32),
                 'date_months': Translate('list_months').split(','),
@@ -274,6 +281,48 @@ class EditCV(boRequestHandler):
             self.response.out.write(simplejson.dumps(respond))
 
 
+class StateExam(boRequestHandler):
+    def post(self):
+        p =  Person().current_s(self)
+        if p:
+            gradedefinition_key = self.request.get('value').strip()
+            bubble_key = self.request.get('exam').strip()
+            respond = {}
+
+            bubble = Bubble().get(bubble_key)
+
+            if gradedefinition_key:
+                gradedefinition = GradeDefinition().get(gradedefinition_key)
+            else:
+                gradedefinition = None
+
+            grade = db.Query(Grade).filter('person', p).filter('bubble', bubble).get()
+            if not grade:
+                grade = Grade()
+                grade.person = p
+                grade.bubble = bubble
+            grade.bubble_type = bubble.type
+            grade.datetime = datetime.now()
+            #grade.name =
+            grade.points = bubble.points
+            #grade.school =
+            #grade.teacher =
+            #grade.teacher_name =
+            if gradedefinition:
+                grade.gradedefinition = gradedefinition
+                grade.equivalent = gradedefinition.equivalent
+                grade.is_positive = gradedefinition.is_positive
+                grade.is_deleted = False
+            else:
+                grade.is_deleted = True
+            grade.put()
+
+
+            respond['application_completed_info'] = CheckApplication(p)
+
+            self.response.out.write(simplejson.dumps(respond))
+
+
 class PostMessage(boRequestHandler):
     def post(self):
         p =  Person().current_s(self)
@@ -371,6 +420,7 @@ def main():
             ('/application/person', EditPerson),
             ('/application/contact', EditContact),
             ('/application/cv', EditCV),
+            ('/application/stateexam', StateExam),
             ('/application/message', PostMessage),
             ('/application/stats', Stats),
             (r'/application(.*)', ShowApplication),
