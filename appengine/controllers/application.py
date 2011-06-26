@@ -143,7 +143,6 @@ class ShowApplication(boRequestHandler):
             highschools = db.Query(Cv).ancestor(p).filter('type', 'higher_education').fetch(1000)
             workplaces = db.Query(Cv).ancestor(p).filter('type', 'workplace').fetch(1000)
             stateexams = db.Query(Bubble).filter('type', 'state_exam').filter('start_datetime <=', datetime.now()).filter('is_deleted', False).fetch(1000)
-
             for se in stateexams:
                 se_grade = db.Query(Grade).filter('person', p).filter('bubble', se).filter('is_deleted', False).get()
                 if se_grade:

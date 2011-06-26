@@ -113,6 +113,11 @@ class ShowApplication(boRequestHandler):
                 secondaryschools = db.Query(Cv).ancestor(p).filter('type', 'secondary_education').fetch(1000)
                 highschools = db.Query(Cv).ancestor(p).filter('type', 'higher_education').fetch(1000)
                 workplaces = db.Query(Cv).ancestor(p).filter('type', 'workplace').fetch(1000)
+                stateexams = db.Query(Bubble).filter('type', 'state_exam').filter('start_datetime <=', datetime.now()).filter('is_deleted', False).fetch(1000)
+                for se in stateexams:
+                    se_grade = db.Query(Grade).filter('person', p).filter('bubble', se).filter('is_deleted', False).get()
+                    if se_grade:
+                        se.grade = se_grade.gradedefinition.key()
 
                 conversation = db.Query(Conversation).filter('entities', p.key()).filter('types', 'application').get()
                 if conversation:
@@ -125,6 +130,7 @@ class ShowApplication(boRequestHandler):
                 self.view('application', 'application/application.html', {
                     'post_url': '/reception',
                     'receptions': receptions,
+                    'stateexams': stateexams,
                     'submissions': submissions,
                     'person': p,
                     'date_days': range(1, 32),
@@ -332,6 +338,42 @@ class EditCV(boRequestHandler):
                     self.response.out.write(simplejson.dumps(respond))
 
 
+class StateExam(boRequestHandler):
+    def post(self):
+        if self.authorize('bubbler'):
+            bubble_key = self.request.get('exam').strip()
+            person_key = self.request.get('person').strip()
+            gradedefinition_key = self.request.get('value').strip()
+
+            bubble = Bubble().get(bubble_key)
+
+            if gradedefinition_key:
+                gradedefinition = GradeDefinition().get(gradedefinition_key)
+            else:
+                gradedefinition = None
+
+            grade = db.Query(Grade).filter('person', db.Key(person_key)).filter('bubble', bubble).get()
+            if not grade:
+                grade = Grade()
+                grade.person = db.Key(person_key)
+                grade.bubble = bubble
+            grade.bubble_type = bubble.type
+            grade.datetime = datetime.now()
+            #grade.name =
+            grade.points = bubble.points
+            #grade.school =
+            #grade.teacher =
+            #grade.teacher_name =
+            if gradedefinition:
+                grade.gradedefinition = gradedefinition
+                grade.equivalent = gradedefinition.equivalent
+                grade.is_positive = gradedefinition.is_positive
+                grade.is_deleted = False
+            else:
+                grade.is_deleted = True
+            grade.put()
+
+
 class AddSubmission(boRequestHandler):
     def post(self):
         if self.authorize('bubbler'):
@@ -387,6 +429,7 @@ def main():
             ('/reception/person', EditPerson),
             ('/reception/contact', EditContact),
             ('/reception/cv', EditCV),
+            ('/reception/stateexam', StateExam),
             ('/reception/message', PostMessage),
             ('/reception/accept', AcceptApplication),
             (r'/reception/(.*)', ShowApplicationList),
