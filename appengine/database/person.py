@@ -62,8 +62,9 @@ class Person(ChangeLogModel):
     def primary_email(self):
         if self.apps_username:
             return self.apps_username
-        if self.email:
-            return self.email
+        if self.emails:
+            if len(self.emails) > 0:
+                return self.emails[0]
 
     @property
     def emails(self):
