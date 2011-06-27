@@ -1,4 +1,6 @@
 import string
+import csv
+import cStringIO
 from datetime import *
 
 from bo import *
@@ -255,12 +257,36 @@ class AddTimeslots(boRequestHandler):
                 bubble.optional_bubbles.append(new.key())
                 bubble.put()
 
+
+class SubBubblesCSV(boRequestHandler):
+    def get(self, bubble_id):
+        if self.authorize('bubbler'):
+            bubble = Bubble().get_by_id(int(bubble_id))
+            csvfile = cStringIO.StringIO()
+            csvWriter = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
+
+            for b in sorted(bubble.bubbles, key=lambda k: k.start_datetime):
+                csvWriter.writerow([
+                    b.type2.displayname.encode("utf-8"),
+                    b.displayname.encode("utf-8"),
+                    b.displaydate.encode("utf-8"),
+                    ', '.join([p.displayname.encode("utf-8") for p in b.leechers2])
+                ])
+
+            self.header('Content-Type', 'text/csv; charset=utf-8')
+            self.header('Content-Disposition', 'attachment; filename=' + bubble.displayname + '.csv')
+            self.echo(csvfile.getvalue())
+            csvfile.close()
+
+
+
 def main():
     Route([
             (r'/bubbletype/(.*)', ShowBubbleList),
             (r'/bubble/add/(.*)/(.*)', AddBubble),
             (r'/bubble/add_existing/(.*)', AddExistingBubble),
             (r'/bubble/add_timeslot/(.*)', AddTimeslots),
+            (r'/bubble/csv/(.*)', SubBubblesCSV),
             (r'/bubble/delete/(.*)', DeleteBubble),
             (r'/bubble/seeders', GetSeeders),
             (r'/bubble/seeder/add/(.*)/(.*)', AddSeeder),

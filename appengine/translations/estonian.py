@@ -230,4 +230,6 @@ def translation():
         'statistics_by_gender':     'Sisseastujate sugu',
         'statistics_by_age':     'Sisseastujate vanus',
 
+        'save_csv':     'Salvesta CSV fail',
+
     }

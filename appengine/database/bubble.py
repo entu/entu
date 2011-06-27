@@ -174,7 +174,6 @@ class Bubble(ChangeLogModel):
             person = Person().get(person_key)
             if not list(set(person.leecher) & set(self.optional_bubbles)):
                 bubbles = sorted(Bubble().get(self.optional_bubbles), key=lambda k: k.start_datetime)
-                bubbles = sorted(bubbles, key=lambda k: k.start_datetime)
                 for b in bubbles:
                     if b.type == 'personal_time_slot' and b.is_deleted == False:
                         if not db.Query(Person).filter('leecher', b.key()).get():
