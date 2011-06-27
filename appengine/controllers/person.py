@@ -26,7 +26,7 @@ class ShowPerson(boRequestHandler):
             person = Person().get(key)
             field = self.request.get('field').strip()
             value = self.request.get('value').strip()
-            if bubble:
+            if person:
                 if value:
                     if field in ['forename', 'surname']:
                         setattr(person, field, value)
