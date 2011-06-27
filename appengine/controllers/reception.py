@@ -186,63 +186,6 @@ class PostMessage(boRequestHandler):
                     self.response.out.write(simplejson.dumps(respond))
 
 
-class AcceptApplication(boRequestHandler):
-    def post(self):
-        if self.authorize('reception'):
-            person =  self.request.get('person').strip()
-            respond = {}
-
-            if person:
-                p = Person().get(person)
-                if p:
-                    emails = []
-                    for a in db.Query(Application).ancestor(p).filter('status !=', 'unselected').fetch(1000):
-                        a.status = 'accepted'
-                        a.put()
-                        emails = AddToList(a.reception.communication_email, emails)
-
-                    con = db.Query(Conversation).filter('entities', p.key()).filter('types', 'application').get()
-                    if not con:
-                        con = Conversation()
-                        con.types = ['application']
-                        con.entities = [p.key()]
-                    con.participants = AddToList(p.key(), con.participants)
-                    con.participants = AddToList(Person().current.key(), con.participants)
-                    con.put()
-
-                    mes = Message(parent=con)
-                    mes.person = Person().current
-                    mes.text = Translate('application_accept_log_message')
-                    mes.put()
-
-                    SendMail(
-                        to = emails,
-                        subject = Translate('application_accept_email1_subject') % p.displayname,
-                        message = Translate('application_accept_email1_message') % {'name': Person().current.displayname, 'link': SYSTEM_URL + '/reception/application/' + str(p.key()), 'text': mes.text }
-                    )
-
-                    emails = []
-                    if p.email:
-                        emails = AddToList(p.email, emails)
-                    if p.apps_username:
-                        emails = AddToList(p.apps_username, emails)
-                    for contact in db.Query(Contact).ancestor(p).filter('type', 'email').fetch(1000):
-                        emails = AddToList(contact.value, emails)
-
-                    SendMail(
-                        to = emails,
-                        reply_to = 'sisseastumine@artun.ee',
-                        subject = Translate('application_accept_email2_subject') % p.displayname,
-                        message = Translate('application_accept_email2_message') % {'name': Person().current.displayname, 'text': mes.text }
-                    )
-
-                    respond['date'] = UtcToLocalDateTime(mes.created).strftime('%d.%m.%Y %H:%M')
-                    respond['person'] = mes.person.displayname
-                    respond['message'] = mes.text
-
-                    self.response.out.write(simplejson.dumps(respond))
-
-
 class EditPerson(boRequestHandler):
     def post(self):
         if self.authorize('reception'):
@@ -421,6 +364,24 @@ class RateApplication(boRequestHandler):
             grade.put()
 
 
+class LockRating(boRequestHandler):
+    def get(self, person_key):
+        if self.authorize('bubbler'):
+            person_key = person_key.strip('/')
+            if person_key:
+                person = Person.get(person_key)
+
+                for bubble in db.Query(Bubble).filter('leechers', person).filter('type', 'submission').fetch(1000):
+                    for g in db.Query(Grade).filter('is_deleted', False).filter('is_locked', False).filter('person', person).filter('bubble', bubble).fetch(1000):
+                        g.is_locked = True
+                        g.put()
+
+                        if g.is_positive == True:
+                            taskqueue.Task(url='/taskqueue/bubble_pass_leechers', params={'bubble_key': str(g.bubble.key()), 'person_key': str(g.person.key())}).add(queue_name='one-by-one')
+
+                self.redirect('/reception/application/' + person_key)
+
+
 def main():
     Route([
             (r'/reception/application/(.*)', ShowApplication),
@@ -431,7 +392,7 @@ def main():
             ('/reception/cv', EditCV),
             ('/reception/stateexam', StateExam),
             ('/reception/message', PostMessage),
-            ('/reception/accept', AcceptApplication),
+            (r'/reception/lock/(.*)', LockRating),
             (r'/reception/(.*)', ShowApplicationList),
             ('/reception', ShowReceptionList),
         ])

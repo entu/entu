@@ -41,6 +41,7 @@
 {% endfor %}
 
 {% ifequal post_url "/reception" %}
+<a href="/reception/lock/{{ person.key }}" class="button" style="float:right; margin-top:10px;">{{ str.rating_lock }}</a>
 <h2 style="margin-top:30px;">{{ str.add_new }}</h2>
 <select id="add_submission" name="add_submission" style="margin-top:10px;">
     <option value=""></option>
