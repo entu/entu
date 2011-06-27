@@ -36,18 +36,22 @@
         <header>
             <h1><a href="/">{{ system_title }}</a></h1>
             <nav id="top_nav">
+            {% block nav %}
                 {% if user %}
                 <i>{{ str.welcome }} <a href="/preferences">{{ user.displayname|default:"" }}</a>!</i>
+                {% if user.roles %}
                 |
                 <select id="current_role" name="current_role">
                     {% for pr in user.roles2 %}
                     <option value="{{ pr.key }}"{% ifequal user.current_role.key pr.key %} selected{% endifequal %}>{{ pr.displayname }}</option>
                     {% endfor %}
                 </select>
+                {% endif %}
                 | <a href="{{ logouturl|escape }}">{{ str.logout }}</a>
                 {% else %}
                 <a href="{{ loginurl|escape }}" style="border:none;">{{ str.login }}</a>
                 {% endif %}
+            {% endblock %}
             </nav>
         </header>
 

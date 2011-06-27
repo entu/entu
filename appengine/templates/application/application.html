@@ -5,6 +5,10 @@
 <script src="/javascript/jquery.placeholder.min.js" type="text/javascript"></script>
 {% endblock %}
 
+{% block nav %}
+<a href="/application/signin">{{ str.logout }}</a>
+{% endblock %}
+
 {% block breadcrumb %}
 {% ifequal post_url "/reception" %}
 <nav>
@@ -51,7 +55,6 @@
     $(document).ready(function(){
         $("input").placeholder({css_class: "placeholder"});
         $('textarea').elastic();
-        $('#top_nav').hide();
 
         $("#confirm_application").click(function(){
             location.href = '{{ post_url }}/submit';
