@@ -247,7 +247,7 @@ def CheckMailAddress(email):
     return email_re.match((email))
 
 
-def SendMail(to, subject, message, reply_to=None, html=True, attachments=None):
+def SendMail(to, subject, message=' ', reply_to=None, html=True, attachments=None):
     valid_to = []
     if isinstance(to, ListType):
         for t in to:
