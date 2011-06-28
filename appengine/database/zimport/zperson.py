@@ -75,20 +75,12 @@ class zPersonRole(db.Model):
     department          = db.StringProperty()
 
     def zimport(self):
-        pr = GetZoin('PersonRole', self.key().name())
-        if not pr:
-            pr = PersonRole()
 
-        pr.person = GetZoin('Person', self.person)
-        pr.role = GetZoin('Role', self.role)
-        pr.department = GetZoin('Department', self.department)
-        pr.put('zimport')
-
-        AddZoin(
-            entity_kind = 'PersonRole',
-            old_key = self.key().name(),
-            new_key = pr.key(),
-        )
+        person = GetZoin('Person', self.person)
+        role_key = GetZoinKey('Role', self.role)
+        if person and role_key:
+            person.roles = AddToList(role_key, person.roles)
+            person.put('zimport')
 
         self.delete()
 
