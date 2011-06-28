@@ -274,7 +274,7 @@ class SubBubblesCSV(boRequestHandler):
                 ])
 
             self.header('Content-Type', 'text/csv; charset=utf-8')
-            self.header('Content-Disposition', 'attachment; filename=' + bubble.displayname + '.csv')
+            self.header('Content-Disposition', 'attachment; filename=' + unicode(bubble.displayname.encode("utf-8"), errors='ignore') + '.csv')
             self.echo(csvfile.getvalue())
             csvfile.close()
 
