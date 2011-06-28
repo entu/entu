@@ -25,16 +25,16 @@
             <div class="table_cell" style="width:300px; vertical-align:top;">
 
                 <label for="forename" style="display:block;">{{ str.person_forename }}:</label>
-                <input type="text" id="forename" name="forename" class="autosave" value="{{ person.forename|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" disabled />
+                <input type="text" id="forename" name="forename" class="autosave" value="{{ person.forename|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
 
                 <label for="surname" style="display:block;">{{ str.person_surname }}:</label>
-                <input type="text" id="surname" name="surname" class="autosave" value="{{ person.surname|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" disabled />
+                <input type="text" id="surname" name="surname" class="autosave" value="{{ person.surname|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
 
                 <label for="primary_email" style="display:block;">{{ str.person_primary_email }}:</label>
-                <input type="text" id="primary_email" name="primary_email" class="autosave" value="{{ person.primary_email|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" disabled />
+                <input type="text" id="primary_email" name="primary_email" class="autosave" value="{{ person.primary_email|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
 
                 <label for="person_birthdate" style="display:block;">{{ str.person_birthdate }}:</label>
-                <input type="text" id="person_birthdate" name="person_birthdate" class="autosave_date" value="{{ person.birth_date|date:"d.m.Y" }}" maxlength="500" style="width:110px; margin-bottom:15px;" disabled />
+                <input type="text" id="person_birthdate" name="person_birthdate" class="autosave_date" value="{{ person.birth_date|date:"d.m.Y" }}" maxlength="500" style="width:110px; margin-bottom:15px;" />
 
                 <!--label style="display:block;">{{ str.bubble_seeders }}:</label>
                 <div id="seeders" style="margin-bottom:5px;">

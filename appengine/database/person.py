@@ -16,6 +16,7 @@ from libraries.gmemsess import *
 class Role(ChangeLogModel):
     name            = db.ReferenceProperty(Dictionary, collection_name='role_names')
     rights          = db.StringListProperty()
+    template_name   = db.StringProperty()
     model_version   = db.StringProperty(default='A')
 
     @property

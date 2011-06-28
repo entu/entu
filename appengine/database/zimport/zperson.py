@@ -45,6 +45,7 @@ class zRole(db.Model):
     name_estonian       = db.StringProperty()
     name_english        = db.StringProperty()
     rights              = db.StringProperty()
+    template_name       = db.StringProperty()
 
     def zimport(self):
         r = GetZoin('Role', self.key().name())
@@ -58,6 +59,7 @@ class zRole(db.Model):
 
         r.name = name.add()
         r.rights = StrToList(self.rights)
+        r.template_name = self.template_name
         r.put('zimport')
 
         AddZoin(

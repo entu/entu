@@ -16,13 +16,19 @@ class ShowPerson(boRequestHandler):
                     if changer:
                         changeinfo = Translate('person_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
 
-            self.view(person.displayname, 'person/person.html', {
-                'person': person,
-                'changed': changeinfo,
-            })
+            try:
+                self.view(person.displayname, 'person/person_' + Person().current.current_role.template_name + '.html', {
+                    'person': person,
+                    'changed': changeinfo,
+                })
+            except Exception, e:
+                self.view(person.displayname, 'person/person.html', {
+                    'person': person,
+                    'changed': changeinfo,
+                })
 
     def post(self, key):
-        if self.authorize('bubbler'):
+        if self.authorize('change_person'):
             person = Person().get(key)
             field = self.request.get('field').strip()
             value = self.request.get('value').strip()
