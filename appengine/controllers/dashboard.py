@@ -40,7 +40,7 @@ class Show(boRequestHandler):
                     'title': Translate('administration'),
                     'childs': [
                         {'link': '/reception', 'title': Translate('reception'), 'childs': [{
-                            'link': '/application/stats', 'title': Translate('statistics')
+                            'link': '/reception/stats', 'title': Translate('statistics')
                             }]},
                         {'link': '/questionary', 'title': Translate('questionaries')},
                     ]

@@ -382,6 +382,13 @@ class LockRating(boRequestHandler):
                 self.redirect('/reception/application/' + person_key)
 
 
+class Stats(boRequestHandler):
+    def get(self):
+        email = Person().current.primary_email
+        taskqueue.Task(url='/taskqueue/application_stats', params={'email': email}).add()
+        self.echo('Email sent to ' + email)
+
+
 def main():
     Route([
             (r'/reception/application/(.*)', ShowApplication),
@@ -392,6 +399,7 @@ def main():
             ('/reception/cv', EditCV),
             ('/reception/stateexam', StateExam),
             ('/reception/message', PostMessage),
+            ('/reception/stats', Stats),
             (r'/reception/lock/(.*)', LockRating),
             (r'/reception/(.*)', ShowApplicationList),
             ('/reception', ShowReceptionList),

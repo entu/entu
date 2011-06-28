@@ -364,62 +364,6 @@ class PostMessage(boRequestHandler):
                 self.response.out.write(simplejson.dumps(respond))
 
 
-class Stats(boRequestHandler):
-    def get(self):
-
-        bubbles = {}
-        genders = {}
-        ages = {}
-        bubbles_list = []
-        persons_list = []
-
-        for g in db.Query(Grade).filter('bubble_type', 'submission').filter('is_deleted', False).filter('is_locked', True).filter('is_positive', True):
-
-            bubble = g.bubble
-            person = g.person
-
-            bubble_key = str(bubble.key())
-            person_key = str(person.key())
-
-            bubbles_list.append(g.key())
-            persons_list.append(g.person.key())
-
-
-            if bubble_key not in bubbles:
-                bubbles[bubble_key] = {'name': bubble.displayname, 'value': 1}
-            else:
-                bubbles[bubble_key]['value'] += 1
-
-            if person.gender:
-                g_key = str(person.gender)
-            else:
-                g_key = 'NONE'
-            if g_key not in genders:
-                genders[g_key] = {'name': Translate('gender_' + str(person.gender)), 'value': 1, 'list': [person_key]}
-            else:
-                genders[g_key]['list'] = AddToList(person_key, genders[g_key]['list'])
-                genders[g_key]['value'] = len(genders[g_key]['list'])
-
-            if person.age:
-                a_key = person.age
-            else:
-                a_key = 'NONE'
-            if a_key not in ages:
-                ages[a_key] = {'name': a_key, 'value': 1, 'list': [person_key]}
-            else:
-                ages[a_key]['list'] = AddToList(person_key, ages[a_key]['list'])
-                ages[a_key]['value'] = len(ages[a_key]['list'])
-
-
-        self.view('application', 'application/stats.html', {
-            'bubbles': list(bubbles.values()),
-            'genders': list(genders.values()),
-            'ages': list(ages.values()),
-            'bubbles_total': len(list(set(bubbles_list))),
-            'persons_total': len(list(set(persons_list))),
-        })
-
-
 def main():
     Route([
             ('/application/signin', ShowSignin),
@@ -428,7 +372,6 @@ def main():
             ('/application/cv', EditCV),
             ('/application/stateexam', StateExam),
             ('/application/message', PostMessage),
-            ('/application/stats', Stats),
             (r'/application(.*)', ShowApplication),
         ])
 
