@@ -27,7 +27,7 @@ class Role(ChangeLogModel):
 
 
 class Person(ChangeLogModel):
-    user                    = db.UserProperty()
+    #user                    = db.UserProperty()
     apps_username           = db.StringProperty() # forename.surname@domain
     email                   = db.StringProperty()
     password                = db.StringProperty()
