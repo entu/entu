@@ -52,7 +52,7 @@
                 <label for="badge" style="display:block;">{{ str.bubble_badge }}:</label>
                 <input type="text" id="badge" name="badge" class="autosave" value="{{ bubble.badge.translate|default:"" }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
 
-                <label style="display:block;">{{ str.bubble_seeders }}:</label>
+                <label style="display:block;">{{ str.bubble_seeders }} ({{ bubble.seeders|length }}):</label>
                 <div id="seeders" style="margin-bottom:5px;">
                     {% if bubble.seeders2 %}
                     {% for p in bubble.seeders2|dictsort:"displayname" %}
@@ -62,7 +62,7 @@
                 </div>
                 <input type="text" id="seeder" name="seeder" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
 
-                <label style="display:block;">{{ str.bubble_leechers }}:</label>
+                <label style="display:block;">{{ str.bubble_leechers }} ({{ bubble.leechers|length }}):</label>
                 <div id="leechers" style="margin-bottom:5px;">
                     {% if bubble.leechers2 %}
                     {% for p in bubble.leechers2|dictsort:"displayname" %}
