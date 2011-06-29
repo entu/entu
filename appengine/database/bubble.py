@@ -131,6 +131,10 @@ class Bubble(ChangeLogModel):
         return Person.get(self.leechers)
 
     @property
+    def next_in_line2(self):
+        return Bubble.get(self.next_in_line)
+
+    @property
     def color(self):
         return RandomColor(200,255,200,255,200,255)
 

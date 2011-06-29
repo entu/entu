@@ -73,9 +73,13 @@
                 <input type="text" id="leecher" name="leecher" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
 
                 <div style=" margin-top:30px;">
+                    <label style="display:block;">{{ str.bubble_nextinlines }} ({{ bubble.next_in_line|length }}):</label>
+                    {% for nl in bubble.next_in_line2|dictsort:"displayname" %}
+                        <a href="javascript:void(0);" nextinline="{{ nl.key }}" type="nextinline" class="deletable">{{ nl.displayname }}</a><br />
+                    {% endfor %}
                     {% if nextinline_bubbles %}
                     <select id="nextinline" name="nextinline" class="autosave" style="margin-bottom:15px; width:300px; display:block;">
-                        <option value="">nextinline</option>
+                        <option value="">{{ str.add_new }}</option>
                         {% regroup nextinline_bubbles|dictsort:"type" by type2.displayname as nextinlines %}
                         {% for nextinline in nextinlines %}
                         <optgroup label="{{ nextinline.grouper }}">
@@ -221,7 +225,20 @@
 
 
         $('.deletable').click(function() {
-            if (confirm('{{ str.bubble_delete_person }}?')) do_person($(this).attr('person'), 'delete', $(this).attr('type'));
+            var to_delete = $(this)
+            if (to_delete.attr('type') == 'seeder') {
+                if (confirm('{{ str.bubble_delete_seeder }}?')) do_person(to_delete.attr('person'), 'delete', 'seeder');
+            }
+            if (to_delete.attr('type') == 'leecher') {
+                if (confirm('{{ str.bubble_delete_seeder }}?')) do_person(to_delete.attr('person'), 'delete', 'leecher');
+            }
+            if (to_delete.attr('type') == 'nextinline') {
+                if (confirm('{{ str.bubble_delete_nextinline }}?')) {
+                    $.post('/bubble/delete_nextinline/{{ bubble.key }}', { nextinline: to_delete.attr('nextinline') }, function(json) {
+                        window.location.href = '';
+                    }, "json");
+                }
+            }
         });
 
 

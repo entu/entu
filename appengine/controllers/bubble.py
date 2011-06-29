@@ -93,7 +93,7 @@ class ShowBubble(boRequestHandler):
                     if field == 'url':
                         bubble.url = value
                     if field == 'nextinline':
-                        bubble.next_in_line = [db.Key(value)]
+                        bubble.next_in_line = AddToList(db.Key(value), bubble.next_in_line)
                 else:
                     setattr(bubble, field, None)
 
@@ -258,6 +258,18 @@ class AddTimeslots(boRequestHandler):
                 bubble.put()
 
 
+class DeleteNextInLine(boRequestHandler):
+    def post(self, bubble_key):
+        if self.authorize('bubbler'):
+            nextinline = self.request.get('nextinline').strip()
+
+            bubble = Bubble().get(bubble_key)
+
+            if bubble:
+                bubble.next_in_line = RemoveFromList(db.Key(nextinline), bubble.next_in_line)
+                bubble.put()
+
+
 class SubBubblesCSV(boRequestHandler):
     def get(self, bubble_id):
         if self.authorize('bubbler'):
@@ -293,6 +305,7 @@ def main():
             (r'/bubble/seeder/delete/(.*)/(.*)', DeleteSeeder),
             (r'/bubble/leecher/add/(.*)/(.*)', AddLeecher),
             (r'/bubble/leecher/delete/(.*)/(.*)', DeleteLeecher),
+            (r'/bubble/delete_nextinline/(.*)', DeleteNextInLine),
             (r'/bubble/(.*)', ShowBubble),
         ])
 

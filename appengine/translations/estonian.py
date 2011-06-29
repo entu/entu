@@ -203,6 +203,7 @@ def translation():
         'bubble_enddate':           'Lõppaeg',
         'bubble_is_in_bubbles':     'Õpimullides',
         'bubble_leechers':          'Saajad',
+        'bubble_nextinlines':       'Liiguta isikud mulli(desse)',
         'bubble_mandatory_bubbles': 'Kohustuslikud õpimullid',
         'bubble_name':              'Nimi',
         'bubble_url':               'Link',
@@ -216,7 +217,9 @@ def translation():
         'bubble_period':            'Periood',
         'bubble_delete':            'Kustuta',
         'bubble_delete_confirm':    'Kas tõesti kustutada see',
-        'bubble_delete_person':     'Kas tõesti kustutada see isik',
+        'bubble_delete_leecher':    'Kas tõesti eemaldada see saaja',
+        'bubble_delete_seeder':     'Kas tõesti eemaldada see andja',
+        'bubble_delete_nextinline': 'Kas tõesti eemaldada see mull',
         'bubble_changed_on':        'Viimati muutis %(name)s %(date)s',
 
         'email_subject_timeslot': 'Eesti Kunstiakadeemia sisseastumine - %s',
