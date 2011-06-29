@@ -149,6 +149,10 @@ transformers:
       external_name: allowed_subtypes
       import_transform: transform.none_if_empty(unicode)
 
+    - property: grade_display_method
+      external_name: grade_display_method
+      import_transform: transform.none_if_empty(unicode)
+
 
 - kind: zGrade
   connector: csv
