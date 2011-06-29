@@ -21,11 +21,12 @@ class RatingScale(ChangeLogModel):
 
 
 class BubbleType(ChangeLogModel):
-    type            = db.StringProperty()
-    name            = db.ReferenceProperty(Dictionary, collection_name='bubbletype_name')
-    description     = db.ReferenceProperty(Dictionary, collection_name='bubbletype_description')
-    allowed_subtypes = db.StringListProperty()
-    model_version   = db.StringProperty(default='A')
+    type                    = db.StringProperty()
+    name                    = db.ReferenceProperty(Dictionary, collection_name='bubbletype_name')
+    description             = db.ReferenceProperty(Dictionary, collection_name='bubbletype_description')
+    allowed_subtypes        = db.StringListProperty()
+    grade_display_method    = db.StringProperty()
+    model_version           = db.StringProperty(default='A')
 
     @property
     def displayname(self):
