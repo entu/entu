@@ -36,6 +36,12 @@
                 <label for="person_birthdate" style="display:block;">{{ str.person_birthdate }}:</label>
                 <input type="text" id="person_birthdate" name="person_birthdate" class="autosave_date" value="{{ person.birth_date|date:"d.m.Y" }}" maxlength="500" style="width:110px; margin-bottom:15px;" />
 
+                <div id="roles" style="margin-top:10px;">
+                    {% for r in roles %}
+                        <input type="checkbox" name="role_{{ r.key }}" id="role_{{ r.key }}" class="autosave"{% if r.is_selected %} checked{% endif %} style="margin:0px padding:0px; border:none;" /><label for="role_{{ r.key }}" id="role_{{ r.key }}_label">{{ r.displayname }}</label><br />
+                    {% endfor %}
+                </div>
+
                 <!--label style="display:block;">{{ str.bubble_seeders }}:</label>
                 <div id="seeders" style="margin-bottom:5px;">
                     {% if person.seeders2 %}

@@ -1,5 +1,6 @@
 from bo import *
 from database.person import *
+from django.template import TemplateDoesNotExist
 
 
 class ShowPerson(boRequestHandler):
@@ -7,6 +8,12 @@ class ShowPerson(boRequestHandler):
         if self.authorize('bubbler'):
 
             person = Person().get_by_id(int(id))
+            
+            roles = db.Query(Role).fetch(1000)
+
+            for r in roles:
+                if r.key() in person.roles:
+                    r.is_selected = True
 
             changeinfo = ''
             last_change = person.last_change
@@ -19,11 +26,13 @@ class ShowPerson(boRequestHandler):
             try:
                 self.view(person.displayname, 'person/person_' + Person().current.current_role.template_name + '.html', {
                     'person': person,
+                    'roles': roles,
                     'changed': changeinfo,
                 })
-            except Exception, e:
+            except TemplateDoesNotExist:
                 self.view(person.displayname, 'person/person.html', {
                     'person': person,
+                    'roles': roles,
                     'changed': changeinfo,
                 })
 
@@ -40,6 +49,11 @@ class ShowPerson(boRequestHandler):
                         setattr(person, field, datetime.strptime(value, '%d.%m.%Y'))
                     if field == 'primary_email':
                         person.email = value
+                    if field.startswith('role_'):
+                        role_key = field[5:]
+                        role = Role.get(role_key)
+                        person.roles = AddToList(db.Key(role_key), person.roles)
+
                 else:
                     setattr(person, field, None)
 
