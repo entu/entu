@@ -38,7 +38,7 @@
 
                 <div id="roles" style="margin-top:10px;">
                     {% for r in roles %}
-                        <input type="checkbox" name="role_{{ r.key }}" id="role_{{ r.key }}" class="autosave"{% if r.is_selected %} checked{% endif %} style="margin:0px padding:0px; border:none;" /><label for="role_{{ r.key }}" id="role_{{ r.key }}_label">{{ r.displayname }}</label><br />
+                        <input type="checkbox" name="role" id="role_{{ r.key }}" role="{{ r.key }}" class="autosave_role"{% if r.is_selected %} checked{% endif %} style="margin:0px padding:0px; border:none;" /><label for="role_{{ r.key }}" id="role_{{ r.key }}_label">{{ r.displayname }}</label><br />
                     {% endfor %}
                 </div>
 
@@ -133,14 +133,23 @@
         });
 
         $('.autosave').change(function() {
-            autoSave($(this), {});
+            var input = $(this);
+            autoSave('/person/{{ person.key }}', input, {});
         });
 
-        function autoSave(input, data) {
+        $('.autosave_role').change(function() {
+            var input = $(this);
+            autoSave('/person/{{ person.key }}', input, {
+                value: input.is(':checked'),
+                role: input.attr('role'),
+            });
+        });
+
+        function autoSave(url, input, data) {
             if(!data['field']) data['field'] = input.attr('name');
             if(!data['value']) data['value'] = input.val();
 
-            $.post('/person/{{ person.key }}', data, function(json) {
+            $.post(url, data, function(json) {
                 input.effect("highlight", {}, 1000);
             }, "json");
         }

@@ -8,7 +8,7 @@ class ShowPerson(boRequestHandler):
         if self.authorize('bubbler'):
 
             person = Person().get_by_id(int(id))
-            
+
             roles = db.Query(Role).fetch(1000)
 
             for r in roles:
@@ -41,6 +41,8 @@ class ShowPerson(boRequestHandler):
             person = Person().get(key)
             field = self.request.get('field').strip()
             value = self.request.get('value').strip()
+            role_key = self.request.get('role').strip()
+
             if person:
                 if value:
                     if field in ['forename', 'surname']:
@@ -49,13 +51,11 @@ class ShowPerson(boRequestHandler):
                         setattr(person, field, datetime.strptime(value, '%d.%m.%Y'))
                     if field == 'primary_email':
                         person.email = value
-                    if field.startswith('role_'):
-                        role_key = field[5:]
-                        role = Role.get(role_key)
-                        person.roles = AddToList(db.Key(role_key), person.roles)
-
-                else:
-                    setattr(person, field, None)
+                    if field == 'role' and role_key:
+                        if value.lower() == 'true':
+                            person.roles = AddToList(db.Key(role_key), person.roles)
+                        else:
+                            person.roles = RemoveFromList(db.Key(role_key), person.roles)
 
                 person.put()
 
