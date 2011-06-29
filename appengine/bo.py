@@ -327,6 +327,15 @@ def AddToList(s_value=None, s_list=[], unique=True):
         return s_list
 
 
+def RemoveFromList(s_value=None, s_list=[], unique=True):
+    if s_value in s_list:
+        s_list.remove(s_value)
+    if unique==True:
+        return GetUniqueList(s_list)
+    else:
+        return s_list
+
+
 def GetUniqueList(s_list):
     return list(set(s_list))
 

@@ -345,6 +345,10 @@ transformers:
       external_name: rights
       import_transform: transform.none_if_empty(unicode)
 
+    - property: template_name
+      external_name: template_name
+      import_transform: transform.none_if_empty(unicode)
+
 
 
 

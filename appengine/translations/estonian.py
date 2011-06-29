@@ -52,7 +52,6 @@ def translation():
         'nominal_credit_points':'Ainepunkte',
         'nominal_years':        'Nominaalaeg õppeaastates',
         'old_ois':              'Vana ÕIS',
-        'persons':              'Persoonid',
         'preferences':          'Seaded',
         'question':             'Küsimus',
         'questionaries':        'Küsimustikud',
@@ -221,6 +220,13 @@ def translation():
         'bubble_delete_seeder':     'Kas tõesti eemaldada see andja',
         'bubble_delete_nextinline': 'Kas tõesti eemaldada see mull',
         'bubble_changed_on':        'Viimati muutis %(name)s %(date)s',
+
+        'persons':                  'Persoonid',
+        'person_forename':          'Eesnimi',
+        'person_surname':           'Perenimi',
+        'person_changed_on':        'Viimati muutis %(name)s %(date)s',
+        'person_primary_email':     'E-post',
+        'person_birthdate':         'Sünnikuupäev',
 
         'email_subject_timeslot': 'Eesti Kunstiakadeemia sisseastumine - %s',
         'email_message_timeslot': 'Tere %(name)s,<br><br>Sinu %(bubble)s toimub %(time)s<br><br>%(description)s<br><br>Lisainfo: <a href="%(link)s">%(link)s</a><br><br>Küsimuste korral esita need oma <a href="http://bubbledu.artun.ee/application">sisseastumisavaldusel</a>.',
