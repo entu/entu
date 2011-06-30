@@ -1,0 +1,31 @@
+{% extends "main.html" %}
+
+{% block content %}
+
+{% include "header.html" %}
+
+<input id="searchfield" type="search" placeholder="{{ str.search }}..." value="" />
+
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        $("input#searchfield").keydown(function(e) {
+            if((e.charCode == 13 || e.keyCode == 13)) {
+                search($(this).val());
+                return false;
+            }
+        });
+
+        function search(string) {
+            window.location = "/person/search/" + string;
+        }
+
+    });
+</script>
+
+<p>{{ str.search }} "{{ search }}":</p>
+
+{% include "person_list.html" %}
+
+{% endblock %}
+

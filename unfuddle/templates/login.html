@@ -1,0 +1,93 @@
+{% extends "main.html" %}
+
+{% block content %}
+
+{% include "header.html" %}
+
+<div class="span-24">
+    <div class="span-22 bluebox">
+        <h2>{{ str.login }}</h2>
+        <p style="text-align: center; margin:0px;">
+        <img id="eka" class="openid active" src="/images/openid/eka.png" width="199" height="31" alt="EKA" /><br />
+        <img id="mobiilid" class="openid active" src="/images/openid/mobiilid.png" width="88" height="31" alt="Mobiil ID" />
+        <img id="idkaart" class="openid active" src="/images/openid/idkaart.png" width="88" height="31" alt="ID Kaart" />
+        <img id="google" class="openid active" src="/images/openid/google.png" width="88" height="31" alt="Google" />
+        <img id="yahoo" class="openid active" src="/images/openid/yahoo.png" width="88" height="31" alt="Yahoo" />
+        <img id="myspace" class="openid active" src="/images/openid/myspace.png" width="88" height="31" alt="mySpace" />
+        <img id="myopenid" class="openid active" src="/images/openid/myopenid.png" width="88" height="31" alt="myOpenID" />
+        </p>
+        <img id="youropenid" class="openid active" src="/images/openid/openid.png" width="88" height="31" alt="OpenID" />
+        <form id="openid_form" class="hide" method="get" action="/_ah/login_required">
+            <fieldset>
+                {{ str.openid_url }}:<br />
+                {% if continue %}
+                <input type="hidden" name="continue" value="{{continue|escape}}" />
+                {% endif %}
+                <input type="text" id="openid_url" class="span-22 last" name="openid" value="" />
+                <a href="" id="submit_openid_form" class="span-8 button" style="margin-top:5px; float:right;">{{ str.login }}</a>
+            </fieldset>
+        </form>
+    </div>
+    <div class="span-22 prepend-top whitebox">
+        <h2>{{ str.new_user }}</h2>
+        <div id="register_form">
+            <input type="text" id="email" class="span-22 last" name="email" value="" />
+            <a href="" id="submit_register_form" class="span-8 button" style="margin-top:5px; float:right;">{{ str.send_invate }}</a>
+        </div>
+    </div>
+</div>
+
+
+<div class="span-69 prepend-2 last">
+    {{ str.openid_info }}
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        $("img#mobiilid").click(function () {openid_submit("openid.ee/server/xrds/mid", this);});
+        $("img#idkaart").click(function () {openid_submit("openid.ee/server/xrds/eid", this);});
+        $("img#google").click(function () {openid_submit("google.com/accounts/o8/id", this);});
+        $("img#yahoo").click(function () {openid_submit("yahoo.com", this);});
+        $("img#myspace").click(function () {openid_submit("myspace.com", this);});
+        $("img#myopenid").click(function () {openid_submit("myopenid.com", this);});
+        $("img#eka").click(function () {openid_submit("artun.ee", this);});
+
+        $("img#youropenid").click(function () {
+            $("form#openid_form").toggle('blind');
+            $("input#openid_url").focus();
+        });
+
+        function openid_submit(url, img) {
+            $(img).addClass("openid-selected");
+            $("input#openid_url").val(url);
+            $("form#openid_form").submit();
+        }
+
+
+        $("input#email").keydown(function(e) {
+            if((e.charCode == 13 || e.keyCode == 13)) {
+                registration_submit()
+                return false;
+            }
+        });
+
+        $("a#submit_register_form").click(function () {
+            registration_submit()
+            return false;
+        });
+
+        function registration_submit() {
+            if($("input#email").val() != "") {
+                $("div#register_form").hide();
+                $.post("/activate", { "email": $("input#email").val() },
+                    function(data){
+                        $("div#register_form").replaceWith(data);
+                    });
+            };
+        }
+
+    });
+</script>
+
+{% endblock %}

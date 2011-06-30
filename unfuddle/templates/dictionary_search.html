@@ -1,0 +1,25 @@
+{% extends "main.html" %}
+
+{% block content %}
+
+{% include "header.html" %}
+
+{% for dic in dictionaries %}
+    {{ dic.name }} - {{ dic.value }}:
+    {% for translation in dic.translations %}
+        {{ translation.value }}: {{ translation.value }}<br />
+    {% endfor %}
+    <br />
+{% endfor %}
+
+
+<hr />
+
+<form method="post" action="">
+{% for field in form %}
+    {{ field.label }}:<br />
+    {{ field }}<br />
+{% endfor %}
+</form>
+
+{% endblock %}
