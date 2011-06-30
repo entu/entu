@@ -52,12 +52,14 @@ class ShowBubble(boRequestHandler):
             bubble = Bubble().get_by_id(int(id))
             ratingscales = db.Query(RatingScale).fetch(1000)
 
-            #addable_bubbles = db.Query(Bubble).filter('__key__ !=', bubble.key()).filter('type IN', bubble.type2.allowed_subtypes).filter('is_deleted', False).fetch(1000)
-            nextinline_bubbles = []
+            nextinline_bubbles = bubble.in_bubbles
             for mb in bubble.in_bubbles:
                 for mb2 in mb.bubbles:
                     if mb2.key() != bubble.key():
                         nextinline_bubbles.append(mb2)
+
+            #addable_bubbles = db.Query(Bubble).filter('__key__ !=', bubble.key()).filter('type IN', bubble.type2.allowed_subtypes).filter('is_deleted', False).fetch(1000)
+            addable_bubbles = nextinline_bubbles
 
             changeinfo = ''
             last_change = bubble.last_change
@@ -71,7 +73,7 @@ class ShowBubble(boRequestHandler):
                 'bubble': bubble,
                 'changed': changeinfo,
                 'ratingscales': ratingscales,
-                #'addable_bubbles': addable_bubbles,
+                'addable_bubbles': addable_bubbles,
                 'nextinline_bubbles': nextinline_bubbles,
             })
 
@@ -144,6 +146,20 @@ class DeleteBubble(boRequestHandler):
                     bubble.put()
                     if bubble.in_bubbles:
                         self.redirect('/bubble/%s' % bubble.in_bubbles[0].key().id())
+
+
+class DeleteFromBubble(boRequestHandler):
+    def get(self, delete_bubble_key, from_bubble_key):
+        if self.authorize('bubbler'):
+            from_bubble = Bubble().get(from_bubble_key)
+            if from_bubble:
+                if db.Key(delete_bubble_key) in from_bubble.optional_bubbles:
+                    from_bubble.optional_bubbles.remove(db.Key(delete_bubble_key))
+                if db.Key(delete_bubble_key) in from_bubble.mandatory_bubbles:
+                    from_bubble.mandatory_bubbles.remove(db.Key(delete_bubble_key))
+                from_bubble.put()
+
+            self.redirect('/bubble/%s' % from_bubble.key().id())
 
 
 class GetSeeders(boRequestHandler):
@@ -300,12 +316,13 @@ def main():
             (r'/bubble/add_timeslot/(.*)', AddTimeslots),
             (r'/bubble/csv/(.*)', SubBubblesCSV),
             (r'/bubble/delete/(.*)', DeleteBubble),
+            (r'/bubble/delete_from_bubble/(.*)/(.*)', DeleteFromBubble),
+            (r'/bubble/delete_nextinline/(.*)', DeleteNextInLine),
             (r'/bubble/seeders', GetSeeders),
             (r'/bubble/seeder/add/(.*)/(.*)', AddSeeder),
             (r'/bubble/seeder/delete/(.*)/(.*)', DeleteSeeder),
             (r'/bubble/leecher/add/(.*)/(.*)', AddLeecher),
             (r'/bubble/leecher/delete/(.*)/(.*)', DeleteLeecher),
-            (r'/bubble/delete_nextinline/(.*)', DeleteNextInLine),
             (r'/bubble/(.*)', ShowBubble),
         ])
 

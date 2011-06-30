@@ -75,7 +75,7 @@
                 <div style=" margin-top:30px;">
                     <label style="display:block;">{{ str.bubble_nextinlines }} ({{ bubble.next_in_line|length }}):</label>
                     {% for nl in bubble.next_in_line2|dictsort:"displayname" %}
-                        <a href="javascript:void(0);" nextinline="{{ nl.key }}" type="nextinline" class="deletable">{{ nl.displayname }}</a><br />
+                        <a href="javascript:void(0);" nextinline="{{ nl.key }}" type="nextinline" class="deletable">{{ nl.type2.displayname }} {{ nl.displayname }}</a><br />
                     {% endfor %}
                     {% if nextinline_bubbles %}
                     <select id="nextinline" name="nextinline" class="autosave" style="margin-bottom:15px; width:300px; display:block;">
@@ -148,6 +148,8 @@
                         <div class="header_cell" style="text-align:center;">
                             {{ str.bubbles }}
                         </div>
+                        <div class="header_cell" style="text-align:center;">
+                        </div>
                     </div>
                     {% for b in bubble.bubbles|dictsort:"start_datetime" %}
                     <div class="table_row infiniterow" bubble="{{ b.key }}">
@@ -165,6 +167,9 @@
                         </div>
                         <div class="table_cell" style="text-align:center;">
                             {{ b.optional_bubbles|length }}
+                        </div>
+                        <div class="table_cell" style="text-align:center;">
+                            <a href="/bubble/delete_from_bubble/{{ b.key }}/{{ bubble.key }}">X</a>
                         </div>
                     </div>
                     {% endfor %}
