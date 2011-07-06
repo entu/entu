@@ -192,6 +192,8 @@ def translation():
         'send_subject': 'Pealkiri',
         'send_message': 'Teade',
         'send_submit':  'Saada teade',
+        'send_tags':  'Väljad',
+        'send_tags_info':  'Lisades need väljad kirja pealkirja või teatesse asendatakse need saatmisel persooni, õpimulli jne infoga.',
 
 
         'bubble':                   'Õpimull',

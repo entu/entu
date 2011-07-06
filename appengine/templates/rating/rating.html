@@ -43,15 +43,15 @@
                     </select>
                 </div>
             </div>
-    {% endfor %}
+        {% endfor %}
     </div>
+    <a href="/spam?b={{ bubble.key.id }}&p={% for p in group.list %}{{ p.key.id }}.{% endfor %}&r=/rating/{{ bubble.key.id }}">{{ str.send_submit }}</a>
 {% endfor %}
     <a href="/rating/lock/{{ bubble.key.id }}" class="button" style="float:right;">{{ str.rating_lock }}</a>
 </div>
 
 <script>
     $(document).ready(function(){
-
         $(".grade").change(function(){
             var grade = $(this);
             $.post('/rating/{{ bubble.key.id }}', { person: grade.attr('person'), grade: grade.val() }, function(json) {
@@ -59,7 +59,6 @@
             }, 'json');
 
         });
-
     });
 </script>
 
