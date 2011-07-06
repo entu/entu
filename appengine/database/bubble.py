@@ -72,6 +72,7 @@ class Bubble(ChangeLogModel):
     minimum_bubble_count    = db.IntegerProperty()
     mandatory_bubbles       = db.ListProperty(db.Key)
     optional_bubbles        = db.ListProperty(db.Key)
+    prerequisite_bubbles    = db.ListProperty(db.Key)
     next_in_line            = db.ListProperty(db.Key)
     entities                = db.ListProperty(db.Key)
     state                   = db.StringProperty()
@@ -133,6 +134,10 @@ class Bubble(ChangeLogModel):
     @property
     def next_in_line2(self):
         return Bubble.get(self.next_in_line)
+
+    @property
+    def prerequisite_bubbles2(self):
+        return Bubble.get(self.prerequisite_bubbles)
 
     @property
     def color(self):

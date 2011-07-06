@@ -57,9 +57,12 @@ class ShowBubble(boRequestHandler):
                 for mb2 in mb.bubbles:
                     if mb2.key() != bubble.key():
                         nextinline_bubbles.append(mb2)
+                    if mb2.bubbles:
+                        nextinline_bubbles = nextinline_bubbles + mb2.bubbles
 
             #addable_bubbles = db.Query(Bubble).filter('__key__ !=', bubble.key()).filter('type IN', bubble.type2.allowed_subtypes).filter('is_deleted', False).fetch(1000)
             addable_bubbles = nextinline_bubbles
+            prerequisite_bubbles = nextinline_bubbles
 
             changeinfo = ''
             last_change = bubble.last_change
@@ -75,6 +78,7 @@ class ShowBubble(boRequestHandler):
                 'ratingscales': ratingscales,
                 'addable_bubbles': addable_bubbles,
                 'nextinline_bubbles': nextinline_bubbles,
+                'prerequisite_bubbles': prerequisite_bubbles,
             })
 
     def post(self, key):
@@ -96,6 +100,8 @@ class ShowBubble(boRequestHandler):
                         bubble.url = value
                     if field == 'nextinline':
                         bubble.next_in_line = AddToList(db.Key(value), bubble.next_in_line)
+                    if field == 'prerequisite':
+                        bubble.prerequisite_bubbles = AddToList(db.Key(value), bubble.prerequisite_bubbles)
                 else:
                     setattr(bubble, field, None)
 
@@ -286,6 +292,18 @@ class DeleteNextInLine(boRequestHandler):
                 bubble.put()
 
 
+class DeletePrerequisite(boRequestHandler):
+    def post(self, bubble_key):
+        if self.authorize('bubbler'):
+            prerequisite = self.request.get('prerequisite').strip()
+
+            bubble = Bubble().get(bubble_key)
+
+            if bubble:
+                bubble.prerequisite_bubbles = RemoveFromList(db.Key(prerequisite), bubble.prerequisite_bubbles)
+                bubble.put()
+
+
 class SubBubblesCSV(boRequestHandler):
     def get(self, bubble_id):
         if self.authorize('bubbler'):
@@ -318,6 +336,7 @@ def main():
             (r'/bubble/delete/(.*)', DeleteBubble),
             (r'/bubble/delete_from_bubble/(.*)/(.*)', DeleteFromBubble),
             (r'/bubble/delete_nextinline/(.*)', DeleteNextInLine),
+            (r'/bubble/delete_prerequisite/(.*)', DeletePrerequisite),
             (r'/bubble/seeders', GetSeeders),
             (r'/bubble/seeder/add/(.*)/(.*)', AddSeeder),
             (r'/bubble/seeder/delete/(.*)/(.*)', DeleteSeeder),

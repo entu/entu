@@ -73,7 +73,9 @@
                 <input type="text" id="leecher" name="leecher" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
 
                 <div style=" margin-top:30px;">
+                    {% if nextinline_bubbles %}
                     <label style="display:block;">{{ str.bubble_nextinlines }} ({{ bubble.next_in_line|length }}):</label>
+                    {% endif %}
                     {% for nl in bubble.next_in_line2|dictsort:"displayname" %}
                         <a href="javascript:void(0);" nextinline="{{ nl.key }}" type="nextinline" class="deletable">{{ nl.type2.displayname }} {{ nl.displayname }}</a><br />
                     {% endfor %}
@@ -90,6 +92,8 @@
                         {% endfor %}
                     </select>
                     {% endif %}
+
+                    {% include "prerequisites.html" %}
 
                     {% if addable_bubbles %}
                     <select id="add_existing" name="add_existing" style="margin-bottom:15px; width:300px; display:block;">
@@ -169,7 +173,7 @@
                             {{ b.optional_bubbles|length }}
                         </div>
                         <div class="table_cell" style="text-align:center;">
-                            <a href="/bubble/delete_from_bubble/{{ b.key }}/{{ bubble.key }}">X</a>
+                            <!--a href="/bubble/delete_from_bubble/{{ b.key }}/{{ bubble.key }}">X</a-->
                         </div>
                     </div>
                     {% endfor %}
@@ -240,6 +244,13 @@
             if (to_delete.attr('type') == 'nextinline') {
                 if (confirm('{{ str.bubble_delete_nextinline }}?')) {
                     $.post('/bubble/delete_nextinline/{{ bubble.key }}', { nextinline: to_delete.attr('nextinline') }, function(json) {
+                        window.location.href = '';
+                    }, "json");
+                }
+            }
+            if (to_delete.attr('type') == 'prerequisite') {
+                if (confirm('{{ str.bubble_delete_prerequisite }}?')) {
+                    $.post('/bubble/delete_prerequisite/{{ bubble.key }}', { prerequisite: to_delete.attr('prerequisite') }, function(json) {
                         window.location.href = '';
                     }, "json");
                 }
