@@ -25,6 +25,19 @@ class BubblePassLeechers(boRequestHandler):
                     person.add_leecher(nextbubble_key)
 
 
+class BubbleCopyLeechers(boRequestHandler):
+    def post(self):
+        from_bubble_key = self.request.get('from_bubble_key')
+        to_bubble_key = self.request.get('to_bubble_key')
+
+        if from_bubble_key and to_bubble_key:
+            from_bubble = Bubble().get(from_bubble_key)
+
+            if from_bubble.leechers:
+                for person in Person().get(from_bubble.leechers):
+                    person.add_leecher(db.Key(to_bubble_key))
+
+
 class BubbleChangeLeecher(boRequestHandler):
     def post(self):
         action = self.request.get('action')
@@ -131,6 +144,7 @@ class ApplicationStats(boRequestHandler):
 def main():
     Route([
             ('/taskqueue/bubble_pass_leechers', BubblePassLeechers),
+            ('/taskqueue/bubble_copy_leechers', BubbleCopyLeechers),
             ('/taskqueue/bubble_change_leecher', BubbleChangeLeecher),
             ('/taskqueue/application_stats', ApplicationStats),
         ])

@@ -153,6 +153,7 @@
                             {{ str.bubbles }}
                         </div>
                         <div class="header_cell" style="text-align:center;">
+                            {{ str.bubble_mandatory }}
                         </div>
                     </div>
                     {% for b in bubble.bubbles|dictsort:"start_datetime" %}
@@ -173,6 +174,7 @@
                             {{ b.optional_bubbles|length }}
                         </div>
                         <div class="table_cell" style="text-align:center;">
+                            <input type="checkbox" name="is_mandatory" class="autosave_mandatory" data-bubble="{{ b.key }}"{% if b.is_mandatory %} checked{% endif %}  />
                             <!--a href="/bubble/delete_from_bubble/{{ b.key }}/{{ bubble.key }}">X</a-->
                         </div>
                     </div>
@@ -211,6 +213,13 @@
 
         $('.autosave').change(function() {
             autoSave($(this), {});
+        });
+
+        $('.autosave_mandatory').change(function() {
+            autoSave($(this), {
+                subbubble: $(this).data('bubble'),
+                value: $(this).is(':checked'),
+            });
         });
 
         function autoSave(input, data) {

@@ -102,6 +102,16 @@ class ShowBubble(boRequestHandler):
                         bubble.next_in_line = AddToList(db.Key(value), bubble.next_in_line)
                     if field == 'prerequisite':
                         bubble.prerequisite_bubbles = AddToList(db.Key(value), bubble.prerequisite_bubbles)
+                    if field == 'is_mandatory':
+                        subbubble = self.request.get('subbubble').strip()
+                        if subbubble:
+                            if value.lower() == 'true':
+                                bubble.mandatory_bubbles = AddToList(db.Key(subbubble), bubble.mandatory_bubbles)
+                                bubble.optional_bubbles = RemoveFromList(db.Key(subbubble), bubble.optional_bubbles)
+                                taskqueue.Task(url='/taskqueue/bubble_copy_leechers', params={'from_bubble_key': str(bubble.key()), 'to_bubble_key': subbubble}).add(queue_name='one-by-one')
+                            else:
+                                bubble.optional_bubbles = AddToList(db.Key(subbubble), bubble.optional_bubbles)
+                                bubble.mandatory_bubbles = RemoveFromList(db.Key(subbubble), bubble.mandatory_bubbles)
                 else:
                     setattr(bubble, field, None)
 

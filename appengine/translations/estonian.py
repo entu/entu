@@ -218,6 +218,7 @@ def translation():
         'bubble_startdate':         'Algusaeg',
         'bubble_period':            'Periood',
         'bubble_delete':            'Kustuta',
+        'bubble_mandatory':         'Kohustuslik',
         'bubble_delete_confirm':    'Kas tõesti kustutada see',
         'bubble_delete_leecher':    'Kas tõesti eemaldada see saaja',
         'bubble_delete_seeder':     'Kas tõesti eemaldada see andja',

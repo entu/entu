@@ -163,7 +163,12 @@ class Bubble(ChangeLogModel):
             for b in Bubble.get(keys):
                 if b:
                     if b.is_deleted == False:
+                        if b.key() in self.mandatory_bubbles:
+                            b.is_mandatory = True
+                        else:
+                            b.is_mandatory = False
                         bubbles.append(b)
+
             if len(bubbles) > 0:
                 return bubbles
 
