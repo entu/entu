@@ -126,6 +126,7 @@ class zBubbleType(db.Model):
     description_estonian    = db.StringProperty()
     description_english     = db.StringProperty()
     allowed_subtypes        = db.StringProperty()
+    grade_display_method    = db.StringProperty()
 
     def zimport(self):
         bt = GetZoin('BubbleType', self.key().name())
@@ -143,10 +144,11 @@ class zBubbleType(db.Model):
             english = self.description_english
         )
 
-        bt.type             = self.type
-        bt.name             = name.add()
-        bt.description      = description.add()
-        bt.allowed_subtypes = StrToList(self.allowed_subtypes)
+        bt.type                 = self.type
+        bt.name                 = name.add()
+        bt.description          = description.add()
+        bt.allowed_subtypes     = StrToList(self.allowed_subtypes)
+        bt.grade_display_method = StrToList(self.grade_display_method)
         bt.put('zimport')
 
         AddZoin(
