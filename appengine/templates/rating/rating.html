@@ -32,7 +32,9 @@
                     <a href="/reception/application/{{ p.key }}">{{ p.displayname|default:"" }}</a>
                 </div>
                 <div class="table_cell" style="width:100%; text-align:right;">
-                    {{ p.subgrades|join:", " }}
+                    {% for g in p.subgrades %}
+                    <span title="{{ g.bubble.displayname }}" style="padding-left:20px;">{{ g.grade.displayname }}</span>
+                    {% endfor %}
                 </div>
                 <div class="table_cell radio" style="white-space:nowrap;">
                     <select name="radio_{{ p.key.id }}" class="grade" person="{{ p.key }}"{% if p.grade_is_locked %} disabled{% endif %}>

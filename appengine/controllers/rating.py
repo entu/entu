@@ -36,13 +36,21 @@ class ShowRating(boRequestHandler):
                             leecher.grade_displayname = Translate('bubble_not_rated')
                             leecher.grade_is_locked = False
                         leecher.subgrades = []
-                        """if bubbles:
-                            for subbubble in bubbles:
-                                subgrade = db.Query(Grade).filter('bubble', subbubble).filter('person', leecher).filter('is_deleted', False).get()
-                                if subgrade:
-                                    sgd = subgrade.gradedefinition
-                                    leecher.subgrades.append(sgd.displayname)
-                                    #leecher.equivalent += sgd.equivalent"""
+
+                        for g in bubble.grades(leecher.key()):
+                            leecher.equivalent += g.equivalent
+                            leecher.subgrades.append({
+                                'bubble': g.bubble.displayname,
+                                'grade': g.displayname,
+                            })
+
+
+
+                        if bubbles:
+                            for grade in bubble.subgrades(leecher.key()):
+                                leecher.subgrades.append(grade)
+                                if grade.grade:
+                                    leecher.equivalent += grade.grade.equivalent
 
                     self.view('application', 'rating/rating.html', {
                         'bubble': bubble,

@@ -1,6 +1,6 @@
 application: bongapp
-version: 2011-07-08
-#version: dev
+#version: 2011-07-08
+version: dev
 runtime: python
 api_version: 1
 
