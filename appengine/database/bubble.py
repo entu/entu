@@ -1,5 +1,6 @@
 from google.appengine.ext import db
 from datetime import *
+from operator import attrgetter
 
 from bo import *
 from database.general import *
@@ -48,7 +49,6 @@ class BubbleType(ChangeLogModel):
                 for t in self.allowed_subtypes:
                     types.append(db.Query(BubbleType).filter('type', t).get())
                 return types
-
 
 
 class Bubble(ChangeLogModel):
@@ -119,15 +119,15 @@ class Bubble(ChangeLogModel):
                 return '... - ' + self.end_datetime.strftime('%d.%m.%Y %H:%M')
 
     @property
-    def type2(self):
+    def type2(self):                            # TODO refactor to BubbleType
         return db.Query(BubbleType).filter('type', self.type).get()
 
     @property
-    def seeders2(self):
+    def seeders2(self):                         # TODO refactor to Seeders
         return Person.get(self.seeders)
 
     @property
-    def leechers2(self):
+    def leechers2(self):                        # TODO refactor to Leechers
         return Person.get(self.leechers)
 
     @property
@@ -135,36 +135,60 @@ class Bubble(ChangeLogModel):
         return RandomColor(200,255,200,255,200,255)
 
     @property
-    def in_bubbles(self):
-        mandatory = db.Query(Bubble).filter('mandatory_bubbles', self.key()).fetch(1000)
-        optional = db.Query(Bubble).filter('optional_bubbles', self.key()).fetch(1000)
-        bubbles = mandatory + optional
-        return bubbles
+    def MandatoryInBubbles(self):
+        return db.Query(Bubble).filter('mandatory_bubbles', self.key()).fetch(1000)
 
     @property
-    def bubbles(self):
+    def OptionalInBubbles(self):
+        return db.Query(Bubble).filter('optional_bubbles', self.key()).fetch(1000)
+
+    @property
+    def in_bubbles(self):                       # TODO refactor to InBubbles
+        return self.MandatoryInBubbles + self.OptionalInBubbles
+
+    @property
+    def bubbles2(self):                         # TODO refactor to SubBubbles
         keys = []
         if self.mandatory_bubbles:
             keys += self.mandatory_bubbles
         if self.optional_bubbles:
             keys += self.optional_bubbles
         keys = GetUniqueList(keys)
-        if len(keys) > 0:
+        if len(keys) == 0:
+            return
+
+        bubbles = []
+        for b in Bubble.get(keys):
+            if not b:
+                continue
+            if not b.is_deleted:
+                bubbles.append(b)
+        if len(bubbles) > 0:
+            return bubbles
+
+    @property
+    def MandatoryBubbles(self):
+        if self.mandatory_bubbles:
             bubbles = []
-            for b in Bubble.get(keys):
-                if b:
-                    if b.is_deleted == False:
-                        bubbles.append(b)
+            for b in Bubble.get(self.mandatory_bubbles):
+                if not b:
+                    continue
+                if not b.is_deleted:
+                    bubbles.append(b)
             if len(bubbles) > 0:
                 return bubbles
 
     @property
-    def mandatory_bubbles2(self):
-        return Bubble.get(self.mandatory_bubbles)
-
-    @property
-    def optional_bubbles2(self):
-        return Bubble.get(self.optional_bubbles)
+    def OptionalBubbles(self):
+        if self.optional_bubbles:
+            bubbles = []
+            for b in Bubble.get(self.optional_bubbles):
+                if not b:
+                    continue
+                if not b.is_deleted:
+                    bubbles.append(b)
+            if len(bubbles) > 0:
+                return bubbles
 
     def add_leecher(self, person_key):
         self.leechers = AddToList(person_key, self.leechers)
@@ -173,7 +197,7 @@ class Bubble(ChangeLogModel):
         if self.type == 'exam':
             person = Person().get(person_key)
             if not list(set(person.leecher) & set(self.optional_bubbles)):
-                bubbles = sorted(Bubble().get(self.optional_bubbles), key=lambda k: k.start_datetime)
+                bubbles = sorted(Bubble().get(self.optional_bubbles), key=attrgetter('start_datetime'))
                 for b in bubbles:
                     if b.type == 'personal_time_slot' and b.is_deleted == False:
                         if not db.Query(Person).filter('leecher', b.key()).get():
@@ -227,6 +251,22 @@ class Bubble(ChangeLogModel):
     def remove_optional_bubble(self, bubble_key):
         self.optional_bubbles.remove(bubble_key)
         self.put()
+
+
+    # Set of base functions for Bubble
+    def has_positive_grade(self, person_key)
+        grades = db.Query(Grade).filter('person', person_key).filter('bubble',self.key()).fetch(1000)
+        if len(grades) == 0
+            return False
+        grades = sorted(grades, attrgetter('datetime', reverse=True))
+
+        for grade in grades
+            if grade.is_positive
+                return True
+#            if self.grade_method == 'latest'
+#                return False
+
+        return False
 
 
 class GradeDefinition(ChangeLogModel):
