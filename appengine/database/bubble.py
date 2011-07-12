@@ -247,10 +247,11 @@ class Bubble(ChangeLogModel):
         grades_bubbles = []
         if self.bubbles:
             for b in self.bubbles:
-                if b.type2.grade_display_method == 'all':
-                    grades_bubbles = grades_bubbles + b.grades(person_key)
-                else:
-                    grades_bubbles.append(b)
+                if b.type != 'personal_time_slot':
+                    if b.type2.grade_display_method == 'all':
+                        grades_bubbles = grades_bubbles + b.grades(person_key)
+                    else:
+                        grades_bubbles.append(b)
             grades_bubbles = sorted(grades_bubbles, key=lambda k: k.key())
         return grades_bubbles
 
