@@ -52,12 +52,17 @@ class ShowBubble(boRequestHandler):
             bubble = Bubble().get_by_id(int(id))
             ratingscales = db.Query(RatingScale).fetch(1000)
 
-            #addable_bubbles = db.Query(Bubble).filter('__key__ !=', bubble.key()).filter('type IN', bubble.type2.allowed_subtypes).filter('is_deleted', False).fetch(1000)
-            nextinline_bubbles = []
+            nextinline_bubbles = bubble.in_bubbles
             for mb in bubble.in_bubbles:
                 for mb2 in mb.bubbles:
                     if mb2.key() != bubble.key():
                         nextinline_bubbles.append(mb2)
+                    if mb2.bubbles:
+                        nextinline_bubbles = nextinline_bubbles + mb2.bubbles
+
+            #addable_bubbles = db.Query(Bubble).filter('__key__ !=', bubble.key()).filter('type IN', bubble.type2.allowed_subtypes).filter('is_deleted', False).fetch(1000)
+            addable_bubbles = nextinline_bubbles
+            prerequisite_bubbles = nextinline_bubbles
 
             changeinfo = ''
             last_change = bubble.last_change
@@ -71,8 +76,9 @@ class ShowBubble(boRequestHandler):
                 'bubble': bubble,
                 'changed': changeinfo,
                 'ratingscales': ratingscales,
-                #'addable_bubbles': addable_bubbles,
+                'addable_bubbles': addable_bubbles,
                 'nextinline_bubbles': nextinline_bubbles,
+                'prerequisite_bubbles': prerequisite_bubbles,
             })
 
     def post(self, key):
@@ -93,7 +99,19 @@ class ShowBubble(boRequestHandler):
                     if field == 'url':
                         bubble.url = value
                     if field == 'nextinline':
-                        bubble.next_in_line = [db.Key(value)]
+                        bubble.next_in_line = AddToList(db.Key(value), bubble.next_in_line)
+                    if field == 'prerequisite':
+                        bubble.prerequisite_bubbles = AddToList(db.Key(value), bubble.prerequisite_bubbles)
+                    if field == 'is_mandatory':
+                        subbubble = self.request.get('subbubble').strip()
+                        if subbubble:
+                            if value.lower() == 'true':
+                                bubble.mandatory_bubbles = AddToList(db.Key(subbubble), bubble.mandatory_bubbles)
+                                bubble.optional_bubbles = RemoveFromList(db.Key(subbubble), bubble.optional_bubbles)
+                                taskqueue.Task(url='/taskqueue/bubble_copy_leechers', params={'from_bubble_key': str(bubble.key()), 'to_bubble_key': subbubble}).add(queue_name='one-by-one')
+                            else:
+                                bubble.optional_bubbles = AddToList(db.Key(subbubble), bubble.optional_bubbles)
+                                bubble.mandatory_bubbles = RemoveFromList(db.Key(subbubble), bubble.mandatory_bubbles)
                 else:
                     setattr(bubble, field, None)
 
@@ -144,6 +162,20 @@ class DeleteBubble(boRequestHandler):
                     bubble.put()
                     if bubble.in_bubbles:
                         self.redirect('/bubble/%s' % bubble.in_bubbles[0].key().id())
+
+
+class DeleteFromBubble(boRequestHandler):
+    def get(self, delete_bubble_key, from_bubble_key):
+        if self.authorize('bubbler'):
+            from_bubble = Bubble().get(from_bubble_key)
+            if from_bubble:
+                if db.Key(delete_bubble_key) in from_bubble.optional_bubbles:
+                    from_bubble.optional_bubbles.remove(db.Key(delete_bubble_key))
+                if db.Key(delete_bubble_key) in from_bubble.mandatory_bubbles:
+                    from_bubble.mandatory_bubbles.remove(db.Key(delete_bubble_key))
+                from_bubble.put()
+
+            self.redirect('/bubble/%s' % from_bubble.key().id())
 
 
 class GetSeeders(boRequestHandler):
@@ -258,6 +290,30 @@ class AddTimeslots(boRequestHandler):
                 bubble.put()
 
 
+class DeleteNextInLine(boRequestHandler):
+    def post(self, bubble_key):
+        if self.authorize('bubbler'):
+            nextinline = self.request.get('nextinline').strip()
+
+            bubble = Bubble().get(bubble_key)
+
+            if bubble:
+                bubble.next_in_line = RemoveFromList(db.Key(nextinline), bubble.next_in_line)
+                bubble.put()
+
+
+class DeletePrerequisite(boRequestHandler):
+    def post(self, bubble_key):
+        if self.authorize('bubbler'):
+            prerequisite = self.request.get('prerequisite').strip()
+
+            bubble = Bubble().get(bubble_key)
+
+            if bubble:
+                bubble.prerequisite_bubbles = RemoveFromList(db.Key(prerequisite), bubble.prerequisite_bubbles)
+                bubble.put()
+
+
 class SubBubblesCSV(boRequestHandler):
     def get(self, bubble_id):
         if self.authorize('bubbler'):
@@ -288,6 +344,9 @@ def main():
             (r'/bubble/add_timeslot/(.*)', AddTimeslots),
             (r'/bubble/csv/(.*)', SubBubblesCSV),
             (r'/bubble/delete/(.*)', DeleteBubble),
+            (r'/bubble/delete_from_bubble/(.*)/(.*)', DeleteFromBubble),
+            (r'/bubble/delete_nextinline/(.*)', DeleteNextInLine),
+            (r'/bubble/delete_prerequisite/(.*)', DeletePrerequisite),
             (r'/bubble/seeders', GetSeeders),
             (r'/bubble/seeder/add/(.*)/(.*)', AddSeeder),
             (r'/bubble/seeder/delete/(.*)/(.*)', DeleteSeeder),

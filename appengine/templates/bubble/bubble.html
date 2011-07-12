@@ -74,8 +74,14 @@
 
                 <div style=" margin-top:30px;">
                     {% if nextinline_bubbles %}
+                    <label style="display:block;">{{ str.bubble_nextinlines }} ({{ bubble.next_in_line|length }}):</label>
+                    {% endif %}
+                    {% for nl in bubble.next_in_line2|dictsort:"displayname" %}
+                        <a href="javascript:void(0);" nextinline="{{ nl.key }}" type="nextinline" class="deletable">{{ nl.type2.displayname }} {{ nl.displayname }}</a><br />
+                    {% endfor %}
+                    {% if nextinline_bubbles %}
                     <select id="nextinline" name="nextinline" class="autosave" style="margin-bottom:15px; width:300px; display:block;">
-                        <option value="">nextinline</option>
+                        <option value="">{{ str.add_new }}</option>
                         {% regroup nextinline_bubbles|dictsort:"type" by type2.displayname as nextinlines %}
                         {% for nextinline in nextinlines %}
                         <optgroup label="{{ nextinline.grouper }}">
@@ -86,6 +92,8 @@
                         {% endfor %}
                     </select>
                     {% endif %}
+
+                    {% include "prerequisites.html" %}
 
                     {% if addable_bubbles %}
                     <select id="add_existing" name="add_existing" style="margin-bottom:15px; width:300px; display:block;">
@@ -144,6 +152,9 @@
                         <div class="header_cell" style="text-align:center;">
                             {{ str.bubbles }}
                         </div>
+                        <div class="header_cell" style="text-align:center;">
+                            {{ str.bubble_mandatory }}
+                        </div>
                     </div>
                     {% for b in bubble.bubbles|dictsort:"start_datetime" %}
                     <div class="table_row infiniterow" bubble="{{ b.key }}">
@@ -161,6 +172,10 @@
                         </div>
                         <div class="table_cell" style="text-align:center;">
                             {{ b.optional_bubbles|length }}
+                        </div>
+                        <div class="table_cell" style="text-align:center;">
+                            <input type="checkbox" name="is_mandatory" class="autosave_mandatory" data-bubble="{{ b.key }}"{% if b.is_mandatory %} checked{% endif %}  />
+                            <!--a href="/bubble/delete_from_bubble/{{ b.key }}/{{ bubble.key }}">X</a-->
                         </div>
                     </div>
                     {% endfor %}
@@ -200,6 +215,13 @@
             autoSave($(this), {});
         });
 
+        $('.autosave_mandatory').change(function() {
+            autoSave($(this), {
+                subbubble: $(this).data('bubble'),
+                value: $(this).is(':checked'),
+            });
+        });
+
         function autoSave(input, data) {
             if(!data['field']) data['field'] = input.attr('name');
             if(!data['value']) data['value'] = input.val();
@@ -221,7 +243,27 @@
 
 
         $('.deletable').click(function() {
-            if (confirm('{{ str.bubble_delete_person }}?')) do_person($(this).attr('person'), 'delete', $(this).attr('type'));
+            var to_delete = $(this)
+            if (to_delete.attr('type') == 'seeder') {
+                if (confirm('{{ str.bubble_delete_seeder }}?')) do_person(to_delete.attr('person'), 'delete', 'seeder');
+            }
+            if (to_delete.attr('type') == 'leecher') {
+                if (confirm('{{ str.bubble_delete_seeder }}?')) do_person(to_delete.attr('person'), 'delete', 'leecher');
+            }
+            if (to_delete.attr('type') == 'nextinline') {
+                if (confirm('{{ str.bubble_delete_nextinline }}?')) {
+                    $.post('/bubble/delete_nextinline/{{ bubble.key }}', { nextinline: to_delete.attr('nextinline') }, function(json) {
+                        window.location.href = '';
+                    }, "json");
+                }
+            }
+            if (to_delete.attr('type') == 'prerequisite') {
+                if (confirm('{{ str.bubble_delete_prerequisite }}?')) {
+                    $.post('/bubble/delete_prerequisite/{{ bubble.key }}', { prerequisite: to_delete.attr('prerequisite') }, function(json) {
+                        window.location.href = '';
+                    }, "json");
+                }
+            }
         });
 
 

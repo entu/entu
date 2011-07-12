@@ -1,0 +1,147 @@
+{% extends "../main.html" %}
+
+{% block head %}
+<script src="/javascript/jquery.elastic.js" type="text/javascript"></script>
+<script src="http://datejs.googlecode.com/svn/tags/Alpha1.0/build/date-et-EE.js" type="text/javascript"></script>
+<script src="/javascript/jquery.autocomplete-min.js" type="text/javascript"></script>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav>
+    <ul id="crumbs">
+        <li><a href="/">{{ system_title }}</a></li>
+        <li>{{ person.displayname }}</li>
+    </ul>
+</nav>
+{% endblock %}
+
+{% block content %}
+
+<div id="content">
+
+    <h1 style="text-align:center;">{{ person.displayname }}</h1>
+    <div class="vertical_table">
+        <div class="table_row">
+            <div class="table_cell" style="width:300px; vertical-align:top;">
+
+                <label for="forename" style="display:block;">{{ str.person_forename }}:</label>
+                <input type="text" id="forename" name="forename" class="autosave" value="{{ person.forename|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" disabled />
+
+                <label for="surname" style="display:block;">{{ str.person_surname }}:</label>
+                <input type="text" id="surname" name="surname" class="autosave" value="{{ person.surname|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" disabled />
+
+                <label for="primary_email" style="display:block;">{{ str.person_primary_email }}:</label>
+                <input type="text" id="primary_email" name="primary_email" class="autosave" value="{{ person.primary_email|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" disabled />
+
+                <label for="person_birthdate" style="display:block;">{{ str.person_birthdate }}:</label>
+                <input type="text" id="person_birthdate" name="person_birthdate" class="autosave_date" value="{{ person.birth_date|date:"d.m.Y" }}" maxlength="500" style="width:110px; margin-bottom:15px;" disabled />
+
+                <!--label style="display:block;">{{ str.bubble_seeders }}:</label>
+                <div id="seeders" style="margin-bottom:5px;">
+                    {% if person.seeders2 %}
+                    {% for b in person.seeders2|dictsort:"displayname" %}
+                        <a href="javascript:void(0);" bubble="{{ b.key }}" type="seeder" class="deletable">{{ b.displayname|default:"" }}</a><br />{% if forloop.last %}{% else %}, {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                </div>
+
+                <label style="display:block;">{{ str.bubble_leechers }}:</label>
+                <div id="leechers" style="margin-bottom:5px;">
+                    {% if person.leechers2 %}
+                    {% for b in person.leechers2|dictsort:"displayname" %}
+                        <a href="javascript:void(0);" bubble="{{ b.key }}" type="leecher" class="deletable">{{ b.displayname|default:"" }}</a><br />{% if forloop.last %}{% else %}, {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                </div-->
+
+
+            </div>
+            <div class="table_cell" style="vertical-align:top; padding-top:10px;">
+
+                {% if person.leechers2 %}
+                <div class="table" style="margin-bottom:10px; font-size:11px;">
+                    <div class="table_row" style="padding-top:20px;">
+                        <div class="header_cell" style="text-align:left;">
+                        </div>
+                        <div class="header_cell" style="text-align:left;">
+                            {{ str.bubble_name }}
+                        </div>
+                        <div class="header_cell" style="text-align:center;">
+                            {{ str.bubble_period }}
+                        </div>
+                        <div class="header_cell" style="text-align:center;">
+                            {{ str.bubble_leechers }}
+                        </div>
+                        <div class="header_cell" style="text-align:center;">
+                            {{ str.bubbles }}
+                        </div>
+                    </div>
+                    {% for b in person.leechers2|dictsort:"start_datetime" %}
+                    <div class="table_row infiniterow" bubble="{{ b.key }}">
+                        <div class="table_cell" style="text-align:right;">
+                            {{ forloop.counter }}.
+                        </div>
+                        <div class="table_cell">
+                            {{ b.type2.displayname }}: <a href="/bubble/{{ b.key.id }}">{{ b.displayname }}</a>
+                        </div>
+                        <div class="table_cell" style="white-space:nowrap;">
+                            {{ b.displaydate }}
+                        </div>
+                        <div class="table_cell" style="text-align:center;">
+                            {{ b.leechers|length }}
+                        </div>
+                        <div class="table_cell" style="text-align:center;">
+                            {{ b.optional_bubbles|length }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+
+    </div>
+    <span style="display:block; text-align:center; font-size:11px;">{{ changed }}</span>
+
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        if(!$('#name').val()) {
+            $('#name').focus();
+        }
+
+        $('textarea').elastic();
+
+        $('.autosave_date').change(function() {
+            dinput = $(this);
+            dvalue = Date.parse(dinput.val());
+            if(dvalue) {
+                dinput.val(dvalue.toString('dd.MM.yyyy'));
+            } else {
+                dinput.val('');
+            }
+            autoSave(dinput, {});
+        });
+
+        $('.autosave').change(function() {
+            autoSave($(this), {});
+        });
+
+        function autoSave(input, data) {
+            if(!data['field']) data['field'] = input.attr('name');
+            if(!data['value']) data['value'] = input.val();
+
+            $.post('/person/{{ person.key }}', data, function(json) {
+                input.effect("highlight", {}, 1000);
+            }, "json");
+        }
+
+
+
+    });
+</script>
+
+{% endblock %}
