@@ -40,6 +40,7 @@ footer{padding:10px;text-align:center;white-space:nowrap;font-size:11px;font-fam
 .table_row{display:table-row;}
 .table_cell,.header_cell{display:table-cell;padding:5px 10px;text-align:left;vertical-align:middle;}
 #infscr-loading{float:left;margin:0px;padding:10px 0px;}
+.vertical-text{writing-mode:tb-rl;-webkit-transform:rotate(90deg);-moz-transform:rotate(90deg);-o-transform:rotate(90deg);white-space:nowrap;}
 .button{padding:5px 10px 4px 10px;text-align:center;text-transform:uppercase;font-family:HelveticaNeue-Regular,'Helvetica Neue',Helvetica,Arial,Tahoma,Verdana,sans-serif;font-size:12px;1white-space:nowrap;letter-spacing:1px;color:#FFFFFF;cursor:pointer;background:#6da00b url('/images/switch.gif') repeat-x 0 -60px;-moz-border-radius:4px;-webkit-border-radius:4px;}
 .box{border:1px solid #b9b9b9;padding:10px;background:#eeeeee url('/images/slickmap/white-highlight.png') top left repeat-x;}
 .cb-enable,.cb-disable,.cb-enable span,.cb-disable span{background:url('/images/switch.gif') repeat-x;display:block;float:left;font-size:10px;}

@@ -21,7 +21,20 @@
 {% for group in grouped %}
     <h2>{{ group.grouper }}<span>{{ group.list|length }}</span></h2>
     <div class="table" style="margin-bottom:10px;">
-        {% for p in group.list|dictsort:"displayname" %}
+            <div class="table_row" alt="{{ p.key }}">
+                <div class="table_cell">
+                </div>
+                <div class="table_cell">
+                </div>
+                {% for g in gradebubbles %}
+                <div class="table_cell" title="{{ g.displayname }}" style="text-align:center;font-size:11px;">
+                    {{ g.displayname }}
+                </div>
+                {% endfor %}
+                <div class="table_cell radio" style="white-space:nowrap;">
+                </div>
+            </div>
+        {% for p in group.list|dictsortreversed:"equivalent" %}
             <div class="table_row" alt="{{ p.key }}">
                 {% if p.photo %}
                 <img class="table_cell" src="{{ p.photo.url }}/24/c" style="width:24px;">
@@ -31,11 +44,11 @@
                 <div class="table_cell" style="white-space:nowrap;">
                     <a href="/reception/application/{{ p.key }}">{{ p.displayname|default:"" }}</a>
                 </div>
-                <div class="table_cell" style="width:100%; text-align:right;">
-                    {% for g in p.subgrades %}
-                    <span title="{{ g.bubble.displayname }}" style="padding-left:20px;">{{ g.grade.displayname }}</span>
-                    {% endfor %}
+                {% for g in p.subgrades %}
+                <div class="table_cell" title="{{ g.displayname }}" style="text-align:center; white-space:nowrap;">
+                    {{ g.grade.displayname }}
                 </div>
+                {% endfor %}
                 <div class="table_cell radio" style="white-space:nowrap;">
                     <select name="radio_{{ p.key.id }}" class="grade" person="{{ p.key }}"{% if p.grade_is_locked %} disabled{% endif %}>
                         <option value=""></option>

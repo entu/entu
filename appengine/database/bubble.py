@@ -21,11 +21,12 @@ class RatingScale(ChangeLogModel):
 
 
 class BubbleType(ChangeLogModel):
-    type            = db.StringProperty()
-    name            = db.ReferenceProperty(Dictionary, collection_name='bubbletype_name')
-    description     = db.ReferenceProperty(Dictionary, collection_name='bubbletype_description')
-    allowed_subtypes = db.StringListProperty()
-    model_version   = db.StringProperty(default='A')
+    type                    = db.StringProperty()
+    name                    = db.ReferenceProperty(Dictionary, collection_name='bubbletype_name')
+    description             = db.ReferenceProperty(Dictionary, collection_name='bubbletype_description')
+    allowed_subtypes        = db.StringListProperty()
+    grade_display_method    = db.StringProperty()
+    model_version           = db.StringProperty(default='A')
 
     @property
     def displayname(self):
@@ -244,26 +245,21 @@ class Bubble(ChangeLogModel):
 
     def get_subgrades_bubbles(self):
         grades_bubbles = []
-        for b in self.bubbles:
-            if b.type2.grade_display_method == 'all':
-                grades_bubbles = grades_bubbles + b.grades(person_key)
-            else:
-                grades_bubbles.append(b)
+        if self.bubbles:
+            for b in self.bubbles:
+                if b.type2.grade_display_method == 'all':
+                    grades_bubbles = grades_bubbles + b.grades(person_key)
+                else:
+                    grades_bubbles.append(b)
+            grades_bubbles = sorted(grades_bubbles, key=lambda k: k.key())
         return grades_bubbles
 
-    def subgrades(self, person_key=None):
-        gradelist = []
-        for b in self.get_subgrades_bubbles():
-            grade = db.Query(Grade).filter('bubble', self.key()).filter('is_deleted', False)
-            if person_key:
-                grade.filter('person', person_key)
-            grade.get()
-            gradelist.append({
-                'bubble': b,
-                'person': grade.person if grade else None,
-                'grade': grade if grade else None,
-            })
-        return gradelist
+    def subgrades(self, person_key):
+        bubbles = self.get_subgrades_bubbles()
+        for b in bubbles:
+            b.grade = db.Query(Grade).filter('bubble', b.key()).filter('is_deleted', False).filter('person', person_key).get()
+
+        return bubbles
 
 
 class GradeDefinition(ChangeLogModel):
@@ -297,4 +293,4 @@ class Grade(ChangeLogModel):
 
     @property
     def displayname(self):
-        return self.name.translate()
+        return self.gradedefinition.name.translate()
