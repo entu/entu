@@ -17,16 +17,29 @@ class RatingScale(ChangeLogModel):
         return self.name.translate()
 
     @property
-    def gradedefinitions(self):
+    def PositiveGradeDefinitions(self):
+        return db.Query(GradeDefinition).filter('rating_scale', self).filter('is_positive', True).order('equivalent').fetch(1000)
+
+    @property
+    def NegativeGradeDefinitions(self):
+        return db.Query(GradeDefinition).filter('rating_scale', self).filter('is_positive', False).order('equivalent').fetch(1000)
+
+    @property
+    def GradeDefinitions(self):
+        return self.gradedefinitions
+
+    @property
+    def gradedefinitions(self):                 # TODO: refactor to GradeDefinitions
         return db.Query(GradeDefinition).filter('rating_scale', self).order('equivalent').fetch(1000)
 
 
 class BubbleType(ChangeLogModel):
-    type            = db.StringProperty()
-    name            = db.ReferenceProperty(Dictionary, collection_name='bubbletype_name')
-    description     = db.ReferenceProperty(Dictionary, collection_name='bubbletype_description')
-    allowed_subtypes = db.StringListProperty()
-    model_version   = db.StringProperty(default='A')
+    type                    = db.StringProperty()
+    name                    = db.ReferenceProperty(Dictionary, collection_name='bubbletype_name')
+    description             = db.ReferenceProperty(Dictionary, collection_name='bubbletype_description')
+    allowed_subtypes        = db.StringListProperty()
+    grade_display_method    = db.StringProperty()
+    model_version           = db.StringProperty(default='A')
 
     @property
     def displayname(self):
@@ -63,6 +76,7 @@ class Bubble(ChangeLogModel):
     viewers                 = db.ListProperty(db.Key)
     leechers                = db.ListProperty(db.Key)
     seeders                 = db.ListProperty(db.Key)
+    green_persons           = db.ListProperty(db.Key)
     type                    = db.StringProperty()
     typed_tags              = db.StringListProperty()
     rating_scale            = db.ReferenceProperty(RatingScale, collection_name='bubble_ratingscale')
@@ -120,22 +134,42 @@ class Bubble(ChangeLogModel):
                 return '... - ' + self.end_datetime.strftime('%d.%m.%Y %H:%M')
 
     @property
+    def BubbleType(self):
+        return self.type2
+
+    @property
     def type2(self):                            # TODO refactor to BubbleType
         return db.Query(BubbleType).filter('type', self.type).get()
+
+    @property
+    def Seeders(self):
+        return self.seeders2
 
     @property
     def seeders2(self):                         # TODO refactor to Seeders
         return Person.get(self.seeders)
 
     @property
+    def Leechers(self):
+        return self.leechers2
+
+    @property
     def leechers2(self):                        # TODO refactor to Leechers
         return Person.get(self.leechers)
 
     @property
-    def next_in_line2(self):
+    def NextInLine(self):
+        return self.next_in_line2
+
+    @property
+    def next_in_line2(self):                    # TODO refactor to NextInLine
         return Bubble.get(self.next_in_line)
 
     @property
+    def PrerequisiteBubbles(self):
+        return self.prerequisite_bubbles2
+
+    @property                                   # TODO refactor to PrerequisiteBubbles
     def prerequisite_bubbles2(self):
         return Bubble.get(self.prerequisite_bubbles)
 
@@ -152,11 +186,36 @@ class Bubble(ChangeLogModel):
         return db.Query(Bubble).filter('optional_bubbles', self.key()).fetch(1000)
 
     @property
+    def InBubbles(self):
+        return self.in_bubbles
+
+    @property
     def in_bubbles(self):                       # TODO refactor to InBubbles
         return self.MandatoryInBubbles + self.OptionalInBubbles
 
     @property
-    def bubbles2(self):                         # TODO refactor to SubBubbles
+    def PrerequisiteForBubbles(self):
+        return db.Query(Bubble).filter('prerequisite_bubbles', self.key()).fetch(1000)
+
+    @property
+    def PrerequisiteBubbles(self):
+        if self.prerequisite_bubbles:
+            bubbles = []
+            for b in Bubble.get(self.prerequisite_bubbles):
+                if not b:
+                    continue
+                if b.is_deleted:
+                    continue
+                bubbles.append(b)
+            if len(bubbles) > 0:
+                return bubbles
+
+    @property
+    def SubBubbles(self):
+        return self.bubbles2
+
+    @property
+    def bubbles(self):                         # TODO refactor to SubBubbles
         keys = []
         if self.mandatory_bubbles:
             keys += self.mandatory_bubbles
@@ -170,8 +229,13 @@ class Bubble(ChangeLogModel):
         for b in Bubble.get(keys):
             if not b:
                 continue
-            if not b.is_deleted:
-                bubbles.append(b)
+            if b.is_deleted:
+                continue
+            if b.key() in self.mandatory_bubbles:
+                b.is_mandatory = True
+            else:
+                b.is_mandatory = False
+            bubbles.append(b)
         if len(bubbles) > 0:
             return bubbles
 
@@ -182,9 +246,10 @@ class Bubble(ChangeLogModel):
             for b in Bubble.get(self.mandatory_bubbles):
                 if not b:
                     continue
-                if not b.is_deleted:
-                    b.is_mandatory = True
-                    bubbles.append(b)
+                if b.is_deleted:
+                    continue
+                b.is_mandatory = True
+                bubbles.append(b)
             if len(bubbles) > 0:
                 return bubbles
 
@@ -195,12 +260,39 @@ class Bubble(ChangeLogModel):
             for b in Bubble.get(self.optional_bubbles):
                 if not b:
                     continue
-                if not b.is_deleted:
-                    bubbles.append(b)
+                if b.is_deleted:
+                    continue
+                b.is_mandatory = False
+                bubbles.append(b)
             if len(bubbles) > 0:
                 return bubbles
 
+    @property
+    def PersonGrades(person_key):
+        return db.Query(Grade).filter('person', person_key).filter('bubble',self.key()).fetch(1000)
+
+
+    # i.e. Pre-requisite bubbles must notify post-requisites when marked green so
+    # that they can check, if they are next in line for at least one green bubble
+    def propose_leecher(person_key):
+        for bubble in self.prev_in_line
+            if bubble.is_green(person_key)
+                return self.add_leecher(person_key)
+
+        return False
+
+
+    # Could we add person to bubble.leechers? 
+    def is_valid_leecher(person_key):
+        if leecher in self.leechers
+            return False
+        return self.are_prerequisites_satisfied(person_key)
+
+
     def add_leecher(self, person_key):
+        if not self.is_valid_leecher(person_key)
+            return False
+
         self.leechers = AddToList(person_key, self.leechers)
         self.put()
 
@@ -263,20 +355,88 @@ class Bubble(ChangeLogModel):
         self.put()
 
 
-    # Set of base functions for Bubble
-    def has_positive_grade(self, person_key)
-        grades = db.Query(Grade).filter('person', person_key).filter('bubble',self.key()).fetch(1000)
+    def has_positive_grade(self, person_key):
+        grades = self.PersonGrades(person_key)
         if len(grades) == 0
             return False
-        grades = sorted(grades, attrgetter('datetime', reverse=True))
 
-        for grade in grades
+        for grade in sorted(grades, attrgetter('datetime', reverse=True))
             if grade.is_positive
                 return True
-#            if self.grade_method == 'latest'
-#                return False
+            if self.type2.grade_display_method == 'latest'
+                return False
 
         return False
+
+
+    def mark_green(person_key):
+        self.green_persons = AddToList(person_key, self.green_persons)
+        self.put()
+        for bubble in self.PrerequisiteForBubbles
+            bubble.propose_leecher(person_key)
+
+
+    def is_green(person_key):
+        if person_key in self.green_persons
+            return True
+    
+        if self.rating_scale
+            if not self.has_positive_grade(person_key)
+                return False
+    
+        if not self.are_mandatories_satisfied(person_key)
+            return False
+    
+        if self.minimum_bubble_count > 0
+            counter = self.minimum_bubble_count
+            for sub_bubble in self.SubBubbles
+                if sub_bubble.is_green(person_key)
+                    counter = counter - 1
+                    if counter == 0
+                        return True
+                return False
+    
+        self.mark_green(person_key)
+        return True
+
+
+    def recheck_green(person_key):
+        RemoveFromList(person_key, self.green_persons)
+        return self.is_green(person_key)
+
+
+    def are_mandatories_satisfied(person_key):
+        for sub_bubble in self.MandatoryBubbles
+            if not sub_bubble.is_green(person_key)
+                return False
+        return True
+
+
+    def are_prerequisites_satisfied(person_key):
+        for pre_bubble in self.PrerequisiteBubbles
+            if not pre_bubble.is_green(person_key)
+                return False
+        return True
+
+
+    # Positive grades are only available, if mandatories are green.
+    # Negative grades could be issued at any time.
+    def grades_available(person_key):
+        if not self.rating_scale
+            return
+
+        if self.are_mandatories_satisfied(person_key)
+            return self.rating_scale.GradeDefinitions
+
+        return self.rating_scale.NegativeGradeDefinitions
+
+
+    # When rating a bubble with rated sub-bubbles, sub-bubble grades could be listed.
+    def sub_bubble_grades(person_key):
+        for sub_bubble in self.SubBubbles
+            grades = grades + sub_bubble.PersonGrades(person_key)
+
+        return grades
 
 
 class GradeDefinition(ChangeLogModel):

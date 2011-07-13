@@ -12,7 +12,7 @@ Bubble.has_positive_grade(person)
     return False
 
 
-Bubbble.mark_green(person)
+Bubble.mark_green(person)
     AddToList(person, self.green_persons)
     for bubble in self.postrequisite_bubbles
         bubble.propose_leecher(person)
