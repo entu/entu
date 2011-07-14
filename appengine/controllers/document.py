@@ -1,4 +1,5 @@
 from google.appengine.ext import blobstore
+from google.appengine.api import images
 from google.appengine.ext.webapp import blobstore_handlers
 from django.utils import simplejson
 import datetime
@@ -96,12 +97,14 @@ class GetDocument(blobstore_handlers.BlobstoreDownloadHandler):
         else:
             crop = ''
 
-        #try:
-        image_types = ['image/bmp', 'image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/tiff', 'image/x-icon']
-        doc = Document().get(key)
-        if doc.file.content_type in image_types:
-            self.redirect(images.get_serving_url(doc.file.key()) + size + crop)
-        else:
+        try:
+            image_types = ['image/bmp', 'image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/tiff', 'image/x-icon']
+            doc = Document().get(key)
+            if doc.file.content_type in image_types:
+                self.redirect(images.get_serving_url(doc.file.key()) + size + crop)
+            else:
+                self.send_blob(doc.file, save_as=doc.file.filename)
+        except images.LargeImageError:
             self.send_blob(doc.file, save_as=doc.file.filename)
         #except:
         #    self.error(404)

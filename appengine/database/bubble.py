@@ -354,6 +354,24 @@ class Bubble(ChangeLogModel):
         self.optional_bubbles.remove(bubble_key)
         self.put()
 
+    def get_subgrades_bubbles(self):
+        grades_bubbles = []
+        if self.bubbles:
+            for b in self.bubbles:
+                if b.type2.grade_display_method == 'all':
+                    grades_bubbles = grades_bubbles + b.grades(person_key)
+                else:
+                    grades_bubbles.append(b)
+            grades_bubbles = sorted(grades_bubbles, key=lambda k: k.key())
+        return grades_bubbles
+
+    def subgrades(self, person_key):
+        bubbles = self.get_subgrades_bubbles()
+        for b in bubbles:
+            b.grade = db.Query(Grade).filter('bubble', b.key()).filter('is_deleted', False).filter('person', person_key).get()
+
+        return bubbles
+
 
     def has_positive_grade(self, person_key):
         grades = self.PersonGrades(person_key)
@@ -454,7 +472,7 @@ class GradeDefinition(ChangeLogModel):
 class Grade(ChangeLogModel):
     person          = db.ReferenceProperty(Person, collection_name='grades')
     gradedefinition = db.ReferenceProperty(GradeDefinition, collection_name='grades')
-    bubble          = db.ReferenceProperty(Bubble, collection_name='grades')
+    bubble          = db.ReferenceProperty(Bubble)
     bubble_type     = db.StringProperty()
     datetime        = db.DateTimeProperty()
     name            = db.ReferenceProperty(Dictionary, collection_name='grade_name')
@@ -467,3 +485,7 @@ class Grade(ChangeLogModel):
     is_locked       = db.BooleanProperty(default=False)
     is_deleted      = db.BooleanProperty(default=False)
     model_version   = db.StringProperty(default='A')
+
+    @property
+    def displayname(self):
+        return self.gradedefinition.name.translate()
