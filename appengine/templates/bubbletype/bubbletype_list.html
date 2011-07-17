@@ -1,0 +1,103 @@
+{% extends "../main.html" %}
+
+{% block head %}
+<script src="/javascript/jquery.elastic.js" type="text/javascript"></script>
+<script src="http://datejs.googlecode.com/svn/tags/Alpha1.0/build/date-et-EE.js" type="text/javascript"></script>
+<script src="/javascript/jquery.autocomplete-min.js" type="text/javascript"></script>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav>
+    <ul id="crumbs">
+        <li><a href="/">{{ system_title }}</a></li>
+        <li>{{ str.bubbletype_bubbletypes }}</li>
+    </ul>
+</nav>
+{% endblock %}
+
+{% block content %}
+
+<div id="content">
+
+    <h1 style="text-align:center;">{{ bubbletype.displayname }}</h1>
+    <div class="vertical_table">
+        <div class="table_row">
+            <div class="table_cell" style="width:300px; vertical-align:top;">
+
+                <label for="name_estonian" style="display:block;">{{ str.title }}:</label>
+                <input type="text" id="name_estonian" name="name_estonian" class="autosave" value="{{ bubbletype.name_estonian|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
+
+                <!--label for="surname" style="display:block;">{{ str.person_surname }}:</label>
+                <input type="text" id="surname" name="surname" class="autosave" value="{{ person.surname|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
+
+                <label for="primary_email" style="display:block;">{{ str.person_primary_email }}:</label>
+                <input type="text" id="primary_email" name="primary_email" class="autosave" value="{{ person.primary_email|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
+
+                <label for="person_birthdate" style="display:block;">{{ str.person_birthdate }}:</label>
+                <input type="text" id="person_birthdate" name="person_birthdate" class="autosave_date" value="{{ person.birth_date|date:"d.m.Y" }}" maxlength="500" style="width:110px; margin-bottom:15px;" />
+
+                <label style="display:block;">{{ str.bubble_seeders }}:</label>
+                <div id="seeders" style="margin-bottom:5px;">
+                    {% if person.seeders2 %}
+                    {% for b in person.seeders2|dictsort:"displayname" %}
+                        <a href="javascript:void(0);" bubble="{{ b.key }}" type="seeder" class="deletable">{{ b.displayname|default:"" }}</a><br />{% if forloop.last %}{% else %}, {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                </div>
+
+                <label style="display:block;">{{ str.bubble_leechers }}:</label>
+                <div id="leechers" style="margin-bottom:5px;">
+                    {% if person.leechers2 %}
+                    {% for b in person.leechers2|dictsort:"displayname" %}
+                        <a href="javascript:void(0);" bubble="{{ b.key }}" type="leecher" class="deletable">{{ b.displayname|default:"" }}</a><br />{% if forloop.last %}{% else %}, {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                </div-->
+
+            </div>
+        </div>
+
+    </div>
+    <span style="display:block; text-align:center; font-size:11px;">{{ changed }}</span>
+
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        if(!$('#name').val()) {
+            $('#name').focus();
+        }
+
+        $('textarea').elastic();
+
+        $('.autosave_date').change(function() {
+            dinput = $(this);
+            dvalue = Date.parse(dinput.val());
+            if(dvalue) {
+                dinput.val(dvalue.toString('dd.MM.yyyy'));
+            } else {
+                dinput.val('');
+            }
+            autoSave(dinput, {});
+        });
+
+        $('.autosave').change(function() {
+            autoSave($(this), {});
+        });
+
+        function autoSave(input, data) {
+            if(!data['field']) data['field'] = input.attr('name');
+            if(!data['value']) data['value'] = input.val();
+
+            $.post('/btype/{{ bybbletype.key }}', data, function(json) {
+                input.effect("highlight", {}, 1000);
+            }, "json");
+        }
+
+
+
+    });
+</script>
+
+{% endblock %}
