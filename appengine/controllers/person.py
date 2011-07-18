@@ -8,6 +8,11 @@ class ShowPerson(boRequestHandler):
         if self.authorize('bubbler'):
 
             person = Person().get_by_id(int(id))
+            if not person:
+                self.view('N/A', 'person/notfound.html', {
+                    'person_id': id,
+                })
+                return
 
             roles = db.Query(Role).fetch(1000)
 
