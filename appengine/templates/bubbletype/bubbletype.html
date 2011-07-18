@@ -10,7 +10,7 @@
 <nav>
     <ul id="crumbs">
         <li><a href="/">{{ system_title }}</a></li>
-        <li>{{ person.displayname }}</li>
+        <li>{{ bubbletype.displayname }}</li>
     </ul>
 </nav>
 {% endblock %}
@@ -19,22 +19,16 @@
 
 <div id="content">
 
-    <h1 style="text-align:center;">{{ person.displayname }}</h1>
+    <h1 style="text-align:center;">{{ bubbletype.displayname }}</h1>
     <div class="vertical_table">
         <div class="table_row">
             <div class="table_cell" style="width:300px; vertical-align:top;">
 
-                <label for="forename" style="display:block;">{{ str.person_forename }}:</label>
-                <input type="text" id="forename" name="forename" class="autosave" value="{{ person.forename|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
+                <label for="name" style="display:block;">{{ str.title }}:</label>
+                <input type="text" id="name" name="name" class="autosave" value="{{ bubbletype.name.translate|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
 
-                <label for="surname" style="display:block;">{{ str.person_surname }}:</label>
-                <input type="text" id="surname" name="surname" class="autosave" value="{{ person.surname|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
-
-                <label for="primary_email" style="display:block;">{{ str.person_primary_email }}:</label>
-                <input type="text" id="primary_email" name="primary_email" class="autosave" value="{{ person.primary_email|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
-
-                <label for="person_birthdate" style="display:block;">{{ str.person_birthdate }}:</label>
-                <input type="text" id="person_birthdate" name="person_birthdate" class="autosave_date" value="{{ person.birth_date|date:"d.m.Y" }}" maxlength="500" style="width:110px; margin-bottom:15px;" />
+                <label for="description" style="display:block;">{{ str.description }}:</label>
+                <textarea id="description" name="description" class="autosave" style="display:block; width:99%; margin-bottom:15px;">{{ bubbletype.description.translate|default:""|escape }}</textarea>
 
                 <!--label style="display:block;">{{ str.bubble_seeders }}:</label>
                 <div id="seeders" style="margin-bottom:5px;">
@@ -56,50 +50,6 @@
 
 
             </div>
-            <div class="table_cell" style="vertical-align:top; padding-top:10px;">
-
-                {% if person.leechers2 %}
-                <div class="table" style="margin-bottom:10px; font-size:11px;">
-                    <div class="table_row" style="padding-top:20px;">
-                        <div class="header_cell" style="text-align:left;">
-                        </div>
-                        <div class="header_cell" style="text-align:left;">
-                            {{ str.bubble_name }}
-                        </div>
-                        <div class="header_cell" style="text-align:center;">
-                            {{ str.bubble_period }}
-                        </div>
-                        <div class="header_cell" style="text-align:center;">
-                            {{ str.bubble_leechers }}
-                        </div>
-                        <div class="header_cell" style="text-align:center;">
-                            {{ str.bubbles }}
-                        </div>
-                    </div>
-                    {% for b in person.leechers2|dictsort:"start_datetime" %}
-                    <div class="table_row infiniterow" bubble="{{ b.key }}">
-                        <div class="table_cell" style="text-align:right;">
-                            {{ forloop.counter }}.
-                        </div>
-                        <div class="table_cell">
-                            {{ b.type2.displayname }}: <a href="/bubble/{{ b.key.id }}">{{ b.displayname }}</a>
-                        </div>
-                        <div class="table_cell" style="white-space:nowrap;">
-                            {{ b.displaydate }}
-                        </div>
-                        <div class="table_cell" style="text-align:center;">
-                            {{ b.leechers|length }}
-                        </div>
-                        <div class="table_cell" style="text-align:center;">
-                            {{ b.optional_bubbles|length }}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-            </div>
-        </div>
 
     </div>
     <span style="display:block; text-align:center; font-size:11px;">{{ changed }}</span>
@@ -134,7 +84,7 @@
             if(!data['field']) data['field'] = input.attr('name');
             if(!data['value']) data['value'] = input.val();
 
-            $.post('/person/{{ person.key }}', data, function(json) {
+            $.post('/btype/{{ bubbletype.key }}', data, function(json) {
                 input.effect("highlight", {}, 1000);
             }, "json");
         }

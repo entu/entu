@@ -8,6 +8,8 @@ from database.bubble import *
 from database.person import *
 from database.dictionary import *
 
+from django.template import TemplateDoesNotExist
+
 
 class ShowBubbleTypeList(boRequestHandler):
     def get(self, url):
@@ -32,14 +34,19 @@ class ShowBubbleType(boRequestHandler):
             return
 
         bubbletype = BubbleType().get_by_id(int(id))
+        if not bubbletype:
+            self.view('N/A', 'bubbletype/notfound.html', {
+                'bubbletype_id': id,
+            })
+            return
 
         try:
             self.view('application', 'bubbletype/bubbletype_' + Person().current.current_role.template_name + '.html', {
-            'bubbletypes': bubbletypes,
+            'bubbletype': bubbletype,
         })
         except TemplateDoesNotExist:
             self.view('application', 'bubbletype/bubbletype.html', {
-            'bubbletypes': bubbletypes,
+            'bubbletype': bubbletype,
         })
 
     def post(self, key):
@@ -71,9 +78,8 @@ class ShowBubbleType(boRequestHandler):
 
 def main():
     Route([
-            (r'/btype/list', ShowBubbleTypeList),
-            (r'/btype/show/(.*)', ShowBubbleType),
-            (r'/btype/(*)', ShowBubbleTypeList),
+            ('/btype/', ShowBubbleTypeList),
+            (r'/btype/(.*)', ShowBubbleType),
         ])
 
 
