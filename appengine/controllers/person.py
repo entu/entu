@@ -5,41 +5,45 @@ from django.template import TemplateDoesNotExist
 
 class ShowPerson(boRequestHandler):
     def get(self, id):
-        if self.authorize('bubbler'):
 
-            person = Person().get_by_id(int(id))
-            if not person:
-                self.view('N/A', 'person/notfound.html', {
-                    'person_id': id,
-                })
-                return
+        if id == '':
+            self.view('??', 'person/person.html', {
+            })
+            return
 
-            roles = db.Query(Role).fetch(1000)
+        person = Person().get_by_id(int(id))
+        if not person:
+            self.view('N/A', 'person/notfound.html', {
+                'person_id': id,
+            })
+            return
 
-            for r in roles:
-                if r.key() in person.roles:
-                    r.is_selected = True
+        roles = db.Query(Role).fetch(1000)
 
-            changeinfo = ''
-            last_change = person.last_change
-            if last_change:
-                if last_change.user:
-                    changer = db.Query(Person).filter('apps_username', last_change.user).get()
-                    if changer:
-                        changeinfo = Translate('person_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
+        for r in roles:
+            if r.key() in person.roles:
+                r.is_selected = True
 
-            try:
-                self.view(person.displayname, 'person/person_' + Person().current.current_role.template_name + '.html', {
-                    'person': person,
-                    'roles': roles,
-                    'changed': changeinfo,
-                })
-            except TemplateDoesNotExist:
-                self.view(person.displayname, 'person/person.html', {
-                    'person': person,
-                    'roles': roles,
-                    'changed': changeinfo,
-                })
+        changeinfo = ''
+        last_change = person.last_change
+        if last_change:
+            if last_change.user:
+                changer = db.Query(Person).filter('apps_username', last_change.user).get()
+                if changer:
+                    changeinfo = Translate('person_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
+
+        try:
+            self.view(person.displayname, 'person/person_' + Person().current.current_role.template_name + '.html', {
+                'person': person,
+                'roles': roles,
+                'changed': changeinfo,
+            })
+        except TemplateDoesNotExist:
+            self.view(person.displayname, 'person/person.html', {
+                'person': person,
+                'roles': roles,
+                'changed': changeinfo,
+            })
 
     def post(self, key):
         if self.authorize('change_person'):
@@ -76,19 +80,39 @@ class SetRole(boRequestHandler):
             p.put()
 
 
-class GetPersons(boRequestHandler):
+class GetPersonIds(boRequestHandler):
     def get(self):
 
         query = self.request.get('query').strip()
         keys = []
+        data = []
         names = []
         for p in db.Query(Person).filter('search_names', query.lower()).fetch(50):
-            keys.append(str(p.key()))
+            data.append(str(p.key().id()))
             names.append(p.displayname)
         respond = {
             'query': query.lower(),
             'suggestions': names,
-            'data': keys
+            'data': data,
+        }
+
+        self.echo_json(respond)
+
+
+class GetPersonKeys(boRequestHandler):
+    def get(self):
+
+        query = self.request.get('query').strip()
+        keys = []
+        data = []
+        names = []
+        for p in db.Query(Person).filter('search_names', query.lower()).fetch(50):
+            data.append(str(p.key()))
+            names.append(p.displayname)
+        respond = {
+            'query': query.lower(),
+            'suggestions': names,
+            'data': data,
         }
 
         self.echo_json(respond)
@@ -97,7 +121,9 @@ class GetPersons(boRequestHandler):
 def main():
     Route([
             ('/person/set_role', SetRole),
-            (r'/person/persons', GetPersons),
+            ('/person/person_ids', GetPersonIds),
+            ('/person/person_keys', GetPersonKeys),
+            ('/person', ShowPerson),
             (r'/person/(.*)', ShowPerson),
         ])
 

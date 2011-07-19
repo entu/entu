@@ -10,7 +10,9 @@
 <nav>
     <ul id="crumbs">
         <li><a href="/">{{ system_title }}</a></li>
+        {% if person %}
         <li>{{ person.displayname }}</li>
+        {% endif %}
     </ul>
 </nav>
 {% endblock %}
@@ -19,6 +21,11 @@
 
 <div id="content">
 
+    <div style="margin:10px 0px; float:left;">
+        {{ str.search }}: <input type="text" id="search_person" name="search_person" maxlength="500" style="width:200px;" />
+    </div>
+
+    {% if person %}
     <h1 style="text-align:center;">{{ person.displayname }}</h1>
     <div class="vertical_table">
         <div class="table_row">
@@ -103,6 +110,7 @@
 
     </div>
     <span style="display:block; text-align:center; font-size:11px;">{{ changed }}</span>
+    {% endif %}
 
 </div>
 
@@ -138,6 +146,13 @@
                 input.effect("highlight", {}, 1000);
             }, "json");
         }
+
+        var le = $('#search_person').autocomplete({
+            serviceUrl: '/person/person_ids',
+            onSelect: function(value, data){
+                window.location.href = '/person/' + data;
+            },
+        });
 
 
 
