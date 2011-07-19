@@ -53,7 +53,7 @@ class PersonUser(boRequestHandler):
 
 class PersonSearchable(boRequestHandler):
     def get(self):
-        for p in db.Query(Person).filter('model_version != ', 'searchable').fetch(1000):
+        for p in db.Query(Person).filter('model_version != ', 'searchable').fetch(100):
             p.index_names()
             p.model_version = 'searchable'
             p.put()

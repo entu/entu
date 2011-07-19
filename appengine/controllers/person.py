@@ -79,14 +79,14 @@ class SetRole(boRequestHandler):
 class GetPersons(boRequestHandler):
     def get(self):
 
-        query = self.request.get('query').strip().lower()
+        query = self.request.get('query').strip()
         keys = []
         names = []
-        for p in db.Query(Person).filter('search_names =', query).fetch(100):
+        for p in db.Query(Person).filter('search_names', query.lower()).fetch(50):
             keys.append(str(p.key()))
             names.append(p.displayname)
         respond = {
-            'query': query,
+            'query': query.lower(),
             'suggestions': names,
             'data': keys
         }
