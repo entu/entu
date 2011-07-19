@@ -51,6 +51,14 @@ class PersonUser(boRequestHandler):
             p.put()
 
 
+class PersonSearchable(boRequestHandler):
+    def get(self):
+        for p in db.Query(Person).filter('model_version != ', 'searchable').fetch(1000):
+            p.index_names()
+            p.model_version = 'searchable'
+            p.put()
+
+
 class PersonUser2(boRequestHandler):
     def get(self):
         self.header('Content-Type', 'text/plain; charset=utf-8')
@@ -106,6 +114,7 @@ def main():
             ('/update/grade', GradeI),
             ('/update/log3', Log),
             ('/update/prupdate', PRUpdate),
+            ('/update/searchable', PersonSearchable),
         ])
 
 

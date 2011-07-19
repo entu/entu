@@ -45,6 +45,8 @@ class Person(ChangeLogModel):
     model_version           = db.StringProperty(default='A')
     seeder                  = db.ListProperty(db.Key)
     leecher                 = db.ListProperty(db.Key)
+    search_names            = db.StringListProperty()
+
 
     @property
     def displayname(self):
@@ -158,6 +160,21 @@ class Person(ChangeLogModel):
         self.leecher.remove(bubble_key)
         self.put()
         taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'remove', 'bubble_key': str(bubble_key), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
+
+    def index_names(self):
+        self.search_names = []
+        if self.forename:
+            for i in range (0,len(self.forename[0:20])):
+                self.search_names = AddToList(self.forename.lower()[0:i], self.search_names)
+        if self.surname:
+            for i in range (0,len(self.surname[0:20])):
+                self.search_names = AddToList(self.surname.lower()[0:i], self.search_names)
+        if self.idcode:
+            for i in range (0,len(self.idcode[0:20])):
+                self.search_names = AddToList(self.idcode.lower()[0:i], self.search_names)
+
+
+        self.put()
 
 
 class Cv(ChangeLogModel): #parent=Person()
