@@ -90,7 +90,7 @@
         }
 
         var le = $('#search_person').autocomplete({
-            serviceUrl: '/bubble/seeders',
+            serviceUrl: '/person/persons',
             onSelect: function(value, data){
                 window.location.href = '/reception/application/' + data;
             },

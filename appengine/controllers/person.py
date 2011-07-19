@@ -52,6 +52,7 @@ class ShowPerson(boRequestHandler):
                 if value:
                     if field in ['forename', 'surname']:
                         setattr(person, field, value)
+                        person.index_names()
                     if field in ['person_birthdate']:
                         setattr(person, field, datetime.strptime(value, '%d.%m.%Y'))
                     if field == 'primary_email':
@@ -75,9 +76,28 @@ class SetRole(boRequestHandler):
             p.put()
 
 
+class GetPersons(boRequestHandler):
+    def get(self):
+
+        query = self.request.get('query').strip().lower()
+        keys = []
+        names = []
+        for p in db.Query(Person).filter('search_names =', query).fetch(100):
+            keys.append(str(p.key()))
+            names.append(p.displayname)
+        respond = {
+            'query': query,
+            'suggestions': names,
+            'data': keys
+        }
+
+        self.echo_json(respond)
+
+
 def main():
     Route([
             ('/person/set_role', SetRole),
+            (r'/person/persons', GetPersons),
             (r'/person/(.*)', ShowPerson),
         ])
 
