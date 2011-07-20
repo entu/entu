@@ -10,16 +10,24 @@ import cStringIO
 class ShowPerson(boRequestHandler):
     def get(self, id):
 
-        if id == '':
-            self.view('??', 'person/person.html', {
-            })
+        user = users.get_current_user()
+        if not user:
+            self.view('N/A', 'person/notfound.html', )
             return
+        current_person = db.Query(Person).filter('apps_username', user.email()).get()
+
+        if id == '':
+            id = current_person.key().id()
+
+        can_search = True
+        if ( not self.authorize('reception') ):
+            id = current_person.key().id()
+            can_search = False
 
         person = Person().get_by_id(int(id))
+
         if not person:
-            self.view('N/A', 'person/notfound.html', {
-                'person_id': id,
-            })
+            self.view('N/A', 'person/notfound.html', )
             return
 
         roles = db.Query(Role).fetch(1000)
@@ -36,6 +44,9 @@ class ShowPerson(boRequestHandler):
                 if changer:
                     changeinfo = Translate('person_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
 
+        grades = db.Query(Grade).filter('person',person.key()).fetch(1000)
+        grades = sorted(grades, key=lambda k: k.datetime)
+        
         ratings = ListRatings()
         ratings.head = [
             Translate('bubble_displayname').encode("utf-8"),
@@ -43,10 +54,7 @@ class ShowPerson(boRequestHandler):
             Translate('grade_equivalent').encode("utf-8"),
             Translate('date').encode("utf-8"),
         ]
-
-        grades = db.Query(Grade).filter('person',person.key()).fetch(1000)
-        grades = sorted(grades, key=lambda k: k.datetime)
-        
+        ratings.data = []
         for grade in grades:
             rating = ListedRating()
             rating.name = grade.bubble.displayname.encode("utf-8")
@@ -57,6 +65,7 @@ class ShowPerson(boRequestHandler):
 
         try:
             self.view(person.displayname, 'person/person_' + Person().current.current_role.template_name + '.html', {
+                'can_search': can_search,
                 'person': person,
                 'roles': roles,
                 'ratings': ratings,
@@ -64,6 +73,7 @@ class ShowPerson(boRequestHandler):
             })
         except TemplateDoesNotExist:
             self.view(person.displayname, 'person/person.html', {
+                'can_search': can_search,
                 'person': person,
                 'roles': roles,
                 'ratings': ratings,
@@ -148,7 +158,7 @@ class GetPersonKeys(boRequestHandler):
 class GradesCSV(boRequestHandler):
     def get(self, person_id):
         person = Person().get_by_id(int(person_id))
-        if ( not self.authorize('reception') and person.Key() != Person.current().Key() ):
+        if ( not self.authorize('reception') and person.key() != person.current.key() ):
             return
 
         csvfile = cStringIO.StringIO()
@@ -176,7 +186,7 @@ class GradesCSV(boRequestHandler):
         csvfile.close()
 
 #Hinnete tabel
-       
+# Should probably be part of BO and named differently, too
 class ListRatings(boRequestHandler):
     head = []
     data = []

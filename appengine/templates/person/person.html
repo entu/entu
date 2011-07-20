@@ -21,9 +21,11 @@
 
 <div id="content">
 
+    {% if can_search %}
     <div style="margin:10px 0px; float:left;">
         {{ str.search }}: <input type="text" id="search_person" name="search_person" maxlength="500" style="width:200px;" />
     </div>
+    {% endif %}
 
     {% if person %}
     <h1 style="text-align:center;">{{ person.displayname }}</h1>

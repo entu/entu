@@ -125,7 +125,6 @@ class Person(ChangeLogModel):
                 person.put()
             return person
 
-
     def current_s(self, web):
         if self.current:
             return self.current
