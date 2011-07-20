@@ -1,6 +1,10 @@
 from bo import *
 from database.person import *
+from database.bubble import *
 from django.template import TemplateDoesNotExist
+
+import csv
+import cStringIO
 
 
 class ShowPerson(boRequestHandler):
@@ -32,16 +36,37 @@ class ShowPerson(boRequestHandler):
                 if changer:
                     changeinfo = Translate('person_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
 
+        ratings = ListRatings()
+        ratings.head = [
+            Translate('bubble_displayname').encode("utf-8"),
+            Translate('grade_name').encode("utf-8"),
+            Translate('grade_equivalent').encode("utf-8"),
+            Translate('date').encode("utf-8"),
+        ]
+
+        grades = db.Query(Grade).filter('person',person.key()).fetch(1000)
+        grades = sorted(grades, key=lambda k: k.datetime)
+        
+        for grade in grades:
+            rating = ListedRating()
+            rating.name = grade.bubble.displayname.encode("utf-8")
+            rating.grade = grade.displayname.encode("utf-8")
+            rating.equivalent = grade.equivalent
+            rating.date = grade.displaydate.encode("utf-8")
+            ratings.data.append(rating)
+
         try:
             self.view(person.displayname, 'person/person_' + Person().current.current_role.template_name + '.html', {
                 'person': person,
                 'roles': roles,
+                'ratings': ratings,
                 'changed': changeinfo,
             })
         except TemplateDoesNotExist:
             self.view(person.displayname, 'person/person.html', {
                 'person': person,
                 'roles': roles,
+                'ratings': ratings,
                 'changed': changeinfo,
             })
 
@@ -54,7 +79,7 @@ class ShowPerson(boRequestHandler):
 
             if person:
                 if value:
-                    if field in ['forename', 'surname']:
+                    if field in ['forename', 'surname', 'idcode']:
                         setattr(person, field, value)
                         person.index_names()
                     if field in ['person_birthdate']:
@@ -116,6 +141,52 @@ class GetPersonKeys(boRequestHandler):
         }
 
         self.echo_json(respond)
+        
+
+#CSV fail hinnetest 
+
+class GradesCSV(boRequestHandler):
+    def get(self, person_id):
+        person = Person().get_by_id(int(person_id))
+        if ( not self.authorize('reception') and person.Key() != Person.current().Key() ):
+            return
+
+        csvfile = cStringIO.StringIO()
+        csvWriter = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
+
+        csvWriter.writerow([
+            Translate('bubble_displayname').encode("utf-8"),
+            Translate('grade_name').encode("utf-8"),
+            Translate('grade_equivalent').encode("utf-8"),
+            Translate('date').encode("utf-8"),
+            ])
+        grades = db.Query(Grade).filter('person',person.key()).fetch(1000)
+        for grade in sorted(grades, key=lambda k: k.datetime):
+            csvWriter.writerow([
+                grade.bubble.displayname.encode("utf-8"),
+                grade.displayname.encode("utf-8"),
+                grade.equivalent,
+                grade.displaydate.encode("utf-8"),
+            ])
+        
+
+        self.header('Content-Type', 'text/csv; charset=utf-8')
+        self.header('Content-Disposition', 'attachment; filename=' + unicode(person.displayname.encode("utf-8"), errors='ignore') + '.csv')
+        self.echo(csvfile.getvalue())
+        csvfile.close()
+
+#Hinnete tabel
+       
+class ListRatings(boRequestHandler):
+    head = []
+    data = []
+
+
+class ListedRating(boRequestHandler):
+    name        = ''
+    grade       = ''
+    equivalent  = 0
+    date        = ''
 
 
 def main():
@@ -123,6 +194,7 @@ def main():
             ('/person/set_role', SetRole),
             ('/person/person_ids', GetPersonIds),
             ('/person/person_keys', GetPersonKeys),
+            (r'/person/grades_csv/(.*)', GradesCSV),
             ('/person', ShowPerson),
             (r'/person/(.*)', ShowPerson),
         ])

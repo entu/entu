@@ -42,68 +42,32 @@
 
                 <label for="person_birthdate" style="display:block;">{{ str.person_birthdate }}:</label>
                 <input type="text" id="person_birthdate" name="person_birthdate" class="autosave_date" value="{{ person.birth_date|date:"d.m.Y" }}" maxlength="500" style="width:110px; margin-bottom:15px;" disabled />
-
-                <!--label style="display:block;">{{ str.bubble_seeders }}:</label>
-                <div id="seeders" style="margin-bottom:5px;">
-                    {% if person.seeders2 %}
-                    {% for b in person.seeders2|dictsort:"displayname" %}
-                        <a href="javascript:void(0);" bubble="{{ b.key }}" type="seeder" class="deletable">{{ b.displayname|default:"" }}</a><br />{% if forloop.last %}{% else %}, {% endif %}
-                    {% endfor %}
-                    {% endif %}
-                </div>
-
-                <label style="display:block;">{{ str.bubble_leechers }}:</label>
-                <div id="leechers" style="margin-bottom:5px;">
-                    {% if person.leechers2 %}
-                    {% for b in person.leechers2|dictsort:"displayname" %}
-                        <a href="javascript:void(0);" bubble="{{ b.key }}" type="leecher" class="deletable">{{ b.displayname|default:"" }}</a><br />{% if forloop.last %}{% else %}, {% endif %}
-                    {% endfor %}
-                    {% endif %}
-                </div-->
-
+                
+                <label for="person_idcode" style="display:block;">{{ str.idcode }}:</label>
+                <input type="text" id="person_idcode" name="person_idcode" class="autosave" value="{{ person.idcode|default:""|escape }}" maxlength="500" style="width:110px; margin-bottom:15px;" disabled />
 
             </div>
-            <div class="table_cell" style="vertical-align:top; padding-top:10px;">
 
-                {% if person.leechers2 %}
-                <div class="table" style="margin-bottom:10px; font-size:11px;">
-                    <div class="table_row" style="padding-top:20px;">
-                        <div class="header_cell" style="text-align:left;">
-                        </div>
-                        <div class="header_cell" style="text-align:left;">
-                            {{ str.bubble_name }}
-                        </div>
-                        <div class="header_cell" style="text-align:center;">
-                            {{ str.bubble_period }}
-                        </div>
-                        <div class="header_cell" style="text-align:center;">
-                            {{ str.bubble_leechers }}
-                        </div>
-                        <div class="header_cell" style="text-align:center;">
-                            {{ str.bubbles }}
-                        </div>
+
+            <div class="table_cell" style="vertical-align:top; padding-top:10px;">
+            
+
+                <div class="table_row" alt="">
+                {% for head_cell in ratings.head %}
+                    <div class="table_cell" title="{{ head_cell }}" style="text-align:center; white-space:nowrap;">
+                        <b>{{ head_cell }}</b>
                     </div>
-                    {% for b in person.leechers2|dictsort:"start_datetime" %}
-                    <div class="table_row infiniterow" bubble="{{ b.key }}">
-                        <div class="table_cell" style="text-align:right;">
-                            {{ forloop.counter }}.
-                        </div>
-                        <div class="table_cell">
-                            {{ b.type2.displayname }}: <a href="/bubble/{{ b.key.id }}">{{ b.displayname }}</a>
-                        </div>
-                        <div class="table_cell" style="white-space:nowrap;">
-                            {{ b.displaydate }}
-                        </div>
-                        <div class="table_cell" style="text-align:center;">
-                            {{ b.leechers|length }}
-                        </div>
-                        <div class="table_cell" style="text-align:center;">
-                            {{ b.optional_bubbles|length }}
-                        </div>
-                    </div>
-                    {% endfor %}
+                {% endfor %}
                 </div>
-                {% endif %}
+                
+                {% for rating in ratings.data %}
+                <div class="table_row" alt="{{ rating.name }}">
+                    <div class="table_cell" style="text-align:center; white-space:nowrap;">{{ rating.name }}</div>
+                    <div class="table_cell" style="text-align:center; white-space:nowrap;">{{ rating.grade }}</div>
+                    <div class="table_cell" style="text-align:center; white-space:nowrap;">{{ rating.equivalent }}</div>
+                    <div class="table_cell" style="text-align:center; white-space:nowrap;">{{ rating.date }}</div>
+                </div>
+                {% endfor %}
 
             </div>
         </div>

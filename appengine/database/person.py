@@ -102,6 +102,10 @@ class Person(ChangeLogModel):
         return db.Query(Contact).ancestor(self).fetch(1000)
 
     @property
+    def Roles(self):
+        return self.roles2()
+
+    @property                   # TODO: refactor to Roles
     def roles2(self):
         if users.is_current_user_admin():
             return Role().all()
