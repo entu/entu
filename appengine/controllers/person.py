@@ -205,8 +205,8 @@ def main():
             ('/person/person_ids', GetPersonIds),
             ('/person/person_keys', GetPersonKeys),
             (r'/person/grades_csv/(.*)', GradesCSV),
-            ('/person', ShowPerson),
             (r'/person/(.*)', ShowPerson),
+            (r'/person(.*)', ShowPerson),
         ])
 
 
