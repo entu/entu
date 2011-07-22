@@ -167,17 +167,17 @@ class Person(ChangeLogModel):
     def index_names(self):
         self.search_names = []
         if self.forename:
-            forename = self.forename.lower()[0:15]
-            for i in range (0,len(forename)):
-                self.search_names = AddToList(forename[0:i+1], self.search_names)
+            forename = self.forename.lower()[:15]
+            for i in range (1,len(forename)):
+                self.search_names = AddToList(forename[:i], self.search_names)
         if self.surname:
-            surname = self.surname.lower()[0:15]
-            for i in range (0,len(surname)):
-                self.search_names = AddToList(surname[0:i+1], self.search_names)
+            surname = self.surname.lower()[:15]
+            for i in range (1,len(surname)):
+                self.search_names = AddToList(surname[:i], self.search_names)
         if self.idcode:
-            idcode = self.idcode.lower()[0:15]
-            for i in range (0,len(idcode)):
-                self.search_names = AddToList(idcode[0:i+1], self.search_names)
+            idcode = self.idcode.lower()[:15]
+            for i in range (1,len(idcode)):
+                self.search_names = AddToList(idcode[:i], self.search_names)
 
 
         self.put()
