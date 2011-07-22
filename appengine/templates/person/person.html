@@ -6,6 +6,10 @@
 <script src="/javascript/jquery.autocomplete-min.js" type="text/javascript"></script>
 {% endblock %}
 
+{% block nav %}
+<a href="/person/signin">{{ str.logout }}</a>
+{% endblock %}
+
 {% block breadcrumb %}
 <nav>
     <ul id="crumbs">

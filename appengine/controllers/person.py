@@ -7,24 +7,60 @@ import csv
 import cStringIO
 
 
+class ShowSignin(boRequestHandler):
+    def get(self):
+
+        user = users.get_current_user()
+        if user:
+            self.redirect(users.create_logout_url('/person/signin'))
+
+        sess = Session(self, timeout=86400)
+        sess.invalidate()
+
+        self.view('person', 'person/signup.html', {
+            'account_login_url': users.create_login_url('/person'),
+        })
+
+    def post(self):
+
+        email = self.request.get('email').strip()
+        password = self.request.get('applicant_pass').strip()
+
+        if password:
+            p = db.Query(Person).filter('password', password).get()
+            if p:
+                sess = Session(self, timeout=86400)
+                sess['application_person_key'] = p.key()
+                sess.save()
+                self.response.out.write('OK')
+
+
 class ShowPerson(boRequestHandler):
     def get(self, id):
 
-        user = users.get_current_user()
-        if not user:
-            self.view('N/A', 'person/notfound.html', )
+        current_person = Person().current_s(self)
+        if not current_person:
+            self.redirect('/person/signin')
             return
-        current_person = db.Query(Person).filter('apps_username', user.email()).get()
 
         if id == '':
             id = current_person.key().id()
 
         can_search = True
-        if ( not self.authorize('reception') ):
+        
+        try:
+            authorized = self.authorize('reception')
+        except AttributeError: # AttributeError: 'NoneType' object has no attribute 'roles2'
+            authorized = False
+
+        if ( not authorized ):
             id = current_person.key().id()
             can_search = False
 
-        person = Person().get_by_id(int(id))
+        if id == current_person.key().id():
+            person = current_person
+        else:
+            person = Person().get_by_id(int(id))
 
         if not person:
             self.view('N/A', 'person/notfound.html', )
@@ -64,14 +100,14 @@ class ShowPerson(boRequestHandler):
             ratings.data.append(rating)
 
         try:
-            self.view(person.displayname, 'person/person_' + Person().current.current_role.template_name + '.html', {
+            self.view(person.displayname, 'person/person_' + current_person.current_role.template_name + '.html', {
                 'can_search': can_search,
                 'person': person,
                 'roles': roles,
                 'ratings': ratings,
                 'changed': changeinfo,
             })
-        except TemplateDoesNotExist:
+        except (TemplateDoesNotExist, AttributeError):
             self.view(person.displayname, 'person/person.html', {
                 'can_search': can_search,
                 'person': person,
@@ -201,6 +237,7 @@ class ListedRating(boRequestHandler):
 
 def main():
     Route([
+            ('/person/signin', ShowSignin),
             ('/person/set_role', SetRole),
             ('/person/person_ids', GetPersonIds),
             ('/person/person_keys', GetPersonKeys),
