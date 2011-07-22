@@ -59,7 +59,7 @@
             if($('#applicant_pass').val()) {
                 $.post('/application/signin', { applicant_pass: $('#applicant_pass').val() }, function(data) {
                     if(data == 'OK') {
-                        location.href = '/application';
+                        location.href = '/application/ratings';
                     } else {
                         $('#applicant_pass_form').effect("shake", { times:3 }, 90);
                         $('#applicant_pass').val('');

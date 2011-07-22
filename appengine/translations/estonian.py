@@ -60,6 +60,7 @@ def translation():
         'questiontype_like':    'Jah/Ei',
         'questiontype_rating':  'Hinnang',
         'questiontype_text':    'Tekst',
+        'ratings':              'Hinded',
         'reception':            'Vastuvõtt',
         'role':                 'Roll',
         'roles':                'Rollid',
