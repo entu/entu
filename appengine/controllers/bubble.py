@@ -178,6 +178,8 @@ class DeleteFromBubble(boRequestHandler):
             self.redirect('/bubble/%s' % from_bubble.key().id())
 
 
+# TODO: This method should return seeders of current bubble.
+# Right now it returns all persons in system. WTF
 class GetSeeders(boRequestHandler):
     def get(self):
         if self.authorize('bubbler'):

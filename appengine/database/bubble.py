@@ -295,3 +295,10 @@ class Grade(ChangeLogModel):
     @property
     def displayname(self):
         return self.gradedefinition.name.translate()
+
+    @property
+    def displaydate(self):
+        if self.datetime:
+            return self.datetime.strftime('%d.%m.%Y %H:%M')
+        else:
+            return '...'
