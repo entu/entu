@@ -199,6 +199,7 @@ class EditPerson(boRequestHandler):
                 if p:
 
                     if field in ['forename', 'surname', 'idcode', 'gender']:
+                        p.index_names()
                         setattr(p, field, value)
 
                     if field == 'birthdate':

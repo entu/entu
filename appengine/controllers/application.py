@@ -45,7 +45,7 @@ class ShowSignin(boRequestHandler):
         sess.invalidate()
 
         self.view('application', 'application/signup.html', {
-            'account_login_url': users.create_login_url('/application'),
+            'account_login_url': users.create_login_url('/application/ratings'),
         })
 
     def post(self):
@@ -113,6 +113,60 @@ class ShowSignin(boRequestHandler):
                     sess['application_person_key'] = p.key()
                     sess.save()
                     self.response.out.write('OK')
+
+
+# Should probably be part of BO and named differently, too
+class ListRatings(boRequestHandler):
+    head = []
+    data = []
+
+
+class ShowPersonRatings(boRequestHandler):
+    def get(self):
+
+        person = Person().current_s(self)
+        if not person:
+            self.redirect('/application/signin')
+            return
+
+        changeinfo = ''
+        last_change = person.last_change
+        if last_change:
+            if last_change.user:
+                changer = db.Query(Person).filter('apps_username', last_change.user).get()
+                if changer:
+                    changeinfo = Translate('person_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
+
+        grades = db.Query(Grade).filter('person',person.key()).fetch(1000)
+        grades = sorted(grades, key=lambda k: k.datetime, reverse=True)
+        
+        ratings = ListRatings()
+        ratings.head = [
+            Translate('bubble_displayname').encode("utf-8"),
+            Translate('grade_name').encode("utf-8"),
+            Translate('grade_equivalent').encode("utf-8"),
+            Translate('date').encode("utf-8"),
+        ]
+        ratings.data = []
+        for grade in grades:
+            rating = []
+            if not grade.bubble_type in ['reception','exam_group','exam','state_exam',]:
+                continue
+            rating.append( grade.bubble.displayname.encode("utf-8") + ' (' + str(grade.bubble.key().id()) + '), ' + grade.bubble_type )
+            rating.append( grade.displayname.encode("utf-8") )
+            rating.append( grade.equivalent )
+            rating.append( grade.displaydate.encode("utf-8") )
+            ratings.data.append(rating)
+
+        if len(ratings.data) == 0:
+            self.redirect('/application')
+            return
+
+        self.view(person.displayname, 'application/ratings.html', {
+            'person': person,
+            'table_data': ratings,
+            'changed': changeinfo,
+        })
 
 
 class ShowApplication(boRequestHandler):
@@ -367,6 +421,7 @@ class PostMessage(boRequestHandler):
 def main():
     Route([
             ('/application/signin', ShowSignin),
+            ('/application/ratings', ShowPersonRatings),
             ('/application/person', EditPerson),
             ('/application/contact', EditContact),
             ('/application/cv', EditCV),

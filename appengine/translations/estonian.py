@@ -18,6 +18,7 @@ def translation():
         'curriculum':           'Õppekava',
         'curriculums':          'Õppekavad',
         'dashboard':            'Armatuurlaud',
+        'date':                 'Kuupäev',
         'degree':               'Kraad',
         'delete':               'Kustuta',
         'department':           'Osakond',
@@ -59,6 +60,7 @@ def translation():
         'questiontype_like':    'Jah/Ei',
         'questiontype_rating':  'Hinnang',
         'questiontype_text':    'Tekst',
+        'ratings':              'Hinded',
         'reception':            'Vastuvõtt',
         'role':                 'Roll',
         'roles':                'Rollid',
@@ -225,6 +227,10 @@ def translation():
         'bubble_delete_nextinline': 'Kas tõesti eemaldada see mull',
         'bubble_delete_prerequisite': 'Kas tõesti eemaldada see mull',
         'bubble_changed_on':        'Viimati muutis %(name)s %(date)s',
+        'bubble_displayname':       'Õpimulli nimi',
+
+        'grade_name':               'Hinne',
+        'grade_equivalent':         'Väärtus',
 
         'persons':                  'Persoonid',
         'person_forename':          'Eesnimi',

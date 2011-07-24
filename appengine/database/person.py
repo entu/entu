@@ -45,6 +45,8 @@ class Person(ChangeLogModel):
     model_version           = db.StringProperty(default='A')
     seeder                  = db.ListProperty(db.Key)
     leecher                 = db.ListProperty(db.Key)
+    search_names            = db.StringListProperty()
+
 
     @property
     def displayname(self):
@@ -100,6 +102,10 @@ class Person(ChangeLogModel):
         return db.Query(Contact).ancestor(self).fetch(1000)
 
     @property
+    def Roles(self):
+        return self.roles2()
+
+    @property                   # TODO: refactor to Roles
     def roles2(self):
         if users.is_current_user_admin():
             return Role().all()
@@ -118,7 +124,6 @@ class Person(ChangeLogModel):
                 person.idcode = 'guest'
                 person.put()
             return person
-
 
     def current_s(self, web):
         if self.current:
@@ -158,6 +163,24 @@ class Person(ChangeLogModel):
         self.leecher.remove(bubble_key)
         self.put()
         taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'remove', 'bubble_key': str(bubble_key), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
+
+    def index_names(self):
+        self.search_names = []
+        if self.forename:
+            forename = self.forename.lower()[:15]
+            for i in range (1,len(forename)):
+                self.search_names = AddToList(forename[:i], self.search_names)
+        if self.surname:
+            surname = self.surname.lower()[:15]
+            for i in range (1,len(surname)):
+                self.search_names = AddToList(surname[:i], self.search_names)
+        if self.idcode:
+            idcode = self.idcode.lower()[:15]
+            for i in range (1,len(idcode)):
+                self.search_names = AddToList(idcode[:i], self.search_names)
+
+
+        self.put()
 
 
 class Cv(ChangeLogModel): #parent=Person()

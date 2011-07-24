@@ -21,6 +21,7 @@
 {% for group in grouped %}
     <h2>{{ group.grouper }}<span>{{ group.list|length }}</span></h2>
     <div class="table" style="margin-bottom:10px;">
+        {% if gradebubbles %}
             <div class="table_row" alt="{{ p.key }}">
                 <div class="table_cell">
                 </div>
@@ -34,6 +35,7 @@
                 <div class="table_cell radio" style="white-space:nowrap;">
                 </div>
             </div>
+        {% endif %}
         {% for p in group.list|dictsortreversed:"equivalent" %}
             <div class="table_row" alt="{{ p.key }}">
                 {% if p.photo %}
@@ -41,14 +43,16 @@
                 {% else %}
                 <div class="table_cell" style="width:24px;"></div>
                 {% endif %}
-                <div class="table_cell" style="white-space:nowrap;">
+                <div class="table_cell" style="white-space:nowrap;width:100%;">
                     <a href="/reception/application/{{ p.key }}">{{ p.displayname|default:"" }}</a>
                 </div>
+                {% if p.subgrades %}
                 {% for g in p.subgrades %}
-                <div class="table_cell" title="{{ g.displayname }}" style="text-align:center; white-space:nowrap;">
-                    {{ g.grade.displayname }}
+                <div class="table_cell" title="{{ g.displayname }}" style="text-align:center;">
+                    {{ g.displayname }}
                 </div>
                 {% endfor %}
+                {% endif %}
                 <div class="table_cell radio" style="white-space:nowrap;">
                     <select name="radio_{{ p.key.id }}" class="grade" person="{{ p.key }}"{% if p.grade_is_locked %} disabled{% endif %}>
                         <option value=""></option>
