@@ -16,7 +16,11 @@ class RatingScale(ChangeLogModel):
         return self.name.translate()
 
     @property
-    def gradedefinitions(self):
+    def GradeDefinitions(self):
+        return self.gradedefinitions
+
+    @property
+    def gradedefinitions(self): # TODO: refactor to GradeDefinitions
         return db.Query(GradeDefinition).filter('rating_scale', self).order('equivalent').fetch(1000)
 
 
@@ -121,6 +125,13 @@ class Bubble(ChangeLogModel):
                 return '... - ' + self.end_datetime.strftime('%d.%m.%Y %H:%M')
 
     @property
+    def sortdate(self):
+        if self.start_datetime:
+            return self.start_datetime.strftime('%d.%m.%Y %H:%M') + str(self.key().id())
+        else:
+            return 'x' + str(self.key().id())
+
+    @property
     def type2(self):
         return db.Query(BubbleType).filter('type', self.type).get()
 
@@ -129,7 +140,11 @@ class Bubble(ChangeLogModel):
         return Person.get(self.seeders)
 
     @property
-    def leechers2(self):
+    def Leechers(self):
+        return self.leechers2
+
+    @property
+    def leechers2(self):                        # TODO refactor to Leechers
         return Person.get(self.leechers)
 
     @property
@@ -152,26 +167,64 @@ class Bubble(ChangeLogModel):
         return bubbles
 
     @property
-    def bubbles(self):
+    def RateableSubBubbles(self):
         keys = []
         if self.mandatory_bubbles:
             keys += self.mandatory_bubbles
         if self.optional_bubbles:
             keys += self.optional_bubbles
         keys = GetUniqueList(keys)
-        if len(keys) > 0:
-            bubbles = []
-            for b in Bubble.get(keys):
-                if b:
-                    if b.is_deleted == False:
-                        if b.key() in self.mandatory_bubbles:
-                            b.is_mandatory = True
-                        else:
-                            b.is_mandatory = False
-                        bubbles.append(b)
+        if len(keys) == 0:
+            return
 
-            if len(bubbles) > 0:
-                return bubbles
+        bubbles = []
+        for b in Bubble.get(keys):
+            if not b:
+                continue
+            if b.is_deleted:
+                continue
+            if b.rating_scale is None:
+                continue
+            if b.key() in self.mandatory_bubbles:
+                b.is_mandatory = True
+            else:
+                b.is_mandatory = False
+            bubbles.append(b)
+        if len(bubbles) > 0:
+            return bubbles
+
+    @property
+    def SubBubbles(self):
+        return self.bubbles
+
+    @property
+    def bubbles(self):                         # TODO refactor to SubBubbles
+        keys = []
+        if self.mandatory_bubbles:
+            keys += self.mandatory_bubbles
+        if self.optional_bubbles:
+            keys += self.optional_bubbles
+        keys = GetUniqueList(keys)
+        if len(keys) == 0:
+            return
+
+        bubbles = []
+        for b in Bubble.get(keys):
+            if not b:
+                continue
+            if b.is_deleted:
+                continue
+            if b.key() in self.mandatory_bubbles:
+                b.is_mandatory = True
+            else:
+                b.is_mandatory = False
+            bubbles.append(b)
+        if len(bubbles) > 0:
+            return bubbles
+
+    @property
+    def sub_bubbles(self):
+        return self.mandatory_bubbles + self.optional_bubbles
 
     @property
     def mandatory_bubbles2(self):
@@ -180,6 +233,18 @@ class Bubble(ChangeLogModel):
     @property
     def optional_bubbles2(self):
         return Bubble.get(self.optional_bubbles)
+
+    @property
+    def Grades(self):
+        return db.Query(Grade).filter('bubble', self.key()).filter('is_deleted', False).fetch(1000)
+
+    @property
+    def SubGrades(self):
+        subgrades = []
+        for bubble_key in self.sub_bubbles:
+            subgrades.extend(db.Query(Grade).filter('bubble', bubble_key).filter('is_deleted', False).fetch(1000))
+        return subgrades
+
 
     def add_leecher(self, person_key):
         self.leechers = AddToList(person_key, self.leechers)

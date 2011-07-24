@@ -2,6 +2,7 @@ from google.appengine.api import taskqueue
 
 import string
 from datetime import *
+from operator import attrgetter
 
 from bo import *
 from database.bubble import *
@@ -11,45 +12,55 @@ from database.dictionary import *
 
 class ShowRating(boRequestHandler):
     def get(self, bubble_id):
-        if self.authorize('bubbler'):
-            bubble_id = bubble_id.strip('/')
-            if bubble_id:
-                bubble = Bubble().get_by_id(int(bubble_id))
-                if bubble:
-                    leechers = bubble.leechers2
-                    bubbles = bubble.bubbles
-                    ratingscale = bubble.rating_scale
-                    gradedefinitions = ratingscale.gradedefinitions
+        if not self.authorize('bubbler'):
+            return # TODO: give a proper error page or something
 
-                    for leecher in leechers:
-                        leecher.equivalent = 0
-                        grade = db.Query(Grade).filter('bubble', bubble).filter('person', leecher).filter('is_deleted', False).get()
-                        if grade:
-                            gd = grade.gradedefinition
-                            leecher.grade_key = gd.key()
-                            leecher.grade_equivalent = gd.equivalent
-                            leecher.grade_displayname = gd.displayname
-                            leecher.grade_is_locked = grade.is_locked
-                        else:
-                            leecher.grade_key = None
-                            leecher.grade_equivalent = 999999
-                            leecher.grade_displayname = Translate('bubble_not_rated')
-                            leecher.grade_is_locked = False
-                        leecher.subgrades = []
+        bubble_id = bubble_id.strip('/')
+        if not bubble_id:
+            return # TODO: give a proper error page or something
 
-                        grades = bubble.subgrades(leecher.key())
-                        leecher.subgrades = grades
-                        for g in grades:
-                            if g.grade:
-                                leecher.equivalent += g.grade.equivalent
+        bubble = Bubble().get_by_id(int(bubble_id))
+        if not bubble:
+            return # TODO: give a proper error page or something
 
-                    self.view('application', 'rating/rating.html', {
-                        'bubble': bubble,
-                        'leechers': leechers,
-                        'ratingscale': ratingscale,
-                        'gradedefinitions': gradedefinitions,
-                        'gradebubbles': leechers[0].subgrades
-                    })
+        rateable_sub_bubbles = bubble.RateableSubBubbles
+        if rateable_sub_bubbles:
+            rateable_sub_bubbles = sorted(rateable_sub_bubbles, key=attrgetter('sortdate'))
+        ratingscale = bubble.rating_scale
+        gradedefinitions = sorted(ratingscale.GradeDefinitions, key=attrgetter('equivalent'), reverse=True)
+        subgrades = sorted(bubble.SubGrades, key=lambda k: k.bubble.sortdate)
+
+        leechers = sorted(bubble.Leechers, key=lambda k: k.key(), reverse=True)
+        grades = sorted(bubble.Grades, key=lambda k: k.person.key(), reverse=True)
+
+        for leecher in leechers:
+            leecher.equivalent = 0
+            leecher.grade_key = None
+            leecher.grade_equivalent = 999999
+            leecher.grade_displayname = Translate('bubble_not_rated')
+            leecher.grade_is_locked = False
+            for grade in grades:
+                if grade.person.key() == leecher.key():
+                    gd = grade.gradedefinition
+                    leecher.grade_key = gd.key()
+                    leecher.grade_equivalent = gd.equivalent
+                    leecher.grade_displayname = gd.displayname
+                    leecher.grade_is_locked = grade.is_locked
+                    break
+            
+            leecher.subgrades = []
+            for subgrade in subgrades:
+                if subgrade.person.key() == leecher.key():
+                    leecher.subgrades.append(subgrade)
+                    leecher.equivalent += subgrade.equivalent
+
+        self.view('application', 'rating/rating.html', {
+            'bubble': bubble,
+            'leechers': leechers,
+            'ratingscale': ratingscale,
+            'gradedefinitions': gradedefinitions,
+            'gradebubbles': rateable_sub_bubbles
+        })
 
     def post(self, bubble_id):
         if self.authorize('bubbler'):
