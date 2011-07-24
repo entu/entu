@@ -17,7 +17,6 @@ class RatingScale(ChangeLogModel):
         return self.name.translate()
 
     @property
-<<<<<<< HEAD
     def PositiveGradeDefinitions(self):
         return db.Query(GradeDefinition).filter('rating_scale', self).filter('is_positive', True).order('equivalent').fetch(1000)
 
@@ -26,17 +25,11 @@ class RatingScale(ChangeLogModel):
         return db.Query(GradeDefinition).filter('rating_scale', self).filter('is_positive', False).order('equivalent').fetch(1000)
 
     @property
-=======
->>>>>>> master
     def GradeDefinitions(self):
         return self.gradedefinitions
 
     @property
-<<<<<<< HEAD
     def gradedefinitions(self):                 # TODO: refactor to GradeDefinitions
-=======
-    def gradedefinitions(self): # TODO: refactor to GradeDefinitions
->>>>>>> master
         return db.Query(GradeDefinition).filter('rating_scale', self).order('equivalent').fetch(1000)
 
 
@@ -182,8 +175,8 @@ class Bubble(ChangeLogModel):
     def PrerequisiteBubbles(self):
         return self.prerequisite_bubbles2
 
-    @property                                   # TODO refactor to PrerequisiteBubbles
-    def prerequisite_bubbles2(self):
+    @property
+    def prerequisite_bubbles2(self):            # TODO refactor to PrerequisiteBubbles
         return Bubble.get(self.prerequisite_bubbles)
 
     @property
@@ -195,7 +188,6 @@ class Bubble(ChangeLogModel):
         return db.Query(Bubble).filter('mandatory_bubbles', self.key()).fetch(1000)
 
     @property
-<<<<<<< HEAD
     def OptionalInBubbles(self):
         return db.Query(Bubble).filter('optional_bubbles', self.key()).fetch(1000)
 
@@ -226,57 +218,6 @@ class Bubble(ChangeLogModel):
 
     @property
     def SubBubbles(self):
-        return self.bubbles2
-
-    @property
-    def bubbles(self):                         # TODO refactor to SubBubbles
-=======
-    def RateableSubBubbles(self):
->>>>>>> master
-        keys = []
-        if self.mandatory_bubbles:
-            keys += self.mandatory_bubbles
-        if self.optional_bubbles:
-            keys += self.optional_bubbles
-        keys = GetUniqueList(keys)
-        if len(keys) == 0:
-            return
-
-        bubbles = []
-        for b in Bubble.get(keys):
-            if not b:
-                continue
-            if b.is_deleted:
-                continue
-<<<<<<< HEAD
-=======
-            if b.rating_scale is None:
-                continue
->>>>>>> master
-            if b.key() in self.mandatory_bubbles:
-                b.is_mandatory = True
-            else:
-                b.is_mandatory = False
-            bubbles.append(b)
-        if len(bubbles) > 0:
-            return bubbles
-
-    @property
-<<<<<<< HEAD
-    def MandatoryBubbles(self):
-        if self.mandatory_bubbles:
-            bubbles = []
-            for b in Bubble.get(self.mandatory_bubbles):
-                if not b:
-                    continue
-                if b.is_deleted:
-                    continue
-                b.is_mandatory = True
-                bubbles.append(b)
-            if len(bubbles) > 0:
-                return bubbles
-=======
-    def SubBubbles(self):
         return self.bubbles
 
     @property
@@ -304,10 +245,50 @@ class Bubble(ChangeLogModel):
         if len(bubbles) > 0:
             return bubbles
 
+    def RateableSubBubbles(self):
+        keys = []
+        if self.mandatory_bubbles:
+            keys += self.mandatory_bubbles
+        if self.optional_bubbles:
+            keys += self.optional_bubbles
+        keys = GetUniqueList(keys)
+        if len(keys) == 0:
+            return
+
+        bubbles = []
+        for b in Bubble.get(keys):
+            if not b:
+                continue
+            if b.is_deleted:
+                continue
+            if b.rating_scale is None:
+                continue
+            if b.key() in self.mandatory_bubbles:
+                b.is_mandatory = True
+            else:
+                b.is_mandatory = False
+            bubbles.append(b)
+        if len(bubbles) > 0:
+            return bubbles
+
+    @property
+    def MandatoryBubbles(self):
+        if self.mandatory_bubbles is None:
+            return
+        bubbles = []
+        for b in Bubble.get(self.mandatory_bubbles):
+            if not b:
+                continue
+            if b.is_deleted:
+                continue
+            b.is_mandatory = True
+            bubbles.append(b)
+        if len(bubbles) > 0:
+            return bubbles
+
     @property
     def sub_bubbles(self):
-        return self.mandatory_bubbles + self.optional_bubbles
->>>>>>> master
+        return GetUniqueList(self.mandatory_bubbles + self.optional_bubbles)
 
     @property
     def OptionalBubbles(self):
@@ -466,14 +447,14 @@ class Bubble(ChangeLogModel):
     def is_green(person_key):
         if person_key in self.green_persons
             return True
-    
+
         if self.rating_scale
             if not self.has_positive_grade(person_key)
                 return False
-    
+
         if not self.are_mandatories_satisfied(person_key)
             return False
-    
+
         if self.minimum_bubble_count > 0
             counter = self.minimum_bubble_count
             for sub_bubble in self.SubBubbles
@@ -482,7 +463,7 @@ class Bubble(ChangeLogModel):
                     if counter == 0
                         return True
                 return False
-    
+
         self.mark_green(person_key)
         return True
 
@@ -558,8 +539,6 @@ class Grade(ChangeLogModel):
     @property
     def displayname(self):
         return self.gradedefinition.name.translate()
-<<<<<<< HEAD
-=======
 
     @property
     def displaydate(self):
@@ -567,4 +546,3 @@ class Grade(ChangeLogModel):
             return self.datetime.strftime('%d.%m.%Y %H:%M')
         else:
             return '...'
->>>>>>> master
