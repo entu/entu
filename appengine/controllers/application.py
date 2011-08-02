@@ -152,10 +152,10 @@ class ShowPersonRatings(boRequestHandler):
             rating = []
             if not grade.bubble_type in ['reception','exam_group','exam','state_exam',]:
                 continue
-            rating.append( grade.bubble.displayname.encode("utf-8") + ' (' + str(grade.bubble.key().id()) + '), ' + grade.bubble_type )
-            rating.append( grade.displayname.encode("utf-8") )
+            rating.append( grade.bubble.displayname + ' (' + str(grade.bubble.key().id()) + '), ' + grade.bubble_type )
+            rating.append( grade.displayname )
             rating.append( grade.equivalent )
-            rating.append( grade.displaydate.encode("utf-8") )
+            rating.append( grade.displaydate )
             ratings.data.append(rating)
 
         if len(ratings.data) == 0:
