@@ -43,10 +43,10 @@
         {% for b in bubbles %}
         <div class="table_row infiniterow" bubble="{{ b.key }}">
             <div class="table_cell">
-                <a href="/bubble/{{ b.key.id }}">{{ b.displayname }}</a>
+                <a href="/bubble/{{ b.key.id }}">{{ b.displayname|default:"..." }}</a>
             </div>
             <div class="table_cell" style="white-space:nowrap;">
-                {{ b.displaydate|default:"..." }}
+                {{ b.displaydate }}
             </div>
             <div class="table_cell" style="text-align:center;">
                 {{ b.seeders|length }}
