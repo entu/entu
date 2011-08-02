@@ -46,7 +46,7 @@
                 <a href="/bubble/{{ b.key.id }}">{{ b.displayname }}</a>
             </div>
             <div class="table_cell" style="white-space:nowrap;">
-                {{ b.displaydate }}
+                {{ b.displaydate|default:"..." }}
             </div>
             <div class="table_cell" style="text-align:center;">
                 {{ b.seeders|length }}
