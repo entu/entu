@@ -13,6 +13,7 @@ def translation():
         'code':                 'Code',
         'confirm_delete_question': 'Are you sure you want to delete this question?',
         'confirm_delete_questionary': 'Are you sure you want to delete this questionary?',
+        'contact':              'Contact',
         'contacts':             'Contact Information',
         'curriculum':           'Curriculum',
         'curriculums':          'Curriculums',
@@ -64,6 +65,7 @@ def translation():
         'role':                 'Role',
         'roles':                'Roles',
         'save':                 'Save',
+        'saved':                'Saved',
         'search':               'Search',
         'send':                 'Send',
         'start_date':           'Start date',
@@ -75,6 +77,7 @@ def translation():
         'tasks':                'Tasks',
         'teacher':              'Teacher',
         'teacher_specific':     'Teacher<br />specific',
+        'timezone':             'Timezone',
         'title':                'Title',
         'type':                 'Type',
         'user':                 'User',
@@ -82,4 +85,7 @@ def translation():
         'value':                'Value',
         'values':               'Values',
         'welcome':              'Welcome',
+
+        'bubbletype_bubbletypes':   'Bubble types',
+
      }

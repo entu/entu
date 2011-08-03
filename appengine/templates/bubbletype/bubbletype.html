@@ -1,0 +1,103 @@
+{% extends "../main.html" %}
+
+{% block head %}
+<script src="/javascript/jquery.elastic.js" type="text/javascript"></script>
+<script src="http://datejs.googlecode.com/svn/tags/Alpha1.0/build/date-et-EE.js" type="text/javascript"></script>
+<script src="/javascript/jquery.autocomplete-min.js" type="text/javascript"></script>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav>
+    <ul id="crumbs">
+        <li><a href="/">{{ system_title }}</a></li>
+        <li>{{ bubbletype.displayname }}</li>
+    </ul>
+</nav>
+{% endblock %}
+
+{% block content %}
+
+<div id="content">
+
+    <h1 style="text-align:center;">{{ bubbletype.displayname }}</h1>
+    <div class="vertical_table">
+        <div class="table_row">
+            <div class="table_cell" style="width:300px; vertical-align:top;">
+
+                <label for="name" style="display:block;">{{ str.title }}:</label>
+                <input type="text" id="name" name="name" class="autosave" value="{{ bubbletype.name.translate|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
+
+                <label for="description" style="display:block;">{{ str.description }}:</label>
+                <textarea id="description" name="description" class="autosave" style="display:block; width:99%; margin-bottom:15px;">{{ bubbletype.description.translate|default:""|escape }}</textarea>
+
+            </div>
+        </div>
+
+        <div class="table_row">
+            <div class="table_cell" style="width:300px; vertical-align:top;">
+                <h3>{{ str.bubbletype_allowed_subtypes }}</h3>
+                {% for st in bubbletype.AllowedSubtypes %}
+                    <div class="table_row infiniterow"><a href="javascript:void(0);" parent="{{ bubbletype.key }}" child="{{ st.key }}" type="allowed_subtype" class="moveable">{{ st.displayname }}</a></div>
+                {% endfor %}
+            </div>
+
+            <div class="table_cell" style="width:300px; vertical-align:top;">
+                <h3>{{ str.bubbletype_available_subtypes }}</h3>
+                {% for st in bubbletype.AvailableSubtypes %}
+                    <div class="table_row infiniterow"><a href="javascript:void(0);" parent="{{ bubbletype.key }}" child="{{ st.key }}" type="available_subtype" class="moveable">{{ st.displayname }}</a></div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <span style="display:block; text-align:center; font-size:11px;">{{ changed }}</span>
+
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        if(!$('#name').val()) {
+            $('#name').focus();
+        }
+
+        $('textarea').elastic();
+
+        $('.autosave_date').change(function() {
+            dinput = $(this);
+            dvalue = Date.parse(dinput.val());
+            if(dvalue) {
+                dinput.val(dvalue.toString('dd.MM.yyyy'));
+            } else {
+                dinput.val('');
+            }
+            autoSave(dinput, {});
+        });
+
+        $('.autosave').change(function() {
+            autoSave($(this), {});
+        });
+
+        function autoSave(input, data) {
+            if(!data['field']) data['field'] = input.attr('name');
+            if(!data['value']) data['value'] = input.val();
+
+            $.post('/btype/{{ bubbletype.key }}', data, function(json) {
+                input.effect("highlight", {}, 1000);
+            }, "json");
+        }
+
+        $('.moveable').click(function() {
+            var to_move = $(this);
+            if (to_move.attr('type') == 'allowed_subtype') {
+                if (confirm('{{ str.bubbletype_move_allowed_subtype_Q }}')) $.get('/btype/subtype/remove/' + $(this).attr('parent') + '/' + $(this).attr('child'));
+            }
+            if (to_move.attr('type') == 'available_subtype') {
+                if (confirm('{{ str.bubbletype_move_available_subtype_Q }}')) $.get('/btype/subtype/add/' + $(this).attr('parent') + '/' + $(this).attr('child'));
+            }
+            location.reload();
+        });
+
+    });
+</script>
+
+{% endblock %}

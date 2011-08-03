@@ -38,15 +38,22 @@ class BubbleType(ChangeLogModel):
     name                    = db.ReferenceProperty(Dictionary, collection_name='bubbletype_name')
     description             = db.ReferenceProperty(Dictionary, collection_name='bubbletype_description')
     allowed_subtypes        = db.StringListProperty()
+    maximum_leecher_count   = db.IntegerProperty()
+# no two exclusive events should happen to same person at same time
+    is_exclusive            = db.BooleanProperty(default=False)
     grade_display_method    = db.StringProperty()
+    is_deleted              = db.BooleanProperty(default=False)
     model_version           = db.StringProperty(default='A')
 
     @property
     def displayname(self):
+        if not self.name:
+            return '-'
+
         cache_key = 'bubbletype_dname_' + UserPreferences().current.language + '_' + str(self.key())
         name = Cache().get(cache_key)
         if not name:
-            name = self.name.translate()
+            name = StripTags(self.name.translate())
             Cache().set(cache_key, name)
         return name
 
@@ -55,13 +62,53 @@ class BubbleType(ChangeLogModel):
         return RandomColor(100,255,100,255,100,255)
 
     @property
-    def allowed_subtypes2(self):
-        if self.allowed_subtypes:
-            if len(self.allowed_subtypes) > 0:
-                types = []
-                for t in self.allowed_subtypes:
-                    types.append(db.Query(BubbleType).filter('type', t).get())
-                return types
+    def allowed_subtypes2(self): #TODO refactor to AllowedSubtypes
+        return self.AllowedSubtypes
+
+    @property
+    def AllowedSubtypes(self):
+        if not self.allowed_subtypes:
+            return
+        if len(self.allowed_subtypes) == 0:
+            return
+        CandidateSubtypes = db.Query(BubbleType).fetch(1000)
+        AllowedSubtypes = []
+        for type in self.allowed_subtypes:
+            type_is_valid = False
+            for bt in CandidateSubtypes:
+                if bt.type == type:
+                    AllowedSubtypes.append(bt)
+                    type_is_valid = True
+                    break
+            # If there are non-existing subtypes, remove them and recursively try again
+            if not type_is_valid:
+                self.allowed_subtypes = RemoveFromList(type, self.allowed_subtypes)
+                self.put()
+                return self.AllowedSubtypes
+            
+        return AllowedSubtypes
+
+    @property
+    def AvailableSubtypes(self):
+        AvailableSubtypes = db.Query(BubbleType).fetch(1000)
+        for type in self.allowed_subtypes:
+            for bt in AvailableSubtypes:
+                if bt.type == type:
+                    AvailableSubtypes.remove(bt)
+                    break
+        return AvailableSubtypes
+
+
+    def add_allowed_subtype(self, child_key):
+        subtype_to_add = BubbleType.get(child_key)
+        self.allowed_subtypes = AddToList(subtype_to_add.type, self.allowed_subtypes)
+        self.put()
+
+
+    def remove_allowed_subtype(self, child_key):
+        subtype_to_remove = BubbleType.get(child_key)
+        self.allowed_subtypes = RemoveFromList(subtype_to_remove.type, self.allowed_subtypes)
+        self.put()
 
 
 class Bubble(ChangeLogModel):
@@ -78,12 +125,15 @@ class Bubble(ChangeLogModel):
     seeders                 = db.ListProperty(db.Key)
     green_persons           = db.ListProperty(db.Key)
     type                    = db.StringProperty()
+    #TODO: Check that all bubbles are referenced with respective bubbletype...
+    bubble_type             = db.ReferenceProperty(BubbleType, collection_name='bubble_type')
     typed_tags              = db.StringListProperty()
     rating_scale            = db.ReferenceProperty(RatingScale, collection_name='bubble_ratingscale')
     badge                   = db.ReferenceProperty(Dictionary, collection_name='bubble_badge')
     points                  = db.FloatProperty()
     minimum_points          = db.FloatProperty()
     minimum_bubble_count    = db.IntegerProperty()
+    maximum_leecher_count   = db.IntegerProperty()
     mandatory_bubbles       = db.ListProperty(db.Key)
     optional_bubbles        = db.ListProperty(db.Key)
     prerequisite_bubbles    = db.ListProperty(db.Key)
@@ -106,7 +156,7 @@ class Bubble(ChangeLogModel):
                 Cache().set(cache_key, name)
             return name
         else:
-            return ''
+            return '-'
 
 
     def displayname_cache_reset(self):
@@ -182,6 +232,10 @@ class Bubble(ChangeLogModel):
     @property
     def color(self):
         return RandomColor(200,255,200,255,200,255)
+
+    @property
+    def PrevInLines(self):
+        return db.Query(Bubble).filter('next_in_line', self.key()).fetch(1000)
 
     @property
     def MandatoryInBubbles(self):
@@ -313,7 +367,7 @@ class Bubble(ChangeLogModel):
     # i.e. Pre-requisite bubbles must notify post-requisites when marked green so
     # that they can check, if they are next in line for at least one green bubble
     def propose_leecher(person_key):
-        for bubble in self.prev_in_line:
+        for bubble in self.PrevInLines:
             if bubble.is_green(person_key):
                 return self.add_leecher(person_key)
 

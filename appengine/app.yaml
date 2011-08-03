@@ -55,9 +55,6 @@ handlers:
 - url: /application(.*)
   script: controllers/application.py
 
-- url: /person(.*)
-  script: controllers/person.py
-
 - url: /document(.*)
   script: controllers/document.py
 
@@ -83,6 +80,18 @@ handlers:
 #protected controllers
 - url: /
   script: controllers/dashboard.py
+  login: required
+
+- url: /person(.*)
+  script: controllers/person.py
+  login: required
+
+- url: /btype(.*)
+  script: controllers/bubbletype.py
+  login: required
+
+- url: /bubbletype(.*)
+  script: controllers/bubble.py
   login: required
 
 - url: /bubble(.*)
