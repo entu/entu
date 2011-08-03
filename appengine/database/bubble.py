@@ -62,13 +62,45 @@ class BubbleType(ChangeLogModel):
         return RandomColor(100,255,100,255,100,255)
 
     @property
-    def allowed_subtypes2(self):
-        if self.allowed_subtypes:
-            if len(self.allowed_subtypes) > 0:
-                types = []
-                for t in self.allowed_subtypes:
-                    types.append(db.Query(BubbleType).filter('type', t).get())
-                return types
+    def allowed_subtypes2(self): #TODO refactor to AllowedSubtypes
+        return self.AllowedSubtypes
+
+    @property
+    def AllowedSubtypes(self):
+        if not self.allowed_subtypes:
+            return
+        if len(self.allowed_subtypes) == 0:
+            return
+        CandidateSubtypes = db.Query(BubbleType).fetch(1000)
+        AllowedSubtypes = []
+        for bt in CandidateSubtypes:
+            for type in self.allowed_subtypes:
+                if bt.type == type:
+                    AllowedSubtypes.append(bt)
+                    break
+        return AllowedSubtypes
+
+    @property
+    def AvailableSubtypes(self):
+        AvailableSubtypes = db.Query(BubbleType).fetch(1000)
+        for type in self.allowed_subtypes:
+            for bt in AvailableSubtypes:
+                if bt.type == type:
+                    AvailableSubtypes.remove(bt)
+                    break
+        return AvailableSubtypes
+
+
+    def add_allowed_subtype(self, child_key):
+        subtype_to_add = BubbleType.get(child_key)
+        self.allowed_subtypes = AddToList(subtype_to_add.type, self.allowed_subtypes)
+        self.put()
+
+
+    def remove_allowed_subtype(self, child_key):
+        subtype_to_remove = BubbleType.get(child_key)
+        self.allowed_subtypes = RemoveFromList(subtype_to_remove.type, self.allowed_subtypes)
+        self.put()
 
 
 class Bubble(ChangeLogModel):
@@ -85,6 +117,8 @@ class Bubble(ChangeLogModel):
     seeders                 = db.ListProperty(db.Key)
     green_persons           = db.ListProperty(db.Key)
     type                    = db.StringProperty()
+    #TODO: Check that all bubbles are referenced with respective bubbletype...
+    bubble_type             = db.ReferenceProperty(BubbleType, collection_name='bubble_type')
     typed_tags              = db.StringListProperty()
     rating_scale            = db.ReferenceProperty(RatingScale, collection_name='bubble_ratingscale')
     badge                   = db.ReferenceProperty(Dictionary, collection_name='bubble_badge')

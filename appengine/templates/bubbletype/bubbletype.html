@@ -30,27 +30,24 @@
                 <label for="description" style="display:block;">{{ str.description }}:</label>
                 <textarea id="description" name="description" class="autosave" style="display:block; width:99%; margin-bottom:15px;">{{ bubbletype.description.translate|default:""|escape }}</textarea>
 
-                <!--label style="display:block;">{{ str.bubble_seeders }}:</label>
-                <div id="seeders" style="margin-bottom:5px;">
-                    {% if person.seeders2 %}
-                    {% for b in person.seeders2|dictsort:"displayname" %}
-                        <a href="javascript:void(0);" bubble="{{ b.key }}" type="seeder" class="deletable">{{ b.displayname|default:"" }}</a><br />{% if forloop.last %}{% else %}, {% endif %}
-                    {% endfor %}
-                    {% endif %}
-                </div>
+            </div>
+        </div>
 
-                <label style="display:block;">{{ str.bubble_leechers }}:</label>
-                <div id="leechers" style="margin-bottom:5px;">
-                    {% if person.leechers2 %}
-                    {% for b in person.leechers2|dictsort:"displayname" %}
-                        <a href="javascript:void(0);" bubble="{{ b.key }}" type="leecher" class="deletable">{{ b.displayname|default:"" }}</a><br />{% if forloop.last %}{% else %}, {% endif %}
-                    {% endfor %}
-                    {% endif %}
-                </div-->
-
-
+        <div class="table_row">
+            <div class="table_cell" style="width:300px; vertical-align:top;">
+                <h3>{{ str.bubbletype_allowed_subtypes }}</h3>
+                {% for st in bubbletype.AllowedSubtypes %}
+                    <div class="table_row infiniterow"><a href="javascript:void(0);" parent="{{ bubbletype.key }}" child="{{ st.key }}" type="allowed_subtype" class="moveable">{{ st.displayname }}</a></div>
+                {% endfor %}
             </div>
 
+            <div class="table_cell" style="width:300px; vertical-align:top;">
+                <h3>{{ str.bubbletype_available_subtypes }}</h3>
+                {% for st in bubbletype.AvailableSubtypes %}
+                    <div class="table_row infiniterow"><a href="javascript:void(0);" parent="{{ bubbletype.key }}" child="{{ st.key }}" type="available_subtype" class="moveable">{{ st.displayname }}</a></div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
     <span style="display:block; text-align:center; font-size:11px;">{{ changed }}</span>
 
@@ -89,7 +86,15 @@
             }, "json");
         }
 
-
+        $('.moveable').click(function() {
+            var to_move = $(this);
+            if (to_move.attr('type') == 'allowed_subtype') {
+                if (confirm('{{ str.bubbletype_move_allowed_subtype_Q }}')) $.get('/btype/subtype/remove/' + $(this).attr('parent') + '/' + $(this).attr('child'));
+            }
+            if (to_move.attr('type') == 'available_subtype') {
+                if (confirm('{{ str.bubbletype_move_available_subtype_Q }}')) $.get('/btype/subtype/add/' + $(this).attr('parent') + '/' + $(this).attr('child'));
+            }
+        });
 
     });
 </script>

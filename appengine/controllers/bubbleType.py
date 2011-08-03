@@ -12,7 +12,7 @@ from django.template import TemplateDoesNotExist
 
 
 class ShowBubbleTypeList(boRequestHandler):
-    def get(self, url):
+    def get(self):
         if not self.authorize('bubbler'):
             return
 
@@ -41,11 +41,11 @@ class ShowBubbleType(boRequestHandler):
             return
 
         try:
-            self.view('application', 'bubbletype/bubbletype_' + Person().current.current_role.template_name + '.html', {
+            self.view('bubbletype_bubbletypes', 'bubbletype/bubbletype_' + Person().current.current_role.template_name + '.html', {
             'bubbletype': bubbletype,
         })
         except TemplateDoesNotExist:
-            self.view('application', 'bubbletype/bubbletype.html', {
+            self.view('bubbletype_bubbletypes', 'bubbletype/bubbletype.html', {
             'bubbletype': bubbletype,
         })
 
@@ -75,10 +75,51 @@ class ShowBubbleType(boRequestHandler):
         bubbletype.displayname_cache_reset()
 
 
+class AddSubType(boRequestHandler):
+    def get(self, parent_key, child_key):
+        if not self.authorize('bubbler'):
+            return
+
+        parent = BubbleType().get(parent_key)
+        child = BubbleType().get(child_key)
+        if parent and child:
+            parent.add_allowed_subtype(child_key)
+
+        types = {}
+        types['allowed_subtypes'] = {}
+        types['available_subtypes'] = {}
+        for bt in parent.AllowedSubtypes:
+            types['allowed_subtypes'][str(bt.key())] = bt.displayname
+        for bt in parent.AvailableSubtypes:
+            types['available_subtypes'][str(bt.key())] = bt.displayname
+        self.echo_json(types)
+
+
+class RemoveSubType(boRequestHandler):
+    def get(self, parent_key, child_key):
+        if not self.authorize('bubbler'):
+            return
+
+        parent = BubbleType().get(parent_key)
+        child = BubbleType().get(child_key)
+        if parent and child:
+            parent.remove_allowed_subtype(child_key)
+
+        types = {}
+        types['allowed_subtypes'] = {}
+        types['available_subtypes'] = {}
+        for bt in parent.AllowedSubtypes:
+            types['allowed_subtypes'][str(bt.key())] = bt.displayname
+        for bt in parent.AvailableSubtypes:
+            types['available_subtypes'][str(bt.key())] = bt.displayname
+        self.echo_json(types)
+
 
 def main():
     Route([
-            ('/btype/', ShowBubbleTypeList),
+            ('/btype', ShowBubbleTypeList),
+            ('/btype/subtype/add/(.*)/(.*)', AddSubType),
+            ('/btype/subtype/remove/(.*)/(.*)', RemoveSubType),
             (r'/btype/(.*)', ShowBubbleType),
         ])
 

@@ -229,7 +229,13 @@ def translation():
         'bubble_delete_prerequisite': 'Kas tõesti eemaldada see mull',
         'bubble_changed_on':        'Viimati muutis %(name)s %(date)s',
 
-        'bubbletype_bubbletypes':   'Mulli tüübid',
+        'bubbletype_bubbletypes':               'Mulli tüübid',
+        'bubbletype_allowed_subtypes':          'Lubatud alammulli tüübid',
+        'bubbletype_available_subtypes':        'Võimalikud alammulli tüübid',
+#        'bubbletype_move_allowed_subtype_Q':     'Lisame %(parent)s''ile alammulli tüübi %(child)s?',
+#        'bubbletype_move_available_subtype_Q':   'Eemaldame %(parent)s''ilt alammulli tüübi %(child)s?',
+        'bubbletype_move_allowed_subtype_Q':     'Eemaldame lubatud alammulli tüübi?',
+        'bubbletype_move_available_subtype_Q':   'Lisame lubatud alammulli tüübi?',
 
         'persons':                  'Persoonid',
         'person_forename':          'Eesnimi',
