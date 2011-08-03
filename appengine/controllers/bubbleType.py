@@ -84,15 +84,16 @@ class AddSubType(boRequestHandler):
         child = BubbleType().get(child_key)
         if parent and child:
             parent.add_allowed_subtype(child_key)
-
-        types = {}
-        types['allowed_subtypes'] = {}
-        types['available_subtypes'] = {}
-        for bt in parent.AllowedSubtypes:
-            types['allowed_subtypes'][str(bt.key())] = bt.displayname
-        for bt in parent.AvailableSubtypes:
-            types['available_subtypes'][str(bt.key())] = bt.displayname
-        self.echo_json(types)
+        return
+        
+#        types = {}
+#        types['allowed_subtypes'] = {}
+#        types['available_subtypes'] = {}
+#        for bt in parent.AllowedSubtypes:
+#            types['allowed_subtypes'][str(bt.key())] = bt.displayname
+#        for bt in parent.AvailableSubtypes:
+#            types['available_subtypes'][str(bt.key())] = bt.displayname
+#        self.echo_json(types)
 
 
 class RemoveSubType(boRequestHandler):
@@ -104,15 +105,14 @@ class RemoveSubType(boRequestHandler):
         child = BubbleType().get(child_key)
         if parent and child:
             parent.remove_allowed_subtype(child_key)
-
-        types = {}
-        types['allowed_subtypes'] = {}
-        types['available_subtypes'] = {}
-        for bt in parent.AllowedSubtypes:
-            types['allowed_subtypes'][str(bt.key())] = bt.displayname
-        for bt in parent.AvailableSubtypes:
-            types['available_subtypes'][str(bt.key())] = bt.displayname
-        self.echo_json(types)
+#        types = {}
+#        types['allowed_subtypes'] = {}
+#        types['available_subtypes'] = {}
+#        for bt in parent.AllowedSubtypes:
+#            types['allowed_subtypes'][str(bt.key())] = bt.displayname
+#        for bt in parent.AvailableSubtypes:
+#            types['available_subtypes'][str(bt.key())] = bt.displayname
+#        self.echo_json(types)
 
 
 def main():

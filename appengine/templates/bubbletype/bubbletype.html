@@ -94,6 +94,7 @@
             if (to_move.attr('type') == 'available_subtype') {
                 if (confirm('{{ str.bubbletype_move_available_subtype_Q }}')) $.get('/btype/subtype/add/' + $(this).attr('parent') + '/' + $(this).attr('child'));
             }
+            location.reload();
         });
 
     });

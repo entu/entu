@@ -73,11 +73,19 @@ class BubbleType(ChangeLogModel):
             return
         CandidateSubtypes = db.Query(BubbleType).fetch(1000)
         AllowedSubtypes = []
-        for bt in CandidateSubtypes:
-            for type in self.allowed_subtypes:
+        for type in self.allowed_subtypes:
+            type_is_valid = False
+            for bt in CandidateSubtypes:
                 if bt.type == type:
                     AllowedSubtypes.append(bt)
+                    type_is_valid = True
                     break
+            # If there are non-existing subtypes, remove them and recursively try again
+            if not type_is_valid:
+                self.allowed_subtypes = RemoveFromList(type, self.allowed_subtypes)
+                self.put()
+                return self.AllowedSubtypes
+            
         return AllowedSubtypes
 
     @property
