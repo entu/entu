@@ -190,6 +190,19 @@ class Bubble(ChangeLogModel):
         else:
             return 'x' + str(self.key().id())
 
+    @property
+    def displaytags(self):
+        return "; ".join(self.typed_tags)
+
+    @property
+    def TypedTagsD(self):
+        tt_d = {}
+        for tt in self.typed_tags:
+            type, tag = tt.split(':',1)
+            tt_d[type] = tag
+        return tt_d
+
+    @property
     def BubbleType(self):
         return self.type2
 
@@ -246,8 +259,19 @@ class Bubble(ChangeLogModel):
         return db.Query(Bubble).filter('optional_bubbles', self.key()).fetch(1000)
 
     @property
+    def InBubblesD(self):
+        in_bubbles = {}
+        for b in self.InBubbles:
+            in_bubbles[b.key()] = b
+        return in_bubbles
+
+    @property
     def InBubbles(self):
-        return self.in_bubbles
+        in_bubbles = self.in_bubbles
+        if in_bubbles:
+            return in_bubbles
+        else:
+            return []
 
     @property
     def in_bubbles(self):                       # TODO refactor to InBubbles
@@ -259,20 +283,30 @@ class Bubble(ChangeLogModel):
 
     @property
     def PrerequisiteBubbles(self):
+        bubbles = []
         if self.prerequisite_bubbles:
-            bubbles = []
             for b in Bubble.get(self.prerequisite_bubbles):
                 if not b:
                     continue
                 if b.is_deleted:
                     continue
                 bubbles.append(b)
-            if len(bubbles) > 0:
-                return bubbles
+        return bubbles
+
+    @property
+    def SubBubblesD(self):
+        sub_bubbles = {}
+        for b in self.SubBubbles:
+            sub_bubbles[b.key()] = b
+        return sub_bubbles
 
     @property
     def SubBubbles(self):
-        return self.bubbles
+        sub_bubbles = self.bubbles
+        if sub_bubbles:
+            return sub_bubbles
+        else:
+            return []
 
     @property
     def bubbles(self):                         # TODO refactor to SubBubbles
@@ -360,13 +394,13 @@ class Bubble(ChangeLogModel):
                 return bubbles
 
     @property
-    def PersonGrades(person_key):
+    def PersonGrades(self, person_key):
         return db.Query(Grade).filter('person', person_key).filter('bubble',self.key()).fetch(1000)
 
 
     # i.e. Pre-requisite bubbles must notify post-requisites when marked green so
     # that they can check, if they are next in line for at least one green bubble
-    def propose_leecher(person_key):
+    def propose_leecher(self, person_key):
         for bubble in self.PrevInLines:
             if bubble.is_green(person_key):
                 return self.add_leecher(person_key)
@@ -375,7 +409,7 @@ class Bubble(ChangeLogModel):
 
 
     # Could we add person to bubble.leechers? 
-    def is_valid_leecher(person_key):
+    def is_valid_leecher(self, person_key):
         if leecher in self.leechers:
             return False
         return self.are_prerequisites_satisfied(person_key)
@@ -391,6 +425,18 @@ class Bubble(ChangeLogModel):
         for bubble_key in self.sub_bubbles:
             subgrades.extend(db.Query(Grade).filter('bubble', bubble_key).filter('is_deleted', False).fetch(1000))
         return subgrades
+
+    @property
+    def is_started(self):
+        return self.start_datetime < datetime.now()
+
+    @property
+    def is_finished(self):
+        return self.end_datetime < datetime.now()
+
+    @property
+    def is_currently_on(self):
+        return self.is_started() and not self.is_finished()
 
 
     def add_leecher(self, person_key):

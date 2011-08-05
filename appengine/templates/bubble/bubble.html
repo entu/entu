@@ -86,7 +86,7 @@
                         {% for nextinline in nextinlines %}
                         <optgroup label="{{ nextinline.grouper }}">
                             {% for add in nextinline.list|dictsort:"displayname" %}
-                            <option value="{{ add.key }}"{% ifequal bubble.next_in_line.0 add.key %} selected{% endifequal %}>{{ add.displayname }}</option>
+                            <option value="{{ add.key }}"{% ifequal bubble.next_in_line.0 add.key %} selected{% endifequal %}>{{ add.displayname }}, {{ add.displaytags }} ({{ add.displaydate }})</option>
                             {% endfor %}
                         </optgroup>
                         {% endfor %}
@@ -102,7 +102,9 @@
                         {% for addable in addable %}
                         <optgroup label="{{ addable.grouper }}">
                             {% for add in addable.list|dictsort:"displayname" %}
-                            <option value="{{ add.key }}">{{ add.displayname }}</option>
+                            {% if not add.is_started %}
+                            <option value="{{ add.key }}">{{ add.displaytags }} {{ add.displayname }} ({{ add.displaydate }})</option>
+                            {% endif %}
                             {% endfor %}
                         </optgroup>
                         {% endfor %}
