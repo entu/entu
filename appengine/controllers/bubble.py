@@ -50,15 +50,37 @@ class ShowBubble(boRequestHandler):
         if self.authorize('bubbler'):
 
             bubble = Bubble().get_by_id(int(id))
-            ratingscales = db.Query(RatingScale).fetch(1000)
+            bubble_key = bubble.key()
 
-            nextinline_bubbles = bubble.in_bubbles
-            for mb in bubble.in_bubbles:
-                for mb2 in mb.bubbles:
-                    if mb2.key() != bubble.key():
-                        nextinline_bubbles.append(mb2)
-                    if mb2.bubbles:
-                        nextinline_bubbles = nextinline_bubbles + mb2.bubbles
+#            nextinline_bubbles = []
+#            for mb in bubble.InBubbles:
+#                nextinline_bubbles.append(mb)
+#                for mb2 in mb.SubBubbles:
+#                    if mb2.key() != bubble.key():
+#                        nextinline_bubbles.append(mb2)
+#                    mb2_subbubbles = mb2.SubBubbles
+#                    if mb2_subbubbles:
+#                        nextinline_bubbles.extend(mb2_subbubbles)
+
+            nextinline_bubbles_d = {}
+
+            in_bubbles_d = bubble.InBubblesD
+            nextinline_bubbles_d.update( in_bubbles_d )
+
+            for in_bubble in in_bubbles_d.values():
+                sibling_bubbles_d = in_bubble.SubBubblesD
+                nextinline_bubbles_d.update( sibling_bubbles_d )
+
+                for sibling_bubble in sibling_bubbles_d.values():
+                    child_bubbles_d = sibling_bubble.SubBubblesD
+                    nextinline_bubbles_d.update( child_bubbles_d )
+
+            nextinline_bubbles_d[bubble_key] = 'foo'
+            del nextinline_bubbles_d[bubble_key]
+
+            nextinline_bubbles = nextinline_bubbles_d.values()
+
+            ratingscales = db.Query(RatingScale).fetch(1000)
 
             #addable_bubbles = db.Query(Bubble).filter('__key__ !=', bubble.key()).filter('type IN', bubble.type2.allowed_subtypes).filter('is_deleted', False).fetch(1000)
             addable_bubbles = nextinline_bubbles
@@ -150,6 +172,17 @@ class AddExistingBubble(boRequestHandler):
                 bubble.put()
 
 
+class AddOptionalSubbubble(boRequestHandler):
+    def get(self, parent_key, child_key):
+        if self.authorize('bubbler'):
+            parent = Bubble().get(parent_key)
+            child = Bubble().get(child_key)
+
+            if parent and child:
+                parent.optional_bubbles = AddToList(db.Key(child_key), parent.optional_bubbles)
+                parent.put()
+
+
 class DeleteBubble(boRequestHandler):
     def get(self, key):
         if self.authorize('bubbler'):
@@ -178,6 +211,8 @@ class DeleteFromBubble(boRequestHandler):
             self.redirect('/bubble/%s' % from_bubble.key().id())
 
 
+# TODO: This method should return seeders of current bubble.
+# Right now it returns all persons in system. WTF
 class GetSeeders(boRequestHandler):
     def get(self):
         if self.authorize('bubbler'):
@@ -341,6 +376,7 @@ def main():
             (r'/bubbletype/(.*)', ShowBubbleList),
             (r'/bubble/add/(.*)/(.*)', AddBubble),
             (r'/bubble/add_existing/(.*)', AddExistingBubble),
+            (r'/bubble/add_optional_subbubble/(.*)/(.*)', AddOptionalSubbubble),
             (r'/bubble/add_timeslot/(.*)', AddTimeslots),
             (r'/bubble/csv/(.*)', SubBubblesCSV),
             (r'/bubble/delete/(.*)', DeleteBubble),

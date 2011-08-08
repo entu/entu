@@ -1,0 +1,112 @@
+Bubble.has_positive_grade(person)
+    grades == Grades.fetch(self,person).sort('datetime', 'desc')
+    if grades.count() == 0
+        return False
+
+    for grade in grades
+        if grade.is_positive
+            return True
+        if self.grade_method == 'latest'
+            return False
+
+    return False
+
+
+Bubble.mark_green(person)
+    AddToList(person, self.green_persons)
+    for bubble in self.postrequisite_bubbles
+        bubble.propose_leecher(person)
+
+
+Bubble.is_green(person)
+    if person in self.green_persons
+        return True
+
+    if self.rating_scale
+        if not self.has_positive_grade(person)
+            return False
+
+    if not self.are_mandatories_satisfied(person)
+        return False
+
+    if self.minimum_bubble_count > 0
+        counter = self.minimum_bubble_count
+        for sub_bubble in self.sub_bubbles
+            if sub_bubble.is_green(person)
+                counter = counter - 1
+                if counter == 0
+                    return True
+            return False
+
+    self.mark_green(person)
+    return True
+
+
+Bubble.recheck_green(person)
+    RemoveFromList(person, self.green_persons)
+    return self.is_green(person)
+
+
+Bubble.are_mandatories_satisfied(person)
+    for sub_bubble in self.mandatory_bubbles
+        if not sub_bubble.is_green(person)
+            return False
+
+    return True
+
+
+Bubble.are_prerequisites_satisfied(person)
+    for pre_bubble in self.prerequisite_bubbles
+        if not pre_bubble.is_green(person) return False
+
+    return True
+
+
+Bubble.is_valid_leecher(person)
+    if leecher in self.leechers
+        return False
+
+    if not self.are_prerequisites_satisfied(person)
+        return False
+
+    return True
+
+
+Bubble.add_leecher(person)
+    if self.is_valid_leecher(person)
+        AddToList(person, self.leechers)
+        return True
+
+    return False
+
+
+# i.e. if pre-requisite is marked green, then post-requisites are notified so
+# that they can check, if they are next in line for at least one green bubble
+Bubble.propose_leecher(person)
+    for bubble in self.prev_in_line
+        if bubble.is_green(person)
+            return self.add_leecher(person)
+
+    return False
+
+
+# Positive grades are only available, if mandatories are green.
+# Negative grades could be issued at any time.
+Bubble.grades_available(person)
+    if not self.rating_scale
+        return empty
+
+    if self.are_mandatories_satisfied(person)
+        return self.rating_scale.all_grades()
+
+    return self.rating_scale.negative_grades()
+
+
+# When giving grades to bubble with rated sub-bubbles, sub-bubble grades could be listed. 
+Bubble.sub_bubble_grades()
+    for sub_bubble in self.sub_bubbles
+        grades = grades + sub_bubble.person_grades(person)
+
+    return grades
+
+

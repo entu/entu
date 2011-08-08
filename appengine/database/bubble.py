@@ -1,5 +1,6 @@
 from google.appengine.ext import db
 from datetime import *
+from operator import attrgetter
 
 from bo import *
 from database.general import *
@@ -16,7 +17,19 @@ class RatingScale(ChangeLogModel):
         return self.name.translate()
 
     @property
-    def gradedefinitions(self):
+    def PositiveGradeDefinitions(self):
+        return db.Query(GradeDefinition).filter('rating_scale', self).filter('is_positive', True).order('equivalent').fetch(1000)
+
+    @property
+    def NegativeGradeDefinitions(self):
+        return db.Query(GradeDefinition).filter('rating_scale', self).filter('is_positive', False).order('equivalent').fetch(1000)
+
+    @property
+    def GradeDefinitions(self):
+        return self.gradedefinitions
+
+    @property
+    def gradedefinitions(self):                 # TODO: refactor to GradeDefinitions
         return db.Query(GradeDefinition).filter('rating_scale', self).order('equivalent').fetch(1000)
 
 
@@ -25,15 +38,22 @@ class BubbleType(ChangeLogModel):
     name                    = db.ReferenceProperty(Dictionary, collection_name='bubbletype_name')
     description             = db.ReferenceProperty(Dictionary, collection_name='bubbletype_description')
     allowed_subtypes        = db.StringListProperty()
+    maximum_leecher_count   = db.IntegerProperty()
+# no two exclusive events should happen to same person at same time
+    is_exclusive            = db.BooleanProperty(default=False)
     grade_display_method    = db.StringProperty()
+    is_deleted              = db.BooleanProperty(default=False)
     model_version           = db.StringProperty(default='A')
 
     @property
     def displayname(self):
+        if not self.name:
+            return '-'
+
         cache_key = 'bubbletype_dname_' + UserPreferences().current.language + '_' + str(self.key())
         name = Cache().get(cache_key)
         if not name:
-            name = self.name.translate()
+            name = StripTags(self.name.translate())
             Cache().set(cache_key, name)
         return name
 
@@ -42,14 +62,53 @@ class BubbleType(ChangeLogModel):
         return RandomColor(100,255,100,255,100,255)
 
     @property
-    def allowed_subtypes2(self):
-        if self.allowed_subtypes:
-            if len(self.allowed_subtypes) > 0:
-                types = []
-                for t in self.allowed_subtypes:
-                    types.append(db.Query(BubbleType).filter('type', t).get())
-                return types
+    def allowed_subtypes2(self): #TODO refactor to AllowedSubtypes
+        return self.AllowedSubtypes
 
+    @property
+    def AllowedSubtypes(self):
+        if not self.allowed_subtypes:
+            return
+        if len(self.allowed_subtypes) == 0:
+            return
+        CandidateSubtypes = db.Query(BubbleType).fetch(1000)
+        AllowedSubtypes = []
+        for type in self.allowed_subtypes:
+            type_is_valid = False
+            for bt in CandidateSubtypes:
+                if bt.type == type:
+                    AllowedSubtypes.append(bt)
+                    type_is_valid = True
+                    break
+            # If there are non-existing subtypes, remove them and recursively try again
+            if not type_is_valid:
+                self.allowed_subtypes = RemoveFromList(type, self.allowed_subtypes)
+                self.put()
+                return self.AllowedSubtypes
+            
+        return AllowedSubtypes
+
+    @property
+    def AvailableSubtypes(self):
+        AvailableSubtypes = db.Query(BubbleType).fetch(1000)
+        for type in self.allowed_subtypes:
+            for bt in AvailableSubtypes:
+                if bt.type == type:
+                    AvailableSubtypes.remove(bt)
+                    break
+        return AvailableSubtypes
+
+
+    def add_allowed_subtype(self, child_key):
+        subtype_to_add = BubbleType.get(child_key)
+        self.allowed_subtypes = AddToList(subtype_to_add.type, self.allowed_subtypes)
+        self.put()
+
+
+    def remove_allowed_subtype(self, child_key):
+        subtype_to_remove = BubbleType.get(child_key)
+        self.allowed_subtypes = RemoveFromList(subtype_to_remove.type, self.allowed_subtypes)
+        self.put()
 
 
 class Bubble(ChangeLogModel):
@@ -64,13 +123,17 @@ class Bubble(ChangeLogModel):
     viewers                 = db.ListProperty(db.Key)
     leechers                = db.ListProperty(db.Key)
     seeders                 = db.ListProperty(db.Key)
+    green_persons           = db.ListProperty(db.Key)
     type                    = db.StringProperty()
+    #TODO: Check that all bubbles are referenced with respective bubbletype...
+    bubble_type             = db.ReferenceProperty(BubbleType, collection_name='bubble_type')
     typed_tags              = db.StringListProperty()
     rating_scale            = db.ReferenceProperty(RatingScale, collection_name='bubble_ratingscale')
     badge                   = db.ReferenceProperty(Dictionary, collection_name='bubble_badge')
     points                  = db.FloatProperty()
     minimum_points          = db.FloatProperty()
     minimum_bubble_count    = db.IntegerProperty()
+    maximum_leecher_count   = db.IntegerProperty()
     mandatory_bubbles       = db.ListProperty(db.Key)
     optional_bubbles        = db.ListProperty(db.Key)
     prerequisite_bubbles    = db.ListProperty(db.Key)
@@ -93,7 +156,7 @@ class Bubble(ChangeLogModel):
                 Cache().set(cache_key, name)
             return name
         else:
-            return ''
+            return '-'
 
 
     def displayname_cache_reset(self):
@@ -121,23 +184,62 @@ class Bubble(ChangeLogModel):
                 return '... - ' + self.end_datetime.strftime('%d.%m.%Y %H:%M')
 
     @property
-    def type2(self):
+    def sortdate(self):
+        if self.start_datetime:
+            return self.start_datetime.strftime('%d.%m.%Y %H:%M') + str(self.key().id())
+        else:
+            return 'x' + str(self.key().id())
+
+    @property
+    def displaytags(self):
+        return "; ".join(self.typed_tags)
+
+    @property
+    def TypedTagsD(self):
+        tt_d = {}
+        for tt in self.typed_tags:
+            type, tag = tt.split(':',1)
+            tt_d[type] = tag
+        return tt_d
+
+    @property
+    def BubbleType(self):
+        return self.type2
+
+    @property
+    def type2(self):                            # TODO refactor to BubbleType
         return db.Query(BubbleType).filter('type', self.type).get()
 
     @property
-    def seeders2(self):
+    def Seeders(self):
+        return self.seeders2
+
+    @property
+    def seeders2(self):                         # TODO refactor to Seeders
         return Person.get(self.seeders)
 
     @property
-    def leechers2(self):
+    def Leechers(self):
+        return self.leechers2
+
+    @property
+    def leechers2(self):                        # TODO refactor to Leechers
         return Person.get(self.leechers)
 
     @property
-    def next_in_line2(self):
+    def NextInLine(self):
+        return self.next_in_line2
+
+    @property
+    def next_in_line2(self):                    # TODO refactor to NextInLine
         return Bubble.get(self.next_in_line)
 
     @property
-    def prerequisite_bubbles2(self):
+    def PrerequisiteBubbles(self):
+        return self.prerequisite_bubbles2
+
+    @property
+    def prerequisite_bubbles2(self):            # TODO refactor to PrerequisiteBubbles
         return Bubble.get(self.prerequisite_bubbles)
 
     @property
@@ -145,50 +247,209 @@ class Bubble(ChangeLogModel):
         return RandomColor(200,255,200,255,200,255)
 
     @property
-    def in_bubbles(self):
-        mandatory = db.Query(Bubble).filter('mandatory_bubbles', self.key()).fetch(1000)
-        optional = db.Query(Bubble).filter('optional_bubbles', self.key()).fetch(1000)
-        bubbles = mandatory + optional
+    def PrevInLines(self):
+        return db.Query(Bubble).filter('next_in_line', self.key()).fetch(1000)
+
+    @property
+    def MandatoryInBubbles(self):
+        return db.Query(Bubble).filter('mandatory_bubbles', self.key()).fetch(1000)
+
+    @property
+    def OptionalInBubbles(self):
+        return db.Query(Bubble).filter('optional_bubbles', self.key()).fetch(1000)
+
+    @property
+    def InBubblesD(self):
+        in_bubbles = {}
+        for b in self.InBubbles:
+            in_bubbles[b.key()] = b
+        return in_bubbles
+
+    @property
+    def InBubbles(self):
+        in_bubbles = self.in_bubbles
+        if in_bubbles:
+            return in_bubbles
+        else:
+            return []
+
+    @property
+    def in_bubbles(self):                       # TODO refactor to InBubbles
+        return self.MandatoryInBubbles + self.OptionalInBubbles
+
+    @property
+    def PrerequisiteForBubbles(self):
+        return db.Query(Bubble).filter('prerequisite_bubbles', self.key()).fetch(1000)
+
+    @property
+    def PrerequisiteBubbles(self):
+        bubbles = []
+        if self.prerequisite_bubbles:
+            for b in Bubble.get(self.prerequisite_bubbles):
+                if not b:
+                    continue
+                if b.is_deleted:
+                    continue
+                bubbles.append(b)
         return bubbles
 
     @property
-    def bubbles(self):
+    def SubBubblesD(self):
+        sub_bubbles = {}
+        for b in self.SubBubbles:
+            sub_bubbles[b.key()] = b
+        return sub_bubbles
+
+    @property
+    def SubBubbles(self):
+        sub_bubbles = self.bubbles
+        if sub_bubbles:
+            return sub_bubbles
+        else:
+            return []
+
+    @property
+    def bubbles(self):                         # TODO refactor to SubBubbles
         keys = []
         if self.mandatory_bubbles:
             keys += self.mandatory_bubbles
         if self.optional_bubbles:
             keys += self.optional_bubbles
         keys = GetUniqueList(keys)
-        if len(keys) > 0:
-            bubbles = []
-            for b in Bubble.get(keys):
-                if b:
-                    if b.is_deleted == False:
-                        if b.key() in self.mandatory_bubbles:
-                            b.is_mandatory = True
-                        else:
-                            b.is_mandatory = False
-                        bubbles.append(b)
+        if len(keys) == 0:
+            return
 
+        bubbles = []
+        for b in Bubble.get(keys):
+            if not b:
+                continue
+            if b.is_deleted:
+                continue
+            if b.key() in self.mandatory_bubbles:
+                b.is_mandatory = True
+            else:
+                b.is_mandatory = False
+            bubbles.append(b)
+        if len(bubbles) > 0:
+            return bubbles
+
+    @property
+    def RateableSubBubbles(self):
+        keys = []
+        if self.mandatory_bubbles:
+            keys += self.mandatory_bubbles
+        if self.optional_bubbles:
+            keys += self.optional_bubbles
+        keys = GetUniqueList(keys)
+        if len(keys) == 0:
+            return
+
+        bubbles = []
+        for b in Bubble.get(keys):
+            if not b:
+                continue
+            if b.is_deleted:
+                continue
+            if b.rating_scale is None:
+                continue
+            if b.key() in self.mandatory_bubbles:
+                b.is_mandatory = True
+            else:
+                b.is_mandatory = False
+            bubbles.append(b)
+        if len(bubbles) > 0:
+            return bubbles
+
+    @property
+    def MandatoryBubbles(self):
+        if self.mandatory_bubbles is None:
+            return
+        bubbles = []
+        for b in Bubble.get(self.mandatory_bubbles):
+            if not b:
+                continue
+            if b.is_deleted:
+                continue
+            b.is_mandatory = True
+            bubbles.append(b)
+        if len(bubbles) > 0:
+            return bubbles
+
+    @property
+    def sub_bubbles(self):
+        return GetUniqueList(self.mandatory_bubbles + self.optional_bubbles)
+
+    @property
+    def OptionalBubbles(self):
+        if self.optional_bubbles:
+            bubbles = []
+            for b in Bubble.get(self.optional_bubbles):
+                if not b:
+                    continue
+                if b.is_deleted:
+                    continue
+                b.is_mandatory = False
+                bubbles.append(b)
             if len(bubbles) > 0:
                 return bubbles
 
     @property
-    def mandatory_bubbles2(self):
-        return Bubble.get(self.mandatory_bubbles)
+    def PersonGrades(self, person_key):
+        return db.Query(Grade).filter('person', person_key).filter('bubble',self.key()).fetch(1000)
+
+
+    # i.e. Pre-requisite bubbles must notify post-requisites when marked green so
+    # that they can check, if they are next in line for at least one green bubble
+    def propose_leecher(self, person_key):
+        for bubble in self.PrevInLines:
+            if bubble.is_green(person_key):
+                return self.add_leecher(person_key)
+
+        return False
+
+
+    # Could we add person to bubble.leechers? 
+    def is_valid_leecher(self, person_key):
+        if leecher in self.leechers:
+            return False
+        return self.are_prerequisites_satisfied(person_key)
+
 
     @property
-    def optional_bubbles2(self):
-        return Bubble.get(self.optional_bubbles)
+    def Grades(self):
+        return db.Query(Grade).filter('bubble', self.key()).filter('is_deleted', False).fetch(1000)
+
+    @property
+    def SubGrades(self):
+        subgrades = []
+        for bubble_key in self.sub_bubbles:
+            subgrades.extend(db.Query(Grade).filter('bubble', bubble_key).filter('is_deleted', False).fetch(1000))
+        return subgrades
+
+    @property
+    def is_started(self):
+        return self.start_datetime < datetime.now()
+
+    @property
+    def is_finished(self):
+        return self.end_datetime < datetime.now()
+
+    @property
+    def is_currently_on(self):
+        return self.is_started() and not self.is_finished()
+
 
     def add_leecher(self, person_key):
+        if not self.is_valid_leecher(person_key):
+            return False
+
         self.leechers = AddToList(person_key, self.leechers)
         self.put()
 
         if self.type == 'exam':
             person = Person().get(person_key)
             if not list(set(person.leecher) & set(self.optional_bubbles)):
-                bubbles = sorted(Bubble().get(self.optional_bubbles), key=lambda k: k.start_datetime)
+                bubbles = sorted(Bubble().get(self.optional_bubbles), key=attrgetter('start_datetime'))
                 for b in bubbles:
                     if b.type == 'personal_time_slot' and b.is_deleted == False:
                         if not db.Query(Person).filter('leecher', b.key()).get():
@@ -263,6 +524,90 @@ class Bubble(ChangeLogModel):
         return bubbles
 
 
+    def has_positive_grade(self, person_key):
+        grades = self.PersonGrades(person_key)
+        if len(grades) == 0:
+            return False
+
+        for grade in sorted(grades, attrgetter('datetime', reverse=True)):
+            if grade.is_positive:
+                return True
+            if self.type2.grade_display_method == 'latest':
+                return False
+
+        return False
+
+
+    def mark_green(person_key):
+        self.green_persons = AddToList(person_key, self.green_persons)
+        self.put()
+        for bubble in self.PrerequisiteForBubbles:
+            bubble.propose_leecher(person_key)
+
+
+    def is_green(person_key):
+        if person_key in self.green_persons:
+            return True
+
+        if self.rating_scale:
+            if not self.has_positive_grade(person_key):
+                return False
+
+        if not self.are_mandatories_satisfied(person_key):
+            return False
+
+        if self.minimum_bubble_count > 0:
+            counter = self.minimum_bubble_count
+            for sub_bubble in self.SubBubbles:
+                if sub_bubble.is_green(person_key):
+                    counter = counter - 1
+                    if counter == 0:
+                        return True
+                return False
+
+        self.mark_green(person_key)
+        return True
+
+
+    def recheck_green(person_key):
+        RemoveFromList(person_key, self.green_persons)
+        return self.is_green(person_key)
+
+
+    def are_mandatories_satisfied(person_key):
+        for sub_bubble in self.MandatoryBubbles:
+            if not sub_bubble.is_green(person_key):
+                return False
+        return True
+
+
+    def are_prerequisites_satisfied(person_key):
+        for pre_bubble in self.PrerequisiteBubbles:
+            if not pre_bubble.is_green(person_key):
+                return False
+        return True
+
+
+    # Positive grades are only available, if mandatories are green.
+    # Negative grades could be issued at any time.
+    def grades_available(person_key):
+        if not self.rating_scale:
+            return
+
+        if self.are_mandatories_satisfied(person_key):
+            return self.rating_scale.GradeDefinitions
+
+        return self.rating_scale.NegativeGradeDefinitions
+
+
+    # When rating a bubble with rated sub-bubbles, sub-bubble grades could be listed.
+    def sub_bubble_grades(person_key):
+        for sub_bubble in self.SubBubbles:
+            grades = grades + sub_bubble.PersonGrades(person_key)
+
+        return grades
+
+
 class GradeDefinition(ChangeLogModel):
     rating_scale    = db.ReferenceProperty(RatingScale)
     name            = db.ReferenceProperty(Dictionary, collection_name='gradedefinition_name')
@@ -295,3 +640,10 @@ class Grade(ChangeLogModel):
     @property
     def displayname(self):
         return self.gradedefinition.name.translate()
+
+    @property
+    def displaydate(self):
+        if self.datetime:
+            return self.datetime.strftime('%d.%m.%Y %H:%M')
+        else:
+            return '...'

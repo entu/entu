@@ -1,5 +1,5 @@
 application: bongapp
-version: 2011-07-11
+version: 2011-08-04
 #version: dev
 runtime: python
 api_version: 1
@@ -84,6 +84,14 @@ handlers:
 
 - url: /person(.*)
   script: controllers/person.py
+  login: required
+
+- url: /btype(.*)
+  script: controllers/bubbletype.py
+  login: required
+
+- url: /bubbletype(.*)
+  script: controllers/bubble.py
   login: required
 
 - url: /bubble(.*)

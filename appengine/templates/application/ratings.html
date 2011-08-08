@@ -1,0 +1,70 @@
+{% extends "../main.html" %}
+
+{% block head %}
+<script src="/javascript/jquery.elastic.js" type="text/javascript"></script>
+<script src="http://datejs.googlecode.com/svn/tags/Alpha1.0/build/date-et-EE.js" type="text/javascript"></script>
+<script src="/javascript/jquery.autocomplete-min.js" type="text/javascript"></script>
+{% endblock %}
+
+{% block nav %}
+<a href="/application">{{ str.application }}</a> |
+<a href="/application/ratings" style="color:#a6ff20">{{ str.ratings }}</a> |
+<a href="/application/signin">{{ str.logout }}</a>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav>
+    <ul id="crumbs">
+        <li><a href="/">{{ system_title }}</a></li>
+        <li>{{ str.ratings }}</li>
+        {% if person %}
+        <li>{{ person.displayname }}</li>
+        {% endif %}
+    </ul>
+</nav>
+{% endblock %}
+
+{% block content %}
+
+<div id="content">
+
+    {% if person %}
+    <h1 style="text-align:center;">{{ person.displayname }}</h1>
+    <div class="vertical_table">
+
+        <div class="table_row">
+            <div class="table_cell" style="vertical-align:top; padding-top:10px;">
+
+                <div class="table_row" alt="">
+                {% for head_cell in table_data.head %}
+                    <div class="table_cell" title="{{ head_cell }}" style="text-align:center; white-space:nowrap;">
+                        <b>{{ head_cell }}</b>
+                    </div>
+                {% endfor %}
+                </div>
+                
+                {% for row in table_data.data %}
+                <div class="table_row">
+                    {% for cell in row %}
+                        <div class="table_cell" title="{{ cell }}" style="text-align:center; white-space:nowrap;">
+                            {{ cell }}
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+
+            </div>
+        </div>
+
+    </div>
+    <span style="display:block; text-align:center; font-size:11px;">{{ changed }}</span>
+    {% endif %}
+
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+    });
+</script>
+
+{% endblock %}
