@@ -105,6 +105,22 @@ class boRequestHandler(webapp.RequestHandler):
         self.response.headers[key] = value
 
 
+class SystemPreferences(db.Model):
+    value = db.StringProperty(multiline=True)
+
+    def get(self, key_name):
+        sp = SystemPreferences().get_by_key_name(key_name)
+        if sp:
+            return sp.value
+
+    def set(self, key_name, value):
+        sp = SystemPreferences().get_by_key_name(key_name)
+        if not sp:
+            sp = SystemPreferences(key_name=key_name)
+        sp.value = value
+        sp.put()
+
+
 class UserPreferences(db.Model):
     language = db.StringProperty(default=SYSTEM_LANGUAGE)
     timezone = db.StringProperty(default=SYSTEM_TIMEZONE)
