@@ -401,7 +401,7 @@ class PostMessage(boRequestHandler):
                     to = 'sisseastumine@artun.ee',
                     reply_to = 'sisseastumine@artun.ee',
                     subject = Translate('application_message_email1_subject') % p.displayname,
-                    message = Translate('application_message_email1_message') % {'name': p.displayname, 'link': SYSTEM_URL + '/reception/application/' + str(p.key()), 'text': mes.text }
+                    message = Translate('application_message_email1_message') % {'name': p.displayname, 'link': 'http://bubbledu.artun.ee/reception/application/' + str(p.key()), 'text': mes.text }
                 )
 
                 SendMail(

@@ -19,8 +19,6 @@ import logging
 import string
 import re
 
-from settings import *
-
 
 def Route(url_mapping):
     application = webapp.WSGIApplication(url_mapping, debug=True)
@@ -74,13 +72,13 @@ class boRequestHandler(webapp.RequestHandler):
             self.response.out.write(template.render(path, {}))
         else:
             values['str'] = Translate()
-            values['system_title'] = SYSTEM_TITLE.decode('utf8')
-            values['system_logo'] = SYSTEM_LOGO_URL.decode('utf8')
+            values['system_title'] = SystemPreferences().get('site_title')
+            values['system_logo'] = SystemPreferences().get('site_logo_url')
             if page_title:
-                values['site_name'] = SYSTEM_TITLE.decode('utf8') + ' - ' + Translate(page_title)
+                values['site_name'] = SystemPreferences().get('site_title') + ' - ' + Translate(page_title)
                 values['page_title'] = Translate(page_title)
             else:
-                values['site_name'] = SYSTEM_TITLE.decode('utf8')
+                values['site_name'] = SystemPreferences().get('site_title')
                 values['page_title'] = '&nbsp;'
             values['site_url'] = self.request.headers.get('host')
             values['user'] = Person().current
@@ -106,12 +104,14 @@ class boRequestHandler(webapp.RequestHandler):
 
 
 class SystemPreferences(db.Model):
-    value = db.StringProperty(multiline=True)
+    value = db.StringProperty(multiline=True, default='')
 
     def get(self, key_name):
         sp = SystemPreferences().get_by_key_name(key_name)
-        if sp:
-            return sp.value
+        if not sp:
+            sp = SystemPreferences(key_name=key_name)
+            sp.put()
+        return sp.value
 
     def set(self, key_name, value):
         sp = SystemPreferences().get_by_key_name(key_name)
@@ -122,8 +122,8 @@ class SystemPreferences(db.Model):
 
 
 class UserPreferences(db.Model):
-    language = db.StringProperty(default=SYSTEM_LANGUAGE)
-    timezone = db.StringProperty(default=SYSTEM_TIMEZONE)
+    language = db.StringProperty(default=SystemPreferences().get('default_language'))
+    timezone = db.StringProperty(default=SystemPreferences().get('default_timezone'))
 
     @property
     def current(self):
@@ -221,7 +221,7 @@ def Translate(key = None):
     if users.get_current_user():
         languagefile = 'translations.' + UserPreferences().current.language
     else:
-        languagefile = 'translations.' + SYSTEM_LANGUAGE
+        languagefile = 'translations.' + SystemPreferences().get('default_language')
 
     l = __import__(languagefile, globals(), locals(), ['translation'], -1)
 
@@ -275,13 +275,13 @@ def SendMail(to, subject, message=' ', reply_to=None, html=True, attachments=Non
             valid_to.append(to)
     if len(valid_to) > 0:
         m = mail.EmailMessage()
-        m.sender = SYSTEM_EMAIL
+        m.sender = SystemPreferences().get('system_email')
         if reply_to:
             if CheckMailAddress(reply_to):
                 m.reply_to = reply_to
-        m.bcc = SYSTEM_EMAIL
+        m.bcc = SystemPreferences().get('system_email')
         m.to = valid_to
-        m.subject = SYSTEM_EMAIL_PREFIX + subject
+        m.subject = SystemPreferences().get('system_email_prefix') + subject
         if html == True:
             m.html = message
         else:
