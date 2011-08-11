@@ -52,7 +52,8 @@ class ShowRating(boRequestHandler):
             for subgrade in subgrades:
                 if subgrade.person.key() == leecher.key():
                     leecher.subgrades.append(subgrade)
-                    leecher.equivalent += subgrade.equivalent
+                    if subgrade.equivalent:
+                        leecher.equivalent += subgrade.equivalent
 
         self.view('application', 'rating/rating.html', {
             'bubble': bubble,
