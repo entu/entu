@@ -1,5 +1,4 @@
 from google.appengine.api import users
-from django.utils import simplejson
 import datetime
 
 from bo import *
@@ -183,7 +182,7 @@ class PostMessage(boRequestHandler):
                     respond['person'] = mes.person.displayname
                     respond['message'] = mes.text
 
-                    self.response.out.write(simplejson.dumps(respond))
+                    self.echo_json(respond)
 
 
 class EditPerson(boRequestHandler):
@@ -216,7 +215,7 @@ class EditPerson(boRequestHandler):
 
                     p.put()
 
-            self.response.out.write(simplejson.dumps(respond))
+            self.echo_json(respond)
 
 
 class EditContact(boRequestHandler):
@@ -251,7 +250,7 @@ class EditContact(boRequestHandler):
                     respond['key'] = response_key
 
                     p.put()
-                    self.response.out.write(simplejson.dumps(respond))
+                    self.echo_json(respond)
 
 
 class EditCV(boRequestHandler):
@@ -279,7 +278,7 @@ class EditCV(boRequestHandler):
                     cv.put()
                     respond['key'] = str(cv.key())
 
-                    self.response.out.write(simplejson.dumps(respond))
+                    self.echo_json(respond)
 
 
 class StateExam(boRequestHandler):

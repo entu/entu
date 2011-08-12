@@ -10,6 +10,8 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp import util
 from django.core.validators import email_re
 from django.template.defaultfilters import striptags
+from django.template import Template
+from django.conf import settings
 from django.utils import simplejson
 
 from datetime import timedelta
@@ -53,7 +55,7 @@ class boRequestHandler(webapp.RequestHandler):
             else:
                 return True
 
-    def view(self, page_title, templatefile, values={}):
+    def view(self, page_title, templatefile, values={}, main_template='main.html'):
         controllertime = (time.time() - self.starttime)
         logging.debug('Controller: %ss' % round(controllertime, 2))
 
@@ -85,8 +87,15 @@ class boRequestHandler(webapp.RequestHandler):
             values['loginurl'] = users.create_login_url('/')
             values['logouturl'] = users.create_logout_url('/')
             values['version'] = self.request.environ["CURRENT_VERSION_ID"].split('.')[0]
+            
+            if main_template:
+                template_file = open(os.path.join(os.path.dirname(__file__), 'templates', main_template)) 
+                values['main_template'] = Template(template_file.read()) 
+                template_file.close()  
+
             path = os.path.join(os.path.dirname(__file__), 'templates', templatefile)
             self.response.out.write(template.render(path, values))
+        
         viewtime = (time.time() - self.starttime)
         logging.debug('View: %ss' % round((viewtime - controllertime), 2))
         logging.debug('Total: %ss' % round(viewtime, 2))

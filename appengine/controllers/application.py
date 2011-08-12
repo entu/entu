@@ -1,5 +1,4 @@
 from google.appengine.api import users
-from django.utils import simplejson
 import datetime
 import random
 import string
@@ -243,7 +242,7 @@ class ShowApplication(boRequestHandler):
                 p.remove_leecher(db.Key(key))
 
             respond['key'] = key
-            self.response.out.write(simplejson.dumps(respond))
+            self.echo_json(respond)
 
 
 class EditPerson(boRequestHandler):
@@ -273,7 +272,7 @@ class EditPerson(boRequestHandler):
 
             respond['application_completed_info'] = CheckApplication(p)
 
-            self.response.out.write(simplejson.dumps(respond))
+            self.echo_json(respond)
 
 
 class EditContact(boRequestHandler):
@@ -305,7 +304,7 @@ class EditContact(boRequestHandler):
             respond['key'] = response_key
 
             p.put()
-            self.response.out.write(simplejson.dumps(respond))
+            self.echo_json(respond)
 
 
 class EditCV(boRequestHandler):
@@ -331,7 +330,7 @@ class EditCV(boRequestHandler):
             respond['key'] = str(cv.key())
             respond['application_completed_info'] = CheckApplication(p)
 
-            self.response.out.write(simplejson.dumps(respond))
+            self.echo_json(respond)
 
 
 class StateExam(boRequestHandler):
@@ -373,7 +372,7 @@ class StateExam(boRequestHandler):
 
             respond['application_completed_info'] = CheckApplication(p)
 
-            self.response.out.write(simplejson.dumps(respond))
+            self.echo_json(respond)
 
 
 class PostMessage(boRequestHandler):
@@ -415,7 +414,7 @@ class PostMessage(boRequestHandler):
                 respond['person'] = mes.person.displayname
                 respond['message'] = mes.text
 
-                self.response.out.write(simplejson.dumps(respond))
+                self.echo_json(respond)
 
 
 def main():
