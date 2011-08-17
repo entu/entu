@@ -15,7 +15,7 @@ class ShowBubbleList(boRequestHandler):
             page_title = 'bubbles',
             templatefile = 'bubble/bubble.html',
             values = {
-                'bubbletype': bubbletype
+                'list_url': '/bubble/type/%s' % bubbletype
             }
         )
 
@@ -24,18 +24,23 @@ class ShowBubbleList(boRequestHandler):
             return
 
         key = self.request.get('key').strip()
-        
+        search = self.request.get('search').strip()
+
         if key:
             bubble = Bubble().get(key)
             self.echo_json({
+                'image': '',
                 'url': '#',
                 'title': bubble.displayname,
                 'info': bubble.displaydate,
             })
-            
+
         else:
-            bubble_keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('is_deleted', False).order('sort_estonian'))]
-            self.echo_json({'keys': bubble_keys})
+            if search:
+                keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('sort_estonian >=', search).filter('is_deleted', False).order('sort_estonian'))]
+            else:
+                keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('is_deleted', False).order('sort_estonian'))]
+            self.echo_json({'keys': keys})
 
 
 class ShowBubble(boRequestHandler):

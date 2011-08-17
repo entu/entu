@@ -3,7 +3,7 @@
 @text_color: #454A4E;
 @nav_width: 200px;
 @list_width: 300px;
-@search_height: 35px;
+@search_height: 37px;
 @text_font: HelveticaNeue-Regular, 'Helvetica Neue', Helvetica, Arial, Tahoma, Verdana, sans-serif; //Georgia, Times, serif;
 @header_font: HelveticaNeue-Regular, 'Helvetica Neue', Helvetica, Arial, Tahoma, Verdana, sans-serif;
 @bordercolor: #B9B9B9;
@@ -199,7 +199,7 @@ img.spinner {
         display: block;
         width: @list_width - 30px;
         height: @search_height -10px;
-        margin: 7px auto;
+        margin: 10px auto;
     }
 }
 
@@ -214,11 +214,20 @@ img.spinner {
     a {
         display: block;
         padding: 10px;
+        min-height: 32px;
         font-size: 13px;
         border-bottom: 1px solid @bordercolor;
         text-decoration: none;
         font-weight: bold;
         background: #FBFBFB;
+
+        img {
+            float: left;
+            width: 32px;
+            height: 32px;
+            margin: 0px 10px 10px 0px;
+            background: #FFFFFF;
+        }
 
         span {
             display: block;

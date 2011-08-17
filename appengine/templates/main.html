@@ -39,8 +39,16 @@
 
 
         <section id="main_content">
-        {% block list %}
-        {% endblock %}
+        {% if list_url %}
+            <section id="list">
+                <div id="list_search">
+                    <input type="search" id="searchbox" placeholder="{{ str.search }}" />
+                </div>
+                <div id="list_items">
+                    <img src="/images/spinner_white.gif" class="spinner" />
+                </div>
+            </section>
+        {% endif %}
 
         {% block content %}
         {% endblock %}
@@ -61,6 +69,54 @@
                         }
                     });
                 }
+
+            {% if list_url %}
+
+                posts = []
+
+                $('#searchbox').keyup(function() {
+                    for (p in posts) {
+                        posts[p].abort();
+                    }
+                    delay(function(){
+                        fill_list();
+                    }, 1000 );
+                });
+
+                var delay = (function(){
+                    var timer = 0;
+                    return function(callback, ms){
+                        clearTimeout (timer);
+                        timer = setTimeout(callback, ms);
+                    };
+                })();
+
+                function fill_list() {
+                    search_string = $('#searchbox').val();
+                    $.post('{{ list_url }}', {search: $('#searchbox').val()}, function(list) {
+                        $('#list_items').html('');
+                        for (n in list.keys) {
+                            key = list.keys[n];
+                            posts.push($.post('{{ list_url }}', {key: key}, function(item) {
+                                if(item.image) {
+                                    image = '<img src="'+item.image+'" />';
+                                } else {
+                                    image = '';
+                                }
+                                if(item.info) {
+                                    info = '<span>'+item.info+'</span>';
+                                } else {
+                                    info = '';
+                                }
+                                $('#list_items').append('<a href="'+item.url+'">'+image+item.title+info+'</a>');
+                            }, 'json'));
+                        }
+                    }, 'json');
+                }
+
+                fill_list();
+            {% endif %}
+
             });
         </script>
     </body>

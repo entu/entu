@@ -7,32 +7,43 @@ import csv
 import cStringIO
 
 
-class ShowSignin(boRequestHandler):
-    def get(self):
+class ShowPersonList(boRequestHandler):
+    def get(self, persontype):
+        self.view(
+            page_title = 'persons',
+            templatefile = 'person/person.html',
+            values = {
+                'list_url': '/person/list/%s' % persontype
+            }
+        )
 
-        user = users.get_current_user()
-        if user:
-            self.redirect(users.create_logout_url('/person/signin'))
+    def post(self, persontype):
+        if not self.authorize('bubbler'):
+            return
 
-        sess = Session(self, timeout=86400)
-        sess.invalidate()
+        key = self.request.get('key').strip()
+        search = self.request.get('search').strip()
 
-        self.view('person', 'person/signup.html', {
-            'account_login_url': users.create_login_url('/person'),
-        })
+        if key:
+            person = Person().get(key)
+            if not person.sort:
+                person.sort = StringToSortable(person.displayname)
+                person.put()
 
-    def post(self):
+            image = person.photo_url(32)
+            self.echo_json({
+                'image': image if image else '/images/avatar.png',
+                'url': '#',
+                'title': person.displayname,
+                'info': person.primary_email,
+            })
 
-        email = self.request.get('email').strip()
-        password = self.request.get('applicant_pass').strip()
-
-        if password:
-            p = db.Query(Person).filter('password', password).get()
-            if p:
-                sess = Session(self, timeout=86400)
-                sess['application_person_key'] = p.key()
-                sess.save()
-                self.response.out.write('OK')
+        else:
+            if search:
+                keys = [str(k) for k in list(db.Query(Person, keys_only=True).filter('search_names', search).order('sort'))]
+            else:
+                keys = [str(k) for k in list(db.Query(Person, keys_only=True).filter('gender', persontype).order('sort'))]
+            self.echo_json({'keys': keys})
 
 
 class ShowPerson(boRequestHandler):
@@ -47,7 +58,7 @@ class ShowPerson(boRequestHandler):
             id = current_person.key().id()
 
         can_search = True
-        
+
         try:
             authorized = self.authorize('reception')
         except AttributeError: # AttributeError: 'NoneType' object has no attribute 'roles2'
@@ -82,7 +93,7 @@ class ShowPerson(boRequestHandler):
 
         grades = db.Query(Grade).filter('person',person.key()).fetch(1000)
         grades = sorted(grades, key=lambda k: k.datetime)
-        
+
         ratings = ListRatings()
         ratings.head = [
             Translate('bubble_displayname').encode("utf-8"),
@@ -187,9 +198,9 @@ class GetPersonKeys(boRequestHandler):
         }
 
         self.echo_json(respond)
-        
 
-#CSV fail hinnetest 
+
+#CSV fail hinnetest
 
 class GradesCSV(boRequestHandler):
     def get(self, person_id):
@@ -214,7 +225,7 @@ class GradesCSV(boRequestHandler):
                 grade.equivalent,
                 grade.displaydate.encode("utf-8"),
             ])
-        
+
 
         self.header('Content-Type', 'text/csv; charset=utf-8')
         self.header('Content-Disposition', 'attachment; filename=' + unicode(person.displayname.encode("utf-8"), errors='ignore') + '.csv')
@@ -237,7 +248,7 @@ class ListedRating(boRequestHandler):
 
 def main():
     Route([
-            ('/person/signin', ShowSignin),
+            (r'/person/list/(.*)', ShowPersonList),
             ('/person/set_role', SetRole),
             ('/person/person_ids', GetPersonIds),
             ('/person/person_keys', GetPersonKeys),

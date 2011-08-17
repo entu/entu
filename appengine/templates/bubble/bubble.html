@@ -5,30 +5,5 @@
 <script src="http://datejs.googlecode.com/svn/tags/Alpha1.0/build/date-et-EE.js" type="text/javascript"></script>
 {% endblock %}
 
-{% block list %}
-<section id="list">
-    <div id="list_search">
-        <input type="search" placeholder="{{ str.search }}"/>
-    </div>
-    <div id="list_items">
-        <img src="/images/spinner_white.gif" class="spinner" />
-    </div>
-</section>
-
-<script type="text/javascript">
-    $(document).ready(function(){
-        $.post('/bubble/type/{{ bubbletype }}', function(list) {
-            $('#list_items').html('');
-            for (n in list.keys) {
-                key = list.keys[n];
-                $.post('/bubble/type/{{ bubbletype }}', {key: key}, function(item) {
-                    $('#list_items').append('<a href="'+item.url+'">'+item.title+'<span>'+item.info+'</span></a>');
-                }, 'json');
-            }
-        }, 'json');
-    });
-</script>
-{% endblock %}
-
 {% block content %}
 {% endblock %}

@@ -46,6 +46,7 @@ class Person(ChangeLogModel):
     seeder                  = db.ListProperty(db.Key)
     leecher                 = db.ListProperty(db.Key)
     search_names            = db.StringListProperty()
+    sort                    = db.StringProperty(default='')
 
 
     @property
@@ -83,6 +84,12 @@ class Person(ChangeLogModel):
     @property
     def photo(self):
         return db.Query(Document).filter('types', 'person_photo').filter('entities', self.key()).get()
+
+    def photo_url(self, size=None, crop=True):
+        if self.photo:
+            s = '/' + str(size) if size else ''
+            c = '/c' if crop else ''
+            return self.photo.url + s + c
 
     @property
     def age(self):

@@ -1,3 +1,5 @@
+from string import ascii_lowercase
+
 from bo import *
 from database.bubble import *
 
@@ -14,28 +16,28 @@ class ShowMenu(boRequestHandler):
     def get(self):
         menu = []
 
-        menu.append({
-            'title': Translate('artun.ee'),
-            'childs': [
-                {'link': 'http://gmail.artun.ee', 'title': Translate('inbox')},
-                {'link': 'http://calendar.artun.ee', 'title': Translate('calendar')},
-                {'link': 'http://docs.artun.ee', 'title': Translate('documents')},
-                {'link': '/oldauth?site=ois', 'title': Translate('old_ois')},
-            ]
-        })
-
         if self.authorize('bubbler'):
             bubbletypes = []
-            #for bt in sorted(db.Query(BubbleType).fetch(1000), key=attrgetter('displayname')):
             for bt in db.Query(BubbleType).fetch(50):
                 bubbletypes.append({
                     'link': '/bubble/type/%s' % bt.type,
                     'title': bt.displayname,
                 })
-
             menu.append({
                 'title': Translate('bubbles'),
                 'childs': bubbletypes
+            })
+
+        if self.authorize('bubbler'):
+            persontypes = []
+            for l in ['male', 'female']:
+                persontypes.append({
+                    'link': '/person/list/%s' % l,
+                    'title': Translate('gender_' + l),
+                })
+            menu.append({
+                'title': Translate('persons'),
+                'childs': persontypes
             })
 
         if self.authorize('questionary') or self.authorize('reception'):
