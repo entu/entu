@@ -440,8 +440,8 @@ class Bubble(ChangeLogModel):
 
 
     def add_leecher(self, person_key):
-        if not self.is_valid_leecher(person_key):
-            return False
+        #if not self.is_valid_leecher(person_key):
+        #    return False
 
         self.leechers = AddToList(person_key, self.leechers)
         self.put()
