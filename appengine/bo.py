@@ -55,7 +55,7 @@ class boRequestHandler(webapp.RequestHandler):
             else:
                 return True
 
-    def view(self, page_title, templatefile, values={}, main_template='main.html'):
+    def view(self, page_title = '', templatefile = None, values={}, main_template='main.html'):
         controllertime = (time.time() - self.starttime)
         logging.debug('Controller: %ss' % round(controllertime, 2))
 
@@ -69,7 +69,7 @@ class boRequestHandler(webapp.RequestHandler):
         from database.person import *
 
         browser = str(self.request.headers['User-Agent'])
-        if browser.find('MSIE 5') > -1 or browser.find('MSIE 6') > -1 or browser.find('MSIE 7') > -1:
+        if browser.find('MSIE 5') > -1 or browser.find('MSIE 6') > -1 or browser.find('MSIE 7') > -1 or browser.find('MSIE 8') > -1:
             path = os.path.join(os.path.dirname(__file__), 'templates', 'brausererror.html')
             self.response.out.write(template.render(path, {}))
         else:

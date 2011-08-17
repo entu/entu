@@ -10,39 +10,32 @@ from database.dictionary import *
 
 
 class ShowBubbleList(boRequestHandler):
-    def get(self, url):
-        if self.authorize('bubbler'):
-            limit = 30
-            page = self.request.get('p', '1').strip()
-            page = int(page)
-            offset = ((page*limit)-limit)
+    def get(self, bubbletype):
+        self.view(
+            page_title = 'bubbles',
+            templatefile = 'bubble/bubble.html',
+            values = {
+                'bubbletype': bubbletype
+            }
+        )
 
-            url = url + '/'
-            url = url.split('/')
+    def post(self, bubbletype):
+        if not self.authorize('bubbler'):
+            return
 
-            id = int(url[0])
-            letter = url[1]
-
-            bubbletype = BubbleType().get_by_id(id)
-
-            if letter:
-                bubbles = db.Query(Bubble).filter('type', bubbletype.type).filter('is_deleted', False).filter('sort_estonian >=', letter).order('sort_estonian').fetch(limit = limit, offset = offset)
-            else:
-                bubbles = db.Query(Bubble).filter('type', bubbletype.type).filter('is_deleted', False).order('sort_estonian').fetch(limit = limit, offset = offset)
-
-            show_scroll = True
-            if len(bubbles) < limit:
-                show_scroll = False
-
-
-            self.view('application', 'bubble/bubble_list.html', {
-                'bubbletype': bubbletype,
-                'bubbles': bubbles,
-                'next_page': (page + 1),
-                'letter': letter,
-                'show_scroll': show_scroll,
-                'abc': string.ascii_lowercase,
+        key = self.request.get('key').strip()
+        
+        if key:
+            bubble = Bubble().get(key)
+            self.echo_json({
+                'url': '#',
+                'title': bubble.displayname,
+                'info': bubble.displaydate,
             })
+            
+        else:
+            bubble_keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('is_deleted', False).order('sort_estonian'))]
+            self.echo_json({'keys': bubble_keys})
 
 
 class ShowBubble(boRequestHandler):
@@ -373,7 +366,7 @@ class SubBubblesCSV(boRequestHandler):
 
 def main():
     Route([
-            (r'/bubbletype/(.*)', ShowBubbleList),
+            (r'/bubble/type/(.*)', ShowBubbleList),
             (r'/bubble/add/(.*)/(.*)', AddBubble),
             (r'/bubble/add_existing/(.*)', AddExistingBubble),
             (r'/bubble/add_optional_subbubble/(.*)/(.*)', AddOptionalSubbubble),

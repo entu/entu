@@ -1,0 +1,43 @@
+<header>
+    {% if user.photo %}
+        <img src="{{ user.photo.url }}/40/c" style="width:40px; height:40px;">
+    {% else %}
+        <img src="" style="width:40px; height:40px;">
+    {% endif %}
+    <a href="/preferences">{{ user.displayname }}</a>
+</header>
+
+<nav>
+    <div class="accordion">
+    {% for m in menu %}
+        <h3><a href="#">{{ m.title }}</a></h3>
+        <div>
+        {% for c in m.childs|dictsort:"title" %}
+            <a href="{{ c.link }}">{{ c.title }}</a>
+        {% endfor %}
+        </div>
+    {% endfor %}
+    
+        <h3><a href="{{ logouturl|escape }}">{{ str.logout }}</a></h3>
+    </div>
+</nav>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        $(".accordion").accordion({
+            fillSpace: true,
+            navigation: true,
+        });
+        $("*").find("a[href='"+window.location.pathname+"']").each(function(){
+            $(this).addClass("active")
+        })
+
+        $('#current_role').change(function() {
+            select = $(this);
+            $.post('/person/set_role', { role: select.val() }, function(json) {
+                select.effect("highlight", {}, 1000);
+            }, "json");
+        });
+    });
+</script>

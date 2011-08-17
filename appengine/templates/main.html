@@ -8,8 +8,9 @@
 
         <link rel="stylesheet" href="/css/screen.css" />
 
-        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.min.js"></script>
         <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+        <script src="/javascript/jstorage.min.js" type="text/javascript"></script>
 
         {% block head %}
         {% endblock %}
@@ -19,65 +20,47 @@
         <![endif]-->
 
         <script type="text/javascript">
-
             var _gaq = _gaq || [];
             _gaq.push(['_setAccount', 'UA-260765-18']);
             _gaq.push(['_trackPageview']);
-
             (function() {
                 var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
                 ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
                 var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
             })();
-
         </script>
 
     </head>
     <body>
-        <header>
-            <h1><a href="/">{{ system_title }}</a></h1>
-            <nav id="top_nav">
-            {% block nav %}
-                {% if user %}
-                <i>{{ str.welcome }} <a href="/preferences">{{ user.displayname|default:"" }}</a>!</i>
-                {% if user.roles %}
-                |
-                <select id="current_role" name="current_role">
-                    {% for pr in user.roles2 %}
-                    <option value="{{ pr.key }}"{% ifequal user.current_role.key pr.key %} selected{% endifequal %}>{{ pr.displayname }}</option>
-                    {% endfor %}
-                </select>
-                {% endif %}
-                | <a href="{{ logouturl|escape }}">{{ str.logout }}</a>
-                {% else %}
-                <a href="{{ loginurl|escape }}" style="border:none;">{{ str.login }}</a>
-                {% endif %}
-            {% endblock %}
-            </nav>
-        </header>
 
-        {% block breadcrumb %}
+        <section id="main_nav">
+            <img src="/images/spinner_menu.gif" class="spinner" />
+        </section>
+
+
+        <section id="main_content">
+        {% block list %}
         {% endblock %}
-
-        <section id="page">
 
         {% block content %}
         {% endblock %}
-
         </section>
-
-        <footer>
-            {{ version }}
-        </footer>
 
         <script type="text/javascript">
             $(document).ready(function(){
-                $('#current_role').change(function() {
-                    select = $(this);
-                    $.post('/person/set_role', { role: select.val() }, function(json) {
-                        select.effect("highlight", {}, 1000);
-                    }, "json");
-                });
+                menu = $.jStorage.get('main_menu');
+                if(menu){
+                    $('#main_nav').html(menu);
+                } else {
+                    $.ajax({
+                        url: '/dashboard/menu',
+                        cache: true,
+                        success: function(html){
+                            $.jStorage.set('main_menu', html);
+                            $('#main_nav').html(html);
+                        }
+                    });
+                }
             });
         </script>
     </body>
