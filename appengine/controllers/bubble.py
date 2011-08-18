@@ -11,11 +11,15 @@ from database.dictionary import *
 
 class ShowBubbleList(boRequestHandler):
     def get(self, bubbletype):
+        if not self.authorize('bubbler'):
+            return
+
         self.view(
             page_title = 'bubbles',
-            templatefile = 'bubble/bubble.html',
+            template_file = 'main/list.html',
             values = {
-                'list_url': '/bubble/type/%s' % bubbletype
+                'list_url': '/bubble/%s' % bubbletype,
+                'content_url': '/bubble/show',
             }
         )
 
@@ -29,8 +33,8 @@ class ShowBubbleList(boRequestHandler):
         if key:
             bubble = Bubble().get(key)
             self.echo_json({
-                'image': '',
-                'url': '#',
+                'id': bubble.key().id(),
+                'image': None,
                 'title': bubble.displayname,
                 'info': bubble.displaydate,
             })
@@ -44,6 +48,24 @@ class ShowBubbleList(boRequestHandler):
 
 
 class ShowBubble(boRequestHandler):
+    def get(self, bubble_id):
+        if not self.authorize('bubbler'):
+            return
+        
+        bubble = Bubble().get_by_id(int(bubble_id))
+        
+        self.view(
+            template_file = 'bubble/bubble_info.html',
+            values = {
+                'bubble': bubble,
+            }
+        )
+
+
+
+
+
+class ShowBubble1(boRequestHandler):
     def get(self, id):
         if self.authorize('bubbler'):
 
@@ -371,7 +393,7 @@ class SubBubblesCSV(boRequestHandler):
 
 def main():
     Route([
-            (r'/bubble/type/(.*)', ShowBubbleList),
+            (r'/bubble/show/(.*)', ShowBubble),
             (r'/bubble/add/(.*)/(.*)', AddBubble),
             (r'/bubble/add_existing/(.*)', AddExistingBubble),
             (r'/bubble/add_optional_subbubble/(.*)/(.*)', AddOptionalSubbubble),
@@ -386,7 +408,7 @@ def main():
             (r'/bubble/seeder/delete/(.*)/(.*)', DeleteSeeder),
             (r'/bubble/leecher/add/(.*)/(.*)', AddLeecher),
             (r'/bubble/leecher/delete/(.*)/(.*)', DeleteLeecher),
-            (r'/bubble/(.*)', ShowBubble),
+            (r'/bubble/(.*)', ShowBubbleList),
         ])
 
 

@@ -58,7 +58,7 @@ class boRequestHandler(webapp.RequestHandler):
             else:
                 return True
 
-    def view(self, page_title = '', templatefile = None, values={}, main_template='main.html'):
+    def view(self, page_title = '', template_file = None, values={}, main_template='main/index.html'):
         controllertime = (time.time() - self.starttime)
         logging.debug('Controller: %ss' % round(controllertime, 2))
 
@@ -73,7 +73,7 @@ class boRequestHandler(webapp.RequestHandler):
 
         browser = str(self.request.headers['User-Agent'])
         if browser.find('MSIE 5') > -1 or browser.find('MSIE 6') > -1 or browser.find('MSIE 7') > -1 or browser.find('MSIE 8') > -1:
-            path = os.path.join(os.path.dirname(__file__), 'templates', 'brausererror.html')
+            path = os.path.join(os.path.dirname(__file__), 'errors', 'brauser.html')
             self.response.out.write(template.render(path, {}))
         else:
             values['str'] = Translate()
@@ -92,11 +92,11 @@ class boRequestHandler(webapp.RequestHandler):
             values['version'] = self.request.environ["CURRENT_VERSION_ID"].split('.')[0]
             
             if main_template:
-                template_file = open(os.path.join(os.path.dirname(__file__), 'templates', main_template)) 
-                values['main_template'] = Template(template_file.read()) 
-                template_file.close()  
+                main_template_file = open(os.path.join(os.path.dirname(__file__), 'templates', main_template)) 
+                values['main_template'] = Template(main_template_file.read()) 
+                main_template_file.close()  
 
-            path = os.path.join(os.path.dirname(__file__), 'templates', templatefile)
+            path = os.path.join(os.path.dirname(__file__), 'templates', template_file)
             self.response.out.write(template.render(path, values))
         
         viewtime = (time.time() - self.starttime)

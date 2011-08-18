@@ -8,7 +8,7 @@ class Show(boRequestHandler):
     def get(self):
         self.view(
             page_title = 'dashboard',
-            templatefile = 'dashboard.html',
+            template_file = 'dashboard.html',
         )
 
 
@@ -20,7 +20,7 @@ class ShowMenu(boRequestHandler):
             bubbletypes = []
             for bt in db.Query(BubbleType).fetch(50):
                 bubbletypes.append({
-                    'link': '/bubble/type/%s' % bt.type,
+                    'link': '/bubble/%s' % bt.type,
                     'title': bt.displayname,
                 })
             menu.append({
@@ -32,7 +32,7 @@ class ShowMenu(boRequestHandler):
             persontypes = []
             for l in ['male', 'female']:
                 persontypes.append({
-                    'link': '/person/list/%s' % l,
+                    'link': '/person/%s' % l,
                     'title': Translate('gender_' + l),
                 })
             menu.append({
@@ -51,7 +51,7 @@ class ShowMenu(boRequestHandler):
             })
 
         self.view(
-            templatefile = 'main_menu.html',
+            template_file = 'main/menu.html',
             main_template = None,
             values = {
                 'menu': menu,

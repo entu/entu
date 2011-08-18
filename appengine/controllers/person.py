@@ -9,11 +9,15 @@ import cStringIO
 
 class ShowPersonList(boRequestHandler):
     def get(self, persontype):
+        if not self.authorize('bubbler'):
+            return
+
         self.view(
             page_title = 'persons',
-            templatefile = 'person/person.html',
+            template_file = 'main/list.html',
             values = {
-                'list_url': '/person/list/%s' % persontype
+                'list_url': '/person/%s' % persontype,
+                'content_url': '/person/show',
             }
         )
 
@@ -32,8 +36,8 @@ class ShowPersonList(boRequestHandler):
 
             image = person.photo_url(32)
             self.echo_json({
+                'id': person.key().id(),
                 'image': image if image else '/images/avatar.png',
-                'url': '#',
                 'title': person.displayname,
                 'info': person.primary_email,
             })
@@ -47,6 +51,27 @@ class ShowPersonList(boRequestHandler):
 
 
 class ShowPerson(boRequestHandler):
+    def get(self, person_id):
+        if not self.authorize('bubbler'):
+            return
+        
+        person = Person().get_by_id(int(person_id))
+        
+        self.view(
+            template_file = 'person/person_info.html',
+            values = {
+                'person': person,
+            }
+        )
+
+
+
+
+
+
+
+
+class ShowPerson1(boRequestHandler):
     def get(self, id):
 
         current_person = Person().current_s(self)
@@ -248,13 +273,12 @@ class ListedRating(boRequestHandler):
 
 def main():
     Route([
-            (r'/person/list/(.*)', ShowPersonList),
+            (r'/person/show/(.*)', ShowPerson),
             ('/person/set_role', SetRole),
             ('/person/person_ids', GetPersonIds),
             ('/person/person_keys', GetPersonKeys),
             (r'/person/grades_csv/(.*)', GradesCSV),
-            (r'/person/(.*)', ShowPerson),
-            (r'/person(.*)', ShowPerson),
+            (r'/person/(.*)', ShowPersonList),
         ])
 
 
