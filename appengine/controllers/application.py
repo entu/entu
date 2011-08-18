@@ -138,7 +138,7 @@ class ShowPersonRatings(boRequestHandler):
 
         grades = db.Query(Grade).filter('person',person.key()).fetch(1000)
         grades = sorted(grades, key=lambda k: k.datetime, reverse=True)
-        
+
         ratings = ListRatings()
         ratings.head = [
             Translate('bubble_displayname').encode("utf-8"),

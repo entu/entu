@@ -54,9 +54,9 @@ class ShowPerson(boRequestHandler):
     def get(self, person_id):
         if not self.authorize('bubbler'):
             return
-        
+
         person = Person().get_by_id(int(person_id))
-        
+
         self.view(
             template_file = 'person/person_info.html',
             values = {

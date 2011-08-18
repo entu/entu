@@ -51,9 +51,9 @@ class ShowBubble(boRequestHandler):
     def get(self, bubble_id):
         if not self.authorize('bubbler'):
             return
-        
+
         bubble = Bubble().get_by_id(int(bubble_id))
-        
+
         self.view(
             template_file = 'bubble/bubble_info.html',
             values = {

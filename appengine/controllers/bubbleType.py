@@ -85,7 +85,7 @@ class AddSubType(boRequestHandler):
         if parent and child:
             parent.add_allowed_subtype(child_key)
         return
-        
+
 #        types = {}
 #        types['allowed_subtypes'] = {}
 #        types['available_subtypes'] = {}

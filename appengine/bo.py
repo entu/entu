@@ -90,15 +90,15 @@ class boRequestHandler(webapp.RequestHandler):
             values['loginurl'] = users.create_login_url('/')
             values['logouturl'] = users.create_logout_url('/')
             values['version'] = self.request.environ["CURRENT_VERSION_ID"].split('.')[0]
-            
+
             if main_template:
-                main_template_file = open(os.path.join(os.path.dirname(__file__), 'templates', main_template)) 
-                values['main_template'] = Template(main_template_file.read()) 
-                main_template_file.close()  
+                main_template_file = open(os.path.join(os.path.dirname(__file__), 'templates', main_template))
+                values['main_template'] = Template(main_template_file.read())
+                main_template_file.close()
 
             path = os.path.join(os.path.dirname(__file__), 'templates', template_file)
             self.response.out.write(template.render(path, values))
-        
+
         viewtime = (time.time() - self.starttime)
         logging.debug('View: %ss' % round((viewtime - controllertime), 2))
         logging.debug('Total: %ss' % round(viewtime, 2))

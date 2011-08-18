@@ -47,7 +47,7 @@ class ShowRating(boRequestHandler):
                     leecher.grade_displayname = gd.displayname
                     leecher.grade_is_locked = grade.is_locked
                     break
-            
+
             leecher.subgrades = []
             for subgrade in subgrades:
                 if subgrade.person.key() == leecher.key():

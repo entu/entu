@@ -96,9 +96,9 @@ class PRUpdate(boRequestHandler): # copy roles from PersonRole
         for pr in PersonRole().all():
             if not pr.person.roles:
                 pr.person.roles = []
-            
+
             pr.person.roles = AddToList(pr.role.key(), pr.person.roles)
-            
+
             pr.person.put()
 
 

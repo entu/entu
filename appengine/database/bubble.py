@@ -85,7 +85,7 @@ class BubbleType(ChangeLogModel):
                 self.allowed_subtypes = RemoveFromList(type, self.allowed_subtypes)
                 self.put()
                 return self.AllowedSubtypes
-            
+
         return AllowedSubtypes
 
     @property
@@ -408,7 +408,7 @@ class Bubble(ChangeLogModel):
         return False
 
 
-    # Could we add person to bubble.leechers? 
+    # Could we add person to bubble.leechers?
     def is_valid_leecher(self, person_key):
         if leecher in self.leechers:
             return False

@@ -14,7 +14,7 @@
 
         items = [];
         get_list();
-        
+
         $('#searchbox').keyup(function() {
             delay(function(){
                 get_list();
@@ -39,16 +39,28 @@
                 append_list();
             }, 'json');
         }
-        
+
         function append_list() {
             max = $('#list_items').height() / 30;
             for (i=0;i<=max;i++) {
-                alert(items.length);
-                get_item(items[i]);
-                items.remove(items[i]);
+                $.post('{{ list_url }}', {key: items[0]}, function(item) {
+                    if(item.image) {
+                        image = '<img src="'+item.image+'" />';
+                    } else {
+                        image = '';
+                    }
+                    if(item.info) {
+                        info = '<span>'+item.info+'</span>';
+                    } else {
+                        info = '';
+                    }
+                    $('#list_items').append('<a href="#'+item.id+'">'+image+item.title+info+'</a>');
+                }, 'json');
+                items.splice(0,1);
+                if (items.length < 1) break;
             }
         }
-        
+
         function get_item(key) {
             $.post('{{ list_url }}', {key: key}, function(item) {
                 if(item.image) {
@@ -66,15 +78,18 @@
         }
 
         $('#list_items a').live('click', function() {
+            $('#list_content .spinner').show();
+            $('#list_content div').html('');
             $('#list_items a.active').removeClass('active');
             item = $(this);
             item.addClass('active')
             $.get('{{ content_url }}/'+item.attr('href').substring(1), function(html) {
-                $('#list_content').html(html);
+                $('#list_content .spinner').hide();
+                $('#list_content div').html(html);
             });
             position = $('#list_items a:last').position();
         });
-        
+
         $('#list_items').scroll(function() {
             list = $(this);
             position = $('#list_items a:last').position();
@@ -89,5 +104,7 @@
 
 {% block content %}
 <section id="list_content">
+    <img src="/images/spinner_white.gif" class="spinner" style="display:none;" />
+    <div></div>
 </section>
 {% endblock %}
