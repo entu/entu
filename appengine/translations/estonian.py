@@ -3,10 +3,37 @@
 def translation():
     return {
         '':                     '',
+        'search':               'Otsi',
+        'search_found':         'Leiti',
+
+        'language':             'Keel',
+        'language_english':     'English',
+        'language_estonian':    'Eesti keel',
+
+        'menu_bubbles':         'Õpimullid',
+        'menu_persons':         'Persoonid',
+        'menu_admin':           'Administratsioon',
+        'menu_feedback':        'Tagasiside',
+        'menu_logout':          'Välju',
+
+        'page_dashboard':       'Armatuurlaud',
+        'page_preferences':     'Seaded',
+        'page_bubbles':         'Õpimullid',
+        'page_persons':         'Persoonid',
+        'page_feedback':        'Tagasiside',
+
+        'gender':               'Sugu',
+        'gender_male':          'Mees',
+        'gender_female':        'Naine',
+
+
+
+
+
+
+
         'add':                  'Lisa',
         'add_new':              'Lisa uus',
-        'administration':       'Administratsioon',
-        'artun.ee':             'Eesti Kunstiakadeemia',
         'avatar':               'Avatar',
         'calendar':             'Kalender',
         'classifiers':          'Klassifikaatorid',
@@ -17,7 +44,6 @@ def translation():
         'contacts':             'Kontaktid',
         'curriculum':           'Õppekava',
         'curriculums':          'Õppekavad',
-        'dashboard':            'Armatuurlaud',
         'date':                 'Kuupäev',
         'degree':               'Kraad',
         'delete':               'Kustuta',
@@ -35,10 +61,6 @@ def translation():
         'form_of_training':     'Õppevorm',
         'general_questions':    'Üldised küsimused',
         'inbox':                'Postkast',
-        'language':             'Keel',
-        'lang_english':         'English',
-        'lang_estonian':        'Eesti keel',
-        'lang_russian':         'Русский язык',
         'level_of_education':   'Õppetase',
         'list_days':            'pühapäev,esmaspäev,teisipäev,kolmapäev,neljapäev,reede,laupäev',
         'list_months':          'jaanuar,veebruar,märts,aprill,mai,juuni,juuli,august,september,oktoober,november,detsember',
@@ -55,7 +77,6 @@ def translation():
         'nominal_years':        'Nominaalaeg õppeaastates',
         'old_ois':              'Vana ÕIS',
         'persons':              'Inimesed',
-        'preferences':          'Seaded',
         'question':             'Küsimus',
         'questionaries':        'Küsimustikud',
         'questionary':          'Küsimustik',
@@ -98,9 +119,6 @@ def translation():
         'application_personal_desc': 'Sisesta enda isiku- ja kontaktandmed ning lisa dokumendifoto',
         'idcode':               'Isikukood',
         'birthdate':            'Sünnipäev',
-        'gender':               'Sugu',
-        'gender_male':          'Mees',
-        'gender_female':        'Naine',
         'exam_groups':          'Eksamivoorud',
         'photo':                'Foto',
         'documents':            'Dokumendid',
@@ -202,7 +220,6 @@ def translation():
 
 
         'bubble':                   'Õpimull',
-        'bubbles':                  'Õpimullid',
         'bubble_print':             'Kinnita hinded ja trüki protokoll',
         'bubble_badge':             'Auaste',
         'bubble_description':       'Kirjeldus',

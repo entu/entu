@@ -13,7 +13,7 @@ class ShowPersonList(boRequestHandler):
             return
 
         self.view(
-            page_title = 'persons',
+            page_title = 'page_persons',
             template_file = 'main/list.html',
             values = {
                 'list_url': '/person/%s' % persontype,

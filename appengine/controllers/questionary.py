@@ -4,26 +4,68 @@ from bo import *
 from database.feedback import *
 from datetime import datetime
 
+
 class ShowQuestionariesList(boRequestHandler):
     def get(self):
-        if self.authorize('questionary'):
-            q = db.Query(Questionary).order('-start_date').fetch(1000)
-            self.view('questionary', 'questionary/questionary_list.html', {
-                'questionaries': q,
+        if not self.authorize('questionary'):
+            return
+
+        self.view(
+            page_title = 'page_feedback',
+            template_file = 'main/list.html',
+            values = {
+                'list_url': '/questionary',
+                'content_url': '/questionary/show',
+            }
+        )
+
+    def post(self):
+        if not self.authorize('questionary'):
+            return
+
+        key = self.request.get('key').strip()
+        search = self.request.get('search').strip()
+
+        if key:
+            questionary = Questionary().get(key)
+
+            self.echo_json({
+                'id': questionary.key().id(),
+                'image': None,
+                'title': questionary.displayname,
+                'info': questionary.displaydate,
             })
+
+        else:
+            if search:
+                keys = [str(k) for k in list(db.Query(Questionary, keys_only=True).order('-start_date'))]
+            else:
+                keys = [str(k) for k in list(db.Query(Questionary, keys_only=True).order('-start_date'))]
+            self.echo_json({'keys': keys})
 
 
 class ShowQuestionary(boRequestHandler):
-    def get(self, key):
-        if self.authorize('questionary'):
-            if key:
-                questionary = db.get(key)
-            else:
-                questionary = None
+    def get(self, questionary_id):
+        if not self.authorize('questionary'):
+            return
 
-            self.view('questionary', 'questionary/questionary.html', {
+        questionary = Questionary().get_by_id(int(questionary_id))
+
+        self.view(
+            template_file = 'questionary/questionary_info.html',
+            values = {
                 'questionary': questionary,
-            })
+            }
+        )
+
+
+
+
+
+
+
+
+
 
     def post(self, key):
         if self.authorize('questionary'):
@@ -189,13 +231,13 @@ class DeleteQuestion(boRequestHandler):
 def main():
     Route([
             ('/questionary', ShowQuestionariesList),
+            (r'/questionary/show/(.*)', ShowQuestionary),
             ('/questionary/sort/(.*)', SortQuestionary),
             ('/questionary/delete/(.*)', DeleteQuestionary),
             ('/questionary/results/(.*)', ShowQuestionaryResults),
             ('/questionary/results2/(.*)', ShowQuestionaryResults2),
             ('/questionary/question/delete/(.*)', DeleteQuestion),
             ('/questionary/question', EditQuestion),
-            ('/questionary/(.*)', ShowQuestionary),
         ])
 
 

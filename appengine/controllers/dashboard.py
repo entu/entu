@@ -7,7 +7,7 @@ from database.bubble import *
 class Show(boRequestHandler):
     def get(self):
         self.view(
-            page_title = 'dashboard',
+            page_title = 'page_dashboard',
             template_file = 'dashboard.html',
         )
 
@@ -24,7 +24,7 @@ class ShowMenu(boRequestHandler):
                     'title': bt.displayname,
                 })
             menu.append({
-                'title': Translate('bubbles'),
+                'title': Translate('menu_bubbles'),
                 'childs': bubbletypes
             })
 
@@ -36,17 +36,15 @@ class ShowMenu(boRequestHandler):
                     'title': Translate('gender_' + l),
                 })
             menu.append({
-                'title': Translate('persons'),
+                'title': Translate('menu_persons'),
                 'childs': persontypes
             })
 
         if self.authorize('questionary') or self.authorize('reception'):
             menu.append({
-                'title': Translate('administration'),
+                'title': Translate('menu_admin'),
                 'childs': [
-                    {'link': '/reception', 'title': Translate('reception')},
-                    {'link': '/reception/stats', 'title': Translate('statistics')},
-                    {'link': '/questionary', 'title': Translate('questionaries')},
+                    {'link': '/questionary', 'title': Translate('menu_feedback')},
                 ]
             })
 

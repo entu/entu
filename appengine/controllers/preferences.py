@@ -6,7 +6,7 @@ from database.person import *
 
 class ShowPreferences(boRequestHandler):
     def get(self):
-        self.view('preferences', 'preferences.html', {
+        self.view('page_preferences', 'preferences.html', {
             'person': Person().current,
             'preferences': UserPreferences().current,
             'timezones': pytz.common_timezones,

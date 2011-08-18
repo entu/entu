@@ -15,7 +15,7 @@ class ShowBubbleList(boRequestHandler):
             return
 
         self.view(
-            page_title = 'bubbles',
+            page_title = 'page_bubbles',
             template_file = 'main/list.html',
             values = {
                 'list_url': '/bubble/%s' % bubbletype,

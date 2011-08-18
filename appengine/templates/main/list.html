@@ -4,6 +4,7 @@
 <section id="list">
     <div id="list_search">
         <input type="search" id="searchbox" placeholder="{{ str.search }}" />
+        <span></span>
     </div>
     <div id="list_items">
     </div>
@@ -35,6 +36,7 @@
             $('#list_items').html('');
             $.post('{{ list_url }}', {search: $('#searchbox').val()}, function(list) {
                 items = list.keys;
+                $('#list_search span').html('{{ str.search_found }} '+items.length);
                 $('#list .spinner').hide();
                 append_list();
             }, 'json');
@@ -43,6 +45,7 @@
         function append_list() {
             max = $('#list_items').height() / 30;
             for (i=0;i<=max;i++) {
+                if (items.length < 1) break;
                 $.post('{{ list_url }}', {key: items[0]}, function(item) {
                     if(item.image) {
                         image = '<img src="'+item.image+'" />';
@@ -57,7 +60,6 @@
                     $('#list_items').append('<a href="#'+item.id+'">'+image+item.title+info+'</a>');
                 }, 'json');
                 items.splice(0,1);
-                if (items.length < 1) break;
             }
         }
 
