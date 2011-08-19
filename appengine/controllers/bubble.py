@@ -114,7 +114,7 @@ class ShowBubble1(boRequestHandler):
             last_change = bubble.last_change
             if last_change:
                 if last_change.user:
-                    changer = db.Query(Person).filter('apps_username', last_change.user).get()
+                    changer = db.Query(Person).filter('user', last_change.user).get()
                     if changer:
                         changeinfo = Translate('bubble_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
 

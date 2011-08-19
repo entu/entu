@@ -30,16 +30,22 @@ class ShowPersonList(boRequestHandler):
 
         if key:
             person = Person().get(key)
-            if not person.sort:
-                person.sort = StringToSortable(person.displayname)
-                person.put()
+            
+            #if hasattr(person, '__searchable_text_index'):
+            #    delattr(person, '__searchable_text_index')
+            #if not person.sort:
+            #    person.sort = StringToSortable(person.displayname)
+            #    person.put()
+            #if person.apps_username:
+            #    person.user = person.apps_username
+            #    person.put()
 
             image = person.photo_url(32)
             self.echo_json({
                 'id': person.key().id(),
                 'image': image if image else '/images/avatar.png',
                 'title': person.displayname,
-                'info': person.primary_email,
+                'info': person.user,
             })
 
         else:
@@ -112,7 +118,7 @@ class ShowPerson1(boRequestHandler):
         last_change = person.last_change
         if last_change:
             if last_change.user:
-                changer = db.Query(Person).filter('apps_username', last_change.user).get()
+                changer = db.Query(Person).filter('user', last_change.user).get()
                 if changer:
                     changeinfo = Translate('person_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
 

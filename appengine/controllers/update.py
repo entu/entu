@@ -42,15 +42,6 @@ class Sort_est2(boRequestHandler):
         self.echo('B:' + str(db.Query(Bubble).filter('model_version', 'B').count(limit=100000)))
 
 
-class PersonUser(boRequestHandler):
-    def get(self):
-        for p in db.Query(Person).filter('model_version', 'A').fetch(1000):
-            if p.apps_username and not p.user:
-                p.user = users.User(p.apps_username)
-            p.model_version = 'B'
-            p.put()
-
-
 class PersonSearchable(boRequestHandler):
     def get(self):
         for p in db.Query(Person).filter('model_version != ', 'searchable').fetch(100):
@@ -109,7 +100,6 @@ def main():
             ('/update', Update),
             ('/update/sort', Sort_est),
             ('/update/sort2', Sort_est2),
-            ('/update/user', PersonUser),
             ('/update/user2', PersonUser2),
             ('/update/grade', GradeI),
             ('/update/log3', Log),

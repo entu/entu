@@ -37,7 +37,7 @@ class ShowApplicationList(boRequestHandler):
 
             for leecher in leechers:
                 leecher.is_new = True
-                accesslog = db.Query(AccessLog).filter('user', users.User(person.apps_username)).filter('path', '/reception/application/' + str(leecher.key())).order('-datetime').get()
+                accesslog = db.Query(AccessLog).filter('user', users.User(person.user)).filter('path', '/reception/application/' + str(leecher.key())).order('-datetime').get()
                 if accesslog:
                     leecher.access = accesslog.datetime
                     if leecher.changed < accesslog.datetime:
