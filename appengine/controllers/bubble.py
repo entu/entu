@@ -32,6 +32,10 @@ class ShowBubbleList(boRequestHandler):
 
         if key:
             bubble = Bubble().get(key)
+            if not bubble.sort_estonian:
+                bubble.sort_estonian = StringToSortable(bubble.displayname)
+                bubble.put()
+
             self.echo_json({
                 'id': bubble.key().id(),
                 'image': None,

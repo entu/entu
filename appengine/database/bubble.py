@@ -142,8 +142,8 @@ class Bubble(ChangeLogModel):
     state                   = db.StringProperty()
     is_deleted              = db.BooleanProperty(default=False)
     created_datetime        = db.DateTimeProperty(auto_now_add=True)
-    sort_estonian           = db.StringProperty()
-    sort_english            = db.StringProperty()
+    sort_estonian           = db.StringProperty(default='')
+    sort_english            = db.StringProperty(default='')
     model_version           = db.StringProperty(default='A')
 
     @property
