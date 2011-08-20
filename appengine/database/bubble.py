@@ -85,7 +85,7 @@ class BubbleType(ChangeLogModel):
                 self.allowed_subtypes = RemoveFromList(type, self.allowed_subtypes)
                 self.put()
                 return self.AllowedSubtypes
-            
+
         return AllowedSubtypes
 
     @property
@@ -142,8 +142,8 @@ class Bubble(ChangeLogModel):
     state                   = db.StringProperty()
     is_deleted              = db.BooleanProperty(default=False)
     created_datetime        = db.DateTimeProperty(auto_now_add=True)
-    sort_estonian           = db.StringProperty()
-    sort_english            = db.StringProperty()
+    sort_estonian           = db.StringProperty(default='')
+    sort_english            = db.StringProperty(default='')
     model_version           = db.StringProperty(default='A')
 
     @property
@@ -408,7 +408,7 @@ class Bubble(ChangeLogModel):
         return False
 
 
-    # Could we add person to bubble.leechers? 
+    # Could we add person to bubble.leechers?
     def is_valid_leecher(self, person_key):
         if leecher in self.leechers:
             return False
@@ -440,8 +440,8 @@ class Bubble(ChangeLogModel):
 
 
     def add_leecher(self, person_key):
-        if not self.is_valid_leecher(person_key):
-            return False
+        #if not self.is_valid_leecher(person_key):
+        #    return False
 
         self.leechers = AddToList(person_key, self.leechers)
         self.put()

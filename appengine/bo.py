@@ -10,6 +10,8 @@ from google.appengine.ext.webapp import template
 from google.appengine.ext.webapp import util
 from django.core.validators import email_re
 from django.template.defaultfilters import striptags
+from django.template import Template
+from django.conf import settings
 from django.utils import simplejson
 
 from datetime import timedelta
@@ -44,16 +46,19 @@ class boRequestHandler(webapp.RequestHandler):
         else:
             if controller and users.is_current_user_admin() == False:
                 rights = []
-                for role in Person().current.roles2:
-                    rights = rights + role.rights
-                if controller in rights:
-                    return True
+                if Person().current.roles2:
+                    for role in Person().current.roles2:
+                        rights = rights + role.rights
+                    if controller in rights:
+                        return True
+                    else:
+                        return False
                 else:
                     return False
             else:
                 return True
 
-    def view(self, page_title, templatefile, values={}):
+    def view(self, page_title = '', template_file = None, values={}, main_template='main/index.html'):
         controllertime = (time.time() - self.starttime)
         logging.debug('Controller: %ss' % round(controllertime, 2))
 
@@ -67,8 +72,8 @@ class boRequestHandler(webapp.RequestHandler):
         from database.person import *
 
         browser = str(self.request.headers['User-Agent'])
-        if browser.find('MSIE 5') > -1 or browser.find('MSIE 6') > -1 or browser.find('MSIE 7') > -1:
-            path = os.path.join(os.path.dirname(__file__), 'templates', 'brausererror.html')
+        if browser.find('MSIE 5') > -1 or browser.find('MSIE 6') > -1 or browser.find('MSIE 7') > -1 or browser.find('MSIE 8') > -1:
+            path = os.path.join(os.path.dirname(__file__), 'errors', 'brauser.html')
             self.response.out.write(template.render(path, {}))
         else:
             values['str'] = Translate()
@@ -85,8 +90,15 @@ class boRequestHandler(webapp.RequestHandler):
             values['loginurl'] = users.create_login_url('/')
             values['logouturl'] = users.create_logout_url('/')
             values['version'] = self.request.environ["CURRENT_VERSION_ID"].split('.')[0]
-            path = os.path.join(os.path.dirname(__file__), 'templates', templatefile)
+
+            if main_template:
+                main_template_file = open(os.path.join(os.path.dirname(__file__), 'templates', main_template))
+                values['main_template'] = Template(main_template_file.read())
+                main_template_file.close()
+
+            path = os.path.join(os.path.dirname(__file__), 'templates', template_file)
             self.response.out.write(template.render(path, values))
+
         viewtime = (time.time() - self.starttime)
         logging.debug('View: %ss' % round((viewtime - controllertime), 2))
         logging.debug('Total: %ss' % round(viewtime, 2))

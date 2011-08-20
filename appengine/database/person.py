@@ -28,8 +28,9 @@ class Role(ChangeLogModel):
 
 
 class Person(ChangeLogModel):
-    #user                    = db.UserProperty()
-    apps_username           = db.StringProperty() # forename.surname@domain
+    created                 = db.DateTimeProperty(auto_now_add=True)
+    user                    = db.StringProperty()
+    apps_username           = db.StringProperty() # OBSOLETE
     email                   = db.StringProperty()
     password                = db.StringProperty()
     forename                = db.StringProperty()
@@ -37,7 +38,6 @@ class Person(ChangeLogModel):
     idcode                  = db.StringProperty()
     gender                  = db.StringProperty(choices=['', 'male', 'female'])
     birth_date              = db.DateProperty()
-    created                 = db.DateTimeProperty(auto_now_add=True)
     have_been_subsidised    = db.BooleanProperty(default=False)
     roles                   = db.ListProperty(db.Key)
     current_role            = db.ReferenceProperty(Role, collection_name='persons')
@@ -46,6 +46,7 @@ class Person(ChangeLogModel):
     seeder                  = db.ListProperty(db.Key)
     leecher                 = db.ListProperty(db.Key)
     search_names            = db.StringListProperty()
+    sort                    = db.StringProperty(default='')
 
 
     @property
@@ -63,8 +64,8 @@ class Person(ChangeLogModel):
 
     @property
     def primary_email(self):
-        if self.apps_username:
-            return self.apps_username
+        if self.user:
+            return self.user
         if self.emails:
             if len(self.emails) > 0:
                 return self.emails[0]
@@ -74,8 +75,8 @@ class Person(ChangeLogModel):
         emails = []
         if self.email:
             emails = AddToList(self.email, emails)
-        if self.apps_username:
-            emails = AddToList(self.apps_username, emails)
+        if self.user:
+            emails = AddToList(self.user, emails)
         for contact in db.Query(Contact).ancestor(self).filter('type', 'email').fetch(1000):
             emails = AddToList(contact.value, emails)
         return emails
@@ -83,6 +84,12 @@ class Person(ChangeLogModel):
     @property
     def photo(self):
         return db.Query(Document).filter('types', 'person_photo').filter('entities', self.key()).get()
+
+    def photo_url(self, size=None, crop=True):
+        if self.photo:
+            s = '/' + str(size) if size else ''
+            c = '/c' if crop else ''
+            return self.photo.url + s + c
 
     @property
     def age(self):
@@ -117,10 +124,10 @@ class Person(ChangeLogModel):
     def current(self, web=None):
         user = users.get_current_user()
         if user:
-            person = db.Query(Person).filter('apps_username', user.email()).get()
+            person = db.Query(Person).filter('user', user.email()).get()
             if not person:
                 person = Person()
-                person.apps_username = user.email()
+                person.user = user.email()
                 person.idcode = 'guest'
                 person.put()
             return person

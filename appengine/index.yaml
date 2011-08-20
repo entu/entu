@@ -36,14 +36,13 @@ indexes:
 
 - kind: Person
   properties:
-  - name: forename
-  - name: surname
+  - name: gender
+  - name: sort
 
 - kind: Person
   properties:
   - name: search_names
-  - name: forename
-  - name: surname
+  - name: sort
 
 
 

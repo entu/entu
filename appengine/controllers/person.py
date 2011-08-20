@@ -7,35 +7,77 @@ import csv
 import cStringIO
 
 
-class ShowSignin(boRequestHandler):
-    def get(self):
+class ShowPersonList(boRequestHandler):
+    def get(self, persontype):
+        if not self.authorize('bubbler'):
+            return
 
-        user = users.get_current_user()
-        if user:
-            self.redirect(users.create_logout_url('/person/signin'))
+        self.view(
+            page_title = 'page_persons',
+            template_file = 'main/list.html',
+            values = {
+                'list_url': '/person/%s' % persontype,
+                'content_url': '/person/show',
+            }
+        )
 
-        sess = Session(self, timeout=86400)
-        sess.invalidate()
+    def post(self, persontype):
+        if not self.authorize('bubbler'):
+            return
 
-        self.view('person', 'person/signup.html', {
-            'account_login_url': users.create_login_url('/person'),
-        })
+        key = self.request.get('key').strip()
+        search = self.request.get('search').strip()
 
-    def post(self):
+        if key:
+            person = Person().get(key)
+            
+            #if hasattr(person, '__searchable_text_index'):
+            #    delattr(person, '__searchable_text_index')
+            #if not person.sort:
+            #    person.sort = StringToSortable(person.displayname)
+            #    person.put()
+            #if person.apps_username:
+            #    person.user = person.apps_username
+            #    person.put()
 
-        email = self.request.get('email').strip()
-        password = self.request.get('applicant_pass').strip()
+            image = person.photo_url(32)
+            self.echo_json({
+                'id': person.key().id(),
+                'image': image if image else '/images/avatar.png',
+                'title': person.displayname,
+                'info': person.user,
+            })
 
-        if password:
-            p = db.Query(Person).filter('password', password).get()
-            if p:
-                sess = Session(self, timeout=86400)
-                sess['application_person_key'] = p.key()
-                sess.save()
-                self.response.out.write('OK')
+        else:
+            if search:
+                keys = [str(k) for k in list(db.Query(Person, keys_only=True).filter('search_names', search).order('sort'))]
+            else:
+                keys = [str(k) for k in list(db.Query(Person, keys_only=True).filter('gender', persontype).order('sort'))]
+            self.echo_json({'keys': keys})
 
 
 class ShowPerson(boRequestHandler):
+    def get(self, person_id):
+        if not self.authorize('bubbler'):
+            return
+
+        person = Person().get_by_id(int(person_id))
+
+        self.view(
+            template_file = 'person/person_info.html',
+            values = {
+                'person': person,
+            }
+        )
+
+
+
+
+
+
+
+
+class ShowPerson1(boRequestHandler):
     def get(self, id):
 
         current_person = Person().current_s(self)
@@ -47,7 +89,7 @@ class ShowPerson(boRequestHandler):
             id = current_person.key().id()
 
         can_search = True
-        
+
         try:
             authorized = self.authorize('reception')
         except AttributeError: # AttributeError: 'NoneType' object has no attribute 'roles2'
@@ -76,13 +118,13 @@ class ShowPerson(boRequestHandler):
         last_change = person.last_change
         if last_change:
             if last_change.user:
-                changer = db.Query(Person).filter('apps_username', last_change.user).get()
+                changer = db.Query(Person).filter('user', last_change.user).get()
                 if changer:
                     changeinfo = Translate('person_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
 
         grades = db.Query(Grade).filter('person',person.key()).fetch(1000)
         grades = sorted(grades, key=lambda k: k.datetime)
-        
+
         ratings = ListRatings()
         ratings.head = [
             Translate('bubble_displayname').encode("utf-8"),
@@ -187,9 +229,9 @@ class GetPersonKeys(boRequestHandler):
         }
 
         self.echo_json(respond)
-        
 
-#CSV fail hinnetest 
+
+#CSV fail hinnetest
 
 class GradesCSV(boRequestHandler):
     def get(self, person_id):
@@ -214,7 +256,7 @@ class GradesCSV(boRequestHandler):
                 grade.equivalent,
                 grade.displaydate.encode("utf-8"),
             ])
-        
+
 
         self.header('Content-Type', 'text/csv; charset=utf-8')
         self.header('Content-Disposition', 'attachment; filename=' + unicode(person.displayname.encode("utf-8"), errors='ignore') + '.csv')
@@ -237,13 +279,12 @@ class ListedRating(boRequestHandler):
 
 def main():
     Route([
-            ('/person/signin', ShowSignin),
+            (r'/person/show/(.*)', ShowPerson),
             ('/person/set_role', SetRole),
             ('/person/person_ids', GetPersonIds),
             ('/person/person_keys', GetPersonKeys),
             (r'/person/grades_csv/(.*)', GradesCSV),
-            (r'/person/(.*)', ShowPerson),
-            (r'/person(.*)', ShowPerson),
+            (r'/person/(.*)', ShowPersonList),
         ])
 
 

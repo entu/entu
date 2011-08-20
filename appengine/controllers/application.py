@@ -1,5 +1,4 @@
 from google.appengine.api import users
-from django.utils import simplejson
 import datetime
 import random
 import string
@@ -57,7 +56,7 @@ class ShowSignin(boRequestHandler):
             if CheckMailAddress(email):
                 p = db.Query(Person).filter('email', email).get()
                 if not p:
-                    p = db.Query(Person).filter('apps_username', email).get()
+                    p = db.Query(Person).filter('user', email).get()
                     if not p:
                         p = Person()
                         p.email = email
@@ -133,13 +132,13 @@ class ShowPersonRatings(boRequestHandler):
         last_change = person.last_change
         if last_change:
             if last_change.user:
-                changer = db.Query(Person).filter('apps_username', last_change.user).get()
+                changer = db.Query(Person).filter('user', last_change.user).get()
                 if changer:
                     changeinfo = Translate('person_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
 
         grades = db.Query(Grade).filter('person',person.key()).fetch(1000)
         grades = sorted(grades, key=lambda k: k.datetime, reverse=True)
-        
+
         ratings = ListRatings()
         ratings.head = [
             Translate('bubble_displayname').encode("utf-8"),
@@ -243,7 +242,7 @@ class ShowApplication(boRequestHandler):
                 p.remove_leecher(db.Key(key))
 
             respond['key'] = key
-            self.response.out.write(simplejson.dumps(respond))
+            self.echo_json(respond)
 
 
 class EditPerson(boRequestHandler):
@@ -273,7 +272,7 @@ class EditPerson(boRequestHandler):
 
             respond['application_completed_info'] = CheckApplication(p)
 
-            self.response.out.write(simplejson.dumps(respond))
+            self.echo_json(respond)
 
 
 class EditContact(boRequestHandler):
@@ -305,7 +304,7 @@ class EditContact(boRequestHandler):
             respond['key'] = response_key
 
             p.put()
-            self.response.out.write(simplejson.dumps(respond))
+            self.echo_json(respond)
 
 
 class EditCV(boRequestHandler):
@@ -331,7 +330,7 @@ class EditCV(boRequestHandler):
             respond['key'] = str(cv.key())
             respond['application_completed_info'] = CheckApplication(p)
 
-            self.response.out.write(simplejson.dumps(respond))
+            self.echo_json(respond)
 
 
 class StateExam(boRequestHandler):
@@ -373,7 +372,7 @@ class StateExam(boRequestHandler):
 
             respond['application_completed_info'] = CheckApplication(p)
 
-            self.response.out.write(simplejson.dumps(respond))
+            self.echo_json(respond)
 
 
 class PostMessage(boRequestHandler):
@@ -415,7 +414,7 @@ class PostMessage(boRequestHandler):
                 respond['person'] = mes.person.displayname
                 respond['message'] = mes.text
 
-                self.response.out.write(simplejson.dumps(respond))
+                self.echo_json(respond)
 
 
 def main():

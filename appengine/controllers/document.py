@@ -1,7 +1,6 @@
 from google.appengine.ext import blobstore
 from google.appengine.api import images
 from google.appengine.ext.webapp import blobstore_handlers
-from django.utils import simplejson
 import datetime
 import urllib
 
@@ -63,7 +62,7 @@ class UploadDocument(blobstore_handlers.BlobstoreUploadHandler):
                 'visibility': visibility,
             }
 
-            self.response.out.write(simplejson.dumps(respond))
+            self.echo_json(respond)
 
 
 class UpdateDocumentData(boRequestHandler):
