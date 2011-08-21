@@ -64,7 +64,7 @@ class ShowPerson(boRequestHandler):
         person = Person().get_by_id(int(person_id))
 
         self.view(
-            template_file = 'person/person_info.html',
+            template_file = 'person/info.html',
             values = {
                 'person': person,
             }

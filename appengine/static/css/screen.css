@@ -1,6 +1,7 @@
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-weight:inherit;font-style:inherit;font-size:100%;font-family:inherit;vertical-align:baseline;list-style:none;}
 header,footer,aside,nav,article,section{display:block;}
 body{font-family:HelveticaNeue-Regular,'Helvetica Neue',Helvetica,Arial,Tahoma,Verdana,sans-serif;}
+h1{margin-bottom:20px;font-size:18px;font-weight:bold;letter-spacing:1px;color:#006600;}
 a,a:active,a:visited{color:#454a4e;}
 a:hover{text-decoration:underline;}
 img.spinner{margin:100px auto;display:block;}
@@ -18,4 +19,5 @@ img.spinner{margin:100px auto;display:block;}
 #list_items{width:300px;position:fixed;top:49px;bottom:0px;overflow-x:hidden;overflow-y:auto;background:#FBFBFB;}#list_items a,#list_items a:active,#list_items a:visited{display:block;padding:10px;min-height:32px;font-size:13px;border-bottom:1px solid #b9b9b9;text-decoration:none;font-weight:bold;}#list_items a img,#list_items a:active img,#list_items a:visited img{float:left;width:32px;height:32px;margin:0px 10px 10px 0px;background:#FFFFFF;}
 #list_items a span,#list_items a:active span,#list_items a:visited span{display:block;padding-top:3px;font-size:11px;font-weight:normal;color:gray;}
 #list_items a.active{background:#b9b9b9;background:-moz-linear-gradient(top, #b9b9b9 0%, #eeeeee 3%, #eeeeee 97%, #b9b9b9 100%);background:-webkit-gradient(linear, left top, left bottom, color-stop(0%, #b9b9b9), color-stop(3%, #eeeeee), color-stop(97%, #eeeeee), color-stop(100%, #b9b9b9));background:-webkit-linear-gradient(top, #b9b9b9 0%, #eeeeee 3%, #eeeeee 97%, #b9b9b9 100%);background:-o-linear-gradient(top, #b9b9b9 0%, #eeeeee 3%, #eeeeee 97%, #b9b9b9 100%);background:-ms-linear-gradient(top, #b9b9b9 0%, #eeeeee 3%, #eeeeee 97%, #b9b9b9 100%);background:linear-gradient(top, #b9b9b9 0%, #eeeeee 3%, #eeeeee 97%, #b9b9b9 100%);}
-#list_content{margin-left:301px;padding:10px;}
+#list_content{margin-left:301px;padding:15px;}
+#person_photo{float:right;width:150px;height:150px;padding:5px;border:1px solid #b9b9b9;box-shadow:rgba(0, 0, 0, 0.4) 1px 1px 4px;-moz-box-shadow:rgba(0, 0, 0, 0.4) 1px 1px 4px;-webkit-box-shadow:rgba(0, 0, 0, 0.4) 1px 1px 4px;}
