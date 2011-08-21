@@ -25,6 +25,10 @@
             }, 1000 );
         });
 
+        $('#searchbox').focus(function() {
+            $(this).select();
+        });
+
         var delay = (function(){
             var timer = 0;
             return function(callback, ms){
