@@ -24,7 +24,7 @@ class ShowQuestionariesList(boRequestHandler):
             return
 
         key = self.request.get('key').strip()
-        search = self.request.get('search').strip()
+        search = self.request.get('search').strip().lower()
 
         if key:
             questionary = Questionary().get(key)
