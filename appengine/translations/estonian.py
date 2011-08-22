@@ -26,6 +26,11 @@ def translation():
         'gender_male':          'Mees',
         'gender_female':        'Naine',
 
+        'gapps_create_account': 'Loo kasutaja <b>%s</b>...',
+        'gapps_user_exist':     'Kasutaja <b>%s</b> on olemas. Seo see persooniga...',
+        'gapps_nickname_exist': 'Hüüdnimi %(nick)s on olemas. Seo kasutaja <b>%(user)s</b> persooniga...',
+        'gapps_account_created_subject': 'EKA konto',
+        'gapps_account_created_message': 'Valmis on saanud sinu uus artun.ee konto.<br /><br />See saab olema sinu esmaseks kontaktiks EKA juures - kooli uudised ja õppeinfo hakkab tulema just sellele aadressile.<br /><br />Esimese sammuna vaheta ajutine parool e-posti kaudu http://gmail.artun.ee<br /><br />Uutele teenustele pääsed ligi<br />E-mail: http://gmail.artun.ee<br />Kalender: http://calendar.artun.ee<br />Dokumendid: http://docs.artun.ee<br />Õppeinfo: http://ois.artun.ee<br />Moodle: http://moodle.artun.ee<br /><br />Su kasutajanimi on %(user)s<br />Sinu ajutine parool on %(password)s<br />E-posti aadress on %(email)s<br /><br />Vaata kindlasti ka KKK-d aadressil http://it.artun.ee/',
 
 
 

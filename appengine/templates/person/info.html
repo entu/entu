@@ -11,18 +11,33 @@
 
             <label for="person_birthdate" style="display:block;">{{ str.person_birthdate }}:</label>
             <input type="text" id="person_birthdate" name="person_birthdate" class="autosave_date" value="{{ person.birth_date|date:"d.m.Y" }}" maxlength="500" style="width:110px; margin-bottom:15px;" disabled />
-            
+
             <label for="person_idcode" style="display:block;">{{ str.idcode }}:</label>
             <input type="text" id="person_idcode" name="person_idcode" class="autosave" value="{{ person.idcode|default:""|escape }}" maxlength="500" style="width:110px; margin-bottom:15px;" disabled />
 
         </div>
     </div>
 </div>
+<a href="javascript:void(0);" id="gapps_account"></a>
 
 <script type="text/javascript">
     $(document).ready(function(){
 
-        
+        person_id = {{ person.key.id }};
+
+        $.post('/gapps/checkaccount', {person_id: person_id}, function(json) {
+            $('#gapps_account').html(json.text);
+            $('#gapps_account').data('url', json.url);
+        }, 'json');
+
+        $('#gapps_account').click(function() {
+            link = $(this);
+            link.html('');
+            $.post($(link).data('url'), {person_id: person_id}, function(json) {
+                $(link).html(json.text);
+                $(link).data('url');
+            }, 'json');
+        });
 
     });
 </script>

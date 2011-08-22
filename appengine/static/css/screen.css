@@ -2,7 +2,7 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
 header,footer,aside,nav,article,section{display:block;}
 body{font-family:HelveticaNeue-Regular,'Helvetica Neue',Helvetica,Arial,Tahoma,Verdana,sans-serif;}
 h1{margin-bottom:20px;font-size:18px;font-weight:bold;letter-spacing:1px;color:#006600;}
-a,a:active,a:visited{color:#454a4e;}
+a,a:active,a:visited{color:#454a4e;text-decoration:none;}
 a:hover{text-decoration:underline;}
 img.spinner{margin:100px auto;display:block;}
 #main_nav{width:200px;position:fixed;top:0px;bottom:0px;background:#3A4044;color:#FFFFFF;font-size:11px;border-right:1px solid #222222;}#main_nav header{padding:10px;height:60px;font-size:16px;background:#33393D;text-shadow:rgba(0, 0, 0, 0.8) 1px 1px 2px;white-space:nowrap;overflow:hidden;}#main_nav header img{float:left;margin-right:10px;background:#FFFFFF;box-shadow:rgba(0, 0, 0, 0.8) 1px 1px 2px;-moz-box-shadow:rgba(0, 0, 0, 0.8) 1px 1px 2px;-webkit-box-shadow:rgba(0, 0, 0, 0.8) 1px 1px 2px;}

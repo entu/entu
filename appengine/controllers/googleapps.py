@@ -4,6 +4,7 @@ import gdata.apps.service
 import gdata.alt.appengine
 
 import bz2, base64, string, re
+import random, string
 
 from bo import *
 from database.person import *
@@ -17,27 +18,13 @@ def GenerateUsername(forename, surname):
         username = username.replace(c, letters[c])
     username = re.sub('[^a-z/.]', '', username)
     return username
-    
-
-class CreateAppsAccount(boRequestHandler):
-    def get(self):
-        redirect = self.request.get('r').strip()
-        persons_ids = self.request.get('p').strip().strip('.').split('.')
-        if persons_ids:
-            persons_ids = [int(i) for i in persons_ids]
-
-        persons = Person().get_by_id(persons_ids)
-        for p in persons:
-            if not p.apps_username:
-                p.apps_username = GenerateUsername(p.forename, p.surname)
-
-        self.view('', 'googleapps/create_account.html', {
-            'persons': persons,
-            'redirect': redirect,
-        })
 
 
+class CheckAppsAccount(boRequestHandler):
     def post(self):
+        if not self.authorize('bubbler'):
+            return
+
         gapps = gdata.apps.service.AppsService(
             domain = SystemPreferences().get('google_apps_domain'),
             email = SystemPreferences().get('google_apps_user'),
@@ -46,21 +33,118 @@ class CreateAppsAccount(boRequestHandler):
         gdata.alt.appengine.run_on_appengine(gapps)
         gapps.ProgrammaticLogin()
 
+        person_id = self.request.get('person_id').strip()
+        person = Person().get_by_id(int(person_id))
+        if person.user:
+            username = person.user.replace('@'+SystemPreferences().get('google_apps_domain'), '')
+        else:
+            forename = person.forename if person.forename else ''
+            surname = person.surname if person.surname else ''
+            username = GenerateUsername(forename, surname)
+
+        user = None
+        try:
+            user = gapps.RetrieveUser(username)
+        except gdata.apps.service.AppsForYourDomainException , e:
+            if e.error_code != 1301:
+                raise
+
+        nick = None
+        try:
+            nick = gapps.RetrieveNickname(username)
+        except gdata.apps.service.AppsForYourDomainException , e:
+            if e.error_code != 1301:
+                raise
+
+        result = {}
+        if person.user:
+            if not user and not nick:
+                result['text'] = Translate('gapps_create_account') % username
+                result['url'] = '/gapps/createaccount'
+        else:
+            if user:
+                result['text'] = Translate('gapps_user_exist') % username
+                result['url'] = '/gapps/connectaccount/%s' % username
+            if nick:
+                result['text'] = Translate('gapps_nickname_exist') % {'nick': username, 'user': nick.login.user_name}
+                result['url'] = '/gapps/connectaccount/%s' % username
+            if not user and not nick:
+                result['text'] = Translate('gapps_create_account') % username
+                result['url'] = '/gapps/createaccount'
+
+        self.echo_json(result)
+
+
+class CreateAppsAccount(boRequestHandler):
+    def post(self):
+        if not self.authorize('bubbler'):
+            return
+
+        gapps = gdata.apps.service.AppsService(
+            domain = SystemPreferences().get('google_apps_domain'),
+            email = SystemPreferences().get('google_apps_user'),
+            password = bz2.decompress(base64.b64decode(SystemPreferences().get('google_apps_password'))),
+        )
+        gdata.alt.appengine.run_on_appengine(gapps)
+        gapps.ProgrammaticLogin()
+
+        person_id = self.request.get('person_id').strip()
+        person = Person().get_by_id(int(person_id))
+        if person.user:
+            username = person.user.replace('@'+SystemPreferences().get('google_apps_domain'), '')
+        else:
+            forename = person.forename if person.forename else ''
+            surname = person.surname if person.surname else ''
+            username = GenerateUsername(forename, surname)
+
+        if not person.password:
+            password = ''.join(random.choice(string.ascii_letters) for x in range(3))
+            password += str(person.key().id())
+            password += ''.join(random.choice(string.ascii_letters) for x in range(3))
+            password = password.replace('O', random.choice(string.ascii_lowercase))
+            person.password = password
+            person.put()
+
         gapps.CreateUser(
-            user_name = 'test.kasutaja2',
-            family_name = 'Test',
-            given_name = 'Kasutaja2',
-            password = '123456789aB',
+            user_name = username,
+            given_name = person.forename,
+            family_name = person.surname,
+            password = person.password,
             change_password = 'true'
         )
+        person.user = username + '@' + SystemPreferences().get('google_apps_domain')
+        person.put()
         
+        SendMail(
+            to = person.emails,
+            subject = Translate('gapps_account_created_subject'),
+            message = Translate('gapps_account_created_message') % {'user': username, 'email': person.user, 'password': person.password}
+        )
+
+        result = {}
+
+        self.echo_json(result)
+
         #for user in gapps.RetrievePageOfUsers(start_username=None).entry:
         #    self.echo(user.name.given_name + ' ' + user.name.family_name + ' ' + user.login.user_name)
 
 
+class ConnectAppsAccount(boRequestHandler):
+    def post(self, username):
+        if not self.authorize('bubbler'):
+            return
+
+        person_id = self.request.get('person_id').strip()
+        person = Person().get_by_id(int(person_id))
+        person.user = username + '@' + SystemPreferences().get('google_apps_domain')
+        person.put()
+
+
 def main():
     Route([
+            ('/gapps/checkaccount', CheckAppsAccount),
             ('/gapps/createaccount', CreateAppsAccount),
+            (r'/gapps/connectaccount/(.*)', ConnectAppsAccount),
         ])
 
 

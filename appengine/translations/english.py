@@ -26,4 +26,7 @@ def translation():
         'gender_male':          'Male',
         'gender_female':        'Female',
 
+        'gapps_create_account': 'Create account <b>%s</b>...',
+        'gapps_user_exist':     'Account <b>%s</b> exist. Connect with person...',
+        'gapps_nickname_exist': 'Nickname %(nick)s exist. Connect account <b>%(user)s</b> with person...',
      }
