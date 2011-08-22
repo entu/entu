@@ -608,6 +608,14 @@ class Bubble(ChangeLogModel):
         return grades
 
 
+class BubblePerson(ChangeLogModel): #parent=Bubble()
+    bubble          = db.ReferenceProperty(Bubble)
+    person          = db.ReferenceProperty(Person)
+    status          = db.StringProperty(choices=['new', 'waiting', 'accepted', 'ended', 'canceled'], default='new')
+    start_datetime  = db.DateTimeProperty(auto_now_add=True)
+    end_datetime    = db.DateTimeProperty()
+
+
 class GradeDefinition(ChangeLogModel):
     rating_scale    = db.ReferenceProperty(RatingScale)
     name            = db.ReferenceProperty(Dictionary, collection_name='gradedefinition_name')

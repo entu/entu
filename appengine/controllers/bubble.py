@@ -118,6 +118,8 @@ class ShowBubble(boRequestHandler):
                         setattr(bubble, field, datetime.strptime(value, '%d.%m.%Y %H:%M'))
                     if field == 'rating_scale':
                         bubble.rating_scale = db.Key(value)
+                    if field == 'maximum_leecher_count':
+                        bubble.maximum_leecher_count = int(value)
                     if field == 'url':
                         bubble.url = value
                     if field == 'nextinline':
@@ -370,6 +372,41 @@ class SubBubblesCSV(boRequestHandler):
             csvfile.close()
 
 
+class Leech(boRequestHandler):
+    def get(self, bubble_key):
+        bubble = Bubble().get(bubble_key)
+        person = Person().current
+
+        bubbles = []
+        for b in bubble.bubbles:
+            if db.Query(BubblePerson).filter('bubble', b).filter('person', person).filter('status', 'new').get():
+                b.selected = True
+            if b.maximum_leecher_count:
+                b.free_count = b.maximum_leecher_count - db.Query(BubblePerson).filter('bubble', b).filter('status', 'new').count()
+            bubbles.append(b)
+
+        self.view(bubble.displayname, 'bubble/leeching.html', {
+            'bubble': bubble,
+            'bubbles': bubbles,
+        })
+
+    def post(self, bubble_key = None):
+        bubble_key = db.Key(self.request.get('key').strip())
+        person = Person().current
+
+        if self.request.get('leech').strip().lower() == 'true':
+            bp = db.Query(BubblePerson).filter('bubble', bubble_key).filter('person', person).filter('status', 'new').get()
+            if not bp:
+                bp = BubblePerson()
+            bp.bubble = bubble_key
+            bp.person = Person().current
+            bp.put()
+        else:
+            bp = db.Query(BubblePerson).filter('bubble', bubble_key).filter('person', person).filter('status', 'new').get()
+            if bp:
+                bp.status = 'canceled'
+                bp.put()
+
 
 def main():
     Route([
@@ -388,6 +425,7 @@ def main():
             (r'/bubble/seeder/delete/(.*)/(.*)', DeleteSeeder),
             (r'/bubble/leecher/add/(.*)/(.*)', AddLeecher),
             (r'/bubble/leecher/delete/(.*)/(.*)', DeleteLeecher),
+            (r'/bubble/leech/(.*)', Leech),
             (r'/bubble/(.*)', ShowBubble),
         ])
 
