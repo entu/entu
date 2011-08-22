@@ -30,7 +30,17 @@
                 {% endif %}
             </div>
             <div class="table_cell" style="white-space:nowrap;">
-                <span style="color: gray; font-size:11px; margin-right:30px;">{% if sb.free_count %}{% if sb.free_count > 0 %}{{ sb.free_count }} {{ str.leech_free_positions }}{% else %}{{ str.leech_full }}{% endif %}{% else %}{{ str.leech_unlimited_positions }}{% endif %}</span>
+                <span style="color: gray; font-size:11px; margin-right:30px;">
+                    {% if sb.maximum_leecher_count %}
+                        {% if sb.free_count > 0 %}
+                            {{ sb.free_count }} {{ str.leech_free_positions }}
+                        {% else %}
+                            {{ str.leech_full }}
+                        {% endif %}
+                    {% else %}
+                        {{ str.leech_unlimited_positions }}
+                    {% endif %}
+                </span>
             </div>
             <div class="table_cell" style="white-space:nowrap; width:300px;">
                 <p class="field switch" style="vertical-align:top; padding:0px; float:right;">
