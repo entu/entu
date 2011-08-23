@@ -13,7 +13,7 @@ def GenerateUsername(forename, surname):
     username = forename + '.' + surname
     username = username.lower()
     username = username.encode('utf-8')
-    letters = {'å':'a', 'ä':'a', 'ö':'o', 'õ':'o', 'ü':'y', 'š':'s', 'ž':'z'}
+    letters = {'å':'a', 'ä':'a', 'é':'e', 'ö':'o', 'õ':'o', 'ü':'y', 'š':'sh', 'ž':'zh'}
     for c in letters:
         username = username.replace(c, letters[c])
     username = re.sub('[^a-z/.]', '', username)
@@ -105,13 +105,6 @@ class CreateAppsAccount(boRequestHandler):
             person.password = password
             person.put()
 
-        gapps.CreateUser(
-            user_name = username,
-            given_name = person.forename,
-            family_name = person.surname,
-            password = person.password,
-            change_password = 'true'
-        )
         person.user = username + '@' + SystemPreferences().get('google_apps_domain')
         person.put()
         
@@ -119,6 +112,14 @@ class CreateAppsAccount(boRequestHandler):
             to = person.emails,
             subject = Translate('gapps_account_created_subject'),
             message = Translate('gapps_account_created_message') % {'user': username, 'email': person.user, 'password': person.password}
+        )
+
+        gapps.CreateUser(
+            user_name = username,
+            given_name = person.forename,
+            family_name = person.surname,
+            password = person.password,
+            change_password = 'true'
         )
 
         result = {}
