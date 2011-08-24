@@ -1,0 +1,87 @@
+{% extends main_template %}
+
+{% block head %}
+{% endblock %}
+
+{% block nav %}
+{% endblock %}
+
+{% block breadcrumb %}
+{% endblock %}
+
+{% block content %}
+
+<section id="wide_content">
+    {% if system_logo %}
+    <img src="{{ system_logo }}" alt="logo" style="margin:20px auto; display:block;" />
+    {% endif %}
+
+    <h1 style="margin-top:30px; text-align:center; color:black;">{{ bubble.displayname }}<br />{{ user.displayname }}</h1>
+
+    <h2></h2>
+    <div class="table">
+        {% for sb in bubbles|dictsort:"displayname" %}
+        <div class="table_row" alt="{{ q.key }}">
+            <div class="table_cell" style="white-space:nowrap;">
+                {% if sb.url %}
+                <a href="{{ sb.url }}" target="_blank">{{ sb.displayname }}</a>
+                {% else %}
+                {{ sb.displayname }}
+                {% endif %}
+            </div>
+            <div class="table_cell" style="white-space:nowrap;">
+                <span style="color: gray; font-size:11px; margin-right:30px;">
+                    {% if sb.maximum_leecher_count %}
+                        {% if sb.free_count > 0 %}
+                            {{ sb.free_count }} {{ str.leech_free_positions }}
+                        {% else %}
+                            {{ str.leech_full }}
+                        {% endif %}
+                    {% else %}
+                        {{ str.leech_unlimited_positions }}
+                    {% endif %}
+                </span>
+            </div>
+            <div class="table_cell" style="white-space:nowrap; width:300px;">
+                <p class="field switch" style="vertical-align:top; padding:0px; float:right;">
+                    <input type="radio" id="radio1" class="autosave_reception" name="field" checked />
+                    <input type="radio" id="radio2" class="autosave_reception" name="field" />
+                    <label for="radio1" class="cb-enable{% if sb.selected %} selected{% endif %}" alt="{{ sb.key }}"><span>{{ str.leech_apply }}</span></label>
+                    <label for="radio2" class="cb-disable{% if sb.selected %}{% else %} selected{% endif %}" alt="{{ sb.key }}"><span>{{ str.leech_dont_apply }}</span></label>
+                </p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {{ str.leech_description }}
+</section>
+
+<script>
+    $(document).ready( function(){
+        $(".cb-enable").click(function(){
+            var select = $(this);
+            var parent = select.parents('.switch');
+            $('.cb-disable',parent).removeClass('selected');
+            select.addClass('selected');
+            $('.checkbox',parent).attr('checked', true);
+
+            $.post('/bubble/leech/', { key: select.attr('alt'), 'leech': 'true' }, function(json) {
+
+            }, "json");
+        });
+
+        $(".cb-disable").click(function(){
+            var select = $(this);
+            var parent = select.parents('.switch');
+            $('.cb-enable',parent).removeClass('selected');
+            select.addClass('selected');
+            $('.checkbox',parent).attr('checked', false);
+
+            $.post('/bubble/leech/', { key: select.attr('alt'), 'leech': 'false' }, function(json) {
+
+            }, "json");
+        });
+    });
+</script>
+
+{% endblock %}

@@ -38,6 +38,9 @@
                 <label for="url" style="display:block;">{{ str.bubble_url }}:</label>
                 <input type="text" id="url" name="url" class="autosave" value="{{ bubble.url|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
 
+                <label for="url" style="display:block;">{{ str.bubble_maximum_leecher_count }}:</label>
+                <input type="text" id="maximum_leecher_count" name="maximum_leecher_count" class="autosave" value="{{ bubble.maximum_leecher_count|default:"" }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
+
                 <label for="start_datetime" style="display:block;">{{ str.bubble_period }}:</label>
                 <input type="text" id="start_datetime" name="start_datetime" class="autosave_date" value="{{ bubble.start_datetime|date:"d.m.Y H:i" }}" maxlength="500" style="width:110px; margin-bottom:15px;" /> - <input type="text" id="end_datetime" name="end_datetime" class="autosave_date" value="{{ bubble.end_datetime|date:"d.m.Y H:i" }}" maxlength="500" style="width:110px; margin-bottom:15px;" />
 

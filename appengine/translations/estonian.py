@@ -253,6 +253,7 @@ def translation():
         'bubble_delete_prerequisite': 'Kas tõesti eemaldada see mull',
         'bubble_changed_on':        'Viimati muutis %(name)s %(date)s',
         'bubble_displayname':       'Õpimulli nimi',
+        'bubble_maximum_leecher_count':       'Maksimum saajate arv',
 
         'grade_name':               'Hinne',
         'grade_equivalent':         'Väärtus',
@@ -284,5 +285,13 @@ def translation():
         'statistics_by_age':     'Sisseastujate vanus',
 
         'save_csv':     'Salvesta CSV fail',
+
+        'leech':  'Vabaainete valimine',
+        'leech_description':  '',
+        'leech_apply':  'Valin',
+        'leech_dont_apply':  'Ei vali',
+        'leech_free_positions':  ' vaba kohta',
+        'leech_unlimited_positions':  'Kohtade arv pole piiratud',
+        'leech_full':  'Vabu kohti pole, aga pane end järjekorda',
 
     }
