@@ -32,6 +32,10 @@ def translation():
         'gapps_account_created_subject': 'EKA konto',
         'gapps_account_created_message': 'Valmis on saanud sinu uus artun.ee konto.<br /><br />See saab olema sinu esmaseks kontaktiks EKA juures - kooli uudised ja õppeinfo hakkab tulema just sellele aadressile.<br /><br />Esimese sammuna vaheta ajutine parool e-posti kaudu http://gmail.artun.ee<br /><br />Uutele teenustele pääsed ligi<br />E-mail: http://gmail.artun.ee<br />Kalender: http://calendar.artun.ee<br />Dokumendid: http://docs.artun.ee<br />Õppeinfo: http://ois.artun.ee<br />Moodle: http://moodle.artun.ee<br /><br />Su kasutajanimi on %(user)s<br />Sinu ajutine parool on %(password)s<br />E-posti aadress on %(email)s<br /><br />Vaata kindlasti ka KKK-d aadressil http://it.artun.ee/',
 
+        'bubble_seeders':       'Andjad',
+        'bubble_leechers':      'Saajad',
+        'bubble_waitinglist':   'Ootejärjekord',
+        'bubble_subbubbles':    'Alammullid',
 
 
 
@@ -230,7 +234,6 @@ def translation():
         'bubble_description':       'Kirjeldus',
         'bubble_enddate':           'Lõppaeg',
         'bubble_is_in_bubbles':     'Õpimullides',
-        'bubble_leechers':          'Saajad',
         'bubble_nextinlines':       'Liiguta isikud mulli(desse)',
         'bubble_prerequisites':     'Eeltingimused',
         'bubble_mandatory_bubbles': 'Kohustuslikud õpimullid',
@@ -241,7 +244,6 @@ def translation():
         'bubble_optional_bubbles':  'Mittekohustuslikud õpimullid',
         'bubble_rating':            'Hindamine',
         'bubble_ratingscale':       'Hindamisskaala',
-        'bubble_seeders':           'Andjad',
         'bubble_startdate':         'Algusaeg',
         'bubble_period':            'Periood',
         'bubble_delete':            'Kustuta',

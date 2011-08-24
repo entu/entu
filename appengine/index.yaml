@@ -30,6 +30,12 @@ indexes:
   - name: bubble
   - name: status
 
+- kind: BubblePerson
+  properties:
+  - name: bubble
+  - name: status
+  - name: start_datetime
+
 
 
 - kind: GradeDefinition

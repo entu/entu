@@ -24,24 +24,25 @@ class ShowQuestionariesList(boRequestHandler):
             return
 
         key = self.request.get('key').strip()
-        search = self.request.get('search').strip().lower()
-
         if key:
             questionary = Questionary().get(key)
-
             self.echo_json({
                 'id': questionary.key().id(),
+                'key': str(questionary.key()),
                 'image': None,
                 'title': questionary.displayname,
                 'info': questionary.displaydate,
             })
+            return
 
-        else:
-            if search:
-                keys = [str(k) for k in list(db.Query(Questionary, keys_only=True).order('-start_date'))]
-            else:
-                keys = [str(k) for k in list(db.Query(Questionary, keys_only=True).order('-start_date'))]
-            self.echo_json({'keys': keys})
+        keys = None
+        search = self.request.get('search').strip().lower()
+        if search:
+            keys = [str(k) for k in list(db.Query(Questionary, keys_only=True).order('-start_date'))]
+
+        if  not keys:
+            keys = [str(k) for k in list(db.Query(Questionary, keys_only=True).order('-start_date'))]
+        self.echo_json({'keys': keys})
 
 
 class ShowQuestionary(boRequestHandler):

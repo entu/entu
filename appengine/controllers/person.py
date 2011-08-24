@@ -1,14 +1,17 @@
-from bo import *
-from database.person import *
-from database.bubble import *
-from django.template import TemplateDoesNotExist
+from operator import attrgetter
 
 import csv
 import cStringIO
 
+from bo import *
+from database.person import *
+from database.bubble import *
+
+from django.template import TemplateDoesNotExist
+
 
 class ShowPersonList(boRequestHandler):
-    def get(self, persontype):
+    def get(self):
         if not self.authorize('bubbler'):
             return
 
@@ -16,44 +19,54 @@ class ShowPersonList(boRequestHandler):
             page_title = 'page_persons',
             template_file = 'main/list.html',
             values = {
-                'list_url': '/person/%s' % persontype,
+                'list_url': '/person',
                 'content_url': '/person/show',
             }
         )
 
-    def post(self, persontype):
+    def post(self):
         if not self.authorize('bubbler'):
             return
 
         key = self.request.get('key').strip()
-        search = self.request.get('search').strip().lower()
-
         if key:
             person = Person().get(key)
-            
-            #if hasattr(person, '__searchable_text_index'):
-            #    delattr(person, '__searchable_text_index')
-            #if not person.sort:
-            #    person.sort = StringToSortable(person.displayname)
-            #    person.put()
-            #if person.apps_username:
-            #    person.user = person.apps_username
-            #    person.put()
-
+            person.AutoFix()
             image = person.photo_url(32)
             self.echo_json({
                 'id': person.key().id(),
+                'key': str(person.key()),
                 'image': image if image else '/images/avatar.png',
                 'title': person.displayname,
                 'info': person.user,
             })
+            return
 
-        else:
-            if search:
-                keys = [str(k) for k in list(db.Query(Person, keys_only=True).filter('search_names', search).order('sort'))]
-            else:
-                keys = [str(k) for k in list(db.Query(Person, keys_only=True).filter('gender', persontype).order('sort'))]
-            self.echo_json({'keys': keys})
+        keys = None
+        search = self.request.get('search').strip().lower()
+        if search:
+            keys = [str(k) for k in list(db.Query(Person, keys_only=True).filter('search_names', search).order('sort'))]
+
+        bubble_seeders = self.request.get('bubble_seeders').strip()
+        if bubble_seeders:
+            bubble = Bubble().get(bubble_seeders)
+            keys = [str(k) for k in bubble.seeders]
+
+        bubble_leechers = self.request.get('bubble_leechers').strip()
+        if bubble_leechers:
+            bubble = Bubble().get(bubble_leechers)
+            leechers = Person().get(bubble.leechers)
+            keys = [str(k.key()) for k in sorted(leechers, key=attrgetter('sort'))]
+
+        bubble_waitinglist = self.request.get('bubble_waitinglist').strip()
+        if bubble_waitinglist:
+            bubblepersons = db.Query(BubblePerson).filter('bubble', db.Key(bubble_waitinglist)).filter('status', 'new').order('start_datetime')
+            keys = [str(k.person.key()) for k in bubblepersons]
+
+        if keys == None:
+            keys = [str(k) for k in list(db.Query(Person, keys_only=True).order('sort'))]
+
+        self.echo_json({'keys': keys})
 
 
 class ShowPerson(boRequestHandler):
@@ -284,7 +297,7 @@ def main():
             ('/person/person_ids', GetPersonIds),
             ('/person/person_keys', GetPersonKeys),
             (r'/person/grades_csv/(.*)', GradesCSV),
-            (r'/person/(.*)', ShowPersonList),
+            ('/person', ShowPersonList),
         ])
 
 

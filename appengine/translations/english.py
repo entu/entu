@@ -29,4 +29,9 @@ def translation():
         'gapps_create_account': 'Create account <b>%s</b>...',
         'gapps_user_exist':     'Account <b>%s</b> exist. Connect with person...',
         'gapps_nickname_exist': 'Nickname %(nick)s exist. Connect account <b>%(user)s</b> with person...',
+
+        'bubble_seeders':       'Seeders',
+        'bubble_leechers':      'Leechers',
+        'bubble_waitinglist':   'Waitinglist',
+        'bubble_subbubbles':    'Subbubbles',
      }

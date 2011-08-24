@@ -6,6 +6,7 @@
 @search_height: 48px;
 @text_font: HelveticaNeue-Regular, 'Helvetica Neue', Helvetica, Arial, Tahoma, Verdana, sans-serif;
 @bordercolor: #B9B9B9;
+@grayboxbg: #FBFBFB;
 
 
 
@@ -50,6 +51,18 @@ h1 {
     font-weight: bold;
     letter-spacing: 1px;
     color: #006600;
+}
+
+h2 {
+    display: block;
+    padding-top: 20px;
+    margin-bottom: 5px;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: @bordercolor;
+    clear: both;
 }
 
 
@@ -225,7 +238,7 @@ img.spinner {
     bottom: 0px;
     overflow-x: hidden;
     overflow-y: auto;
-    background: #FBFBFB;
+    background: @grayboxbg;
 
     a, a:active, a:visited {
         display: block;
@@ -282,4 +295,56 @@ img.spinner {
     box-shadow: rgba(0, 0, 0, 0.4) 1px 1px 4px;
     -moz-box-shadow: rgba(0, 0, 0, 0.4) 1px 1px 4px;
     -webkit-box-shadow: rgba(0, 0, 0, 0.4) 1px 1px 4px;
+}
+
+.persons_list {
+    display: block;
+    clear: both;
+
+    a {
+        float: left;
+        width: 140px;
+        height: 25px;
+        margin: 0px 5px 5px 0px;
+        padding: 1px;
+        border: 1px solid @bordercolor;
+        background: @grayboxbg;
+        font-size: 12px;
+        overflow: hidden;
+        white-space: nowrap;
+
+        img {
+            height: 25px;
+            width: 25px;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+        &:hover {
+            text-decoration: none;
+        }
+    }
+
+}
+
+.subbubbles_list {
+    display: block;
+    clear: both;
+
+    a {
+        display: block;
+        height: 25px;
+        padding: 1px;
+        border-bottom: 1px solid @bordercolor;
+        background: @grayboxbg;
+        font-size: 12px;
+        overflow: hidden;
+        white-space: nowrap;
+        vertical-align: middle;
+
+        &:hover {
+            text-decoration: none;
+        }
+    }
+
 }

@@ -28,22 +28,12 @@ class ShowMenu(boRequestHandler):
                 'childs': bubbletypes
             })
 
-        if self.authorize('bubbler'):
-            persontypes = []
-            for l in ['male', 'female']:
-                persontypes.append({
-                    'link': '/person/%s' % l,
-                    'title': Translate('gender_' + l),
-                })
-            menu.append({
-                'title': Translate('menu_persons'),
-                'childs': persontypes
-            })
 
         if self.authorize('questionary') or self.authorize('reception'):
             menu.append({
                 'title': Translate('menu_admin'),
                 'childs': [
+                    {'link': '/person', 'title': Translate('menu_persons')},
                     {'link': '/questionary', 'title': Translate('menu_feedback')},
                 ]
             })

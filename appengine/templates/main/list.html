@@ -75,22 +75,6 @@
             }
         }
 
-        function get_item(key) {
-            $.post('{{ list_url }}', {key: key}, function(item) {
-                if(item.image) {
-                    image = '<img src="'+item.image+'" />';
-                } else {
-                    image = '';
-                }
-                if(item.info) {
-                    info = '<span>'+item.info+'</span>';
-                } else {
-                    info = '';
-                }
-                $('#list_items').append('<a href="#'+item.id+'">'+image+item.title+info+'</a>');
-            }, 'json');
-        }
-        
         function open_item(id) {
             $('#list_content .spinner').show();
             $('#list_content div').html('');

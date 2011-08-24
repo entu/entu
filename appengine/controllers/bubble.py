@@ -10,7 +10,7 @@ from database.dictionary import *
 
 
 class ShowBubbleList(boRequestHandler):
-    def get(self, bubbletype):
+    def get(self, bubbletype = None):
         if not self.authorize('bubbler'):
             return
 
@@ -23,32 +23,41 @@ class ShowBubbleList(boRequestHandler):
             }
         )
 
-    def post(self, bubbletype):
+    def post(self, bubbletype = None):
         if not self.authorize('bubbler'):
             return
 
         key = self.request.get('key').strip()
-        search = self.request.get('search').strip().lower()
-
         if key:
             bubble = Bubble().get(key)
-            if not bubble.sort_estonian:
-                bubble.sort_estonian = StringToSortable(bubble.displayname)
-                bubble.put()
-
             self.echo_json({
                 'id': bubble.key().id(),
+                'key': str(bubble.key()),
                 'image': None,
                 'title': bubble.displayname,
                 'info': bubble.displaydate,
+                'type': bubble.type,
             })
+            #if not bubble.sort_estonian:
+            #    bubble.sort_estonian = StringToSortable(bubble.displayname)
+            #    bubble.put()
+            return
 
-        else:
-            if search:
-                keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('sort_estonian >=', search).filter('is_deleted', False).order('sort_estonian'))]
-            else:
-                keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('is_deleted', False).order('sort_estonian'))]
-            self.echo_json({'keys': keys})
+        keys = None
+        search = self.request.get('search').strip().lower()
+        if search:
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('sort_estonian >=', search).filter('is_deleted', False).order('sort_estonian'))]
+
+        master_bubble = self.request.get('master_bubble').strip()
+        if  master_bubble:
+            bubble = Bubble().get(master_bubble)
+            keys = [str(k) for k in bubble.sub_bubbles]
+
+        bubbletype = bubbletype.strip('/')
+        if  bubbletype:
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('is_deleted', False).order('sort_estonian'))]
+
+        self.echo_json({'keys': keys})
 
 
 class ShowBubble(boRequestHandler):
@@ -59,7 +68,7 @@ class ShowBubble(boRequestHandler):
         bubble = Bubble().get_by_id(int(bubble_id))
 
         self.view(
-            template_file = 'bubble/bubble_info.html',
+            template_file = 'bubble/info.html',
             values = {
                 'bubble': bubble,
             }

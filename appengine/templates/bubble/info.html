@@ -1,0 +1,79 @@
+<h1>{{ bubble.displayname }}</h1>
+
+<h2>{{ str.bubble_seeders }}</h2>
+<div id="seeders" class="persons_list">
+</div>
+
+<h2>{{ str.bubble_leechers }}</h2>
+<div id="leechers" class="persons_list">
+</div>
+
+<h2>{{ str.bubble_waitinglist }}</h2>
+<div id="waitinglist" class="persons_list">
+</div>
+
+<h2>{{ str.bubble_subbubbles }}</h2>
+<div id="subbubbles" class="subbubbles_list">
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        bubble_id = {{ bubble.key.id }};
+
+        ajax_persons_list('/person', { bubble_seeders: '{{ bubble.key }}' }, $('#seeders'), 'seeder');
+        ajax_persons_list('/person', { bubble_leechers: '{{ bubble.key }}' }, $('#leechers'), 'leecher');
+        ajax_persons_list('/person', { bubble_waitinglist: '{{ bubble.key }}' }, $('#waitinglist'), 'waitinglist');
+        ajax_bubbles_list('/bubble', { master_bubble: '{{ bubble.key }}' }, $('#subbubbles'), 'subbubbles');
+
+        function ajax_persons_list(post_url, post_data, div, id) {
+            $.post(post_url, post_data, function(list) {
+                for (i in list.keys) {
+                    div.append('<a href="" id="'+id+'_'+list.keys[i]+'"></a>');
+                    $.post(post_url, {key: list.keys[i]}, function(item) {
+                        if(item.image) {
+                            image = '<img src="'+item.image+'" />';
+                        } else {
+                            image = '';
+                        }
+                        if(item.info) {
+                            info = '<span>'+item.info+'</span>';
+                        } else {
+                            info = '';
+                        }
+                        if('#'+item.id == window.location.hash) {
+                            active = 'class="active" ';
+                        } else {
+                            active = '';
+                        }
+                        $('#'+id+'_'+item.key).html(image+item.title);
+                        $('#'+id+'_'+item.key).attr('href', '/person#'+item.id);
+                    }, 'json');
+                }
+            }, 'json');
+        }
+
+        function ajax_bubbles_list(post_url, post_data, div, id) {
+            $.post(post_url, post_data, function(list) {
+                for (i in list.keys) {
+                    div.append('<a href="#'+list.keys[i]+'" id="'+id+'_'+list.keys[i]+'"></a>');
+                    $.post(post_url, {key: list.keys[i]}, function(item) {
+                        if(item.info) {
+                            info = '<span>'+item.info+'</span>';
+                        } else {
+                            info = '';
+                        }
+                        if('#'+item.id == window.location.hash) {
+                            active = 'class="active" ';
+                        } else {
+                            active = '';
+                        }
+                        $('#'+id+'_'+item.key).html(item.title);
+                        $('#'+id+'_'+item.key).attr('href', '/bubble/'+item.type+'#'+item.id);
+                    }, 'json');
+                }
+            }, 'json');
+        }
+
+    });
+</script>

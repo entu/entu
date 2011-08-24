@@ -47,6 +47,32 @@ class Person(ChangeLogModel):
     leecher                 = db.ListProperty(db.Key)
     search_names            = db.StringListProperty()
     sort                    = db.StringProperty(default='')
+    
+    def AutoFix(self):
+        #if hasattr(person, '__searchable_text_index'):
+        #    delattr(person, '__searchable_text_index')
+        
+        if self.apps_username:
+            self.user = self.apps_username
+
+        if self.forename:
+            self.forename = self.forename.title().strip().replace('  ', ' ').replace('- ', '-').replace(' -', '-')
+        else:
+            if self.user:
+                self.forename = self.user.split('@')[0].split('.')[0].title()
+                        
+        if self.surname:
+            self.surname = self.surname.title().strip().replace('  ', ' ').replace('- ', '-').replace(' -', '-')
+        else:
+            if self.user:
+                self.surname = self.user.split('@')[0].split('.')[1].title().strip()
+        
+        if not self.sort:
+            self.sort = StringToSortable(self.displayname)
+        
+        self.search_names = StringToSearchIndex(self.displayname)
+
+        self.put('person_fix')
 
 
     @property
@@ -170,24 +196,6 @@ class Person(ChangeLogModel):
         self.leecher.remove(bubble_key)
         self.put()
         taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'remove', 'bubble_key': str(bubble_key), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
-
-    def index_names(self):
-        self.search_names = []
-        if self.forename:
-            forename = self.forename.lower()[:15]
-            for i in range (1,len(forename)):
-                self.search_names = AddToList(forename[:i], self.search_names)
-        if self.surname:
-            surname = self.surname.lower()[:15]
-            for i in range (1,len(surname)):
-                self.search_names = AddToList(surname[:i], self.search_names)
-        if self.idcode:
-            idcode = self.idcode.lower()[:15]
-            for i in range (1,len(idcode)):
-                self.search_names = AddToList(idcode[:i], self.search_names)
-
-
-        self.put()
 
 
 class Cv(ChangeLogModel): #parent=Person()
