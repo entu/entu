@@ -330,13 +330,14 @@ def rReplace(s, old, new, occurrence):
 def StringToSortable(s):
     return re.sub('[%s]' % re.escape(string.punctuation), '', s).lower().strip()
 
+
 def StringToSearchIndex(s):
     result = []
     s = s.lower()
     wordlist = StrToList(s)
     wordlist.append(s)
     for w in wordlist:
-        for i in range(0, len(w)):
+        for i in range(1, len(w)+1):
             result = AddToList(w[:i], result)
     return result
 

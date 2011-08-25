@@ -27,7 +27,7 @@ table, caption, tbody, tfoot, thead, tr, th, td {
     outline: 0;
     font-weight: inherit;
     font-style: inherit;
-    font-size: 100%;
+    font-size: 12px;
     font-family: inherit;
     vertical-align: baseline;
     list-style: none;
@@ -282,6 +282,44 @@ img.spinner {
     margin-left: @list_width + 1px;
     padding: 15px;
 }
+
+
+
+/* TABLE */
+.table {
+    display: table;
+    
+    .row {
+        display: table-row;
+        
+        .v_header {
+            display: table-cell;
+            width: 200px;
+            padding: 3px 3px 3px 0px;
+            text-align: right;
+            font-weight: bold;
+            vertical-align: top;
+        }
+        
+        .h_header {
+            display: table-cell;
+            padding: 3px 0px 3px 0px;
+            text-align: center;
+            font-weight: bold;
+            vertical-align: middle;
+        }
+        
+        .cell {
+            display: table-cell;
+            padding: 3px 0px 3px 0px;
+            text-align: right;
+            font-weight: bold;
+            vertical-align: middle;
+        }
+        
+    }
+}
+
 
 
 /* PERSON */

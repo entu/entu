@@ -1,4 +1,30 @@
 <h1>{{ bubble.displayname }}</h1>
+<div class="vertical_table">
+    <div class="row">
+        <div class="v_header">
+            {{ str.bubble_description }}:
+        </div>
+        <div class="cell">
+            {{ bubble.description.translate|urlize|linebreaks }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="v_header">
+            {{ str.bubble_date }}:
+        </div>
+        <div class="cell">
+            {{ bubble.displaydate }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="v_header">
+            {{ str.bubble_url }}:
+        </div>
+        <div class="cell">
+            {{ bubble.url|urlize }}
+        </div>
+    </div>
+</div>
 
 <h2>{{ str.bubble_seeders }}</h2>
 <div id="seeders" class="persons_list">
