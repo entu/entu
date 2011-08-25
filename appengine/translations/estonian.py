@@ -35,6 +35,7 @@ def translation():
         'bubble_date':          'Kuupäev',
         'bubble_description':   'Kirjeldus',
         'bubble_url':           'Link',
+        'bubble_max_leecher_count': 'Maks. saajate arv',
         'bubble_seeders':       'Andjad',
         'bubble_leechers':      'Saajad',
         'bubble_waitinglist':   'Ootejärjekord',
@@ -256,7 +257,6 @@ def translation():
         'bubble_delete_prerequisite': 'Kas tõesti eemaldada see mull',
         'bubble_changed_on':        'Viimati muutis %(name)s %(date)s',
         'bubble_displayname':       'Õpimulli nimi',
-        'bubble_maximum_leecher_count':       'Maksimum saajate arv',
 
         'grade_name':               'Hinne',
         'grade_equivalent':         'Väärtus',

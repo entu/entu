@@ -1,5 +1,5 @@
 <h1>{{ bubble.displayname }}</h1>
-<div class="vertical_table">
+<section class="table">
     <div class="row">
         <div class="v_header">
             {{ str.bubble_description }}:
@@ -21,29 +21,48 @@
             {{ str.bubble_url }}:
         </div>
         <div class="cell">
-            {{ bubble.url|urlize }}
+            {{ bubble.url|default:""|urlize }}
         </div>
     </div>
-</div>
+    <div class="row">
+        <div class="v_header">
+            {{ str.bubble_max_leecher_count }}:
+        </div>
+        <div class="cell">
+            {{ bubble.maximum_leecher_count|default:"" }}
+        </div>
+    </div>
+</section>
 
-<h2>{{ str.bubble_seeders }}</h2>
-<div id="seeders" class="persons_list">
-</div>
+<section class="info_accordion">
+    <div>
+        <h2>{{ str.bubble_seeders }}<span>{{ bubble.seeders|length }}</span></h2>
+        <div id="seeders" class="persons_list"></div>
+    </div>
+    
+    <div>
+        <h2>{{ str.bubble_leechers }}<span>{{ bubble.leechers|length }}</span></h2>
+        <div id="leechers" class="persons_list"></div>
+    </div>
 
-<h2>{{ str.bubble_leechers }}</h2>
-<div id="leechers" class="persons_list">
-</div>
-
-<h2>{{ str.bubble_waitinglist }}</h2>
-<div id="waitinglist" class="persons_list">
-</div>
-
-<h2>{{ str.bubble_subbubbles }}</h2>
-<div id="subbubbles" class="subbubbles_list">
-</div>
+    <div>
+        <h2>{{ str.bubble_waitinglist }}<span>{{ bubble.waitinglist|length }}</span></h2>
+        <div id="waitinglist" class="persons_list"></div>
+    </div>
+    
+    <div>
+        <h2>{{ str.bubble_subbubbles }}<span>{{ bubble.bubbles|length }}</span></h2>
+        <div id="subbubbles" class="subbubbles_list"></div>
+    </div>
+</section>
 
 <script type="text/javascript">
     $(document).ready(function(){
+
+        $(".info_accordion div h2").click(function() {
+            $(this).next().slideToggle();
+        });
+
 
         bubble_id = {{ bubble.key.id }};
 
@@ -94,7 +113,7 @@
                         } else {
                             active = '';
                         }
-                        $('#'+id+'_'+item.key).html(item.title);
+                        $('#'+id+'_'+item.key).html(item.type_name+' - '+item.title+'<span>'+item.info+'</span>');
                         $('#'+id+'_'+item.key).attr('href', '/bubble/'+item.type+'#'+item.id);
                     }, 'json');
                 }

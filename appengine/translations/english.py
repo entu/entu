@@ -33,6 +33,7 @@ def translation():
         'bubble_date':          'Date',
         'bubble_description':   'Description',
         'bubble_url':           'URL',
+        'bubble_max_leecher_count': 'Max leechers count',
         'bubble_seeders':       'Seeders',
         'bubble_leechers':      'Leechers',
         'bubble_waitinglist':   'Waitinglist',

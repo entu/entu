@@ -6,10 +6,14 @@
 @search_height: 48px;
 @text_font: HelveticaNeue-Regular, 'Helvetica Neue', Helvetica, Arial, Tahoma, Verdana, sans-serif;
 @bordercolor: #B9B9B9;
-@grayboxbg: #FBFBFB;
+@grayboxbg: #F0F0F0;
 
 
-
+.rounded-corners (@radius: 5px) {
+  border-radius: @radius;
+  -webkit-border-radius: @radius;
+  -moz-border-radius: @radius;
+}
 
 /* CSS RESET */
 
@@ -238,7 +242,7 @@ img.spinner {
     bottom: 0px;
     overflow-x: hidden;
     overflow-y: auto;
-    background: @grayboxbg;
+    background: #FBFBFB;
 
     a, a:active, a:visited {
         display: block;
@@ -255,6 +259,7 @@ img.spinner {
             height: 32px;
             margin: 0px 10px 10px 0px;
             background: #FFFFFF;
+            .rounded-corners(5px);
         }
 
         span {
@@ -288,19 +293,20 @@ img.spinner {
 /* TABLE */
 .table {
     display: table;
-    
+
     .row {
         display: table-row;
-        
+        line-height: 12px;
+
         .v_header {
             display: table-cell;
-            width: 200px;
             padding: 3px 3px 3px 0px;
             text-align: right;
             font-weight: bold;
             vertical-align: top;
+            white-space: nowrap;
         }
-        
+
         .h_header {
             display: table-cell;
             padding: 3px 0px 3px 0px;
@@ -308,18 +314,45 @@ img.spinner {
             font-weight: bold;
             vertical-align: middle;
         }
-        
+
         .cell {
             display: table-cell;
             padding: 3px 0px 3px 0px;
-            text-align: right;
-            font-weight: bold;
-            vertical-align: middle;
+            vertical-align: top;
         }
-        
+
     }
 }
 
+
+/* INFO */
+.info_accordion {
+    clear: both;
+
+    div {
+        margin: 20px 0px 0px 0px;
+        padding: 0px 10px 5px 10px;
+        background: @grayboxbg;
+        .rounded-corners(5px);
+
+        h2 {
+            margin: 0px;
+            padding: 10px 0px 5px 0px;
+            cursor: pointer;
+
+            span {
+                float: right;
+            }
+        }
+
+        div {
+            margin: 0px;
+            padding: 0px;
+            clear: both;
+        }
+
+    }
+}
 
 
 /* PERSON */
@@ -338,29 +371,38 @@ img.spinner {
 .persons_list {
     display: block;
     clear: both;
+    overflow:hidden;
 
     a {
         float: left;
-        width: 140px;
+        display: block;
+        width: 141px;
         height: 25px;
-        margin: 0px 5px 5px 0px;
-        padding: 1px;
-        border: 1px solid @bordercolor;
-        background: @grayboxbg;
+        margin: 0px 0px 5px 0px;
+        padding: 2px;
         font-size: 12px;
         overflow: hidden;
         white-space: nowrap;
+        .rounded-corners(3px);
 
         img {
             height: 25px;
             width: 25px;
             margin-right: 5px;
             vertical-align: middle;
+            .rounded-corners(2px);
         }
 
         &:hover {
             text-decoration: none;
-        }
+            background: #FFFFFF;
+            background: -moz-linear-gradient(left, #FFFFFF 0%, #FFFFFF 80%, @grayboxbg 100%);
+            background: -webkit-gradient(linear, left top, right top, color-stop(0%,#FFFFFF), color-stop(80%,#FFFFFF), color-stop(100%,@grayboxbg));
+            background: -webkit-linear-gradient(left, #FFFFFF 0%,#FFFFFF 80%,@grayboxbg 100%);
+            background: -o-linear-gradient(left, #FFFFFF 0%,#FFFFFF 80%,@grayboxbg 100%);
+            background: -ms-linear-gradient(left, #FFFFFF 0%,#FFFFFF 80%,@grayboxbg 100%);
+            filter: ~"progid:DXImageTransform.Microsoft.gradient( startColorstr='#FFFFFF', endColorstr='@grayboxbg',GradientType=1 )";
+            background: linear-gradient(left, #FFFFFF 0%,#FFFFFF 80%,@grayboxbg 100%);        }
     }
 
 }
@@ -368,20 +410,33 @@ img.spinner {
 .subbubbles_list {
     display: block;
     clear: both;
+    padding: 0px -5px;
 
     a {
         display: block;
-        height: 25px;
-        padding: 1px;
-        border-bottom: 1px solid @bordercolor;
-        background: @grayboxbg;
+        padding: 5px;
+        margin: 0px 0px 5px 0px;
         font-size: 12px;
         overflow: hidden;
         white-space: nowrap;
         vertical-align: middle;
+        .rounded-corners(3px);
 
         &:hover {
             text-decoration: none;
+            background: @grayboxbg;
+            background: -moz-linear-gradient(left, @grayboxbg 0%, #FFFFFF 5%, #FFFFFF 95%, @grayboxbg 100%);
+            background: -webkit-gradient(linear, left top, right top, color-stop(0%,@grayboxbg), color-stop(5%,#FFFFFF), color-stop(95%,#FFFFFF), color-stop(100%,@grayboxbg));
+            background: -webkit-linear-gradient(left, @grayboxbg 0%,#FFFFFF 5%,#FFFFFF 95%,@grayboxbg 100%);
+            background: -o-linear-gradient(left, @grayboxbg 0%,#FFFFFF 5%,#FFFFFF 95%,@grayboxbg 100%);
+            background: -ms-linear-gradient(left, @grayboxbg 0%,#FFFFFF 5%,#FFFFFF 95%,@grayboxbg 100%);
+            filter: ~"progid:DXImageTransform.Microsoft.gradient( startColorstr='@grayboxbg', endColorstr='@grayboxbg',GradientType=1 )";
+            background: linear-gradient(left, @grayboxbg 0%,#FFFFFF 5%,#FFFFFF 95%,@grayboxbg 100%);
+        }
+
+        span {
+            float: right;
+            padding-left: 10px;
         }
     }
 

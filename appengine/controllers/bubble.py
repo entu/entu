@@ -1,3 +1,5 @@
+from operator import attrgetter
+
 import string
 import csv
 import cStringIO
@@ -37,6 +39,7 @@ class ShowBubbleList(boRequestHandler):
                 'title': bubble.displayname,
                 'info': bubble.displaydate,
                 'type': bubble.type,
+                'type_name': bubble.type2.displayname,
             })
             #if not bubble.sort_estonian:
             #    bubble.sort_estonian = StringToSortable(bubble.displayname)
@@ -51,7 +54,7 @@ class ShowBubbleList(boRequestHandler):
         master_bubble = self.request.get('master_bubble').strip()
         if  master_bubble:
             bubble = Bubble().get(master_bubble)
-            keys = [str(k) for k in bubble.sub_bubbles]
+            keys = [str(k.key()) for k in sorted(Bubble().get(bubble.sub_bubbles), key=attrgetter('start_datetime'))]
 
         bubbletype = bubbletype.strip('/')
         if  bubbletype:
