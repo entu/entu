@@ -144,7 +144,18 @@ class Bubble(ChangeLogModel):
     created_datetime        = db.DateTimeProperty(auto_now_add=True)
     sort_estonian           = db.StringProperty(default='')
     sort_english            = db.StringProperty(default='')
+    search_estonian         = db.StringListProperty()
+    search_english          = db.StringListProperty()
     model_version           = db.StringProperty(default='A')
+
+    def AutoFix(self):
+        if not self.sort_estonian:
+            self.sort_estonian = StringToSortable(self.displayname)
+
+        self.search_estonian = StringToSearchIndex(self.displayname)
+
+        self.put('autofix')
+
 
     @property
     def displayname(self):
@@ -158,11 +169,9 @@ class Bubble(ChangeLogModel):
         else:
             return '-'
 
-
     def displayname_cache_reset(self):
         cache_key = 'bubble_dname_' + UserPreferences().current.language + '_' + str(self.key())
         Cache().set(cache_key)
-
 
     @property
     def displaydate(self):
@@ -184,67 +193,26 @@ class Bubble(ChangeLogModel):
                 return '... - ' + self.end_datetime.strftime('%d.%m.%Y %H:%M')
 
     @property
-    def sortdate(self):
-        if self.start_datetime:
-            return self.start_datetime.strftime('%d.%m.%Y %H:%M') + str(self.key().id())
-        else:
-            return 'x' + str(self.key().id())
+    def subbubbles(self):
+        return GetUniqueList(self.mandatory_bubbles + self.optional_bubbles)
 
-    @property
-    def displaytags(self):
-        return "; ".join(self.typed_tags)
 
-    @property
-    def TypedTagsD(self):
-        tt_d = {}
-        for tt in self.typed_tags:
-            type, tag = tt.split(':',1)
-            tt_d[type] = tag
-        return tt_d
-
-    @property
-    def BubbleType(self):
-        return self.type2
-
-    @property
-    def type2(self):                            # TODO refactor to BubbleType
+    def GetType(self):                            
         return db.Query(BubbleType).filter('type', self.type).get()
 
-    @property
-    def Seeders(self):
-        return self.seeders2
-
-    @property
-    def seeders2(self):                         # TODO refactor to Seeders
+    def GetSeeders(self):
         return Person.get(self.seeders)
 
-    @property
-    def Leechers(self):
-        return self.leechers2
-
-    @property
-    def leechers2(self):                        # TODO refactor to Leechers
+    def GetLeechers(self):
         return Person.get(self.leechers)
 
-    @property
-    def NextInLine(self):
-        return self.next_in_line2
-
-    @property
-    def next_in_line2(self):                    # TODO refactor to NextInLine
+    def GetNextInLines(self):
         return Bubble.get(self.next_in_line)
 
-    @property
-    def PrerequisiteBubbles(self):
-        return self.prerequisite_bubbles2
-
-    @property
-    def prerequisite_bubbles2(self):            # TODO refactor to PrerequisiteBubbles
+    def GetPrerequisiteBubbles(self):
         return Bubble.get(self.prerequisite_bubbles)
 
-    @property
-    def color(self):
-        return RandomColor(200,255,200,255,200,255)
+
 
     @property
     def PrevInLines(self):
@@ -374,10 +342,6 @@ class Bubble(ChangeLogModel):
             bubbles.append(b)
         if len(bubbles) > 0:
             return bubbles
-
-    @property
-    def sub_bubbles(self):
-        return GetUniqueList(self.mandatory_bubbles + self.optional_bubbles)
 
     @property
     def OptionalBubbles(self):

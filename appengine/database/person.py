@@ -45,12 +45,12 @@ class Person(ChangeLogModel):
     model_version           = db.StringProperty(default='A')
     seeder                  = db.ListProperty(db.Key)
     leecher                 = db.ListProperty(db.Key)
-    search_names            = db.StringListProperty()
     sort                    = db.StringProperty(default='')
+    search                  = db.StringListProperty()
     
     def AutoFix(self):
-        #if hasattr(person, '__searchable_text_index'):
-        #    delattr(person, '__searchable_text_index')
+        if hasattr(self, 'search_names'):
+            delattr(self, 'search_names')
         
         if self.apps_username:
             self.user = self.apps_username
@@ -70,9 +70,9 @@ class Person(ChangeLogModel):
         if not self.sort:
             self.sort = StringToSortable(self.displayname)
         
-        self.search_names = StringToSearchIndex(self.displayname)
+        self.search = StringToSearchIndex(self.displayname)
 
-        self.put('person_fix')
+        self.put('autofix')
 
 
     @property

@@ -44,21 +44,22 @@ class ShowPersonList(boRequestHandler):
 
         keys = None
         search = self.request.get('search').strip().lower()
-        if search:
-            keys = [str(k) for k in list(db.Query(Person, keys_only=True).filter('search_names', search).order('sort'))]
-
         bubble_seeders = self.request.get('bubble_seeders').strip()
+        bubble_leechers = self.request.get('bubble_leechers').strip()
+        bubble_waitinglist = self.request.get('bubble_waitinglist').strip()
+
+        if search:
+            keys = [str(k) for k in list(db.Query(Person, keys_only=True).filter('search', search).order('sort'))]
+
         if bubble_seeders:
             bubble = Bubble().get(bubble_seeders)
             keys = [str(k) for k in bubble.seeders]
 
-        bubble_leechers = self.request.get('bubble_leechers').strip()
         if bubble_leechers:
             bubble = Bubble().get(bubble_leechers)
             leechers = Person().get(bubble.leechers)
             keys = [str(k.key()) for k in sorted(leechers, key=attrgetter('sort'))]
 
-        bubble_waitinglist = self.request.get('bubble_waitinglist').strip()
         if bubble_waitinglist:
             bubblepersons = db.Query(BubblePerson).filter('bubble', db.Key(bubble_waitinglist)).filter('status', 'new').order('start_datetime')
             keys = [str(k.person.key()) for k in bubblepersons]

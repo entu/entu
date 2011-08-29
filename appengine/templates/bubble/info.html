@@ -35,25 +35,33 @@
 </section>
 
 <section class="info_accordion">
+    {% if bubble.seeders_count %}
     <div>
-        <h2>{{ str.bubble_seeders }}<span>{{ bubble.seeders|length }}</span></h2>
+        <h2>{{ str.bubble_seeders }}<span>{{ bubble.seeders_count }}</span></h2>
         <div id="seeders" class="persons_list"></div>
     </div>
+    {% endif %}
     
+    {% if bubble.leechers_count %}
     <div>
-        <h2>{{ str.bubble_leechers }}<span>{{ bubble.leechers|length }}</span></h2>
+        <h2>{{ str.bubble_leechers }}<span>{{ bubble.leechers_count }}</span></h2>
         <div id="leechers" class="persons_list"></div>
     </div>
+    {% endif %}
 
+    {% if bubble.waitinglist_count %}
     <div>
-        <h2>{{ str.bubble_waitinglist }}<span>{{ bubble.waitinglist|length }}</span></h2>
+        <h2>{{ str.bubble_waitinglist }}<span>{{ bubble.waitinglist_count }}</span></h2>
         <div id="waitinglist" class="persons_list"></div>
     </div>
+    {% endif %}
     
+    {% if bubble.subbubbles_count %}
     <div>
-        <h2>{{ str.bubble_subbubbles }}<span>{{ bubble.bubbles|length }}</span></h2>
+        <h2>{{ str.bubble_subbubbles }}<span>{{ bubble.subbubbles_count }}</span></h2>
         <div id="subbubbles" class="subbubbles_list"></div>
     </div>
+    {% endif %}
 </section>
 
 <script type="text/javascript">

@@ -17,6 +17,13 @@ indexes:
   - name: type
   - name: sort_estonian
 
+- kind: Bubble
+  properties:
+  - name: is_deleted
+  - name: search_estonian
+  - name: type
+  - name: sort_estonian
+
 
 
 - kind: BubblePerson
@@ -60,10 +67,8 @@ indexes:
 
 - kind: Person
   properties:
-  - name: search_names
+  - name: search
   - name: sort
-
-
 
 - kind: Document
   properties:
