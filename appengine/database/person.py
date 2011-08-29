@@ -73,8 +73,7 @@ class Person(ChangeLogModel):
         self.search = StringToSearchIndex(self.displayname)
 
         self.put('autofix')
-
-
+        
     @property
     def displayname(self):
         name = ''
@@ -211,8 +210,32 @@ class Department(ChangeLogModel):
 class Contact(ChangeLogModel): #parent=Person()
     type                = db.StringProperty(choices=['email', 'phone', 'address', 'skype'])
     value               = db.StringProperty()
+    is_deleted          = db.BooleanProperty(default=False)
     model_version       = db.StringProperty(default='A')
 
+    def AutoFix(self):
+        if self.type == 'phone':
+            self.value = self.value.strip().replace(' ', '').replace('+372', '')
+
+        if self.type == 'email':
+            self.value = self.value.strip().replace(' ', '')
+
+        if self.type == 'skype':
+            self.value = self.value.strip().replace(' ', '')
+
+        if self.value.strip():
+            self.is_deleted = False
+        else:        
+            self.is_deleted = True
+
+        if self.type == 'email' and (len(self.value) < 5 or self.value.find('@') == -1):
+            self.is_deleted = True
+
+        if self.type == 'phone' and len(self.value) < 7:
+            self.is_deleted = True
+
+        self.put('autofix')
+        
 
 class Document(ChangeLogModel):
     file            = blobstore.BlobReferenceProperty()
