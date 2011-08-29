@@ -22,7 +22,7 @@ def GenerateUsername(forename, surname):
 
 class CheckAppsAccount(boRequestHandler):
     def post(self):
-        if not self.authorize('bubbler'):
+        if not self.authorize('gapps_account_create'):
             return
 
         gapps = gdata.apps.service.AppsService(
@@ -77,7 +77,7 @@ class CheckAppsAccount(boRequestHandler):
 
 class CreateAppsAccount(boRequestHandler):
     def post(self):
-        if not self.authorize('bubbler'):
+        if not self.authorize('gapps_account_create'):
             return
 
         gapps = gdata.apps.service.AppsService(
@@ -132,7 +132,7 @@ class CreateAppsAccount(boRequestHandler):
 
 class ConnectAppsAccount(boRequestHandler):
     def post(self, username):
-        if not self.authorize('bubbler'):
+        if not self.authorize('gapps_account_create'):
             return
 
         person_id = self.request.get('person_id').strip()
