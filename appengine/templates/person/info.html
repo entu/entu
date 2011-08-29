@@ -9,7 +9,7 @@
             {{ str.person_birthdate }}:
         </div>
         <div class="cell">
-            {{ person.birth_date|date:"d.m.Y" }}
+            {{ person.birth_date|date:"d.m.Y" }} {% if person.age %}({{ person.age }}){% endif %}
         </div>
     </div>
     <div class="row">
@@ -29,6 +29,19 @@
             {% ifequal person.gender "female" %}{{ str.person_gender_female }}{% endifequal %}
         </div>
     </div>
+    {% for c in person.GetContacts %}
+    <div class="row">
+        <div class="v_header">
+            {% ifequal c.type "address" %}{{ str.contact_address }}:{% endifequal %}
+            {% ifequal c.type "email" %}{{ str.contact_email }}:{% endifequal %}
+            {% ifequal c.type "phone" %}{{ str.contact_phone }}:{% endifequal %}
+            {% ifequal c.type "skype" %}{{ str.contact_skype }}:{% endifequal %}
+        </div>
+        <div class="cell">
+            {{ c.value }}
+        </div>
+    </div>
+    {% endfor %}
 </section>
 
 <a href="javascript:void(0);" id="gapps_account"></a>
@@ -70,7 +83,7 @@
         function ajax_grades_list(post_url, post_data, div, id) {
             $.post(post_url, post_data, function(list) {
                 for (i in list.keys) {
-                    div.append('<a href="#" id="'+id+'_'+list.keys[i]+'"></a>');
+                    div.append('<a href="#" id="'+id+'_'+list.keys[i]+'">.</a>');
                     $.post(post_url, {key: list.keys[i]}, function(item) {
                         if(item.info) {
                             info = '<span>'+item.info+'</span>';

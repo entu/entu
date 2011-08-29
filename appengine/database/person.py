@@ -99,10 +99,10 @@ class Person(ChangeLogModel):
     @property
     def emails(self):
         emails = []
-        if self.email:
-            emails = AddToList(self.email, emails)
         if self.user:
             emails = AddToList(self.user, emails)
+        if self.email:
+            emails = AddToList(self.email, emails)
         for contact in db.Query(Contact).ancestor(self).filter('type', 'email').fetch(1000):
             emails = AddToList(contact.value, emails)
         return emails
@@ -130,19 +130,12 @@ class Person(ChangeLogModel):
             else:
                 return today.year - self.birth_date.year
 
-    @property
-    def contacts(self):
-        return db.Query(Contact).ancestor(self).fetch(1000)
+    def GetContacts(self):
+        return db.Query(Contact).ancestor(self).filter('type !=', 'email').fetch(1000)
 
-    @property
-    def Roles(self):
-        return self.roles2()
-
-    @property                   # TODO: refactor to Roles
-    def roles2(self):
+    def GetRoles(self):
         if users.is_current_user_admin():
             return Role().all()
-
         if self.roles:
             return Role().get(self.roles)
 

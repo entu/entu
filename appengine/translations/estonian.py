@@ -29,6 +29,11 @@ def translation():
         'person_gender_female': 'Naine',
         'person_grades':        'Hinded',
 
+        'contact_address':      'Postiaadress',
+        'contact_email':        'E-post',
+        'contact_phone':        'Telefon',
+        'contact_skype':        'Skype',
+
         'gapps_create_account': 'Loo kasutaja <b>%s</b> ...',
         'gapps_user_exist':     'Kasutaja <b>%s</b> on olemas. Seo see persooniga ...',
         'gapps_nickname_exist': 'Hüüdnimi %(nick)s on olemas. Seo kasutaja <b>%(user)s</b> persooniga ...',
@@ -169,10 +174,6 @@ def translation():
         'application_status_selected':          'Esitamata',
         'application_status_submitted':         'Esitatud',
         'application_status_accepted':          ' Kinnitatud',
-        'contact_address':                      'Postiaadress',
-        'contact_email':                        'E-post',
-        'contact_phone':                        'Telefon',
-        'contact_skype':                        'Skype',
         'invitation_sent':                      'Kutse saadeti sulle meilile!',
         'password':                             'Parool',
         'application_apply':                    'Kandideerin',

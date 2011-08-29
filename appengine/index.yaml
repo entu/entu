@@ -76,6 +76,15 @@ indexes:
   - name: search
   - name: sort
 
+
+
+- kind: Contact
+  ancestor: yes
+  properties:
+  - name: type
+
+
+
 - kind: Document
   properties:
   - name: entities

@@ -46,8 +46,8 @@ class boRequestHandler(webapp.RequestHandler):
         else:
             if controller and users.is_current_user_admin() == False:
                 rights = []
-                if Person().current.roles2:
-                    for role in Person().current.roles2:
+                if Person().current.GetRoles():
+                    for role in Person().current.GetRoles():
                         rights = rights + role.rights
                     if controller in rights:
                         return True
