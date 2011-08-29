@@ -58,6 +58,12 @@ indexes:
   - name: is_deleted
   - name: datetime
 
+- kind: Grade
+  properties:
+  - name: is_deleted
+  - name: person
+  - name: datetime
+
 
 
 - kind: Person

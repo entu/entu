@@ -2,28 +2,56 @@
 <img src="{{ person.photo.url }}/150/c" id="person_photo" />
 {% endif %}
 <h1>{{ person.displayname }}</h1>
-<div class="vertical_table">
-    <div class="table_row">
-        <div class="table_cell" style="width:300px; vertical-align:top;">
 
-            <label for="primary_email" style="display:block;">{{ str.person_primary_email }}:</label>
-            <input type="text" id="primary_email" name="primary_email" class="autosave" value="{{ person.primary_email|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" disabled />
-
-            <label for="person_birthdate" style="display:block;">{{ str.person_birthdate }}:</label>
-            <input type="text" id="person_birthdate" name="person_birthdate" class="autosave_date" value="{{ person.birth_date|date:"d.m.Y" }}" maxlength="500" style="width:110px; margin-bottom:15px;" disabled />
-
-            <label for="person_idcode" style="display:block;">{{ str.idcode }}:</label>
-            <input type="text" id="person_idcode" name="person_idcode" class="autosave" value="{{ person.idcode|default:""|escape }}" maxlength="500" style="width:110px; margin-bottom:15px;" disabled />
-
+<section class="table">
+    <div class="row">
+        <div class="v_header">
+            {{ str.person_birthdate }}:
+        </div>
+        <div class="cell">
+            {{ person.birth_date|date:"d.m.Y" }}
         </div>
     </div>
-</div>
+    <div class="row">
+        <div class="v_header">
+            {{ str.person_idcode }}:
+        </div>
+        <div class="cell">
+            {{ person.idcode|default:"" }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="v_header">
+            {{ str.person_gender }}:
+        </div>
+        <div class="cell">
+            {% ifequal person.gender "male" %}{{ str.person_gender_male }}{% endifequal %}
+            {% ifequal person.gender "female" %}{{ str.person_gender_female }}{% endifequal %}
+        </div>
+    </div>
+</section>
+
 <a href="javascript:void(0);" id="gapps_account"></a>
+
+<section class="info_accordion">
+    {% if person.grades_count %}
+    <div>
+        <h2>{{ str.person_grades }}<span>{{ person.grades_count }}</span></h2>
+        <div id="grades" class="subbubbles_list"></div>
+    </div>
+    {% endif %}
+</section>
 
 <script type="text/javascript">
     $(document).ready(function(){
 
         person_id = {{ person.key.id }};
+
+        $(".info_accordion div h2").click(function() {
+            $(this).next().slideToggle();
+        });
+
+        ajax_grades_list('/rating/grades', { person: '{{ person.key }}' }, $('#grades'), 'grades');
 
         $.post('/gapps/checkaccount', {person_id: person_id}, function(json) {
             $('#gapps_account').html(json.text);
@@ -38,6 +66,27 @@
                 $(link).data('url');
             }, 'json');
         });
+
+        function ajax_grades_list(post_url, post_data, div, id) {
+            $.post(post_url, post_data, function(list) {
+                for (i in list.keys) {
+                    div.append('<a href="#" id="'+id+'_'+list.keys[i]+'"></a>');
+                    $.post(post_url, {key: list.keys[i]}, function(item) {
+                        if(item.info) {
+                            info = '<span>'+item.info+'</span>';
+                        } else {
+                            info = '';
+                        }
+                        if('#'+item.id == window.location.hash) {
+                            active = 'class="active" ';
+                        } else {
+                            active = '';
+                        }
+                        $('#'+id+'_'+item.key).html(item.date+' '+item.type+' - '+item.bubble+'<span>'+item.title+'</span>');
+                    }, 'json');
+                }
+            }, 'json');
+        }
 
     });
 </script>

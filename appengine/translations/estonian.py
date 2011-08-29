@@ -21,10 +21,13 @@ def translation():
         'page_bubbles':         'Õpimullid',
         'page_persons':         'Persoonid',
         'page_feedback':        'Tagasiside',
-
-        'gender':               'Sugu',
-        'gender_male':          'Mees',
-        'gender_female':        'Naine',
+        
+        'person_birthdate':     'Sünnikuupäev',
+        'person_idcode':        'Isikukood',
+        'person_gender':        'Sugu',
+        'person_gender_male':   'Mees',
+        'person_gender_female': 'Naine',
+        'person_grades':        'Hinded',
 
         'gapps_create_account': 'Loo kasutaja <b>%s</b> ...',
         'gapps_user_exist':     'Kasutaja <b>%s</b> on olemas. Seo see persooniga ...',
@@ -130,7 +133,6 @@ def translation():
         'download':             'Lae alla',
         'application_personal':      'Isikuandmed',
         'application_personal_desc': 'Sisesta enda isiku- ja kontaktandmed ning lisa dokumendifoto',
-        'idcode':               'Isikukood',
         'birthdate':            'Sünnipäev',
         'exam_groups':          'Eksamivoorud',
         'photo':                'Foto',
@@ -274,7 +276,6 @@ def translation():
         'person_surname':           'Perenimi',
         'person_changed_on':        'Viimati muutis %(name)s %(date)s',
         'person_primary_email':     'E-post',
-        'person_birthdate':         'Sünnikuupäev',
 
         'email_subject_timeslot': 'Eesti Kunstiakadeemia sisseastumine - %s',
         'email_message_timeslot': 'Tere %(name)s,<br><br>Sinu %(bubble)s toimub %(time)s<br><br>%(description)s<br><br>Lisainfo: <a href="%(link)s">%(link)s</a><br><br>Küsimuste korral esita need oma <a href="http://bubbledu.artun.ee/application">sisseastumisavaldusel</a>.',

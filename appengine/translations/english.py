@@ -22,9 +22,12 @@ def translation():
         'page_persons':         'Persons',
         'page_feedback':        'Feedback',
 
-        'gender':               'Sex',
-        'gender_male':          'Male',
-        'gender_female':        'Female',
+        'person_birthdate':     'Birthday',
+        'person_idcode':        'Isikukood',
+        'person_gender':        'Sex',
+        'person_gender_male':   'Male',
+        'person_gender_female': 'Female',
+        'person_grades':        'Grades',
 
         'gapps_create_account': 'Create account <b>%s</b> ...',
         'gapps_user_exist':     'Account <b>%s</b> exist. Connect with person ...',

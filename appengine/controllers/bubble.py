@@ -49,13 +49,13 @@ class ShowBubbleList(boRequestHandler):
         search = self.request.get('search').strip().lower()
         master_bubble = self.request.get('master_bubble').strip()
 
-        if  bubbletype and not search:
+        if bubbletype and not search:
             keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('is_deleted', False).order('sort_estonian'))]
 
         if search:
             keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('search_estonian', search).filter('is_deleted', False).order('sort_estonian'))]
 
-        if  master_bubble:
+        if master_bubble:
             bubble = Bubble().get(master_bubble)
             keys = [str(k.key()) for k in sorted(Bubble().get(bubble.subbubbles), key=attrgetter('start_datetime'))]
 

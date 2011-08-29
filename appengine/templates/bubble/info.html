@@ -67,12 +67,11 @@
 <script type="text/javascript">
     $(document).ready(function(){
 
+        bubble_id = {{ bubble.key.id }};
+
         $(".info_accordion div h2").click(function() {
             $(this).next().slideToggle();
         });
-
-
-        bubble_id = {{ bubble.key.id }};
 
         ajax_persons_list('/person', { bubble_seeders: '{{ bubble.key }}' }, $('#seeders'), 'seeder');
         ajax_persons_list('/person', { bubble_leechers: '{{ bubble.key }}' }, $('#leechers'), 'leecher');
@@ -82,7 +81,7 @@
         function ajax_persons_list(post_url, post_data, div, id) {
             $.post(post_url, post_data, function(list) {
                 for (i in list.keys) {
-                    div.append('<a href="" id="'+id+'_'+list.keys[i]+'"></a>');
+                    div.append('<a href="#" id="'+id+'_'+list.keys[i]+'"></a>');
                     $.post(post_url, {key: list.keys[i]}, function(item) {
                         if(item.image) {
                             image = '<img src="'+item.image+'" />';
@@ -109,7 +108,7 @@
         function ajax_bubbles_list(post_url, post_data, div, id) {
             $.post(post_url, post_data, function(list) {
                 for (i in list.keys) {
-                    div.append('<a href="#'+list.keys[i]+'" id="'+id+'_'+list.keys[i]+'"></a>');
+                    div.append('<a href="#" id="'+id+'_'+list.keys[i]+'"></a>');
                     $.post(post_url, {key: list.keys[i]}, function(item) {
                         if(item.info) {
                             info = '<span>'+item.info+'</span>';

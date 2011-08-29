@@ -76,6 +76,7 @@ class ShowPerson(boRequestHandler):
             return
 
         person = Person().get_by_id(int(person_id))
+        person.grades_count = db.Query(Grade).filter('person', person).filter('is_deleted', False).count()
 
         self.view(
             template_file = 'person/info.html',

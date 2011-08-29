@@ -611,7 +611,10 @@ class Grade(ChangeLogModel):
 
     @property
     def displayname(self):
-        return self.gradedefinition.name.translate()
+        if self.gradedefinition:
+            if self.gradedefinition.name:
+                return self.gradedefinition.name.translate()
+        return ''
 
     @property
     def displaydate(self):
