@@ -379,10 +379,10 @@ class Leech(boRequestHandler):
 
         bubbles = []
         for b in bubble.bubbles:
-            if db.Query(BubblePerson).filter('bubble', b).filter('person', person).filter('status', 'new').get():
+            if db.Query(BubblePerson).filter('bubble', b).filter('person', person).filter('status', 'waiting').get() or person.key() in b.leechers:
                 b.selected = True
             if b.maximum_leecher_count:
-                b.free_count = b.maximum_leecher_count - db.Query(BubblePerson).filter('bubble', b).filter('status', 'new').count()
+                b.free_count = b.maximum_leecher_count - (len(b.leechers) + db.Query(BubblePerson).filter('bubble', b).filter('status', 'waiting').count())
             bubbles.append(b)
 
         self.view(bubble.displayname, 'bubble/leeching.html', {
@@ -395,19 +395,19 @@ class Leech(boRequestHandler):
         person = Person().current
 
         if self.request.get('leech').strip().lower() == 'true':
-            bp = db.Query(BubblePerson).filter('bubble', bubble_key).filter('person', person).filter('status', 'new').get()
-            if not bp:
+            if not db.Query(BubblePerson).filter('bubble', bubble_key).filter('person', person).filter('status', 'waiting').get():
                 bp = BubblePerson()
-            bp.bubble = bubble_key
-            bp.person = Person().current
-            bp.put()
+                bp.bubble = bubble_key
+                bp.person = Person().current
+                bp.status = 'waiting'
+                bp.put()
         else:
-            bp = db.Query(BubblePerson).filter('bubble', bubble_key).filter('person', person).filter('status', 'new').get()
+            bp = db.Query(BubblePerson).filter('bubble', bubble_key).filter('person', person).filter('status', 'waiting').get()
             if bp:
                 bp.status = 'canceled'
                 bp.put()
-
-
+                
+                
 def main():
     Route([
             (r'/bubbletype/(.*)', ShowBubbleList),
