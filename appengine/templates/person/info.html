@@ -53,6 +53,13 @@
         <div id="grades" class="subbubbles_list"></div>
     </div>
     {% endif %}
+
+    {% if person.bubbles_count %}
+    <div>
+        <h2>{{ str.person_bubbles }}<span>{{ person.bubbles_count }}</span></h2>
+        <div id="bubbles" class="subbubbles_list"></div>
+    </div>
+    {% endif %}
 </section>
 
 <script type="text/javascript">
@@ -65,6 +72,7 @@
         });
 
         ajax_grades_list('/rating/grades', { person: '{{ person.key }}' }, $('#grades'), 'grades');
+        ajax_bubbles_list('/bubble', { leecher: '{{ person.key }}' }, $('#bubbles'), 'bubbles');
 
         $.post('/gapps/checkaccount', {person_id: person_id}, function(json) {
             $('#gapps_account').html(json.text);
@@ -83,7 +91,7 @@
         function ajax_grades_list(post_url, post_data, div, id) {
             $.post(post_url, post_data, function(list) {
                 for (i in list.keys) {
-                    div.append('<a href="#" id="'+id+'_'+list.keys[i]+'">.</a>');
+                    div.append('<a href="#" id="'+id+'_'+list.keys[i]+'">&nbsp;</a>');
                     $.post(post_url, {key: list.keys[i]}, function(item) {
                         if(item.info) {
                             info = '<span>'+item.info+'</span>';
@@ -96,6 +104,28 @@
                             active = '';
                         }
                         $('#'+id+'_'+item.key).html(item.date+' '+item.type+' - '+item.bubble+'<span>'+item.title+'</span>');
+                    }, 'json');
+                }
+            }, 'json');
+        }
+
+        function ajax_bubbles_list(post_url, post_data, div, id) {
+            $.post(post_url, post_data, function(list) {
+                for (i in list.keys) {
+                    div.append('<a href="#" id="'+id+'_'+list.keys[i]+'">&nbsp;</a>');
+                    $.post(post_url, {key: list.keys[i]}, function(item) {
+                        if(item.info) {
+                            info = '<span>'+item.info+'</span>';
+                        } else {
+                            info = '';
+                        }
+                        if('#'+item.id == window.location.hash) {
+                            active = 'class="active" ';
+                        } else {
+                            active = '';
+                        }
+                        $('#'+id+'_'+item.key).html(item.type_name+' - '+item.title+'<span>'+item.info+'</span>');
+                        $('#'+id+'_'+item.key).attr('href', '/bubble/'+item.type+'#'+item.id);
                     }, 'json');
                 }
             }, 'json');

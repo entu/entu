@@ -28,6 +28,7 @@ def translation():
         'person_gender_male':   'Mees',
         'person_gender_female': 'Naine',
         'person_grades':        'Hinded',
+        'person_bubbles':       'Õpimullid',
 
         'contact_address':      'Postiaadress',
         'contact_email':        'E-post',

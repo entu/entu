@@ -47,13 +47,17 @@ class ShowBubbleList(boRequestHandler):
         keys = None
         bubbletype = bubbletype.strip('/')
         search = self.request.get('search').strip().lower()
+        leecher = self.request.get('leecher').strip()
         master_bubble = self.request.get('master_bubble').strip()
+
+        if search:
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('search_estonian', search).filter('is_deleted', False).order('sort_estonian'))]
 
         if bubbletype and not search:
             keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('is_deleted', False).order('sort_estonian'))]
 
-        if search:
-            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('search_estonian', search).filter('is_deleted', False).order('sort_estonian'))]
+        if leecher:
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('leechers', db.Key(leecher)).filter('is_deleted', False).order('sort_estonian'))]
 
         if master_bubble:
             bubble = Bubble().get(master_bubble)
@@ -70,7 +74,7 @@ class ShowBubble(boRequestHandler):
         bubble = Bubble().get_by_id(int(bubble_id))
         bubble.seeders_count = len(bubble.seeders) if bubble.seeders else None
         bubble.leechers_count = len(bubble.leechers) if bubble.leechers else None
-        bubble.waitinglist_count = db.Query(BubblePerson).filter('bubble', bubble).filter('status', 'new').count()
+        bubble.waitinglist_count = db.Query(BubblePerson).filter('bubble', bubble).filter('status', 'waiting').count()
         bubble.subbubbles_count = len(bubble.subbubbles) if bubble.subbubbles else None
 
         self.view(

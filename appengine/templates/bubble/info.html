@@ -24,14 +24,6 @@
             {{ bubble.url|default:""|urlize }}
         </div>
     </div>
-    <div class="row">
-        <div class="v_header">
-            {{ str.bubble_max_leecher_count }}:
-        </div>
-        <div class="cell">
-            {{ bubble.maximum_leecher_count|default:"" }}
-        </div>
-    </div>
 </section>
 
 <section class="info_accordion">
@@ -44,7 +36,7 @@
     
     {% if bubble.leechers_count %}
     <div>
-        <h2>{{ str.bubble_leechers }}<span>{{ bubble.leechers_count }}</span></h2>
+        <h2>{{ str.bubble_leechers }}<span>{{ bubble.leechers_count }}{% if bubble.maximum_leecher_count %} / {{ bubble.maximum_leecher_count }}{% endif %}</span></h2>
         <div id="leechers" class="persons_list"></div>
     </div>
     {% endif %}
@@ -108,7 +100,7 @@
         function ajax_bubbles_list(post_url, post_data, div, id) {
             $.post(post_url, post_data, function(list) {
                 for (i in list.keys) {
-                    div.append('<a href="#" id="'+id+'_'+list.keys[i]+'"></a>');
+                    div.append('<a href="#" id="'+id+'_'+list.keys[i]+'">&nbsp;</a>');
                     $.post(post_url, {key: list.keys[i]}, function(item) {
                         if(item.info) {
                             info = '<span>'+item.info+'</span>';

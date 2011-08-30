@@ -61,7 +61,7 @@ class ShowPersonList(boRequestHandler):
             keys = [str(k.key()) for k in sorted(leechers, key=attrgetter('sort'))]
 
         if bubble_waitinglist:
-            bubblepersons = db.Query(BubblePerson).filter('bubble', db.Key(bubble_waitinglist)).filter('status', 'new').order('start_datetime')
+            bubblepersons = db.Query(BubblePerson).filter('bubble', db.Key(bubble_waitinglist)).filter('status', 'waiting').order('start_datetime')
             keys = [str(k.person.key()) for k in bubblepersons]
 
         if keys == None:
@@ -76,6 +76,7 @@ class ShowPerson(boRequestHandler):
             return
 
         person = Person().get_by_id(int(person_id))
+        person.bubbles_count = len(person.leecher)
         person.grades_count = db.Query(Grade).filter('person', person).filter('is_deleted', False).count()
 
         self.view(
