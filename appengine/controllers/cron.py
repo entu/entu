@@ -30,6 +30,24 @@ class SyncBubbleLeechers(boRequestHandler):
                 self.echo(str(b.key()) + ' - ' + str(p) + '\n')
 
 
+class WaitingList(boRequestHandler):
+    def get(self):
+        bubbles = []
+        for bp in db.Query(BubblePerson).filter('status', 'waiting'):
+            if bp.person.key() in bp.bubble.leechers:
+                bp.end_datetime = datetime.now()
+                bp.status = 'waiting_end'
+                bp.put()
+            else:          
+                bubbles = AddToList(bp.bubble.key(), bubbles)
+
+        for b in Bubble().get(bubbles):
+            b.WaitinglistToLeecher()
+            
+
+
+
+
 class DeleteAggregation(boRequestHandler):
     def get(self):
         self.header('Content-Type', 'text/plain; charset=utf-8')
@@ -124,6 +142,7 @@ def main():
     Route([
             ('/cron/sync_bubble_seeders', SyncBubbleSeeders),
             ('/cron/sync_bubble_leechers', SyncBubbleLeechers),
+            ('/cron/waitinglist', WaitingList),
             ('/cron/delete_aggregation', DeleteAggregation),
             ('/cron/generate_questionary', GenerateQuestionaryPersons),
             ('/cron/test', Test),

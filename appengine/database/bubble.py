@@ -156,7 +156,6 @@ class Bubble(ChangeLogModel):
 
         self.put('autofix')
 
-
     @property
     def displayname(self):
         if self.name:
@@ -211,6 +210,22 @@ class Bubble(ChangeLogModel):
 
     def GetPrerequisiteBubbles(self):
         return Bubble.get(self.prerequisite_bubbles)
+
+    def WaitinglistToLeecher(self):
+        for bp in db.Query(BubblePerson).filter('bubble', self).filter('status', 'waiting').order('start_datetime'):
+            if self.maximum_leecher_count:
+                if self.maximum_leecher_count <= len(self.leechers):
+                    break
+            self.leechers = AddToList(bp.person.key(), self.leechers)
+            self.put()
+            
+            person = bp.person
+            person.leecher = AddToList(bp.bubble.key(), person.leecher)
+            person.put()
+            
+            bp.end_datetime = datetime.now()
+            bp.status = 'waiting_end'
+            bp.put()            
 
 
 
@@ -575,7 +590,7 @@ class Bubble(ChangeLogModel):
 class BubblePerson(ChangeLogModel): #parent=Bubble()
     bubble          = db.ReferenceProperty(Bubble)
     person          = db.ReferenceProperty(Person)
-    status          = db.StringProperty(choices=['new', 'waiting', 'accepted', 'ended', 'canceled'], default='new')
+    status          = db.StringProperty(choices=['waiting', 'waiting_end', 'leecher', 'seeder', 'canceled'])
     start_datetime  = db.DateTimeProperty(auto_now_add=True)
     end_datetime    = db.DateTimeProperty()
 

@@ -7,6 +7,10 @@ cron:
   url: /cron/sync_bubble_seeders
   schedule: every 10 minutes
 
+- description: Sync waitinglist
+  url: /cron/waitinglist
+  schedule: every 10 minutes
+
 
 
 #- description: Send feedback
