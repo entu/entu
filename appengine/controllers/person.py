@@ -1,13 +1,8 @@
 from operator import attrgetter
 
-import csv
-import cStringIO
-
 from bo import *
 from database.person import *
 from database.bubble import *
-
-from django.template import TemplateDoesNotExist
 
 
 class ShowPersonList(boRequestHandler):
@@ -86,6 +81,27 @@ class ShowPerson(boRequestHandler):
             }
         )
 
+
+class ExportPersonsCSV(boRequestHandler):
+    def get(self):
+        if not self.authorize('bubbler'):
+            return
+
+        bubble_leechers = self.request.get('bubble_leechers').strip()
+        if bubble_leechers:
+            bubble = Bubble().get(bubble_leechers)
+            filename = bubble.GetType().displayname + ' - ' + bubble.displayname + ' - ' + Translate('bubble_leechers').lower()
+            rowslist = []
+            for p in Person().get(bubble.leechers):
+                rowslist.append([
+                    p.displayname.encode("utf-8"),
+                    p.primary_email.encode("utf-8"),
+                ])
+
+        self.echo_csv(
+            filename = filename,
+            rowslist = rowslist
+        )
 
 
 
@@ -296,6 +312,7 @@ class ListedRating(boRequestHandler):
 def main():
     Route([
             (r'/person/show/(.*)', ShowPerson),
+            ('/person/csv', ExportPersonsCSV),
             ('/person/set_role', SetRole),
             ('/person/person_ids', GetPersonIds),
             ('/person/person_keys', GetPersonKeys),

@@ -33,11 +33,12 @@
         <div id="seeders" class="persons_list"></div>
     </div>
     {% endif %}
-    
+
     {% if bubble.leechers_count %}
     <div>
         <h2>{{ str.bubble_leechers }}<span>{{ bubble.leechers_count }}{% if bubble.maximum_leecher_count %} / {{ bubble.maximum_leecher_count }}{% endif %}</span></h2>
         <div id="leechers" class="persons_list"></div>
+        <a href="/person/csv?bubble_leechers={{ bubble.key }}" target="_blank">CSV</a>
     </div>
     {% endif %}
 
@@ -47,7 +48,7 @@
         <div id="waitinglist" class="persons_list"></div>
     </div>
     {% endif %}
-    
+
     {% if bubble.subbubbles_count %}
     <div>
         <h2>{{ str.bubble_subbubbles }}<span>{{ bubble.subbubbles_count }}</span></h2>

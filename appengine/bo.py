@@ -13,6 +13,8 @@ from django.template.defaultfilters import striptags
 from django.template import Template
 from django.conf import settings
 from django.utils import simplejson
+import csv
+import cStringIO
 
 from datetime import timedelta
 import random
@@ -110,6 +112,16 @@ class boRequestHandler(webapp.RequestHandler):
 
     def echo_json(self, dictionary):
         self.response.out.write(simplejson.dumps(dictionary))
+
+    def echo_csv(self, filename, rowslist):
+        csvfile = cStringIO.StringIO()
+        csvWriter = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
+        for row in rowslist:
+            csvWriter.writerow(row)
+        self.header('Content-Type', 'text/csv; charset=utf-8')
+        self.header('Content-Disposition', 'attachment; filename=' + unicode(filename.encode('utf-8'), errors='ignore') + '.csv')
+        self.echo(csvfile.getvalue())
+        csvfile.close()
 
     def header(self, key, value):
         self.response.headers[key] = value

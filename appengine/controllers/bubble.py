@@ -449,8 +449,8 @@ class Leech(boRequestHandler):
             if bp:
                 bp.status = 'canceled'
                 bp.put()
-                
-                
+
+
 def main():
     Route([
             (r'/bubble/show/(.*)', ShowBubble),
