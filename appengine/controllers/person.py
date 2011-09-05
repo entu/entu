@@ -93,9 +93,12 @@ class ExportPersonsCSV(boRequestHandler):
             filename = bubble.GetType().displayname + ' - ' + bubble.displayname + ' - ' + Translate('bubble_leechers').lower()
             rowslist = []
             for p in Person().get(bubble.leechers):
+                email = p.primary_email
+                if not email:
+                    email = ''
                 rowslist.append([
                     p.displayname.encode("utf-8"),
-                    p.primary_email.encode("utf-8"),
+                    email.encode("utf-8"),
                 ])
 
         self.echo_csv(
