@@ -39,9 +39,7 @@ class Show(boRequestHandler):
                     'link': '',
                     'title': Translate('administration'),
                     'childs': [
-                        {'link': '/reception', 'title': Translate('reception'), 'childs': [{
-                            'link': '/reception/stats', 'title': Translate('statistics')
-                            }]},
+                        {'link': '/reception', 'title': Translate('reception')},
                         {'link': '/questionary', 'title': Translate('questionaries')},
                     ]
                 })
