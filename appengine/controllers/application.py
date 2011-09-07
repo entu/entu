@@ -93,15 +93,15 @@ class ShowSignin(boRequestHandler):
                 p.password = password
                 p.put()
 
-                SendMail(
-                    to = email,
-                    reply_to = 'sisseastumine@artun.ee',
-                    subject = Translate('application_signup_mail_subject'),
-                    message = Translate('application_signup_mail_message') % p.password
-                )
                 if self.request.get('receptionist').strip() == 'receptionist':
                     self.echo(str(p.key()), False)
                 else:
+                    SendMail(
+                        to = email,
+                        reply_to = 'sisseastumine@artun.ee',
+                        subject = Translate('application_signup_mail_subject'),
+                        message = Translate('application_signup_mail_message') % p.password
+                    )
                     self.echo('OK', False)
 
         else:
