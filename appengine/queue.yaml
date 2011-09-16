@@ -4,5 +4,5 @@ queue:
   max_concurrent_requests: 1
 
 - name: bubble-one-by-one
-  rate: 5/s
+  rate: 500/s
   max_concurrent_requests: 1

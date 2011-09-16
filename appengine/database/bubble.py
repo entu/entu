@@ -451,7 +451,7 @@ class Bubble(ChangeLogModel):
                 con.entities = [person.key()]
             con.participants = AddToList(person.key(), con.participants)
             con.put()
-            con.add_message(
+            """con.add_message(
                 message = Translate('email_log_timeslot') % {
                     'bubble': bubble.displayname,
                     'description': description,
@@ -471,7 +471,7 @@ class Bubble(ChangeLogModel):
                     'time': self.displaydate,
                     'link': bubble.url,
                 }
-            )
+            )"""
 
 
     def remove_leecher(self, person_key):
@@ -626,9 +626,12 @@ class Grade(ChangeLogModel):
 
     @property
     def displayname(self):
-        if self.gradedefinition:
-            if self.gradedefinition.name:
-                return self.gradedefinition.name.translate()
+        if self.name:
+            return self.name.translate()
+        else:
+            if self.gradedefinition:
+                if self.gradedefinition.name:
+                    return self.gradedefinition.name.translate()
         return ''
 
     @property

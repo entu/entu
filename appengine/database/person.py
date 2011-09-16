@@ -47,11 +47,11 @@ class Person(ChangeLogModel):
     leecher                 = db.ListProperty(db.Key)
     sort                    = db.StringProperty(default='')
     search                  = db.StringListProperty()
-    
+
     def AutoFix(self):
         if hasattr(self, 'search_names'):
             delattr(self, 'search_names')
-        
+
         if self.apps_username:
             self.user = self.apps_username
 
@@ -60,20 +60,23 @@ class Person(ChangeLogModel):
         else:
             if self.user:
                 self.forename = self.user.split('@')[0].split('.')[0].title()
-                        
+
         if self.surname:
             self.surname = self.surname.title().strip().replace('  ', ' ').replace('- ', '-').replace(' -', '-')
         else:
             if self.user:
                 self.surname = self.user.split('@')[0].split('.')[1].title().strip()
-        
+
         if not self.sort:
             self.sort = StringToSortable(self.displayname)
-        
+
         self.search = StringToSearchIndex(self.displayname)
 
         self.put('autofix')
-        
+        #for l in self.leecher:
+        #    taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'add', 'bubble_key': str(l), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
+
+
     @property
     def displayname(self):
         name = ''
@@ -225,7 +228,7 @@ class Contact(ChangeLogModel): #parent=Person()
 
         if self.value.strip():
             self.is_deleted = False
-        else:        
+        else:
             self.is_deleted = True
 
         if self.type == 'email' and (len(self.value) < 5 or self.value.find('@') == -1):
@@ -235,7 +238,7 @@ class Contact(ChangeLogModel): #parent=Person()
             self.is_deleted = True
 
         self.put('autofix')
-        
+
 
 class Document(ChangeLogModel):
     file            = blobstore.BlobReferenceProperty()

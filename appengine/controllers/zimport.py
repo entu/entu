@@ -19,10 +19,18 @@ class ZimportBubbleType(boRequestHandler):
             self.echo(str(z.key().name()))
 
 
+class ZimportContact(boRequestHandler):
+    def get(self):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        for z in db.Query(zContact).fetch(1000):
+            z.zimport()
+            self.echo(str(z.key().name()))
+
+
 class ZimportGrade(boRequestHandler):
     def get(self):
         self.header('Content-Type', 'text/plain; charset=utf-8')
-        for z in db.Query(zGrade).fetch(3000):
+        for z in db.Query(zGrade).fetch(1000):
             z.zimport()
             self.echo(str(z.key().name()))
 
@@ -71,6 +79,7 @@ def main():
     Route([
             ('/zimport/bubble', ZimportBubble),
             ('/zimport/bubbletype', ZimportBubbleType),
+            ('/zimport/contact', ZimportContact),
             ('/zimport/grade', ZimportGrade),
             ('/zimport/gradedefinition', ZimportGradeDefinition),
             ('/zimport/person', ZimportPerson),
