@@ -237,6 +237,14 @@ transformers:
       external_name: bubbletype
       import_transform: transform.none_if_empty(unicode)
 
+    - property: subject_name_est
+      external_name: subject_name_est
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: subject_name_eng
+      external_name: subject_name_eng
+      import_transform: transform.none_if_empty(unicode)
+
 
 - kind: zGradeDefinition
   connector: csv

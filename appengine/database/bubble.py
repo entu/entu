@@ -612,6 +612,7 @@ class Grade(ChangeLogModel):
     gradedefinition = db.ReferenceProperty(GradeDefinition, collection_name='grades')
     bubble          = db.ReferenceProperty(Bubble)
     bubble_type     = db.StringProperty()
+    subject_name    = db.ReferenceProperty(Dictionary, collection_name='grade_subject_name')
     datetime        = db.DateTimeProperty()
     name            = db.ReferenceProperty(Dictionary, collection_name='grade_name')
     equivalent      = db.IntegerProperty()

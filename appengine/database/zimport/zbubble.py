@@ -79,6 +79,8 @@ class zGrade(db.Model):
     teacher                 = db.StringProperty()
     teacher_name            = db.StringProperty()
     bubbletype              = db.StringProperty()
+    subject_name_est        = db.StringProperty()
+    subject_name_eng        = db.StringProperty()
 
     def zimport(self):
         g = GetZoin('Grade', self.key().name())
@@ -97,8 +99,15 @@ class zGrade(db.Model):
             english = self.school_name_english
         ).put()
 
+        suject_name = Dictionary(
+            name = 'grade_suject_name',
+            estonian = self.subject_name_est,
+            english = self.subject_name_eng
+        ).put()
+
         g.person            = GetZoinKey('Person', self.person)
         g.bubble            = GetZoinKey('Bubble', self.bubble)
+        g.subject_name      = suject_name
         g.datetime          = self.datetime
         g.name              = name
         g.is_positive       = self.is_positive
