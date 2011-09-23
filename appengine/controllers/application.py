@@ -56,7 +56,7 @@ class ShowSignin(boRequestHandler):
             if CheckMailAddress(email):
                 p = db.Query(Person).filter('email', email).get()
                 if not p:
-                    p = db.Query(Person).filter('apps_username', email).get()
+                    p = db.Query(Person).filter('user', email).get()
                     if not p:
                         p = Person()
                         p.email = email
@@ -132,13 +132,13 @@ class ShowPersonRatings(boRequestHandler):
         last_change = person.last_change
         if last_change:
             if last_change.user:
-                changer = db.Query(Person).filter('apps_username', last_change.user).get()
+                changer = db.Query(Person).filter('user', last_change.user).get()
                 if changer:
                     changeinfo = Translate('person_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
 
         grades = db.Query(Grade).filter('person',person.key()).fetch(1000)
         grades = sorted(grades, key=lambda k: k.datetime, reverse=True)
-        
+
         ratings = ListRatings()
         ratings.head = [
             Translate('bubble_displayname').encode("utf-8"),

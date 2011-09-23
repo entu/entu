@@ -154,6 +154,28 @@ transformers:
       import_transform: transform.none_if_empty(unicode)
 
 
+- kind: zContact
+  connector: csv
+  connector_options:
+    #encoding: utf16
+  property_map:
+    - property: __key__
+      external_name: key_name
+      import_transform: transform.create_foreign_key('zContact')
+
+    - property: person
+      external_name: person
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: type
+      external_name: type
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: value
+      external_name: value
+      import_transform: transform.none_if_empty(unicode)
+
+
 - kind: zGrade
   connector: csv
   connector_options:
@@ -213,6 +235,14 @@ transformers:
 
     - property: bubbletype
       external_name: bubbletype
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: subject_name_est
+      external_name: subject_name_est
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: subject_name_eng
+      external_name: subject_name_eng
       import_transform: transform.none_if_empty(unicode)
 
 

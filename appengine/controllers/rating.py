@@ -10,6 +10,34 @@ from database.person import *
 from database.dictionary import *
 
 
+class ShowGrades(boRequestHandler):
+    def post(self):
+        if not self.authorize('bubbler'):
+            return
+
+        key = self.request.get('key').strip()
+        if key:
+            grade = Grade().get(key)
+            self.echo_json({
+                'id': grade.key().id(),
+                'key': str(grade.key()),
+                'title': grade.displayname,
+                'bubble': grade.bubble.displayname,
+                'type': grade.bubble.GetType().displayname,
+                'date': grade.datetime.strftime('%d.%m.%Y'),
+            })
+            return
+
+        keys = None
+        person = self.request.get('person').strip()
+
+        if person:
+            keys = [str(k) for k in list(db.Query(Grade, keys_only=True).filter('person', db.Key(person)).filter('is_deleted', False).order('datetime'))]
+
+        self.echo_json({'keys': keys})
+
+
+
 class ShowRating(boRequestHandler):
     def get(self, bubble_id):
         if not self.authorize('bubbler'):
@@ -47,7 +75,7 @@ class ShowRating(boRequestHandler):
                     leecher.grade_displayname = gd.displayname
                     leecher.grade_is_locked = grade.is_locked
                     break
-            
+
             leecher.subgrades = []
             for subgrade in subgrades:
                 if subgrade.person.key() == leecher.key():
@@ -120,6 +148,7 @@ class LockRating(boRequestHandler):
 
 def main():
     Route([
+            (r'/rating/grades', ShowGrades),
             (r'/rating/lock/(.*)', LockRating),
             (r'/rating/(.*)', ShowRating),
         ])

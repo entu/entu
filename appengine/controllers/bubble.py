@@ -1,3 +1,5 @@
+from operator import attrgetter
+
 import string
 import csv
 import cStringIO
@@ -10,42 +12,83 @@ from database.dictionary import *
 
 
 class ShowBubbleList(boRequestHandler):
-    def get(self, url):
-        if self.authorize('bubbler'):
-            limit = 30
-            page = self.request.get('p', '1').strip()
-            page = int(page)
-            offset = ((page*limit)-limit)
+    def get(self, bubbletype = None):
+        if not self.authorize('bubbler'):
+            return
 
-            url = url + '/'
-            url = url.split('/')
+        self.view(
+            page_title = 'page_bubbles',
+            template_file = 'main/list.html',
+            values = {
+                'list_url': '/bubble%s' % bubbletype,
+                'content_url': '/bubble/show',
+            }
+        )
 
-            id = int(url[0])
-            letter = url[1]
+    def post(self, bubbletype = None):
+        if not self.authorize('bubbler'):
+            return
 
-            bubbletype = BubbleType().get_by_id(id)
-
-            if letter:
-                bubbles = db.Query(Bubble).filter('type', bubbletype.type).filter('is_deleted', False).filter('sort_estonian >=', letter).order('sort_estonian').fetch(limit = limit, offset = offset)
-            else:
-                bubbles = db.Query(Bubble).filter('type', bubbletype.type).filter('is_deleted', False).order('sort_estonian').fetch(limit = limit, offset = offset)
-
-            show_scroll = True
-            if len(bubbles) < limit:
-                show_scroll = False
-
-
-            self.view('application', 'bubble/bubble_list.html', {
-                'bubbletype': bubbletype,
-                'bubbles': bubbles,
-                'next_page': (page + 1),
-                'letter': letter,
-                'show_scroll': show_scroll,
-                'abc': string.ascii_lowercase,
+        key = self.request.get('key').strip()
+        if key:
+            bubble = Bubble().get(key)
+            bubble.AutoFix()
+            self.echo_json({
+                'id': bubble.key().id(),
+                'key': str(bubble.key()),
+                'image': None,
+                'title': bubble.displayname,
+                'info': bubble.displaydate,
+                'type': bubble.type,
+                'type_name': bubble.GetType().displayname,
             })
+            return
+
+        keys = None
+        bubbletype = bubbletype.strip('/')
+        search = self.request.get('search').strip().lower()
+        leecher = self.request.get('leecher').strip()
+        master_bubble = self.request.get('master_bubble').strip()
+
+        if search:
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('search_estonian', search).filter('is_deleted', False).order('sort_estonian'))]
+
+        if bubbletype and not search:
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('is_deleted', False).order('sort_estonian'))]
+
+        if leecher:
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('leechers', db.Key(leecher)).filter('is_deleted', False).order('sort_estonian'))]
+
+        if master_bubble:
+            bubble = Bubble().get(master_bubble)
+            keys = [str(k.key()) for k in sorted(Bubble().get(bubble.subbubbles), key=attrgetter('start_datetime'))]
+
+        self.echo_json({'keys': keys})
 
 
 class ShowBubble(boRequestHandler):
+    def get(self, bubble_id):
+        if not self.authorize('bubbler'):
+            return
+
+        bubble = Bubble().get_by_id(int(bubble_id))
+        bubble.seeders_count = len(bubble.seeders) if bubble.seeders else None
+        bubble.leechers_count = len(bubble.leechers) if bubble.leechers else None
+        bubble.waitinglist_count = db.Query(BubblePerson).filter('bubble', bubble).filter('status', 'waiting').count()
+        bubble.subbubbles_count = len(bubble.subbubbles) if bubble.subbubbles else None
+
+        self.view(
+            template_file = 'bubble/info.html',
+            values = {
+                'bubble': bubble,
+            }
+        )
+
+
+
+
+
+class ShowBubble1(boRequestHandler):
     def get(self, id):
         if self.authorize('bubbler'):
 
@@ -90,7 +133,7 @@ class ShowBubble(boRequestHandler):
             last_change = bubble.last_change
             if last_change:
                 if last_change.user:
-                    changer = db.Query(Person).filter('apps_username', last_change.user).get()
+                    changer = db.Query(Person).filter('user', last_change.user).get()
                     if changer:
                         changeinfo = Translate('bubble_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
 
@@ -406,11 +449,11 @@ class Leech(boRequestHandler):
             if bp:
                 bp.status = 'canceled'
                 bp.put()
-                
-                
+
+
 def main():
     Route([
-            (r'/bubbletype/(.*)', ShowBubbleList),
+            (r'/bubble/show/(.*)', ShowBubble),
             (r'/bubble/add/(.*)/(.*)', AddBubble),
             (r'/bubble/add_existing/(.*)', AddExistingBubble),
             (r'/bubble/add_optional_subbubble/(.*)/(.*)', AddOptionalSubbubble),
@@ -425,8 +468,8 @@ def main():
             (r'/bubble/seeder/delete/(.*)/(.*)', DeleteSeeder),
             (r'/bubble/leecher/add/(.*)/(.*)', AddLeecher),
             (r'/bubble/leecher/delete/(.*)/(.*)', DeleteLeecher),
+            (r'/bubble(.*)', ShowBubbleList),
             (r'/bubble/leech/(.*)', Leech),
-            (r'/bubble/(.*)', ShowBubble),
         ])
 
 

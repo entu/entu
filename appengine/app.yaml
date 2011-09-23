@@ -1,5 +1,5 @@
 application: bongapp
-version: old
+version: dev
 runtime: python
 api_version: 1
 
@@ -50,6 +50,7 @@ handlers:
   expiration: "90d"
 
 
+
 #public controllers
 - url: /application(.*)
   script: controllers/application.py
@@ -67,6 +68,7 @@ handlers:
   script: controllers/ical.py
 
 
+
 #Old systems login/logout
 - url: /oldauth
   script: controllers/oldauth.py
@@ -78,6 +80,10 @@ handlers:
 
 #protected controllers
 - url: /
+  script: controllers/dashboard.py
+  login: required
+
+- url: /dashboard(.*)
   script: controllers/dashboard.py
   login: required
 
@@ -109,6 +115,10 @@ handlers:
   script: controllers/spam.py
   login: required
 
+- url: /gapps(.*)
+  script: controllers/googleapps.py
+  login: required
+
 - url: /update(.*)
   script: controllers/update.py
   login: admin
@@ -124,6 +134,7 @@ handlers:
 - url: /reception(.*)
   script: controllers/reception.py
   login: required
+
 
 
 #admin only controllers

@@ -1,57 +1,55 @@
+from string import ascii_lowercase
+
 from bo import *
 from database.bubble import *
 
+
 class Show(boRequestHandler):
     def get(self):
-        if self.authorize():
+        self.view(
+            page_title = 'page_dashboard',
+            template_file = 'dashboard.html',
+        )
 
-            tree = []
 
-            tree.append({
-                'link': 'http://www.artun.ee',
-                'title': Translate('artun.ee'),
+class ShowMenu(boRequestHandler):
+    def get(self):
+        menu = []
+
+        if self.authorize('bubbler'):
+            bubbletypes = []
+            for bt in db.Query(BubbleType).fetch(50):
+                bubbletypes.append({
+                    'link': '/bubble/%s' % bt.type,
+                    'title': bt.displayname,
+                })
+            menu.append({
+                'title': Translate('menu_bubbles'),
+                'childs': bubbletypes
+            })
+
+        if self.authorize('questionary') or self.authorize('reception'):
+            menu.append({
+                'title': Translate('menu_admin'),
                 'childs': [
-                    {'link': 'http://gmail.artun.ee', 'title': Translate('inbox')},
-                    {'link': 'http://calendar.artun.ee', 'title': Translate('calendar')},
-                    {'link': 'http://docs.artun.ee', 'title': Translate('documents')},
-                    {'link': '/oldauth?site=ois', 'title': Translate('old_ois')},
+                    {'link': '/person', 'title': Translate('menu_persons')},
+                    {'link': '/questionary', 'title': Translate('menu_feedback')},
                 ]
             })
 
-            if self.authorize('bubbler'):
-                bubbletypes = []
-                for bt in db.Query(BubbleType).fetch(1000):
-                    bubbletypes.append({
-                        'link': '/bubbletype/%s' % bt.key().id(),
-                        'title': bt.displayname,
-                        'alt': db.Query(Bubble).filter('type', bt.type).filter('is_deleted', False).count(limit=1000000)
-                    })
-                bubbletypes = sorted(bubbletypes, key=lambda k: k['title'])
-
-                tree.append({
-                    'link': '/',
-                    'title': Translate('bubbles'),
-                    'childs': bubbletypes
-                })
-
-            if self.authorize('questionary') or self.authorize('reception'):
-                tree.append({
-                    'link': '',
-                    'title': Translate('administration'),
-                    'childs': [
-                        {'link': '/reception', 'title': Translate('reception')},
-                        {'link': '/questionary', 'title': Translate('questionaries')},
-                    ]
-                })
-
-            self.view('dashboard', 'dashboard.html', {
-                'tree': tree,
-            })
+        self.view(
+            template_file = 'main/menu.html',
+            main_template = None,
+            values = {
+                'menu': menu,
+            }
+        )
 
 
 def main():
     Route([
-            ('/', Show)
+            ('/', Show),
+            ('/dashboard/menu', ShowMenu),
         ])
 
 

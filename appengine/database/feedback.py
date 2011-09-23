@@ -15,6 +15,23 @@ class Questionary(ChangeLogModel):
     manager         = db.ReferenceProperty(Person, collection_name='managed_questionaries')
     model_version   = db.StringProperty(default='A')
 
+    @property
+    def displayname(self):
+        return self.name.translate()
+
+    @property
+    def displaydate(self):
+        if self.start_date and self.end_date:
+            if self.start_date.strftime('%d.%m.%Y') == self.end_date.strftime('%d.%m.%Y'):
+                return self.start_date.strftime('%d.%m.%Y')
+            else:
+                return self.start_date.strftime('%d.%m.%Y') + ' - ' + self.end_date.strftime('%d.%m.%Y')
+        else:
+            if self.start_date:
+                return self.start_datetime.strftime('%d.%m.%Y') + ' - ...'
+            else:
+                return '... - ' + self.end_date.strftime('%d.%m.%Y')
+
 
 class Question(ChangeLogModel):
     ordinal             = db.IntegerProperty(default=999);

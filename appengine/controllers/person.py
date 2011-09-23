@@ -1,41 +1,118 @@
+from operator import attrgetter
+
 from bo import *
 from database.person import *
 from database.bubble import *
-from django.template import TemplateDoesNotExist
-
-import csv
-import cStringIO
 
 
-class ShowSignin(boRequestHandler):
+class ShowPersonList(boRequestHandler):
     def get(self):
+        if not self.authorize('bubbler'):
+            return
 
-        user = users.get_current_user()
-        if user:
-            self.redirect(users.create_logout_url('/person/signin'))
-
-        sess = Session(self, timeout=86400)
-        sess.invalidate()
-
-        self.view('person', 'person/signup.html', {
-            'account_login_url': users.create_login_url('/person'),
-        })
+        self.view(
+            page_title = 'page_persons',
+            template_file = 'main/list.html',
+            values = {
+                'list_url': '/person',
+                'content_url': '/person/show',
+            }
+        )
 
     def post(self):
+        if not self.authorize('bubbler'):
+            return
 
-        email = self.request.get('email').strip()
-        password = self.request.get('applicant_pass').strip()
+        key = self.request.get('key').strip()
+        if key:
+            person = Person().get(key)
+            person.AutoFix()
+            image = person.photo_url(32)
+            self.echo_json({
+                'id': person.key().id(),
+                'key': str(person.key()),
+                'image': image if image else '/images/avatar.png',
+                'title': person.displayname,
+                'info': person.user,
+            })
+            return
 
-        if password:
-            p = db.Query(Person).filter('password', password).get()
-            if p:
-                sess = Session(self, timeout=86400)
-                sess['application_person_key'] = p.key()
-                sess.save()
-                self.response.out.write('OK')
+        keys = None
+        search = self.request.get('search').strip().lower()
+        bubble_seeders = self.request.get('bubble_seeders').strip()
+        bubble_leechers = self.request.get('bubble_leechers').strip()
+        bubble_waitinglist = self.request.get('bubble_waitinglist').strip()
+
+        if search:
+            keys = [str(k) for k in list(db.Query(Person, keys_only=True).filter('search', search).order('sort'))]
+
+        if bubble_seeders:
+            bubble = Bubble().get(bubble_seeders)
+            keys = [str(k) for k in bubble.seeders]
+
+        if bubble_leechers:
+            bubble = Bubble().get(bubble_leechers)
+            leechers = Person().get(bubble.leechers)
+            keys = [str(k.key()) for k in sorted(leechers, key=attrgetter('sort'))]
+
+        if bubble_waitinglist:
+            bubblepersons = db.Query(BubblePerson).filter('bubble', db.Key(bubble_waitinglist)).filter('status', 'waiting').order('start_datetime')
+            keys = [str(k.person.key()) for k in bubblepersons]
+
+        if keys == None:
+            keys = [str(k) for k in list(db.Query(Person, keys_only=True).order('sort'))]
+
+        self.echo_json({'keys': keys})
 
 
 class ShowPerson(boRequestHandler):
+    def get(self, person_id):
+        if not self.authorize('bubbler'):
+            return
+
+        person = Person().get_by_id(int(person_id))
+        person.bubbles_count = len(person.leecher)
+        person.grades_count = db.Query(Grade).filter('person', person).filter('is_deleted', False).count()
+
+        self.view(
+            template_file = 'person/info.html',
+            values = {
+                'person': person,
+            }
+        )
+
+
+class ExportPersonsCSV(boRequestHandler):
+    def get(self):
+        if not self.authorize('bubbler'):
+            return
+
+        bubble_leechers = self.request.get('bubble_leechers').strip()
+        if bubble_leechers:
+            bubble = Bubble().get(bubble_leechers)
+            filename = bubble.GetType().displayname + ' - ' + bubble.displayname + ' - ' + Translate('bubble_leechers').lower()
+            rowslist = []
+            for p in Person().get(bubble.leechers):
+                email = p.primary_email
+                if not email:
+                    email = ''
+                rowslist.append([
+                    p.displayname.encode("utf-8"),
+                    email.encode("utf-8"),
+                ])
+
+        self.echo_csv(
+            filename = filename,
+            rowslist = rowslist
+        )
+
+
+
+
+
+
+
+class ShowPerson1(boRequestHandler):
     def get(self, id):
 
         current_person = Person().current_s(self)
@@ -47,7 +124,7 @@ class ShowPerson(boRequestHandler):
             id = current_person.key().id()
 
         can_search = True
-        
+
         try:
             authorized = self.authorize('reception')
         except AttributeError: # AttributeError: 'NoneType' object has no attribute 'roles2'
@@ -76,13 +153,13 @@ class ShowPerson(boRequestHandler):
         last_change = person.last_change
         if last_change:
             if last_change.user:
-                changer = db.Query(Person).filter('apps_username', last_change.user).get()
+                changer = db.Query(Person).filter('user', last_change.user).get()
                 if changer:
                     changeinfo = Translate('person_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
 
         grades = db.Query(Grade).filter('person',person.key()).fetch(1000)
         grades = sorted(grades, key=lambda k: k.datetime)
-        
+
         ratings = ListRatings()
         ratings.head = [
             Translate('bubble_displayname').encode("utf-8"),
@@ -187,9 +264,9 @@ class GetPersonKeys(boRequestHandler):
         }
 
         self.echo_json(respond)
-        
 
-#CSV fail hinnetest 
+
+#CSV fail hinnetest
 
 class GradesCSV(boRequestHandler):
     def get(self, person_id):
@@ -214,7 +291,7 @@ class GradesCSV(boRequestHandler):
                 grade.equivalent,
                 grade.displaydate.encode("utf-8"),
             ])
-        
+
 
         self.header('Content-Type', 'text/csv; charset=utf-8')
         self.header('Content-Disposition', 'attachment; filename=' + unicode(person.displayname.encode("utf-8"), errors='ignore') + '.csv')
@@ -237,13 +314,13 @@ class ListedRating(boRequestHandler):
 
 def main():
     Route([
-            ('/person/signin', ShowSignin),
+            (r'/person/show/(.*)', ShowPerson),
+            ('/person/csv', ExportPersonsCSV),
             ('/person/set_role', SetRole),
             ('/person/person_ids', GetPersonIds),
             ('/person/person_keys', GetPersonKeys),
             (r'/person/grades_csv/(.*)', GradesCSV),
-            (r'/person/(.*)', ShowPerson),
-            (r'/person(.*)', ShowPerson),
+            ('/person', ShowPersonList),
         ])
 
 

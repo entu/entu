@@ -1,70 +1,56 @@
 {% extends main_template %}
 
-{% block breadcrumb %}
-<nav>
-    <ul id="crumbs">
-        <li><a href="/">{{ system_title }}</a></li>
-        <li id="crumb_title">{{ str.preferences }}</li>
-    </ul>
-</nav>
-{% endblock %}
-
 {% block content %}
 
-<section id="wide_content">
-
-    <div class="vertical_table">
-        <div class="table_row">
-            <div class="header_cell">
-                {{ str.user }}:
-            </div>
-            <div class="table_cell">
-                {{ person.apps_username|default:"" }}
-            </div>
+<div class="table">
+    <div class="row">
+        <div class="v_header">
+            {{ str.user }}:
         </div>
-        <div class="table_row">
-            <div class="header_cell">
-                {{ str.name }}:
-            </div>
-            <div class="table_cell">
-                {{ person.displayname|default:"" }}
-            </div>
-        </div>
-        <div class="table_row">
-            <div class="header_cell">
-                {{ str.email }}:
-            </div>
-            <div class="table_cell">
-                {{ person.primary_email }}
-            </div>
-        </div>
-        <div class="table_row">
-            <div class="header_cell">
-                {{ str.language }}:
-            </div>
-            <div class="table_cell">
-                <select id="language" name="language" class="autosave">
-                    <option value="estonian"{% ifequal preferences.language "estonian" %} selected{% endifequal %}>{{ str.lang_estonian }}</option>
-                    <!--option value="english"{% ifequal preferences.language "english" %} selected{% endifequal %}>{{ str.lang_english }}</option>
-                    <option value="russian"{% ifequal preferences.language "russian" %} selected{% endifequal %}>{{ str.lang_russian }}</option-->
-                </select>
-            </div>
-        </div>
-        <div class="table_row">
-            <div class="header_cell">
-                {{ str.timezone }}:
-            </div>
-            <div class="table_cell">
-                <select id="timezone" name="timezone" class="autosave">
-                    {% for tz in timezones %}
-                    <option value="{{ tz }}"{% ifequal preferences.timezone tz %} selected{% endifequal %}>{{ tz }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+        <div class="cell">
+            {{ person.apps_username|default:"" }}
         </div>
     </div>
-
-</section>
+    <div class="row">
+        <div class="v_header">
+            {{ str.name }}:
+        </div>
+        <div class="cell">
+            {{ person.displayname|default:"" }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="v_header">
+            {{ str.email }}:
+        </div>
+        <div class="cell">
+            {{ person.primary_email }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="v_header">
+            {{ str.language }}:
+        </div>
+        <div class="cell">
+            <select id="language" name="language" class="autosave">
+                <option value="estonian"{% ifequal preferences.language "estonian" %} selected{% endifequal %}>{{ str.language_estonian }}</option>
+                <option value="english"{% ifequal preferences.language "english" %} selected{% endifequal %}>{{ str.language_english }}</option>
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="v_header">
+            {{ str.timezone }}:
+        </div>
+        <div class="cell">
+            <select id="timezone" name="timezone" class="autosave">
+                {% for tz in timezones %}
+                <option value="{{ tz }}"{% ifequal preferences.timezone tz %} selected{% endifequal %}>{{ tz }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
 
 <script>
     $(document).ready(function(){

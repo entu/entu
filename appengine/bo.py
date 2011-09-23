@@ -13,6 +13,8 @@ from django.template.defaultfilters import striptags
 from django.template import Template
 from django.conf import settings
 from django.utils import simplejson
+import csv
+import cStringIO
 
 from datetime import timedelta
 import random
@@ -46,8 +48,8 @@ class boRequestHandler(webapp.RequestHandler):
         else:
             if controller and users.is_current_user_admin() == False:
                 rights = []
-                if Person().current.roles2:
-                    for role in Person().current.roles2:
+                if Person().current.GetRoles():
+                    for role in Person().current.GetRoles():
                         rights = rights + role.rights
                     if controller in rights:
                         return True
@@ -58,7 +60,7 @@ class boRequestHandler(webapp.RequestHandler):
             else:
                 return True
 
-    def view(self, page_title, templatefile, values={}, main_template='main.html'):
+    def view(self, page_title = '', template_file = None, values={}, main_template='main/index.html'):
         controllertime = (time.time() - self.starttime)
         logging.debug('Controller: %ss' % round(controllertime, 2))
 
@@ -72,8 +74,8 @@ class boRequestHandler(webapp.RequestHandler):
         from database.person import *
 
         browser = str(self.request.headers['User-Agent'])
-        if browser.find('MSIE 5') > -1 or browser.find('MSIE 6') > -1 or browser.find('MSIE 7') > -1:
-            path = os.path.join(os.path.dirname(__file__), 'templates', 'brausererror.html')
+        if browser.find('MSIE 5') > -1 or browser.find('MSIE 6') > -1 or browser.find('MSIE 7') > -1 or browser.find('MSIE 8') > -1:
+            path = os.path.join(os.path.dirname(__file__), 'errors', 'brauser.html')
             self.response.out.write(template.render(path, {}))
         else:
             values['str'] = Translate()
@@ -90,15 +92,15 @@ class boRequestHandler(webapp.RequestHandler):
             values['loginurl'] = users.create_login_url('/')
             values['logouturl'] = users.create_logout_url('/')
             values['version'] = self.request.environ["CURRENT_VERSION_ID"].split('.')[0]
-            
-            if main_template:
-                template_file = open(os.path.join(os.path.dirname(__file__), 'templates', main_template)) 
-                values['main_template'] = Template(template_file.read()) 
-                template_file.close()  
 
-            path = os.path.join(os.path.dirname(__file__), 'templates', templatefile)
+            if main_template:
+                main_template_file = open(os.path.join(os.path.dirname(__file__), 'templates', main_template))
+                values['main_template'] = Template(main_template_file.read())
+                main_template_file.close()
+
+            path = os.path.join(os.path.dirname(__file__), 'templates', template_file)
             self.response.out.write(template.render(path, values))
-        
+
         viewtime = (time.time() - self.starttime)
         logging.debug('View: %ss' % round((viewtime - controllertime), 2))
         logging.debug('Total: %ss' % round(viewtime, 2))
@@ -110,6 +112,16 @@ class boRequestHandler(webapp.RequestHandler):
 
     def echo_json(self, dictionary):
         self.response.out.write(simplejson.dumps(dictionary))
+
+    def echo_csv(self, filename, rowslist):
+        csvfile = cStringIO.StringIO()
+        csvWriter = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
+        for row in rowslist:
+            csvWriter.writerow(row)
+        self.header('Content-Type', 'text/csv; charset=utf-8')
+        self.header('Content-Disposition', 'attachment; filename=' + unicode(filename.encode('utf-8'), errors='ignore') + '.csv')
+        self.echo(csvfile.getvalue())
+        csvfile.close()
 
     def header(self, key, value):
         self.response.headers[key] = value
@@ -178,6 +190,7 @@ class ChangeLog(db.Expando):
 
 
 class ChangeLogModel(db.Model):
+#class ChangeLogModel(db.Expando):
     def put(self, email=None):
         if not email:
             user = users.get_current_user()
@@ -329,6 +342,17 @@ def rReplace(s, old, new, occurrence):
 
 def StringToSortable(s):
     return re.sub('[%s]' % re.escape(string.punctuation), '', s).lower().strip()
+
+
+def StringToSearchIndex(s):
+    result = []
+    s = s.lower()
+    wordlist = StrToList(s)
+    wordlist.append(s)
+    for w in wordlist:
+        for i in range(1, len(w)+1):
+            result = AddToList(w[:i], result)
+    return result
 
 
 def UtcToLocalDateTime(utc_time):

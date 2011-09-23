@@ -17,6 +17,13 @@ indexes:
   - name: type
   - name: sort_estonian
 
+- kind: Bubble
+  properties:
+  - name: is_deleted
+  - name: search_estonian
+  - name: type
+  - name: sort_estonian
+
 
 
 - kind: BubblePerson
@@ -29,6 +36,12 @@ indexes:
   properties:
   - name: bubble
   - name: status
+
+- kind: BubblePerson
+  properties:
+  - name: bubble
+  - name: status
+  - name: start_datetime
 
 
 
@@ -45,18 +58,30 @@ indexes:
   - name: is_deleted
   - name: datetime
 
+- kind: Grade
+  properties:
+  - name: is_deleted
+  - name: person
+  - name: datetime
+
 
 
 - kind: Person
   properties:
-  - name: forename
-  - name: surname
+  - name: gender
+  - name: sort
 
 - kind: Person
   properties:
-  - name: search_names
-  - name: forename
-  - name: surname
+  - name: search
+  - name: sort
+
+
+
+- kind: Contact
+  ancestor: yes
+  properties:
+  - name: type
 
 
 

@@ -1,18 +1,14 @@
 {% extends main_template %}
 
 {% block head %}
-<link rel="stylesheet" href="/css/slickmap.css" />
 {% endblock %}
 
 {% block content %}
 
-<section id="wide_content">
-    {% if system_logo %}
-    <img src="{{ system_logo }}" alt="logo" style="margin:20px auto; display:block;" />
-    {% endif %}
+{% if system_logo %}
+<img src="{{ system_logo }}" alt="logo" style="margin:100px auto; display:block;" />
+{% endif %}
 
-    {% include "tree.html" %}
-    <img src="http://code.google.com/appengine/images/appengine-noborder-120x30.gif" alt="Powered by Google App Engine" style="float:right;padding-right:10px;" />
-</section>
+<img src="http://code.google.com/appengine/images/appengine-noborder-120x30.gif" alt="Powered by Google App Engine" style="position:fixed; right:20px; bottom:10px;" />
 
 {% endblock %}

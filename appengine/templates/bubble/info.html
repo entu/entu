@@ -1,0 +1,124 @@
+<h1>{{ bubble.displayname }}</h1>
+<section class="table">
+    <div class="row">
+        <div class="v_header">
+            {{ str.bubble_description }}:
+        </div>
+        <div class="cell">
+            {{ bubble.description.translate|urlize|linebreaks }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="v_header">
+            {{ str.bubble_date }}:
+        </div>
+        <div class="cell">
+            {{ bubble.displaydate }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="v_header">
+            {{ str.bubble_url }}:
+        </div>
+        <div class="cell">
+            {{ bubble.url|default:""|urlize }}
+        </div>
+    </div>
+</section>
+
+<section class="info_accordion">
+    {% if bubble.seeders_count %}
+    <div>
+        <h2>{{ str.bubble_seeders }}<span>{{ bubble.seeders_count }}</span></h2>
+        <div id="seeders" class="persons_list"></div>
+    </div>
+    {% endif %}
+
+    {% if bubble.leechers_count %}
+    <div>
+        <h2>{{ str.bubble_leechers }}<span>{{ bubble.leechers_count }}{% if bubble.maximum_leecher_count %} / {{ bubble.maximum_leecher_count }}{% endif %}</span></h2>
+        <div id="leechers" class="persons_list"></div>
+        <a href="/person/csv?bubble_leechers={{ bubble.key }}" target="_blank">CSV</a>
+    </div>
+    {% endif %}
+
+    {% if bubble.waitinglist_count %}
+    <div>
+        <h2>{{ str.bubble_waitinglist }}<span>{{ bubble.waitinglist_count }}</span></h2>
+        <div id="waitinglist" class="persons_list"></div>
+    </div>
+    {% endif %}
+
+    {% if bubble.subbubbles_count %}
+    <div>
+        <h2>{{ str.bubble_subbubbles }}<span>{{ bubble.subbubbles_count }}</span></h2>
+        <div id="subbubbles" class="subbubbles_list"></div>
+    </div>
+    {% endif %}
+</section>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        bubble_id = {{ bubble.key.id }};
+
+        $(".info_accordion div h2").click(function() {
+            $(this).next().slideToggle();
+        });
+
+        ajax_persons_list('/person', { bubble_seeders: '{{ bubble.key }}' }, $('#seeders'), 'seeder');
+        ajax_persons_list('/person', { bubble_leechers: '{{ bubble.key }}' }, $('#leechers'), 'leecher');
+        ajax_persons_list('/person', { bubble_waitinglist: '{{ bubble.key }}' }, $('#waitinglist'), 'waitinglist');
+        ajax_bubbles_list('/bubble', { master_bubble: '{{ bubble.key }}' }, $('#subbubbles'), 'subbubbles');
+
+        function ajax_persons_list(post_url, post_data, div, id) {
+            $.post(post_url, post_data, function(list) {
+                for (i in list.keys) {
+                    div.append('<a href="#" id="'+id+'_'+list.keys[i]+'"></a>');
+                    $.post(post_url, {key: list.keys[i]}, function(item) {
+                        if(item.image) {
+                            image = '<img src="'+item.image+'" />';
+                        } else {
+                            image = '';
+                        }
+                        if(item.info) {
+                            info = '<span>'+item.info+'</span>';
+                        } else {
+                            info = '';
+                        }
+                        if('#'+item.id == window.location.hash) {
+                            active = 'class="active" ';
+                        } else {
+                            active = '';
+                        }
+                        $('#'+id+'_'+item.key).html(image+item.title);
+                        $('#'+id+'_'+item.key).attr('href', '/person#'+item.id);
+                    }, 'json');
+                }
+            }, 'json');
+        }
+
+        function ajax_bubbles_list(post_url, post_data, div, id) {
+            $.post(post_url, post_data, function(list) {
+                for (i in list.keys) {
+                    div.append('<a href="#" id="'+id+'_'+list.keys[i]+'">&nbsp;</a>');
+                    $.post(post_url, {key: list.keys[i]}, function(item) {
+                        if(item.info) {
+                            info = '<span>'+item.info+'</span>';
+                        } else {
+                            info = '';
+                        }
+                        if('#'+item.id == window.location.hash) {
+                            active = 'class="active" ';
+                        } else {
+                            active = '';
+                        }
+                        $('#'+id+'_'+item.key).html(item.type_name+' - '+item.title+'<span>'+item.info+'</span>');
+                        $('#'+id+'_'+item.key).attr('href', '/bubble/'+item.type+'#'+item.id);
+                    }, 'json');
+                }
+            }, 'json');
+        }
+
+    });
+</script>

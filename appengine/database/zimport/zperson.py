@@ -21,16 +21,16 @@ class zPerson(db.Model):
         if not p:
             p = Person()
 
-        if self.user:
-            p.user = users.User(self.user)
+        p.user = self.user
         p.forename = self.forename
         p.surname = self.surname
         p.idcode = self.idcode
         p.gender = self.gender
         p.birth_date = self.birth_date
-        p.leecher = GetZoinKeyList('Bubble', self.leecher)
-        p.seeder = GetZoinKeyList('Bubble', self.seeder)
+        p.leecher += GetZoinKeyList('Bubble', self.leecher)
+        p.seeder += GetZoinKeyList('Bubble', self.seeder)
         p.put('zimport')
+        p.AutoFix()
 
         AddZoin(
             entity_kind = 'Person',
@@ -52,12 +52,13 @@ class zRole(db.Model):
         if not r:
             r = Role()
 
-        name = Dictionary()
-        name.name = 'role_name'
-        name.estonian = self.name_estonian
-        name.english = self.name_english
+        name = Dictionary(
+            name = 'role_name',
+            estonian = self.name_estonian,
+            english = self.name_english
+        ).put()
 
-        r.name = name.add()
+        r.name = name
         r.rights = StrToList(self.rights)
         r.template_name = self.template_name
         r.put('zimport')
@@ -87,6 +88,30 @@ class zPersonRole(db.Model):
         self.delete()
 
 
+class zContact(db.Model):
+    person              = db.StringProperty()
+    type                = db.StringProperty()
+    value               = db.StringProperty()
+
+    def zimport(self):
+        c = GetZoin('Contact', self.key().name())
+        if not c:
+            person = GetZoin('Person', self.person)
+            c = Contact(parent=person)
+
+        c.type = self.type
+        c.value = self.value
+        c.put('zimport')
+        c.AutoFix()
+
+        AddZoin(
+            entity_kind = 'Contact',
+            old_key = self.key().name(),
+            new_key = c.key(),
+        )
+
+        self.delete()
+
 
 
 
@@ -95,13 +120,6 @@ class zPersonRole(db.Model):
     is_academic         = db.StringProperty()
     parent_department   = db.StringProperty()
     manager             = db.StringProperty()
-    model_version       = db.StringProperty(default='A')
-
-
-class zContact(db.Model):
-    person              = db.StringProperty()
-    type                = db.StringProperty()
-    value               = db.StringProperty()
     model_version       = db.StringProperty(default='A')
 
 

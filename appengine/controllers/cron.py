@@ -138,58 +138,6 @@ class Test(boRequestHandler):
             )
 
 
-class UpdatePersons(boRequestHandler):
-    def get(self):
-        self.response.headers['Content-Type'] = 'text/plain; charset=utf-8'
-
-        for old in db.Query(Person).filter('model_version', 'A').fetch(300):
-            new = Person()
-            new.apps_username   = old.apps_username
-            new.forename        = old.forename
-            new.surname         = old.surname
-            new.idcode          = old.idcode
-            new.gender          = old.gender
-            new.birth_date      = old.birth_date
-            new.created         = old.created
-            new.last_seen       = old.last_seen
-            new.model_version   = 'B'
-            new.put()
-            new_key = new.key()
-
-            self.response.out.write(str(new.apps_username) + '\n')
-
-            self.response.out.write('  qp:\n')
-            for qp in old.questionary_persons:
-                qp.person = new_key
-                qp.put()
-                self.response.out.write('    ' + str(qp.key()) + '\n')
-
-            self.response.out.write('\n')
-            self.response.out.write('  qa1:\n')
-            for qa1 in old.person_answers:
-                qa1.person = new_key
-                qa1.put()
-                self.response.out.write('    ' + str(qa1.key()) + '\n')
-
-            self.response.out.write('\n')
-            self.response.out.write('  qa2:\n')
-            for qa2 in old.target_person_answers:
-                qa2.target_person = new_key
-                qa2.put()
-                self.response.out.write('    ' + str(qa2.key()) + '\n')
-
-            Zoin().Add(
-                entity_kind = 'Person',
-                old_key = str(old.key().name()),
-                new_key = str(new.key()),
-            )
-
-            old.delete()
-
-            self.response.out.write('\n')
-            self.response.out.write('\n')
-
-
 def main():
     Route([
             ('/cron/sync_bubble_seeders', SyncBubbleSeeders),
@@ -198,7 +146,6 @@ def main():
             ('/cron/delete_aggregation', DeleteAggregation),
             ('/cron/generate_questionary', GenerateQuestionaryPersons),
             ('/cron/test', Test),
-            ('/cron/updatepersons', UpdatePersons),
         ])
 
 

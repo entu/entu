@@ -28,8 +28,9 @@ class Role(ChangeLogModel):
 
 
 class Person(ChangeLogModel):
-    #user                    = db.UserProperty()
-    apps_username           = db.StringProperty() # forename.surname@domain
+    created                 = db.DateTimeProperty(auto_now_add=True)
+    user                    = db.StringProperty()
+    apps_username           = db.StringProperty() # OBSOLETE
     email                   = db.StringProperty()
     password                = db.StringProperty()
     forename                = db.StringProperty()
@@ -37,7 +38,6 @@ class Person(ChangeLogModel):
     idcode                  = db.StringProperty()
     gender                  = db.StringProperty(choices=['', 'male', 'female'])
     birth_date              = db.DateProperty()
-    created                 = db.DateTimeProperty(auto_now_add=True)
     have_been_subsidised    = db.BooleanProperty(default=False)
     roles                   = db.ListProperty(db.Key)
     current_role            = db.ReferenceProperty(Role, collection_name='persons')
@@ -45,7 +45,36 @@ class Person(ChangeLogModel):
     model_version           = db.StringProperty(default='A')
     seeder                  = db.ListProperty(db.Key)
     leecher                 = db.ListProperty(db.Key)
-    search_names            = db.StringListProperty()
+    sort                    = db.StringProperty(default='')
+    search                  = db.StringListProperty()
+
+    def AutoFix(self):
+        if hasattr(self, 'search_names'):
+            delattr(self, 'search_names')
+
+        if self.apps_username:
+            self.user = self.apps_username
+
+        if self.forename:
+            self.forename = self.forename.title().strip().replace('  ', ' ').replace('- ', '-').replace(' -', '-')
+        else:
+            if self.user:
+                self.forename = self.user.split('@')[0].split('.')[0].title()
+
+        if self.surname:
+            self.surname = self.surname.title().strip().replace('  ', ' ').replace('- ', '-').replace(' -', '-')
+        else:
+            if self.user:
+                self.surname = self.user.split('@')[0].split('.')[1].title().strip()
+
+        if not self.sort:
+            self.sort = StringToSortable(self.displayname)
+
+        self.search = StringToSearchIndex(self.displayname)
+
+        self.put('autofix')
+        #for l in self.leecher:
+        #    taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'add', 'bubble_key': str(l), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
 
 
     @property
@@ -63,8 +92,8 @@ class Person(ChangeLogModel):
 
     @property
     def primary_email(self):
-        if self.apps_username:
-            return self.apps_username
+        if self.user:
+            return self.user
         if self.emails:
             if len(self.emails) > 0:
                 return self.emails[0]
@@ -72,10 +101,10 @@ class Person(ChangeLogModel):
     @property
     def emails(self):
         emails = []
+        if self.user:
+            emails = AddToList(self.user, emails)
         if self.email:
             emails = AddToList(self.email, emails)
-        if self.apps_username:
-            emails = AddToList(self.apps_username, emails)
         for contact in db.Query(Contact).ancestor(self).filter('type', 'email').fetch(1000):
             emails = AddToList(contact.value, emails)
         return emails
@@ -83,6 +112,12 @@ class Person(ChangeLogModel):
     @property
     def photo(self):
         return db.Query(Document).filter('types', 'person_photo').filter('entities', self.key()).get()
+
+    def photo_url(self, size=None, crop=True):
+        if self.photo:
+            s = '/' + str(size) if size else ''
+            c = '/c' if crop else ''
+            return self.photo.url + s + c
 
     @property
     def age(self):
@@ -97,19 +132,12 @@ class Person(ChangeLogModel):
             else:
                 return today.year - self.birth_date.year
 
-    @property
-    def contacts(self):
-        return db.Query(Contact).ancestor(self).fetch(1000)
+    def GetContacts(self):
+        return db.Query(Contact).ancestor(self).filter('type !=', 'email').fetch(1000)
 
-    @property
-    def Roles(self):
-        return self.roles2()
-
-    @property                   # TODO: refactor to Roles
-    def roles2(self):
+    def GetRoles(self):
         if users.is_current_user_admin():
             return Role().all()
-
         if self.roles:
             return Role().get(self.roles)
 
@@ -117,10 +145,10 @@ class Person(ChangeLogModel):
     def current(self, web=None):
         user = users.get_current_user()
         if user:
-            person = db.Query(Person).filter('apps_username', user.email()).get()
+            person = db.Query(Person).filter('user', user.email()).get()
             if not person:
                 person = Person()
-                person.apps_username = user.email()
+                person.user = user.email()
                 person.idcode = 'guest'
                 person.put()
             return person
@@ -164,24 +192,6 @@ class Person(ChangeLogModel):
         self.put()
         taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'remove', 'bubble_key': str(bubble_key), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
 
-    def index_names(self):
-        self.search_names = []
-        if self.forename:
-            forename = self.forename.lower()[:15]
-            for i in range (1,len(forename)):
-                self.search_names = AddToList(forename[:i], self.search_names)
-        if self.surname:
-            surname = self.surname.lower()[:15]
-            for i in range (1,len(surname)):
-                self.search_names = AddToList(surname[:i], self.search_names)
-        if self.idcode:
-            idcode = self.idcode.lower()[:15]
-            for i in range (1,len(idcode)):
-                self.search_names = AddToList(idcode[:i], self.search_names)
-
-
-        self.put()
-
 
 class Cv(ChangeLogModel): #parent=Person()
     type                = db.StringProperty(choices=['secondary_education', 'higher_education', 'workplace'])
@@ -203,7 +213,31 @@ class Department(ChangeLogModel):
 class Contact(ChangeLogModel): #parent=Person()
     type                = db.StringProperty(choices=['email', 'phone', 'address', 'skype'])
     value               = db.StringProperty()
+    is_deleted          = db.BooleanProperty(default=False)
     model_version       = db.StringProperty(default='A')
+
+    def AutoFix(self):
+        if self.type == 'phone':
+            self.value = self.value.strip().replace(' ', '').replace('+372', '')
+
+        if self.type == 'email':
+            self.value = self.value.strip().replace(' ', '')
+
+        if self.type == 'skype':
+            self.value = self.value.strip().replace(' ', '')
+
+        if self.value.strip():
+            self.is_deleted = False
+        else:
+            self.is_deleted = True
+
+        if self.type == 'email' and (len(self.value) < 5 or self.value.find('@') == -1):
+            self.is_deleted = True
+
+        if self.type == 'phone' and len(self.value) < 7:
+            self.is_deleted = True
+
+        self.put('autofix')
 
 
 class Document(ChangeLogModel):
