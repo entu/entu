@@ -157,7 +157,7 @@ class zBubbleType(db.Model):
         bt.name                 = name
         bt.description          = description
         bt.allowed_subtypes     = StrToList(self.allowed_subtypes)
-        bt.grade_display_method = StrToList(self.grade_display_method)
+        bt.grade_display_method = self.grade_display_method
         bt.put('zimport')
 
         AddZoin(

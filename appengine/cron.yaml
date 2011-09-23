@@ -25,6 +25,7 @@ cron:
 #- description: Zimport
 #  url: /zimport/grade
 #  schedule: every 1 minutes
+#  target: dev
 
 #- description: Do stuff
 #  url: /update/sort

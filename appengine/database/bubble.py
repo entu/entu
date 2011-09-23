@@ -189,7 +189,10 @@ class Bubble(ChangeLogModel):
             if self.start_datetime:
                 return self.start_datetime.strftime('%d.%m.%Y %H:%M') + ' - ...'
             else:
-                return '... - ' + self.end_datetime.strftime('%d.%m.%Y %H:%M')
+                if self.end_datetime:
+                    return '... - ' + self.end_datetime.strftime('%d.%m.%Y %H:%M')
+                else:
+                    return ''
 
     @property
     def subbubbles(self):
