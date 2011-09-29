@@ -193,6 +193,8 @@ class Person(ChangeLogModel):
         taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'remove', 'bubble_key': str(bubble_key), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
 
 
+
+
 class Cv(ChangeLogModel): #parent=Person()
     type                = db.StringProperty(choices=['secondary_education', 'higher_education', 'workplace'])
     organisation        = db.StringProperty()

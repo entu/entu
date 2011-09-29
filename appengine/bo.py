@@ -390,7 +390,23 @@ def RemoveFromList(s_value=None, s_list=[], unique=True):
 
 
 def GetUniqueList(s_list):
-    return list(set(s_list))
+    # Not order preserving 
+    if not s_list:
+        return []
+    keys = {} 
+    for e in s_list: 
+        keys[e] = 1 
+    return keys.keys()
+
+
+def MergeLists(l1, l2):
+    if not l1:
+        if not l2:
+            return []
+        return l2
+    if not l2:
+        return l1
+    return GetUniqueList(l1.extend(l2))
 
 
 def StripTags(string):
