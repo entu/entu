@@ -189,6 +189,10 @@ transformers:
       external_name: person
       import_transform: transform.none_if_empty(unicode)
 
+    - property: person_key
+      external_name: person_key
+      import_transform: transform.none_if_empty(unicode)
+
     - property: bubble
       external_name: bubble
       import_transform: transform.none_if_empty(unicode)

@@ -67,6 +67,7 @@ class zGradeDefinition(db.Model):
 
 class zGrade(db.Model):
     person                  = db.StringProperty()
+    person_key              = db.StringProperty()
     bubble                  = db.StringProperty()
     datetime                = db.DateTimeProperty()
     name_estonian           = db.StringProperty()
@@ -106,7 +107,7 @@ class zGrade(db.Model):
             english = self.subject_name_eng
         ).put()
 
-        g.person            = GetZoinKey('Person', self.person)
+        g.person            = db.Key(self.person_key) if self.person_key else GetZoinKey('Person', self.person)
         g.bubble            = GetZoinKey('Bubble', self.bubble)
         g.subject_name      = suject_name
         g.datetime          = self.datetime
