@@ -81,6 +81,7 @@ class zGrade(db.Model):
     bubbletype              = db.StringProperty()
     subject_name_est        = db.StringProperty()
     subject_name_eng        = db.StringProperty()
+    typed_tags              = db.StringProperty()
 
     def zimport(self):
         g = GetZoin('Grade', self.key().name())
@@ -117,6 +118,7 @@ class zGrade(db.Model):
         g.teacher           = GetZoinKey('Person', self.teacher)
         g.teacher_name      = self.teacher_name
         g.bubble_type       = self.bubbletype
+        g.typed_tags        = StrToList(self.typed_tags)
         g.put('zimport')
 
         AddZoin(

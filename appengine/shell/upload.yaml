@@ -245,6 +245,10 @@ transformers:
       external_name: subject_name_eng
       import_transform: transform.none_if_empty(unicode)
 
+    - property: typed_tags
+      external_name: typed_tags
+      import_transform: transform.none_if_empty(unicode)
+
 
 - kind: zGradeDefinition
   connector: csv
