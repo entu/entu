@@ -383,67 +383,67 @@ class MergePersons(boRequestHandler):
         source_pk = source_p.key()
         
         for m in db.Query(Message).filter('person', source_pk):
-            m.person = target_p
+            m.person = target_pk
             m.put()
 
         for d in db.Query(Document).filter('owner', source_pk):
-            d.owner = target_p
+            d.owner = target_pk
             d.put()
         for d in db.Query(Document).filter('editors', source_pk):
-            d.editors = RemoveFromList(source_p, d.editors)
-            d.editors = AddToList(target_p, d.editors)
+            d.editors = RemoveFromList(source_pk, d.editors)
+            d.editors = AddToList(target_pk, d.editors)
             d.put()
         for d in db.Query(Document).filter('viewers', source_pk):
-            d.viewers = RemoveFromList(source_p, d.viewers)
-            d.viewers = AddToList(target_p, d.viewers)
+            d.viewers = RemoveFromList(source_pk, d.viewers)
+            d.viewers = AddToList(target_pk, d.viewers)
             d.put()
 
         for d in db.Query(Department).filter('manager', source_pk):
-            d.manager = target_p
+            d.manager = target_pk
             d.put()
 
         for b in db.Query(Bubble).filter('owner', source_pk):
-            b.owner = target_p
+            b.owner = target_pk
             b.put()
-        for b in db.Query(Document).filter('editors', source_pk):
-            b.editors = RemoveFromList(source_p, b.editors)
-            b.editors = AddToList(target_p, b.editors)
+        for b in db.Query(Bubble).filter('editors', source_pk):
+            b.editors = RemoveFromList(source_pk, b.editors)
+            b.editors = AddToList(target_pk, b.editors)
             b.put()
-        for b in db.Query(Document).filter('viewers', source_pk):
-            b.viewers = RemoveFromList(source_p, b.viewers)
-            b.viewers = AddToList(target_p, b.viewers)
+        for b in db.Query(Bubble).filter('viewers', source_pk):
+            b.viewers = RemoveFromList(source_pk, b.viewers)
+            b.viewers = AddToList(target_pk, b.viewers)
             b.put()
-        for b in db.Query(Document).filter('seeders', source_pk):
-            b.seeders = RemoveFromList(source_p, b.seeders)
-            b.seeders = AddToList(target_p, b.seeders)
+        for b in db.Query(Bubble).filter('seeders', source_pk):
+            b.seeders = RemoveFromList(source_pk, b.seeders)
+            b.seeders = AddToList(target_pk, b.seeders)
             b.put()
-        for b in db.Query(Document).filter('leechers', source_pk):
-            b.leechers = RemoveFromList(source_p, b.leechers)
-            b.leechers = AddToList(target_p, b.leechers)
+        for b in db.Query(Bubble).filter('leechers', source_pk):
+            b.leechers = RemoveFromList(source_pk, b.leechers)
+            b.leechers = AddToList(target_pk, b.leechers)
             b.put()
 
         for bp in db.Query(BubblePerson).filter('person', source_pk):
-            bp.person = target_p
+            bp.person = target_pk
             bp.put()
 
         for g in db.Query(Grade).filter('person', source_pk):
-            g.person = target_p
+            g.person = target_pk
             g.put()
         for g in db.Query(Grade).filter('teacher', source_pk):
-            g.teacher = target_p
+            g.teacher = target_pk
             g.put()
 
         for q in db.Query(Questionary).filter('manager', source_pk):
-            q.manager = target_p
+            q.manager = target_pk
             q.put()
         for qp in db.Query(QuestionaryPerson).filter('person', source_pk):
-            qp.person = target_p
+            qp.person = target_pk
             qp.put()
         for qa in db.Query(QuestionAnswer).filter('person', source_pk):
-            qa.person = target_p
+            qa.person = target_pk
             qa.put()
         for qa in db.Query(QuestionAnswer).filter('target_person', source_pk):
-            qa.target_person = target_p
+            qa.target_person = target_pk
             qa.put()
 
         if not target_p.gender:
@@ -453,9 +453,10 @@ class MergePersons(boRequestHandler):
         target_p.leecher = MergeLists(source_p.leecher, target_p.leecher)
         target_p.seeder = MergeLists(source_p.seeder, target_p.seeder)
 
-        source_p.model_version = 'M_S'
+        source_p.model_version = 'A'
+        target_p.model_version = 'A'
+        source_p.is_deleted = true
         source_p.put()
-        target_p.model_version = 'M_T'
         target_p.put()
 
 
