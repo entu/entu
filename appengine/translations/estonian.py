@@ -21,7 +21,7 @@ def translation():
         'page_bubbles':         'Õpimullid',
         'page_persons':         'Persoonid',
         'page_feedback':        'Tagasiside',
-        
+
         'person_birthdate':     'Sünnikuupäev',
         'person_idcode':        'Isikukood',
         'person_gender':        'Sugu',
@@ -50,6 +50,7 @@ def translation():
         'bubble_waitinglist':   'Ootejärjekord',
         'bubble_subbubbles':    'Alammullid',
 
+        'dashboard_grades':     'Minu hinded',
 
 
 

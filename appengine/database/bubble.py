@@ -624,6 +624,7 @@ class Grade(ChangeLogModel):
     school          = db.ReferenceProperty(Dictionary, collection_name='grade_school')
     teacher         = db.ReferenceProperty(Person, collection_name='given_grades')
     teacher_name    = db.StringProperty()
+    typed_tags      = db.StringListProperty()
     is_locked       = db.BooleanProperty(default=False)
     is_deleted      = db.BooleanProperty(default=False)
     model_version   = db.StringProperty(default='A')

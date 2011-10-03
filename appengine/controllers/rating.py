@@ -32,7 +32,7 @@ class ShowGrades(boRequestHandler):
         person = self.request.get('person').strip()
 
         if person:
-            keys = [str(k) for k in list(db.Query(Grade, keys_only=True).filter('person', db.Key(person)).filter('is_deleted', False).order('datetime'))]
+            keys = [str(k) for k in list(db.Query(Grade, keys_only=True).filter('person', db.Key(person)).filter('is_deleted', False).order('-datetime'))]
 
         self.echo_json({'keys': keys})
 

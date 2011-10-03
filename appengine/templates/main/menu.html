@@ -1,10 +1,7 @@
 <header>
-    {% if user.photo %}
-        <img src="{{ user.photo.url }}/40/c" style="width:40px; height:40px;">
-    {% else %}
-        <img src="" style="width:40px; height:40px;">
-    {% endif %}
-    <a href="/preferences">{{ user.displayname }}</a>
+    <a href="/"><img src="{% if user.photo %}{{ user.photo.url }}/40/c{% else %}/images/avatar.png{% endif %}" style="width:40px; height:40px;"></a>
+    {{ user.displayname }}<br />
+    <a href="{{ logouturl|escape }}">{{ str.logout }}</a>
 </header>
 
 <nav>
@@ -18,7 +15,7 @@
         </div>
     {% endfor %}
 
-        <h3><a href="{{ logouturl|escape }}">{{ str.logout }}</a></h3>
+        <h3></h3>
     </div>
 </nav>
 

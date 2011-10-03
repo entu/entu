@@ -22,10 +22,10 @@ cron:
 #  url: /cron/generate_questionary
 #  schedule: every 10 minutes
 
-#- description: Zimport
-#  url: /zimport/grade
-#  schedule: every 1 minutes
-#  target: dev
+- description: Zimport
+  url: /zimport/grade
+  schedule: every 1 minutes
+  target: dev
 
 #- description: Do stuff
 #  url: /update/sort
