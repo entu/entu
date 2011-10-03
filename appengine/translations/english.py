@@ -47,4 +47,6 @@ def translation():
         'bubble_leechers':      'Leechers',
         'bubble_waitinglist':   'Waitinglist',
         'bubble_subbubbles':    'Subbubbles',
+
+        'dashboard_grades':     'My grades',
      }
