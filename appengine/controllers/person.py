@@ -1,6 +1,7 @@
 from operator import attrgetter
 
 from bo import *
+from database.zimport.zoin import *
 from database.person import *
 from database.bubble import *
 
@@ -103,6 +104,64 @@ class ExportPersonsCSV(boRequestHandler):
 
         self.echo_csv(
             filename = filename,
+            rowslist = rowslist
+        )
+
+
+
+
+class ExportAllPersonsZoinCSV(boRequestHandler):
+    def get(self):
+        if not self.authorize('bubbler'):
+            return
+
+        rowslist = []
+        for z in db.Query(Zoin).filter('entity_kind', 'Person'):
+            rowslist.append([
+                z.key().id_or_name(),
+                z.new_key
+            ])
+
+        self.echo_csv(
+            filename = 'zoin_person',
+            rowslist = rowslist
+        )
+
+
+
+
+class ExportAllPersonsCSV(boRequestHandler):
+    def get(self,pagesize,pagenum):
+        if not self.authorize('bubbler'):
+            return
+
+        rowslist = []
+        for p in db.Query(Person).fetch(int(pagesize),int(pagesize)*int(pagenum)):
+            if p.user:
+                if not re.search('@',p.user):
+                    p.user = ''
+            if p.apps_username:
+                if not re.search('@',p.apps_username):
+                    p.apps_username = ''
+#                    p.put()
+            if not p.forename:
+                p.forename = ''
+            if not p.surname:
+                p.surname = ''
+
+            rowslist.append([
+                p.key(),
+                p.key().id_or_name(),
+                p.forename.encode("utf-8"),
+                p.surname.encode("utf-8"),
+                p.apps_username,
+                p.birth_date,
+                p.idcode,
+                p.user,
+            ])
+
+        self.echo_csv(
+            filename = 'persons '+ str(int(pagesize)*int(pagenum)) + '-' + str(int(pagesize)*int(pagenum)+int(pagesize)),
             rowslist = rowslist
         )
 
@@ -316,6 +375,8 @@ def main():
     Route([
             (r'/person/show/(.*)', ShowPerson),
             ('/person/csv', ExportPersonsCSV),
+            ('/person/zoin', ExportAllPersonsZoinCSV),
+            ('/person/all_csv/(.*)/(.*)', ExportAllPersonsCSV),
             ('/person/set_role', SetRole),
             ('/person/person_ids', GetPersonIds),
             ('/person/person_keys', GetPersonKeys),
