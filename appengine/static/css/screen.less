@@ -191,7 +191,6 @@ img.spinner {
 
 
 #content {
-    margin-left: @nav_width + 1px;
     background: #FFFFFF;
 }
 
@@ -199,6 +198,7 @@ img.spinner {
 #list {
     width: @list_width;
     position: fixed;
+    left: @nav_width + 1px;
     top: 0px;
     bottom: 0px;
     border-right: 1px solid #222222;
@@ -286,11 +286,12 @@ img.spinner {
 }
 
 #list_content {
-    margin-left: @list_width + 1px;
+    margin-left: @nav_width + @list_width + 2px;
     padding: 15px;
 }
 
 #wide_content {
+    margin-left: @nav_width + 1px;
     padding: 15px;
 }
 
