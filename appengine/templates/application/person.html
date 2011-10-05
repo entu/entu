@@ -90,6 +90,32 @@
             </select>
         </div>
     </div>
+    <div class="table_row">
+        <div class="header_cell">
+            {{ str.person_citizenship }}:
+        </div>
+        <div class="table_cell">
+            <select id="citizenship" class="autosave_person" name="citizenship" {% if application_readonly %} disabled{% endif %}>
+                <option value=""></option>
+                {% for c in str.countries_list %}
+                <option value="{{ c.key }}"{% ifequal person.citizenship c.key %} selected{% endifequal %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="table_row">
+        <div class="header_cell">
+            {{ str.person_country_of_residence }}:
+        </div>
+        <div class="table_cell">
+            <select id="country_of_residence" class="autosave_person" name="country_of_residence" {% if application_readonly %} disabled{% endif %}>
+                <option value=""></option>
+                {% for c in str.countries_list %}
+                <option value="{{ c.key }}"{% ifequal person.country_of_residence c.key %} selected{% endifequal %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
     {% if application_readonly %}{% else %}
     <div class="table_row">
         <div class="header_cell">

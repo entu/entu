@@ -197,7 +197,7 @@ class EditPerson(boRequestHandler):
                 p = Person().get(person)
                 if p:
 
-                    if field in ['forename', 'surname', 'idcode', 'gender']:
+                    if field in ['forename', 'surname', 'idcode', 'gender', 'citizenship', 'country_of_residence']:
                         p.index_names()
                         setattr(p, field, value)
 
