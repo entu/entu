@@ -20,8 +20,8 @@
         {% for q in questionaries %}
         <div class="table_row" alt="{{ q.key }}">
             <div class="table_cell">
-                {{ q.name.translate }}<br />
-                <span style="color: gray; font-size:11px;">{{ q.description.translate }}</span>
+                {{ q.name.value }}<br />
+                <span style="color: gray; font-size:11px;">{{ q.description.value }}</span>
             </div>
             <div class="table_cell" style="text-align:center; vertical-align: middle; white-space: nowrap;">
                 {{ q.start_date|date:"d.m.Y" }} - {{ q.end_date|date:"d.m.Y" }}

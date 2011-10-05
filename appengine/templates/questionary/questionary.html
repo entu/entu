@@ -11,7 +11,7 @@
     <ul id="crumbs">
         <li><a href="/">{{ system_title }}</a></li>
         <li><a href="/questionary">{{ str.questionaries }}</a></li>
-        <li id="crumb_title">{{ questionary.name.translate }}</li>
+        <li id="crumb_title">{{ questionary.name.value }}</li>
     </ul>
 </nav>
 {% endblock %}
@@ -44,7 +44,7 @@
                 <div class="table_cell sort" style="width:30px; height:25px; background: url('/images/sort.png') center center no-repeat;">
                 </div>
                 <div class="table_cell" style="width:340px;">
-                    {{ q.name.translate }}
+                    {{ q.name.value }}
                 </div>
                 <div class="table_cell" style="text-align:center; width:70px;">
                     {% ifequal q.type "like" %}{{ str.questiontype_like }}{% endifequal %}
@@ -95,13 +95,13 @@
 
     <form id="rightbox" method="post" action="" >
         <label for="name">{{ str.questionary }}</label>
-        <input type="text" id="name" name="name" placeholder="{{ str.name }}" value="{{ questionary.name.translate|default:"" }}" required /><br /><br />
+        <input type="text" id="name" name="name" placeholder="{{ str.name }}" value="{{ questionary.name.value|default:"" }}" required /><br /><br />
         <label for="name">{{ str.start_date }}</label>
         <input type="date" id="start_date" name="start_date" placeholder="{{ str.start_date }}" value="{{ questionary.start_date|default:"" }}" /><br /><br />
         <label for="name">{{ str.end_date }}</label>
         <input type="date" id="end_date" name="end_date" placeholder="{{ str.end_date }}" value="{{ questionary.end_date|default:"" }}" /><br /><br />
         <label for="name">{{ str.description }}</label>
-        <textarea name="{{ item.key }}" id="description" name="description" placeholder="{{ str.description }}">{{ questionary.description.translate|default:"" }}</textarea>
+        <textarea name="{{ item.key }}" id="description" name="description" placeholder="{{ str.description }}">{{ questionary.description.value|default:"" }}</textarea>
         <br /><br />
         <a href="javascript:void(0);" id="save_questionary_form" class="button">{{ str.save }}</a>
         <a href="javascript:void(0);" id="delete_questionary" style="color:red; float:right; font-size:12px; padding-top:10px;">{{ str.delete }}</a>

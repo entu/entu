@@ -26,7 +26,7 @@
             <span style="color:gray; font-size:11px; padding-left:10px;">({{ doc.file.size|filesizeformat }})</span>
         </div>
         <div class="table_cell" style="width:98%;">
-            <input type="text" class="document_name" name="name" value="{{ doc.title.translate }}" alt="{{ doc.key }}" placeholder="{{ str.additional_info }}" style="width:98%;" />
+            <input type="text" class="document_name" name="name" value="{{ doc.title.value }}" alt="{{ doc.key }}" placeholder="{{ str.additional_info }}" style="width:98%;" />
         </div>
     </div>
     {% endfor %}

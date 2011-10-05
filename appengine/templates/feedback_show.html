@@ -10,7 +10,7 @@
     <ul id="crumbs">
         <li><a href="/">{{ system_title }}</a></li>
         <li><a href="/feedback">{{ str.questionary }} 1/{{ count }}</a></li>
-        <li>{{ questionary.questionary.name.translate }} "{{ questionary.course.subject.name.translate }}"</li>
+        <li>{{ questionary.questionary.name.value }} "{{ questionary.course.subject.name.value }}"</li>
     </ul>
 </nav>
 {% endblock %}
@@ -24,12 +24,12 @@
     <div class="table" style="margin-bottom:20px; margin-top:10px;">
         <div class="table_row">
             <div class="header_cell">
-                {{ questionary.questionary.name.translate }} <span style="color:#0099FF; text-transform:uppercase; letter-spacing:2px;">"{{ questionary.course.subject.name.translate }}"</span>
+                {{ questionary.questionary.name.value }} <span style="color:#0099FF; text-transform:uppercase; letter-spacing:2px;">"{{ questionary.course.subject.name.value }}"</span>
             </div>
         </div>
         <div class="table_row" style="width:100%">
             <div class="table_cell" style="width:100%">
-                {{ questionary.questionary.description.translate|linebreaksbr }}
+                {{ questionary.questionary.description.value|linebreaksbr }}
             </div>
         </div>
     </div>

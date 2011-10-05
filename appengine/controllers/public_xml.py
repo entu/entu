@@ -17,7 +17,7 @@ class Applications(boRequestHandler):
         for b in db.Query(Bubble).filter('type', 'submission').filter('start_datetime <', datetime.now()).fetch(10000):
             if len(b.leechers) > 0 and b.end_datetime > datetime.now():
                 d.append({
-                    'label': strip_tags(b.name.translate()) + ' (' + str(len(b.leechers)) + ')',
+                    'label': strip_tags(b.name.value) + ' (' + str(len(b.leechers)) + ')',
                     'value': len(b.leechers),
                     'color': RandomColor()
                 })

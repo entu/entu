@@ -25,10 +25,10 @@
             <div class="table_cell" style="width:300px; vertical-align:top;">
 
                 <label for="name" style="display:block;">{{ str.title }}:</label>
-                <input type="text" id="name" name="name" class="autosave" value="{{ bubbletype.name.translate|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
+                <input type="text" id="name" name="name" class="autosave" value="{{ bubbletype.name.value|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
 
                 <label for="description" style="display:block;">{{ str.description }}:</label>
-                <textarea id="description" name="description" class="autosave" style="display:block; width:99%; margin-bottom:15px;">{{ bubbletype.description.translate|default:""|escape }}</textarea>
+                <textarea id="description" name="description" class="autosave" style="display:block; width:99%; margin-bottom:15px;">{{ bubbletype.description.value|default:""|escape }}</textarea>
 
             </div>
         </div>

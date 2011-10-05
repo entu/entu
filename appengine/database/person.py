@@ -22,7 +22,7 @@ class Role(ChangeLogModel):
     @property
     def displayname(self):
         if self.name:
-            return self.name.translate()
+            return self.name.value
         else:
             return ''
 

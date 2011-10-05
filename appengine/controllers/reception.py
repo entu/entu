@@ -88,7 +88,7 @@ class ShowApplication(boRequestHandler):
 
                 receptions = db.Query(Bubble).filter('leechers', p).filter('type', 'submission').fetch(1000)
                 for r in receptions:
-                    r.name_str = r.name.translate()
+                    r.name_str = r.name.value
                     r.end = Translate('reception_will_end_on') % r.end_datetime.strftime('%d.%m.%Y')
                     if r.key() in p.leecher:
                         r.selected = True
