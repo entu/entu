@@ -35,7 +35,6 @@ class ShowMenu(boRequestHandler):
                 'childs': bubbletypes
             })
 
-
         if self.authorize('questionary') or self.authorize('reception'):
             menu.append({
                 'title': Translate('menu_admin'),

@@ -1,5 +1,5 @@
 application: bongapp
-version: dev
+version: 2011-10-03
 runtime: python
 api_version: 1
 
@@ -52,8 +52,8 @@ handlers:
 
 
 #public controllers
-- url: /application(.*)
-  script: controllers/application.py
+#- url: /application(.*)
+#  script: controllers/application.py
 
 - url: /document(.*)
   script: controllers/document.py
