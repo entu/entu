@@ -38,12 +38,12 @@ class WaitingList(boRequestHandler):
                 bp.end_datetime = datetime.now()
                 bp.status = 'waiting_end'
                 bp.put()
-            else:          
+            else:
                 bubbles = AddToList(bp.bubble.key(), bubbles)
 
         for b in Bubble().get(bubbles):
             b.WaitinglistToLeecher()
-            
+
 
 
 
@@ -68,8 +68,8 @@ class GenerateQuestionaryPersons(boRequestHandler):
         for course in db.Query(Course).filter('course_end_date <=', currentdate).filter('is_feedback_started', False).order('-course_end_date').fetch(100):
             for questionary in db.Query(Questionary).filter('end_date >=', course.course_end_date).fetch(1000):
                 if questionary.start_date <= course.course_end_date:
-                    message =  message + questionary.name.translate()
-                    message =  message + ' "' + course.subject.name.translate() + '"'
+                    message =  message + questionary.name.value
+                    message =  message + ' "' + course.subject.name.value + '"'
                     message =  message + ' - ' + course.course_start_date.strftime('%d.%m.%y') + '-' + course.course_end_date.strftime('%d.%m.%y')
                     message =  message + ' - ' + str(course.subscribers.count()) + '\n'
                     for subscription in course.subscribers:
@@ -94,7 +94,7 @@ class GenerateQuestionaryPersons(boRequestHandler):
                                     qa.course = course
                                     qa.question = question
                                     qa.put()
-                                    #self.response.out.write('        ' + question.name.translate() + ' (' + teacher.forename + ' ' + teacher.surname + ')\n')
+                                    #self.response.out.write('        ' + question.name.value + ' (' + teacher.forename + ' ' + teacher.surname + ')\n')
                             else:
                                 qa = QuestionAnswer()
                                 qa.questionary_person = qp
@@ -103,7 +103,7 @@ class GenerateQuestionaryPersons(boRequestHandler):
                                 qa.course = course
                                 qa.question = question
                                 qa.put()
-                                #self.response.out.write('        ' + question.name.translate() + '\n')
+                                #self.response.out.write('        ' + question.name.value + '\n')
                         #self.response.out.write('\n')
 
                     #message =  message + '\n'

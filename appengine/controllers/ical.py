@@ -19,7 +19,7 @@ class BubbleTypeCalendar(boRequestHandler):
             cal.add('version', '2.0')
             cal.add('x-wr-calname', type.displayname)
             if type.description:
-                cal.add('x-wr-caldesc', type.description.translate())
+                cal.add('x-wr-caldesc', type.description.value)
             cal.add('method', 'PUBLISH')
 
             for b in db.Query(Bubble).filter('type', type.type).order('start_datetime').fetch(1000000):
@@ -27,7 +27,7 @@ class BubbleTypeCalendar(boRequestHandler):
                     event = Event()
                     event.add('summary', b.displayname)
                     if b.description:
-                        event.add('description', b.description.translate())
+                        event.add('description', b.description.value)
                     if b.start_datetime.strftime('%H:%M') == '00:00':
                         event.add('dtstart', b.start_datetime.date())
                     else:

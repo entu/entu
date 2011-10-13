@@ -107,7 +107,7 @@ class CreateAppsAccount(boRequestHandler):
 
         person.user = username + '@' + SystemPreferences().get('google_apps_domain')
         person.put()
-        
+
         SendMail(
             to = person.emails,
             subject = Translate('gapps_account_created_subject'),

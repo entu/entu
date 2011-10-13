@@ -9,9 +9,9 @@
         </div>
         <div class="table_cell" style="width:98%;">
             {% if application_readonly %}
-            {{ doc.title.translate|default:"" }}
+            {{ doc.title.value|default:"" }}
             {% else %}
-            <input type="text" class="document_name" name="name" value="{{ doc.title.translate }}" alt="{{ doc.key }}" placeholder="{{ str.additional_info }}" style="width:98%;" />
+            <input type="text" class="document_name" name="name" value="{{ doc.title.value }}" alt="{{ doc.key }}" placeholder="{{ str.additional_info }}" style="width:98%;" />
             {% endif %}
         </div>
     </div>

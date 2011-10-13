@@ -8,7 +8,7 @@
     <ul id="crumbs">
         <li><a href="/">{{ system_title }}</a></li>
         <li><a href="/reception">{{ str.reception }}</a></li>
-        <li>{{ reception.name.translate|striptags }} ({{ reception.start_datetime|date:"d.m.Y" }} - {{ reception.end_datetime|date:"d.m.Y" }})</li>
+        <li>{{ reception.name.value|striptags }} ({{ reception.start_datetime|date:"d.m.Y" }} - {{ reception.end_datetime|date:"d.m.Y" }})</li>
     </ul>
 </nav>
 {% endblock %}

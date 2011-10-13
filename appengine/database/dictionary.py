@@ -19,6 +19,3 @@ class Dictionary(ChangeLogModel):
             translation = getattr(self, language)
             Cache().set(cache_key, translation, False, 3600)
         return translation
-
-    def translate(self):
-        return self.estonian

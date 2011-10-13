@@ -18,7 +18,7 @@ class ShowFeedback(boRequestHandler):
                 questions.append({
                     'key': str(question.key()),
                     'ordinal': question.question.ordinal,
-                    'question': question.question.name.translate(),
+                    'question': question.question.name.value,
                     'answer': question.answer,
                     'type': question.question.type,
                     'target_person': target_person,
@@ -45,7 +45,7 @@ class ShowFeedback(boRequestHandler):
             for qanswer in qp.answers:
                 answer = self.request.get(str(qanswer.key())).strip()
 
-                qanswer.question_string = qanswer.question.name.translate()
+                qanswer.question_string = qanswer.question.name.value
                 qanswer.datetime = datetime.now()
                 qanswer.answer = answer
                 qanswer.put()

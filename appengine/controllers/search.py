@@ -27,8 +27,8 @@ class Search(boRequestHandler):
             for l in Translation.all().search(searchstr).order('value').filter('dictionary_name', 'curriculum_name').fetch(100):
                 curriculums.append({
                     'link': '',
-                    'title': l.dictionary.translate(),
-                    'alt': l.dictionary.curriculum_names[0].level_of_education.translate()
+                    'title': l.dictionary.value,
+                    'alt': l.dictionary.curriculum_names[0].level_of_education.value
                 })
 
             childs = []

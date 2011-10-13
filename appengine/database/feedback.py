@@ -17,7 +17,7 @@ class Questionary(ChangeLogModel):
 
     @property
     def displayname(self):
-        return self.name.translate()
+        return self.name.value
 
     @property
     def displaydate(self):

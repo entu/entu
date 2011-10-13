@@ -22,7 +22,7 @@ class Role(ChangeLogModel):
     @property
     def displayname(self):
         if self.name:
-            return self.name.translate()
+            return self.name.value
         else:
             return ''
 
@@ -36,6 +36,8 @@ class Person(ChangeLogModel):
     forename                = db.StringProperty()
     surname                 = db.StringProperty()
     idcode                  = db.StringProperty()
+    citizenship             = db.StringProperty()
+    country_of_residence    = db.StringProperty()
     gender                  = db.StringProperty(choices=['', 'male', 'female'])
     birth_date              = db.DateProperty()
     have_been_subsidised    = db.BooleanProperty(default=False)

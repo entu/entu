@@ -253,7 +253,7 @@ class EditPerson(boRequestHandler):
             value = self.request.get('value').strip()
             respond = {}
 
-            if field in ['forename', 'surname', 'idcode', 'gender']:
+            if field in ['forename', 'surname', 'idcode', 'gender', 'citizenship', 'country_of_residence']:
                 setattr(p, field, value)
 
             if field == 'birthdate':

@@ -14,7 +14,7 @@ class RatingScale(ChangeLogModel):
 
     @property
     def displayname(self):
-        return self.name.translate()
+        return self.name.value
 
     @property
     def PositiveGradeDefinitions(self):
@@ -53,7 +53,7 @@ class BubbleType(ChangeLogModel):
         cache_key = 'bubbletype_dname_' + UserPreferences().current.language + '_' + str(self.key())
         name = Cache().get(cache_key)
         if not name:
-            name = StripTags(self.name.translate())
+            name = StripTags(self.name.value)
             Cache().set(cache_key, name)
         return name
 
@@ -162,7 +162,7 @@ class Bubble(ChangeLogModel):
             cache_key = 'bubble_dname_' + UserPreferences().current.language + '_' + str(self.key())
             name = Cache().get(cache_key)
             if not name:
-                name = StripTags(self.name.translate())
+                name = StripTags(self.name.value)
                 Cache().set(cache_key, name)
             return name
         else:
@@ -199,7 +199,7 @@ class Bubble(ChangeLogModel):
         return GetUniqueList(self.mandatory_bubbles + self.optional_bubbles)
 
 
-    def GetType(self):                            
+    def GetType(self):
         return db.Query(BubbleType).filter('type', self.type).get()
 
     def GetSeeders(self):
@@ -221,14 +221,14 @@ class Bubble(ChangeLogModel):
                     break
             self.leechers = AddToList(bp.person.key(), self.leechers)
             self.put()
-            
+
             person = bp.person
             person.leecher = AddToList(bp.bubble.key(), person.leecher)
             person.put()
-            
+
             bp.end_datetime = datetime.now()
             bp.status = 'waiting_end'
-            bp.put()            
+            bp.put()
 
 
 
@@ -443,7 +443,7 @@ class Bubble(ChangeLogModel):
             bubble = db.Query(Bubble).filter('type', 'exam').filter('optional_bubbles', self.key()).get()
 
             if bubble.description:
-                description = bubble.description.translate()
+                description = bubble.description.value
             else:
                 description = ''
 
@@ -607,7 +607,7 @@ class GradeDefinition(ChangeLogModel):
 
     @property
     def displayname(self):
-        return self.name.translate()
+        return self.name.value
 
 
 class Grade(ChangeLogModel):
@@ -632,11 +632,11 @@ class Grade(ChangeLogModel):
     @property
     def displayname(self):
         if self.name:
-            return self.name.translate()
+            return self.name.value
         else:
             if self.gradedefinition:
                 if self.gradedefinition.name:
-                    return self.gradedefinition.name.translate()
+                    return self.gradedefinition.name.value
         return ''
 
     @property
