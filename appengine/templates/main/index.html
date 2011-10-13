@@ -6,7 +6,8 @@
 
         <title>{{ site_name }}</title>
 
-        <link rel="stylesheet" href="/css/screen.css" />
+        <link rel="stylesheet" href="/css/screen.css?{{ version }}" />
+        <link rel="stylesheet" href="/css/iconic.css?{{ version }}" />
 
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.min.js"></script>
         <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
@@ -32,8 +33,17 @@
 
     </head>
     <body>
+        <section id="main_toolbar">
+            <a href="/" style="float:left; padding:0px; font-size:20px;"><img src="{% if user.photo %}{{ user.photo.url }}/40/c{% else %}/images/avatar.png{% endif %}" />{{ user.displayname }}</a>
+            <div id="tools"></div>
+            {% block toolbar %}
+            {% endblock %}
+            <a href="/preferences" class="iconic cog space" title="{{ str.page_preferences }}"></a>
+            <a href="{{ logouturl|escape }}" class="iconic unlocked" title="{{ str.logout }}"></a>
+        </section>
+
         <section id="main_nav">
-            <img src="/images/spinner_menu.gif" class="spinner" />
+            <img src="/images/spinner_white.gif" class="spinner" />
         </section>
 
         {% block list %}

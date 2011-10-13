@@ -1,53 +1,55 @@
 {% extends main_template %}
 
 {% block content %}
-
 <div id="wide_content" class="table">
-    <div class="row">
-        <div class="v_header">
-            {{ str.user }}:
+    <h1>{{ page_title }}</h1>
+    <div class="table">
+        <div class="row">
+            <div class="v_header">
+                {{ str.user }}:
+            </div>
+            <div class="cell">
+                {{ person.apps_username|default:"" }}
+            </div>
         </div>
-        <div class="cell">
-            {{ person.apps_username|default:"" }}
+        <div class="row">
+            <div class="v_header">
+                {{ str.name }}:
+            </div>
+            <div class="cell">
+                {{ person.displayname|default:"" }}
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="v_header">
-            {{ str.name }}:
+        <div class="row">
+            <div class="v_header">
+                {{ str.email }}:
+            </div>
+            <div class="cell">
+                {{ person.primary_email }}
+            </div>
         </div>
-        <div class="cell">
-            {{ person.displayname|default:"" }}
+        <div class="row">
+            <div class="v_header">
+                {{ str.language }}:
+            </div>
+            <div class="cell">
+                <select id="language" name="language" class="autosave">
+                    <option value="estonian"{% ifequal preferences.language "estonian" %} selected{% endifequal %}>{{ str.language_estonian }}</option>
+                    <option value="english"{% ifequal preferences.language "english" %} selected{% endifequal %}>{{ str.language_english }}</option>
+                </select>
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="v_header">
-            {{ str.email }}:
-        </div>
-        <div class="cell">
-            {{ person.primary_email }}
-        </div>
-    </div>
-    <div class="row">
-        <div class="v_header">
-            {{ str.language }}:
-        </div>
-        <div class="cell">
-            <select id="language" name="language" class="autosave">
-                <option value="estonian"{% ifequal preferences.language "estonian" %} selected{% endifequal %}>{{ str.language_estonian }}</option>
-                <option value="english"{% ifequal preferences.language "english" %} selected{% endifequal %}>{{ str.language_english }}</option>
-            </select>
-        </div>
-    </div>
-    <div class="row">
-        <div class="v_header">
-            {{ str.timezone }}:
-        </div>
-        <div class="cell">
-            <select id="timezone" name="timezone" class="autosave">
-                {% for tz in timezones %}
-                <option value="{{ tz }}"{% ifequal preferences.timezone tz %} selected{% endifequal %}>{{ tz }}</option>
-                {% endfor %}
-            </select>
+        <div class="row">
+            <div class="v_header">
+                {{ str.timezone }}:
+            </div>
+            <div class="cell">
+                <select id="timezone" name="timezone" class="autosave">
+                    {% for tz in timezones %}
+                    <option value="{{ tz }}"{% ifequal preferences.timezone tz %} selected{% endifequal %}>{{ tz }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
     </div>
 </div>
