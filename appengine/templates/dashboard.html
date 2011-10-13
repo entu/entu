@@ -5,13 +5,11 @@
 
 {% block content %}
 
-{% if system_logo %}
-<img src="{{ system_logo }}" alt="logo" style="margin:50px auto; display:block;" />
-{% endif %}
-
-<img src="http://code.google.com/appengine/images/appengine-noborder-120x30.gif" alt="Powered by Google App Engine" style="position:fixed; right:20px; bottom:10px;" />
-
 <section id="wide_content">
+    {% if system_logo %}
+    <img src="{{ system_logo }}" alt="logo" style="margin:50px auto; display:block;" />
+    {% endif %}
+
     <section class="info_accordion">
         {% if person.grades_count %}
         <div>
