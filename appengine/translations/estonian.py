@@ -52,6 +52,11 @@ def translation():
 
         'dashboard_grades':     'Minu hinded',
 
+        'open_document':        'Ava dokument',
+
+
+
+
 
 
 

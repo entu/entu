@@ -1,12 +1,21 @@
 from bo import *
 from database.zimport.zbubble import *
 from database.zimport.zperson import *
+from database.zimport.zbubbleperson import *
 
 
 class ZimportBubble(boRequestHandler):
     def get(self):
         self.header('Content-Type', 'text/plain; charset=utf-8')
         for z in db.Query(zBubble).order('order').fetch(1000):
+            z.zimport()
+            self.echo(str(z.key()))
+
+
+class ZimportBubblePerson(boRequestHandler):
+    def get(self):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        for z in db.Query(zBubblePerson).fetch(1000):
             z.zimport()
             self.echo(str(z.key()))
 
@@ -78,6 +87,7 @@ class ZimportRole(boRequestHandler):
 def main():
     Route([
             ('/zimport/bubble', ZimportBubble),
+            ('/zimport/bubbleperson', ZimportBubblePerson),
             ('/zimport/bubbletype', ZimportBubbleType),
             ('/zimport/contact', ZimportContact),
             ('/zimport/grade', ZimportGrade),

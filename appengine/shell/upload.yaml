@@ -154,6 +154,20 @@ transformers:
       import_transform: transform.none_if_empty(unicode)
 
 
+- kind: zBubblePerson
+  connector: csv
+  connector_options:
+    #encoding: utf16
+  property_map:
+    - property: bubble_old_id
+      external_name: bubble_old_id
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: person
+      external_name: person
+      import_transform: transform.none_if_empty(unicode)
+
+
 - kind: zContact
   connector: csv
   connector_options:
