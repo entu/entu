@@ -26,6 +26,12 @@ indexes:
 - kind: Bubble
   properties:
   - name: is_deleted
+  - name: seeders
+  - name: sort_estonian
+
+- kind: Bubble
+  properties:
+  - name: is_deleted
   - name: search_estonian
   - name: type
   - name: sort_estonian
