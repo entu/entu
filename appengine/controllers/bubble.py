@@ -85,6 +85,42 @@ class ShowBubble(boRequestHandler):
         )
 
 
+class ShowBubbleDoc1(boRequestHandler):
+    def get(self, id):
+        if not self.authorize('bubbler'):
+            return
+
+        bubble = Bubble().get_by_id(int(id))
+        leechers = bubble.GetLeechers()
+        for l in leechers:
+            l.group = []
+            for g in db.Query(Bubble).filter('mandatory_bubbles', bubble.key()).filter('leechers', l.key()):
+                tags = g.GetTypedTags()
+                if 'code' in tags:
+                    l.group.append(g.GetTypedTags()['code'])
+
+        self.view(
+            template_file = 'bubble/doc1.html',
+            main_template = 'main/print.html',
+            values = {
+                'bubble': bubble,
+                'leechers': leechers,
+                'date': datetime.today(),
+            }
+        )
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -454,6 +490,7 @@ class Leech(boRequestHandler):
 def main():
     Route([
             (r'/bubble/show/(.*)', ShowBubble),
+            (r'/bubble/d1/(.*)', ShowBubbleDoc1),
             (r'/bubble/add/(.*)/(.*)', AddBubble),
             (r'/bubble/add_existing/(.*)', AddExistingBubble),
             (r'/bubble/add_optional_subbubble/(.*)/(.*)', AddOptionalSubbubble),

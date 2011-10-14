@@ -1,3 +1,9 @@
+<div id="open_document_box" class="dropdown">
+    <a href="javascript:void(0);" class="iconic x-alt simplemodal-close" title="{{ str.open_document }}" style="float:right;"></a>
+    <h2>{{ str.open_document }}</h2>
+    <a href="/bubble/d1/{{ bubble.key.id }}" target="_blank">Arvestusleht</a>
+</div>
+
 <h1>{{ bubble.displayname }}</h1>
 <section class="table">
     <div class="row">
@@ -62,9 +68,26 @@
 
         bubble_id = {{ bubble.key.id }};
 
-        $(".info_accordion div h2").click(function() {
+        $('.info_accordion div h2').click(function() {
             $(this).next().slideToggle();
         });
+
+        $('#tools').html('<a id="open_document" href="javascript:void(0);" class="iconic document" title="{{ str.open_document }}"></a>');
+
+        $('#open_document').click(function() {
+            //$("#open_document_box").slideDown();
+            $("#open_document_box").modal({
+	            position: [0,50],
+	            opacity: 20,
+                overlayCss: {backgroundColor:"#000000"},
+                escClose: true,
+                overlayClose: true,
+            });
+        })
+
+        $('#close_open_document_box').click(function() {
+            $("#open_document_box").slideUp();
+        })
 
         ajax_persons_list('/person', { bubble_seeders: '{{ bubble.key }}' }, $('#seeders'), 'seeder');
         ajax_persons_list('/person', { bubble_leechers: '{{ bubble.key }}' }, $('#leechers'), 'leecher');

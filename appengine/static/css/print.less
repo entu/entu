@@ -1,0 +1,131 @@
+/* CONSTANTS */
+
+@text_color: #454A4E;
+@nav_width: 200px;
+@list_width: 300px;
+@toolbar_height: 48px;
+@search_height: 48px;
+@text_font: HelveticaNeue-Regular, 'Helvetica Neue', Helvetica, Arial, Tahoma, Verdana, sans-serif;
+@bordercolor: #B9B9B9;
+@dark-bordercolor: #222222;
+@grayboxbg: #F0F0F0;
+
+
+.rounded-corners (@radius: 5px) {
+  border-radius: @radius;
+  -webkit-border-radius: @radius;
+  -moz-border-radius: @radius;
+}
+
+/* CSS RESET */
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, font, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-weight: inherit;
+    font-style: inherit;
+    font-size: 14px;
+    font-family: inherit;
+    vertical-align: baseline;
+    list-style: none;
+}
+
+header, footer, aside, nav, article, section {
+    display: block;
+}
+
+
+
+/* MAIN ELEMENTS */
+
+body {
+    font-family: @text_font;
+    margin: 50px;
+}
+
+h1 {
+    display: block;
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    letter-spacing: 1px;
+    color: #006600;
+}
+
+h2 {
+    padding-top: 20px;
+    margin-bottom: 5px;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: @bordercolor;
+    clear: both;
+}
+
+
+a, a:active, a:visited {
+    color: @text_color;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+
+img.spinner {
+    margin:100px auto;
+    display: block;
+}
+
+
+
+/* TABLE */
+.table {
+    display: table;
+    border-top: 1px solid @bordercolor;
+    border-left: 1px solid @bordercolor;
+
+    .row {
+        display: table-row;
+
+        .v_header {
+            display: table-cell;
+            padding: 5px 10px;
+            text-align: right;
+            vertical-align: top;
+            white-space: nowrap;
+            border-bottom: 1px solid @bordercolor;
+            border-right: 1px solid @bordercolor;
+        }
+
+        .h_header {
+            display: table-cell;
+            padding: 5px 10px;
+            text-align: center;
+            font-weight: bold;
+            vertical-align: middle;
+            border-bottom: 1px solid @bordercolor;
+            border-right: 1px solid @bordercolor;
+        }
+
+        .cell {
+            display: table-cell;
+            padding: 5px 10px;
+            vertical-align: top;
+            border-bottom: 1px solid @bordercolor;
+            border-right: 1px solid @bordercolor;
+        }
+
+    }
+}

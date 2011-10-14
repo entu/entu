@@ -49,4 +49,6 @@ def translation():
         'bubble_subbubbles':    'Subbubbles',
 
         'dashboard_grades':     'My grades',
+
+        'open_document':        'Open document',
      }
