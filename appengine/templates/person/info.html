@@ -54,10 +54,17 @@
     </div>
     {% endif %}
 
-    {% if person.bubbles_count %}
+    {% if person.leeching_count %}
     <div>
-        <h2>{{ str.person_bubbles }}<span>{{ person.bubbles_count }}</span></h2>
-        <div id="bubbles" class="subbubbles_list"></div>
+        <h2>{{ str.person_leeching_bubbles }}<span>{{ person.leeching_count }}</span></h2>
+        <div id="leeching_bubbles" class="subbubbles_list"></div>
+    </div>
+    {% endif %}
+
+    {% if person.seeding_count %}
+    <div>
+        <h2>{{ str.person_seeding_bubbles }}<span>{{ person.seeding_count }}</span></h2>
+        <div id="seeding_bubbles" class="subbubbles_list"></div>
     </div>
     {% endif %}
 </section>
@@ -72,7 +79,8 @@
         });
 
         ajax_grades_list('/rating/grades', { person: '{{ person.key }}' }, $('#grades'), 'grades');
-        ajax_bubbles_list('/bubble', { leecher: '{{ person.key }}' }, $('#bubbles'), 'bubbles');
+        ajax_bubbles_list('/bubble', { leecher: '{{ person.key }}' }, $('#leeching_bubbles'), 'bubbles');
+        ajax_bubbles_list('/bubble', { seeder: '{{ person.key }}' }, $('#seeding_bubbles'), 'bubbles');
 
         $.post('/gapps/checkaccount', {person_id: person_id}, function(json) {
             $('#gapps_account').html(json.text);

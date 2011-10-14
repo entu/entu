@@ -78,6 +78,9 @@ class Person(ChangeLogModel):
         #for l in self.leecher:
         #    taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'add', 'bubble_key': str(l), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
 
+        #for l in self.seeder:
+        #    taskqueue.Task(url='/taskqueue/bubble_change_seeder', params={'action': 'add', 'bubble_key': str(l), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
+
 
     @property
     def displayname(self):

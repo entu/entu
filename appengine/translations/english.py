@@ -28,7 +28,8 @@ def translation():
         'person_gender_male':   'Male',
         'person_gender_female': 'Female',
         'person_grades':        'Grades',
-        'person_bubbles':       'Bubbles',
+        'person_leeching_bubbles': 'Leeching bubbles',
+        'person_seeding_bubbles':  'Seeding bubbles',
 
         'contact_address':      'Address',
         'contact_email':        'Email',

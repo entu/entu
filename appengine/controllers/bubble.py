@@ -48,6 +48,7 @@ class ShowBubbleList(boRequestHandler):
         bubbletype = bubbletype.strip('/')
         search = self.request.get('search').strip().lower()
         leecher = self.request.get('leecher').strip()
+        seeder = self.request.get('seeder').strip()
         master_bubble = self.request.get('master_bubble').strip()
 
         if search:
@@ -58,6 +59,9 @@ class ShowBubbleList(boRequestHandler):
 
         if leecher:
             keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('leechers', db.Key(leecher)).filter('is_deleted', False).order('sort_estonian'))]
+
+        if seeder:
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('seeders', db.Key(seeder)).filter('is_deleted', False).order('sort_estonian'))]
 
         if master_bubble:
             bubble = Bubble().get(master_bubble)
