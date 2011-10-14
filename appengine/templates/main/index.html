@@ -7,11 +7,12 @@
         <title>{{ site_name }}</title>
 
         <link rel="stylesheet" href="/css/screen.css?{{ version }}" />
-        <link rel="stylesheet" href="/css/iconic.css?{{ version }}" />
+        <link rel="stylesheet" href="/fonts/iconic.css?{{ version }}" />
 
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.min.js"></script>
         <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
         <script src="/javascript/jstorage.min.js" type="text/javascript"></script>
+        <script src="/javascript/jquery.simplemodal.1.4.1.min.js" type="text/javascript"></script>
 
         {% block head %}
         {% endblock %}
@@ -35,7 +36,7 @@
     <body>
         <section id="main_toolbar">
             <a href="/" style="float:left; padding:0px; font-size:20px;"><img src="{% if user.photo %}{{ user.photo.url }}/40/c{% else %}/images/avatar.png{% endif %}" />{{ user.displayname }}</a>
-            <div id="tools"></div>
+            <span id="tools"></span>
             {% block toolbar %}
             {% endblock %}
             <a href="/preferences" class="iconic cog space" title="{{ str.page_preferences }}"></a>

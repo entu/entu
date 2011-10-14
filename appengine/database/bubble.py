@@ -202,14 +202,20 @@ class Bubble(ChangeLogModel):
     def GetType(self):
         return db.Query(BubbleType).filter('type', self.type).get()
 
+    def GetTypedTags(self):
+        result = {}
+        for tag in self.typed_tags:
+            result[tag.split(':')[0]] = tag.split(':')[1]
+        return result
+
     def GetSeeders(self):
-        return Person.get(self.seeders)
+        return Person().get(self.seeders)
 
     def GetLeechers(self):
-        return Person.get(self.leechers)
+        return Person().get(self.leechers)
 
     def GetNextInLines(self):
-        return Bubble.get(self.next_in_line)
+        return Bubble().get(self.next_in_line)
 
     def GetPrerequisiteBubbles(self):
         return Bubble.get(self.prerequisite_bubbles)

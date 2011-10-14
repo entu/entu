@@ -1,5 +1,5 @@
 application: bongapp
-version: 2011-10-03
+version: dev
 runtime: python
 api_version: 1
 
@@ -29,6 +29,10 @@ handlers:
 #static files
 - url: /css
   static_dir: static/css
+  #expiration: "1d"
+
+- url: /fonts
+  static_dir: static/fonts
   #expiration: "1d"
 
 - url: /images
