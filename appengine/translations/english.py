@@ -48,6 +48,8 @@ def translation():
         'bubble_leechers':      'Leechers',
         'bubble_waitinglist':   'Waitinglist',
         'bubble_subbubbles':    'Subbubbles',
+        'bubble_doc_gradesheet': 'Grades sheet',
+        'bubble_doc_leechers_csv': 'Seeders list (CSV)',
 
         'dashboard_grades':     'My grades',
 

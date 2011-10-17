@@ -1,7 +1,8 @@
 <div id="open_document_box" class="dropdown">
     <a href="javascript:void(0);" class="iconic x-alt simplemodal-close" title="{{ str.open_document }}" style="float:right;"></a>
     <h2>{{ str.open_document }}</h2>
-    <a href="/bubble/d1/{{ bubble.key.id }}" target="_blank">Arvestusleht</a>
+    <a href="/bubble/d1/{{ bubble.key.id }}" target="_blank">{{ str.bubble_doc_gradesheet }}</a><br />
+    <a href="/person/csv?bubble_leechers={{ bubble.key }}">{{ str.bubble_doc_leechers_csv }}</a>
 </div>
 
 <h1>{{ bubble.displayname }}</h1>
@@ -44,7 +45,6 @@
     <div>
         <h2>{{ str.bubble_leechers }}<span>{{ bubble.leechers_count }}{% if bubble.maximum_leecher_count %} / {{ bubble.maximum_leecher_count }}{% endif %}</span></h2>
         <div id="leechers" class="persons_list"></div>
-        <a href="/person/csv?bubble_leechers={{ bubble.key }}" target="_blank">CSV</a>
     </div>
     {% endif %}
 
