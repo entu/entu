@@ -29,7 +29,7 @@
             $(this).next().slideToggle();
         });
 
-        ajax_grades_list('/rating/grades', { person: '{{ person.key }}' }, $('#grades'), 'grades');
+        ajax_grades_list('/rating/mygrades', { person: '{{ person.key }}' }, $('#grades'), 'grades');
 
         function ajax_grades_list(post_url, post_data, div, id) {
             $.post(post_url, post_data, function(list) {

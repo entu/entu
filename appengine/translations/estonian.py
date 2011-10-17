@@ -50,6 +50,8 @@ def translation():
         'bubble_leechers':      'Saajad',
         'bubble_waitinglist':   'Ootejärjekord',
         'bubble_subbubbles':    'Alammullid',
+        'bubble_doc_gradesheet': 'Arvestusleht',
+        'bubble_doc_leechers_csv': 'Saajate nimekiri (CSV)',
 
         'dashboard_grades':     'Minu hinded',
 

@@ -37,6 +37,34 @@ class ShowGrades(boRequestHandler):
         self.echo_json({'keys': keys})
 
 
+class ShowMyGrades(boRequestHandler):
+    def post(self):
+        key = self.request.get('key').strip()
+        if key:
+            grade = Grade().get(key)
+            self.echo_json({
+                'id': grade.key().id(),
+                'key': str(grade.key()),
+                'title': grade.displayname,
+                'bubble': grade.bubble.displayname,
+                'type': grade.bubble.GetType().displayname,
+                'date': grade.datetime.strftime('%d.%m.%Y'),
+            })
+            return
+
+        keys = None
+        person = self.request.get('person').strip()
+
+        if person:
+            keys = [str(k) for k in list(db.Query(Grade, keys_only=True).filter('person', Person().current.key()).filter('is_deleted', False).order('-datetime'))]
+
+        self.echo_json({'keys': keys})
+
+
+
+
+
+
 
 class ShowRating(boRequestHandler):
     def get(self, bubble_id):
@@ -149,6 +177,7 @@ class LockRating(boRequestHandler):
 def main():
     Route([
             (r'/rating/grades', ShowGrades),
+            (r'/rating/mygrades', ShowMyGrades),
             (r'/rating/lock/(.*)', LockRating),
             (r'/rating/(.*)', ShowRating),
         ])
