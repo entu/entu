@@ -48,6 +48,7 @@ class ShowBubbleList(boRequestHandler):
         bubbletype = bubbletype.strip('/')
         search = self.request.get('search').strip().lower()
         leecher = self.request.get('leecher').strip()
+        seeder = self.request.get('seeder').strip()
         master_bubble = self.request.get('master_bubble').strip()
 
         if search:
@@ -58,6 +59,9 @@ class ShowBubbleList(boRequestHandler):
 
         if leecher:
             keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('leechers', db.Key(leecher)).filter('is_deleted', False).order('sort_estonian'))]
+
+        if seeder:
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('seeders', db.Key(seeder)).filter('is_deleted', False).order('sort_estonian'))]
 
         if master_bubble:
             bubble = Bubble().get(master_bubble)
@@ -83,6 +87,42 @@ class ShowBubble(boRequestHandler):
                 'bubble': bubble,
             }
         )
+
+
+class ShowBubbleDoc1(boRequestHandler):
+    def get(self, id):
+        if not self.authorize('bubbler'):
+            return
+
+        bubble = Bubble().get_by_id(int(id))
+        leechers = bubble.GetLeechers()
+        for l in leechers:
+            l.group = []
+            for g in db.Query(Bubble).filter('mandatory_bubbles', bubble.key()).filter('leechers', l.key()):
+                tags = g.GetTypedTags()
+                if 'code' in tags:
+                    l.group.append(g.GetTypedTags()['code'])
+
+        self.view(
+            template_file = 'bubble/doc1.html',
+            main_template = 'main/print.html',
+            values = {
+                'bubble': bubble,
+                'leechers': leechers,
+                'date': datetime.today(),
+            }
+        )
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -454,6 +494,7 @@ class Leech(boRequestHandler):
 def main():
     Route([
             (r'/bubble/show/(.*)', ShowBubble),
+            (r'/bubble/d1/(.*)', ShowBubbleDoc1),
             (r'/bubble/add/(.*)/(.*)', AddBubble),
             (r'/bubble/add_existing/(.*)', AddExistingBubble),
             (r'/bubble/add_optional_subbubble/(.*)/(.*)', AddOptionalSubbubble),

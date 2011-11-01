@@ -5,10 +5,54 @@
 
 {% block content %}
 
-{% if system_logo %}
-<img src="{{ system_logo }}" alt="logo" style="margin:100px auto; display:block;" />
-{% endif %}
+<section id="wide_content">
+    {% if system_logo %}
+    <img src="{{ system_logo }}" alt="logo" style="margin:50px auto; display:block;" />
+    {% endif %}
 
-<img src="http://code.google.com/appengine/images/appengine-noborder-120x30.gif" alt="Powered by Google App Engine" style="position:fixed; right:20px; bottom:10px;" />
+    <section class="info_accordion">
+        {% if person.grades_count %}
+        <div>
+            <h2>{{ str.dashboard_grades }}<span>{{ person.grades_count }}</span></h2>
+            <div id="grades" class="subbubbles_list"></div>
+        </div>
+        {% endif %}
+    </section>
+</section>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        person_id = {{ person.key.id }};
+
+        $(".info_accordion div h2").click(function() {
+            $(this).next().slideToggle();
+        });
+
+        ajax_grades_list('/rating/mygrades', { person: '{{ person.key }}' }, $('#grades'), 'grades');
+
+        function ajax_grades_list(post_url, post_data, div, id) {
+            $.post(post_url, post_data, function(list) {
+                for (i in list.keys) {
+                    div.append('<a href="#" id="'+id+'_'+list.keys[i]+'">&nbsp;</a>');
+                    $.post(post_url, {key: list.keys[i]}, function(item) {
+                        if(item.info) {
+                            info = '<span>'+item.info+'</span>';
+                        } else {
+                            info = '';
+                        }
+                        if('#'+item.id == window.location.hash) {
+                            active = 'class="active" ';
+                        } else {
+                            active = '';
+                        }
+                        $('#'+id+'_'+item.key).html(item.date+' '+item.type+' - '+item.bubble+'<span>'+item.title+'</span>');
+                    }, 'json');
+                }
+            }, 'json');
+        }
+
+    });
+</script>
 
 {% endblock %}

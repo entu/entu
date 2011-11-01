@@ -28,7 +28,8 @@ def translation():
         'person_gender_male':   'Male',
         'person_gender_female': 'Female',
         'person_grades':        'Grades',
-        'person_bubbles':       'Bubbles',
+        'person_leeching_bubbles': 'Leeching bubbles',
+        'person_seeding_bubbles':  'Seeding bubbles',
 
         'contact_address':      'Address',
         'contact_email':        'Email',
@@ -47,4 +48,10 @@ def translation():
         'bubble_leechers':      'Leechers',
         'bubble_waitinglist':   'Waitinglist',
         'bubble_subbubbles':    'Subbubbles',
+        'bubble_doc_gradesheet': 'Grades sheet',
+        'bubble_doc_leechers_csv': 'Seeders list (CSV)',
+
+        'dashboard_grades':     'My grades',
+
+        'open_document':        'Open document',
      }

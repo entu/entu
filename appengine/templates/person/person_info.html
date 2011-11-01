@@ -15,7 +15,7 @@
 
                 <label for="person_birthdate" style="display:block;">{{ str.person_birthdate }}:</label>
                 <input type="text" id="person_birthdate" name="person_birthdate" class="autosave_date" value="{{ person.birth_date|date:"d.m.Y" }}" maxlength="500" style="width:110px; margin-bottom:15px;" disabled />
-                
+
                 <label for="person_idcode" style="display:block;">{{ str.idcode }}:</label>
                 <input type="text" id="person_idcode" name="person_idcode" class="autosave" value="{{ person.idcode|default:""|escape }}" maxlength="500" style="width:110px; margin-bottom:15px;" disabled />
 
@@ -23,7 +23,7 @@
 
 
             <div class="table_cell" style="vertical-align:top; padding-top:10px;">
-            
+
 
                 <div class="table_row" alt="">
                 {% for head_cell in ratings.head %}
@@ -32,7 +32,7 @@
                     </div>
                 {% endfor %}
                 </div>
-                
+
                 {% for rating in ratings.data %}
                 <div class="table_row" alt="{{ rating.name }}">
                     <div class="table_cell" style="text-align:center; white-space:nowrap;">{{ rating.name }}</div>

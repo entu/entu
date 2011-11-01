@@ -52,6 +52,19 @@ class BubbleChangeLeecher(boRequestHandler):
                 bubble.remove_leecher(db.Key(person_key))
 
 
+class BubbleChangeSeeder(boRequestHandler):
+    def post(self):
+        action = self.request.get('action')
+        bubble_key = self.request.get('bubble_key')
+        person_key = self.request.get('person_key')
+
+        if action in ['add', 'remove'] and bubble_key and person_key:
+            bubble = Bubble().get(bubble_key)
+            if action == 'add':
+                bubble.seeders = AddToList(db.Key(person_key), bubble.seeders)
+                bubble.put()
+
+
 class ApplicationStats(boRequestHandler):
     def post(self):
         email = self.request.get('email')
@@ -146,6 +159,7 @@ def main():
             ('/taskqueue/bubble_pass_leechers', BubblePassLeechers),
             ('/taskqueue/bubble_copy_leechers', BubbleCopyLeechers),
             ('/taskqueue/bubble_change_leecher', BubbleChangeLeecher),
+            ('/taskqueue/bubble_change_seeder', BubbleChangeSeeder),
             ('/taskqueue/application_stats', ApplicationStats),
         ])
 

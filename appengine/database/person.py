@@ -22,7 +22,7 @@ class Role(ChangeLogModel):
     @property
     def displayname(self):
         if self.name:
-            return self.name.translate()
+            return self.name.value
         else:
             return ''
 
@@ -36,6 +36,8 @@ class Person(ChangeLogModel):
     forename                = db.StringProperty()
     surname                 = db.StringProperty()
     idcode                  = db.StringProperty()
+    citizenship             = db.StringProperty()
+    country_of_residence    = db.StringProperty()
     gender                  = db.StringProperty(choices=['', 'male', 'female'])
     birth_date              = db.DateProperty()
     have_been_subsidised    = db.BooleanProperty(default=False)
@@ -75,6 +77,9 @@ class Person(ChangeLogModel):
         self.put('autofix')
         #for l in self.leecher:
         #    taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'add', 'bubble_key': str(l), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
+
+        #for l in self.seeder:
+        #    taskqueue.Task(url='/taskqueue/bubble_change_seeder', params={'action': 'add', 'bubble_key': str(l), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
 
 
     @property

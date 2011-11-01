@@ -127,9 +127,9 @@ class ShowQuestionaryResults(boRequestHandler):
 
                 for t_name, t_sums in teachers.iteritems():
                     message += '"' + str(course.key()) + '",'
-                    message += '"' + course.subject.name.translate().replace('"','""') + '",'
+                    message += '"' + course.subject.name.value.replace('"','""') + '",'
                     message += '"' + t_name + '",'
-                    message += '"' + question.name.translate().replace('"','""') + '",'
+                    message += '"' + question.name.value.replace('"','""') + '",'
                     message += str(t_sums['totalcount']) + ','
                     message += str(t_sums['count']) + ','
                     if t_sums['count'] > 0:
@@ -162,7 +162,7 @@ class ShowQuestionaryResults2(boRequestHandler):
         for a in db.Query(QuestionAnswer).filter('question', db.Key('agdib25nYXBwchALEghRdWVzdGlvbhi74kkM')).fetch(100000):
 
             if a.answer:
-                message += '"' + a.course.subject.name.translate().replace('"','""') + '",'
+                message += '"' + a.course.subject.name.value.replace('"','""') + '",'
                 message += '"' + a.answer.strip().replace('"','""') + '",'
                 message += '\n'
 

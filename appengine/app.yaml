@@ -31,6 +31,10 @@ handlers:
   static_dir: static/css
   #expiration: "1d"
 
+- url: /fonts
+  static_dir: static/fonts
+  #expiration: "1d"
+
 - url: /images
   static_dir: static/images
   expiration: "1d"
@@ -52,8 +56,8 @@ handlers:
 
 
 #public controllers
-- url: /application(.*)
-  script: controllers/application.py
+#- url: /application(.*)
+#  script: controllers/application.py
 
 - url: /document(.*)
   script: controllers/document.py

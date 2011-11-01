@@ -3,9 +3,11 @@
 @text_color: #454A4E;
 @nav_width: 200px;
 @list_width: 300px;
+@toolbar_height: 48px;
 @search_height: 48px;
 @text_font: HelveticaNeue-Regular, 'Helvetica Neue', Helvetica, Arial, Tahoma, Verdana, sans-serif;
 @bordercolor: #B9B9B9;
+@dark-bordercolor: #222222;
 @grayboxbg: #F0F0F0;
 
 
@@ -58,7 +60,6 @@ h1 {
 }
 
 h2 {
-    display: block;
     padding-top: 20px;
     margin-bottom: 5px;
     font-size: 14px;
@@ -85,58 +86,83 @@ img.spinner {
 }
 
 
+#main_toolbar {
+    height: @toolbar_height;
+    line-height: @toolbar_height;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    padding: 0px 5px;
+    font-size: 20px;
+    text-align: right;
+
+    border-bottom: 1px solid @dark-bordercolor;
+
+    text-shadow: 0px 1px 0px #F8F8F8;
+
+    white-space: nowrap;
+    overflow: hidden;
+
+    background: #eeeeee;
+    background: -moz-linear-gradient(top, #eeeeee 0%, #cccccc 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#eeeeee), color-stop(100%,#cccccc));
+    background: -webkit-linear-gradient(top, #eeeeee 0%,#cccccc 100%);
+    background: -o-linear-gradient(top, #eeeeee 0%,#cccccc 100%);
+    background: -ms-linear-gradient(top, #eeeeee 0%,#cccccc 100%);
+    background: linear-gradient(top, #eeeeee 0%,#cccccc 100%);
+
+    img {
+        height: @toolbar_height - 12;
+        width: @toolbar_height - 12;
+        margin-top: 5px;
+        margin-right: 5px;
+        float: left;
+        border: 1px solid @bordercolor;
+        vertical-align: middle;
+    }
+
+    a, a:active, a:visited, a:hover {
+        padding: 5px 5px 5px 5px;
+        text-decoration: none;
+        font-size: 26px;
+        color: gray;
+    }
+
+    a:hover {
+        color: @dark-bordercolor;
+    }
+
+    a.space {
+        margin-left: 20px;
+    }
+
+}
+
+
 #main_nav {
     width: @nav_width;
     position: fixed;
-    top: 0px;
+    top: @toolbar_height;
     bottom: 0px;
-    background: #3A4044;
     color: #FFFFFF;
     font-size: 11px;
-    border-right: 1px solid #222222;
-
-    header {
-        padding: 10px;
-        height: 60px;
-        font-size: 16px;
-        background: #33393D;
-        text-shadow: rgba(0, 0, 0, 0.8) 1px 1px 2px;
-        white-space: nowrap;
-        overflow: hidden;
-
-        img {
-            float: left;
-            margin-right: 10px;
-            background: #FFFFFF;
-            box-shadow: rgba(0, 0, 0, 0.8) 1px 1px 2px;
-            -moz-box-shadow: rgba(0, 0, 0, 0.8) 1px 1px 2px;
-            -webkit-box-shadow: rgba(0, 0, 0, 0.8) 1px 1px 2px;
-        }
-
-        a, a:active, a:visited {
-            color: #FFFFFF;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-
-
-    }
 
     nav {
         position: fixed;
         width: @nav_width;
-        top: 60px;
+        top: @toolbar_height;
         bottom: 0px;
+        background: #3A4044;
+        border-right: 1px solid @dark-bordercolor;
 
         .accordion {
-            border-bottom: 1px solid #222222;
+            border-bottom: 1px solid @dark-bordercolor;
 
             h3 {
                 display: block;
                 font-size: 12px;
-                border-top: 1px solid #222222;
+                border-top: 1px solid @dark-bordercolor;
 
                 &.ui-state-active a {
                     text-shadow: rgba(0, 0, 0, 0.8) 1px 1px 2px;
@@ -156,7 +182,7 @@ img.spinner {
 
             div {
                 display: block;
-                border-top: 1px solid #222222;
+                border-top: 1px solid @dark-bordercolor;
 
                 a, a:active, a:visited {
                     display: block;
@@ -189,7 +215,6 @@ img.spinner {
 
 
 #content {
-    margin-left: @nav_width + 1px;
     background: #FFFFFF;
 }
 
@@ -197,9 +222,10 @@ img.spinner {
 #list {
     width: @list_width;
     position: fixed;
-    top: 0px;
+    left: @nav_width + 1px;
+    top: @toolbar_height + 1;
     bottom: 0px;
-    border-right: 1px solid #222222;
+    border-right: 1px solid @dark-bordercolor;
     overflow: hidden;
 }
 
@@ -209,15 +235,6 @@ img.spinner {
     top: 0;
     height: @search_height;
     width: @list_width;
-    border-bottom: 1px solid @bordercolor;
-
-    background: #eeeeee;
-    background: -moz-linear-gradient(top, #eeeeee 0%, #cccccc 100%);
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#eeeeee), color-stop(100%,#cccccc));
-    background: -webkit-linear-gradient(top, #eeeeee 0%,#cccccc 100%);
-    background: -o-linear-gradient(top, #eeeeee 0%,#cccccc 100%);
-    background: -ms-linear-gradient(top, #eeeeee 0%,#cccccc 100%);
-    background: linear-gradient(top, #eeeeee 0%,#cccccc 100%);
 
     input {
         display: block;
@@ -284,8 +301,43 @@ img.spinner {
 }
 
 #list_content {
-    margin-left: @list_width + 1px;
+    position: fixed;
+    left: @nav_width + @list_width + 2px;
+    right: 0px;
+    top: @toolbar_height;
+    bottom: 0px;
     padding: 15px;
+    overflow: scroll;
+}
+
+#wide_content {
+    position: fixed;
+    left: @nav_width + 1px;
+    right: 0px;
+    top: @toolbar_height;
+    bottom: 0px;
+    padding: 15px;
+    overflow: scroll;
+}
+
+
+
+/* DROPDOWN */
+.dropdown {
+    display: none;
+    position: fixed;
+    top: 0px;
+    left: 50%;
+    margin-left: -325px;
+    width: 650px;
+    margin-bottom: 20px;
+    padding: 20px;
+    background: @grayboxbg;
+    border: 1px solid @bordercolor;
+    border-top: none;
+    box-shadow: rgba(0, 0, 0, 0.4) 1px 1px 4px;
+    -moz-box-shadow: rgba(0, 0, 0, 0.4) 1px 1px 4px;
+    -webkit-box-shadow: rgba(0, 0, 0, 0.4) 1px 1px 4px;
 }
 
 
@@ -368,7 +420,7 @@ img.spinner {
 }
 
 .persons_list {
-    display: block;
+    display: none;
     clear: both;
     overflow:hidden;
 
@@ -407,7 +459,7 @@ img.spinner {
 }
 
 .subbubbles_list {
-    display: block;
+    display: none;
     clear: both;
     padding: 0px -5px;
 

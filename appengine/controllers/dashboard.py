@@ -6,9 +6,16 @@ from database.bubble import *
 
 class Show(boRequestHandler):
     def get(self):
+
+        person = Person().current
+        person.grades_count = db.Query(Grade).filter('person', person).filter('is_deleted', False).count()
+
         self.view(
             page_title = 'page_dashboard',
             template_file = 'dashboard.html',
+            values = {
+                'person': person,
+            }
         )
 
 
@@ -27,7 +34,6 @@ class ShowMenu(boRequestHandler):
                 'title': Translate('menu_bubbles'),
                 'childs': bubbletypes
             })
-
 
         if self.authorize('questionary') or self.authorize('reception'):
             menu.append({

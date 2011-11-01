@@ -30,10 +30,10 @@
             <div class="table_cell" style="width:300px; vertical-align:top;">
 
                 <label for="name" style="display:block;">{{ str.bubble_name }}:</label>
-                <input type="text" id="name" name="name" class="autosave" value="{{ bubble.name.translate|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
+                <input type="text" id="name" name="name" class="autosave" value="{{ bubble.name.value|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
 
                 <label for="description" style="display:block;">{{ str.bubble_description }}:</label>
-                <textarea id="description" name="description" class="autosave" style="display:block; width:99%; margin-bottom:15px;">{{ bubble.description.translate|default:""|escape }}</textarea>
+                <textarea id="description" name="description" class="autosave" style="display:block; width:99%; margin-bottom:15px;">{{ bubble.description.value|default:""|escape }}</textarea>
 
                 <label for="url" style="display:block;">{{ str.bubble_url }}:</label>
                 <input type="text" id="url" name="url" class="autosave" value="{{ bubble.url|default:""|escape }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
@@ -53,7 +53,7 @@
                 </select>
 
                 <label for="badge" style="display:block;">{{ str.bubble_badge }}:</label>
-                <input type="text" id="badge" name="badge" class="autosave" value="{{ bubble.badge.translate|default:"" }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
+                <input type="text" id="badge" name="badge" class="autosave" value="{{ bubble.badge.value|default:"" }}" maxlength="500" style="display:block; width:99%; margin-bottom:15px;" />
 
                 <label style="display:block;">{{ str.bubble_seeders }} ({{ bubble.seeders|length }}):</label>
                 <div id="seeders" style="margin-bottom:5px;">

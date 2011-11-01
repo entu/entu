@@ -73,7 +73,8 @@ class ShowPerson(boRequestHandler):
             return
 
         person = Person().get_by_id(int(person_id))
-        person.bubbles_count = len(person.leecher)
+        person.leeching_count = len(person.leecher)
+        person.seeding_count = len(person.seeder)
         person.grades_count = db.Query(Grade).filter('person', person).filter('is_deleted', False).count()
 
         self.view(

@@ -91,7 +91,7 @@ class boRequestHandler(webapp.RequestHandler):
             values['user'] = Person().current
             values['loginurl'] = users.create_login_url('/')
             values['logouturl'] = users.create_logout_url('/')
-            values['version'] = self.request.environ["CURRENT_VERSION_ID"].split('.')[0]
+            values['version'] = self.request.environ["CURRENT_VERSION_ID"].split('.')[1]
 
             if main_template:
                 main_template_file = open(os.path.join(os.path.dirname(__file__), 'templates', main_template))

@@ -15,7 +15,7 @@ class ShowCurriculum(webapp.RequestHandler):
             pass
 
 
-        View(self, c.name.translate(), 'curriculum_tree.html', {
+        View(self, c.name.value, 'curriculum_tree.html', {
             'tree': tree,
         })
 
