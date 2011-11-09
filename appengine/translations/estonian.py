@@ -30,6 +30,7 @@ def translation():
         'person_grades':        'Hinded',
         'person_leeching_bubbles': 'Saaja õpimullides',
         'person_seeding_bubbles':  'Andja õpimullides',
+        'person_duplicates':    'Duplikaadid',
 
         'contact_address':      'Postiaadress',
         'contact_email':        'E-post',

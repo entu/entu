@@ -47,26 +47,22 @@
 <a href="javascript:void(0);" id="gapps_account"></a>
 
 <section class="info_accordion">
-    {% if person.grades_count %}
     <div>
-        <h2>{{ str.person_grades }}<span>{{ person.grades_count }}</span></h2>
+        <h2>{{ str.person_grades }}<span><img src="/images/spinner_gray_small.gif" /></span></h2>
         <div id="grades" class="subbubbles_list"></div>
     </div>
-    {% endif %}
-
-    {% if person.leeching_count %}
     <div>
-        <h2>{{ str.person_leeching_bubbles }}<span>{{ person.leeching_count }}</span></h2>
+        <h2>{{ str.person_leeching_bubbles }}<span><img src="/images/spinner_gray_small.gif" /></span></h2>
         <div id="leeching_bubbles" class="subbubbles_list"></div>
     </div>
-    {% endif %}
-
-    {% if person.seeding_count %}
     <div>
-        <h2>{{ str.person_seeding_bubbles }}<span>{{ person.seeding_count }}</span></h2>
+        <h2>{{ str.person_seeding_bubbles }}<span><img src="/images/spinner_gray_small.gif" /></span></h2>
         <div id="seeding_bubbles" class="subbubbles_list"></div>
     </div>
-    {% endif %}
+    <div style="display:none;">
+        <h2>{{ str.person_duplicates }}<span><img src="/images/spinner_gray_small.gif" /></span></h2>
+        <div id="duplicates" class="persons_list"></div>
+    </div>
 </section>
 
 <script type="text/javascript">
@@ -81,6 +77,7 @@
         ajax_grades_list('/rating/grades', { person: '{{ person.key }}' }, $('#grades'), 'grades');
         ajax_bubbles_list('/bubble', { leecher: '{{ person.key }}' }, $('#leeching_bubbles'), 'bubbles');
         ajax_bubbles_list('/bubble', { seeder: '{{ person.key }}' }, $('#seeding_bubbles'), 'bubbles');
+        ajax_duplicates_list('/person', { person_duplicates: '{{ person.key }}' }, $('#duplicates'), 'duplicates');
 
         $.post('/gapps/checkaccount', {person_id: person_id}, function(json) {
             $('#gapps_account').html(json.text);
@@ -114,6 +111,12 @@
                         $('#'+id+'_'+item.key).html(item.date+' '+item.type+' - '+item.bubble+'<span>'+item.title+'</span>');
                     }, 'json');
                 }
+                if (list.keys.length > 0) {
+                    div.parent().show();
+                    div.parent().children('h2').children('span').html(list.keys.length);
+                } else {
+                    div.parent().hide();
+                }
             }, 'json');
         }
 
@@ -135,6 +138,45 @@
                         $('#'+id+'_'+item.key).html(item.type_name+' - '+item.title+'<span>'+item.info+'</span>');
                         $('#'+id+'_'+item.key).attr('href', '/bubble/'+item.type+'#'+item.id);
                     }, 'json');
+                }
+                if (list.keys.length > 0) {
+                    div.parent().show();
+                    div.parent().children('h2').children('span').html(list.keys.length);
+                } else {
+                    div.parent().hide();
+                }
+            }, 'json');
+        }
+
+        function ajax_duplicates_list(post_url, post_data, div, id) {
+            $.post(post_url, post_data, function(list) {
+                for (i in list.keys) {
+                    div.append('<a href="#" id="'+id+'_'+list.keys[i]+'" style="width:200px;"></a>');
+                    $.post(post_url, {key: list.keys[i]}, function(item) {
+                        if(item.image) {
+                            image = '<img src="'+item.image+'" />';
+                        } else {
+                            image = '';
+                        }
+                        if(item.info) {
+                            info = '<span>'+item.info+'</span>';
+                        } else {
+                            info = '';
+                        }
+                        if('#'+item.id == window.location.hash) {
+                            active = 'class="active" ';
+                        } else {
+                            active = '';
+                        }
+                        $('#'+id+'_'+item.key).html(image+item.title);
+                        $('#'+id+'_'+item.key).attr('href', '/person#'+item.id);
+                    }, 'json');
+                }
+                if (list.keys.length > 0) {
+                    div.parent().show();
+                    div.parent().children('h2').children('span').html(list.keys.length);
+                } else {
+                    div.parent().hide();
                 }
             }, 'json');
         }

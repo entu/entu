@@ -30,6 +30,7 @@ def translation():
         'person_grades':        'Grades',
         'person_leeching_bubbles': 'Leeching bubbles',
         'person_seeding_bubbles':  'Seeding bubbles',
+        'person_duplicates':    'Duplicates',
 
         'contact_address':      'Address',
         'contact_email':        'Email',

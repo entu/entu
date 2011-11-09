@@ -44,6 +44,7 @@ class ShowPersonList(boRequestHandler):
         bubble_seeders = self.request.get('bubble_seeders').strip()
         bubble_leechers = self.request.get('bubble_leechers').strip()
         bubble_waitinglist = self.request.get('bubble_waitinglist').strip()
+        person_duplicates = self.request.get('person_duplicates').strip()
 
         if search:
             keys = [str(k) for k in list(db.Query(Person, keys_only=True).filter('search', search).order('sort'))]
@@ -61,6 +62,15 @@ class ShowPersonList(boRequestHandler):
             bubblepersons = db.Query(BubblePerson).filter('bubble', db.Key(bubble_waitinglist)).filter('status', 'waiting').order('start_datetime')
             keys = [str(k.person.key()) for k in bubblepersons]
 
+        if person_duplicates:
+            person = Person().get(person_duplicates)
+            same_user = [] if not person.user else [str(k) for k in list(db.Query(Person, keys_only=True).filter('user', person.user))]
+            same_idcode = [] if not person.idcode else [str(k) for k in list(db.Query(Person, keys_only=True).filter('idcode', person.idcode))]
+            same_name = [] if not person.displayname else [str(p.key()) for p in list(db.Query(Person).filter('search', person.displayname.lower()))]
+            keys = GetUniqueList(same_user + same_idcode + same_name)
+            keys = RemoveFromList(str(person.key()), keys)
+
+
         if keys == None:
             keys = [str(k) for k in list(db.Query(Person, keys_only=True).order('sort'))]
 
@@ -73,10 +83,6 @@ class ShowPerson(boRequestHandler):
             return
 
         person = Person().get_by_id(int(person_id))
-        person.leeching_count = len(person.leecher)
-        person.seeding_count = len(person.seeder)
-        person.grades_count = db.Query(Grade).filter('person', person).filter('is_deleted', False).count()
-
         self.view(
             template_file = 'person/info.html',
             values = {
@@ -108,6 +114,54 @@ class ExportPersonsCSV(boRequestHandler):
             filename = filename,
             rowslist = rowslist
         )
+
+
+class GetPersonsDuplicates(boRequestHandler):
+    def post(self):
+        if not self.authorize('bubbler'):
+            return
+
+        person_key = self.request.get('person').strip()
+        keys = []
+
+        if person_key:
+            perosn = Person().get(person_key)
+            same_user = [] if not perosn.user else [str(k) for k in list(db.Query(Person, keys_only=True).filter('user', perosn.user))]
+            same_idcode = [] if not perosn.idcode else [str(k) for k in list(db.Query(Person, keys_only=True).filter('idcode', perosn.idcode))]
+            same_name = [] if not perosn.displayname else [str(p.key()) for p in list(db.Query(Person).filter('search', perosn.displayname.lower()))]
+
+            keys = GetUniqueList(same_user + same_idcode + same_name)
+
+        self.echo_json({'keys': keys})
+
+
+class GetPersonsDuplicates2(boRequestHandler):
+    def get(self):
+        if not self.authorize('bubbler'):
+            return
+
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+
+        person_key = self.request.get('person').strip()
+        result = {}
+
+        for person in db.Query(Person).filter('idcode != ', 'guest').fetch(1000):
+            keys = [str(person.key())]
+            same_user = [] if not person.user else [str(k) for k in list(db.Query(Person, keys_only=True).filter('user', person.user))]
+            same_idcode = [] if not person.idcode else [str(k) for k in list(db.Query(Person, keys_only=True).filter('idcode', person.idcode))]
+            same_name = [] if not person.displayname else [str(p.key()) for p in list(db.Query(Person).filter('search', person.displayname.lower()))]
+            keys = GetUniqueList(same_user + same_idcode + same_name)
+
+            if len(keys) > 1:
+                self.echo(str(keys))
+
+        #self.echo_json({'person': perosn,'keys': keys})
+
+
+
+
+
+
 
 
 
@@ -382,7 +436,7 @@ class MergePersons(boRequestHandler):
 
         target_pk = target_p.key()
         source_pk = source_p.key()
-        
+
         for m in db.Query(Message).filter('person', source_pk):
             m.person = target_pk
             m.put()
@@ -464,6 +518,7 @@ class MergePersons(boRequestHandler):
 def main():
     Route([
             (r'/person/show/(.*)', ShowPerson),
+            ('/person/duplicates', GetPersonsDuplicates),
             ('/person/csv', ExportPersonsCSV),
             ('/person/zoin', ExportAllPersonsZoinCSV),
             ('/person/merge/(.*)/(.*)', MergePersons),
