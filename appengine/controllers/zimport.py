@@ -86,16 +86,16 @@ class ZimportRole(boRequestHandler):
 
 def main():
     Route([
-            ('/zimport/bubble', ZimportBubble),
-            ('/zimport/bubbleperson', ZimportBubblePerson),
-            ('/zimport/bubbletype', ZimportBubbleType),
-            ('/zimport/contact', ZimportContact),
-            ('/zimport/grade', ZimportGrade),
-            ('/zimport/gradedefinition', ZimportGradeDefinition),
-            ('/zimport/person', ZimportPerson),
-            ('/zimport/personrole', ZimportPersonRole),
             ('/zimport/ratingscale', ZimportRatingScale),
+            ('/zimport/bubbletype', ZimportBubbleType),
+            ('/zimport/bubble', ZimportBubble),
             ('/zimport/role', ZimportRole),
+            ('/zimport/personrole', ZimportPersonRole),
+            ('/zimport/person', ZimportPerson),
+            ('/zimport/bubbleperson', ZimportBubblePerson),
+            ('/zimport/contact', ZimportContact),
+            ('/zimport/gradedefinition', ZimportGradeDefinition),
+            ('/zimport/grade', ZimportGrade),
         ])
 
 
