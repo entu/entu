@@ -94,6 +94,7 @@
 .icon.help:before{content:'?';}
 .icon.facebook{font-family:'Lucida Grande';font-weight:bold !important;}
 .icon.facebook:before{content:'f';}
+.icon.calendar::before{content:'\\';}
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-weight:inherit;font-style:inherit;font-size:12px;font-family:inherit;vertical-align:baseline;list-style:none;}
 header,footer,aside,nav,article,section{display:block;}
 body{font-family:HelveticaNeue-Regular,'Helvetica Neue',Helvetica,Arial,Tahoma,Verdana,sans-serif;}
@@ -103,7 +104,7 @@ a,a:active,a:visited{color:#454a4e;text-decoration:none;}
 a:hover{text-decoration:underline;}
 img.spinner{margin:100px auto;display:block;}
 #main_toolbar{height:48px;line-height:48px;position:fixed;top:0px;left:0px;right:0px;padding:0px 5px;font-size:20px;text-align:right;border-bottom:1px solid #222222;text-shadow:0px 1px 0px #F8F8F8;white-space:nowrap;overflow:hidden;background:#eeeeee;background:-moz-linear-gradient(top, #eeeeee 0%, #cccccc 100%);background:-webkit-gradient(linear, left top, left bottom, color-stop(0%, #eeeeee), color-stop(100%, #cccccc));background:-webkit-linear-gradient(top, #eeeeee 0%, #cccccc 100%);background:-o-linear-gradient(top, #eeeeee 0%, #cccccc 100%);background:-ms-linear-gradient(top, #eeeeee 0%, #cccccc 100%);background:linear-gradient(top, #eeeeee 0%, #cccccc 100%);}#main_toolbar img{height:36px;width:36px;margin-top:5px;margin-right:5px;float:left;border:1px solid #b9b9b9;vertical-align:middle;}
-#main_toolbar a,#main_toolbar a:active,#main_toolbar a:visited,#main_toolbar a:hover{padding:5px 5px 5px 5px;text-decoration:none;font-size:26px;color:gray;}
+#main_toolbar a,#main_toolbar a:active,#main_toolbar a:visited,#main_toolbar a:hover{padding:5px 5px 5px 5px;text-decoration:none;font-size:21px;color:gray;}
 #main_toolbar a:hover{color:#222222;}
 #main_toolbar a.space{margin-left:20px;}
 #main_nav{width:200px;position:fixed;top:48px;bottom:0px;color:#FFFFFF;font-size:11px;}#main_nav nav{position:fixed;width:200px;top:48px;bottom:0px;background:#3A4044;border-right:1px solid #222222;}#main_nav nav .accordion{border-bottom:1px solid #222222;}#main_nav nav .accordion h3{display:block;font-size:12px;border-top:1px solid #222222;}#main_nav nav .accordion h3.ui-state-active a{text-shadow:rgba(0, 0, 0, 0.8) 1px 1px 2px;}
