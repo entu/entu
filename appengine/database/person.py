@@ -29,8 +29,7 @@ class Role(ChangeLogModel):
 
 class Person(ChangeLogModel):
     created                 = db.DateTimeProperty(auto_now_add=True)
-    user                    = db.StringProperty()
-    apps_username           = db.StringProperty() # OBSOLETE
+    user                    = db.StringListProperty()
     email                   = db.StringProperty()
     password                = db.StringProperty()
     forename                = db.StringProperty()
@@ -51,12 +50,6 @@ class Person(ChangeLogModel):
     search                  = db.StringListProperty()
 
     def AutoFix(self):
-        if hasattr(self, 'search_names'):
-            delattr(self, 'search_names')
-
-        if self.apps_username:
-            self.user = self.apps_username
-
         if self.forename:
             self.forename = self.forename.title().strip().replace('  ', ' ').replace('- ', '-').replace(' -', '-')
         else:

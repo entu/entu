@@ -189,8 +189,7 @@ class ChangeLog(db.Expando):
     model_version   = db.StringProperty(default='B')
 
 
-class ChangeLogModel(db.Model):
-#class ChangeLogModel(db.Expando):
+class ChangeLogModel(db.Expando):
     def put(self, email=None):
         if not email:
             user = users.get_current_user()
