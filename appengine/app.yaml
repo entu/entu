@@ -1,4 +1,4 @@
-application: bongapp
+application: bubbledu
 version: dev
 runtime: python
 api_version: 1

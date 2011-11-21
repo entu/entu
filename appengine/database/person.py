@@ -29,8 +29,7 @@ class Role(ChangeLogModel):
 
 class Person(ChangeLogModel):
     created                 = db.DateTimeProperty(auto_now_add=True)
-    user                    = db.StringProperty()
-    apps_username           = db.StringProperty() # OBSOLETE
+    user                    = db.StringListProperty()
     email                   = db.StringProperty()
     password                = db.StringProperty()
     forename                = db.StringProperty()
@@ -51,30 +50,17 @@ class Person(ChangeLogModel):
     search                  = db.StringListProperty()
 
     def AutoFix(self):
-        if hasattr(self, 'search_names'):
-            delattr(self, 'search_names')
-
-        if self.apps_username:
-            self.user = self.apps_username
-
         if self.forename:
             self.forename = self.forename.title().strip().replace('  ', ' ').replace('- ', '-').replace(' -', '-')
-        else:
-            if self.user:
-                self.forename = self.user.split('@')[0].split('.')[0].title()
 
         if self.surname:
             self.surname = self.surname.title().strip().replace('  ', ' ').replace('- ', '-').replace(' -', '-')
-        else:
-            if self.user:
-                self.surname = self.user.split('@')[0].split('.')[1].title().strip()
 
-        if not self.sort:
-            self.sort = StringToSortable(self.displayname)
-
+        self.sort = StringToSortable(self.displayname)
         self.search = StringToSearchIndex(self.displayname)
 
         self.put('autofix')
+
         #for l in self.leecher:
         #    taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'add', 'bubble_key': str(l), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
 
@@ -92,22 +78,20 @@ class Person(ChangeLogModel):
                 name = name + ' ' + self.surname
         else:
             if self.primary_email:
-                name = self.primary_email
+                name = self.primary_email.split('@')[0]
         return name
 
     @property
     def primary_email(self):
-        if self.user:
-            return self.user
-        if self.emails:
-            if len(self.emails) > 0:
-                return self.emails[0]
+        emails = self.emails
+        if len(emails) > 0:
+            return emails[0]
 
     @property
     def emails(self):
         emails = []
         if self.user:
-            emails = AddToList(self.user, emails)
+            emails = AddToList(self.user[0], emails)
         if self.email:
             emails = AddToList(self.email, emails)
         for contact in db.Query(Contact).ancestor(self).filter('type', 'email').fetch(1000):
