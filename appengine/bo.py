@@ -392,6 +392,10 @@ def GetUniqueList(s_list):
     return list(set(s_list))
 
 
+def MergeLists(l1 = [], l2 = []):
+    return GetUniqueList(l1 + l2)
+
+
 def StripTags(string):
     return striptags(string)
 

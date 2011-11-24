@@ -1,0 +1,54 @@
+{% extends main_template %}
+
+{% block content %}
+
+<img src="{{ system_logo }}" alt="logo" style="margin:50px auto; display:block;" />
+<h1>{{ str.person_duplicates }}</h2>
+
+<img src="/images/spinner_white.gif" class="spinner" style="display:none;" />
+<div id="persons" class="table" style="margin: 50px 0px; white-space:nowrap;">
+    {% for key in persons %}
+    <div class="row person" id="{{ key }}"><a href="javascript:void(0);" class="cell merge">{{ str.person_duplicates_merge }}</a></div>
+    {% endfor %}
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        $.each($('.person'), function () {
+            var person = $(this);
+            $.post('/person', {person_duplicates: person.attr('id')}, function(list) {
+                if (list.keys.length > 1) {
+                    for (i in list.keys) {
+                        $.post('/person', {key: list.keys[i]}, function(item) {
+                            person.append('<div class="cell"><input type="checkbox" id="'+person.attr('id')+item.id+'" value="'+item.id+'" class="cell" /></div><label for="'+person.attr('id')+item.id+'" class="cell"><a href="/person#'+item.id+'" target="_blank" title="'+item.id+'">'+item.title+'</a><br /><span style="font-size:11px; color:gray;">'+item.email+'<br />'+item.idcode+'<br />'+item.birth_date+'</span></label>');
+                        }, 'json');
+                    }
+                } else {
+                    person.remove();
+                }
+            }, 'json');
+        });
+
+        $('a.merge').click(function(){
+            $('.spinner').show();
+            $('#persons').hide();
+            var keys = [];
+            $(this).parent().find(':checked').each(function() {
+                keys.push($(this).val());
+            });
+            if (keys.length > 1) {
+                $.post('/person/merge', {person_ids: keys.join(' ')}, function(list) {
+                    for (i in list.keys) {
+                        $('#'+list.keys[i]).remove();
+                    }
+                    $('#persons').show();
+                    $('.spinner').hide();
+                }, 'json');
+            }
+        });
+
+    });
+</script>
+
+{% endblock %}

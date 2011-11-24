@@ -29,6 +29,8 @@ class Role(ChangeLogModel):
 
 class Person(ChangeLogModel):
     created                 = db.DateTimeProperty(auto_now_add=True)
+    is_deleted              = db.BooleanProperty(default=False)
+    is_guest                = db.BooleanProperty(default=False)
     user                    = db.StringListProperty()
     email                   = db.StringProperty()
     password                = db.StringProperty()
@@ -48,8 +50,23 @@ class Person(ChangeLogModel):
     leecher                 = db.ListProperty(db.Key)
     sort                    = db.StringProperty(default='')
     search                  = db.StringListProperty()
+    merged_from             = db.ListProperty(db.Key)
 
     def AutoFix(self):
+        if not hasattr(self, 'idcode'):
+            self.idcode = ''
+
+        if not self.idcode:
+            self.idcode = ''
+
+        if self.idcode.strip() == 'guest':
+            self.idcode = ''
+            self.is_guest = True
+        else:
+            if not self.idcode.strip():
+                self.idcode = ''
+            self.is_guest = False
+
         if self.forename:
             self.forename = self.forename.title().strip().replace('  ', ' ').replace('- ', '-').replace(' -', '-')
 
@@ -61,11 +78,11 @@ class Person(ChangeLogModel):
 
         self.put('autofix')
 
-        #for l in self.leecher:
-        #    taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'add', 'bubble_key': str(l), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
+        # for l in self.leecher:
+        #     taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'add', 'bubble_key': str(l), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
 
-        #for l in self.seeder:
-        #    taskqueue.Task(url='/taskqueue/bubble_change_seeder', params={'action': 'add', 'bubble_key': str(l), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
+        # for l in self.seeder:
+        #     taskqueue.Task(url='/taskqueue/bubble_change_seeder', params={'action': 'add', 'bubble_key': str(l), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
 
 
     @property
@@ -137,8 +154,8 @@ class Person(ChangeLogModel):
             person = db.Query(Person).filter('user', user.email()).get()
             if not person:
                 person = Person()
-                person.user = user.email()
-                person.idcode = 'guest'
+                person.user = [user.email()]
+                person.is_guest = True
                 person.put()
             return person
 
@@ -182,7 +199,10 @@ class Person(ChangeLogModel):
         taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'remove', 'bubble_key': str(bubble_key), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
 
 
+
+
 class Cv(ChangeLogModel): #parent=Person()
+    person              = db.ReferenceProperty(Person, collection_name='cv')
     type                = db.StringProperty(choices=['secondary_education', 'higher_education', 'workplace'])
     organisation        = db.StringProperty()
     start               = db.StringProperty()
@@ -191,15 +211,8 @@ class Cv(ChangeLogModel): #parent=Person()
     model_version       = db.StringProperty(default='A')
 
 
-class Department(ChangeLogModel):
-    name                = db.ReferenceProperty(Dictionary, collection_name='department_names')
-    is_academic         = db.BooleanProperty()
-    parent_department   = db.SelfReferenceProperty(collection_name='child_departments')
-    manager             = db.ReferenceProperty(Person, collection_name='managed_departments')
-    model_version       = db.StringProperty(default='A')
-
-
 class Contact(ChangeLogModel): #parent=Person()
+    person              = db.ReferenceProperty(Person, collection_name='contacts')
     type                = db.StringProperty(choices=['email', 'phone', 'address', 'skype'])
     value               = db.StringProperty()
     is_deleted          = db.BooleanProperty(default=False)

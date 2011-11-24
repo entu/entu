@@ -6,6 +6,7 @@ import cStringIO
 from bo import *
 from database.bubble import *
 from database.person import *
+from database.feedback import *
 
 # how to add task:
 # taskqueue.Task(url='/taskqueue/...', params={...}).add(queue_name='my-custom-queue')
@@ -63,6 +64,102 @@ class BubbleChangeSeeder(boRequestHandler):
             if action == 'add':
                 bubble.seeders = AddToList(db.Key(person_key), bubble.seeders)
                 bubble.put()
+
+
+class PersonMerge(boRequestHandler):
+    def post(self):
+        source_ids = StrToList(self.request.get('source_ids'))
+        target_key = self.request.get('target_key')
+
+        target_p = Person().get(target_key)
+        if target_p:
+            target_pk = target_p.key()
+            for source_id in source_ids:
+                source_p = Person().get_by_id(int(source_id))
+                source_pk = source_p.key()
+
+                for m in db.Query(Cv).filter('person', source_pk):
+                    m.person = target_pk
+                    m.put()
+
+                for m in db.Query(Contact).filter('person', source_pk):
+                    m.person = target_pk
+                    m.put()
+
+                for m in db.Query(Message).filter('person', source_pk):
+                    m.person = target_pk
+                    m.put()
+
+                for d in db.Query(Document).filter('uploader', source_pk):
+                    d.uploader = target_pk
+                    d.put()
+                for d in db.Query(Document).filter('owners', source_pk):
+                    d.owners = RemoveFromList(source_pk, d.owners)
+                    d.owners = AddToList(target_pk, d.owners)
+                    d.put()
+                for d in db.Query(Document).filter('editors', source_pk):
+                    d.editors = RemoveFromList(source_pk, d.editors)
+                    d.editors = AddToList(target_pk, d.editors)
+                    d.put()
+                for d in db.Query(Document).filter('viewers', source_pk):
+                    d.viewers = RemoveFromList(source_pk, d.viewers)
+                    d.viewers = AddToList(target_pk, d.viewers)
+                    d.put()
+
+                for b in db.Query(Bubble).filter('owners', source_pk):
+                    b.owners = RemoveFromList(source_pk, d.owners)
+                    b.owners = AddToList(target_pk, d.owners)
+                    b.put()
+                for b in db.Query(Bubble).filter('editors', source_pk):
+                    b.editors = RemoveFromList(source_pk, b.editors)
+                    b.editors = AddToList(target_pk, b.editors)
+                    b.put()
+                for b in db.Query(Bubble).filter('viewers', source_pk):
+                    b.viewers = RemoveFromList(source_pk, b.viewers)
+                    b.viewers = AddToList(target_pk, b.viewers)
+                    b.put()
+                for b in db.Query(Bubble).filter('seeders', source_pk):
+                    b.seeders = RemoveFromList(source_pk, b.seeders)
+                    b.seeders = AddToList(target_pk, b.seeders)
+                    b.put()
+                for b in db.Query(Bubble).filter('leechers', source_pk):
+                    b.leechers = RemoveFromList(source_pk, b.leechers)
+                    b.leechers = AddToList(target_pk, b.leechers)
+                    b.put()
+
+                for bp in db.Query(BubblePerson).filter('person', source_pk):
+                    bp.person = target_pk
+                    bp.put()
+
+                for g in db.Query(Grade).filter('person', source_pk):
+                    g.person = target_pk
+                    g.put()
+                for g in db.Query(Grade).filter('teacher', source_pk):
+                    g.teacher = target_pk
+                    g.teacher_name = target_p.displayname
+                    g.put()
+
+                for q in db.Query(Questionary).filter('manager', source_pk):
+                    q.manager = target_pk
+                    q.put()
+                for qp in db.Query(QuestionaryPerson).filter('person', source_pk):
+                    qp.person = target_pk
+                    qp.put()
+                for qa in db.Query(QuestionAnswer).filter('person', source_pk):
+                    qa.person = target_pk
+                    qa.put()
+                for qa in db.Query(QuestionAnswer).filter('target_person', source_pk):
+                    qa.target_person = target_pk
+                    qa.put()
+
+
+
+
+
+
+
+
+
 
 
 class ApplicationStats(boRequestHandler):
@@ -160,6 +257,7 @@ def main():
             ('/taskqueue/bubble_copy_leechers', BubbleCopyLeechers),
             ('/taskqueue/bubble_change_leecher', BubbleChangeLeecher),
             ('/taskqueue/bubble_change_seeder', BubbleChangeSeeder),
+            ('/taskqueue/person_merge', PersonMerge),
             ('/taskqueue/application_stats', ApplicationStats),
         ])
 

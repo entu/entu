@@ -4,6 +4,7 @@ from bo import *
 from database.zimport.zoin import *
 from database.person import *
 from database.bubble import *
+from database.feedback import *
 
 
 class ShowPersonList(boRequestHandler):
@@ -32,9 +33,12 @@ class ShowPersonList(boRequestHandler):
             self.echo_json({
                 'id': person.key().id(),
                 'key': str(person.key()),
-                'image': image if image else '/images/avatar.png',
+                #'image': image if image else '/images/avatar.png',
                 'title': person.displayname,
                 'info': person.user,
+                'email': person.primary_email if person.primary_email else '',
+                'idcode': person.idcode if person.idcode else '',
+                'birth_date': person.birth_date.strftime('%d.%m.%Y') if person.birth_date else '',
             })
             return
 
@@ -43,9 +47,10 @@ class ShowPersonList(boRequestHandler):
         bubble_seeders = self.request.get('bubble_seeders').strip()
         bubble_leechers = self.request.get('bubble_leechers').strip()
         bubble_waitinglist = self.request.get('bubble_waitinglist').strip()
+        person_duplicates = self.request.get('person_duplicates').strip()
 
         if search:
-            keys = [str(k) for k in list(db.Query(Person, keys_only=True).filter('search', search).order('sort'))]
+            keys = [str(k) for k in list(db.Query(Person, keys_only=True).filter('is_deleted', False).filter('search', search).order('sort'))]
 
         if bubble_seeders:
             bubble = Bubble().get(bubble_seeders)
@@ -60,8 +65,19 @@ class ShowPersonList(boRequestHandler):
             bubblepersons = db.Query(BubblePerson).filter('bubble', db.Key(bubble_waitinglist)).filter('status', 'waiting').order('start_datetime')
             keys = [str(k.person.key()) for k in bubblepersons]
 
+        if person_duplicates:
+            person = Person().get(person_duplicates)
+            same_user = []
+            same_idcode = []
+            for user in person.user:
+                same_user = MergeLists(same_user, [str(k) for k in list(db.Query(Person, keys_only=True).filter('is_deleted', False).filter('user', user))])
+            same_idcode = [] if not person.idcode else [str(k) for k in list(db.Query(Person, keys_only=True).filter('is_deleted', False).filter('idcode', person.idcode))]
+            same_name = [] if not person.displayname else [str(p.key()) for p in list(db.Query(Person).filter('is_deleted', False).filter('search', person.displayname.lower()))]
+            keys = sorted(GetUniqueList(same_user + same_idcode + same_name))
+
+
         if keys == None:
-            keys = [str(k) for k in list(db.Query(Person, keys_only=True).order('sort'))]
+            keys = [str(k) for k in list(db.Query(Person, keys_only=True).filter('is_deleted', False).order('sort'))]
 
         self.echo_json({'keys': keys})
 
@@ -72,10 +88,6 @@ class ShowPerson(boRequestHandler):
             return
 
         person = Person().get_by_id(int(person_id))
-        person.leeching_count = len(person.leecher)
-        person.seeding_count = len(person.seeder)
-        person.grades_count = db.Query(Grade).filter('person', person).filter('is_deleted', False).count()
-
         self.view(
             template_file = 'person/info.html',
             values = {
@@ -107,6 +119,87 @@ class ExportPersonsCSV(boRequestHandler):
             filename = filename,
             rowslist = rowslist
         )
+
+
+class MergeDuplicates(boRequestHandler):
+    def get(self):
+        if not self.authorize('bubbler'):
+            return
+
+        self.view(
+            template_file = 'person/merge.html',
+            main_template = 'main/print.html',
+            values = {
+                'persons': [str(k) for k in list(db.Query(Person, keys_only=True).order('sort'))]
+            }
+        )
+
+    def post(self):
+        if not self.authorize('bubbler'):
+            return
+
+        ids = StrToList(self.request.get('person_ids'))
+        keys = [str(db.Key.from_path('Person', int(i))) for i in ids]
+
+        target_p = Person()
+        for person_key in keys:
+            source_p = Person().get(person_key)
+            source_pk = source_p.key()
+
+            target_p.user                  = MergeLists(target_p.user,source_p.user)
+            target_p.email                 = source_p.email if not target_p.email else target_p.email
+            target_p.password              = source_p.password if not target_p.password else target_p.password
+            target_p.forename              = source_p.forename if not target_p.forename else target_p.forename
+            target_p.surname               = source_p.surname if not target_p.surname else target_p.surname
+            target_p.idcode                = source_p.idcode if not target_p.idcode else target_p.idcode
+            target_p.citizenship           = source_p.citizenship if not target_p.citizenship else target_p.citizenship
+            target_p.country_of_residence  = source_p.country_of_residence if not target_p.country_of_residence else target_p.country_of_residence
+            target_p.gender                = source_p.gender if not target_p.gender else target_p.gender
+            target_p.birth_date            = source_p.birth_date if not target_p.birth_date else target_p.birth_date
+            target_p.roles                 = MergeLists(target_p.roles, source_p.roles)
+            target_p.leecher               = MergeLists(target_p.leecher + source_p.leecher)
+            target_p.seeder                = MergeLists(target_p.seeder + source_p.seeder)
+            target_p.merged_from           = AddToList(source_pk, target_p.merged_from)
+            target_p.put()
+
+            source_p.is_deleted = True
+            source_p.put()
+
+        target_p.AutoFix()
+        target_pk = target_p.key()
+
+        taskqueue.Task(url='/taskqueue/person_merge', params={'source_ids': self.request.get('person_ids'), 'target_key': str(target_p.key())}).add(queue_name='one-by-one')
+
+        self.echo_json({'keys': keys})
+
+
+class GetPersonsDuplicates2(boRequestHandler):
+    def get(self):
+        if not self.authorize('bubbler'):
+            return
+
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+
+        person_key = self.request.get('person').strip()
+        result = {}
+
+        for person in db.Query(Person).filter('idcode != ', 'guest').fetch(1000):
+            keys = [str(person.key())]
+            same_user = [] if not person.user else [str(k) for k in list(db.Query(Person, keys_only=True).filter('user', person.user))]
+            same_idcode = [] if not person.idcode else [str(k) for k in list(db.Query(Person, keys_only=True).filter('idcode', person.idcode))]
+            same_name = [] if not person.displayname else [str(p.key()) for p in list(db.Query(Person).filter('search', person.displayname.lower()))]
+            keys = GetUniqueList(same_user + same_idcode + same_name)
+
+            if len(keys) > 1:
+                self.echo(str(keys))
+
+        #self.echo_json({'person': perosn,'keys': keys})
+
+
+
+
+
+
 
 
 
@@ -165,9 +258,6 @@ class ExportAllPersonsCSV(boRequestHandler):
             filename = 'persons '+ str(int(pagesize)*int(pagenum)) + '-' + str(int(pagesize)*int(pagenum)+int(pagesize)),
             rowslist = rowslist
         )
-
-
-
 
 
 
@@ -372,9 +462,12 @@ class ListedRating(boRequestHandler):
     date        = ''
 
 
+
+
 def main():
     Route([
             (r'/person/show/(.*)', ShowPerson),
+            ('/person/merge', MergeDuplicates),
             ('/person/csv', ExportPersonsCSV),
             ('/person/zoin', ExportAllPersonsZoinCSV),
             ('/person/all_csv/(.*)/(.*)', ExportAllPersonsCSV),

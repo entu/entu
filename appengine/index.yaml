@@ -89,6 +89,11 @@ indexes:
   - name: search
   - name: sort
 
+- kind: Person
+  properties:
+  - name: is_deleted
+  - name: sort
+
 
 
 - kind: Contact

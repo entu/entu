@@ -124,6 +124,7 @@ img.spinner{margin:100px auto;display:block;}
 .table{display:table;}.table .row{display:table-row;}.table .row .v_header{display:table-cell;padding:5px 0px;text-align:right;vertical-align:top;white-space:nowrap;}
 .table .row .h_header{display:table-cell;padding:3px 0px 3px 0px;text-align:center;vertical-align:middle;}
 .table .row .cell{display:table-cell;padding:5px;vertical-align:top;}
+.table:hover{background-color:#7ABCFF;}
 .info_accordion{clear:both;}.info_accordion div{margin:20px 0px 0px 0px;padding:0px 10px 5px 10px;background:#f0f0f0;border-radius:5px;-webkit-border-radius:5px;-moz-border-radius:5px;}.info_accordion div h2{margin:0px;padding:10px 0px 5px 0px;cursor:pointer;}.info_accordion div h2 span{float:right;}
 .info_accordion div div{margin:0px;padding:0px;clear:both;}
 #person_photo{float:right;width:150px;height:150px;clear:both;margin-bottom:20px;padding:5px;border:1px solid #b9b9b9;box-shadow:rgba(0, 0, 0, 0.4) 1px 1px 4px;-moz-box-shadow:rgba(0, 0, 0, 0.4) 1px 1px 4px;-webkit-box-shadow:rgba(0, 0, 0, 0.4) 1px 1px 4px;}
