@@ -31,6 +31,7 @@ def translation():
         'person_leeching_bubbles': 'Leeching bubbles',
         'person_seeding_bubbles':  'Seeding bubbles',
         'person_duplicates':    'Duplicates',
+        'person_duplicates_merge':    'Merge',
 
         'contact_address':      'Address',
         'contact_email':        'Email',

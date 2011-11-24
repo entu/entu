@@ -93,8 +93,6 @@ img.spinner {
 /* TABLE */
 .table {
     display: table;
-    border-top: 1px solid @bordercolor;
-    border-left: 1px solid @bordercolor;
 
     .row {
         display: table-row;
@@ -105,7 +103,6 @@ img.spinner {
             text-align: right;
             vertical-align: top;
             white-space: nowrap;
-            border-bottom: 1px solid @bordercolor;
             border-right: 1px solid @bordercolor;
         }
 
@@ -115,7 +112,6 @@ img.spinner {
             text-align: center;
             font-weight: bold;
             vertical-align: middle;
-            border-bottom: 1px solid @bordercolor;
             border-right: 1px solid @bordercolor;
         }
 
@@ -123,9 +119,19 @@ img.spinner {
             display: table-cell;
             padding: 5px 10px;
             vertical-align: top;
-            border-bottom: 1px solid @bordercolor;
             border-right: 1px solid @bordercolor;
+
+            &:last-child {
+                border: none;
+            }
         }
 
+        &:nth-child(odd) {
+            background-color: #F3F6FA;
+        }
+
+        &:hover {
+            background-color: #7ABCFF;
+        }
     }
 }

@@ -31,6 +31,7 @@ def translation():
         'person_leeching_bubbles': 'Saaja õpimullides',
         'person_seeding_bubbles':  'Andja õpimullides',
         'person_duplicates':    'Duplikaadid',
+        'person_duplicates_merge':    'Ühenda',
 
         'contact_address':      'Postiaadress',
         'contact_email':        'E-post',
