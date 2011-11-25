@@ -18,6 +18,7 @@ class ShowPersonList(boRequestHandler):
             values = {
                 'list_url': '/person',
                 'content_url': '/person/show',
+                'toolbar': [{'url': '/person/merge', 'title': Translate('person_duplicates'), 'icon': 'join'}]
             }
         )
 
