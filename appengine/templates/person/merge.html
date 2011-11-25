@@ -5,15 +5,22 @@
 <img src="{{ system_logo }}" alt="logo" style="margin:50px auto; display:block;" />
 <h1>{{ str.person_duplicates }}</h2>
 
-<img src="/images/spinner_white.gif" class="spinner" style="display:none;" />
-<div id="persons" class="table" style="margin: 50px 0px; white-space:nowrap;">
-    {% for key in persons %}
-    <div class="row person" id="{{ key }}"><a href="javascript:void(0);" class="cell merge">{{ str.person_duplicates_merge }}</a></div>
-    {% endfor %}
+<img src="/images/spinner_white.gif" class="spinner" />
+<div id="table" style="display:none;">
+    <div id="persons" class="table" style="margin: 50px 0px; white-space:nowrap;">
+        {% for key in persons %}
+        <div class="row person" id="{{ key }}"><div class="cell merge icon join" title="{{ str.person_duplicates_merge }}" style="font-size:26px; vertical-align:middle; color:gray; cursor:pointer;"></div></div>
+        {% endfor %}
+    </div>
+    <a id="find_next" href="/person/merge/{{ next_page }}">{{ str.person_duplicates_next }}</a>
 </div>
 
 <script type="text/javascript">
     $(document).ready(function(){
+
+        if($('#persons').html().trim() == '') {
+            $('.spinner').hide();
+        }
 
         $.each($('.person'), function () {
             var person = $(this);
@@ -21,29 +28,38 @@
                 if (list.keys.length > 1) {
                     for (i in list.keys) {
                         $.post('/person', {key: list.keys[i]}, function(item) {
-                            person.append('<div class="cell"><input type="checkbox" id="'+person.attr('id')+item.id+'" value="'+item.id+'" class="cell" /></div><label for="'+person.attr('id')+item.id+'" class="cell"><a href="/person#'+item.id+'" target="_blank" title="'+item.id+'">'+item.title+'</a><br /><span style="font-size:11px; color:gray;">'+item.email+'<br />'+item.idcode+'<br />'+item.birth_date+'</span></label>');
+                            person.append('<label for="'+person.attr('id')+item.id+'" class="cell" style="vertical-align:middle; border:none; padding-right:0px;"><input checked type="checkbox" id="'+person.attr('id')+item.id+'" value="'+item.id+'" class="cell" /></label><label for="'+person.attr('id')+item.id+'" class="cell"><a href="/person#'+item.id+'" target="_blank" title="'+item.id+'">'+item.title+'</a><br /><span style="font-size:11px; color:gray;">'+item.email+'<br />'+item.idcode+'<br />'+item.birth_date+'</span></label>');
+                            $('.spinner').hide();
+                            $('#table').show();
                         }, 'json');
                     }
                 } else {
                     person.remove();
+                    if($('#persons').html().trim() == '') {
+                        window.location = '/person/merge/{{ next_page }}';
+                    }
                 }
             }, 'json');
         });
 
-        $('a.merge').click(function(){
-            $('.spinner').show();
-            $('#persons').hide();
+        $('div.merge').click(function(){
             var keys = [];
             $(this).parent().find(':checked').each(function() {
                 keys.push($(this).val());
             });
             if (keys.length > 1) {
+                $('.spinner').show();
+                $('#table').hide();
                 $.post('/person/merge', {person_ids: keys.join(' ')}, function(list) {
                     for (i in list.keys) {
                         $('#'+list.keys[i]).remove();
                     }
-                    $('#persons').show();
-                    $('.spinner').hide();
+                    if($('#persons').html().trim() == '') {
+                        window.location = '/person/merge/{{ next_page }}';
+                    } else {
+                        $('.spinner').hide();
+                        $('#table').show();
+                    }
                 }, 'json');
             }
         });
