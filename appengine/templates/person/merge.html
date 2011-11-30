@@ -1,18 +1,18 @@
 {% extends main_template %}
 
 {% block content %}
+<div id="wide_content">
+    <h1>{{ str.person_duplicates }}</h2>
 
-<img src="{{ system_logo }}" alt="logo" style="margin:50px auto; display:block;" />
-<h1>{{ str.person_duplicates }}</h2>
-
-<img src="/images/spinner_white.gif" class="spinner" />
-<div id="table" style="display:none;">
-    <div id="persons" class="table" style="margin: 50px 0px; white-space:nowrap;">
-        {% for key in persons %}
-        <div class="row person" id="{{ key }}"><div class="cell merge icon join" title="{{ str.person_duplicates_merge }}" style="font-size:26px; vertical-align:middle; color:gray; cursor:pointer;"></div></div>
-        {% endfor %}
+    <img src="/images/spinner_white.gif" class="spinner" />
+    <div id="table" style="display:none;">
+        <div id="persons" class="table" style="margin: 50px 0px; white-space:nowrap;">
+            {% for key in persons %}
+            <div class="row person" id="{{ key }}"><div class="cell merge icon join" title="{{ str.person_duplicates_merge }}" style="font-size:26px; vertical-align:middle; color:gray; cursor:pointer;"></div></div>
+            {% endfor %}
+        </div>
+        <a id="find_next" href="/person/merge/{{ next_page }}">{{ str.person_duplicates_next }}</a>
     </div>
-    <a id="find_next" href="/person/merge/{{ next_page }}">{{ str.person_duplicates_next }}</a>
 </div>
 
 <script type="text/javascript">
