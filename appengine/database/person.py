@@ -100,6 +100,8 @@ class Person(ChangeLogModel):
 
     @property
     def primary_email(self):
+        if self.user:
+            return self.user[0]
         emails = self.emails
         if len(emails) > 0:
             return emails[0]
@@ -151,7 +153,7 @@ class Person(ChangeLogModel):
     def current(self, web=None):
         user = users.get_current_user()
         if user:
-            person = db.Query(Person).filter('user', user.email()).get()
+            person = db.Query(Person).filter('user', user.email()).filter('is_deleted', False).get()
             if not person:
                 person = Person()
                 person.user = [user.email()]

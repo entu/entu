@@ -18,6 +18,7 @@ class ShowPersonList(boRequestHandler):
             values = {
                 'list_url': '/person',
                 'content_url': '/person/show',
+                'toolbar': [{'url': '/person/merge', 'title': Translate('person_duplicates'), 'icon': 'join'}]
             }
         )
 
@@ -71,10 +72,10 @@ class ShowPersonList(boRequestHandler):
             same_idcode = []
             same_name = []
 
-            #for user in person.user:
-            #    same_user = MergeLists(same_user, [str(k) for k in list(db.Query(Person, keys_only=True).filter('is_deleted', False).filter('user', user))])
+            for user in person.user:
+                same_user = MergeLists(same_user, [str(k) for k in list(db.Query(Person, keys_only=True).filter('is_deleted', False).filter('user', user))])
             same_idcode = [] if not person.idcode else [str(k) for k in list(db.Query(Person, keys_only=True).filter('is_deleted', False).filter('idcode', person.idcode))]
-            #same_name = [] if not person.displayname else [str(p.key()) for p in list(db.Query(Person).filter('is_deleted', False).filter('search', person.displayname.lower()))]
+            same_name = [] if not person.displayname else [str(p.key()) for p in list(db.Query(Person).filter('is_deleted', False).filter('search', person.displayname.lower()))]
             keys = sorted(GetUniqueList(same_user + same_idcode + same_name))
 
 
@@ -131,11 +132,10 @@ class MergeDuplicates(boRequestHandler):
         page = int(page.strip('/')) if page.strip('/') else 1
         limit = 300
         offset = limit * (page-1)
-        persons = [str(k) for k in list(db.Query(Person, keys_only=True).order('sort').fetch(limit=limit, offset=offset))]
+        persons = [str(k) for k in list(db.Query(Person, keys_only=True).filter('is_deleted', False).order('sort').fetch(limit=limit, offset=offset))]
 
         self.view(
             template_file = 'person/merge.html',
-            main_template = 'main/print.html',
             values = {
                 'persons': persons,
                 'next_page': page + 1,

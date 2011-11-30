@@ -22,7 +22,9 @@ def translation():
         'page_persons':         'Persons',
         'page_feedback':        'Feedback',
 
+        'person_username':      'Username',
         'person_birthdate':     'Birthday',
+        'person_age':           'Age',
         'person_idcode':        'Isikukood',
         'person_gender':        'Sex',
         'person_gender_male':   'Male',

@@ -32,6 +32,11 @@
             <a href="/" style="float:left; padding:0px; font-size:20px;"><img src="{% if user.photo %}{{ user.photo.url }}/40/c{% else %}/images/avatar.png{% endif %}" />{{ user.displayname }}</a>
             <span id="tools"></span>
             {% block toolbar %}
+                {% if toolbar %}
+                    {% for t in toolbar %}
+                        <a href="{{ t.url }}" class="icon {{ t.icon }}" title="{{ t.title }}"></a>
+                    {% endfor %}
+                {% endif %}
             {% endblock %}
             <a href="/preferences" class="icon config space" title="{{ str.page_preferences }}"></a>
             <a href="{{ logouturl|escape }}" class="icon on" title="{{ str.logout }}"></a>

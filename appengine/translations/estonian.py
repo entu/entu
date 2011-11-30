@@ -22,7 +22,9 @@ def translation():
         'page_persons':         'Persoonid',
         'page_feedback':        'Tagasiside',
 
+        'person_username':      'Kasutajanimi',
         'person_birthdate':     'Sünnikuupäev',
+        'person_age':           'Vanus',
         'person_idcode':        'Isikukood',
         'person_gender':        'Sugu',
         'person_gender_male':   'Mees',
