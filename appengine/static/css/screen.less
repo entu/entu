@@ -351,34 +351,53 @@ img.spinner {
 /* TABLE */
 .table {
     display: table;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border-top: 1px solid @bordercolor;
 
     .row {
         display: table-row;
 
         .v_header {
             display: table-cell;
-            padding: 5px 0px;
+            padding: 5px 10px;
             text-align: right;
+            font-weight: bold;
             vertical-align: top;
             white-space: nowrap;
+            border-right: 1px solid @bordercolor;
+            border-bottom: 1px solid @bordercolor;
+
+            &:last-child {
+                border-bottom: none;
+            }
         }
 
         .h_header {
             display: table-cell;
-            padding: 3px 0px 3px 0px;
+            padding: 5px 10px;
             text-align: center;
+            font-weight: bold;
             vertical-align: middle;
+            border-right: 1px solid @bordercolor;
+            border-bottom: 1px solid @bordercolor;
+
+            &:last-child {
+                border-right: none;
+            }
         }
 
         .cell {
             display: table-cell;
-            padding: 5px;
+            padding: 5px 10px;
             vertical-align: top;
-        }
+            border-right: 1px solid @bordercolor;
+            border-bottom: 1px solid @bordercolor;
 
-    }
-    &:hover {
-        background-color: #7ABCFF;
+            &:last-child {
+                border-right: none;
+            }
+        }
     }
 }
 

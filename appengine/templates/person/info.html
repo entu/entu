@@ -6,15 +6,16 @@
 <section class="table">
     <div class="row">
         <div class="v_header">
-            {{ str.person_birthdate }}:
+            {{ str.person_username }}
         </div>
         <div class="cell">
-            {{ person.birth_date|date:"d.m.Y" }} {% if person.age %}({{ person.age }}){% endif %}
+            {{ person.user|join:"<br />" }}
+            <a href="javascript:void(0);" id="gapps_account"></a>
         </div>
     </div>
     <div class="row">
         <div class="v_header">
-            {{ str.person_idcode }}:
+            {{ str.person_idcode }}
         </div>
         <div class="cell">
             {{ person.idcode|default:"" }}
@@ -22,7 +23,23 @@
     </div>
     <div class="row">
         <div class="v_header">
-            {{ str.person_gender }}:
+            {{ str.person_birthdate }}
+        </div>
+        <div class="cell">
+            {{ person.birth_date|date:"d.m.Y" }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="v_header">
+            {{ str.person_age }}
+        </div>
+        <div class="cell">
+            {{ person.age|default:"" }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="v_header">
+            {{ str.person_gender }}
         </div>
         <div class="cell">
             {% ifequal person.gender "male" %}{{ str.person_gender_male }}{% endifequal %}
@@ -32,10 +49,10 @@
     {% for c in person.GetContacts %}
     <div class="row">
         <div class="v_header">
-            {% ifequal c.type "address" %}{{ str.contact_address }}:{% endifequal %}
-            {% ifequal c.type "email" %}{{ str.contact_email }}:{% endifequal %}
-            {% ifequal c.type "phone" %}{{ str.contact_phone }}:{% endifequal %}
-            {% ifequal c.type "skype" %}{{ str.contact_skype }}:{% endifequal %}
+            {% ifequal c.type "address" %}{{ str.contact_address }}{% endifequal %}
+            {% ifequal c.type "email" %}{{ str.contact_email }}{% endifequal %}
+            {% ifequal c.type "phone" %}{{ str.contact_phone }}{% endifequal %}
+            {% ifequal c.type "skype" %}{{ str.contact_skype }}{% endifequal %}
         </div>
         <div class="cell">
             {{ c.value }}
@@ -43,8 +60,6 @@
     </div>
     {% endfor %}
 </section>
-
-<a href="javascript:void(0);" id="gapps_account"></a>
 
 <section class="info_accordion">
     <div style="display:none;">
