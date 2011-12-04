@@ -6,11 +6,15 @@ from database.person import *
 
 class ShowPreferences(boRequestHandler):
     def get(self):
-        self.view('page_preferences', 'preferences.html', {
-            'person': Person().current,
-            'preferences': UserPreferences().current,
-            'timezones': pytz.common_timezones,
-        })
+        self.view(
+            page_title = 'page_preferences',
+            template_file = 'preferences.html',
+            values = {
+                'person': Person().current,
+                'preferences': UserPreferences().current,
+                'timezones': pytz.common_timezones,
+            }
+        )
 
     def post(self):
         field = self.request.get('field').strip()

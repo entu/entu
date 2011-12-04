@@ -32,7 +32,7 @@ def translation():
         'person_grades':        'Hinded',
         'person_leeching_bubbles': 'Saaja õpimullides',
         'person_seeding_bubbles':  'Andja õpimullides',
-        'person_duplicates':    'Duplikaadid',
+        'person_duplicates':    'Duplikaatide ühendamine',
         'person_duplicates_merge':    'Ühenda valitud...',
         'person_duplicates_next':    'Otsi järgmised...',
 

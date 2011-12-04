@@ -135,6 +135,7 @@ class MergeDuplicates(boRequestHandler):
         persons = [str(k) for k in list(db.Query(Person, keys_only=True).filter('is_deleted', False).order('sort').fetch(limit=limit, offset=offset))]
 
         self.view(
+            page_title = 'person_duplicates',
             template_file = 'person/merge.html',
             values = {
                 'persons': persons,

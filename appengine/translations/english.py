@@ -32,8 +32,8 @@ def translation():
         'person_grades':        'Grades',
         'person_leeching_bubbles': 'Leeching bubbles',
         'person_seeding_bubbles':  'Seeding bubbles',
-        'person_duplicates':    'Duplicates',
-        'person_duplicates_merge':    'Join selected...',
+        'person_duplicates':    'Merge duplicates',
+        'person_duplicates_merge':    'Merge selected...',
         'person_duplicates_next':    'Find next...',
 
         'contact_address':      'Address',
