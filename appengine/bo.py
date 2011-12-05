@@ -396,6 +396,10 @@ def MergeLists(l1 = [], l2 = []):
     return GetUniqueList(l1 + l2)
 
 
+def GetListsDiff(l1, l2):
+    return list(set(l1).symmetric_difference(set(l2)))
+
+
 def StripTags(string):
     return striptags(string)
 

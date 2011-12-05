@@ -53,6 +53,8 @@ class Person(ChangeLogModel):
     merged_from             = db.ListProperty(db.Key)
 
     def AutoFix(self):
+        self.model_version = 'A'
+
         if not hasattr(self, 'idcode'):
             self.idcode = ''
 
@@ -66,6 +68,12 @@ class Person(ChangeLogModel):
             if not self.idcode.strip():
                 self.idcode = ''
             self.is_guest = False
+
+        if self.merged_from:
+            l1 = GetUniqueList([str(k) for k in self.merged_from])
+            l2 = GetUniqueList([str(k) for k in self.merged_from_all])
+            if len(GetListsDiff(l1, l2))>0:
+                self.merged_from = self.merged_from_all
 
         if self.forename:
             self.forename = self.forename.title().strip().replace('  ', ' ').replace('- ', '-').replace(' -', '-')
@@ -99,6 +107,26 @@ class Person(ChangeLogModel):
         return name
 
     @property
+    def current(self, web=None):
+        user = users.get_current_user()
+        if user:
+            person = db.Query(Person).filter('user', user.email()).filter('is_deleted', False).get()
+            if not person:
+                person = Person()
+                person.user = [user.email()]
+                person.is_guest = True
+                person.put()
+            return person
+
+    def current_s(self, web):
+        if self.current:
+            return self.current
+        else:
+            sess = Session(web, timeout=86400)
+            if 'application_person_key' in sess:
+                return Person().get(sess['application_person_key'])
+    @property
+
     def primary_email(self):
         if self.user:
             return self.user[0]
@@ -141,7 +169,7 @@ class Person(ChangeLogModel):
                 return today.year - self.birth_date.year
 
     def GetContacts(self):
-        return db.Query(Contact).ancestor(self).filter('type !=', 'email').fetch(1000)
+        return db.Query(Contact).ancestor(self).filter('type != ', 'email').fetch(1000)
 
     def GetRoles(self):
         if users.is_current_user_admin():
@@ -150,24 +178,14 @@ class Person(ChangeLogModel):
             return Role().get(self.roles)
 
     @property
-    def current(self, web=None):
-        user = users.get_current_user()
-        if user:
-            person = db.Query(Person).filter('user', user.email()).filter('is_deleted', False).get()
-            if not person:
-                person = Person()
-                person.user = [user.email()]
-                person.is_guest = True
-                person.put()
-            return person
-
-    def current_s(self, web):
-        if self.current:
-            return self.current
-        else:
-            sess = Session(web, timeout=86400)
-            if 'application_person_key' in sess:
-                return Person().get(sess['application_person_key'])
+    def merged_from_all(self):
+        result = []
+        if self.merged_from:
+            result = self.merged_from
+            for pk in self.merged_from:
+                p = Person().get(pk)
+                result = MergeLists(result, p.merged_from_all)
+        return GetUniqueList(result)
 
     @property
     def changed(self):
