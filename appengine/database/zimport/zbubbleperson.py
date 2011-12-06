@@ -6,10 +6,7 @@ from database.bubble import *
 from database.person import *
 
 
-class zBubblePerson(db.Model):
-    bubble_old_id = db.StringProperty()
-    person  = db.StringProperty()
-
+class zBubblePerson(db.Expando):
     def zimport(self):
         p = Person().get(self.person)
         bubble_key = GetZoinKey('Bubble', self.bubble_old_id)

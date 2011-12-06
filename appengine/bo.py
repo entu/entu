@@ -127,6 +127,63 @@ class boRequestHandler(webapp.RequestHandler):
         self.response.headers[key] = value
 
 
+class AccessLog(db.Model):
+    _version        = db.StringProperty(default='A')
+    _created        = db.DateTimeProperty(auto_now_add=True)
+    user            = db.UserProperty(auto_current_user_add=True)
+    remote_addr     = db.StringProperty()
+    url             = db.TextProperty()
+    path            = db.StringProperty()
+
+
+class ChangeLog(db.Expando):
+    _version        = db.StringProperty(default='A')
+    _created        = db.DateTimeProperty(auto_now_add=True)
+    user            = db.StringProperty()
+    kind_name       = db.StringProperty()
+    property_name   = db.StringProperty()
+
+
+class ChangeLogModel(db.Expando):
+    _version    = db.StringProperty(default='A')
+    _created    = db.DateTimeProperty(auto_now_add=True)
+    _is_deleted = db.BooleanProperty(default=False)
+
+    def put(self, email=None):
+        if not email:
+            user = users.get_current_user()
+            if user:
+                email = user.email()
+        if self.is_saved():
+            old = db.get(self.key())
+            for prop_key, prop_value in self.properties().iteritems():
+                if old:
+                    old_value = prop_value.get_value_for_datastore(old)
+                    if old_value == []:
+                        old_value = None
+                else:
+                    old_value = None
+                new_value = prop_value.get_value_for_datastore(self)
+                if new_value == []:
+                    new_value = None
+                if old_value != new_value and prop_key != '_version':
+                    cl = ChangeLog(parent=self)
+                    cl.kind_name = self.kind()
+                    cl.property_name = prop_key
+                    cl.user = email
+                    if old_value != None:
+                        cl.old_value = old_value
+                    cl.new_value = new_value
+                    cl.put()
+        return db.Model.put(self)
+
+    @property
+    def changed_datetime(self):
+        changelog = db.Query(ChangeLog).ancestor(self).order('-_created').get()
+        if changelog:
+            return changelog.datetime
+
+
 class SystemPreferences(db.Model):
     value = db.StringProperty(multiline=True, default='')
 
@@ -145,9 +202,9 @@ class SystemPreferences(db.Model):
         sp.put()
 
 
-class UserPreferences(db.Model):
-    language = db.StringProperty(default=SystemPreferences().get('default_language'))
-    timezone = db.StringProperty(default=SystemPreferences().get('default_timezone'))
+class UserPreferences(ChangeLogModel):
+    language    = db.StringProperty(default=SystemPreferences().get('default_language'))
+    timezone    = db.StringProperty(default=SystemPreferences().get('default_timezone'))
 
     @property
     def current(self):
@@ -170,75 +227,6 @@ class UserPreferences(db.Model):
             if u:
                 setattr(u, field, value)
                 u.put()
-
-
-class AccessLog(db.Model):
-    datetime        = db.DateTimeProperty(auto_now_add=True)
-    user            = db.UserProperty(auto_current_user_add=True)
-    remote_addr     = db.StringProperty()
-    url             = db.TextProperty()
-    path            = db.StringProperty()
-    model_version   = db.StringProperty(default='A')
-
-
-class ChangeLog(db.Expando):
-    kind_name       = db.StringProperty()
-    property_name   = db.StringProperty()
-    user            = db.StringProperty()
-    datetime        = db.DateTimeProperty(auto_now_add=True)
-    model_version   = db.StringProperty(default='B')
-
-
-class ChangeLogModel(db.Expando):
-    def put(self, email=None):
-        if not email:
-            user = users.get_current_user()
-            if user:
-                email = user.email()
-        if self.is_saved():
-            old = db.get(self.key())
-            for prop_key, prop_value in self.properties().iteritems():
-                if old:
-                    old_value = prop_value.get_value_for_datastore(old)
-                    if old_value == []:
-                        old_value = None
-                else:
-                    old_value = None
-                new_value = prop_value.get_value_for_datastore(self)
-                if new_value == []:
-                    new_value = None
-                if old_value != new_value:
-                    cl = ChangeLog(parent=self)
-                    cl.kind_name = self.kind()
-                    cl.property_name = prop_key
-                    cl.user = email
-                    if old_value:
-                        cl.old_value = old_value
-                    if new_value:
-                        cl.new_value = new_value
-                    cl.put()
-        return db.Model.put(self)
-
-    @property
-    def last_change(self):
-        return db.Query(ChangeLog).ancestor(self).order('-datetime').get()
-
-    def history(self, property=None, datetime=None):
-        cl = db.Query(ChangeLog).ancestor(self)
-        """if property:
-            cl.filter('property_name', property)
-        if datetime:
-            cl.filter('datetime <=', datetime)
-        cl.order('datetime')
-        cl.fetch(10000)
-
-        h = []
-        for c in cl:
-            h.append({
-                'datetime' = c.datetime,
-                'value' = c.new_value,
-            })"""
-
 
 
 def Translate(key = None):

@@ -52,16 +52,16 @@ class ShowBubbleList(boRequestHandler):
         master_bubble = self.request.get('master_bubble').strip()
 
         if search:
-            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('search_estonian', search).filter('is_deleted', False).order('sort_estonian'))]
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('search_estonian', search).filter('_is_deleted', False).order('sort_estonian'))]
 
         if bubbletype and not search:
-            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('is_deleted', False).order('sort_estonian'))]
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('_is_deleted', False).order('sort_estonian'))]
 
         if leecher:
-            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('leechers', db.Key(leecher)).filter('is_deleted', False).order('sort_estonian'))]
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('leechers', db.Key(leecher)).filter('_is_deleted', False).order('sort_estonian'))]
 
         if seeder:
-            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('seeders', db.Key(seeder)).filter('is_deleted', False).order('sort_estonian'))]
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('seeders', db.Key(seeder)).filter('_is_deleted', False).order('sort_estonian'))]
 
         if master_bubble:
             bubble = Bubble().get(master_bubble)
@@ -165,7 +165,7 @@ class ShowBubble1(boRequestHandler):
 
             ratingscales = db.Query(RatingScale).fetch(1000)
 
-            #addable_bubbles = db.Query(Bubble).filter('__key__ !=', bubble.key()).filter('type IN', bubble.type2.allowed_subtypes).filter('is_deleted', False).fetch(1000)
+            #addable_bubbles = db.Query(Bubble).filter('__key__ !=', bubble.key()).filter('type IN', bubble.type2.allowed_subtypes).filter('_is_deleted', False).fetch(1000)
             addable_bubbles = nextinline_bubbles
             prerequisite_bubbles = nextinline_bubbles
 
@@ -276,7 +276,7 @@ class DeleteBubble(boRequestHandler):
                 if bubble.bubbles:
                     self.redirect('/bubble/%s' % key)
                 else:
-                    bubble.is_deleted = True
+                    bubble._is_deleted = True
                     bubble.put()
                     if bubble.in_bubbles:
                         self.redirect('/bubble/%s' % bubble.in_bubbles[0].key().id())

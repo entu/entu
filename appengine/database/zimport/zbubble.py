@@ -5,10 +5,7 @@ from database.zimport.zoin import *
 from database.bubble import *
 
 
-class zRatingScale(db.Model):
-    name_estonian = db.StringProperty()
-    name_english  = db.StringProperty()
-
+class zRatingScale(db.Expando):
     def zimport(self):
         rs = GetZoin('RatingScale', self.key().name())
         if not rs:
@@ -18,7 +15,7 @@ class zRatingScale(db.Model):
             name = 'ratingscale_name',
             estonian = self.name_estonian,
             english = self.name_english
-        ).put()
+        ).put('zimport')
 
         rs.name = name
         rs.put('zimport')
@@ -28,17 +25,10 @@ class zRatingScale(db.Model):
             old_key = self.key().name(),
             new_key = rs.key(),
         )
-
         self.delete()
 
 
-class zGradeDefinition(db.Model):
-    rating_scale    = db.StringProperty()
-    name_estonian   = db.StringProperty()
-    name_english    = db.StringProperty()
-    is_positive     = db.BooleanProperty()
-    equivalent      = db.IntegerProperty()
-
+class zGradeDefinition(db.Expando):
     def zimport(self):
         gd = GetZoin('GradeDefinition', self.key().name())
         if not gd:
@@ -48,7 +38,7 @@ class zGradeDefinition(db.Model):
             name = 'gradedefinition_name',
             estonian = self.name_estonian,
             english = self.name_english
-        ).put()
+        ).put('zimport')
 
         gd.rating_scale     = GetZoinKey('RatingScale', self.rating_scale)
         gd.name             = name
@@ -61,29 +51,10 @@ class zGradeDefinition(db.Model):
             old_key = self.key().name(),
             new_key = gd.key(),
         )
-
         self.delete()
 
 
-class zGrade(db.Model):
-    person                  = db.StringProperty()
-    person_key              = db.StringProperty()
-    bubble                  = db.StringProperty()
-    datetime                = db.DateTimeProperty()
-    name_estonian           = db.StringProperty()
-    name_english            = db.StringProperty()
-    is_positive             = db.BooleanProperty()
-    equivalent              = db.IntegerProperty()
-    credit_points           = db.FloatProperty()
-    school_name_estonian    = db.StringProperty()
-    school_name_english     = db.StringProperty()
-    teacher                 = db.StringProperty()
-    teacher_name            = db.StringProperty()
-    bubbletype              = db.StringProperty()
-    subject_name_est        = db.StringProperty()
-    subject_name_eng        = db.StringProperty()
-    typed_tags              = db.StringProperty()
-
+class zGrade(db.Expando):
     def zimport(self):
         g = GetZoin('Grade', self.key().name())
         if not g:
@@ -93,19 +64,19 @@ class zGrade(db.Model):
             name = 'grade_name',
             estonian = self.name_estonian,
             english = self.name_english
-        ).put()
+        ).put('zimport')
 
         school = Dictionary(
             name = 'grade_school_name',
             estonian = self.school_name_estonian,
             english = self.school_name_english
-        ).put()
+        ).put('zimport')
 
         suject_name = Dictionary(
             name = 'grade_suject_name',
             estonian = self.subject_name_est,
             english = self.subject_name_eng
-        ).put()
+        ).put('zimport')
 
         g.person            = db.Key(self.person_key) if self.person_key else GetZoinKey('Person', self.person)
         g.bubble            = GetZoinKey('Bubble', self.bubble)
@@ -127,19 +98,10 @@ class zGrade(db.Model):
             old_key = self.key().name(),
             new_key = g.key(),
         )
-
         self.delete()
 
 
-class zBubbleType(db.Model):
-    type                    = db.StringProperty()
-    name_estonian           = db.StringProperty()
-    name_english            = db.StringProperty()
-    description_estonian    = db.StringProperty()
-    description_english     = db.StringProperty()
-    allowed_subtypes        = db.StringProperty()
-    grade_display_method    = db.StringProperty()
-
+class zBubbleType(db.Expando):
     def zimport(self):
         bt = GetZoin('BubbleType', self.key().name())
         if not bt:
@@ -149,12 +111,12 @@ class zBubbleType(db.Model):
             name = 'bubbletype_name',
             estonian = self.name_estonian,
             english = self.name_english
-        ).put()
+        ).put('zimport')
         description = Dictionary(
-            name = 'bubble_description',
+            name = 'bubbletype_description',
             estonian = self.description_estonian,
             english = self.description_english
-        ).put()
+        ).put('zimport')
 
         bt.type                 = self.type
         bt.name                 = name
@@ -168,36 +130,10 @@ class zBubbleType(db.Model):
             old_key = self.key().name(),
             new_key = bt.key(),
         )
-
         self.delete()
 
 
-class zBubble(db.Model):
-    order                   = db.IntegerProperty()
-    name_estonian           = db.StringProperty()
-    name_english            = db.StringProperty()
-    description_estonian    = db.TextProperty()
-    description_english     = db.TextProperty()
-    start_datetime          = db.DateTimeProperty()
-    end_datetime            = db.DateTimeProperty()
-    location                = db.StringProperty()   #not imported
-    owner                   = db.StringProperty()
-    editors                 = db.TextProperty()
-    viewers                 = db.TextProperty()
-    type                    = db.StringProperty()
-    typed_tags              = db.TextProperty()
-    rating_scale            = db.StringProperty()
-    badge_estonian          = db.StringProperty()
-    badge_english           = db.StringProperty()
-    points                  = db.FloatProperty()
-    minimum_points          = db.FloatProperty()
-    minimum_bubble_count    = db.IntegerProperty()
-    mandatory_bubbles       = db.TextProperty()
-    optional_bubbles        = db.TextProperty()
-    prerequisite_bubbles    = db.TextProperty()
-    entities                = db.TextProperty()
-    state                   = db.StringProperty()
-
+class zBubble(db.Expando):
     def zimport(self):
         b = GetZoin('Bubble', self.key().name())
         if not b:
@@ -207,25 +143,25 @@ class zBubble(db.Model):
             name = 'bubble_name',
             estonian = self.name_estonian,
             english = self.name_english
-        ).put()
+        ).put('zimport')
         description = Dictionary(
             name = 'bubble_description',
             estonian = self.description_estonian,
             english = self.description_english
-        ).put()
+        ).put('zimport')
         badge = Dictionary(
             name = 'bubble_badge',
             estonian = self.badge_estonian,
             english = self.badge_english
-        ).put()
+        ).put('zimport')
 
         b.name                  = name
         b.description           = description
         b.start_datetime        = self.start_datetime
         b.end_datetime          = self.end_datetime
-        b.owner                 = GetZoinKey('Person', self.owner)
-        b.editors               = GetZoinKeyList('Person', self.editors)
-        b.viewers               = GetZoinKeyList('Person', self.viewers)
+        #b.owners                = GetZoinKey('Person', self.owners)
+        #b.editors               = GetZoinKeyList('Person', self.editors)
+        #b.viewers               = GetZoinKeyList('Person', self.viewers)
         b.type                  = self.type
         b.typed_tags            = StrToList(self.typed_tags)
         b.rating_scale          = GetZoinKey('RatingScale', self.rating_scale)
@@ -233,10 +169,9 @@ class zBubble(db.Model):
         b.points                = self.points
         b.minimum_points        = self.minimum_points
         b.minimum_bubble_count  = self.minimum_bubble_count
-        b.mandatory_bubbles     = GetZoinKeyList('Bubble', self.mandatory_bubbles)
-        b.optional_bubbles      = GetZoinKeyList('Bubble', self.optional_bubbles)
-        b.prerequisite_bubbles  = GetZoinKeyList('Bubble', self.prerequisite_bubbles)
-        b.entities              = GetZoinKeyList('Bubble', self.entities)
+        b.mandatory_bubbles     = MergeLists(b.mandatory_bubbles, GetZoinKeyList('Bubble', self.mandatory_bubbles))
+        b.optional_bubbles      = MergeLists(b.optional_bubbles, GetZoinKeyList('Bubble', self.optional_bubbles))
+        b.prerequisite_bubbles  = MergeLists(b.prerequisite_bubbles, GetZoinKeyList('Bubble', self.prerequisite_bubbles))
         b.state                 = self.state
         b.put('zimport')
 
@@ -245,5 +180,4 @@ class zBubble(db.Model):
             old_key = self.key().name(),
             new_key = b.key(),
         )
-
         self.delete()

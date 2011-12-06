@@ -9,15 +9,12 @@ from datetime import datetime
 
 from bo import *
 from database.dictionary import *
-from database.general import *
 from libraries.gmemsess import *
 
 
 class Role(ChangeLogModel):
     name            = db.ReferenceProperty(Dictionary, collection_name='role_names')
     rights          = db.StringListProperty()
-    template_name   = db.StringProperty()
-    model_version   = db.StringProperty(default='A')
 
     @property
     def displayname(self):
@@ -28,24 +25,21 @@ class Role(ChangeLogModel):
 
 
 class Person(ChangeLogModel):
-    created                 = db.DateTimeProperty(auto_now_add=True)
-    is_deleted              = db.BooleanProperty(default=False)
     is_guest                = db.BooleanProperty(default=False)
-    user                    = db.StringListProperty()
+    users                   = db.StringListProperty()
     email                   = db.StringProperty()
     password                = db.StringProperty()
     forename                = db.StringProperty()
     surname                 = db.StringProperty()
     idcode                  = db.StringProperty()
-    citizenship             = db.StringProperty()
-    country_of_residence    = db.StringProperty()
+    #citizenship             = db.StringProperty()
+    #country_of_residence    = db.StringProperty()
     gender                  = db.StringProperty(choices=['', 'male', 'female'])
     birth_date              = db.DateProperty()
-    have_been_subsidised    = db.BooleanProperty(default=False)
+    #have_been_subsidised    = db.BooleanProperty(default=False)
     roles                   = db.ListProperty(db.Key)
-    current_role            = db.ReferenceProperty(Role, collection_name='persons')
-    last_seen               = db.DateTimeProperty()
-    model_version           = db.StringProperty(default='A')
+    #current_role            = db.ReferenceProperty(Role, collection_name='persons')
+    #last_seen               = db.DateTimeProperty()
     seeder                  = db.ListProperty(db.Key)
     leecher                 = db.ListProperty(db.Key)
     sort                    = db.StringProperty(default='')
@@ -53,22 +47,6 @@ class Person(ChangeLogModel):
     merged_from             = db.ListProperty(db.Key)
 
     def AutoFix(self):
-        self.model_version = 'A'
-
-        if not hasattr(self, 'idcode'):
-            self.idcode = ''
-
-        if not self.idcode:
-            self.idcode = ''
-
-        if self.idcode.strip() == 'guest':
-            self.idcode = ''
-            self.is_guest = True
-        else:
-            if not self.idcode.strip():
-                self.idcode = ''
-            self.is_guest = False
-
         if self.merged_from:
             l1 = GetUniqueList([str(k) for k in self.merged_from])
             l2 = GetUniqueList([str(k) for k in self.merged_from_all])
@@ -92,7 +70,6 @@ class Person(ChangeLogModel):
         # for l in self.seeder:
         #     taskqueue.Task(url='/taskqueue/bubble_change_seeder', params={'action': 'add', 'bubble_key': str(l), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
 
-
     @property
     def displayname(self):
         name = ''
@@ -107,29 +84,30 @@ class Person(ChangeLogModel):
         return name
 
     @property
-    def current(self, web=None):
+    def current(self):
         user = users.get_current_user()
         if user:
-            person = db.Query(Person).filter('user', user.email()).filter('is_deleted', False).get()
+            person = db.Query(Person).filter('users', user.email()).filter('_is_deleted', False).get()
             if not person:
                 person = Person()
-                person.user = [user.email()]
+                person.users = [user.email()]
                 person.is_guest = True
                 person.put()
             return person
 
-    def current_s(self, web):
+    @property
+    def current_s(self):
         if self.current:
             return self.current
         else:
             sess = Session(web, timeout=86400)
             if 'application_person_key' in sess:
                 return Person().get(sess['application_person_key'])
-    @property
 
+    @property
     def primary_email(self):
-        if self.user:
-            return self.user[0]
+        if self.users:
+            return self.users[0]
         emails = self.emails
         if len(emails) > 0:
             return emails[0]
@@ -137,8 +115,8 @@ class Person(ChangeLogModel):
     @property
     def emails(self):
         emails = []
-        if self.user:
-            emails = AddToList(self.user[0], emails)
+        if self.users:
+            emails = AddToList(self.users[0], emails)
         if self.email:
             emails = AddToList(self.email, emails)
         for contact in db.Query(Contact).ancestor(self).filter('type', 'email').fetch(1000):
@@ -147,13 +125,10 @@ class Person(ChangeLogModel):
 
     @property
     def photo(self):
-        return db.Query(Document).filter('types', 'person_photo').filter('entities', self.key()).get()
+        pass
 
-    def photo_url(self, size=None, crop=True):
-        if self.photo:
-            s = '/' + str(size) if size else ''
-            c = '/c' if crop else ''
-            return self.photo.url + s + c
+    def photo_url(self, size = ''):
+        return ''
 
     @property
     def age(self):
@@ -168,15 +143,6 @@ class Person(ChangeLogModel):
             else:
                 return today.year - self.birth_date.year
 
-    def GetContacts(self):
-        return db.Query(Contact).ancestor(self).filter('type != ', 'email').fetch(1000)
-
-    def GetRoles(self):
-        if users.is_current_user_admin():
-            return Role().all()
-        if self.roles:
-            return Role().get(self.roles)
-
     @property
     def merged_from_all(self):
         result = []
@@ -188,55 +154,48 @@ class Person(ChangeLogModel):
         return GetUniqueList(result)
 
     @property
-    def changed(self):
-        return datetime.today()
-        date = self.last_change.datetime
+    def merged_to(self):
+        return GetUniqueList(db.Query(Person, keys_only=True).filter('merged_from', self.key()))
 
-        document = db.Query(Document).filter('entities', self.key()).filter('types', 'application_document').order('-created').get()
-        if document:
-            docs_date = document.created
-            if docs_date > date:
-                date = docs_date
+    def GetPhotoUrl(self, size=None, crop=True):
+        if self.photo:
+            s = '/' + str(size) if size else ''
+            c = '/c' if crop else ''
+            return self.photo.url + s + c
 
-        conversation = db.Query(Conversation).filter('entities', self.key()).filter('types', 'application').get()
-        if conversation:
-            message = db.Query(Message).ancestor(conversation).order('-created').get()
-            if message:
-                mess_date = message.created
-                if mess_date > date:
-                    date = mess_date
+    def GetContacts(self):
+        return db.Query(Contact).ancestor(self).filter('type != ', 'email').fetch(1000)
 
-        return date
+    def GetRoles(self):
+        if users.is_current_user_admin():
+            return Role().all()
+        if self.roles:
+            return Role().get(self.roles)
 
-    def add_leecher(self, bubble_key):
+    def AddLeecher(self, bubble_key):
         self.leecher = AddToList(bubble_key, self.leecher)
         self.put()
         taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'add', 'bubble_key': str(bubble_key), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
 
-    def remove_leecher(self, bubble_key):
+    def RemoveLeecher(self, bubble_key):
         self.leecher.remove(bubble_key)
         self.put()
         taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'remove', 'bubble_key': str(bubble_key), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
 
 
+class Cv(ChangeLogModel):
+    person          = db.ReferenceProperty(Person, collection_name='cv')
+    type            = db.StringProperty(choices=['secondary_education', 'higher_education', 'workplace'])
+    organisation    = db.StringProperty()
+    start           = db.StringProperty()
+    end             = db.StringProperty()
+    description     = db.StringProperty()
 
 
-class Cv(ChangeLogModel): #parent=Person()
-    person              = db.ReferenceProperty(Person, collection_name='cv')
-    type                = db.StringProperty(choices=['secondary_education', 'higher_education', 'workplace'])
-    organisation        = db.StringProperty()
-    start               = db.StringProperty()
-    end                 = db.StringProperty()
-    description         = db.StringProperty()
-    model_version       = db.StringProperty(default='A')
-
-
-class Contact(ChangeLogModel): #parent=Person()
-    person              = db.ReferenceProperty(Person, collection_name='contacts')
-    type                = db.StringProperty(choices=['email', 'phone', 'address', 'skype'])
-    value               = db.StringProperty()
-    is_deleted          = db.BooleanProperty(default=False)
-    model_version       = db.StringProperty(default='A')
+class Contact(ChangeLogModel):
+    person          = db.ReferenceProperty(Person, collection_name='contacts')
+    type            = db.StringProperty(choices=['email', 'phone', 'address', 'skype'])
+    value           = db.StringProperty()
 
     def AutoFix(self):
         if self.type == 'phone':
@@ -249,47 +208,25 @@ class Contact(ChangeLogModel): #parent=Person()
             self.value = self.value.strip().replace(' ', '')
 
         if self.value.strip():
-            self.is_deleted = False
+            self._is_deleted = False
         else:
-            self.is_deleted = True
+            self._is_deleted = True
 
         if self.type == 'email' and (len(self.value) < 5 or self.value.find('@') == -1):
-            self.is_deleted = True
+            self._is_deleted = True
 
         if self.type == 'phone' and len(self.value) < 7:
-            self.is_deleted = True
+            self._is_deleted = True
 
         self.put('autofix')
-
-
-class Document(ChangeLogModel):
-    file            = blobstore.BlobReferenceProperty()
-    external_link   = db.StringProperty()
-    types           = db.StringListProperty()
-    entities        = db.ListProperty(db.Key)
-    title           = db.ReferenceProperty(Dictionary, collection_name='document_titles')
-    content_type    = db.StringProperty()
-    uploader        = db.ReferenceProperty(Person, collection_name='uploaded_documents')
-    owners          = db.ListProperty(db.Key)
-    editors         = db.ListProperty(db.Key)
-    viewers         = db.ListProperty(db.Key)
-    created         = db.DateTimeProperty(auto_now_add=True)
-    visibility      = db.StringProperty(default='private', choices=['private', 'domain', 'public'])
-    model_version   = db.StringProperty(default='A')
-
-    @property
-    def url(self):
-        return '/document/' + str(self.key())
 
 
 class Conversation(ChangeLogModel):
     types           = db.StringListProperty()
     entities        = db.ListProperty(db.Key)
     participants    = db.ListProperty(db.Key)
-    created         = db.DateTimeProperty(auto_now_add=True)
-    model_version   = db.StringProperty(default='A')
 
-    def add_message(self, message, person = None):
+    def AddMessage(self, message, person = None):
         self.participants = AddToList(person, self.participants)
         self.put()
 
@@ -303,5 +240,3 @@ class Conversation(ChangeLogModel):
 class Message(ChangeLogModel): #parent=Conversation()
     person          = db.ReferenceProperty(Person, collection_name='messages')
     text            = db.TextProperty()
-    created         = db.DateTimeProperty(auto_now_add=True)
-    model_version   = db.StringProperty(default='A')

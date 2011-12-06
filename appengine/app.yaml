@@ -62,9 +62,6 @@ handlers:
 - url: /document(.*)
   script: controllers/document.py
 
-- url: /assets
-  script: controllers/asset.py
-
 - url: /xml(.*)
   script: controllers/public_xml.py
 

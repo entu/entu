@@ -3,15 +3,15 @@ from google.appengine.ext import db
 from bo import *
 
 
-class Zoin(db.Model):
+class Zoin(db.Expando):
     entity_kind = db.StringProperty()
-    new_key     = db.StringProperty()
+    new_entity  = db.ReferenceProperty()
 
 
 def AddZoin(entity_kind, old_key, new_key):
     z = Zoin(key_name = entity_kind + '__' + old_key)
     z.entity_kind = entity_kind
-    z.new_key = str(new_key)
+    z.new_entity = new_key
     z.put()
 
 
@@ -19,14 +19,14 @@ def GetZoin(entity_kind, old_key):
     if entity_kind and old_key:
         z = Zoin().get_by_key_name(entity_kind + '__' + old_key)
         if z:
-            return db.get(z.new_key)
+            return z.new_entity
 
 
 def GetZoinKey(entity_kind, old_key):
     if entity_kind and old_key:
         z = Zoin().get_by_key_name(entity_kind + '__' + old_key)
         if z:
-            return db.Key(z.new_key)
+            return z.new_entity
 
 
 def GetZoinKeyList(entity_kind, old_keys):

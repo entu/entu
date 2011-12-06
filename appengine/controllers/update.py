@@ -1,110 +1,155 @@
 from google.appengine.api import users
-from datetime import date
+from datetime import *
+import time
 
 from bo import *
 from database.bubble import *
 from database.person import *
 from database.zimport.zbubble import *
-from database.zimport.zoin import *
 
 
-class Update(boRequestHandler):
+class ExportDocs(boRequestHandler):
     def get(self):
+        taskqueue.Task(url='/update/docs').add()
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        self.echo(str(db.Query(Document).count(limit=1000000)))
+
+    def post(self):
+        csv = []
+        for d in db.Query(Document).fetch(3000):
+            users = []
+            try:
+                for p in Person().get(GetUniqueList([d.uploader.key()] + d.uploader.merged_to)):
+                    if p.user:
+                        users = MergeLists(users, p.user)
+            except:
+                pass
+
+            if len(users) > 0:
+                title = d.title.value if d.title else ''
+                csv.append(' '.join(users) + ';' + title + ';' + str(d.file.key()))
+
+        SendMail(
+            to = 'argo.roots@artun.ee',
+            subject = 'Documents',
+            message = 'jee',
+            attachments = [('Bubbledu_Documents.csv', '\n'.join(csv))],
+        )
+
+
+class ExportCv(boRequestHandler):
+    def get(self):
+        taskqueue.Task(url='/update/cv', params={'offset': 0}).add()
+        taskqueue.Task(url='/update/cv', params={'offset': 1000}).add()
+        taskqueue.Task(url='/update/cv', params={'offset': 2000}).add()
+        taskqueue.Task(url='/update/cv', params={'offset': 3000}).add()
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        self.echo(str(db.Query(Cv).count(limit=1000000)))
+
+    def post(self):
+        csv = []
+        offset = self.request.get('offset').strip()
+        for d in db.Query(Cv).fetch(limit=1000, offset=int(offset)):
+            users = []
+            try:
+                for p in Person().get(GetUniqueList([d.parent().key()] + d.parent().merged_to)):
+                    if p.user:
+                        users = MergeLists(users, p.user)
+            except:
+                pass
+
+            if len(users) > 0:
+                csv.append('"%s";"%s";"%s";"%s";"%s";"%s"' % (' '.join(users), d.type, d.organisation, d.start, d.end, d.description))
+
+        SendMail(
+            to = 'argo.roots@artun.ee',
+            subject = 'CVs %s+' % offset,
+            message = 'jee',
+            attachments = [('Bubbledu_CVs.csv', '\n'.join(csv))],
+        )
+
+
+class ExportContacts(boRequestHandler):
+    def get(self):
+        taskqueue.Task(url='/update/contacts', params={'offset': 0}).add()
+        taskqueue.Task(url='/update/contacts', params={'offset': 1000}).add()
+        taskqueue.Task(url='/update/contacts', params={'offset': 2000}).add()
+        taskqueue.Task(url='/update/contacts', params={'offset': 3000}).add()
+        taskqueue.Task(url='/update/contacts', params={'offset': 4000}).add()
+        taskqueue.Task(url='/update/contacts', params={'offset': 5000}).add()
+        taskqueue.Task(url='/update/contacts', params={'offset': 6000}).add()
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        self.echo(str(db.Query(Contact).filter('is_deleted', False).count(limit=1000000)))
+
+    def post(self):
+        csv = []
+        offset = self.request.get('offset').strip()
+        for d in db.Query(Contact).filter('is_deleted', False).fetch(limit=1000, offset=int(offset)):
+            users = []
+            try:
+                for p in Person().get(GetUniqueList([d.parent().key()] + d.parent().merged_to)):
+                    if p.user:
+                        users = MergeLists(users, p.user)
+            except:
+                pass
+
+            if len(users) > 0:
+                csv.append('"%s";"%s";"%s"' % (' '.join(users), d.type, d.value))
+
+        SendMail(
+            to = 'argo.roots@artun.ee',
+            subject = 'Contacts %s+' % offset,
+            message = 'jee',
+            attachments = [('Bubbledu_Contacts.csv', '\n'.join(csv))],
+        )
+
+
+class FindStuff(boRequestHandler):
+    def get(self):
+
+        b = db.Query(Bubble).order('_created').get()
+        d1_ts = time.mktime(b._created.timetuple())
+        d2_ts = time.mktime(datetime.now().timetuple())
+
+        t = (d2_ts-d1_ts)
+        c = db.Query(Bubble).count(limit=1000000)
+        z = db.Query(zBubble).count(limit=1000000)
+
+        tpb = t / c
+        e = tpb * z
+        et = UtcToLocalDateTime(datetime.now() + timedelta(0, e))
+
 
         self.header('Content-Type', 'text/plain; charset=utf-8')
-
-        a = db.Query(Aggregation)
-        ac = a.count(limit=2000000)
-
-        b = db.Query(AggregationValue)
-        bc = b.count(limit=2000000)
-
-        self.echo(str(ac))
-        self.echo(str(bc))
+        self.echo('%s %s' % (z, str(et)))
 
 
-class Sort_est(boRequestHandler):
+class DeleteStuff(boRequestHandler):
     def get(self):
-        for b in db.Query(Bubble).filter('model_version', 'B').fetch(1000):
-            if b.name:
-                if b.name.estonian:
-                    b.sort_estonian = StringToSortable(b.name.estonian)
-                if b.name.english:
-                    b.sort_english = StringToSortable(b.name.english)
-                b.model_version = 'A'
-                b.put()
+        taskqueue.Task(url='/update/delete', params={'offset': 0}).add()
+        taskqueue.Task(url='/update/delete', params={'offset': 1}).add()
+        taskqueue.Task(url='/update/delete', params={'offset': 2}).add()
+        taskqueue.Task(url='/update/delete', params={'offset': 3}).add()
+        taskqueue.Task(url='/update/delete', params={'offset': 4}).add()
+        taskqueue.Task(url='/update/delete', params={'offset': 5}).add()
+        taskqueue.Task(url='/update/delete', params={'offset': 6}).add()
+        self.echo(str(db.Query(ChangeLog).filter('kind_name', 'Bubble').count(limit=1000000)))
 
-
-class Sort_est2(boRequestHandler):
-    def get(self):
-        self.header('Content-Type', 'text/plain; charset=utf-8')
-        self.echo('A:' + str(db.Query(Bubble).filter('model_version', 'A').count(limit=100000)))
-        self.echo('B:' + str(db.Query(Bubble).filter('model_version', 'B').count(limit=100000)))
-
-
-class PersonSearchable(boRequestHandler):
-    def get(self):
-        for p in db.Query(Person).filter('model_version != ', 'searchable').fetch(100):
-            p.index_names()
-            p.model_version = 'searchable'
-            p.put()
-
-
-class PersonUser2(boRequestHandler):
-    def get(self):
-        self.header('Content-Type', 'text/plain; charset=utf-8')
-        self.echo('A:' + str(db.Query(Person).filter('model_version', 'A').count(limit=100000)))
-        self.echo('B:' + str(db.Query(Person).filter('model_version', 'B').count(limit=100000)))
-
-
-class GradeI(boRequestHandler):
-    def get(self):
-        self.header('Content-Type', 'text/plain; charset=utf-8')
-
-        p = []
-        for g in db.Query(Grade).filter('datetime >=', date(2011, 1, 3)).filter('bubble_type', 'course').filter('is_deleted', False).fetch(1000):
-            p.append(g.person.key())
-
-        p = GetUniqueList(p)
-        self.echo(str(len(p)))
-
-
-class Log(boRequestHandler):
-    def get(self):
-
-        self.header('Content-Type', 'text/plain; charset=utf-8')
-
-        bubble = Bubble().get_by_id(1622190)
-        bubble.leechers.remove(db.Key('agdib25nYXBwcg4LEgZQZXJzb24YvqZuDA'))
-        bubble.put()
-
-
-class PRUpdate(boRequestHandler): # copy roles from PersonRole
-    def get(self):
-
-        self.header('Content-Type', 'text/plain; charset=utf-8')
-
-        for pr in PersonRole().all():
-            if not pr.person.roles:
-                pr.person.roles = []
-
-            pr.person.roles = AddToList(pr.role.key(), pr.person.roles)
-
-            pr.person.put()
-
-
+    def post(self):
+        limit = 10000
+        offset = self.request.get('offset').strip()
+        for d in db.Query(ChangeLog).filter('kind_name', 'Bubble').order('_created').fetch(limit=limit, offset=int(offset)*limit):
+            if not hasattr(d, 'new_value'):
+                d.delete()
 
 
 def main():
     Route([
-            ('/update', Update),
-            ('/update/sort', Sort_est),
-            ('/update/sort2', Sort_est2),
-            ('/update/user2', PersonUser2),
-            ('/update/grade', GradeI),
-            ('/update/log3', Log),
-            ('/update/prupdate', PRUpdate),
-            ('/update/searchable', PersonSearchable),
+            ('/update/docs', ExportDocs),
+            ('/update/cv', ExportCv),
+            ('/update/contacts', ExportContacts),
+            ('/update/delete', DeleteStuff),
+            ('/update/find', FindStuff),
         ])
 
 

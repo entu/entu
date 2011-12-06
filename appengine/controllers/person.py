@@ -36,7 +36,7 @@ class ShowPersonList(boRequestHandler):
                 'key': str(person.key()),
                 #'image': image if image else '/images/avatar.png',
                 'title': person.displayname,
-                'info': person.user,
+                'info': ', '.join(person.users) if person.users else '',
                 'email': person.primary_email if person.primary_email else '',
                 'idcode': person.idcode if person.idcode else '',
                 'birth_date': person.birth_date.strftime('%d.%m.%Y') if person.birth_date else '',
@@ -51,7 +51,7 @@ class ShowPersonList(boRequestHandler):
         person_duplicates = self.request.get('person_duplicates').strip()
 
         if search:
-            keys = [str(k) for k in list(db.Query(Person, keys_only=True).filter('is_deleted', False).filter('search', search).order('sort'))]
+            keys = [str(k) for k in list(db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('search', search).order('sort'))]
 
         if bubble_seeders:
             bubble = Bubble().get(bubble_seeders)
@@ -73,14 +73,14 @@ class ShowPersonList(boRequestHandler):
             same_name = []
 
             for user in person.user:
-                same_user = MergeLists(same_user, [str(k) for k in list(db.Query(Person, keys_only=True).filter('is_deleted', False).filter('user', user))])
-            same_idcode = [] if not person.idcode else [str(k) for k in list(db.Query(Person, keys_only=True).filter('is_deleted', False).filter('idcode', person.idcode))]
-            same_name = [] if not person.displayname else [str(p.key()) for p in list(db.Query(Person).filter('is_deleted', False).filter('search', person.displayname.lower()))]
+                same_user = MergeLists(same_user, [str(k) for k in list(db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('user', user))])
+            same_idcode = [] if not person.idcode else [str(k) for k in list(db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('idcode', person.idcode))]
+            same_name = [] if not person.displayname else [str(p.key()) for p in list(db.Query(Person).filter('_is_deleted', False).filter('search', person.displayname.lower()))]
             keys = sorted(GetUniqueList(same_user + same_idcode + same_name))
 
 
         if keys == None:
-            keys = [str(k) for k in list(db.Query(Person, keys_only=True).filter('is_deleted', False).order('sort'))]
+            keys = [str(k) for k in list(db.Query(Person, keys_only=True).filter('_is_deleted', False).order('sort'))]
 
         self.echo_json({'keys': keys})
 
@@ -132,7 +132,7 @@ class MergeDuplicates(boRequestHandler):
         page = int(page.strip('/')) if page.strip('/') else 1
         limit = 300
         offset = limit * (page-1)
-        persons = [str(k) for k in list(db.Query(Person, keys_only=True).filter('is_deleted', False).order('sort').fetch(limit=limit, offset=offset))]
+        persons = [str(k) for k in list(db.Query(Person, keys_only=True).filter('_is_deleted', False).order('sort').fetch(limit=limit, offset=offset))]
 
         self.view(
             page_title = 'person_duplicates',
@@ -171,7 +171,7 @@ class MergeDuplicates(boRequestHandler):
             target_p.merged_from           = AddToList(source_pk, target_p.merged_from)
             target_p.put()
 
-            source_p.is_deleted = True
+            source_p._is_deleted = True
             source_p.put()
 
         target_p.AutoFix()

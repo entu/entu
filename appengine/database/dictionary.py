@@ -8,7 +8,6 @@ class Dictionary(ChangeLogModel):
     name            = db.StringProperty()
     english         = db.TextProperty()
     estonian        = db.TextProperty()
-    model_version   = db.StringProperty(default='A')
 
     @property
     def value(self):

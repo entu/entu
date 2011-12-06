@@ -4,98 +4,27 @@ from database.zimport.zperson import *
 from database.zimport.zbubbleperson import *
 
 
-class ZimportBubble(boRequestHandler):
+class ZimportAll(boRequestHandler):
     def get(self):
-        self.header('Content-Type', 'text/plain; charset=utf-8')
-        for z in db.Query(zBubble).order('order').fetch(1000):
-            z.zimport()
-            self.echo(str(z.key()))
+        taskqueue.Task(url='/zimport').add()
 
-
-class ZimportBubblePerson(boRequestHandler):
-    def get(self):
-        self.header('Content-Type', 'text/plain; charset=utf-8')
-        for z in db.Query(zBubblePerson).fetch(1000):
-            z.zimport()
-            self.echo(str(z.key()))
-
-
-class ZimportBubbleType(boRequestHandler):
-    def get(self):
-        self.header('Content-Type', 'text/plain; charset=utf-8')
-        for z in db.Query(zBubbleType).fetch(1000):
-            z.zimport()
-            self.echo(str(z.key()))
-
-
-class ZimportContact(boRequestHandler):
-    def get(self):
-        self.header('Content-Type', 'text/plain; charset=utf-8')
-        for z in db.Query(zContact).fetch(1000):
-            z.zimport()
-            self.echo(str(z.key()))
-
-
-class ZimportGrade(boRequestHandler):
-    def get(self):
-        self.header('Content-Type', 'text/plain; charset=utf-8')
-        for z in db.Query(zGrade).fetch(1000):
-            z.zimport()
-            self.echo(str(z.key()))
-
-
-class ZimportGradeDefinition(boRequestHandler):
-    def get(self):
-        self.header('Content-Type', 'text/plain; charset=utf-8')
-        for z in db.Query(zGradeDefinition).fetch(1000):
-            z.zimport()
-            self.echo(str(z.key()))
-
-
-class ZimportPerson(boRequestHandler):
-    def get(self):
-        self.header('Content-Type', 'text/plain; charset=utf-8')
-        for z in db.Query(zPerson).fetch(1000):
-            z.zimport()
-            self.echo(str(z.key()))
-
-
-class ZimportPersonRole(boRequestHandler):
-    def get(self):
-        self.header('Content-Type', 'text/plain; charset=utf-8')
-        for z in db.Query(zPersonRole).fetch(1000):
-            z.zimport()
-            self.echo(str(z.key()))
-
-
-class ZimportRatingScale(boRequestHandler):
-    def get(self):
-        self.header('Content-Type', 'text/plain; charset=utf-8')
-        for z in db.Query(zRatingScale).fetch(1000):
-            z.zimport()
-            self.echo(str(z.key()))
-
-
-class ZimportRole(boRequestHandler):
-    def get(self):
-        self.header('Content-Type', 'text/plain; charset=utf-8')
-        for z in db.Query(zRole).fetch(1000):
-            z.zimport()
-            self.echo(str(z.key()))
+    def post(self):
+        zimports = [zRatingScale, zGradeDefinition, zBubbleType, zRole, zBubble, zPerson, zBubblePerson, zContact, zGrade]
+        for z in zimports:
+            if db.Query(z).get():
+                for e in db.Query(z).fetch(100):
+                    e.zimport()
+                    self.echo(str(e.key()))
+                break
+        for z in zimports:
+            if db.Query(z).get():
+                taskqueue.Task(url='/zimport').add()
+                break
 
 
 def main():
     Route([
-            ('/zimport/ratingscale', ZimportRatingScale),
-            ('/zimport/bubbletype', ZimportBubbleType),
-            ('/zimport/bubble', ZimportBubble),
-            ('/zimport/role', ZimportRole),
-            ('/zimport/personrole', ZimportPersonRole),
-            ('/zimport/person', ZimportPerson),
-            ('/zimport/bubbleperson', ZimportBubblePerson),
-            ('/zimport/contact', ZimportContact),
-            ('/zimport/gradedefinition', ZimportGradeDefinition),
-            ('/zimport/grade', ZimportGrade),
+            ('/zimport', ZimportAll),
         ])
 
 

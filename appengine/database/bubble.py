@@ -3,14 +3,12 @@ from datetime import *
 from operator import attrgetter
 
 from bo import *
-from database.general import *
 from database.dictionary import *
 from database.person import *
 
 
 class RatingScale(ChangeLogModel):
-    name            = db.ReferenceProperty(Dictionary, collection_name='ratingscale_name')
-    model_version   = db.StringProperty(default='A')
+    name                = db.ReferenceProperty(Dictionary, collection_name='ratingscale_name')
 
     @property
     def displayname(self):
@@ -42,8 +40,6 @@ class BubbleType(ChangeLogModel):
 # no two exclusive events should happen to same person at same time
     is_exclusive            = db.BooleanProperty(default=False)
     grade_display_method    = db.StringProperty()
-    is_deleted              = db.BooleanProperty(default=False)
-    model_version           = db.StringProperty(default='A')
 
     @property
     def displayname(self):
@@ -117,8 +113,7 @@ class Bubble(ChangeLogModel):
     start_datetime          = db.DateTimeProperty()
     end_datetime            = db.DateTimeProperty()
     url                     = db.StringProperty()
-    location                = db.ReferenceProperty(Location, collection_name='bubble_location')
-    owner                   = db.ReferenceProperty(Person, collection_name='bubble_owner')
+    owners                  = db.ListProperty(db.Key)
     editors                 = db.ListProperty(db.Key)
     viewers                 = db.ListProperty(db.Key)
     leechers                = db.ListProperty(db.Key)
@@ -140,13 +135,10 @@ class Bubble(ChangeLogModel):
     next_in_line            = db.ListProperty(db.Key)
     entities                = db.ListProperty(db.Key)
     state                   = db.StringProperty()
-    is_deleted              = db.BooleanProperty(default=False)
-    created_datetime        = db.DateTimeProperty(auto_now_add=True)
     sort_estonian           = db.StringProperty(default='')
     sort_english            = db.StringProperty(default='')
     search_estonian         = db.StringListProperty()
     search_english          = db.StringListProperty()
-    model_version           = db.StringProperty(default='A')
 
     def AutoFix(self):
         if not self.sort_estonian:
@@ -235,8 +227,6 @@ class Bubble(ChangeLogModel):
             bp.end_datetime = datetime.now()
             bp.status = 'waiting_end'
             bp.put()
-
-
 
     @property
     def PrevInLines(self):
@@ -385,7 +375,6 @@ class Bubble(ChangeLogModel):
     def PersonGrades(self, person_key):
         return db.Query(Grade).filter('person', person_key).filter('bubble',self.key()).fetch(1000)
 
-
     # i.e. Pre-requisite bubbles must notify post-requisites when marked green so
     # that they can check, if they are next in line for at least one green bubble
     def propose_leecher(self, person_key):
@@ -395,13 +384,11 @@ class Bubble(ChangeLogModel):
 
         return False
 
-
     # Could we add person to bubble.leechers?
     def is_valid_leecher(self, person_key):
         if leecher in self.leechers:
             return False
         return self.are_prerequisites_satisfied(person_key)
-
 
     @property
     def Grades(self):
@@ -425,7 +412,6 @@ class Bubble(ChangeLogModel):
     @property
     def is_currently_on(self):
         return self.is_started() and not self.is_finished()
-
 
     def add_leecher(self, person_key):
         #if not self.is_valid_leecher(person_key):
@@ -482,11 +468,9 @@ class Bubble(ChangeLogModel):
                 }
             )"""
 
-
     def remove_leecher(self, person_key):
         self.leechers.remove(person_key)
         self.put()
-
 
     def remove_optional_bubble(self, bubble_key):
         self.optional_bubbles.remove(bubble_key)
@@ -511,7 +495,6 @@ class Bubble(ChangeLogModel):
 
         return bubbles
 
-
     def has_positive_grade(self, person_key):
         grades = self.PersonGrades(person_key)
         if len(grades) == 0:
@@ -525,13 +508,11 @@ class Bubble(ChangeLogModel):
 
         return False
 
-
     def mark_green(person_key):
         self.green_persons = AddToList(person_key, self.green_persons)
         self.put()
         for bubble in self.PrerequisiteForBubbles:
             bubble.propose_leecher(person_key)
-
 
     def is_green(person_key):
         if person_key in self.green_persons:
@@ -556,11 +537,9 @@ class Bubble(ChangeLogModel):
         self.mark_green(person_key)
         return True
 
-
     def recheck_green(person_key):
         RemoveFromList(person_key, self.green_persons)
         return self.is_green(person_key)
-
 
     def are_mandatories_satisfied(person_key):
         for sub_bubble in self.MandatoryBubbles:
@@ -568,13 +547,11 @@ class Bubble(ChangeLogModel):
                 return False
         return True
 
-
     def are_prerequisites_satisfied(person_key):
         for pre_bubble in self.PrerequisiteBubbles:
             if not pre_bubble.is_green(person_key):
                 return False
         return True
-
 
     # Positive grades are only available, if mandatories are green.
     # Negative grades could be issued at any time.
@@ -586,7 +563,6 @@ class Bubble(ChangeLogModel):
             return self.rating_scale.GradeDefinitions
 
         return self.rating_scale.NegativeGradeDefinitions
-
 
     # When rating a bubble with rated sub-bubbles, sub-bubble grades could be listed.
     def sub_bubble_grades(person_key):
@@ -609,7 +585,6 @@ class GradeDefinition(ChangeLogModel):
     name            = db.ReferenceProperty(Dictionary, collection_name='gradedefinition_name')
     is_positive     = db.BooleanProperty()
     equivalent      = db.IntegerProperty()
-    model_version   = db.StringProperty(default='A')
 
     @property
     def displayname(self):
@@ -632,8 +607,6 @@ class Grade(ChangeLogModel):
     teacher_name    = db.StringProperty()
     typed_tags      = db.StringListProperty()
     is_locked       = db.BooleanProperty(default=False)
-    is_deleted      = db.BooleanProperty(default=False)
-    model_version   = db.StringProperty(default='A')
 
     @property
     def displayname(self):
