@@ -67,7 +67,7 @@ class zGrade(db.Expando):
         ).put('zimport')
 
         school = Dictionary(
-            name = 'grade_school_name',
+            name = 'grade_school',
             estonian = self.school_name_estonian,
             english = self.school_name_english
         ).put('zimport')

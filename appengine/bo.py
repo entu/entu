@@ -64,7 +64,11 @@ class boRequestHandler(webapp.RequestHandler):
         controllertime = (time.time() - self.starttime)
         logging.debug('Controller: %ss' % round(controllertime, 2))
 
+        user = users.get_current_user()
+        email = user.email() if user else ''
+
         al = AccessLog()
+        al.user = email
         al.remote_addr = self.request.remote_addr
         al.path = self.request.path[:500]
         al.query_string = self.request.query_string[:500]
@@ -130,7 +134,7 @@ class boRequestHandler(webapp.RequestHandler):
 class AccessLog(db.Model):
     _version        = db.StringProperty(default='A')
     _created        = db.DateTimeProperty(auto_now_add=True)
-    user            = db.UserProperty(auto_current_user_add=True)
+    user            = db.StringProperty()
     remote_addr     = db.StringProperty()
     url             = db.TextProperty()
     path            = db.StringProperty()
