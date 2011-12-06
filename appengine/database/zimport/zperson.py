@@ -12,13 +12,15 @@ class zPerson(db.Expando):
         if not p:
             p = Person()
 
-        if '@' in self.user:
-            p.users = AddToList(self.user, p.users)
+        if self.user:
+            if '@' in self.user:
+                p.users = AddToList(self.user, p.users)
         p.forename = self.forename
         p.surname = self.surname
         p.idcode = self.idcode
         p.gender = self.gender
-        p.birth_date = self.birth_date
+        if self.birth_date:
+            p.birth_date = self.birth_date.date()
         p.leecher = MergeLists(p.leecher, GetZoinKeyList('Bubble', self.leecher))
         p.seeder = MergeLists(p.leecher, GetZoinKeyList('Bubble', self.seeder))
         p.put('zimport')

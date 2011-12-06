@@ -15,6 +15,14 @@ indexes:
 
 
 
+- kind: Contact
+  ancestor: yes
+  properties:
+  - name: _is_deleted
+  - name: type
+
+
+
 - kind: Person
   properties:
   - name: _is_deleted

@@ -164,7 +164,7 @@ class Person(ChangeLogModel):
             return self.photo.url + s + c
 
     def GetContacts(self):
-        return db.Query(Contact).ancestor(self).filter('type != ', 'email').fetch(1000)
+        return db.Query(Contact).ancestor(self).filter('_is_deleted', False).filter('type != ', 'email').fetch(1000)
 
     def GetRoles(self):
         if users.is_current_user_admin():
