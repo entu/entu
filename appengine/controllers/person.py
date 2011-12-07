@@ -71,8 +71,8 @@ class ShowPersonList(boRequestHandler):
             same_idcode = []
             same_name = []
 
-            for user in person.user:
-                same_user = MergeLists(same_user, [str(k) for k in list(db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('user', user))])
+            for user in person.users:
+                same_user = MergeLists(same_user, [str(k) for k in list(db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('users', user))])
             same_idcode = [] if not person.idcode else [str(k) for k in list(db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('idcode', person.idcode))]
             same_name = [] if not person.displayname else [str(p.key()) for p in list(db.Query(Person).filter('_is_deleted', False).filter('search', person.displayname.lower()))]
             keys = sorted(GetUniqueList(same_user + same_idcode + same_name))
@@ -155,7 +155,7 @@ class MergeDuplicates(boRequestHandler):
             source_p = Person().get(person_key)
             source_pk = source_p.key()
 
-            target_p.user                  = MergeLists(target_p.user,source_p.user)
+            target_p.users                  = MergeLists(target_p.users,source_p.users)
             target_p.email                 = source_p.email if not target_p.email else target_p.email
             target_p.password              = source_p.password if not target_p.password else target_p.password
             target_p.forename              = source_p.forename if not target_p.forename else target_p.forename
@@ -182,27 +182,6 @@ class MergeDuplicates(boRequestHandler):
         self.echo_json({'keys': keys})
 
 
-class GetPersonsDuplicates2(boRequestHandler):
-    def get(self):
-        if not self.authorize('bubbler'):
-            return
-
-        self.header('Content-Type', 'text/plain; charset=utf-8')
-
-        person_key = self.request.get('person').strip()
-        result = {}
-
-        for person in db.Query(Person).filter('idcode != ', 'guest').fetch(1000):
-            keys = [str(person.key())]
-            same_user = [] if not person.user else [str(k) for k in list(db.Query(Person, keys_only=True).filter('user', person.user))]
-            same_idcode = [] if not person.idcode else [str(k) for k in list(db.Query(Person, keys_only=True).filter('idcode', person.idcode))]
-            same_name = [] if not person.displayname else [str(p.key()) for p in list(db.Query(Person).filter('search', person.displayname.lower()))]
-            keys = GetUniqueList(same_user + same_idcode + same_name)
-
-            if len(keys) > 1:
-                self.echo(str(keys))
-
-        #self.echo_json({'person': perosn,'keys': keys})
 
 
 
