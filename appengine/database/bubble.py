@@ -193,7 +193,7 @@ class Bubble(ChangeLogModel):
         return GetUniqueList(self.mandatory_bubbles + self.optional_bubbles)
 
 
-    def GetPhotoUrl(self, size = '64'):
+    def GetPhotoUrl(self, size = ''):
         return 'http://www.gravatar.com/avatar/%s?s=%s&d=identicon' % (hashlib.md5(str(self.key()).strip().lower()).hexdigest(), size)
 
     def GetType(self):

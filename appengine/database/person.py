@@ -158,7 +158,7 @@ class Person(ChangeLogModel):
     def merged_to(self):
         return GetUniqueList(db.Query(Person, keys_only=True).filter('merged_from', self.key()))
 
-    def GetPhotoUrl(self, size = '64'):
+    def GetPhotoUrl(self, size = ''):
         email = self.primary_email if self.primary_email else self.displayname
         return 'http://www.gravatar.com/avatar/%s?s=%s&d=monsterid' % (hashlib.md5(email.strip().lower()).hexdigest(), size)
 
