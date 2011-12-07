@@ -63,5 +63,5 @@ def translation():
         'feedback':             'Feedback',
         'feedback_submit':      'Send',
         'feedback_mandatory_questions':  '* answer is required',
-        'feedback_unanswered_questionaries':  'You have %s questionaries to answer.',
+        'feedback_unanswered_questionaries':  'You have %s questionaries to answer',
      }

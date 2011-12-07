@@ -232,6 +232,7 @@ class DeleteQuestion(boRequestHandler):
 class GenerateQuestionaryPersons(boRequestHandler):
     def get(self):
         taskqueue.Task(url='/questionary/generate').add()
+        self.redirect('/questionary')
 
 
     def post(self):
@@ -287,7 +288,7 @@ class GenerateQuestionaryPersons(boRequestHandler):
         if rc == limit:
             taskqueue.Task(url='/questionary/generate', params={'offset': (offset + rc + 1), 'step': (step + 1)}).add()
 
-        self.echo('wewe')
+        self.echo('done')
 
 
 def main():

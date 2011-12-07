@@ -18,6 +18,13 @@ indexes:
   - name: type
   - name: sort_estonian
 
+- kind: Bubble
+  properties:
+  - name: _is_deleted
+  - name: search_estonian
+  - name: type
+  - name: sort_estonian
+
 
 
 - kind: BubblePerson
@@ -33,6 +40,7 @@ indexes:
   properties:
   - name: kind_name
   - name: _created
+    direction: desc
 
 
 
@@ -56,4 +64,10 @@ indexes:
 - kind: Person
   properties:
   - name: _is_deleted
+  - name: sort
+
+- kind: Person
+  properties:
+  - name: _is_deleted
+  - name: search
   - name: sort

@@ -65,7 +65,7 @@ def translation():
         'feedback':             'Tagasiside',
         'feedback_submit':      'Saada',
         'feedback_mandatory_questions':  '* vastus on nõutud',
-        'feedback_unanswered_questionaries':  'Sul on veel vastata %s küsimustiku.',
+        'feedback_unanswered_questionaries':  'Sul on veel vastata %s küsimustiku',
 
 
 

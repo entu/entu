@@ -22,7 +22,7 @@ class zPerson(db.Expando):
         if self.birth_date:
             p.birth_date = self.birth_date.date()
         p.leecher = MergeLists(p.leecher, GetZoinKeyList('Bubble', self.leecher))
-        p.seeder = MergeLists(p.leecher, GetZoinKeyList('Bubble', self.seeder))
+        p.seeder = MergeLists(p.seeder, GetZoinKeyList('Bubble', self.seeder))
         p.put('zimport')
         p.AutoFix()
 
