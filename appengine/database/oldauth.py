@@ -4,8 +4,9 @@ from bo import *
 
 
 class OldAuth(ChangeLogModel):
-    site        = db.StringProperty()
-    salt        = db.StringProperty(default='')
-    loginurl    = db.StringProperty()
-    logouturl   = db.StringProperty()
-    version     = db.StringProperty(default='A')
+    site            = db.StringProperty()
+    url_login       = db.StringProperty()
+    url_logout      = db.StringProperty()
+    url_error       = db.StringProperty()
+    salt            = db.StringProperty(default='')
+    valid_domains   = db.StringListProperty()
