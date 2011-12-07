@@ -30,11 +30,10 @@ class ShowPersonList(boRequestHandler):
         if key:
             person = Person().get(key)
             person.AutoFix()
-            image = person.photo_url(32)
             self.echo_json({
                 'id': person.key().id(),
                 'key': str(person.key()),
-                #'image': image if image else '/images/avatar.png',
+                'image': person.GetPhotoUrl(32),
                 'title': person.displayname,
                 'info': ', '.join(person.users) if person.users else '',
                 'email': person.primary_email if person.primary_email else '',
@@ -91,6 +90,7 @@ class ShowPerson(boRequestHandler):
             return
 
         person = Person().get_by_id(int(person_id))
+        person.photourl = person.GetPhotoUrl(150)
         self.view(
             template_file = 'person/info.html',
             values = {

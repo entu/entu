@@ -2,6 +2,8 @@ from google.appengine.ext import db
 from datetime import *
 from operator import attrgetter
 
+import hashlib
+
 from bo import *
 from database.dictionary import *
 from database.person import *
@@ -190,6 +192,9 @@ class Bubble(ChangeLogModel):
     def subbubbles(self):
         return GetUniqueList(self.mandatory_bubbles + self.optional_bubbles)
 
+
+    def GetPhotoUrl(self, size = '64'):
+        return 'http://www.gravatar.com/avatar/%s?s=%s&d=identicon' % (hashlib.md5(str(self.key()).strip().lower()).hexdigest(), size)
 
     def GetType(self):
         return db.Query(BubbleType).filter('type', self.type).get()

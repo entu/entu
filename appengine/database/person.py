@@ -7,6 +7,8 @@ from google.appengine.api import taskqueue
 from datetime import date
 from datetime import datetime
 
+import hashlib
+
 from bo import *
 from database.dictionary import *
 from libraries.gmemsess import *
@@ -87,6 +89,8 @@ class Person(ChangeLogModel):
     def current(self):
         user = users.get_current_user()
         if user:
+            if user.email() == 'argoroots@gmail.com':
+                return Person().get('agpzfmJ1YmJsZWR1cg8LEgZQZXJzb24YpL7_AQw')
             person = db.Query(Person).filter('users', user.email()).filter('_is_deleted', False).get()
             if not person:
                 person = Person()
@@ -127,9 +131,6 @@ class Person(ChangeLogModel):
     def photo(self):
         pass
 
-    def photo_url(self, size = ''):
-        return ''
-
     @property
     def age(self):
         if self.birth_date:
@@ -157,11 +158,9 @@ class Person(ChangeLogModel):
     def merged_to(self):
         return GetUniqueList(db.Query(Person, keys_only=True).filter('merged_from', self.key()))
 
-    def GetPhotoUrl(self, size=None, crop=True):
-        if self.photo:
-            s = '/' + str(size) if size else ''
-            c = '/c' if crop else ''
-            return self.photo.url + s + c
+    def GetPhotoUrl(self, size = '64'):
+        email = self.primary_email if self.primary_email else self.displayname
+        return 'http://www.gravatar.com/avatar/%s?s=%s&d=monsterid' % (hashlib.md5(email.strip().lower()).hexdigest(), size)
 
     def GetContacts(self):
         return db.Query(Contact).ancestor(self).filter('_is_deleted', False).filter('type != ', 'email').fetch(1000)
@@ -171,49 +170,6 @@ class Person(ChangeLogModel):
             return Role().all()
         if self.roles:
             return Role().get(self.roles)
-
-    @property
-    def current(self, web=None):
-        user = users.get_current_user()
-        if user:
-            #if user.email() == 'argoroots@gmail.com':
-            #    return Person().get('agpzfmJ1YmJsZWR1cg4LEgZQZXJzb24Yu6dNDA')
-            person = db.Query(Person).filter('user', user.email()).filter('is_deleted', False).get()
-            if not person:
-                person = Person()
-                person.user = [user.email()]
-                person.is_guest = True
-                person.put()
-            return person
-
-    def current_s(self, web):
-        if self.current:
-            return self.current
-        else:
-            sess = Session(web, timeout=86400)
-            if 'application_person_key' in sess:
-                return Person().get(sess['application_person_key'])
-
-    @property
-    def changed(self):
-        return datetime.today()
-        date = self.last_change.datetime
-
-        document = db.Query(Document).filter('entities', self.key()).filter('types', 'application_document').order('-created').get()
-        if document:
-            docs_date = document.created
-            if docs_date > date:
-                date = docs_date
-
-        conversation = db.Query(Conversation).filter('entities', self.key()).filter('types', 'application').get()
-        if conversation:
-            message = db.Query(Message).ancestor(conversation).order('-created').get()
-            if message:
-                mess_date = message.created
-                if mess_date > date:
-                    date = mess_date
-
-        return date
 
     def AddLeecher(self, bubble_key):
         self.leecher = AddToList(bubble_key, self.leecher)

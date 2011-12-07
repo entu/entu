@@ -36,7 +36,7 @@ class ShowBubbleList(boRequestHandler):
             self.echo_json({
                 'id': bubble.key().id(),
                 'key': str(bubble.key()),
-                'image': None,
+                'image': bubble.GetPhotoUrl(32),
                 'title': bubble.displayname,
                 'info': bubble.displaydate,
                 'type': bubble.type,
@@ -80,6 +80,7 @@ class ShowBubble(boRequestHandler):
         bubble.leechers_count = len(bubble.leechers) if bubble.leechers else None
         bubble.waitinglist_count = db.Query(BubblePerson).filter('bubble', bubble).filter('status', 'waiting').count()
         bubble.subbubbles_count = len(bubble.subbubbles) if bubble.subbubbles else None
+        bubble.photourl = bubble.GetPhotoUrl(150)
 
         self.view(
             template_file = 'bubble/info.html',

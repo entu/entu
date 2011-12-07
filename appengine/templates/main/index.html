@@ -29,7 +29,7 @@
     </head>
     <body>
         <section id="main_toolbar">
-            <a href="/" style="float:left; padding:0px; font-size:20px;"><img src="{% if user.photo %}{{ user.photo.url }}/40/c{% else %}/images/avatar.png{% endif %}" />{{ user.displayname }}</a>
+            <a href="/" style="float:left; padding:0px; font-size:20px;"><img src="{{ user.GetPhotoUrl }}" />{{ user.displayname }}</a>
             <span id="tools"></span>
             {% block toolbar %}
                 {% if toolbar %}
