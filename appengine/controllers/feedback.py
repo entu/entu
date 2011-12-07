@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from bo import *
-#from database import *
+from database.feedback import *
 
 
 class ShowFeedback(boRequestHandler):
@@ -24,12 +24,17 @@ class ShowFeedback(boRequestHandler):
                     'target_person': target_person,
                     'is_mandatory': question.question.is_mandatory,
                 })
-
-            self.view('feedback', 'feedback_show.html', {
-                'questionary': personQuestionary[0],
-                'questions': questions,
-                'count': len(personQuestionary)
-            })
+            unanswered = Translate('feedback_unanswered_questionaries') % (len(personQuestionary)-1) if len(personQuestionary) > 1 else ''
+            self.view(
+                page_title = 'feedback',
+                main_template = 'main/print.html',
+                template_file = 'feedback/feedback_show.html',
+                values = {
+                    'questionary': personQuestionary[0],
+                    'questions': questions,
+                    'unanswered': unanswered
+                }
+            )
         else:
             url = Cache().get('redirect_after_feedback')
             Cache().set('redirect_after_feedback')
@@ -45,7 +50,7 @@ class ShowFeedback(boRequestHandler):
             for qanswer in qp.answers:
                 answer = self.request.get(str(qanswer.key())).strip()
 
-                qanswer.question_string = qanswer.question.name.value
+                #qanswer.question_string = qanswer.question.name.translate()
                 qanswer.datetime = datetime.now()
                 qanswer.answer = answer
                 qanswer.put()

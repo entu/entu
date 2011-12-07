@@ -36,15 +36,13 @@ class boRequestHandler(webapp.RequestHandler):
 
     def authorize(self, controller=None):
         from database.person import *
-        #from database.feedback import *
+        from database.feedback import *
 
-        #if db.Query(QuestionaryPerson).filter('person', Person().current).filter('is_completed', False).filter('is_obsolete', False).get():
-        if 1==2:
-            #path = str(self.request.url)
-            #Cache().set('redirect_after_feedback', path)
-            #self.redirect('/feedback')
-            #return False
-            return True
+        if db.Query(QuestionaryPerson).filter('person', Person().current).filter('is_completed', False).filter('is_obsolete', False).get():
+            path = str(self.request.url)
+            Cache().set('redirect_after_feedback', path)
+            self.redirect('/feedback')
+            return False
         else:
             if controller and users.is_current_user_admin() == False:
                 rights = []

@@ -172,6 +172,49 @@ class Person(ChangeLogModel):
         if self.roles:
             return Role().get(self.roles)
 
+    @property
+    def current(self, web=None):
+        user = users.get_current_user()
+        if user:
+            #if user.email() == 'argoroots@gmail.com':
+            #    return Person().get('agpzfmJ1YmJsZWR1cg4LEgZQZXJzb24Yu6dNDA')
+            person = db.Query(Person).filter('user', user.email()).filter('is_deleted', False).get()
+            if not person:
+                person = Person()
+                person.user = [user.email()]
+                person.is_guest = True
+                person.put()
+            return person
+
+    def current_s(self, web):
+        if self.current:
+            return self.current
+        else:
+            sess = Session(web, timeout=86400)
+            if 'application_person_key' in sess:
+                return Person().get(sess['application_person_key'])
+
+    @property
+    def changed(self):
+        return datetime.today()
+        date = self.last_change.datetime
+
+        document = db.Query(Document).filter('entities', self.key()).filter('types', 'application_document').order('-created').get()
+        if document:
+            docs_date = document.created
+            if docs_date > date:
+                date = docs_date
+
+        conversation = db.Query(Conversation).filter('entities', self.key()).filter('types', 'application').get()
+        if conversation:
+            message = db.Query(Message).ancestor(conversation).order('-created').get()
+            if message:
+                mess_date = message.created
+                if mess_date > date:
+                    date = mess_date
+
+        return date
+
     def AddLeecher(self, bubble_key):
         self.leecher = AddToList(bubble_key, self.leecher)
         self.put()

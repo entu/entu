@@ -229,6 +229,67 @@ class DeleteQuestion(boRequestHandler):
             q.delete()
 
 
+class GenerateQuestionaryPersons(boRequestHandler):
+    def get(self):
+        taskqueue.Task(url='/questionary/generate').add()
+
+
+    def post(self):
+        limit = 111
+        step = int(self.request.get('step', 1))
+        offset = int(self.request.get('offset', 0))
+
+        questionary = Questionary().get('agpzfmJ1YmJsZWR1chQLEgtRdWVzdGlvbmFyeRixmvwBDA')
+
+        rc = 0
+        bc = 0
+        qpc = 0
+        qac = 0
+        for g in db.Query(Grade).filter('typed_tags', 'semester:2011S').order('__key__').fetch(limit=limit, offset=offset):
+            rc += 1
+            if g.bubble:
+                bc += 1
+                sc = db.Query(Person).filter('seeder', g.bubble.key()).count()
+
+                qp = db.Query(QuestionaryPerson).filter('questionary', questionary).filter('person', g.person).filter('bubble', g.bubble).get()
+                if not qp:
+                    qpc += 1
+
+                    qp = QuestionaryPerson()
+                    qp.questionary = questionary
+                    qp.person = g.person
+                    qp.bubble = g.bubble
+                    qp.put()
+
+                    for question in questionary.questions:
+                        qac += 1
+                        if question.is_teacher_specific:
+                            for teacher in db.Query(Person).filter('seeder', g.bubble.key()):
+                                qa = QuestionAnswer()
+                                qa.questionary_person = qp
+                                qa.person = g.person
+                                qa.target_person = teacher
+                                qa.questionary = questionary
+                                qp.bubble = g.bubble
+                                qa.question = question
+                                qa.put()
+                        else:
+                            qa = QuestionAnswer()
+                            qa.questionary_person = qp
+                            qa.person = g.person
+                            qa.questionary = questionary
+                            qp.bubble = g.bubble
+                            qa.question = question
+                            qa.put()
+
+        logging.debug('#' + str(step) + ' - g:' + str(rc) + ' b:' + str(bc) + ' qp:' + str(qpc) + ' qa:' + str(qac))
+
+        if rc == limit:
+            taskqueue.Task(url='/questionary/generate', params={'offset': (offset + rc + 1), 'step': (step + 1)}).add()
+
+        self.echo('wewe')
+
+
 def main():
     Route([
             ('/questionary', ShowQuestionariesList),
@@ -238,6 +299,7 @@ def main():
             ('/questionary/results/(.*)', ShowQuestionaryResults),
             ('/questionary/results2/(.*)', ShowQuestionaryResults2),
             ('/questionary/question/delete/(.*)', DeleteQuestion),
+            ('/questionary/generate', GenerateQuestionaryPersons),
             ('/questionary/question', EditQuestion),
         ])
 

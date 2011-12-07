@@ -6,6 +6,7 @@ from database.bubble import *
 
 class Show(boRequestHandler):
     def get(self):
+        self.authorize()
 
         person = Person().current
         person.grades_count = db.Query(Grade).filter('person', person).filter('is_deleted', False).count()

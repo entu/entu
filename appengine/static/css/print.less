@@ -20,6 +20,7 @@
 
 /* ICONS */
 @import "Lungo.widgets.icon.less";
+@import "Lungo.widgets.button.less";
 
 
 
@@ -99,6 +100,9 @@ img.spinner {
 /* TABLE */
 .table {
     display: table;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid @bordercolor;
 
     .row {
         display: table-row;
@@ -107,18 +111,28 @@ img.spinner {
             display: table-cell;
             padding: 5px 10px;
             text-align: right;
+            font-weight: bold;
             vertical-align: top;
             white-space: nowrap;
             border-right: 1px solid @bordercolor;
+            border-top: 1px solid @bordercolor;
+
+            &:last-child {
+                border-bottom: none;
+            }
         }
 
         .h_header {
             display: table-cell;
-            padding: 5px 10px;
+            padding: 20px 10px 5px 10px;
             text-align: center;
             font-weight: bold;
             vertical-align: middle;
             border-right: 1px solid @bordercolor;
+
+            &:last-child {
+                border-right: none;
+            }
         }
 
         .cell {
@@ -126,18 +140,11 @@ img.spinner {
             padding: 5px 10px;
             vertical-align: top;
             border-right: 1px solid @bordercolor;
+            border-top: 1px solid @bordercolor;
 
             &:last-child {
-                border: none;
+                border-right: none;
             }
-        }
-
-        &:nth-child(odd) {
-            background-color: #F3F6FA;
-        }
-
-        &:hover {
-            background-color: #7ABCFF;
         }
     }
 }
