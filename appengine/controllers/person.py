@@ -63,7 +63,7 @@ class ShowPersonList(boRequestHandler):
             keys = [str(k.key()) for k in sorted(leechers, key=attrgetter('sort'))]
 
         if bubble_waitinglist:
-            bubblepersons = db.Query(BubblePerson).filter('bubble', db.Key(bubble_waitinglist)).filter('status', 'waiting').order('start_datetime')
+            bubblepersons = db.Query(BubblePerson).filter('_is_deleted', False).filter('bubble', db.Key(bubble_waitinglist)).filter('status', 'waiting').order('start_datetime')
             keys = [str(k.person.key()) for k in bubblepersons]
 
         if person_duplicates:

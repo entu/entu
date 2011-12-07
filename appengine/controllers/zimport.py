@@ -4,12 +4,22 @@ from database.zimport.zperson import *
 from database.zimport.zbubbleperson import *
 
 
+zimports = [zRatingScale, zGradeDefinition, zBubbleType, zBubble, zRole, zPerson, zBubblePerson, zGrade, zContact]
+
+
+class ZimportInfo(boRequestHandler):
+    def get(self):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        for z in zimports:
+            c = db.Query(z).count(limit=1000000)
+            self.echo('%s %5s' % (z.kind().ljust(16), c))
+
+
 class ZimportAll(boRequestHandler):
     def get(self):
-        taskqueue.Task(url='/zimport').add()
+        taskqueue.Task(url='/zimport').add(queue_name='one-by-one')
 
     def post(self):
-        zimports = [zRatingScale, zGradeDefinition, zBubbleType, zRole, zBubble, zPerson, zBubblePerson, zContact, zGrade]
         for z in zimports:
             if db.Query(z).get():
                 for e in db.Query(z).fetch(100):
@@ -18,12 +28,13 @@ class ZimportAll(boRequestHandler):
                 break
         for z in zimports:
             if db.Query(z).get():
-                taskqueue.Task(url='/zimport').add()
+                taskqueue.Task(url='/zimport').add(queue_name='one-by-one')
                 break
 
 
 def main():
     Route([
+            ('/zimport/info', ZimportInfo),
             ('/zimport', ZimportAll),
         ])
 

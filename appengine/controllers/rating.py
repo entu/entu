@@ -32,7 +32,7 @@ class ShowGrades(boRequestHandler):
         person = self.request.get('person').strip()
 
         if person:
-            keys = [str(k) for k in list(db.Query(Grade, keys_only=True).filter('person', db.Key(person)).filter('is_deleted', False).order('-datetime'))]
+            keys = [str(k) for k in list(db.Query(Grade, keys_only=True).filter('person', db.Key(person)).filter('_is_deleted', False).order('-datetime'))]
 
         self.echo_json({'keys': keys})
 
@@ -56,7 +56,7 @@ class ShowMyGrades(boRequestHandler):
         person = self.request.get('person').strip()
 
         if person:
-            keys = [str(k) for k in list(db.Query(Grade, keys_only=True).filter('person', Person().current.key()).filter('is_deleted', False).order('-datetime'))]
+            keys = [str(k) for k in list(db.Query(Grade, keys_only=True).filter('person', Person().current.key()).filter('_is_deleted', False).order('-datetime'))]
 
         self.echo_json({'keys': keys})
 
@@ -149,9 +149,9 @@ class ShowRating(boRequestHandler):
                     grade.gradedefinition = gradedefinition
                     grade.equivalent = gradedefinition.equivalent
                     grade.is_positive = gradedefinition.is_positive
-                    grade.is_deleted = False
+                    grade._is_deleted = False
                 else:
-                    grade.is_deleted = True
+                    grade._is_deleted = True
                 grade.put()
 
 
@@ -162,8 +162,8 @@ class LockRating(boRequestHandler):
             if bubble_id:
                 bubble = Bubble.get_by_id(int(bubble_id))
 
-                for g in db.Query(Grade).filter('is_deleted', False).filter('is_locked', False).filter('bubble', bubble.key()).fetch(1000):
-                #for g in db.Query(Grade).filter('is_deleted', False).filter('bubble', bubble.key()).fetch(1000):
+                for g in db.Query(Grade).filter('_is_deleted', False).filter('is_locked', False).filter('bubble', bubble.key()).fetch(1000):
+                #for g in db.Query(Grade).filter('_is_deleted', False).filter('bubble', bubble.key()).fetch(1000):
                     if g.person.key() in bubble.leechers:
                         g.is_locked = True
                         g.put()

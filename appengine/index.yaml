@@ -3,8 +3,29 @@ indexes:
 - kind: Bubble
   properties:
   - name: _is_deleted
+  - name: leechers
+  - name: sort_estonian
+
+- kind: Bubble
+  properties:
+  - name: _is_deleted
+  - name: seeders
+  - name: sort_estonian
+
+- kind: Bubble
+  properties:
+  - name: _is_deleted
   - name: type
   - name: sort_estonian
+
+
+
+- kind: BubblePerson
+  properties:
+  - name: _is_deleted
+  - name: bubble
+  - name: status
+  - name: start_datetime
 
 
 
@@ -20,6 +41,15 @@ indexes:
   properties:
   - name: _is_deleted
   - name: type
+
+
+
+- kind: Grade
+  properties:
+  - name: _is_deleted
+  - name: person
+  - name: datetime
+    direction: desc
 
 
 
