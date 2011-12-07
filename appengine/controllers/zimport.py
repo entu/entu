@@ -18,6 +18,7 @@ class ZimportInfo(boRequestHandler):
 class ZimportAll(boRequestHandler):
     def get(self):
         taskqueue.Task(url='/zimport').add(queue_name='one-by-one')
+        self.redirect('/zimport/info')
 
     def post(self):
         for z in zimports:
