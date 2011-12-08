@@ -330,10 +330,13 @@ def rReplace(s, old, new, occurrence):
 
 
 def StringToSortable(s):
-    return re.sub('[%s]' % re.escape(string.punctuation), '', s).lower().strip()
+    return re.sub('[%s]' % re.escape(string.punctuation), '', s).lower().strip() if s else ''
 
 
 def StringToSearchIndex(s):
+    if not s:
+        return []
+
     result = []
     s = s.lower()
     wordlist = StrToList(s)

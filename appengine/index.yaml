@@ -9,14 +9,39 @@ indexes:
 - kind: Bubble
   properties:
   - name: _is_deleted
+  - name: leechers
+  - name: sort_english
+
+- kind: Bubble
+  properties:
+  - name: _is_deleted
   - name: seeders
   - name: sort_estonian
 
 - kind: Bubble
   properties:
   - name: _is_deleted
+  - name: seeders
+  - name: sort_english
+
+- kind: Bubble
+  properties:
+  - name: _is_deleted
   - name: type
   - name: sort_estonian
+
+- kind: Bubble
+  properties:
+  - name: _is_deleted
+  - name: type
+  - name: sort_english
+
+- kind: Bubble
+  properties:
+  - name: _is_deleted
+  - name: search_english
+  - name: type
+  - name: sort_english
 
 - kind: Bubble
   properties:
@@ -24,8 +49,6 @@ indexes:
   - name: search_estonian
   - name: type
   - name: sort_estonian
-
-
 
 - kind: BubblePerson
   properties:

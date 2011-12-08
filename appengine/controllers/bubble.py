@@ -52,16 +52,16 @@ class ShowBubbleList(boRequestHandler):
         master_bubble = self.request.get('master_bubble').strip()
 
         if search:
-            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('search_estonian', search).filter('_is_deleted', False).order('sort_estonian'))]
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('search_'+UserPreferences().current.language, search).filter('_is_deleted', False).order('sort_'+UserPreferences().current.language))]
 
         if bubbletype and not search:
-            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('_is_deleted', False).order('sort_estonian'))]
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('_is_deleted', False).order('sort_'+UserPreferences().current.language))]
 
         if leecher:
-            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('leechers', db.Key(leecher)).filter('_is_deleted', False).order('sort_estonian'))]
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('leechers', db.Key(leecher)).filter('_is_deleted', False).order('sort_'+UserPreferences().current.language))]
 
         if seeder:
-            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('seeders', db.Key(seeder)).filter('_is_deleted', False).order('sort_estonian'))]
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('seeders', db.Key(seeder)).filter('_is_deleted', False).order('sort_'+UserPreferences().current.language))]
 
         if master_bubble:
             bubble = Bubble().get(master_bubble)

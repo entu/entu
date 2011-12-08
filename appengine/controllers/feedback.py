@@ -5,12 +5,12 @@ from database.feedback import *
 
 
 class ShowFeedback(boRequestHandler):
-
     def get(self):
+        nr = int(self.request.get('nr', '0').strip())
         personQuestionary = db.Query(QuestionaryPerson).filter('person', Person().current).filter('is_completed', False).filter('is_obsolete', False).order('__key__').fetch(1000)
         if len(personQuestionary) > 0:
             questions = []
-            for question in personQuestionary[0].answers:
+            for question in personQuestionary[nr].answers:
                 if question.target_person:
                     target_person = question.target_person.displayname
                 else:
@@ -30,7 +30,7 @@ class ShowFeedback(boRequestHandler):
                 main_template = 'main/print.html',
                 template_file = 'feedback/feedback_show.html',
                 values = {
-                    'questionary': personQuestionary[0],
+                    'questionary': personQuestionary[nr],
                     'questions': questions,
                     'unanswered': unanswered
                 }

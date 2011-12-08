@@ -15,7 +15,7 @@
         </div>
         <div class="row">
             <div class="v_header">
-                {{ str.name }}
+                {{ str.person_name }}
             </div>
             <div class="cell">
                 {{ person.displayname|default:"" }}
@@ -23,15 +23,7 @@
         </div>
         <div class="row">
             <div class="v_header">
-                {{ str.email }}
-            </div>
-            <div class="cell">
-                {{ person.primary_email }}
-            </div>
-        </div>
-        <div class="row">
-            <div class="v_header">
-                {{ str.language }}
+                {{ str.person_language }}
             </div>
             <div class="cell">
                 <select id="language" name="language" class="autosave">
@@ -42,7 +34,7 @@
         </div>
         <div class="row">
             <div class="v_header">
-                {{ str.timezone }}
+                {{ str.person_timezone }}
             </div>
             <div class="cell">
                 <select id="timezone" name="timezone" class="autosave">

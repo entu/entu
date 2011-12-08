@@ -1,32 +1,5 @@
 cron:
-#- description: Sync Person.leecher to Bubble.leechers
-#  url: /cron/sync_bubble_leechers
-#  schedule: every 10 minutes
-
-#- description: Sync Person.seeder to Bubble.seeders
-#  url: /cron/sync_bubble_seeders
-#  schedule: every 10 minutes
-
-#- description: Sync waitinglist
-#  url: /cron/waitinglist
-#  schedule: every 10 minutes
-
-
-
-#- description: Send feedback
-#  url: /update/sort
-#  schedule: every 1 minutes
-
-
-#- description: Generate questionaries
-#  url: /cron/generate_questionary
-#  schedule: every 10 minutes
-
-#- description: Zimport
-#  url: /zimport/grade
-#  schedule: every 1 minutes
-#  target: dev
-
 #- description: Do stuff
-#  url: /update/sort
+#  url: /some/controller
 #  schedule: every 1 minutes
+#  target: some-version-number

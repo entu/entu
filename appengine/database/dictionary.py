@@ -12,9 +12,4 @@ class Dictionary(ChangeLogModel):
     @property
     def value(self):
         language = UserPreferences().current.language
-        cache_key = 'DictionaryTranslation_' + language + '_' + str(self.key())
-        translation = Cache().get(cache_key, False)
-        if not translation:
-            translation = getattr(self, language)
-            Cache().set(cache_key, translation, False, 3600)
-        return translation
+        return getattr(self, language) if getattr(self, language) else ''
