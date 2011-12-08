@@ -66,12 +66,6 @@ class Person(ChangeLogModel):
 
         self.put('autofix')
 
-        # for l in self.leecher:
-        #     taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'add', 'bubble_key': str(l), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
-
-        # for l in self.seeder:
-        #     taskqueue.Task(url='/taskqueue/bubble_change_seeder', params={'action': 'add', 'bubble_key': str(l), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
-
     @property
     def displayname(self):
         name = ''
@@ -160,7 +154,7 @@ class Person(ChangeLogModel):
 
     def GetPhotoUrl(self, size = ''):
         email = self.primary_email if self.primary_email else self.displayname
-        return 'http://www.gravatar.com/avatar/%s?s=%s&d=monsterid' % (hashlib.md5(email.strip().lower()).hexdigest(), size)
+        return 'http://www.gravatar.com/avatar/%s?s=%s&d=monsterid' % (hashlib.md5(email.encode('utf-8').strip().lower()).hexdigest(), size)
 
     def GetContacts(self):
         return db.Query(Contact).ancestor(self).filter('_is_deleted', False).filter('type != ', 'email').fetch(1000)

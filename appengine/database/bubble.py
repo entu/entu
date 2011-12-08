@@ -143,10 +143,14 @@ class Bubble(ChangeLogModel):
     search_english          = db.StringListProperty()
 
     def AutoFix(self):
-        if not self.sort_estonian:
-            self.sort_estonian = StringToSortable(self.displayname)
-
+        self.sort_estonian = StringToSortable(self.displayname)
         self.search_estonian = StringToSearchIndex(self.displayname)
+
+        seeders = db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('seeder', self.key()).fetch(1000)
+        self.seeders = seeders if seeders else []
+
+        leechers = db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('leecher', self.key()).fetch(1000)
+        self.leechers = leechers if leechers else []
 
         self.put('autofix')
 
