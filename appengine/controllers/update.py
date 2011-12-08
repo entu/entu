@@ -5,6 +5,7 @@ import time
 from bo import *
 from database.bubble import *
 from database.person import *
+from database.zimport.zoin import *
 from database.zimport.zbubble import *
 
 
@@ -107,21 +108,14 @@ class ExportContacts(boRequestHandler):
 class FindStuff(boRequestHandler):
     def get(self):
 
-        b = db.Query(Bubble).order('_created').get()
-        d1_ts = time.mktime(b._created.timetuple())
-        d2_ts = time.mktime(datetime.now().timetuple())
-
-        t = (d2_ts-d1_ts)
-        c = db.Query(Bubble).count(limit=1000000)
-        z = db.Query(zBubble).count(limit=1000000)
-
-        tpb = t / c
-        e = tpb * z
-        et = UtcToLocalDateTime(datetime.now() + timedelta(0, e))
-
+        limit = 3000
+        offset = self.request.get('offset', '0').strip()
 
         self.header('Content-Type', 'text/plain; charset=utf-8')
-        self.echo('%s %s' % (z, str(et)))
+        for p in db.Query(Person).filter('is_guest', False):
+            if not db.Query(Zoin).filter('new_entity', p).get():
+                self.echo('%s %s' % (p.key(), p.displayname))
+                p.delete()
 
 
 class DeleteStuff(boRequestHandler):
