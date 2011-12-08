@@ -1,10 +1,13 @@
 from google.appengine.api import datastore_types
 from google.appengine.ext import db
-from django.utils.html import strip_tags
+from google.appengine.api import urlfetch
 from datetime import *
 
 from bo import *
 from database.bubble import *
+from database.feedback import *
+
+from django.utils.html import strip_tags
 
 
 class Applications(boRequestHandler):
@@ -85,6 +88,14 @@ class Feedback(boRequestHandler):
 
         a = db.Query(QuestionaryPerson).filter('is_obsolete', False).filter('is_completed', True)
         tehtud = a.count(limit=200000)
+
+        #url = 'http://chart.apis.google.com/chart?chs=500x300&cht=p&chds=0,%(b)s&chd=t:%(a)s,%(b)s&chdl=Tehtud|Teha&chp=4.71238898&chl=%(a)s|%(b)s' % {'a':tehtud, 'b':(kokku-tehtud)}
+
+        url = 'http://chart.apis.google.com/chart?chxl=1:|0|%(b)s&chxr=1,0,%(b)s&chxs=0,676767,15|1,49188F,15,0,l,676767&chxt=x,y&chs=500x200&cht=gm&chds=0,%(b)s&chd=t:%(a)s&chl=%(a)s&chco=49188F,CE0000|FFFF88|008000' % {'a':tehtud, 'b':kokku}
+
+        self.header('Content-Type', 'image/png')
+        self.echo(urlfetch.fetch(url, deadline=10).content, False)
+        return
 
         self.echo('<?xml version="1.0" encoding="UTF-8"?>')
         self.echo('<root>')
