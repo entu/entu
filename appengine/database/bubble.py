@@ -33,6 +33,15 @@ class RatingScale(ChangeLogModel):
         return db.Query(GradeDefinition).filter('rating_scale', self).order('equivalent').fetch(1000)
 
 
+class TagType(ChangeLogModel):
+    name                    = db.ReferenceProperty(Dictionary, collection_name='tagtype_name')
+    data_property           = db.StringProperty()
+    data_type               = db.StringProperty()
+    ordinal                 = db.IntegerProperty()
+    count                   = db.IntegerProperty()
+    is_unique               = db.BooleanProperty(default=False)
+
+
 class BubbleType(ChangeLogModel):
     type                    = db.StringProperty()
     name                    = db.ReferenceProperty(Dictionary, collection_name='bubbletype_name')
@@ -111,32 +120,14 @@ class BubbleType(ChangeLogModel):
 
 class Bubble(ChangeLogModel):
     name                    = db.ReferenceProperty(Dictionary, collection_name='bubble_name')
-    description             = db.ReferenceProperty(Dictionary, collection_name='bubble_description')
-    start_datetime          = db.DateTimeProperty()
-    end_datetime            = db.DateTimeProperty()
-    url                     = db.StringProperty()
-    owners                  = db.ListProperty(db.Key)
-    editors                 = db.ListProperty(db.Key)
-    viewers                 = db.ListProperty(db.Key)
-    leechers                = db.ListProperty(db.Key)
-    seeders                 = db.ListProperty(db.Key)
-    green_persons           = db.ListProperty(db.Key)
     type                    = db.StringProperty()
-    #TODO: Check that all bubbles are referenced with respective bubbletype...
-    bubble_type             = db.ReferenceProperty(BubbleType, collection_name='bubble_type')
-    typed_tags              = db.StringListProperty()
-    rating_scale            = db.ReferenceProperty(RatingScale, collection_name='bubble_ratingscale')
-    badge                   = db.ReferenceProperty(Dictionary, collection_name='bubble_badge')
-    points                  = db.FloatProperty()
-    minimum_points          = db.FloatProperty()
-    minimum_bubble_count    = db.IntegerProperty()
-    maximum_leecher_count   = db.IntegerProperty()
     mandatory_bubbles       = db.ListProperty(db.Key)
     optional_bubbles        = db.ListProperty(db.Key)
     prerequisite_bubbles    = db.ListProperty(db.Key)
     next_in_line            = db.ListProperty(db.Key)
-    entities                = db.ListProperty(db.Key)
-    state                   = db.StringProperty()
+    leechers                = db.ListProperty(db.Key)
+    seeders                 = db.ListProperty(db.Key)
+    rating_scale            = db.ReferenceProperty(RatingScale, collection_name='bubble_ratingscale')
     sort_estonian           = db.StringProperty(default='')
     sort_english            = db.StringProperty(default='')
     search_estonian         = db.StringListProperty()
@@ -154,6 +145,64 @@ class Bubble(ChangeLogModel):
 
         leechers = db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('leecher', self.key()).fetch(1000)
         self.leechers = leechers if leechers else []
+
+        # if getattr(self, 'description', None):
+        #     d = Dictionary().get(self.description)
+        #     if d:
+        #         if not d.english and not d.estonian:
+        #             delattr(self, 'description')
+
+        # if getattr(self, 'badge', None):
+        #     d = Dictionary().get(self.badge)
+        #     if d:
+        #         if not d.english and not d.estonian:
+        #             delattr(self, 'badge')
+
+        # try:
+        #     if not self.state:
+        #         delattr(self, 'state')
+        # except:
+        #     pass
+        # try:
+        #     if not self.bubble_type:
+        #         delattr(self, 'bubble_type')
+        # except:
+        #     pass
+        # try:
+        #     if not self.url:
+        #         delattr(self, 'url')
+        # except:
+        #     pass
+        # try:
+        #     if not self.start_datetime:
+        #         delattr(self, 'start_datetime')
+        # except:
+        #     pass
+        # try:
+        #     if not self.end_datetime:
+        #         delattr(self, 'end_datetime')
+        # except:
+        #     pass
+        # try:
+        #     if not self.maximum_leecher_count:
+        #         delattr(self, 'maximum_leecher_count')
+        # except:
+        #     pass
+        # try:
+        #     if not self.minimum_bubble_count:
+        #         delattr(self, 'minimum_bubble_count')
+        # except:
+        #     pass
+        # try:
+        #     if not self.minimum_points:
+        #         delattr(self, 'minimum_points')
+        # except:
+        #     pass
+        # try:
+        #     if not self.points:
+        #         delattr(self, 'points')
+        # except:
+        #     pass
 
         self.put('autofix')
 
@@ -192,8 +241,7 @@ class Bubble(ChangeLogModel):
             else:
                 if self.end_datetime:
                     return '... - ' + self.end_datetime.strftime('%d.%m.%Y %H:%M')
-                else:
-                    return ''
+        return ''
 
     @property
     def subbubbles(self):

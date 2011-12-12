@@ -407,6 +407,49 @@ transformers:
 
 
 
+- kind: zTagType
+  connector: csv
+  connector_options:
+    #encoding: utf16
+  property_map:
+    - property: __key__
+      external_name: key_name
+      import_transform: transform.create_foreign_key('zTagType')
+
+    - property: name_estonian
+      external_name: name_estonian
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: name_english
+      external_name: name_english
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: data_type
+      external_name: data_type
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: data_property
+      external_name: data_property
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: choices
+      external_name: choices
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: ordinal
+      external_name: ordinal
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: count
+      external_name: count
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: is_unique
+      external_name: is_unique
+      import_transform: transform.none_if_empty(unicode)
+
+
+
 #    - property: is_published
 #      external_name: is_published
 #      import_transform: transform.regexp_bool('true', re.IGNORECASE)
