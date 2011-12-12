@@ -111,11 +111,18 @@ class Feedback(boRequestHandler):
         self.echo('</root>')
 
 
+class Status(boRequestHandler):
+    def get(self):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        self.echo('OK')
+
+
 def main():
     Route([
             ('/xml/applications', Applications),
             ('/xml/applications2', Applications2),
             ('/xml/feedback', Feedback),
+            ('/xml/status', Status),
         ])
 
 
