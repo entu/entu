@@ -12,8 +12,9 @@ class Show(boRequestHandler):
         person.grades_count = db.Query(Grade).filter('person', person).filter('is_deleted', False).count()
 
         self.view(
-            page_title = 'page_dashboard',
+            main_template='main/index.html',
             template_file = 'dashboard.html',
+            page_title = 'page_dashboard',
             values = {
                 'person': person,
             }

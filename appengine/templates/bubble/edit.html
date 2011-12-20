@@ -1,0 +1,12 @@
+<section class="table">
+    {% for t in bubble.tags %}
+    <div class="row">
+        <div class="v_header">
+            {{ t.name }}
+        </div>
+        <div class="cell">
+            {{ t.value|join:"<br />"|urlize|linebreaks }}
+        </div>
+    </div>
+    {% endfor %}
+</section>

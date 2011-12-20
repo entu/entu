@@ -153,6 +153,38 @@ transformers:
       external_name: grade_display_method
       import_transform: transform.none_if_empty(unicode)
 
+    - property: property_displayname
+      external_name: display_name
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: property_displayinfo
+      external_name: display_info
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: optional_properties
+      external_name: optional_properties
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: mandatory_properties
+      external_name: mandatory_properties
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: public_properties
+      external_name: public_properties
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: propagated_properties
+      external_name: propagated_properties
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: escalated_properties
+      external_name: escalated_properties
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: inherited_properties
+      external_name: inherited_properties
+      import_transform: transform.none_if_empty(db.Text)
+
 
 - kind: zBubblePerson
   connector: csv
@@ -166,6 +198,54 @@ transformers:
     - property: person
       external_name: person
       import_transform: transform.none_if_empty(unicode)
+
+
+
+- kind: zBubbleProperty
+  connector: csv
+  connector_options:
+    #encoding: utf16
+  property_map:
+    - property: __key__
+      external_name: key_name
+      import_transform: transform.create_foreign_key('zBubbleProperty')
+
+    - property: name_estonian
+      external_name: name_estonian
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: name_english
+      external_name: name_english
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: data_type
+      external_name: data_type
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: data_property
+      external_name: data_property
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: choices
+      external_name: choices
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: ordinal
+      external_name: ordinal
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: count
+      external_name: count
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: is_unique
+      external_name: is_unique
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: default
+      external_name: default
+      import_transform: transform.none_if_empty(unicode)
+
 
 
 - kind: zContact
@@ -403,49 +483,6 @@ transformers:
 
     - property: template_name
       external_name: template_name
-      import_transform: transform.none_if_empty(unicode)
-
-
-
-- kind: zTagType
-  connector: csv
-  connector_options:
-    #encoding: utf16
-  property_map:
-    - property: __key__
-      external_name: key_name
-      import_transform: transform.create_foreign_key('zTagType')
-
-    - property: name_estonian
-      external_name: name_estonian
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: name_english
-      external_name: name_english
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: data_type
-      external_name: data_type
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: data_property
-      external_name: data_property
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: choices
-      external_name: choices
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: ordinal
-      external_name: ordinal
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: count
-      external_name: count
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: is_unique
-      external_name: is_unique
       import_transform: transform.none_if_empty(unicode)
 
 

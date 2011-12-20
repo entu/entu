@@ -17,8 +17,9 @@ class ShowBubbleList(boRequestHandler):
             return
 
         self.view(
-            page_title = 'page_bubbles',
+            main_template='main/index.html',
             template_file = 'main/list.html',
+            page_title = 'page_bubbles',
             values = {
                 'list_url': '/bubble%s' % bubbletype,
                 'content_url': '/bubble/show',
@@ -65,7 +66,7 @@ class ShowBubbleList(boRequestHandler):
 
         if master_bubble:
             bubble = Bubble().get(master_bubble)
-            keys = [str(k.key()) for k in sorted(Bubble().get(bubble.subbubbles), key=attrgetter('start_datetime'))]
+            keys = [str(k.key()) for k in sorted(Bubble().get(bubble.subbubbles), key=attrgetter('sort_'+UserPreferences().current.language))]
 
         self.echo_json({'keys': keys})
 
@@ -79,6 +80,7 @@ class ShowBubble(boRequestHandler):
         bubble.photourl = bubble.GetPhotoUrl(150)
 
         self.view(
+            main_template = 'main/index.html',
             template_file = 'bubble/info.html',
             values = {
                 'bubble': bubble,
@@ -94,12 +96,12 @@ class EditBubble(boRequestHandler):
         bubble = Bubble().get_by_id(int(bubble_id))
 
         self.view(
+            main_template = '',
             template_file = 'bubble/edit.html',
             values = {
                 'bubble': bubble,
             }
         )
-
 
 
 class ShowBubbleDoc1(boRequestHandler):
@@ -117,8 +119,8 @@ class ShowBubbleDoc1(boRequestHandler):
                     l.group.append(g.GetTypedTags()['code'])
 
         self.view(
-            template_file = 'bubble/doc1.html',
             main_template = 'main/print.html',
+            template_file = 'bubble/doc1.html',
             values = {
                 'bubble': bubble,
                 'leechers': leechers,
@@ -503,6 +505,7 @@ class ShowBubbleDoc1(boRequestHandler):
 def main():
     Route([
             (r'/bubble/show/(.*)', ShowBubble),
+            (r'/bubble/edit/(.*)', EditBubble),
             (r'/bubble/d1/(.*)', ShowBubbleDoc1),
             # (r'/bubble/add/(.*)/(.*)', AddBubble),
             # (r'/bubble/add_existing/(.*)', AddExistingBubble),

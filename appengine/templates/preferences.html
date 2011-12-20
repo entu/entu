@@ -27,8 +27,9 @@
             </div>
             <div class="cell">
                 <select id="language" name="language" class="autosave">
-                    <option value="estonian"{% ifequal preferences.language "estonian" %} selected{% endifequal %}>{{ str.language_estonian }}</option>
-                    <option value="english"{% ifequal preferences.language "english" %} selected{% endifequal %}>{{ str.language_english }}</option>
+                    {% for l in languages %}
+                    <option value="{{ l.value }}"{% ifequal preferences.language l.value %} selected{% endifequal %}>{{ l.label }}</option>
+                    {% endfor %}
                 </select>
             </div>
         </div>

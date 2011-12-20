@@ -11,8 +11,9 @@ class ShowQuestionariesList(boRequestHandler):
             return
 
         self.view(
-            page_title = 'page_feedback',
+            main_template='main/index.html',
             template_file = 'main/list.html',
+            page_title = 'page_feedback',
             values = {
                 'list_url': '/questionary',
                 'content_url': '/questionary/show',

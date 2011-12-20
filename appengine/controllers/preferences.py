@@ -6,12 +6,17 @@ from database.person import *
 
 class ShowPreferences(boRequestHandler):
     def get(self):
+        languages = []
+        for l in SystemPreferences().get('languages'):
+            languages.append({'value': l, 'label': Translate('language_%s' % l)})
         self.view(
-            page_title = 'page_preferences',
+            main_template='main/index.html',
             template_file = 'preferences.html',
+            page_title = 'page_preferences',
             values = {
                 'person': Person().current,
                 'preferences': UserPreferences().current,
+                'languages': languages,
                 'timezones': pytz.common_timezones,
             }
         )

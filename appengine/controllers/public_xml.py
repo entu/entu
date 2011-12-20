@@ -91,7 +91,7 @@ class Feedback(boRequestHandler):
 
         #url = 'http://chart.apis.google.com/chart?chs=500x300&cht=p&chds=0,%(b)s&chd=t:%(a)s,%(b)s&chdl=Tehtud|Teha&chp=4.71238898&chl=%(a)s|%(b)s' % {'a':tehtud, 'b':(kokku-tehtud)}
 
-        url = 'http://chart.apis.google.com/chart?chxl=1:|0|%(b)s&chxr=1,0,%(b)s&chxs=0,676767,15|1,49188F,15,0,l,676767&chxt=x,y&chs=500x200&cht=gm&chds=0,%(b)s&chd=t:%(a)s&chl=%(a)s&chco=49188F,CE0000|FFFF88|008000' % {'a':tehtud, 'b':kokku}
+        url = 'http://chart.apis.google.com/chart?chxl=1:|0|%(b)s&chxr=1,0,%(b)s&chxs=0,676767,15|1,49188F,15,0,l,676767&chxt=x,y&chs=350x200&cht=gm&chds=0,%(b)s&chd=t:%(a)s&chl=%(a)s&chco=49188F,CE0000|FFFF88|008000' % {'a':tehtud, 'b':kokku}
 
         self.header('Content-Type', 'image/png')
         self.echo(urlfetch.fetch(url, deadline=10).content, False)

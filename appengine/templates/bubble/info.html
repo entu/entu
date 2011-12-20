@@ -8,30 +8,19 @@
 
 <h1>{{ bubble.displayname }}</h1>
 <section class="table">
+    {% for t in bubble.tags %}
+    {% if t.value %}{% ifequal t.data_property "name" %}
+    {% else %}
     <div class="row">
         <div class="v_header">
-            {{ str.bubble_description }}:
+            {{ t.name }}
         </div>
         <div class="cell">
-            {{ bubble.description.value|urlize|linebreaks }}
+            {{ t.value|join:"<br />"|urlize|linebreaks }}
         </div>
     </div>
-    <div class="row">
-        <div class="v_header">
-            {{ str.bubble_date }}:
-        </div>
-        <div class="cell">
-            {{ bubble.displaydate }}
-        </div>
-    </div>
-    <div class="row">
-        <div class="v_header">
-            {{ str.bubble_url }}:
-        </div>
-        <div class="cell">
-            {{ bubble.url|default:""|urlize }}
-        </div>
-    </div>
+    {% endifequal %}{% endif %}
+    {% endfor %}
 </section>
 
 <section class="info_accordion">
@@ -56,16 +45,26 @@
 <script type="text/javascript">
     $(document).ready(function(){
 
-        bubble_id = {{ bubble.key.id }};
-
         $('.info_accordion div h2').click(function() {
             $(this).next().slideToggle();
         });
 
-        $('#tools').html('<a id="open_document" href="javascript:void(0);" class="icon document" title="{{ str.open_document }}"></a>');
+        tools = [
+            '<a id="open_new" href="javascript:void(0);" class="icon write" title="{{ str.bubble_add_new }}"></a>',
+            '<a id="open_edit" href="javascript:void(0);" class="icon pencil" title="{{ str.bubble_edit }}"></a>',
+            '<a id="open_document" href="javascript:void(0);" class="icon printer space" title="{{ str.open_document }}"></a>',
+        ];
+        $('#tools').html(tools.join(''));
+
+        $('#open_edit').click(function() {
+            $.get('/bubble/edit/{{ bubble.key.id }}', function(data) {
+                $("#list_content div").html(data);
+                $('#tools').html('');
+            });
+        });
+
 
         $('#open_document').click(function() {
-            //$("#open_document_box").slideDown();
             $("#open_document_box").modal({
 	            position: [0,50],
 	            opacity: 20,
@@ -73,11 +72,11 @@
                 escClose: true,
                 overlayClose: true,
             });
-        })
+        });
 
         $('#close_open_document_box').click(function() {
             $("#open_document_box").slideUp();
-        })
+        });
 
         ajax_persons_list('/person', { bubble_seeders: '{{ bubble.key }}' }, $('#seeders'), 'seeder');
         ajax_persons_list('/person', { bubble_leechers: '{{ bubble.key }}' }, $('#leechers'), 'leecher');

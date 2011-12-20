@@ -13,8 +13,9 @@ class ShowPersonList(boRequestHandler):
             return
 
         self.view(
-            page_title = 'page_persons',
+            main_template = 'main/index.html',
             template_file = 'main/list.html',
+            page_title = 'page_persons',
             values = {
                 'list_url': '/person',
                 'content_url': '/person/show',
@@ -92,6 +93,7 @@ class ShowPerson(boRequestHandler):
         person = Person().get_by_id(int(person_id))
         person.photourl = person.GetPhotoUrl(150)
         self.view(
+            main_template = 'main/index.html',
             template_file = 'person/info.html',
             values = {
                 'person': person,
@@ -135,8 +137,9 @@ class MergeDuplicates(boRequestHandler):
         persons = [str(k) for k in list(db.Query(Person, keys_only=True).filter('_is_deleted', False).order('sort').fetch(limit=limit, offset=offset))]
 
         self.view(
-            page_title = 'person_duplicates',
+            main_template = 'main/index.html',
             template_file = 'person/merge.html',
+            page_title = 'person_duplicates',
             values = {
                 'persons': persons,
                 'next_page': page + 1,

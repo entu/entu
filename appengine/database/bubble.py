@@ -33,13 +33,19 @@ class RatingScale(ChangeLogModel):
         return db.Query(GradeDefinition).filter('rating_scale', self).order('equivalent').fetch(1000)
 
 
-class TagType(ChangeLogModel):
-    name                    = db.ReferenceProperty(Dictionary, collection_name='tagtype_name')
+class BubbleProperty(ChangeLogModel):
+    name                    = db.ReferenceProperty(Dictionary, collection_name='bubbleproperty_name')
     data_property           = db.StringProperty()
     data_type               = db.StringProperty()
-    ordinal                 = db.IntegerProperty()
+    default                 = db.StringProperty()
+    choices                 = db.StringListProperty()
     count                   = db.IntegerProperty()
+    ordinal                 = db.IntegerProperty()
     is_unique               = db.BooleanProperty(default=False)
+
+    @property
+    def displayname(self):
+        return self.name.value
 
 
 class BubbleType(ChangeLogModel):
@@ -48,9 +54,16 @@ class BubbleType(ChangeLogModel):
     description             = db.ReferenceProperty(Dictionary, collection_name='bubbletype_description')
     allowed_subtypes        = db.StringListProperty()
     maximum_leecher_count   = db.IntegerProperty()
-# no two exclusive events should happen to same person at same time
-    is_exclusive            = db.BooleanProperty(default=False)
+    is_exclusive            = db.BooleanProperty(default=False) # no two exclusive events should happen to same person at same time
     grade_display_method    = db.StringProperty()
+    property_displayname    = db.StringProperty()
+    property_displayinfo    = db.StringProperty()
+    optional_properties     = db.ListProperty(db.Key)
+    mandatory_properties    = db.ListProperty(db.Key)
+    public_properties       = db.ListProperty(db.Key)
+    propagated_properties   = db.ListProperty(db.Key)
+    escalated_properties    = db.ListProperty(db.Key)
+    inherited_properties    = db.ListProperty(db.Key)
 
     @property
     def displayname(self):
@@ -119,7 +132,6 @@ class BubbleType(ChangeLogModel):
 
 
 class Bubble(ChangeLogModel):
-    name                    = db.ReferenceProperty(Dictionary, collection_name='bubble_name')
     type                    = db.StringProperty()
     mandatory_bubbles       = db.ListProperty(db.Key)
     optional_bubbles        = db.ListProperty(db.Key)
@@ -134,11 +146,12 @@ class Bubble(ChangeLogModel):
     search_english          = db.StringListProperty()
 
     def AutoFix(self):
-        self.sort_estonian = StringToSortable(self.name.estonian)
-        self.sort_english = StringToSortable(self.name.english)
+        name = Dictionary().get(self.name)
+        self.sort_estonian = StringToSortable(name.estonian)
+        self.sort_english = StringToSortable(name.english)
 
-        self.search_estonian = StringToSearchIndex(self.name.estonian)
-        self.search_english = StringToSearchIndex(self.name.english)
+        self.search_estonian = StringToSearchIndex(name.estonian)
+        self.search_english = StringToSearchIndex(name.english)
 
         seeders = db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('seeder', self.key()).fetch(1000)
         self.seeders = seeders if seeders else []
@@ -206,17 +219,54 @@ class Bubble(ChangeLogModel):
 
         self.put('autofix')
 
+
+    @property
+    def tags(self):
+        result = []
+        for bp in db.Query(BubbleProperty).order('data_property'):
+            data_value = getattr(self, bp.data_property, None)
+            value = []
+
+            if data_value:
+                if type(data_value) is not list:
+                    data_value = [data_value]
+                for v in data_value:
+                    if bp.data_type in ['dictionary_string', 'dictionary_text', 'dictionary_select']:
+                        d = Dictionary().get(v)
+                        v = d.value
+                    if bp.data_type == 'datetime':
+                        v = v.strftime('%d.%m.%Y %H:%M')
+                    if bp.data_type == 'date':
+                        v = v.strftime('%d.%m.%Y')
+                    if bp.data_type == 'reference':
+                        v = v.displayname
+                    if v:
+                        value.append(v)
+
+            result.append({
+                'data_type': bp.data_type,
+                'data_property': bp.data_property,
+                'name': bp.displayname,
+                'value': value
+            })
+        return result
+
+
     @property
     def displayname(self):
-        if self.name:
-            cache_key = 'bubble_dname_' + UserPreferences().current.language + '_' + str(self.key())
-            name = Cache().get(cache_key)
-            if not name:
-                name = StripTags(self.name.value)
-                Cache().set(cache_key, name)
-            return name
-        else:
-            return '-'
+        if not self.name:
+            return ''
+
+        d = Dictionary().get(self.name)
+        if not d:
+            return ''
+
+        cache_key = 'bubble_dname_' + UserPreferences().current.language + '_' + str(self.key())
+        name = Cache().get(cache_key)
+        if not name:
+            name = StripTags(d.value)
+            Cache().set(cache_key, name)
+        return name
 
     def displayname_cache_reset(self):
         cache_key = 'bubble_dname_' + UserPreferences().current.language + '_' + str(self.key())

@@ -123,12 +123,50 @@ class zBubbleType(db.Expando):
         bt.description          = description
         bt.allowed_subtypes     = StrToList(self.allowed_subtypes)
         bt.grade_display_method = self.grade_display_method
+        bt.property_displayname = self.property_displayname
+        bt.property_displayinfo = self.property_displayinfo
+        bt.optional_properties  = GetZoinKeyList('BubbleProperty', self.optional_properties)
+        bt.mandatory_properties = GetZoinKeyList('BubbleProperty', self.mandatory_properties)
+        bt.public_properties    = GetZoinKeyList('BubbleProperty', self.public_properties)
+        bt.propagated_properties = GetZoinKeyList('BubbleProperty', self.propagated_properties)
+        bt.escalated_properties = GetZoinKeyList('BubbleProperty', self.escalated_properties)
+        bt.inherited_properties = GetZoinKeyList('BubbleProperty', self.inherited_properties)
         bt.put('zimport')
 
         AddZoin(
             entity_kind = 'BubbleType',
             old_key = self.key().name(),
             new_key = bt.key(),
+        )
+        self.delete()
+
+
+class zBubbleProperty(db.Expando):
+    def zimport(self):
+        bp = GetZoin('BubbleProperty', self.key().name())
+        if not bp:
+            bp = BubbleProperty()
+
+        name = Dictionary(
+            name = 'tagtype_name',
+            estonian = self.name_estonian,
+            english = self.name_english
+        ).put('zimport')
+
+        bp.name                 = name
+        bp.count                = int(self.count)
+        bp.ordinal              = int(self.ordinal)
+        bp.data_property        = self.data_property.lower()
+        bp.data_type            = self.data_type.lower()
+        bp.default              = self.default
+        bp.choices              = StrToList(self.choices)
+        bp.is_unique            = True if self.is_unique.lower() == 'true' else False
+        bp.put('zimport')
+
+        AddZoin(
+            entity_kind = 'BubbleProperty',
+            old_key = self.key().name(),
+            new_key = bp.key(),
         )
         self.delete()
 
@@ -183,30 +221,3 @@ class zBubble(db.Expando):
         self.delete()
 
 
-class zTagType(db.Expando):
-    def zimport(self):
-        tt = GetZoin('TagType', self.key().name())
-        if not tt:
-            tt = TagType()
-
-        name = Dictionary(
-            name = 'tagtype_name',
-            estonian = self.name_estonian,
-            english = self.name_english
-        ).put('zimport')
-
-        tt.name                 = name
-        tt.count                = int(self.count)
-        tt.ordinal              = int(self.ordinal)
-        tt.data_property        = self.data_property.lower()
-        tt.data_type            = self.data_type.lower()
-        #tt.choices              = StrToList(self.choices)
-        tt.is_unique            = True if self.is_unique.lower() == 'true' else False
-        tt.put('zimport')
-
-        AddZoin(
-            entity_kind = 'BubbleType',
-            old_key = self.key().name(),
-            new_key = tt.key(),
-        )
-        self.delete()

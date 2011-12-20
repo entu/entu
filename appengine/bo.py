@@ -58,7 +58,7 @@ class boRequestHandler(webapp.RequestHandler):
             else:
                 return True
 
-    def view(self, page_title = '', template_file = None, values={}, main_template='main/index.html'):
+    def view(self, page_title = '', template_file = None, values={}, main_template=''):
         controllertime = (time.time() - self.starttime)
         logging.debug('Controller: %ss' % round(controllertime, 2))
 
@@ -149,6 +149,7 @@ class ChangeLog(db.Expando):
 class ChangeLogModel(db.Expando):
     _version    = db.StringProperty(default='A')
     _created    = db.DateTimeProperty(auto_now_add=True)
+    _changed    = db.DateTimeProperty(auto_now=True)
     _is_deleted = db.BooleanProperty(default=False)
 
     def put(self, email=None):
@@ -186,9 +187,7 @@ class ChangeLogModel(db.Expando):
             return changelog.datetime
 
 
-class SystemPreferences(db.Model):
-    value = db.StringProperty(multiline=True, default='')
-
+class SystemPreferences(ChangeLogModel):
     def get(self, key_name):
         sp = SystemPreferences().get_by_key_name(key_name)
         if not sp:
