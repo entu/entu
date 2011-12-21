@@ -237,7 +237,7 @@ class GenerateQuestionaryPersons(boRequestHandler):
 
 
     def post(self):
-        limit = 111
+        limit = 200
         step = int(self.request.get('step', 1))
         offset = int(self.request.get('offset', 0))
 
@@ -287,7 +287,7 @@ class GenerateQuestionaryPersons(boRequestHandler):
         logging.debug('#' + str(step) + ' - g:' + str(rc) + ' b:' + str(bc) + ' qp:' + str(qpc) + ' qa:' + str(qac))
 
         if rc == limit:
-            taskqueue.Task(url='/questionary/generate', params={'offset': (offset + rc + 1), 'step': (step + 1)}).add()
+            taskqueue.Task(url='/questionary/generate', params={'offset': (offset + rc), 'step': (step + 1)}).add()
 
         self.echo('done')
 
