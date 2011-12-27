@@ -102,10 +102,6 @@ transformers:
       external_name: registry_number
       import_transform: transform.none_if_empty(unicode)
 
-    - property: counter
-      external_name: counter
-      import_transform: transform.none_if_empty(unicode)
-
 
 - kind: zBubbleProperty
   connector: csv

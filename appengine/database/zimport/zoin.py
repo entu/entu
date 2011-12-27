@@ -29,7 +29,7 @@ def GetZoinKey(entity_kind, old_key):
     if entity_kind and old_key:
         z = Zoin().get_by_key_name(entity_kind + '__' + old_key)
         if z:
-            return z.new_entity
+            return z.new_entity.key()
 
 
 def GetZoinKeyList(entity_kind, old_keys):
