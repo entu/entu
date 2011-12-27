@@ -13,31 +13,30 @@ transformers:
 - kind: zBubble
   connector: csv
   connector_options:
-    #encoding: utf16
   property_map:
     - property: __key__
       external_name: key_name
       import_transform: transform.create_foreign_key('zBubble')
 
-    - property: order
-      external_name: order
-      import_transform: transform.none_if_empty(int)
+    - property: type
+      external_name: type
+      import_transform: transform.none_if_empty(unicode)
 
     - property: name_estonian
       external_name: name_estonian
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: name_english
       external_name: name_english
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: description_estonian
       external_name: description_estonian
-      import_transform: db.Text
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: description_english
       external_name: description_english
-      import_transform: db.Text
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: start_datetime
       external_name: start_datetime
@@ -47,41 +46,17 @@ transformers:
       external_name: end_datetime
       import_transform: transform.import_date_time('%Y-%m-%d %H:%M:%S')
 
-    - property: location
-      external_name: location
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: owner
-      external_name: owner
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: editors
-      external_name: editors
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: viewers
-      external_name: viewers
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: type
-      external_name: type
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: typed_tags
-      external_name: typed_tags
-      import_transform: transform.none_if_empty(unicode)
-
     - property: rating_scale
       external_name: rating_scale
       import_transform: transform.none_if_empty(unicode)
 
     - property: badge_estonian
       external_name: badge_estonian
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: badge_english
       external_name: badge_english
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: points
       external_name: points
@@ -101,25 +76,85 @@ transformers:
 
     - property: optional_bubbles
       external_name: optional_bubbles
-      import_transform: db.Text
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: prerequisite_bubbles
       external_name: prerequisite_bubbles
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: state
       external_name: state
       import_transform: transform.none_if_empty(unicode)
 
-    - property: entities
-      external_name: entities
+    - property: series
+      external_name: series
       import_transform: transform.none_if_empty(unicode)
+
+    - property: prefix
+      external_name: prefix
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: registry_number_counter
+      external_name: registry_number_counter
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: registry_number
+      external_name: registry_number
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: counter
+      external_name: counter
+      import_transform: transform.none_if_empty(unicode)
+
+
+- kind: zBubbleProperty
+  connector: csv
+  connector_options:
+  property_map:
+    - property: __key__
+      external_name: key_name
+      import_transform: transform.create_foreign_key('zBubbleProperty')
+
+    - property: name_estonian
+      external_name: name_estonian
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: name_english
+      external_name: name_english
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: data_type
+      external_name: data_type
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: data_property
+      external_name: data_property
+      import_transform: transform.none_if_empty(unicode)
+
+    - property: choices
+      external_name: choices
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: ordinal
+      external_name: ordinal
+      import_transform: transform.none_if_empty(int)
+
+    - property: count
+      external_name: count
+      import_transform: transform.none_if_empty(int)
+
+    - property: is_unique
+      external_name: is_unique
+      import_transform: transform.regexp_bool('true', re.IGNORECASE)
+
+    - property: default
+      external_name: default
+      import_transform: transform.none_if_empty(db.Text)
 
 
 - kind: zBubbleType
   connector: csv
   connector_options:
-    #encoding: utf16
   property_map:
     - property: __key__
       external_name: key_name
@@ -131,23 +166,31 @@ transformers:
 
     - property: name_estonian
       external_name: name_estonian
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: name_english
       external_name: name_english
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: name_plural_estonian
+      external_name: name_plural_estonian
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: name_plural_english
+      external_name: name_plural_english
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: description_estonian
       external_name: description_estonian
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: description_english
       external_name: description_english
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: allowed_subtypes
       external_name: allowed_subtypes
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: grade_display_method
       external_name: grade_display_method
@@ -186,72 +229,9 @@ transformers:
       import_transform: transform.none_if_empty(db.Text)
 
 
-- kind: zBubblePerson
-  connector: csv
-  connector_options:
-    #encoding: utf16
-  property_map:
-    - property: bubble_old_id
-      external_name: bubble_old_id
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: person
-      external_name: person
-      import_transform: transform.none_if_empty(unicode)
-
-
-
-- kind: zBubbleProperty
-  connector: csv
-  connector_options:
-    #encoding: utf16
-  property_map:
-    - property: __key__
-      external_name: key_name
-      import_transform: transform.create_foreign_key('zBubbleProperty')
-
-    - property: name_estonian
-      external_name: name_estonian
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: name_english
-      external_name: name_english
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: data_type
-      external_name: data_type
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: data_property
-      external_name: data_property
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: choices
-      external_name: choices
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: ordinal
-      external_name: ordinal
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: count
-      external_name: count
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: is_unique
-      external_name: is_unique
-      import_transform: transform.none_if_empty(unicode)
-
-    - property: default
-      external_name: default
-      import_transform: transform.none_if_empty(unicode)
-
-
-
 - kind: zContact
   connector: csv
   connector_options:
-    #encoding: utf16
   property_map:
     - property: __key__
       external_name: key_name
@@ -267,13 +247,58 @@ transformers:
 
     - property: value
       external_name: value
+      import_transform: transform.none_if_empty(db.Text)
+
+
+- kind: zCounter
+  connector: csv
+  connector_options:
+  property_map:
+    - property: __key__
+      external_name: key_name
+      import_transform: transform.create_foreign_key('zCounter')
+
+    - property: name_estonian
+      external_name: name_estonian
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: name_english
+      external_name: name_english
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: value
+      external_name: value
+      import_transform: transform.none_if_empty(int)
+
+    - property: increment
+      external_name: increment
+      import_transform: transform.none_if_empty(int)
+
+
+- kind: zDictionary
+  connector: csv
+  connector_options:
+  property_map:
+    - property: __key__
+      external_name: key_name
+      import_transform: transform.create_foreign_key('zDictionary')
+
+    - property: name
+      external_name: name
       import_transform: transform.none_if_empty(unicode)
+
+    - property: estonian
+      external_name: estonian
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: english
+      external_name: english
+      import_transform: transform.none_if_empty(db.Text)
 
 
 - kind: zGrade
   connector: csv
   connector_options:
-    #encoding: utf16
   property_map:
     - property: __key__
       external_name: key_name
@@ -297,11 +322,11 @@ transformers:
 
     - property: name_estonian
       external_name: name_estonian
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: name_english
       external_name: name_english
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: is_positive
       external_name: is_positive
@@ -317,11 +342,11 @@ transformers:
 
     - property: school_name_estonian
       external_name: school_name_estonian
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: school_name_english
       external_name: school_name_english
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: teacher
       external_name: teacher
@@ -337,11 +362,11 @@ transformers:
 
     - property: subject_name_est
       external_name: subject_name_est
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: subject_name_eng
       external_name: subject_name_eng
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: typed_tags
       external_name: typed_tags
@@ -351,7 +376,6 @@ transformers:
 - kind: zGradeDefinition
   connector: csv
   connector_options:
-    #encoding: utf16
   property_map:
     - property: __key__
       external_name: key_name
@@ -363,11 +387,11 @@ transformers:
 
     - property: name_estonian
       external_name: name_estonian
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: name_english
       external_name: name_english
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: is_positive
       external_name: is_positive
@@ -381,7 +405,6 @@ transformers:
 - kind: zPerson
   connector: csv
   connector_options:
-    #encoding: utf16
   property_map:
     - property: __key__
       external_name: key_name
@@ -423,7 +446,6 @@ transformers:
 - kind: zPersonRole
   connector: csv
   connector_options:
-    #encoding: utf16
   property_map:
     - property: __key__
       external_name: key_name
@@ -445,7 +467,6 @@ transformers:
 - kind: zRatingScale
   connector: csv
   connector_options:
-    #encoding: utf16
   property_map:
     - property: __key__
       external_name: key_name
@@ -453,17 +474,16 @@ transformers:
 
     - property: name_estonian
       external_name: name_estonian
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
     - property: name_english
       external_name: name_english
-      import_transform: transform.none_if_empty(unicode)
+      import_transform: transform.none_if_empty(db.Text)
 
 
 - kind: zRole
   connector: csv
   connector_options:
-    #encoding: utf16
   property_map:
     - property: __key__
       external_name: key_name
@@ -484,9 +504,3 @@ transformers:
     - property: template_name
       external_name: template_name
       import_transform: transform.none_if_empty(unicode)
-
-
-
-#    - property: is_published
-#      external_name: is_published
-#      import_transform: transform.regexp_bool('true', re.IGNORECASE)

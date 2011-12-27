@@ -19,7 +19,10 @@ def GetZoin(entity_kind, old_key):
     if entity_kind and old_key:
         z = Zoin().get_by_key_name(entity_kind + '__' + old_key)
         if z:
-            return z.new_entity
+            try:
+                return z.new_entity
+            except:
+                pass
 
 
 def GetZoinKey(entity_kind, old_key):
