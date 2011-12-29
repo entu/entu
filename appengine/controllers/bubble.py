@@ -103,6 +103,39 @@ class EditBubble(boRequestHandler):
             }
         )
 
+    def post(self, bubble_id):
+        if not self.authorize('bubbler'):
+            return
+
+        bubble = Bubble().get_by_id(int(bubble_id))
+        if not bubble:
+            return
+
+        value = bubble.SetProperty(
+            propertykey = self.request.get('property').strip(),
+            oldvalue = self.request.get('oldvalue').strip(),
+            newvalue = self.request.get('newvalue').strip(),
+        )
+        self.echo(self.request.get('newvalue').strip(), False)
+
+
+class AddBubble(boRequestHandler):
+    def post(self, bubble_id):
+        if not self.authorize('bubbler'):
+            return
+
+
+        bubble = Bubble().get_by_id(int(bubble_id))
+
+        newbubble = Bubble()
+        newbubble.type = self.request.get('type').strip()
+        newbubble.put()
+
+        bubble.optional_bubbles = AddToList(newbubble.key(), bubble.optional_bubbles)
+        bubble.put()
+
+        self.echo(newbubble.key().id(), False)
+
 
 class ShowBubbleDoc1(boRequestHandler):
     def get(self, id):
@@ -506,6 +539,7 @@ def main():
     Route([
             (r'/bubble/show/(.*)', ShowBubble),
             (r'/bubble/edit/(.*)', EditBubble),
+            (r'/bubble/add/(.*)', AddBubble),
             (r'/bubble/d1/(.*)', ShowBubbleDoc1),
             # (r'/bubble/add/(.*)/(.*)', AddBubble),
             # (r'/bubble/add_existing/(.*)', AddExistingBubble),

@@ -3,6 +3,8 @@
 def translation():
     return {
         '':                     '',
+        'logout':               'Log out',
+
         'search':               'Search',
         'search_found':         'Found',
 
@@ -48,9 +50,8 @@ def translation():
         'gapps_user_exist':     'Account <b>%s</b> exist. Connect with person ...',
         'gapps_nickname_exist': 'Nickname %(nick)s exist. Connect account <b>%(user)s</b> with person ...',
 
-        'bubble_date':                  'Date',
-        'bubble_description':           'Description',
-        'bubble_url':                   'URL',
+        'bubble_add_new':               'Add new',
+        'bubble_edit':                  'Edit',
         'bubble_max_leecher_count':     'Max leechers count',
         'bubble_seeders':               'Seeders',
         'bubble_leechers':              'Leechers',

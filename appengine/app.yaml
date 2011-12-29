@@ -24,6 +24,12 @@ error_handlers:
 
 
 
+# skip_files:
+# - ^(.*/)?.*\.less
+# - ^(.*/)?\..*
+
+
+
 handlers:
 
 #static files

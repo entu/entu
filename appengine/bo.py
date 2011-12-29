@@ -381,6 +381,8 @@ def RemoveFromList(s_value=None, s_list=[], unique=True):
 
 
 def GetUniqueList(s_list):
+    if None in s_list:
+        s_list.remove(None)
     return list(set(s_list))
 
 

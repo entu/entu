@@ -1,12 +1,86 @@
-<section class="table">
-    {% for t in bubble.tags %}
+<section class="table" style="margin:0px; width:100%;">
+    {% for t in bubble.GetProperties %}
     <div class="row">
         <div class="v_header">
             {{ t.name }}
         </div>
-        <div class="cell">
-            {{ t.value|join:"<br />"|urlize|linebreaks }}
+        <div class="cell" style="width:100%">
+            {% for v in t.value %}
+                {% if t.data_type == "dictionary_string" or t.data_type == "string" or t.data_type == "integer" or t.data_type == "float" or t.data_type == "date" or t.data_type == "datetime" %}
+                <input type="text" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}" value="{{ v }}" />
+                {% endif %}
+
+                {% if t.data_type == "password"  %}
+                <input type="password" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}" value="{{ v }}" />
+                {% endif %}
+
+                {% ifequal t.data_type "dictionary_text" %}
+                <textarea type="text" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}">{{ v }}</textarea>
+                {% endifequal %}
+
+                {% ifequal t.data_type "boolean" %}
+                <input type="checkbox" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}"{% ifequal v.value True %} checked{% endifequal %} />
+                {% endifequal %}
+
+                {% ifequal t.data_type "blobstore" %}
+                <input type="file"  name="{{ t.key }}" data-oldvalue="{{ v }}" class="dtype_{{ t.data_type }}" style="border:none;" />
+                {% endifequal %}
+
+                {% if t.choices %}
+                <select name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}" data-placeholder="{{ v.value }}">
+                    <option value=""></option>
+                    {% for c in t.choices %}
+                    <option value="{{ c.key }}"{% ifequal v c.key %} selected{% endifequal %}>{{ c.value }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+            {% endfor %}
         </div>
     </div>
     {% endfor %}
 </section>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        $('textarea').elastic();
+
+/*        $('input:password').dPassword();
+*/
+        $('select').chosen({
+            allow_single_deselect: true,
+        });
+
+        $('.dtype_datetime').change(function() {
+            $(this).val(format_date($(this).val(), 'dd.MM.yyyy HH:mm'));
+        });
+
+        $('.dtype_date').change(function() {
+            $(this).val(format_date($(this).val(), 'dd.MM.yyyy'));
+        });
+
+        function format_date(dinput, format) {
+            result = ''
+            dvalue = Date.parse(dinput);
+            if(dvalue) {
+                result = dvalue.toString(format);
+            }
+            return result;
+        }
+
+        $('.autosave').change(function() {
+            inputbox = $(this);
+            if (inputbox.attr('type') == 'checkbox') {
+                value = inputbox.is(':checked');
+            } else {
+                value = inputbox.val();
+            }
+            if (value != inputbox.data('oldvalue')) {
+                $.post('/bubble/edit/{{ bubble.key.id }}', {property: inputbox.attr('name'), oldvalue: inputbox.data('oldvalue'), newvalue: value}, function(newvalue) {
+                    inputbox.data('oldvalue', newvalue);
+                });
+            }
+        });
+
+    });
+</script>

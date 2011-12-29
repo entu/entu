@@ -20,6 +20,8 @@
 
 /* ICONS */
 @import "Lungo.widgets.icon.less";
+@import "chosen.less";
+@import "tipTip.less";
 
 
 
@@ -83,6 +85,12 @@ a, a:active, a:visited {
 }
 a:hover {
     text-decoration: underline;
+}
+
+input, textarea {
+    border: 1px solid @bordercolor;
+    padding: 2px;
+    font-size: 12px;
 }
 
 
@@ -341,9 +349,9 @@ img.spinner {
     background: @grayboxbg;
     border: 1px solid @bordercolor;
     border-top: none;
-    box-shadow: rgba(0, 0, 0, 0.4) 1px 1px 4px;
-    -moz-box-shadow: rgba(0, 0, 0, 0.4) 1px 1px 4px;
-    -webkit-box-shadow: rgba(0, 0, 0, 0.4) 1px 1px 4px;
+    box-shadow: rgba(0, 0, 0, 0.4) 1px 2px 4px;
+    -moz-box-shadow: rgba(0, 0, 0, 0.4) 1px 2px 4px;
+    -webkit-box-shadow: rgba(0, 0, 0, 0.4) 1px 2px 4px;
 }
 
 
@@ -363,7 +371,7 @@ img.spinner {
             padding: 5px 10px;
             text-align: right;
             font-weight: bold;
-            vertical-align: top;
+            vertical-align: middle;
             white-space: nowrap;
             border-right: 1px solid @bordercolor;
             border-bottom: 1px solid @bordercolor;
@@ -389,13 +397,18 @@ img.spinner {
 
         .cell {
             display: table-cell;
-            padding: 5px 10px;
+            padding: 5px 16px 5px 10px;
             vertical-align: top;
             border-right: 1px solid @bordercolor;
             border-bottom: 1px solid @bordercolor;
 
             &:last-child {
                 border-right: none;
+            }
+
+            input, textarea, select {
+                margin: 0px;
+                width: 100%;
             }
         }
     }

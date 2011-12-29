@@ -1,3 +1,7 @@
+//@codekit-prepend "jquery.tipTip.js";
+//@codekit-prepend "jQuery.dPassword.js";
+//@codekit-prepend "date.js";
+//@codekit-prepend "chosen.jquery.js";
 //@codekit-prepend "jquery.elastic.source.js";
 //@codekit-prepend "jquery.placeholder.js";
 //@codekit-prepend "jquery.raty.js";

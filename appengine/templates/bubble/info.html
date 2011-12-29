@@ -1,9 +1,14 @@
 <img src="{{ bubble.photourl }}" id="person_photo" />
 <div id="open_document_box" class="dropdown">
-    <a href="javascript:void(0);" class="iconic x-alt simplemodal-close" title="{{ str.open_document }}" style="float:right;"></a>
+    <a href="javascript:void(0);" class="icon cancel simplemodal-close" style="float:right; font-size:16px;"></a>
     <h2>{{ str.open_document }}</h2>
     <a href="/bubble/d1/{{ bubble.key.id }}" target="_blank">{{ str.bubble_doc_gradesheet }}</a><br />
     <a href="/person/csv?bubble_leechers={{ bubble.key }}">{{ str.bubble_doc_leechers_csv }}</a>
+</div>
+<div id="edit_bubble_box" class="dropdown" style="padding:0px;">
+    <a href="javascript:void(0);" class="icon cancel simplemodal-close" style="float:right; font-size:16px; margin:10px; clear:both;"></a>
+    <img src="/images/spinner_gray_small.gif" class="spinner" />
+    <div id="edit_bubble_box_content" style="margin-top:36px;"></div>
 </div>
 
 <h1>{{ bubble.displayname }}</h1>
@@ -50,19 +55,50 @@
         });
 
         tools = [
-            '<a id="open_new" href="javascript:void(0);" class="icon write" title="{{ str.bubble_add_new }}"></a>',
-            '<a id="open_edit" href="javascript:void(0);" class="icon pencil" title="{{ str.bubble_edit }}"></a>',
-            '<a id="open_document" href="javascript:void(0);" class="icon printer space" title="{{ str.open_document }}"></a>',
+            {% if bubble.allowed_subbubble_types %}'<a id="open_new" href="javascript:void(0);" class="icon write" title="{{ str.bubble_add_new }}"></a>',{% endif %}
+            '<a id="open_edit" href="javascript:void(0);" class="icon pencil tiptip" title="{{ str.bubble_edit }}"></a>',
+            '<a id="open_document" href="javascript:void(0);" class="icon printer space tiptip" title="{{ str.open_document }}"></a>',
         ];
         $('#tools').html(tools.join(''));
 
-        $('#open_edit').click(function() {
-            $.get('/bubble/edit/{{ bubble.key.id }}', function(data) {
-                $("#list_content div").html(data);
-                $('#tools').html('');
+        $("#open_new").tipTip({
+            activation: 'click',
+            edgeOffset: -5,
+            keepAlive: true,
+            content: '{{ str.bubble_add_new }}:<br />{% for t in bubble.allowed_subbubble_types %}<a href="javascript:void(0);" class="open_new" data-type="{{ t.type }}">{{ t.displayname }}</a><br />{% endfor %}',
+        });
+
+        $('.open_new').live('click', function() {
+            $.post('/bubble/add/{{ bubble.key.id }}', {type: $(this).data('type')}, function(bubble_id) {
+                open_edit(bubble_id);
             });
         });
 
+        $('#open_edit').click(function() {
+            open_edit('{{ bubble.key.id }}');
+        });
+
+        function open_edit(bubble_id) {
+            $('#edit_bubble_box .spinner').show();
+            $('#edit_bubble_box_content').html('');
+            $("#edit_bubble_box").modal({
+                position: [0,50],
+                opacity: 30,
+                overlayCss: {backgroundColor:"#000000"},
+                escClose: true,
+                overlayClose: true,
+                onClose: reload_item,
+            });
+            $.get('/bubble/edit/'+bubble_id, function(data) {
+                $('#edit_bubble_box .spinner').hide();
+                $("#edit_bubble_box_content").html(data);
+                if($('#edit_bubble_box_content').height() > $(window).height()*0.9) {
+                    $('#edit_bubble_box_content').css('overflow', 'none');
+                    $('#edit_bubble_box_content').css('overflow-y', 'auto');
+                    $('#edit_bubble_box_content').css('max-height', $(window).height()*0.9);
+                };
+            });
+        };
 
         $('#open_document').click(function() {
             $("#open_document_box").modal({
@@ -82,6 +118,16 @@
         ajax_persons_list('/person', { bubble_leechers: '{{ bubble.key }}' }, $('#leechers'), 'leecher');
         ajax_persons_list('/person', { bubble_waitinglist: '{{ bubble.key }}' }, $('#waitinglist'), 'waitinglist');
         ajax_bubbles_list('/bubble', { master_bubble: '{{ bubble.key }}' }, $('#subbubbles'), 'subbubbles');
+
+        function reload_item() {
+            $.modal.close();
+            $('#list_content .spinner').show();
+            $('#list_content div').html('');
+            $.get('/bubble/show/{{ bubble.key.id }}', function(html) {
+                $('#list_content .spinner').hide();
+                $('#list_content div').html(html);
+            });
+        }
 
         function ajax_persons_list(post_url, post_data, div, id) {
             $.post(post_url, post_data, function(list) {

@@ -9,6 +9,16 @@ from database.dictionary import *
 from database.person import *
 
 
+class Counter(ChangeLogModel):
+    name            = db.ReferenceProperty(Dictionary, collection_name='counter_name')
+    value           = db.IntegerProperty(default=0)
+    increment       = db.IntegerProperty(default=1)
+
+    @property
+    def displayname(self):
+        return self.name.value
+
+
 class RatingScale(ChangeLogModel):
     name                = db.ReferenceProperty(Dictionary, collection_name='ratingscale_name')
 
@@ -47,10 +57,25 @@ class BubbleProperty(ChangeLogModel):
     def displayname(self):
         return self.name.value
 
+    @property
+    def dictionary_name(self):
+        if getattr(self, 'choices', None):
+            if len(self.choices) > 0:
+                return self.choices[0]
+        if getattr(self, 'data_property', None):
+            return 'bubble_%s' % self.data_property.lower()
+
+    @property
+    def reference_entitykind(self):
+        if getattr(self, 'choices', None):
+            if len(self.choices) > 0:
+                return eval(self.choices[0])
+
 
 class BubbleType(ChangeLogModel):
     type                    = db.StringProperty()
     name                    = db.ReferenceProperty(Dictionary, collection_name='bubbletype_name')
+    name_plural             = db.ReferenceProperty(Dictionary, collection_name='bubbletype_name_plural')
     description             = db.ReferenceProperty(Dictionary, collection_name='bubbletype_description')
     allowed_subtypes        = db.StringListProperty()
     maximum_leecher_count   = db.IntegerProperty()
@@ -139,19 +164,19 @@ class Bubble(ChangeLogModel):
     next_in_line            = db.ListProperty(db.Key)
     leechers                = db.ListProperty(db.Key)
     seeders                 = db.ListProperty(db.Key)
-    rating_scale            = db.ReferenceProperty(RatingScale, collection_name='bubble_ratingscale')
     sort_estonian           = db.StringProperty(default='')
     sort_english            = db.StringProperty(default='')
     search_estonian         = db.StringListProperty()
     search_english          = db.StringListProperty()
 
     def AutoFix(self):
-        name = Dictionary().get(self.name)
-        self.sort_estonian = StringToSortable(name.estonian)
-        self.sort_english = StringToSortable(name.english)
+        if getattr(self, 'name', None):
+            name = Dictionary().get(self.name)
+            self.sort_estonian = StringToSortable(name.estonian)
+            self.sort_english = StringToSortable(name.english)
 
-        self.search_estonian = StringToSearchIndex(name.estonian)
-        self.search_english = StringToSearchIndex(name.english)
+            self.search_estonian = StringToSearchIndex(name.estonian)
+            self.search_english = StringToSearchIndex(name.english)
 
         seeders = db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('seeder', self.key()).fetch(1000)
         self.seeders = seeders if seeders else []
@@ -219,42 +244,44 @@ class Bubble(ChangeLogModel):
 
         self.put('autofix')
 
-
     @property
     def tags(self):
+        bt = db.Query(BubbleType).filter('type', self.type).get()
         result = []
-        for bp in db.Query(BubbleProperty).order('data_property'):
+        for bp in BubbleProperty().get(MergeLists(bt.optional_properties, bt.mandatory_properties)):
             data_value = getattr(self, bp.data_property, None)
             value = []
-
             if data_value:
                 if type(data_value) is not list:
                     data_value = [data_value]
                 for v in data_value:
-                    if bp.data_type in ['dictionary_string', 'dictionary_text', 'dictionary_select']:
-                        d = Dictionary().get(v)
-                        v = d.value
-                    if bp.data_type == 'datetime':
-                        v = v.strftime('%d.%m.%Y %H:%M')
-                    if bp.data_type == 'date':
-                        v = v.strftime('%d.%m.%Y')
-                    if bp.data_type == 'reference':
-                        v = v.displayname
-                    if v:
-                        value.append(v)
-
-            result.append({
-                'data_type': bp.data_type,
-                'data_property': bp.data_property,
-                'name': bp.displayname,
-                'value': value
-            })
+                    if v != None:
+                        if bp.data_type in ['dictionary_string', 'dictionary_text', 'dictionary_select']:
+                            d = Dictionary().get(v)
+                            v = d.value
+                        if bp.data_type == 'datetime':
+                            v = v.strftime('%d.%m.%Y %H:%M')
+                        if bp.data_type == 'date':
+                            v = v.strftime('%d.%m.%Y')
+                        if bp.data_type == 'reference':
+                            e = bp.reference_entitykind().get(v)
+                            v = e.displayname
+                        if bp.data_type == 'counter':
+                            c = Counter().get(v)
+                            v = c.displayname
+                        if v:
+                            value.append(v)
+                result.append({
+                    'data_type': bp.data_type,
+                    'data_property': bp.data_property,
+                    'name': bp.displayname,
+                    'value': value
+                })
         return result
-
 
     @property
     def displayname(self):
-        if not self.name:
+        if not getattr(self, 'name', None):
             return ''
 
         d = Dictionary().get(self.name)
@@ -273,413 +300,526 @@ class Bubble(ChangeLogModel):
         Cache().set(cache_key)
 
     @property
-    def displaydate(self):
-        if self.start_datetime and self.end_datetime:
-            if self.start_datetime.strftime('%H:%M') == '00:00' and self.end_datetime.strftime('%H:%M') == '00:00':
-                if self.start_datetime.strftime('%d.%m.%Y') == self.end_datetime.strftime('%d.%m.%Y'):
-                    return self.start_datetime.strftime('%d.%m.%Y')
-                else:
-                    return self.start_datetime.strftime('%d.%m.%Y') + ' - ' + self.end_datetime.strftime('%d.%m.%Y')
-            else:
-                if self.start_datetime.strftime('%d.%m.%Y') == self.end_datetime.strftime('%d.%m.%Y'):
-                    return self.start_datetime.strftime('%d.%m.%Y %H:%M') + ' - ' + self.end_datetime.strftime('%H:%M')
-                else:
-                    return self.start_datetime.strftime('%d.%m.%y %H:%M') + ' - ' + self.end_datetime.strftime('%d.%m.%y %H:%M')
-        else:
-            if self.start_datetime:
-                return self.start_datetime.strftime('%d.%m.%Y %H:%M') + ' - ...'
-            else:
-                if self.end_datetime:
-                    return '... - ' + self.end_datetime.strftime('%d.%m.%Y %H:%M')
-        return ''
-
-    @property
     def subbubbles(self):
         return GetUniqueList(self.mandatory_bubbles + self.optional_bubbles)
 
+    @property
+    def allowed_subbubble_types(self):
+        bt = db.Query(BubbleType).filter('type', self.type).get()
+        return db.Query(BubbleType).filter('type IN', bt.allowed_subtypes).fetch(1000)
 
     def GetPhotoUrl(self, size = ''):
         return 'http://www.gravatar.com/avatar/%s?s=%s&d=identicon' % (hashlib.md5(str(self.key()).strip().lower()).hexdigest(), size)
 
+    def GetProperties(self):
+        bt = db.Query(BubbleType).filter('type', self.type).get()
+        result = []
+        # for bp in db.Query(BubbleProperty).order('ordinal').fetch(1000):
+        for bp in sorted(BubbleProperty().get(MergeLists(bt.optional_properties, bt.mandatory_properties)), key=attrgetter('ordinal')):
+            data_value = getattr(self, bp.data_property, None)
+            value = []
+            choices = []
+
+            if data_value:
+                if type(data_value) is not list:
+                    data_value = [data_value]
+
+                for v in data_value:
+                    if v != None:
+                        if bp.data_type in ['dictionary_string', 'dictionary_text']:
+                            d = Dictionary().get(v)
+                            v = d.value
+                        if bp.data_type == 'datetime':
+                            v = v.strftime('%d.%m.%Y %H:%M')
+                        if bp.data_type == 'date':
+                            v = v.strftime('%d.%m.%Y')
+                        if bp.data_type in ['reference', 'counter', 'dictionary_select']:
+                            v = v
+                        if v:
+                            value.append(v)
+
+            if bp.data_type == 'dictionary_select':
+                for d in sorted(db.Query(Dictionary).filter('name', bp.dictionary_name), key=attrgetter('value')):
+                    choices.append({'key': d.key(), 'value': d.value})
+
+            if bp.data_type == 'reference':
+                for e in sorted(db.Query(bp.reference_entitykind).filter('_is_deleted', False), key=attrgetter('displayname')):
+                    choices.append({'key': e.key(), 'value': e.displayname})
+
+            if bp.data_type == 'counter':
+                for c in sorted(db.Query(Counter).filter('_is_deleted', False), key=attrgetter('displayname')):
+                    choices.append({'key': c.key(), 'value': c.displayname})
+
+            if bp.count == 0 or bp.count > len(value):
+                value.append('')
+
+            result.append({
+                'key': bp.key(),
+                'data_type': bp.data_type,
+                'data_property': bp.data_property,
+                'name': bp.displayname,
+                'choices': choices,
+                'value': value,
+            })
+        return result
+
+    def SetProperty(self, propertykey, oldvalue = '', newvalue = ''):
+        bp = BubbleProperty().get(propertykey)
+
+        data_value = getattr(self, bp.data_property, [])
+        if type(data_value) is not list:
+            data_value = [data_value]
+
+        if bp.data_type in ['dictionary_string', 'dictionary_text']:
+            if len(data_value) > 0:
+                for d in Dictionary().get(data_value):
+                    if getattr(d, UserPreferences().current.language, None) == oldvalue:
+                        if newvalue:
+                            setattr(d, UserPreferences().current.language, newvalue)
+                            d.put()
+                        else:
+                            data_value = RemoveFromList(d.key(), data_value)
+                newvalue = None
+            else:
+                d = Dictionary()
+                d.name = bp.dictionary_name
+                setattr(d, UserPreferences().current.language, newvalue)
+                d.put()
+                newvalue = d.key()
+            oldvalue = None
+        if bp.data_type in ['dictionary_select', 'reference', 'counter']:
+            oldvalue = db.Key(oldvalue) if oldvalue else None
+            newvalue = db.Key(newvalue) if newvalue else None
+        if bp.data_type == 'datetime':
+            oldvalue = datetime.strptime(oldvalue, '%d.%m.%Y %H:%M') if oldvalue else None
+            newvalue = datetime.strptime(newvalue, '%d.%m.%Y %H:%M') if newvalue else None
+        if bp.data_type == 'date':
+            oldvalue = datetime.strptime('%s 00:00' % oldvalue, '%d.%m.%Y %H:%M') if oldvalue else None
+            newvalue = datetime.strptime('%s 00:00' % newvalue, '%d.%m.%Y %H:%M') if newvalue else None
+        if bp.data_type == 'float':
+            oldvalue = float(oldvalue) if oldvalue else None
+            newvalue = float(newvalue) if newvalue else None
+        if bp.data_type == 'integer':
+            oldvalue = int(oldvalue) if oldvalue else None
+            newvalue = int(newvalue) if newvalue else None
+
+        if oldvalue:
+            data_value = RemoveFromList(oldvalue, data_value)
+        if newvalue:
+            data_value = AddToList(newvalue, data_value)
+
+        if len(data_value) > 0:
+            if len(data_value) == 1:
+                data_value = data_value[0]
+            setattr(self, bp.data_property, data_value)
+        else:
+            if hasattr(self, bp.data_property):
+                delattr(self, bp.data_property)
+
+        self.put()
+
+        return newvalue
+
     def GetType(self):
         return db.Query(BubbleType).filter('type', self.type).get()
 
-    def GetTypedTags(self):
-        result = {}
-        for tag in self.typed_tags:
-            result[tag.split(':')[0]] = tag.split(':')[1]
-        return result
+    # @property
+    # def displaydate(self):
+    #     if self.start_datetime and self.end_datetime:
+    #         if self.start_datetime.strftime('%H:%M') == '00:00' and self.end_datetime.strftime('%H:%M') == '00:00':
+    #             if self.start_datetime.strftime('%d.%m.%Y') == self.end_datetime.strftime('%d.%m.%Y'):
+    #                 return self.start_datetime.strftime('%d.%m.%Y')
+    #             else:
+    #                 return self.start_datetime.strftime('%d.%m.%Y') + ' - ' + self.end_datetime.strftime('%d.%m.%Y')
+    #         else:
+    #             if self.start_datetime.strftime('%d.%m.%Y') == self.end_datetime.strftime('%d.%m.%Y'):
+    #                 return self.start_datetime.strftime('%d.%m.%Y %H:%M') + ' - ' + self.end_datetime.strftime('%H:%M')
+    #             else:
+    #                 return self.start_datetime.strftime('%d.%m.%y %H:%M') + ' - ' + self.end_datetime.strftime('%d.%m.%y %H:%M')
+    #     else:
+    #         if self.start_datetime:
+    #             return self.start_datetime.strftime('%d.%m.%Y %H:%M') + ' - ...'
+    #         else:
+    #             if self.end_datetime:
+    #                 return '... - ' + self.end_datetime.strftime('%d.%m.%Y %H:%M')
+    #     return ''
 
-    def GetSeeders(self):
-        return Person().get(self.seeders)
+    # def GetTypedTags(self):
+    #     result = {}
+    #     for tag in self.typed_tags:
+    #         result[tag.split(':')[0]] = tag.split(':')[1]
+    #     return result
 
-    def GetLeechers(self):
-        return Person().get(self.leechers)
+    # def GetSeeders(self):
+    #     return Person().get(self.seeders)
 
-    def GetNextInLines(self):
-        return Bubble().get(self.next_in_line)
+    # def GetLeechers(self):
+    #     return Person().get(self.leechers)
 
-    def GetPrerequisiteBubbles(self):
-        return Bubble.get(self.prerequisite_bubbles)
+    # def GetNextInLines(self):
+    #     return Bubble().get(self.next_in_line)
 
-    def WaitinglistToLeecher(self):
-        for bp in db.Query(BubblePerson).filter('bubble', self).filter('status', 'waiting').order('start_datetime'):
-            if self.maximum_leecher_count:
-                if self.maximum_leecher_count <= len(self.leechers):
-                    break
-            self.leechers = AddToList(bp.person.key(), self.leechers)
-            self.put()
+    # def GetPrerequisiteBubbles(self):
+    #     return Bubble.get(self.prerequisite_bubbles)
 
-            person = bp.person
-            person.leecher = AddToList(bp.bubble.key(), person.leecher)
-            person.put()
+    # def WaitinglistToLeecher(self):
+    #     for bp in db.Query(BubblePerson).filter('bubble', self).filter('status', 'waiting').order('start_datetime'):
+    #         if self.maximum_leecher_count:
+    #             if self.maximum_leecher_count <= len(self.leechers):
+    #                 break
+    #         self.leechers = AddToList(bp.person.key(), self.leechers)
+    #         self.put()
 
-            bp.end_datetime = datetime.now()
-            bp.status = 'waiting_end'
-            bp.put()
+    #         person = bp.person
+    #         person.leecher = AddToList(bp.bubble.key(), person.leecher)
+    #         person.put()
 
-    @property
-    def PrevInLines(self):
-        return db.Query(Bubble).filter('next_in_line', self.key()).fetch(1000)
+    #         bp.end_datetime = datetime.now()
+    #         bp.status = 'waiting_end'
+    #         bp.put()
 
-    @property
-    def MandatoryInBubbles(self):
-        return db.Query(Bubble).filter('mandatory_bubbles', self.key()).fetch(1000)
+    # @property
+    # def PrevInLines(self):
+    #     return db.Query(Bubble).filter('next_in_line', self.key()).fetch(1000)
 
-    @property
-    def OptionalInBubbles(self):
-        return db.Query(Bubble).filter('optional_bubbles', self.key()).fetch(1000)
+    # @property
+    # def MandatoryInBubbles(self):
+    #     return db.Query(Bubble).filter('mandatory_bubbles', self.key()).fetch(1000)
 
-    @property
-    def InBubblesD(self):
-        in_bubbles = {}
-        for b in self.InBubbles:
-            in_bubbles[b.key()] = b
-        return in_bubbles
+    # @property
+    # def OptionalInBubbles(self):
+    #     return db.Query(Bubble).filter('optional_bubbles', self.key()).fetch(1000)
 
-    @property
-    def InBubbles(self):
-        in_bubbles = self.in_bubbles
-        if in_bubbles:
-            return in_bubbles
-        else:
-            return []
+    # @property
+    # def InBubblesD(self):
+    #     in_bubbles = {}
+    #     for b in self.InBubbles:
+    #         in_bubbles[b.key()] = b
+    #     return in_bubbles
 
-    @property
-    def in_bubbles(self):                       # TODO refactor to InBubbles
-        return self.MandatoryInBubbles + self.OptionalInBubbles
+    # @property
+    # def InBubbles(self):
+    #     in_bubbles = self.in_bubbles
+    #     if in_bubbles:
+    #         return in_bubbles
+    #     else:
+    #         return []
 
-    @property
-    def PrerequisiteForBubbles(self):
-        return db.Query(Bubble).filter('prerequisite_bubbles', self.key()).fetch(1000)
+    # @property
+    # def in_bubbles(self):                       # TODO refactor to InBubbles
+    #     return self.MandatoryInBubbles + self.OptionalInBubbles
 
-    @property
-    def PrerequisiteBubbles(self):
-        bubbles = []
-        if self.prerequisite_bubbles:
-            for b in Bubble.get(self.prerequisite_bubbles):
-                if not b:
-                    continue
-                if b.is_deleted:
-                    continue
-                bubbles.append(b)
-        return bubbles
+    # @property
+    # def PrerequisiteForBubbles(self):
+    #     return db.Query(Bubble).filter('prerequisite_bubbles', self.key()).fetch(1000)
 
-    @property
-    def SubBubblesD(self):
-        sub_bubbles = {}
-        for b in self.SubBubbles:
-            sub_bubbles[b.key()] = b
-        return sub_bubbles
+    # @property
+    # def PrerequisiteBubbles(self):
+    #     bubbles = []
+    #     if self.prerequisite_bubbles:
+    #         for b in Bubble.get(self.prerequisite_bubbles):
+    #             if not b:
+    #                 continue
+    #             if b.is_deleted:
+    #                 continue
+    #             bubbles.append(b)
+    #     return bubbles
 
-    @property
-    def SubBubbles(self):
-        sub_bubbles = self.bubbles
-        if sub_bubbles:
-            return sub_bubbles
-        else:
-            return []
+    # @property
+    # def SubBubblesD(self):
+    #     sub_bubbles = {}
+    #     for b in self.SubBubbles:
+    #         sub_bubbles[b.key()] = b
+    #     return sub_bubbles
 
-    @property
-    def bubbles(self):                         # TODO refactor to SubBubbles
-        keys = []
-        if self.mandatory_bubbles:
-            keys += self.mandatory_bubbles
-        if self.optional_bubbles:
-            keys += self.optional_bubbles
-        keys = GetUniqueList(keys)
-        if len(keys) == 0:
-            return
+    # @property
+    # def SubBubbles(self):
+    #     sub_bubbles = self.bubbles
+    #     if sub_bubbles:
+    #         return sub_bubbles
+    #     else:
+    #         return []
 
-        bubbles = []
-        for b in Bubble.get(keys):
-            if not b:
-                continue
-            if b.is_deleted:
-                continue
-            if b.key() in self.mandatory_bubbles:
-                b.is_mandatory = True
-            else:
-                b.is_mandatory = False
-            bubbles.append(b)
-        if len(bubbles) > 0:
-            return bubbles
+    # @property
+    # def bubbles(self):                         # TODO refactor to SubBubbles
+    #     keys = []
+    #     if self.mandatory_bubbles:
+    #         keys += self.mandatory_bubbles
+    #     if self.optional_bubbles:
+    #         keys += self.optional_bubbles
+    #     keys = GetUniqueList(keys)
+    #     if len(keys) == 0:
+    #         return
 
-    @property
-    def RateableSubBubbles(self):
-        keys = []
-        if self.mandatory_bubbles:
-            keys += self.mandatory_bubbles
-        if self.optional_bubbles:
-            keys += self.optional_bubbles
-        keys = GetUniqueList(keys)
-        if len(keys) == 0:
-            return
+    #     bubbles = []
+    #     for b in Bubble.get(keys):
+    #         if not b:
+    #             continue
+    #         if b.is_deleted:
+    #             continue
+    #         if b.key() in self.mandatory_bubbles:
+    #             b.is_mandatory = True
+    #         else:
+    #             b.is_mandatory = False
+    #         bubbles.append(b)
+    #     if len(bubbles) > 0:
+    #         return bubbles
 
-        bubbles = []
-        for b in Bubble.get(keys):
-            if not b:
-                continue
-            if b.is_deleted:
-                continue
-            if b.rating_scale is None:
-                continue
-            if b.key() in self.mandatory_bubbles:
-                b.is_mandatory = True
-            else:
-                b.is_mandatory = False
-            bubbles.append(b)
-        if len(bubbles) > 0:
-            return bubbles
+    # @property
+    # def RateableSubBubbles(self):
+    #     keys = []
+    #     if self.mandatory_bubbles:
+    #         keys += self.mandatory_bubbles
+    #     if self.optional_bubbles:
+    #         keys += self.optional_bubbles
+    #     keys = GetUniqueList(keys)
+    #     if len(keys) == 0:
+    #         return
 
-    @property
-    def MandatoryBubbles(self):
-        if self.mandatory_bubbles is None:
-            return
-        bubbles = []
-        for b in Bubble.get(self.mandatory_bubbles):
-            if not b:
-                continue
-            if b.is_deleted:
-                continue
-            b.is_mandatory = True
-            bubbles.append(b)
-        if len(bubbles) > 0:
-            return bubbles
+    #     bubbles = []
+    #     for b in Bubble.get(keys):
+    #         if not b:
+    #             continue
+    #         if b.is_deleted:
+    #             continue
+    #         if b.rating_scale is None:
+    #             continue
+    #         if b.key() in self.mandatory_bubbles:
+    #             b.is_mandatory = True
+    #         else:
+    #             b.is_mandatory = False
+    #         bubbles.append(b)
+    #     if len(bubbles) > 0:
+    #         return bubbles
 
-    @property
-    def OptionalBubbles(self):
-        if self.optional_bubbles:
-            bubbles = []
-            for b in Bubble.get(self.optional_bubbles):
-                if not b:
-                    continue
-                if b.is_deleted:
-                    continue
-                b.is_mandatory = False
-                bubbles.append(b)
-            if len(bubbles) > 0:
-                return bubbles
+    # @property
+    # def MandatoryBubbles(self):
+    #     if self.mandatory_bubbles is None:
+    #         return
+    #     bubbles = []
+    #     for b in Bubble.get(self.mandatory_bubbles):
+    #         if not b:
+    #             continue
+    #         if b.is_deleted:
+    #             continue
+    #         b.is_mandatory = True
+    #         bubbles.append(b)
+    #     if len(bubbles) > 0:
+    #         return bubbles
 
-    @property
-    def PersonGrades(self, person_key):
-        return db.Query(Grade).filter('person', person_key).filter('bubble',self.key()).fetch(1000)
+    # @property
+    # def OptionalBubbles(self):
+    #     if self.optional_bubbles:
+    #         bubbles = []
+    #         for b in Bubble.get(self.optional_bubbles):
+    #             if not b:
+    #                 continue
+    #             if b.is_deleted:
+    #                 continue
+    #             b.is_mandatory = False
+    #             bubbles.append(b)
+    #         if len(bubbles) > 0:
+    #             return bubbles
 
-    # i.e. Pre-requisite bubbles must notify post-requisites when marked green so
-    # that they can check, if they are next in line for at least one green bubble
-    def propose_leecher(self, person_key):
-        for bubble in self.PrevInLines:
-            if bubble.is_green(person_key):
-                return self.add_leecher(person_key)
+    # @property
+    # def PersonGrades(self, person_key):
+    #     return db.Query(Grade).filter('person', person_key).filter('bubble',self.key()).fetch(1000)
 
-        return False
+    # # i.e. Pre-requisite bubbles must notify post-requisites when marked green so
+    # # that they can check, if they are next in line for at least one green bubble
+    # def propose_leecher(self, person_key):
+    #     for bubble in self.PrevInLines:
+    #         if bubble.is_green(person_key):
+    #             return self.add_leecher(person_key)
 
-    # Could we add person to bubble.leechers?
-    def is_valid_leecher(self, person_key):
-        if leecher in self.leechers:
-            return False
-        return self.are_prerequisites_satisfied(person_key)
+    #     return False
 
-    @property
-    def Grades(self):
-        return db.Query(Grade).filter('bubble', self.key()).filter('is_deleted', False).fetch(1000)
+    # # Could we add person to bubble.leechers?
+    # def is_valid_leecher(self, person_key):
+    #     if leecher in self.leechers:
+    #         return False
+    #     return self.are_prerequisites_satisfied(person_key)
 
-    @property
-    def SubGrades(self):
-        subgrades = []
-        for bubble_key in self.sub_bubbles:
-            subgrades.extend(db.Query(Grade).filter('bubble', bubble_key).filter('is_deleted', False).fetch(1000))
-        return subgrades
+    # @property
+    # def Grades(self):
+    #     return db.Query(Grade).filter('bubble', self.key()).filter('is_deleted', False).fetch(1000)
 
-    @property
-    def is_started(self):
-        return self.start_datetime < datetime.now()
+    # @property
+    # def SubGrades(self):
+    #     subgrades = []
+    #     for bubble_key in self.sub_bubbles:
+    #         subgrades.extend(db.Query(Grade).filter('bubble', bubble_key).filter('is_deleted', False).fetch(1000))
+    #     return subgrades
 
-    @property
-    def is_finished(self):
-        return self.end_datetime < datetime.now()
+    # @property
+    # def is_started(self):
+    #     return self.start_datetime < datetime.now()
 
-    @property
-    def is_currently_on(self):
-        return self.is_started() and not self.is_finished()
+    # @property
+    # def is_finished(self):
+    #     return self.end_datetime < datetime.now()
 
-    def add_leecher(self, person_key):
-        #if not self.is_valid_leecher(person_key):
-        #    return False
+    # @property
+    # def is_currently_on(self):
+    #     return self.is_started() and not self.is_finished()
 
-        self.leechers = AddToList(person_key, self.leechers)
-        self.put()
+    # def add_leecher(self, person_key):
+    #     #if not self.is_valid_leecher(person_key):
+    #     #    return False
 
-        if self.type == 'exam':
-            person = Person().get(person_key)
-            if not list(set(person.leecher) & set(self.optional_bubbles)):
-                bubbles = sorted(Bubble().get(self.optional_bubbles), key=attrgetter('start_datetime'))
-                for b in bubbles:
-                    if b.type == 'personal_time_slot' and b.is_deleted == False:
-                        if not db.Query(Person).filter('leecher', b.key()).get():
-                            person.add_leecher(b.key())
-                            break
+    #     self.leechers = AddToList(person_key, self.leechers)
+    #     self.put()
 
-        if self.type == 'personal_time_slot':
-            person = Person().get(person_key)
-            bubble = db.Query(Bubble).filter('type', 'exam').filter('optional_bubbles', self.key()).get()
+    #     if self.type == 'exam':
+    #         person = Person().get(person_key)
+    #         if not list(set(person.leecher) & set(self.optional_bubbles)):
+    #             bubbles = sorted(Bubble().get(self.optional_bubbles), key=attrgetter('start_datetime'))
+    #             for b in bubbles:
+    #                 if b.type == 'personal_time_slot' and b.is_deleted == False:
+    #                     if not db.Query(Person).filter('leecher', b.key()).get():
+    #                         person.add_leecher(b.key())
+    #                         break
 
-            if bubble.description:
-                description = bubble.description.value
-            else:
-                description = ''
+    #     if self.type == 'personal_time_slot':
+    #         person = Person().get(person_key)
+    #         bubble = db.Query(Bubble).filter('type', 'exam').filter('optional_bubbles', self.key()).get()
 
-            con = db.Query(Conversation).filter('entities', person.key()).filter('types', 'application').get()
-            if not con:
-                con = Conversation()
-                con.types = ['application']
-                con.entities = [person.key()]
-            con.participants = AddToList(person.key(), con.participants)
-            con.put()
-            """con.add_message(
-                message = Translate('email_log_timeslot') % {
-                    'bubble': bubble.displayname,
-                    'description': description,
-                    'time': self.displaydate,
-                    'link': bubble.url,
-                }
-            )
+    #         if bubble.description:
+    #             description = bubble.description.value
+    #         else:
+    #             description = ''
 
-            SendMail(
-                to = person.emails,
-                reply_to = 'sisseastumine@artun.ee',
-                subject = Translate('email_subject_timeslot') % bubble.displayname,
-                message = Translate('email_message_timeslot') % {
-                    'name': person.displayname,
-                    'bubble': bubble.displayname,
-                    'description': description,
-                    'time': self.displaydate,
-                    'link': bubble.url,
-                }
-            )"""
+    #         con = db.Query(Conversation).filter('entities', person.key()).filter('types', 'application').get()
+    #         if not con:
+    #             con = Conversation()
+    #             con.types = ['application']
+    #             con.entities = [person.key()]
+    #         con.participants = AddToList(person.key(), con.participants)
+    #         con.put()
+    #         """con.add_message(
+    #             message = Translate('email_log_timeslot') % {
+    #                 'bubble': bubble.displayname,
+    #                 'description': description,
+    #                 'time': self.displaydate,
+    #                 'link': bubble.url,
+    #             }
+    #         )
 
-    def remove_leecher(self, person_key):
-        self.leechers.remove(person_key)
-        self.put()
+    #         SendMail(
+    #             to = person.emails,
+    #             reply_to = 'sisseastumine@artun.ee',
+    #             subject = Translate('email_subject_timeslot') % bubble.displayname,
+    #             message = Translate('email_message_timeslot') % {
+    #                 'name': person.displayname,
+    #                 'bubble': bubble.displayname,
+    #                 'description': description,
+    #                 'time': self.displaydate,
+    #                 'link': bubble.url,
+    #             }
+    #         )"""
 
-    def remove_optional_bubble(self, bubble_key):
-        self.optional_bubbles.remove(bubble_key)
-        self.put()
+    # def remove_leecher(self, person_key):
+    #     self.leechers.remove(person_key)
+    #     self.put()
 
-    def get_subgrades_bubbles(self):
-        grades_bubbles = []
-        if self.bubbles:
-            for b in self.bubbles:
-                if b.type != 'personal_time_slot':
-                    if b.type2.grade_display_method == 'all':
-                        grades_bubbles = grades_bubbles + b.grades(person_key)
-                    else:
-                        grades_bubbles.append(b)
-            grades_bubbles = sorted(grades_bubbles, key=lambda k: k.key())
-        return grades_bubbles
+    # def remove_optional_bubble(self, bubble_key):
+    #     self.optional_bubbles.remove(bubble_key)
+    #     self.put()
 
-    def subgrades(self, person_key):
-        bubbles = self.get_subgrades_bubbles()
-        for b in bubbles:
-            b.grade = db.Query(Grade).filter('bubble', b.key()).filter('is_deleted', False).filter('person', person_key).get()
+    # def get_subgrades_bubbles(self):
+    #     grades_bubbles = []
+    #     if self.bubbles:
+    #         for b in self.bubbles:
+    #             if b.type != 'personal_time_slot':
+    #                 if b.type2.grade_display_method == 'all':
+    #                     grades_bubbles = grades_bubbles + b.grades(person_key)
+    #                 else:
+    #                     grades_bubbles.append(b)
+    #         grades_bubbles = sorted(grades_bubbles, key=lambda k: k.key())
+    #     return grades_bubbles
 
-        return bubbles
+    # def subgrades(self, person_key):
+    #     bubbles = self.get_subgrades_bubbles()
+    #     for b in bubbles:
+    #         b.grade = db.Query(Grade).filter('bubble', b.key()).filter('is_deleted', False).filter('person', person_key).get()
 
-    def has_positive_grade(self, person_key):
-        grades = self.PersonGrades(person_key)
-        if len(grades) == 0:
-            return False
+    #     return bubbles
 
-        for grade in sorted(grades, attrgetter('datetime', reverse=True)):
-            if grade.is_positive:
-                return True
-            if self.type2.grade_display_method == 'latest':
-                return False
+    # def has_positive_grade(self, person_key):
+    #     grades = self.PersonGrades(person_key)
+    #     if len(grades) == 0:
+    #         return False
 
-        return False
+    #     for grade in sorted(grades, attrgetter('datetime', reverse=True)):
+    #         if grade.is_positive:
+    #             return True
+    #         if self.type2.grade_display_method == 'latest':
+    #             return False
 
-    def mark_green(person_key):
-        self.green_persons = AddToList(person_key, self.green_persons)
-        self.put()
-        for bubble in self.PrerequisiteForBubbles:
-            bubble.propose_leecher(person_key)
+    #     return False
 
-    def is_green(person_key):
-        if person_key in self.green_persons:
-            return True
+    # def mark_green(person_key):
+    #     self.green_persons = AddToList(person_key, self.green_persons)
+    #     self.put()
+    #     for bubble in self.PrerequisiteForBubbles:
+    #         bubble.propose_leecher(person_key)
 
-        if self.rating_scale:
-            if not self.has_positive_grade(person_key):
-                return False
+    # def is_green(person_key):
+    #     if person_key in self.green_persons:
+    #         return True
 
-        if not self.are_mandatories_satisfied(person_key):
-            return False
+    #     if self.rating_scale:
+    #         if not self.has_positive_grade(person_key):
+    #             return False
 
-        if self.minimum_bubble_count > 0:
-            counter = self.minimum_bubble_count
-            for sub_bubble in self.SubBubbles:
-                if sub_bubble.is_green(person_key):
-                    counter = counter - 1
-                    if counter == 0:
-                        return True
-                return False
+    #     if not self.are_mandatories_satisfied(person_key):
+    #         return False
 
-        self.mark_green(person_key)
-        return True
+    #     if self.minimum_bubble_count > 0:
+    #         counter = self.minimum_bubble_count
+    #         for sub_bubble in self.SubBubbles:
+    #             if sub_bubble.is_green(person_key):
+    #                 counter = counter - 1
+    #                 if counter == 0:
+    #                     return True
+    #             return False
 
-    def recheck_green(person_key):
-        RemoveFromList(person_key, self.green_persons)
-        return self.is_green(person_key)
+    #     self.mark_green(person_key)
+    #     return True
 
-    def are_mandatories_satisfied(person_key):
-        for sub_bubble in self.MandatoryBubbles:
-            if not sub_bubble.is_green(person_key):
-                return False
-        return True
+    # def recheck_green(person_key):
+    #     RemoveFromList(person_key, self.green_persons)
+    #     return self.is_green(person_key)
 
-    def are_prerequisites_satisfied(person_key):
-        for pre_bubble in self.PrerequisiteBubbles:
-            if not pre_bubble.is_green(person_key):
-                return False
-        return True
+    # def are_mandatories_satisfied(person_key):
+    #     for sub_bubble in self.MandatoryBubbles:
+    #         if not sub_bubble.is_green(person_key):
+    #             return False
+    #     return True
 
-    # Positive grades are only available, if mandatories are green.
-    # Negative grades could be issued at any time.
-    def grades_available(person_key):
-        if not self.rating_scale:
-            return
+    # def are_prerequisites_satisfied(person_key):
+    #     for pre_bubble in self.PrerequisiteBubbles:
+    #         if not pre_bubble.is_green(person_key):
+    #             return False
+    #     return True
 
-        if self.are_mandatories_satisfied(person_key):
-            return self.rating_scale.GradeDefinitions
+    # # Positive grades are only available, if mandatories are green.
+    # # Negative grades could be issued at any time.
+    # def grades_available(person_key):
+    #     if not self.rating_scale:
+    #         return
 
-        return self.rating_scale.NegativeGradeDefinitions
+    #     if self.are_mandatories_satisfied(person_key):
+    #         return self.rating_scale.GradeDefinitions
 
-    # When rating a bubble with rated sub-bubbles, sub-bubble grades could be listed.
-    def sub_bubble_grades(person_key):
-        for sub_bubble in self.SubBubbles:
-            grades = grades + sub_bubble.PersonGrades(person_key)
+    #     return self.rating_scale.NegativeGradeDefinitions
 
-        return grades
+    # # When rating a bubble with rated sub-bubbles, sub-bubble grades could be listed.
+    # def sub_bubble_grades(person_key):
+    #     for sub_bubble in self.SubBubbles:
+    #         grades = grades + sub_bubble.PersonGrades(person_key)
+
+    #     return grades
 
 
 class BubblePerson(ChangeLogModel): #parent=Bubble()
