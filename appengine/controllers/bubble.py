@@ -1,3 +1,6 @@
+from google.appengine.ext import blobstore
+from google.appengine.ext.webapp import blobstore_handlers
+
 from operator import attrgetter
 
 import string
@@ -100,6 +103,7 @@ class EditBubble(boRequestHandler):
             template_file = 'bubble/edit.html',
             values = {
                 'bubble': bubble,
+                'blobstore_upload_url': blobstore.create_upload_url('/bubble/file/%s/' % bubble_id),
             }
         )
 
@@ -136,6 +140,26 @@ class AddBubble(boRequestHandler):
 
         self.echo(newbubble.key().id(), False)
 
+
+class BubbleFile(blobstore_handlers.BlobstoreUploadHandler):
+    def post(self, bubble_id, file_key=None):
+
+        bubble = Bubble().get_by_id(int(bubble_id))
+        if not bubble:
+            return
+
+        upload_files = self.get_uploads('file')
+        if not upload_files:
+            return
+
+        blob_info = upload_files[0]
+
+        value = bubble.SetProperty(
+            propertykey = self.request.get('property').strip(),
+            newvalue = blob_info.key(),
+        )
+
+        self.response.out.write(blob_info.filename)
 
 class ShowBubbleDoc1(boRequestHandler):
     def get(self, id):
@@ -540,6 +564,7 @@ def main():
             (r'/bubble/show/(.*)', ShowBubble),
             (r'/bubble/edit/(.*)', EditBubble),
             (r'/bubble/add/(.*)', AddBubble),
+            (r'/bubble/file/(.*)/(.*)', BubbleFile),
             (r'/bubble/d1/(.*)', ShowBubbleDoc1),
             # (r'/bubble/add/(.*)/(.*)', AddBubble),
             # (r'/bubble/add_existing/(.*)', AddExistingBubble),

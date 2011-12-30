@@ -5,6 +5,9 @@ def translation():
         '':                     '',
         'logout':               'Log out',
 
+        'true':                 'True',
+        'false':                'False',
+
         'search':               'Search',
         'search_found':         'Found',
 

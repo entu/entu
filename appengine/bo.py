@@ -402,6 +402,13 @@ def RandomColor(r1=0, r2=255, g1=0, g2=255, b1=0, b2=255):
     return (('0'+(hex(random.randint(r1, r2))[2:]))[-2:] + ('0'+(hex(random.randint(g1, g2))[2:]))[-2:] + ('0'+(hex(random.randint(b1, b2))[2:]))[-2:]).upper()
 
 
+def GetFileSize(num):
+    for x in ['B','KB','MB','GB','TB']:
+        if num < 1024.0:
+            return "%3.1f%s" % (num, x)
+        num /= 1024.0
+
+
 def ImageRescale(img_data, width, height, halign='middle', valign='middle'):
     image = images.Image(img_data)
 

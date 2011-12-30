@@ -5,6 +5,9 @@ def translation():
         '':                     '',
         'logout':               'Välju',
 
+        'true':                 'Jah',
+        'false':                'Ei',
+
         'search':               'Otsi',
         'search_found':         'Leiti',
 

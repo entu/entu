@@ -1,4 +1,5 @@
 from google.appengine.ext import db
+from google.appengine.ext import blobstore
 from datetime import *
 from operator import attrgetter
 
@@ -45,13 +46,17 @@ class RatingScale(ChangeLogModel):
 
 class BubbleProperty(ChangeLogModel):
     name                    = db.ReferenceProperty(Dictionary, collection_name='bubbleproperty_name')
-    data_property           = db.StringProperty()
     data_type               = db.StringProperty()
+    data_property           = db.StringProperty()
+    format_string           = db.StringProperty()
+    target_property         = db.StringProperty()
     default                 = db.StringProperty()
     choices                 = db.StringListProperty()
     count                   = db.IntegerProperty()
     ordinal                 = db.IntegerProperty()
     is_unique               = db.BooleanProperty(default=False)
+    is_read_only            = db.BooleanProperty(default=False)
+    is_auto_complete        = db.BooleanProperty(default=False)
 
     @property
     def displayname(self):
@@ -83,7 +88,7 @@ class BubbleType(ChangeLogModel):
     grade_display_method    = db.StringProperty()
     property_displayname    = db.StringProperty()
     property_displayinfo    = db.StringProperty()
-    optional_properties     = db.ListProperty(db.Key)
+    bubble_properties       = db.ListProperty(db.Key)
     mandatory_properties    = db.ListProperty(db.Key)
     public_properties       = db.ListProperty(db.Key)
     propagated_properties   = db.ListProperty(db.Key)
@@ -248,7 +253,7 @@ class Bubble(ChangeLogModel):
     def tags(self):
         bt = db.Query(BubbleType).filter('type', self.type).get()
         result = []
-        for bp in BubbleProperty().get(MergeLists(bt.optional_properties, bt.mandatory_properties)):
+        for bp in sorted(BubbleProperty().get(bt.bubble_properties), key=attrgetter('ordinal')):
             data_value = getattr(self, bp.data_property, None)
             value = []
             if data_value:
@@ -269,6 +274,11 @@ class Bubble(ChangeLogModel):
                         if bp.data_type == 'counter':
                             c = Counter().get(v)
                             v = c.displayname
+                        if bp.data_type == 'blobstore':
+                            b = blobstore.BlobInfo.get(v)
+                            v = '<a href="/bubble/file/%s/%s" title="%s">%s</a>' % (self.key().id(), b.key(), GetFileSize(b.size), b.filename)
+                        if bp.data_type == 'boolean':
+                            v = Translate('true') if v == True else Translate('false')
                         if v:
                             value.append(v)
                 result.append({
@@ -316,7 +326,7 @@ class Bubble(ChangeLogModel):
         mandatory_properties = self.GetType().mandatory_properties
 
         # for bp in db.Query(BubbleProperty).order('ordinal').fetch(1000):
-        for bp in sorted(BubbleProperty().get(MergeLists(bt.optional_properties, bt.mandatory_properties)), key=attrgetter('ordinal')):
+        for bp in sorted(BubbleProperty().get(bt.bubble_properties), key=attrgetter('ordinal')):
             data_value = getattr(self, bp.data_property, None)
             value = []
             choices = []
@@ -336,6 +346,9 @@ class Bubble(ChangeLogModel):
                             v = v.strftime('%d.%m.%Y')
                         if bp.data_type in ['reference', 'counter', 'dictionary_select']:
                             v = v
+                        if bp.data_type == 'blobstore':
+                            b = blobstore.BlobInfo.get(v)
+                            v = {'key': b.key(), 'filename': b.filename, 'size': GetFileSize(b.size)}
                         if v:
                             value.append(v)
 
@@ -361,7 +374,8 @@ class Bubble(ChangeLogModel):
                 'name': bp.displayname,
                 'choices': choices,
                 'value': value,
-                'is_mandatory': True if bp.key() in mandatory_properties else False
+                'is_mandatory': True if bp.key() in mandatory_properties else False,
+                'can_add_new': (bp.count == 0 or bp.count > len(value))
             })
         return result
 
@@ -404,6 +418,13 @@ class Bubble(ChangeLogModel):
         if bp.data_type == 'integer':
             oldvalue = int(oldvalue) if oldvalue else None
             newvalue = int(newvalue) if newvalue else None
+        if bp.data_type == 'boolean':
+            newvalue = True if newvalue.lower() == 'true' else False
+            oldvalue = True if oldvalue.lower() == 'true' else False
+            data_value = AddToList(newvalue, data_value)
+            data_value = RemoveFromList(oldvalue, data_value)
+
+
 
         if oldvalue:
             data_value = RemoveFromList(oldvalue, data_value)

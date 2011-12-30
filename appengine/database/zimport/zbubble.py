@@ -98,13 +98,17 @@ class zBubbleProperty(db.Expando):
                 estonian = self.name_estonian,
                 english = self.name_english
             ).put('zimport')
-        bp.count                = int(self.count)
-        bp.ordinal              = int(self.ordinal)
-        bp.data_property        = self.data_property.lower()
         bp.data_type            = self.data_type.lower()
+        bp.data_property        = self.data_property.lower()
+        bp.format_string        = self.format_string
+        bp.target_property      = self.target_property
         bp.default              = self.default
         bp.choices              = StrToList(self.choices)
+        bp.ordinal              = int(self.ordinal)
+        bp.count                = int(self.count)
         bp.is_unique            = self.is_unique
+        bp.is_read_only         = self.is_read_only
+        bp.is_auto_complete     = self.is_auto_complete
         bp.put('zimport')
 
         AddZoin(
@@ -141,7 +145,7 @@ class zBubbleType(db.Expando):
         bt.grade_display_method = self.grade_display_method
         bt.property_displayname = self.property_displayname
         bt.property_displayinfo = self.property_displayinfo
-        bt.optional_properties  = GetZoinKeyList('BubbleProperty', self.optional_properties)
+        bt.bubble_properties    = GetZoinKeyList('BubbleProperty', self.bubble_properties)
         bt.mandatory_properties = GetZoinKeyList('BubbleProperty', self.mandatory_properties)
         bt.public_properties    = GetZoinKeyList('BubbleProperty', self.public_properties)
         bt.propagated_properties = GetZoinKeyList('BubbleProperty', self.propagated_properties)

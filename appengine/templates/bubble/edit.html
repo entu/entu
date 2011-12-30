@@ -19,11 +19,18 @@
                 {% endifequal %}
 
                 {% ifequal t.data_type "boolean" %}
-                <input type="checkbox" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}"{% ifequal v.value True %} checked{% endifequal %} />
+                <input type="checkbox" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}"{% if v %} checked{% endif %} />
                 {% endifequal %}
 
                 {% ifequal t.data_type "blobstore" %}
-                <input type="file"  name="{{ t.key }}" data-oldvalue="{{ v }}" class="dtype_{{ t.data_type }}" style="border:none;" />
+                {{ v.filename }}{% if not forloop.last %}, {% endif %}
+                {% if forloop.last and t.can_add_new %}
+                <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML);" style="display:none;"></iframe>
+                <form method="post" action="{{ blobstore_upload_url }}" target="iframe_{{ t.key }}" enctype="multipart/form-data">
+                    <input type="file" name="file" class="dtype_{{ t.data_type }}" style="border:none;" />
+                    <input type="hidden" name="property" value="{{ t.key }}" />
+                </form>
+                {% endif %}
                 {% endifequal %}
 
                 {% if t.choices %}
@@ -45,8 +52,16 @@
 
         $('textarea').elastic();
 
-/*        $('input:password').dPassword();
-*/
+        // $('input:password').dPassword();
+
+        $('.dtype_blobstore').change(function() {
+            $(this).parent().submit();
+        });
+
+        function showDocument(json_string){
+            alert(json_string);
+        };
+
         $('select').chosen({
             allow_single_deselect: true,
         });

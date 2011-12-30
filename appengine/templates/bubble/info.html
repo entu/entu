@@ -21,7 +21,9 @@
             {{ t.name }}
         </div>
         <div class="cell">
-            {{ t.value|join:"<br />"|urlize|linebreaks }}
+            {% for v in t.value %}
+            {{ v|safe|urlize|linebreaks }}
+            {% endfor %}
         </div>
     </div>
     {% endifequal %}{% endif %}
