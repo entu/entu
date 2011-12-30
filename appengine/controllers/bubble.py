@@ -19,10 +19,12 @@ class ShowBubbleList(boRequestHandler):
         if not self.authorize('bubbler'):
             return
 
+        bt = db.Query(BubbleType).filter('type', bubbletype.strip('/')).get()
+
         self.view(
             main_template='main/index.html',
             template_file = 'main/list.html',
-            page_title = 'page_bubbles',
+            page_title = bt.name_plural.value if bt else None,
             values = {
                 'list_url': '/bubble%s' % bubbletype,
                 'content_url': '/bubble/show',
@@ -42,7 +44,7 @@ class ShowBubbleList(boRequestHandler):
                 'key': str(bubble.key()),
                 'image': bubble.GetPhotoUrl(32),
                 'title': bubble.displayname,
-                #'info': bubble.displaydate,
+                #'info': bubble.displayinfo,
                 'type': bubble.type,
                 'type_name': bubble.GetType().displayname,
             })
@@ -85,6 +87,7 @@ class ShowBubble(boRequestHandler):
         self.view(
             main_template = 'main/index.html',
             template_file = 'bubble/info.html',
+            page_title = bubble.displayname,
             values = {
                 'bubble': bubble,
             }
@@ -140,13 +143,7 @@ class AddBubble(boRequestHandler):
 
 
         bubble = Bubble().get_by_id(int(bubble_id))
-
-        newbubble = Bubble()
-        newbubble.type = self.request.get('type').strip()
-        newbubble.put()
-
-        bubble.optional_bubbles = AddToList(newbubble.key(), bubble.optional_bubbles)
-        bubble.put()
+        newbubble = bubble.AddSubbubble(self.request.get('type').strip())
 
         self.echo(newbubble.key().id(), False)
 

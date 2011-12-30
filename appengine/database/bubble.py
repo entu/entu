@@ -19,6 +19,12 @@ class Counter(ChangeLogModel):
     def displayname(self):
         return self.name.value
 
+    @property
+    def next_value(self):
+        self.value += self.increment
+        self.put()
+        return self.value
+
 
 class RatingScale(ChangeLogModel):
     name                = db.ReferenceProperty(Dictionary, collection_name='ratingscale_name')
@@ -76,16 +82,6 @@ class BubbleProperty(ChangeLogModel):
         if getattr(self, 'choices', None):
             if len(self.choices) > 0:
                 return eval(self.choices[0])
-
-
-class BubbleRelation(ChangeLogModel):
-    bubble                  = db.ReferenceProperty(Bubble, collection_name='bubblerelation_bubble')
-    related_bubble          = db.ReferenceProperty(Bubble, collection_name='bubblerelation_related_bubble')
-    type                    = db.StringProperty(choices=['seeder','leecher','editor','owner','viewer','add_sub_bubbles'])
-    start_datetime          = db.DateTimeProperty()
-    end_datetime            = db.DateTimeProperty()
-    name                    = db.ReferenceProperty(Dictionary, collection_name='bubblerelation_name')
-    name_plural             = db.ReferenceProperty(Dictionary, collection_name='bubblerelation_name_plural')
 
 
 class BubbleType(ChangeLogModel):
@@ -200,6 +196,14 @@ class Bubble(ChangeLogModel):
         leechers = db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('leecher', self.key()).fetch(1000)
         self.leechers = leechers if leechers else []
 
+        for k in self.mandatory_bubbles:
+            if not Bubble().get(k):
+                self.mandatory_bubbles.remove(k)
+
+        for k in self.optional_bubbles:
+            if not Bubble().get(k):
+                self.optional_bubbles.remove(k)
+
         # if getattr(self, 'description', None):
         #     d = Dictionary().get(self.description)
         #     if d:
@@ -292,33 +296,57 @@ class Bubble(ChangeLogModel):
                             v = Translate('true') if v == True else Translate('false')
                         if v:
                             value.append(v)
-                result.append({
-                    'data_type': bp.data_type,
-                    'data_property': bp.data_property,
-                    'name': bp.name_plural.value if len(value) > 1 else bp.name.value,
-                    'value': value
-                })
+            result.append({
+                'data_type': bp.data_type,
+                'data_property': bp.data_property,
+                'name': bp.name_plural.value if len(value) > 1 else bp.name.value,
+                'value': value
+            })
         return result
 
     @property
     def displayname(self):
-        if not getattr(self, 'name', None):
+        bt = self.GetType()
+
+        if not bt.property_displayname:
             return ''
 
-        d = Dictionary().get(self.name)
-        if not d:
-            return ''
+        dname = bt.property_displayname
+        for t in self.tags:
+            dname = dname.replace('@%s@' % t['data_property'], ', '.join(t['value']))
 
-        cache_key = 'bubble_dname_' + UserPreferences().current.language + '_' + str(self.key())
-        name = Cache().get(cache_key)
-        if not name:
-            name = StripTags(d.value)
-            Cache().set(cache_key, name)
-        return name
+        return dname
+
+        # if not getattr(self, 'name', None):
+        #     return ''
+
+        # d = Dictionary().get(self.name)
+        # if not d:
+        #     return ''
+
+        # cache_key = 'bubble_dname_' + UserPreferences().current.language + '_' + str(self.key())
+        # name = Cache().get(cache_key)
+        # if not name:
+        #     name = StripTags(d.value)
+        #     Cache().set(cache_key, name)
+        # return name
 
     def displayname_cache_reset(self):
         cache_key = 'bubble_dname_' + UserPreferences().current.language + '_' + str(self.key())
         Cache().set(cache_key)
+
+    @property
+    def displayinfo(self):
+        bt = self.GetType()
+
+        if not bt.property_displayinfo:
+            return ''
+
+        dname = bt.property_displayinfo
+        for t in self.tags:
+            dname = dname.replace('@%s@' % t['data_property'], ', '.join(t['value']))
+
+        return dname
 
     @property
     def subbubbles(self):
@@ -330,6 +358,25 @@ class Bubble(ChangeLogModel):
 
     def GetPhotoUrl(self, size = ''):
         return 'http://www.gravatar.com/avatar/%s?s=%s&d=identicon' % (hashlib.md5(str(self.key()).strip().lower()).hexdigest(), size)
+
+    def AddSubbubble(self, type):
+        newbubble = Bubble()
+        newbubble.type = type
+        newbubble.put()
+
+        self.optional_bubbles = AddToList(newbubble.key(), self.optional_bubbles)
+        self.put()
+
+        br = db.Query(BubbleRelation).filter('_is_deleted', False).filter('bubble', self.key()).filter('related_bubble', newbubble.key()).get()
+        if not br:
+            br = BubbleRelation()
+            br.bubble = self.key()
+            br.related_bubble = newbubble.key()
+            br.type = 'subbuble'
+            br.put()
+
+        return newbubble
+
 
     def GetProperties(self):
         bt = db.Query(BubbleType).filter('type', self.type).get()
@@ -856,12 +903,14 @@ class Bubble(ChangeLogModel):
     #     return grades
 
 
-class BubblePerson(ChangeLogModel): #parent=Bubble()
-    bubble          = db.ReferenceProperty(Bubble)
-    person          = db.ReferenceProperty(Person)
-    status          = db.StringProperty(choices=['waiting', 'waiting_end', 'leecher', 'seeder', 'canceled'])
-    start_datetime  = db.DateTimeProperty(auto_now_add=True)
-    end_datetime    = db.DateTimeProperty()
+class BubbleRelation(ChangeLogModel):
+    bubble                  = db.ReferenceProperty(Bubble, collection_name='bubblerelation_bubble')
+    related_bubble          = db.ReferenceProperty(Bubble, collection_name='bubblerelation_related_bubble')
+    type                    = db.StringProperty(choices=['subbuble', 'seeder','leecher','editor','owner','viewer','add_sub_bubbles'])
+    start_datetime          = db.DateTimeProperty()
+    end_datetime            = db.DateTimeProperty()
+    name                    = db.ReferenceProperty(Dictionary, collection_name='bubblerelation_name')
+    name_plural             = db.ReferenceProperty(Dictionary, collection_name='bubblerelation_name_plural')
 
 
 class GradeDefinition(ChangeLogModel):
