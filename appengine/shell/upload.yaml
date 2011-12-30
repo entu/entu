@@ -119,6 +119,14 @@ transformers:
       external_name: name_english
       import_transform: transform.none_if_empty(db.Text)
 
+    - property: name_plural_estonian
+      external_name: name_plural_estonian
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: name_plural_english
+      external_name: name_plural_english
+      import_transform: transform.none_if_empty(db.Text)
+
     - property: data_type
       external_name: data_type
       import_transform: transform.none_if_empty(unicode)

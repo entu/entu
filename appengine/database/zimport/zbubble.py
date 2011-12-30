@@ -94,9 +94,14 @@ class zBubbleProperty(db.Expando):
             bp = BubbleProperty()
 
         bp.name                 = Dictionary(
-                name = 'tagtype_name',
+                name = 'bubbleproperty_name',
                 estonian = self.name_estonian,
                 english = self.name_english
+            ).put('zimport')
+        bp.name_plural                 = Dictionary(
+                name = 'bubbleproperty_name_plural',
+                estonian = self.name_plural_estonian,
+                english = self.name_plural_english
             ).put('zimport')
         bp.data_type            = self.data_type.lower()
         bp.data_property        = self.data_property.lower()
@@ -132,7 +137,7 @@ class zBubbleType(db.Expando):
                 english = self.name_english
             ).put('zimport')
         bt.name_plural          = Dictionary(
-                name = 'bubbletype_name',
+                name = 'bubbletype_name_plural',
                 estonian = self.name_plural_estonian,
                 english = self.name_plural_english
             ).put('zimport')

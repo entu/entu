@@ -91,6 +91,16 @@ class ShowBubble(boRequestHandler):
         )
 
 
+class ShowBubbleXML(boRequestHandler):
+    def get(self, bubble_id):
+        if not self.authorize('bubbler'):
+            return
+
+        bubble = Bubble().get_by_id(int(bubble_id))
+        self.header('Content-Type', 'text/xml')
+        self.echo(bubble.to_xml())
+
+
 class EditBubble(boRequestHandler):
     def get(self, bubble_id):
         if not self.authorize('bubbler'):
@@ -566,6 +576,7 @@ def main():
             (r'/bubble/add/(.*)', AddBubble),
             (r'/bubble/file/(.*)/(.*)', BubbleFile),
             (r'/bubble/d1/(.*)', ShowBubbleDoc1),
+            (r'/bubble/xml/(.*)', ShowBubbleXML),
             # (r'/bubble/add/(.*)/(.*)', AddBubble),
             # (r'/bubble/add_existing/(.*)', AddExistingBubble),
             # (r'/bubble/add_optional_subbubble/(.*)/(.*)', AddOptionalSubbubble),

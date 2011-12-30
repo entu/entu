@@ -46,6 +46,7 @@ class RatingScale(ChangeLogModel):
 
 class BubbleProperty(ChangeLogModel):
     name                    = db.ReferenceProperty(Dictionary, collection_name='bubbleproperty_name')
+    name_plural             = db.ReferenceProperty(Dictionary, collection_name='bubbleproperty_name_plural')
     data_type               = db.StringProperty()
     data_property           = db.StringProperty()
     format_string           = db.StringProperty()
@@ -284,7 +285,7 @@ class Bubble(ChangeLogModel):
                 result.append({
                     'data_type': bp.data_type,
                     'data_property': bp.data_property,
-                    'name': bp.displayname,
+                    'name': bp.name_plural.value if len(value) > 1 else bp.name.value,
                     'value': value
                 })
         return result
@@ -371,7 +372,7 @@ class Bubble(ChangeLogModel):
                 'key': bp.key(),
                 'data_type': bp.data_type,
                 'data_property': bp.data_property,
-                'name': bp.displayname,
+                'name': bp.name_plural.value if len(value) > 1 else bp.name.value,
                 'choices': choices,
                 'value': value,
                 'is_mandatory': True if bp.key() in mandatory_properties else False,
