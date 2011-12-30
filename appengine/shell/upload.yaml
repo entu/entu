@@ -102,6 +102,10 @@ transformers:
       external_name: registry_number
       import_transform: transform.none_if_empty(unicode)
 
+    - property: notes
+      external_name: notes
+      import_transform: transform.none_if_empty(db.Text)
+
 
 - kind: zBubbleProperty
   connector: csv

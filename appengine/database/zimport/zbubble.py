@@ -77,6 +77,9 @@ class zBubble(db.Expando):
         if self.registry_number:
             b.registry_number = self.registry_number
 
+        if self.notes:
+            b.notes = self.notes
+
         b.put('zimport')
 
         AddZoin(

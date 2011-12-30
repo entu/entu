@@ -14,9 +14,9 @@
                 <input type="password" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}" value="{{ v }}" />
                 {% endif %}
 
-                {% ifequal t.data_type "dictionary_text" %}
+                {% if t.data_type == "dictionary_text" or t.data_type == "text" %}
                 <textarea type="text" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}">{{ v }}</textarea>
-                {% endifequal %}
+                {% endif %}
 
                 {% ifequal t.data_type "boolean" %}
                 <input type="checkbox" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}"{% if v %} checked{% endif %} />
