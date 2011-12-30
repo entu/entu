@@ -52,6 +52,8 @@
 <script type="text/javascript">
     $(document).ready(function(){
 
+        document.title = '{{ site_name }}';
+
         $('.info_accordion div h2').click(function() {
             $(this).next().slideToggle();
         });
