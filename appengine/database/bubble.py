@@ -72,6 +72,16 @@ class BubbleProperty(ChangeLogModel):
                 return eval(self.choices[0])
 
 
+class BubbleRelation(ChangeLogModel):
+    bubble                  = db.ReferenceProperty(Bubble, collection_name='bubblerelation_bubble')
+    related_bubble          = db.ReferenceProperty(Bubble, collection_name='bubblerelation_related_bubble')
+    type                    = db.StringProperty(choices=['seeder','leecher','editor','owner','viewer','add_sub_bubbles'])
+    start_datetime          = db.DateTimeProperty()
+    end_datetime            = db.DateTimeProperty()
+    name                    = db.ReferenceProperty(Dictionary, collection_name='bubblerelation_name')
+    name_plural             = db.ReferenceProperty(Dictionary, collection_name='bubblerelation_name_plural')
+
+
 class BubbleType(ChangeLogModel):
     type                    = db.StringProperty()
     name                    = db.ReferenceProperty(Dictionary, collection_name='bubbletype_name')
