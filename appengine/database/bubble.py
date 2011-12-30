@@ -305,8 +305,7 @@ class Bubble(ChangeLogModel):
 
     @property
     def allowed_subbubble_types(self):
-        bt = db.Query(BubbleType).filter('type', self.type).get()
-        return db.Query(BubbleType).filter('type IN', bt.allowed_subtypes).fetch(1000)
+        return db.Query(BubbleType).filter('type IN', self.GetType().allowed_subtypes).fetch(1000)
 
     def GetPhotoUrl(self, size = ''):
         return 'http://www.gravatar.com/avatar/%s?s=%s&d=identicon' % (hashlib.md5(str(self.key()).strip().lower()).hexdigest(), size)
@@ -314,6 +313,8 @@ class Bubble(ChangeLogModel):
     def GetProperties(self):
         bt = db.Query(BubbleType).filter('type', self.type).get()
         result = []
+        mandatory_properties = self.GetType().mandatory_properties
+
         # for bp in db.Query(BubbleProperty).order('ordinal').fetch(1000):
         for bp in sorted(BubbleProperty().get(MergeLists(bt.optional_properties, bt.mandatory_properties)), key=attrgetter('ordinal')):
             data_value = getattr(self, bp.data_property, None)
@@ -360,6 +361,7 @@ class Bubble(ChangeLogModel):
                 'name': bp.displayname,
                 'choices': choices,
                 'value': value,
+                'is_mandatory': True if bp.key() in mandatory_properties else False
             })
         return result
 
