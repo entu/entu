@@ -375,6 +375,18 @@ class Bubble(ChangeLogModel):
             br.type = 'subbuble'
             br.put()
 
+        tags = self.tags
+        for bp in db.Query(BubbleProperty).filter('data_type', 'counter').filter('__key__ IN ', self.GetType().bubble_properties).fetch(1000):
+            data_value = getattr(self, bp.data_property, None)
+            if data_value:
+                c = Counter().get(data_value)
+
+                dname = bp.format_string.replace('@_counter_value@', str(c.next_value))
+                for t in tags:
+                    dname = dname.replace('@%s@' % t['data_property'], ', '.join(t['value']))
+                setattr(newbubble, bp.target_property, dname)
+                newbubble.put()
+
         return newbubble
 
 
@@ -422,7 +434,7 @@ class Bubble(ChangeLogModel):
                 for c in sorted(db.Query(Counter).filter('_is_deleted', False), key=attrgetter('displayname')):
                     choices.append({'key': c.key(), 'value': c.displayname})
 
-            if bp.count == 0 or bp.count > len(value):
+            if (bp.count == 0 or bp.count > len(value)) and bp.is_read_only == False:
                 value.append('')
 
             result.append({
@@ -433,6 +445,7 @@ class Bubble(ChangeLogModel):
                 'choices': choices,
                 'value': value,
                 'is_mandatory': True if bp.key() in mandatory_properties else False,
+                'is_read_only': bp.is_read_only,
                 'can_add_new': (bp.count == 0 or bp.count > len(value))
             })
         return result
