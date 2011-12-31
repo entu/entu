@@ -30,7 +30,7 @@
     <body>
         <section id="main_toolbar">
             <a href="/" id="site_logo">{{ system_title }}</a>
-            <a href="javascript:void(0);" id="site_user">Argo Roots<img src="{{ user.GetPhotoUrl }}" /></a>
+            <a href="javascript:void(0);" id="site_user">{{ user.displayname }}<img src="{{ user.GetPhotoUrl }}" /></a>
             <span id="tools"></span>
             {% block toolbar %}
                 {% if toolbar %}
