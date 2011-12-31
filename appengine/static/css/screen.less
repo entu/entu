@@ -107,9 +107,8 @@ img.spinner {
     top: 0px;
     left: 0px;
     right: 0px;
-    padding: 0px 5px;
+    padding: 0px 0px 0px 10px;
     font-size: 20px;
-    text-align: right;
 
     border-bottom: 1px solid @dark-bordercolor;
 
@@ -126,14 +125,33 @@ img.spinner {
     background: -ms-linear-gradient(top, #eeeeee 0%,#cccccc 100%);
     background: linear-gradient(top, #eeeeee 0%,#cccccc 100%);
 
-    img {
-        height: @toolbar_height - 12;
-        width: @toolbar_height - 12;
-        margin-top: 5px;
-        margin-right: 5px;
+    #tools {
+        margin-left: @list_width + 10;
+    }
+
+    #site_logo {
+        width: @nav_width;
         float: left;
-        border: 1px solid @bordercolor;
-        vertical-align: middle;
+        padding: 0px;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    #site_user {
+        display: block;
+        float: right;
+        padding: 0px 5px 0px 10px;
+        font-size: 16px;
+        border-left: 1px solid @bordercolor;
+
+        img {
+            height: @toolbar_height - 10;
+            width: @toolbar_height - 10;
+            margin-top: 0px;
+            margin-left: 10px;
+            vertical-align: middle;
+            .rounded-corners(5px);
+        }
     }
 
     a, a:active, a:visited, a:hover {
@@ -249,6 +267,7 @@ img.spinner {
     top: 0;
     height: @search_height;
     width: @list_width;
+    border-right: 1px solid @bordercolor;
 
     input {
         display: block;
