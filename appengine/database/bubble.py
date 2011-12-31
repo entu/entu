@@ -291,7 +291,7 @@ class Bubble(ChangeLogModel):
                             v = c.displayname
                         if bp.data_type == 'blobstore':
                             b = blobstore.BlobInfo.get(v)
-                            v = '<a href="/bubble/file/%s/%s" title="%s">%s</a>' % (self.key().id(), b.key(), GetFileSize(b.size), b.filename)
+                            v = '<a href="/bubble/file/%s" title="%s">%s</a>' % (b.key(), GetFileSize(b.size), b.filename)
                         if bp.data_type == 'boolean':
                             v = Translate('true') if v == True else Translate('false')
                         if v:

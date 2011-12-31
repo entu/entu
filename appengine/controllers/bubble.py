@@ -116,7 +116,7 @@ class EditBubble(boRequestHandler):
             template_file = 'bubble/edit.html',
             values = {
                 'bubble': bubble,
-                'blobstore_upload_url': blobstore.create_upload_url('/bubble/file/%s/' % bubble_id),
+                'blobstore_upload_url': blobstore.create_upload_url('/bubble/upload_file/%s' % bubble_id),
             }
         )
 
@@ -148,8 +148,13 @@ class AddBubble(boRequestHandler):
         self.echo(newbubble.key().id(), False)
 
 
-class BubbleFile(blobstore_handlers.BlobstoreUploadHandler):
-    def post(self, bubble_id, file_key=None):
+class DownloadBubbleFile(blobstore_handlers.BlobstoreDownloadHandler):
+    def get(self, file_key=None):
+        b = blobstore.BlobInfo.get(file_key)
+        self.send_blob(b, save_as=b.filename)
+
+class UploadBubbleFile(blobstore_handlers.BlobstoreUploadHandler):
+    def post(self, bubble_id):
 
         bubble = Bubble().get_by_id(int(bubble_id))
         if not bubble:
@@ -571,7 +576,8 @@ def main():
             (r'/bubble/show/(.*)', ShowBubble),
             (r'/bubble/edit/(.*)', EditBubble),
             (r'/bubble/add/(.*)', AddBubble),
-            (r'/bubble/file/(.*)/(.*)', BubbleFile),
+            (r'/bubble/file/(.*)', DownloadBubbleFile),
+            (r'/bubble/upload_file/(.*)', UploadBubbleFile),
             (r'/bubble/d1/(.*)', ShowBubbleDoc1),
             (r'/bubble/xml/(.*)', ShowBubbleXML),
             # (r'/bubble/add/(.*)/(.*)', AddBubble),
