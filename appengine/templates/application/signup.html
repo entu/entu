@@ -1,14 +1,7 @@
 {% extends main_template %}
 
-{% block breadcrumb %}
-{% endblock %}
-
-{% block nav %}
-{% endblock %}
-
 {% block content %}
-
-<section id="wide_content">
+<div id="wide_content">
 
     {% if system_logo %}
     <img src="{{ system_logo }}" alt="logo" style="margin:10px auto; display:block;" />
@@ -20,14 +13,14 @@
     <div id="login" class="box" style="margin-top:20px; margin-bottom:10px;">
         <a id="signup_show" href="javascript:void(0);" style="font-weight:bold; display:block;">{{ str.application_create_account }}</a>
         <div id="signup_form" style="display:none; padding:10px;">
-            {{ str.email }}: <input type="email" id="signup_email" name="signup_email" style="width:200px;" /> <a id="signup_send" href="javascript:void(0);" class="button">{{ str.send_invitation }}</a> <span id="signup_sent" style="display:none; margin-left:20px; color:red;">{{ str.invitation_sent }}</span>
+            {{ str.application_email }}: <input type="email" id="signup_email" name="signup_email" style="width:200px;" /> <a id="signup_send" href="javascript:void(0);" class="button" style="font-size:10px;">{{ str.application_send_invitation }}</a> <span id="signup_sent" style="display:none; margin-left:20px; color:red;">{{ str.application_invitation_sent }}</span>
         </div>
     </div>
 
     <div id="login" class="box" style="margin-bottom:10px;">
         <a id="applicant_pass_show" href="javascript:void(0);" style="font-weight:bold; display:block;">{{ str.application_login_with_password }}</a>
         <div id="applicant_pass_form" style="display:none; padding:10px;">
-            {{ str.password }}: <input type="password" id="applicant_pass" name="applicant_pass" /> <a id="applicant_pass_send" href="javascript:void(0);" class="button">{{ str.login }}</a>
+            {{ str.application_password }}: <input type="password" id="applicant_pass" name="applicant_pass" /> <a id="applicant_pass_send" href="javascript:void(0);" class="button" style="font-size:10px;">{{ str.application_login }}</a>
         </div>
     </div>
 
@@ -35,7 +28,7 @@
         <a href="{{ account_login_url }}" style="font-weight:bold; display:block;">{{ str.application_login_with_account }}</a>
     </div>
 
-</section>
+</div>
 
 <script>
     $(document).ready(function(){
@@ -59,7 +52,7 @@
             if($('#applicant_pass').val()) {
                 $.post('/application/signin', { applicant_pass: $('#applicant_pass').val() }, function(data) {
                     if(data == 'OK') {
-                        location.href = '/application/ratings';
+                        location.href = '/application/signin';
                     } else {
                         $('#applicant_pass_form').effect("shake", { times:3 }, 90);
                         $('#applicant_pass').val('');

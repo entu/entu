@@ -75,6 +75,18 @@ def translation():
         'feedback_unanswered_questionaries':    'Sul on veel vastata %s küsimustiku',
 
 
+        'application':          'Sisseastumisavaldus',
+        'application_signup_desc':              'Sisseastumisavalduse esitamiseks on sul vaja sisse logida. Kui sul on olemas @artun.ee konto, sisene kindlasti sellega. Kui sul seda ei ole, saad sa luua sisseastuja konto. Konto parool saadetakse sulle meilitsi. Kui oled parooli unustanud, siis kasuta uue konto loomise vormi ja sulle saadetakse uus parool.',
+        'application_create_account':           'Mul pole kontot ega parooli. Soovin luua konto...',
+        'application_send_invitation':                      'Saada kutse meilile',
+        'application_email':                'E-post',
+        'application_invitation_sent':                      'Kutse saadeti sulle meilile!',
+        'application_login_with_password':      'Mul on sisseastuja parool. Sisenen sellega...',
+        'application_password':                             'Parool',
+        'application_login':                'Sisene',
+        'application_login_with_account':       'Mul on @artun.ee konto. Sisenen sellega...',
+        'application_signup_mail_subject':      'Sisseastuja konto',
+        'application_signup_mail_message':      'Tere tulemast Eesti Kunstiakadeemiasse!<br /><br />Meil on hea meel, et oled otsustanud asuda õppima meie akadeemiasse.<br /><br />Sinu konto Eesti Kunstiakadeemia sisseastumisavalduse esitamiseks on loodud.<br />Konto parool on: <b>%s</b><br /><br />Sisseastumisavalduse saad täita aadressil <a href="http://bubbledu.artun.ee/application">http://bubbledu.artun.ee/application</a><br /><br />Täname!',
 
 
 
@@ -112,7 +124,6 @@ def translation():
 #         'list_months':          'jaanuar,veebruar,märts,aprill,mai,juuni,juuli,august,september,oktoober,november,detsember',
 #         'list_shortdays':       'püh,esm,tei,kol,nel,ree,lau',
 #         'list_shortmonths':     'jan,veb,mär,apr,mai,jun,jul,aug,sep,okt,nov,det',
-#         'login':                'Sisene',
 #         'logout':               'Välju',
 #         'manager':              'Manager',
 #         'mandatory':            'Kohustuslik',
@@ -155,7 +166,6 @@ def translation():
 
 #         'assets':               'Varad',
 #         'asset_id':             'Inventari number',
-#         'email':                'E-post',
 #         'location':             'Asukoht',
 #         'room_name':            'Ruum',
 #         'download':             'Lae alla',
@@ -170,7 +180,6 @@ def translation():
 #         'application':          'Sisseastumisavaldus',
 #         'application_add_new':  'Lisa sisseastumisavaldus',
 #         'application_comments':                 'Lisainfo',
-#         'application_create_account':           'Mul pole kontot ega parooli. Soovin luua konto...',
 #         'application_documents':                'Dokumendid',
 #         'application_documents_desc':           'Siin saab avaldusele lisada dokumente. Lisamine pole kohustuslik.',
 #         'application_edu_higher':               'Kõrgharidus',
@@ -181,11 +190,6 @@ def translation():
 #         'application_stateexams_desc':          'Kui oled teinud riigieksameid, sisesta siia nende tulemused.',
 #         'application_stateexams_desc_points':   'Riigieksamite tulemus sisestatakse 100 punkti süsteemis. Kui oled teinud eksamid enne 100 punkti süsteemis hindamist (hinnati kas 10 või 5 punkti süsteemis) siis sisesta hinne ikkagi 100 punkti süsteemis. See tähendab, et kui eksam hinnati 10 punkti süsteemis, siis korruta enda punktid kümnega, kui 5 punkti süsteemis, siis 20-ga.',
 #         'application_edu_been_subsidised':      'Olen õppinud riigieelarvelisel kohal',
-#         'application_login_with_account':       'Mul on @artun.ee konto. Sisenen sellega...',
-#         'application_login_with_password':      'Mul on sisseastuja parool. Sisenen sellega...',
-#         'application_signup_desc':              'Sisseastumisavalduse esitamiseks on sul vaja sisse logida. Kui sul on olemas @artun.ee konto, sisene kindlasti sellega. Kui sul seda ei ole, saad sa luua sisseastuja konto. Konto parool saadetakse sulle meilitsi. Kui oled parooli unustanud, siis kasuta uue konto loomise vormi ja sulle saadetakse uus parool.',
-#         'application_signup_mail_message':      'Tere tulemast Eesti Kunstiakadeemiasse!<br /><br />Meil on hea meel, et oled otsustanud asuda õppima meie akadeemiasse.<br /><br />Sinu konto Eesti Kunstiakadeemia sisseastumisavalduse esitamiseks on loodud.<br />Konto parool on: <b>%s</b><br /><br />Sisseastumisavalduse saad täita aadressil <a href="http://bubbledu.artun.ee/application">http://bubbledu.artun.ee/application</a><br /><br />Täname!',
-#         'application_signup_mail_subject':      'Sisseastuja konto',
 #         'application_specialities':             'Erialad',
 #         'application_specialities_desc':        'Vali millistele erialadele soovid kandideerida.',
 #         'application_workplaces':               'Töökohad',
@@ -197,12 +201,9 @@ def translation():
 #         'application_status_selected':          'Esitamata',
 #         'application_status_submitted':         'Esitatud',
 #         'application_status_accepted':          ' Kinnitatud',
-#         'invitation_sent':                      'Kutse saadeti sulle meilile!',
-#         'password':                             'Parool',
 #         'application_apply':                    'Kandideerin',
 #         'application_dont_apply':               'Ei kandideeri',
 #         'school_name':                          'Kooli nimi',
-#         'send_invitation':                      'Saada kutse meilile',
 #         'workplace_name':                       'Asutuse nimi',
 
 #         'applications':                         'Sisseastumisavaldused',

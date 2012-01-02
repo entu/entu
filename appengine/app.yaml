@@ -62,8 +62,8 @@ handlers:
 
 
 #public controllers
-#- url: /application(.*)
-#  script: controllers/application.py
+- url: /application(.*)
+  script: controllers/application.py
 
 - url: /document(.*)
   script: controllers/document.py
@@ -136,7 +136,7 @@ handlers:
 
 - url: /questionary(.*)
   script: controllers/questionary.py
-  #login: required
+  login: required
 
 - url: /reception(.*)
   script: controllers/reception.py
