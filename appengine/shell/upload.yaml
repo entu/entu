@@ -110,6 +110,10 @@ transformers:
       external_name: viewers
       import_transform: transform.none_if_empty(db.Text)
 
+    - property: allowed_subtypes
+      external_name: allowed_subtypes
+      import_transform: transform.none_if_empty(db.Text)
+
 
 - kind: zBubbleProperty
   connector: csv
