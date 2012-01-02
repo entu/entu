@@ -25,17 +25,17 @@ class ShowMenu(boRequestHandler):
     def get(self):
         menu = []
 
-        if self.authorize('bubbler'):
-            bubbletypes = []
-            for bt in db.Query(BubbleType).filter('type IN', ['department', 'folder', 'doc_other', 'doc_lahetuskorraldus', 'doc_kirjavahetus']).fetch(50):
+        bubbletypes = []
+        for bt in db.Query(BubbleType).fetch(50):
+            if db.Query(Bubble, keys_only=True).filter('type', bt.type).filter('viewers', Person().current).get():
                 bubbletypes.append({
                     'link': '/bubble/%s' % bt.type,
                     'title': bt.name_plural.value,
                 })
-            menu.append({
-                'title': Translate('menu_bubbles'),
-                'childs': bubbletypes
-            })
+        menu.append({
+            'title': Translate('menu_bubbles'),
+            'childs': bubbletypes
+        })
 
         if self.authorize('questionary') or self.authorize('reception'):
             menu.append({
