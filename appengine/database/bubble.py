@@ -368,6 +368,7 @@ class Bubble(ChangeLogModel):
     def AddSubbubble(self, type):
         newbubble = Bubble()
         newbubble.type = type
+        newbubble.viewers = self.viewers
         newbubble.put()
 
         self.optional_bubbles = AddToList(newbubble.key(), self.optional_bubbles)
