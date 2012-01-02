@@ -75,7 +75,7 @@ transformers:
       import_transform: transform.none_if_empty(unicode)
 
     - property: optional_bubbles
-      external_name: optional_bubbles
+      external_name: sub_bubbles
       import_transform: transform.none_if_empty(db.Text)
 
     - property: prerequisite_bubbles

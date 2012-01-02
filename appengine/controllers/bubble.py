@@ -44,7 +44,7 @@ class ShowBubbleList(boRequestHandler):
                 'key': str(bubble.key()),
                 'image': bubble.GetPhotoUrl(32),
                 'title': bubble.displayname,
-                #'info': bubble.displayinfo,
+                'info': bubble.displayinfo,
                 'type': bubble.type,
                 'type_name': bubble.GetType().displayname,
             })
@@ -56,6 +56,7 @@ class ShowBubbleList(boRequestHandler):
         leecher = self.request.get('leecher').strip()
         seeder = self.request.get('seeder').strip()
         master_bubble = self.request.get('master_bubble').strip()
+        btype = self.request.get('type').strip()
 
         if search:
             keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('search_'+UserPreferences().current.language, search).filter('_is_deleted', False).order('sort_'+UserPreferences().current.language))]
@@ -71,7 +72,7 @@ class ShowBubbleList(boRequestHandler):
 
         if master_bubble:
             bubble = Bubble().get(master_bubble)
-            keys = [str(k.key()) for k in sorted(Bubble().get(bubble.subbubbles), key=attrgetter('sort_'+UserPreferences().current.language))]
+            keys = [str(b.key()) for b in sorted(Bubble().get(bubble.subbubbles), key=attrgetter('sort_'+UserPreferences().current.language)) if b.type == btype]
 
         self.echo_json({'keys': keys})
 

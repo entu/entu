@@ -30,7 +30,8 @@
     <body>
         <section id="main_toolbar">
             <a href="/" id="site_logo">{{ system_title }}</a>
-            <a href="javascript:void(0);" id="site_user">{{ user.displayname }}<img src="{{ user.GetPhotoUrl }}" /></a>
+            <a href="{{ logouturl|escape }}" id="logout" class="icon on"></a>
+            <a href="/preferences" id="site_user">{{ user.displayname }}<img src="{{ user.GetPhotoUrl }}" /></a>
             <span id="tools"></span>
             {% block toolbar %}
                 {% if toolbar %}
@@ -70,13 +71,6 @@
                         }
                     });
                 }
-
-                $("#site_user").tipTip({
-                    activation: 'click',
-                    edgeOffset: -5,
-                    keepAlive: true,
-                    content: '<a href="/preferences">{{ str.page_preferences }}</a><br /><a href="{{ logouturl|escape }}">{{ str.logout }}</a>',
-                });
 
             });
         </script>

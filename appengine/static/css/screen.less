@@ -126,7 +126,7 @@ img.spinner {
     background: linear-gradient(top, #eeeeee 0%,#cccccc 100%);
 
     #tools {
-        margin-left: @list_width + 10;
+        margin-left: @list_width + 5;
     }
 
     #site_logo {
@@ -135,6 +135,10 @@ img.spinner {
         padding: 0px;
         font-size: 28px;
         font-weight: bold;
+
+        &:hover {
+            color: #163B60;
+        }
     }
 
     #site_user {
@@ -143,14 +147,23 @@ img.spinner {
         padding: 0px 5px 0px 10px;
         font-size: 16px;
         border-left: 1px solid @bordercolor;
+        border-right: 1px solid @bordercolor;
 
         img {
-            height: @toolbar_height - 10;
-            width: @toolbar_height - 10;
-            margin-top: 0px;
-            margin-left: 10px;
+            height: @toolbar_height - 8;
+            width: @toolbar_height - 8;
+            margin: 0px 0px 5px 10px;
             vertical-align: middle;
-            .rounded-corners(5px);
+        }
+    }
+
+    #logout {
+        float: right;
+        display: block;
+        padding: 13px;
+
+        &:hover {
+            color: #990000;
         }
     }
 
@@ -267,7 +280,6 @@ img.spinner {
     top: 0;
     height: @search_height;
     width: @list_width;
-    border-right: 1px solid @bordercolor;
 
     input {
         display: block;

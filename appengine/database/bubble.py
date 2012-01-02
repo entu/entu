@@ -517,6 +517,9 @@ class Bubble(ChangeLogModel):
     def GetType(self):
         return db.Query(BubbleType).filter('type', self.type).get()
 
+    def GetAllowedTypes(self):
+        return sorted(db.Query(BubbleType).filter('type IN', self.GetType().allowed_subtypes).fetch(1000), key=attrgetter('displayname'))
+
     # @property
     # def displaydate(self):
     #     if self.start_datetime and self.end_datetime:

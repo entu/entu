@@ -36,10 +36,12 @@
         <h2>{{ str.bubble_waitinglist }}<span><img src="/images/spinner_gray_small.gif" /></span></h2>
         <div id="waitinglist" class="persons_list"></div>
     </div>
+    {% for t in bubble.GetAllowedTypes %}
     <div style="display:none;">
-        <h2>{{ str.bubble_subbubbles }}<span><img src="/images/spinner_gray_small.gif" /></span></h2>
-        <div id="subbubbles" class="subbubbles_list"></div>
+        <h2>{{ t.name_plural.value }}<span><img src="/images/spinner_gray_small.gif" /></span></h2>
+        <div class="subbubbles_list" data-type="{{ t.type }}"></div>
     </div>
+    {% endfor %}
 </section>
 
 <script type="text/javascript">
@@ -52,7 +54,7 @@
         });
 
         tools = [
-            {% if bubble.allowed_subbubble_types %}'<a id="open_new" href="javascript:void(0);" class="icon write" title="{{ str.bubble_add_new }}"></a>',{% endif %}
+            {% if bubble.allowed_subbubble_types %}'<a id="open_new" href="javascript:void(0);" class="icon add" title="{{ str.bubble_add_new }}"></a>',{% endif %}
             '<a id="open_edit" href="javascript:void(0);" class="icon pencil tiptip" title="{{ str.bubble_edit }}"></a>',
             '<a id="open_document" href="javascript:void(0);" class="icon printer space tiptip" title="{{ str.open_document }}"></a>',
         ];
@@ -62,7 +64,7 @@
             activation: 'click',
             edgeOffset: -5,
             keepAlive: true,
-            content: '{{ str.bubble_add_new }}:<br />{% for t in bubble.allowed_subbubble_types %}<a href="javascript:void(0);" class="open_new" data-type="{{ t.type }}">{{ t.displayname }}</a><br />{% endfor %}',
+            content: '{% for t in bubble.allowed_subbubble_types %}<a href="javascript:void(0);" class="open_new" data-type="{{ t.type }}">{{ t.displayname }}</a><br />{% endfor %}',
         });
 
         $("#open_document").tipTip({
@@ -111,7 +113,10 @@
         ajax_persons_list('/person', { bubble_seeders: '{{ bubble.key }}' }, $('#seeders'), 'seeder');
         ajax_persons_list('/person', { bubble_leechers: '{{ bubble.key }}' }, $('#leechers'), 'leecher');
         ajax_persons_list('/person', { bubble_waitinglist: '{{ bubble.key }}' }, $('#waitinglist'), 'waitinglist');
-        ajax_bubbles_list('/bubble', { master_bubble: '{{ bubble.key }}' }, $('#subbubbles'), 'subbubbles');
+
+        $('.subbubbles_list').each(function() {
+            ajax_bubbles_list('/bubble', { master_bubble: '{{ bubble.key }}', type: $(this).data('type') }, $(this), 'subbubbles');
+        });
 
         function reload_item() {
             $.modal.close();
@@ -171,15 +176,13 @@
                         } else {
                             active = '';
                         }
-                        $('#'+id+'_'+item.key).html(item.type_name+' - '+item.title+'<span>'+item.info+'</span>');
+                        $('#'+id+'_'+item.key).html(item.title+'<span>'+item.info+'</span>');
                         $('#'+id+'_'+item.key).attr('href', '/bubble/'+item.type+'#'+item.id);
                     }, 'json');
                 }
                 if (list.keys.length > 0) {
                     div.parent().show();
                     div.parent().children('h2').children('span').html(list.keys.length);
-                } else {
-                    div.parent().hide();
                 }
             }, 'json');
         }
