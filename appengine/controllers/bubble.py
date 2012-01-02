@@ -16,9 +16,6 @@ from database.dictionary import *
 
 class ShowBubbleList(boRequestHandler):
     def get(self, bubbletype = None):
-        if not self.authorize('bubbler'):
-            return
-
         bt = db.Query(BubbleType).filter('type', bubbletype.strip('/')).get()
 
         self.view(
@@ -32,13 +29,14 @@ class ShowBubbleList(boRequestHandler):
         )
 
     def post(self, bubbletype = None):
-        if not self.authorize('bubbler'):
-            return
-
         key = self.request.get('key').strip()
         if key:
             bubble = Bubble().get(key)
+            if not bubble.Authorize('viewer'):
+                return
+
             bubble.AutoFix()
+
             self.echo_json({
                 'id': bubble.key().id(),
                 'key': str(bubble.key()),
@@ -59,32 +57,31 @@ class ShowBubbleList(boRequestHandler):
         btype = self.request.get('type').strip()
 
         if search:
-            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('search_'+UserPreferences().current.language, search).filter('_is_deleted', False).order('sort_'+UserPreferences().current.language))]
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('viewers', Person().current.key()).filter('type', bubbletype).filter('search_'+UserPreferences().current.language, search).filter('_is_deleted', False).order('sort_'+UserPreferences().current.language))]
 
         if bubbletype and not search:
-            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('type', bubbletype).filter('_is_deleted', False).order('sort_'+UserPreferences().current.language))]
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('viewers', Person().current.key()).filter('type', bubbletype).filter('_is_deleted', False).order('sort_'+UserPreferences().current.language))]
 
         if leecher:
-            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('leechers', db.Key(leecher)).filter('_is_deleted', False).order('sort_'+UserPreferences().current.language))]
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('viewers', Person().current.key()).filter('leechers', db.Key(leecher)).filter('_is_deleted', False).order('sort_'+UserPreferences().current.language))]
 
         if seeder:
-            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('seeders', db.Key(seeder)).filter('_is_deleted', False).order('sort_'+UserPreferences().current.language))]
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('viewers', Person().current.key()).filter('seeders', db.Key(seeder)).filter('_is_deleted', False).order('sort_'+UserPreferences().current.language))]
 
         if master_bubble:
             bubble = Bubble().get(master_bubble)
-            keys = [str(b.key()) for b in sorted(Bubble().get(bubble.subbubbles), key=attrgetter('sort_'+UserPreferences().current.language)) if b.type == btype]
+            keys = [str(b.key()) for b in sorted(Bubble().get(bubble.subbubbles), key=attrgetter('sort_'+UserPreferences().current.language)) if b.type == btype and b.Authorize('viewer')]
 
         self.echo_json({'keys': keys})
 
 
 class ShowBubble(boRequestHandler):
     def get(self, bubble_id):
-        if not self.authorize('bubbler'):
+        bubble = Bubble().get_by_id(int(bubble_id))
+        if not bubble.Authorize('viewer'):
             return
 
-        bubble = Bubble().get_by_id(int(bubble_id))
         bubble.photourl = bubble.GetPhotoUrl(150)
-
         self.view(
             main_template = 'main/index.html',
             template_file = 'bubble/info.html',
@@ -97,20 +94,19 @@ class ShowBubble(boRequestHandler):
 
 class ShowBubbleXML(boRequestHandler):
     def get(self, bubble_id):
-        if not self.authorize('bubbler'):
+        bubble = Bubble().get_by_id(int(bubble_id))
+        if not bubble.Authorize('viewer'):
             return
 
-        bubble = Bubble().get_by_id(int(bubble_id))
         self.header('Content-Type', 'text/xml')
         self.echo(bubble.to_xml())
 
 
 class EditBubble(boRequestHandler):
     def get(self, bubble_id):
-        if not self.authorize('bubbler'):
-            return
-
         bubble = Bubble().get_by_id(int(bubble_id))
+        if not bubble.Authorize('viewer'):
+            return
 
         self.view(
             main_template = '',
@@ -122,11 +118,8 @@ class EditBubble(boRequestHandler):
         )
 
     def post(self, bubble_id):
-        if not self.authorize('bubbler'):
-            return
-
         bubble = Bubble().get_by_id(int(bubble_id))
-        if not bubble:
+        if not bubble.Authorize('viewer'):
             return
 
         value = bubble.SetProperty(
@@ -139,26 +132,29 @@ class EditBubble(boRequestHandler):
 
 class AddBubble(boRequestHandler):
     def post(self, bubble_id):
-        if not self.authorize('bubbler'):
+        bubble = Bubble().get_by_id(int(bubble_id))
+        if not bubble.Authorize('viewer'):
             return
 
-
-        bubble = Bubble().get_by_id(int(bubble_id))
         newbubble = bubble.AddSubbubble(self.request.get('type').strip())
-
         self.echo(newbubble.key().id(), False)
 
 
 class DownloadBubbleFile(blobstore_handlers.BlobstoreDownloadHandler):
     def get(self, file_key=None):
         b = blobstore.BlobInfo.get(file_key)
+        bubble = db.Query(Bubble).filter('files', b.key()).get()
+        if not bubble.Authorize('viewer'):
+            bubble = db.Query(Bubble).filter('public_files', b.key()).get()
+            if not bubble.Authorize('viewer'):
+                return
+
         self.send_blob(b, save_as=b.filename)
 
 class UploadBubbleFile(blobstore_handlers.BlobstoreUploadHandler):
     def post(self, bubble_id):
-
         bubble = Bubble().get_by_id(int(bubble_id))
-        if not bubble:
+        if not bubble.Authorize('viewer'):
             return
 
         upload_files = self.get_uploads('file')
@@ -176,10 +172,10 @@ class UploadBubbleFile(blobstore_handlers.BlobstoreUploadHandler):
 
 class ShowBubbleDoc1(boRequestHandler):
     def get(self, id):
-        if not self.authorize('bubbler'):
+        bubble = Bubble().get_by_id(int(id))
+        if not bubble.Authorize('viewer'):
             return
 
-        bubble = Bubble().get_by_id(int(id))
         leechers = bubble.GetLeechers()
         for l in leechers:
             l.group = []

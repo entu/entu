@@ -28,12 +28,14 @@ indexes:
   properties:
   - name: _is_deleted
   - name: type
+  - name: viewers
   - name: sort_estonian
 
 - kind: Bubble
   properties:
   - name: _is_deleted
   - name: type
+  - name: viewers
   - name: sort_english
 
 - kind: Bubble

@@ -83,8 +83,8 @@ class Person(ChangeLogModel):
     def current(self):
         user = users.get_current_user()
         if user:
-            #if user.email() == 'argoroots@gmail.com':
-            #    return Person().get('agpzfmJ1YmJsZWR1cg8LEgZQZXJzb24YpL7_AQw')
+            # if user.email() == 'argoroots@gmail.com':
+            #     return Person().get_by_id(4188965)
             person = db.Query(Person).filter('users', user.email()).filter('_is_deleted', False).get()
             if not person:
                 person = Person()

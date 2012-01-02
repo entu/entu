@@ -106,6 +106,10 @@ transformers:
       external_name: notes
       import_transform: transform.none_if_empty(db.Text)
 
+    - property: viewers
+      external_name: viewers
+      import_transform: transform.none_if_empty(db.Text)
+
 
 - kind: zBubbleProperty
   connector: csv

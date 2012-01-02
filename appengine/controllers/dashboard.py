@@ -27,10 +27,10 @@ class ShowMenu(boRequestHandler):
 
         if self.authorize('bubbler'):
             bubbletypes = []
-            for bt in db.Query(BubbleType).fetch(50):
+            for bt in db.Query(BubbleType).filter('type IN', ['department', 'folder', 'doc_other', 'doc_lahetuskorraldus', 'doc_kirjavahetus']).fetch(50):
                 bubbletypes.append({
                     'link': '/bubble/%s' % bt.type,
-                    'title': bt.displayname,
+                    'title': bt.name_plural.value,
                 })
             menu.append({
                 'title': Translate('menu_bubbles'),

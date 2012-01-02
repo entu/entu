@@ -174,8 +174,6 @@ class Bubble(ChangeLogModel):
     optional_bubbles        = db.ListProperty(db.Key)
     prerequisite_bubbles    = db.ListProperty(db.Key)
     next_in_line            = db.ListProperty(db.Key)
-    leechers                = db.ListProperty(db.Key)
-    seeders                 = db.ListProperty(db.Key)
     sort_estonian           = db.StringProperty(default='')
     sort_english            = db.StringProperty(default='')
     search_estonian         = db.StringListProperty()
@@ -190,11 +188,11 @@ class Bubble(ChangeLogModel):
             self.search_estonian = StringToSearchIndex(name.estonian)
             self.search_english = StringToSearchIndex(name.english)
 
-        seeders = db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('seeder', self.key()).fetch(1000)
-        self.seeders = seeders if seeders else []
+        # seeders = db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('seeder', self.key()).fetch(1000)
+        # self.seeders = seeders if seeders else []
 
-        leechers = db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('leecher', self.key()).fetch(1000)
-        self.leechers = leechers if leechers else []
+        # leechers = db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('leecher', self.key()).fetch(1000)
+        # self.leechers = leechers if leechers else []
 
         for k in self.mandatory_bubbles:
             if not Bubble().get(k):
@@ -203,6 +201,7 @@ class Bubble(ChangeLogModel):
         for k in self.optional_bubbles:
             if not Bubble().get(k):
                 self.optional_bubbles.remove(k)
+
 
         # if getattr(self, 'description', None):
         #     d = Dictionary().get(self.description)
@@ -355,6 +354,13 @@ class Bubble(ChangeLogModel):
     @property
     def allowed_subbubble_types(self):
         return db.Query(BubbleType).filter('type IN', self.GetType().allowed_subtypes).fetch(1000)
+
+    def Authorize(self, type):
+        if not getattr(self, 'viewers', None):
+            return False
+        if Person().current.key() not in getattr(self, 'viewers', None):
+            return False
+        return True
 
     def GetPhotoUrl(self, size = ''):
         return 'http://www.gravatar.com/avatar/%s?s=%s&d=identicon' % (hashlib.md5(str(self.key()).strip().lower()).hexdigest(), size)
