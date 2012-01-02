@@ -68,7 +68,9 @@ class ShowSignin(boRequestHandler):
                     self.response.out.write('OK')
 
 
-
+class ShowApplication(boRequestHandler):
+    def get(self, url):
+        self.redirect('/application/signin')
 
 
 
@@ -414,7 +416,7 @@ def main():
             # ('/application/cv', EditCV),
             # ('/application/stateexam', StateExam),
             # ('/application/message', PostMessage),
-            # (r'/application(.*)', ShowApplication),
+            (r'/application(.*)', ShowApplication),
         ])
 
 
