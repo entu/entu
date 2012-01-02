@@ -353,7 +353,10 @@ class Bubble(ChangeLogModel):
 
     @property
     def allowed_subbubble_types(self):
-        return db.Query(BubbleType).filter('type IN', self.GetType().allowed_subtypes).fetch(1000)
+        if getattr(self, 'allowed_subtypes', None):
+            return db.Query(BubbleType).filter('type IN', self.allowed_subtypes).fetch(1000)
+        else:
+            return db.Query(BubbleType).filter('type IN', self.GetType().allowed_subtypes).fetch(1000)
 
     def Authorize(self, type):
         if not getattr(self, 'viewers', None):

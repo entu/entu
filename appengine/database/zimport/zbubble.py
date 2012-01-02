@@ -83,6 +83,9 @@ class zBubble(db.Expando):
         if GetZoinKeyList('Person', self.viewers):
             b.viewers = GetZoinKeyList('Person', self.viewers)
 
+        if self.allowed_subtypes:
+            b.allowed_subtypes = StrToList(self.allowed_subtypes)
+
         b.put('zimport')
 
         AddZoin(
