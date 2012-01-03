@@ -34,6 +34,7 @@ class ShowBubbleList(boRequestHandler):
         if key:
             bubble = Bubble().get(key)
             if not bubble.Authorize('viewer'):
+                self.error(404)
                 return
 
             bubble.AutoFix()
@@ -80,6 +81,7 @@ class ShowBubble(boRequestHandler):
     def get(self, bubble_id):
         bubble = Bubble().get_by_id(int(bubble_id))
         if not bubble.Authorize('viewer'):
+            self.error(404)
             return
 
         bubble.photourl = bubble.GetPhotoUrl(150)
@@ -98,6 +100,7 @@ class ShowBubbleXML(boRequestHandler):
     def get(self, bubble_id):
         bubble = Bubble().get_by_id(int(bubble_id))
         if not bubble.Authorize('viewer'):
+            self.error(404)
             return
 
         self.header('Content-Type', 'text/xml')
@@ -108,6 +111,7 @@ class EditBubble(boRequestHandler):
     def get(self, bubble_id):
         bubble = Bubble().get_by_id(int(bubble_id))
         if not bubble.Authorize('viewer'):
+            self.error(404)
             return
 
         self.view(
@@ -122,6 +126,7 @@ class EditBubble(boRequestHandler):
     def post(self, bubble_id):
         bubble = Bubble().get_by_id(int(bubble_id))
         if not bubble.Authorize('viewer'):
+            self.error(404)
             return
 
         value = bubble.SetProperty(
@@ -136,6 +141,7 @@ class AddBubble(boRequestHandler):
     def post(self, bubble_id):
         bubble = Bubble().get_by_id(int(bubble_id))
         if not bubble.Authorize('viewer'):
+            self.error(404)
             return
 
         newbubble = bubble.AddSubbubble(self.request.get('type').strip())
@@ -148,12 +154,12 @@ class DownloadBubbleFile(blobstore_handlers.BlobstoreDownloadHandler):
         bubble = db.Query(Bubble).filter('files', b.key()).get()
         if bubble:
             if bubble.Authorize('viewer'):
-                self.send_blob(b, save_as=b.filename)
+                self.send_blob(b, save_as=True)
                 return
         bubble = db.Query(Bubble).filter('public_files', b.key()).get()
         if bubble:
             if bubble.Authorize('viewer'):
-                self.send_blob(b, save_as=b.filename)
+                self.send_blob(b, save_as=True)
                 return
         self.error(404)
 
@@ -161,6 +167,7 @@ class UploadBubbleFile(blobstore_handlers.BlobstoreUploadHandler):
     def post(self, bubble_id):
         bubble = Bubble().get_by_id(int(bubble_id))
         if not bubble.Authorize('viewer'):
+            self.error(404)
             return
 
         upload_files = self.get_uploads('file')
@@ -180,6 +187,7 @@ class ShowBubbleDoc1(boRequestHandler):
     def get(self, id):
         bubble = Bubble().get_by_id(int(id))
         if not bubble.Authorize('viewer'):
+            self.error(404)
             return
 
         leechers = bubble.GetLeechers()
