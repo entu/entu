@@ -36,7 +36,7 @@
         <h2>{{ str.bubble_waitinglist }}<span><img src="/images/spinner_gray_small.gif" /></span></h2>
         <div id="waitinglist" class="persons_list"></div>
     </div>
-    {% for t in bubble.GetAllowedTypes %}
+    {% for t in bubbletypes %}
     <div style="display:none;">
         <h2>{{ t.name_plural.value }}<span><img src="/images/spinner_gray_small.gif" /></span></h2>
         <div class="subbubbles_list" data-type="{{ t.type }}"></div>

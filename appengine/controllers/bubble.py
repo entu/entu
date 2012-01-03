@@ -6,6 +6,7 @@ from operator import attrgetter
 import string
 import csv
 import cStringIO
+import urllib
 from datetime import *
 
 from bo import *
@@ -88,6 +89,7 @@ class ShowBubble(boRequestHandler):
             page_title = bubble.displayname,
             values = {
                 'bubble': bubble,
+                'bubbletypes': db.Query(BubbleType).fetch(50)
             }
         )
 
@@ -142,14 +144,18 @@ class AddBubble(boRequestHandler):
 
 class DownloadBubbleFile(blobstore_handlers.BlobstoreDownloadHandler):
     def get(self, file_key=None):
-        b = blobstore.BlobInfo.get(file_key)
+        b = blobstore.BlobInfo.get(urllib.unquote(file_key))
         bubble = db.Query(Bubble).filter('files', b.key()).get()
-        if not bubble.Authorize('viewer'):
-            bubble = db.Query(Bubble).filter('public_files', b.key()).get()
-            if not bubble.Authorize('viewer'):
+        if bubble:
+            if bubble.Authorize('viewer'):
+                self.send_blob(b, save_as=b.filename)
                 return
-
-        self.send_blob(b, save_as=b.filename)
+        bubble = db.Query(Bubble).filter('public_files', b.key()).get()
+        if bubble:
+            if bubble.Authorize('viewer'):
+                self.send_blob(b, save_as=b.filename)
+                return
+        self.error(404)
 
 class UploadBubbleFile(blobstore_handlers.BlobstoreUploadHandler):
     def post(self, bubble_id):
