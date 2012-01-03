@@ -8,15 +8,23 @@
             </div>
             <div class="cell" style="width:100%">
                 {% for v in t.value %}
-                    {% if t.data_type == "dictionary_string" or t.data_type == "string" or t.data_type == "integer" or t.data_type == "float" or t.data_type == "date" or t.data_type == "datetime" %}
+                    {% if t.data_type == "string" or t.data_type == "integer" or t.data_type == "float" or t.data_type == "date" or t.data_type == "datetime" %}
                     <input type="text" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}" value="{{ v }}" />
+                    {% endif %}
+
+                    {% if t.data_type == "dictionary_string" %}
+                    <input type="text" name="{{ t.key }}" data-oldvalue="{{ v.key }}" class="autosave dtype_{{ t.data_type }}" value="{{ v.value }}" />
                     {% endif %}
 
                     {% if t.data_type == "password"  %}
                     <input type="password" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}" value="{{ v }}" />
                     {% endif %}
 
-                    {% if t.data_type == "dictionary_text" or t.data_type == "text" %}
+                    {% if t.data_type == "dictionary_text" %}
+                    <textarea type="text" name="{{ t.key }}" data-oldvalue="{{ v.key }}" class="autosave dtype_{{ t.data_type }}">{{ v.value }}</textarea>
+                    {% endif %}
+
+                    {% if t.data_type == "text" %}
                     <textarea type="text" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}">{{ v }}</textarea>
                     {% endif %}
 
