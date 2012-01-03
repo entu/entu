@@ -154,12 +154,12 @@ class DownloadBubbleFile(blobstore_handlers.BlobstoreDownloadHandler):
         bubble = db.Query(Bubble).filter('files', b.key()).get()
         if bubble:
             if bubble.Authorize('viewer'):
-                self.send_blob(b, save_as=True)
+                self.send_blob(b, save_as = ReplaceUTF(b.filename))
                 return
         bubble = db.Query(Bubble).filter('public_files', b.key()).get()
         if bubble:
             if bubble.Authorize('viewer'):
-                self.send_blob(b, save_as=True)
+                self.send_blob(b, save_as = ReplaceUTF(b.filename))
                 return
         self.error(404)
 
