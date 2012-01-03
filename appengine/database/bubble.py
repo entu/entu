@@ -312,7 +312,7 @@ class Bubble(ChangeLogModel):
 
         dname = bt.property_displayname
         for t in self.tags:
-            dname = dname.replace('@%s@' % t['data_property'], ', '.join(t['value']))
+            dname = dname.replace('@%s@' % t['data_property'], ', '.join(['%s' % n for n in t['value']]))
 
         return dname
 
@@ -343,7 +343,7 @@ class Bubble(ChangeLogModel):
 
         dname = bt.property_displayinfo
         for t in self.tags:
-            dname = dname.replace('@%s@' % t['data_property'], ', '.join(t['value']))
+            dname = dname.replace('@%s@' % t['data_property'], ', '.join(['%s' % n for n in t['value']]))
 
         return dname
 
