@@ -419,7 +419,7 @@ class Bubble(ChangeLogModel):
                     if v != None:
                         if bp.data_type in ['dictionary_string', 'dictionary_text']:
                             d = Dictionary().get(v)
-                            v = d.value
+                            v = {'key': d.key(), 'value': d.value }
                         if bp.data_type == 'datetime':
                             v = v.strftime('%d.%m.%Y %H:%M')
                         if bp.data_type == 'date':
@@ -468,22 +468,15 @@ class Bubble(ChangeLogModel):
             data_value = [data_value]
 
         if bp.data_type in ['dictionary_string', 'dictionary_text']:
-            if len(data_value) > 0:
-                for d in Dictionary().get(data_value):
-                    if getattr(d, UserPreferences().current.language, None) == oldvalue:
-                        if newvalue:
-                            setattr(d, UserPreferences().current.language, newvalue)
-                            d.put()
-                        else:
-                            data_value = RemoveFromList(d.key(), data_value)
-                newvalue = None
+            if oldvalue:
+                d = Dictionary().get(oldvalue)
             else:
                 d = Dictionary()
                 d.name = bp.dictionary_name
-                setattr(d, UserPreferences().current.language, newvalue)
-                d.put()
-                newvalue = d.key()
+            setattr(d, UserPreferences().current.language, newvalue)
+            d.put()
             oldvalue = None
+            newvalue = d.key()
         if bp.data_type in ['dictionary_select', 'reference', 'counter']:
             oldvalue = db.Key(oldvalue) if oldvalue else None
             newvalue = db.Key(newvalue) if newvalue else None
