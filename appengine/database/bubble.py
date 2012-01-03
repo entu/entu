@@ -265,7 +265,7 @@ class Bubble(ChangeLogModel):
 
     @property
     def tags(self):
-        bt = db.Query(BubbleType).filter('type', self.type).get()
+        bt = self.GetType()
         result = []
         for bp in sorted(BubbleProperty().get(bt.bubble_properties), key=attrgetter('ordinal')):
             data_value = getattr(self, bp.data_property, None)
@@ -401,11 +401,9 @@ class Bubble(ChangeLogModel):
 
 
     def GetProperties(self):
-        bt = db.Query(BubbleType).filter('type', self.type).get()
+        bt = self.GetType()
         result = []
-        mandatory_properties = self.GetType().mandatory_properties
 
-        # for bp in db.Query(BubbleProperty).order('ordinal').fetch(1000):
         for bp in sorted(BubbleProperty().get(bt.bubble_properties), key=attrgetter('ordinal')):
             data_value = getattr(self, bp.data_property, None)
             value = []
@@ -454,7 +452,7 @@ class Bubble(ChangeLogModel):
                 'name': bp.name_plural.value if len(value) > 1 else bp.name.value,
                 'choices': choices,
                 'value': value,
-                'is_mandatory': True if bp.key() in mandatory_properties else False,
+                'is_public': bp.key() in bt.public_properties,
                 'is_read_only': bp.is_read_only,
                 'can_add_new': (bp.count == 0 or bp.count > len(value))
             })

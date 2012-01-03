@@ -3,7 +3,7 @@
     {% if t.is_read_only %}
     {% else %}
         <div class="row">
-            <div class="v_header" {% if t.is_mandatory %}style="color:red;"{% endif %}>
+            <div class="v_header" {% if t.is_public %}style="color:red;"{% endif %}>
                 {{ t.name }}
             </div>
             <div class="cell" style="width:100%">
