@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 from types import ListType
 from pytz.gae import pytz
@@ -327,6 +329,12 @@ def rReplace(s, old, new, occurrence):
     li = s.rsplit(old, occurrence)
     return new.join(li)
 
+def ReplaceUTF(s):
+    letters = {'å':'a', 'ä':'a', 'é':'e', 'ö':'o', 'õ':'o', 'ü':'y', 'š':'sh', 'ž':'zh', 'Å':'A', 'Ä':'A', 'É':'E', 'Ö':'O', 'Õ':'O', 'Ü':'Y', 'Š':'SH', 'Ž':'ZH'}
+    s = s.encode('utf-8')
+    for k, v in letters.iteritems():
+        s = s.replace(k, v)
+    return s
 
 def StringToSortable(s):
     return re.sub('[%s]' % re.escape(string.punctuation), '', s).lower().strip() if s else ''
