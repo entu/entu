@@ -3,7 +3,7 @@ from database.zimport.zbubble import *
 from database.zimport.zperson import *
 
 
-zimports = [zRatingScale, zGradeDefinition, zCounter, zBubbleProperty, zBubbleType, zBubble, zRole, zPerson, zGrade, zContact, zDictionary]
+zimports = [zPerson, zRatingScale, zGradeDefinition, zCounter, zBubbleProperty, zBubbleType, zBubble, zGrade, zContact, zDictionary]
 
 
 class ZimportInfo(boRequestHandler):
