@@ -19,7 +19,7 @@ class ShowPersonList(boRequestHandler):
             values = {
                 'list_url': '/person',
                 'content_url': '/person/show',
-                'toolbar': [{'url': '/person/merge', 'title': Translate('person_duplicates'), 'icon': 'join'}]
+                'toolbar': [{'url': '/person/merge', 'title': self.translate('person_duplicates'), 'icon': 'join'}]
             }
         )
 
@@ -109,7 +109,7 @@ class ExportPersonsCSV(boRequestHandler):
         bubble_leechers = self.request.get('bubble_leechers').strip()
         if bubble_leechers:
             bubble = Bubble().get(bubble_leechers)
-            filename = bubble.GetType().displayname + ' - ' + bubble.displayname + ' - ' + Translate('bubble_leechers').lower()
+            filename = bubble.GetType().displayname + ' - ' + bubble.displayname + ' - ' + self.translate('bubble_leechers').lower()
             rowslist = []
             for p in Person().get(bubble.leechers):
                 email = p.primary_email
@@ -296,17 +296,17 @@ class ShowPerson1(boRequestHandler):
             if last_change.user:
                 changer = db.Query(Person).filter('user', last_change.user).get()
                 if changer:
-                    changeinfo = Translate('person_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
+                    changeinfo = self.translate('person_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
 
         grades = db.Query(Grade).filter('person',person.key()).fetch(1000)
         grades = sorted(grades, key=lambda k: k.datetime)
 
         ratings = ListRatings()
         ratings.head = [
-            Translate('bubble_displayname').encode("utf-8"),
-            Translate('grade_name').encode("utf-8"),
-            Translate('grade_equivalent').encode("utf-8"),
-            Translate('date').encode("utf-8"),
+            self.translate('bubble_displayname').encode("utf-8"),
+            self.translate('grade_name').encode("utf-8"),
+            self.translate('grade_equivalent').encode("utf-8"),
+            self.translate('date').encode("utf-8"),
         ]
         ratings.data = []
         for grade in grades:
@@ -419,10 +419,10 @@ class GradesCSV(boRequestHandler):
         csvWriter = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
 
         csvWriter.writerow([
-            Translate('bubble_displayname').encode("utf-8"),
-            Translate('grade_name').encode("utf-8"),
-            Translate('grade_equivalent').encode("utf-8"),
-            Translate('date').encode("utf-8"),
+            self.translate('bubble_displayname').encode("utf-8"),
+            self.translate('grade_name').encode("utf-8"),
+            self.translate('grade_equivalent').encode("utf-8"),
+            self.translate('date').encode("utf-8"),
             ])
         grades = db.Query(Grade).filter('person',person.key()).fetch(1000)
         for grade in sorted(grades, key=lambda k: k.datetime):

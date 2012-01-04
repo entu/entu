@@ -59,17 +59,17 @@ class CheckAppsAccount(boRequestHandler):
         result = {}
         if person.user:
             if not user and not nick:
-                result['text'] = Translate('gapps_create_account') % username
+                result['text'] = self.translate('gapps_create_account') % username
                 result['url'] = '/gapps/createaccount'
         else:
             if user:
-                result['text'] = Translate('gapps_user_exist') % username
+                result['text'] = self.translate('gapps_user_exist') % username
                 result['url'] = '/gapps/connectaccount/%s' % username
             if nick:
-                result['text'] = Translate('gapps_nickname_exist') % {'nick': username, 'user': nick.login.user_name}
+                result['text'] = self.translate('gapps_nickname_exist') % {'nick': username, 'user': nick.login.user_name}
                 result['url'] = '/gapps/connectaccount/%s' % username
             if not user and not nick:
-                result['text'] = Translate('gapps_create_account') % username
+                result['text'] = self.translate('gapps_create_account') % username
                 result['url'] = '/gapps/createaccount'
 
         self.echo_json(result)
@@ -110,8 +110,8 @@ class CreateAppsAccount(boRequestHandler):
 
         SendMail(
             to = person.emails,
-            subject = Translate('gapps_account_created_subject'),
-            message = Translate('gapps_account_created_message') % {'user': username, 'email': person.user, 'password': person.password}
+            subject = self.translate('gapps_account_created_subject'),
+            message = self.translate('gapps_account_created_message') % {'user': username, 'email': person.user, 'password': person.password}
         )
 
         gapps.CreateUser(

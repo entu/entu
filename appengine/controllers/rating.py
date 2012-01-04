@@ -93,7 +93,7 @@ class ShowRating(boRequestHandler):
             leecher.equivalent = 0
             leecher.grade_key = None
             leecher.grade_equivalent = 999999
-            leecher.grade_displayname = Translate('bubble_not_rated')
+            leecher.grade_displayname = self.translate('bubble_not_rated')
             leecher.grade_is_locked = False
             for grade in grades:
                 if grade.person.key() == leecher.key():

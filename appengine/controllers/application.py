@@ -16,13 +16,22 @@ class ShowSignin(boRequestHandler):
             self.redirect(users.create_logout_url('/application/signin'))
 
         sess = Session(self, timeout=86400)
-        sess.invalidate()
+        # sess.invalidate()
+        sess['language'] = self.request.get('language', SystemPreferences().get('default_language')).strip()
+        sess.save()
+
+        languages = []
+        for l in SystemPreferences().get('languages'):
+            if l != sess['language']:
+                languages.append({'value': l, 'label': self.translate('language_%s' % l)})
 
         self.view(
             main_template='main/print.html',
             template_file = 'application/signup.html',
             values = {
                 'account_login_url': users.create_login_url('/application/ratings'),
+                'languages': languages,
+                'language': sess['language'],
             }
         )
 
@@ -53,8 +62,8 @@ class ShowSignin(boRequestHandler):
                 SendMail(
                     to = email,
                     reply_to = 'sisseastumine@artun.ee',
-                    subject = Translate('application_signup_mail_subject'),
-                    message = Translate('application_signup_mail_message') % p.password
+                    subject = self.translate('application_signup_mail_subject'),
+                    message = self.translate('application_signup_mail_message') % p.password
                 )
                 self.echo('OK', False)
 
@@ -63,7 +72,7 @@ class ShowSignin(boRequestHandler):
                 p = db.Query(Bubble).filter('password', password).get()
                 if p:
                     sess = Session(self, timeout=86400)
-                    sess['application_person_key'] = p.key()
+                    sess['applicant_key'] = p.key()
                     sess.save()
                     self.response.out.write('OK')
 
@@ -97,9 +106,9 @@ class ShowApplication(boRequestHandler):
 
 
 #     if len(missing) > 0:
-#         return '<span style="color:red">' + (Translate('application_info_missing') % rReplace(', '.join([Translate(m).lower() for m in missing]), ',', ' ' + Translate('and'), 1)) + '</span>'
+#         return '<span style="color:red">' + (self.translate('application_info_missing') % rReplace(', '.join([self.translate(m).lower() for m in missing]), ',', ' ' + self.translate('and'), 1)) + '</span>'
 #     else:
-#         return Translate('application_info_complete')
+#         return self.translate('application_info_complete')
 
 
 
@@ -124,17 +133,17 @@ class ShowApplication(boRequestHandler):
 #             if last_change.user:
 #                 changer = db.Query(Person).filter('user', last_change.user).get()
 #                 if changer:
-#                     changeinfo = Translate('person_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
+#                     changeinfo = self.translate('person_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
 
 #         grades = db.Query(Grade).filter('person',person.key()).fetch(1000)
 #         grades = sorted(grades, key=lambda k: k.datetime, reverse=True)
 
 #         ratings = ListRatings()
 #         ratings.head = [
-#             Translate('bubble_displayname').encode("utf-8"),
-#             Translate('grade_name').encode("utf-8"),
-#             Translate('grade_equivalent').encode("utf-8"),
-#             Translate('date').encode("utf-8"),
+#             self.translate('bubble_displayname').encode("utf-8"),
+#             self.translate('grade_name').encode("utf-8"),
+#             self.translate('grade_equivalent').encode("utf-8"),
+#             self.translate('date').encode("utf-8"),
 #         ]
 #         ratings.data = []
 #         for grade in grades:
@@ -170,7 +179,7 @@ class ShowApplication(boRequestHandler):
 #             for r in db.Query(Bubble).filter('type', 'submission').filter('start_datetime <=', datetime.now()).filter('is_deleted', False).fetch(1000):
 #                 if r.end_datetime:
 #                     if r.end_datetime >= datetime.now():
-#                         r.end = Translate('reception_will_end_on') % r.end_datetime.strftime('%d.%m.%Y')
+#                         r.end = self.translate('reception_will_end_on') % r.end_datetime.strftime('%d.%m.%Y')
 #                         if r.key() in p.leecher:
 #                             r.selected = True
 #                         level_r = db.Query(Bubble).filter('type', 'reception').filter('optional_bubbles', r.key()).get()
@@ -205,8 +214,8 @@ class ShowApplication(boRequestHandler):
 #                 'stateexams': stateexams,
 #                 'person': p,
 #                 'date_days': range(1, 32),
-#                 'date_months': Translate('list_months').split(','),
-#                 'document_types': Translate('application_documents_types').split(','),
+#                 'date_months': self.translate('list_months').split(','),
+#                 'document_types': self.translate('application_documents_types').split(','),
 #                 'date_years': range((now.year-15), (now.year-90), -1),
 #                 'photo_upload_url': blobstore.create_upload_url('/document/upload'),
 #                 'document_upload_url': blobstore.create_upload_url('/document/upload'),
@@ -389,15 +398,15 @@ class ShowApplication(boRequestHandler):
 #                 SendMail(
 #                     to = 'sisseastumine@artun.ee',
 #                     reply_to = 'sisseastumine@artun.ee',
-#                     subject = Translate('application_message_email1_subject') % p.displayname,
-#                     message = Translate('application_message_email1_message') % {'name': p.displayname, 'link': 'http://bubbledu.artun.ee/reception/application/' + str(p.key()), 'text': mes.text }
+#                     subject = self.translate('application_message_email1_subject') % p.displayname,
+#                     message = self.translate('application_message_email1_message') % {'name': p.displayname, 'link': 'http://bubbledu.artun.ee/reception/application/' + str(p.key()), 'text': mes.text }
 #                 )
 
 #                 SendMail(
 #                     to = p.emails,
 #                     reply_to = 'sisseastumine@artun.ee',
-#                     subject = Translate('application_message_email2_subject') % p.displayname,
-#                     message = Translate('application_message_email2_message') % mes.text
+#                     subject = self.translate('application_message_email2_subject') % p.displayname,
+#                     message = self.translate('application_message_email2_message') % mes.text
 #                 )
 
 #                 respond['date'] = UtcToLocalDateTime(mes.created).strftime('%d.%m.%Y %H:%M')

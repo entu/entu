@@ -24,7 +24,7 @@ class ShowFeedback(boRequestHandler):
                     'target_person': target_person,
                     'is_mandatory': question.question.is_mandatory,
                 })
-            unanswered = Translate('feedback_unanswered_questionaries') % (len(personQuestionary)-1) if len(personQuestionary) > 1 else ''
+            unanswered = self.translate('feedback_unanswered_questionaries') % (len(personQuestionary)-1) if len(personQuestionary) > 1 else ''
             self.view(
                 page_title = 'feedback',
                 main_template = 'main/print.html',

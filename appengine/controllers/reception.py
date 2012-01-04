@@ -52,10 +52,10 @@ class ShowApplicationList(boRequestHandler):
                 else:
                     leecher.grade_key = None
                     leecher.grade_equivalent = 999999
-                    leecher.grade_displayname = Translate('bubble_not_rated')
+                    leecher.grade_displayname = self.translate('bubble_not_rated')
 
 
-            self.view(Translate('reception') + ' - ' + reception.displayname, 'receptions/application_list.html', {
+            self.view(self.translate('reception') + ' - ' + reception.displayname, 'receptions/application_list.html', {
                 'reception': reception,
                 'leechers': leechers,
             })
@@ -89,7 +89,7 @@ class ShowApplication(boRequestHandler):
                 receptions = db.Query(Bubble).filter('leechers', p).filter('type', 'submission').fetch(1000)
                 for r in receptions:
                     r.name_str = r.name.value
-                    r.end = Translate('reception_will_end_on') % r.end_datetime.strftime('%d.%m.%Y')
+                    r.end = self.translate('reception_will_end_on') % r.end_datetime.strftime('%d.%m.%Y')
                     if r.key() in p.leecher:
                         r.selected = True
                     level_r = db.Query(Bubble).filter('type', 'reception').filter('optional_bubbles', r.key()).get()
@@ -133,8 +133,8 @@ class ShowApplication(boRequestHandler):
                     'submissions': submissions,
                     'person': p,
                     'date_days': range(1, 32),
-                    'date_months': Translate('list_months').split(','),
-                    'document_types': Translate('application_documents_types').split(','),
+                    'date_months': self.translate('list_months').split(','),
+                    'document_types': self.translate('application_documents_types').split(','),
                     'date_years': range((now.year-15), (now.year-90), -1),
                     'photo_upload_url': blobstore.create_upload_url('/document/upload'),
                     'document_upload_url': blobstore.create_upload_url('/document/upload'),
@@ -174,8 +174,8 @@ class PostMessage(boRequestHandler):
                     SendMail(
                         to = p.emails,
                         reply_to = 'sisseastumine@artun.ee',
-                        subject = Translate('application_message_email4_subject') % p.displayname,
-                        message = Translate('application_message_email4_message') % {'name': Person().current.displayname, 'text': mes.text }
+                        subject = self.translate('application_message_email4_subject') % p.displayname,
+                        message = self.translate('application_message_email4_message') % {'name': Person().current.displayname, 'text': mes.text }
                     )
 
                     respond['date'] = UtcToLocalDateTime(mes.created).strftime('%d.%m.%Y %H:%M')

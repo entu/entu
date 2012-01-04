@@ -8,7 +8,7 @@ class ShowPreferences(boRequestHandler):
     def get(self):
         languages = []
         for l in SystemPreferences().get('languages'):
-            languages.append({'value': l, 'label': Translate('language_%s' % l)})
+            languages.append({'value': l, 'label': self.translate('language_%s' % l)})
         self.view(
             main_template='main/index.html',
             template_file = 'preferences.html',

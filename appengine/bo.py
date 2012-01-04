@@ -25,6 +25,8 @@ import logging
 import string
 import re
 
+from libraries.gmemsess import *
+
 
 def Route(url_mapping):
     application = webapp.WSGIApplication(url_mapping, debug=True)
@@ -35,6 +37,27 @@ class boRequestHandler(webapp.RequestHandler):
     def __init__(self, *args, **kwargs):
         self.starttime = time.time()
         webapp.RequestHandler.__init__(self, *args, **kwargs)
+
+    def translate(self, key = None):
+        user = users.get_current_user()
+        sess = Session(self, timeout=86400)
+        if user:
+            languagefile = 'translations.' + UserPreferences().current.language
+        elif 'language' in sess:
+            languagefile = 'translations.' + sess['language']
+        else:
+            languagefile = 'translations.' + SystemPreferences().get('default_language')
+
+        l = __import__(languagefile, globals(), locals(), ['translation'], -1)
+
+        if key:
+            if key in l.translation():
+                return l.translation()[key].decode('utf8')
+            else:
+                return key
+        else:
+            return l.translation()
+
 
     def authorize(self, controller=None):
         from database.person import *
@@ -82,12 +105,12 @@ class boRequestHandler(webapp.RequestHandler):
             path = os.path.join(os.path.dirname(__file__), 'errors', 'brauser.html')
             self.response.out.write(template.render(path, {}))
         else:
-            values['str'] = Translate()
+            values['str'] = self.translate()
             values['system_title'] = SystemPreferences().get('site_title')
             values['system_logo'] = SystemPreferences().get('site_logo_url')
             if page_title:
-                values['site_name'] = SystemPreferences().get('site_title') + ' - ' + Translate(page_title)
-                values['page_title'] = Translate(page_title)
+                values['site_name'] = SystemPreferences().get('site_title') + ' - ' + self.translate(page_title)
+                values['page_title'] = self.translate(page_title)
             else:
                 values['site_name'] = SystemPreferences().get('site_title')
                 values['page_title'] = '&nbsp;'
@@ -230,23 +253,6 @@ class UserPreferences(ChangeLogModel):
             if u:
                 setattr(u, field, value)
                 u.put()
-
-
-def Translate(key = None):
-    if users.get_current_user():
-        languagefile = 'translations.' + UserPreferences().current.language
-    else:
-        languagefile = 'translations.' + SystemPreferences().get('default_language')
-
-    l = __import__(languagefile, globals(), locals(), ['translation'], -1)
-
-    if key:
-        if key in l.translation():
-            return l.translation()[key].decode('utf8')
-        else:
-            return key
-    else:
-        return l.translation()
 
 
 class Cache:

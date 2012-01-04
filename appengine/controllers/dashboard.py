@@ -33,16 +33,16 @@ class ShowMenu(boRequestHandler):
                     'title': bt.name_plural.value,
                 })
         menu.append({
-            'title': Translate('menu_bubbles'),
+            'title': self.translate('menu_bubbles'),
             'childs': bubbletypes
         })
 
         if self.authorize('questionary') or self.authorize('reception'):
             menu.append({
-                'title': Translate('menu_admin'),
+                'title': self.translate('menu_admin'),
                 'childs': [
-                    {'link': '/person', 'title': Translate('menu_persons')},
-                    {'link': '/questionary', 'title': Translate('menu_feedback')},
+                    {'link': '/person', 'title': self.translate('menu_persons')},
+                    {'link': '/questionary', 'title': self.translate('menu_feedback')},
                 ]
             })
 
