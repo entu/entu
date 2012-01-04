@@ -118,15 +118,27 @@
             ajax_bubbles_list('/bubble', { master_bubble: '{{ bubble.key }}', type: $(this).data('type') }, $(this), 'subbubbles');
         });
 
+        $('.open_subbubble').live('click', function() {
+            id = $(this).attr('href').substring(1)
+            open_item(id);
+            $('#list_items a.active').removeClass('active');
+            $('#list_items a[href$="#'+id+'"]').addClass('active');
+        });
+
         function reload_item() {
             $.modal.close();
+            open_item({{ bubble.key.id }})
+        }
+
+        function open_item(id) {
             $('#list_content .spinner').show();
             $('#list_content div').html('');
-            $.get('/bubble/show/{{ bubble.key.id }}', function(html) {
+            $.get('/bubble/show/'+id, function(html) {
                 $('#list_content .spinner').hide();
                 $('#list_content div').html(html);
             });
         }
+
 
         function ajax_persons_list(post_url, post_data, div, id) {
             $.post(post_url, post_data, function(list) {
@@ -177,7 +189,12 @@
                             active = '';
                         }
                         $('#'+id+'_'+item.key).html(item.title+'<span>'+item.info+'</span>');
-                        $('#'+id+'_'+item.key).attr('href', '/bubble/'+item.type+'#'+item.id);
+                        if (item.type == '{{ bubble.type }}') {
+                            $('#'+id+'_'+item.key).attr('href', '#'+item.id);
+                            $('#'+id+'_'+item.key).addClass('open_subbubble');
+                        } else {
+                            $('#'+id+'_'+item.key).attr('href', '/bubble/'+item.type+'#'+item.id);
+                        }
                     }, 'json');
                 }
                 if (list.keys.length > 0) {

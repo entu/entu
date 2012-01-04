@@ -255,6 +255,22 @@ class UserPreferences(ChangeLogModel):
                 setattr(u, field, value)
                 u.put()
 
+def Translate(key = None):
+    if users.get_current_user():
+        languagefile = 'translations.' + UserPreferences().current.language
+    else:
+        languagefile = 'translations.' + SystemPreferences().get('default_language')
+
+    l = __import__(languagefile, globals(), locals(), ['translation'], -1)
+
+    if key:
+        if key in l.translation():
+            return l.translation()[key].decode('utf8')
+        else:
+            return key
+    else:
+        return l.translation()
+
 
 class Cache:
     def set(self, key, value=None, user_specific=True, time=3600):
