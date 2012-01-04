@@ -43,10 +43,11 @@ class boRequestHandler(webapp.RequestHandler):
         sess = Session(self, timeout=86400)
         if user:
             languagefile = 'translations.' + UserPreferences().current.language
-        elif 'language' in sess:
-            languagefile = 'translations.' + sess['language']
         else:
-            languagefile = 'translations.' + SystemPreferences().get('default_language')
+            if 'language' in sess:
+                languagefile = 'translations.' + sess['language']
+            else:
+                languagefile = 'translations.' + SystemPreferences().get('default_language')
 
         l = __import__(languagefile, globals(), locals(), ['translation'], -1)
 
