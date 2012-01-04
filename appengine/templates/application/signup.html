@@ -85,7 +85,7 @@
 
         function sendMail() {
             if($('#signup_email').val()) {
-                $.post('/application/signin', { email: $('#signup_email').val() }, function(data) {
+                $.post('/application/signin', { email: $('#signup_email').val(), language: '{{ language }}' }, function(data) {
                     if(data == 'OK') {
                         $('#signup_email').val('');
                         $('#signup_sent').fadeIn(300).delay(3000).fadeOut(1000);

@@ -194,7 +194,7 @@ class ApplicationStats(boRequestHandler):
             else:
                 g_key = 'NONE'
             if g_key not in genders:
-                genders[g_key] = {'name': self.translate('gender_' + str(person.gender)), 'value': 1, 'list': [person_key]}
+                genders[g_key] = {'name': Translate('gender_' + str(person.gender)), 'value': 1, 'list': [person_key]}
             else:
                 genders[g_key]['list'] = AddToList(person_key, genders[g_key]['list'])
                 genders[g_key]['value'] = len(genders[g_key]['list'])

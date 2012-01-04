@@ -266,7 +266,7 @@ class ShowBubbleDoc1(boRequestHandler):
 #                 if last_change.user:
 #                     changer = db.Query(Person).filter('user', last_change.user).get()
 #                     if changer:
-#                         changeinfo = self.translate('bubble_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
+#                         changeinfo = Translate('bubble_changed_on') % {'name': changer.displayname, 'date': UtcToLocalDateTime(last_change.datetime).strftime('%d.%m.%Y %H:%M')}
 
 #             self.view(bubble.type2.displayname + ' - ' + bubble.displayname, 'bubble/bubble.html', {
 #                 'bubble': bubble,
