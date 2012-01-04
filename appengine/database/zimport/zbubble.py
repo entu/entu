@@ -86,6 +86,9 @@ class zBubble(db.Expando):
         if self.allowed_subtypes:
             b.allowed_subtypes = StrToList(self.allowed_subtypes)
 
+        if self.url:
+            b.url = self.url
+
         b.put('zimport')
 
         AddZoin(

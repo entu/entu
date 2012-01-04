@@ -114,6 +114,10 @@ transformers:
       external_name: allowed_subtypes
       import_transform: transform.none_if_empty(db.Text)
 
+    - property: url
+      external_name: url
+      import_transform: transform.none_if_empty(unicode)
+
 
 - kind: zBubbleProperty
   connector: csv
