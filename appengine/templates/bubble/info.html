@@ -28,9 +28,9 @@
         <div id="tiptip_arrow_inner"></div>
     </div>
     <div id="tiptip_content">
-        <a href="javascript:void(0);" class="add_new_subbubble" data-type="doc_lahetuskorraldus">Lähetuskorraldus</a><br>
-        <a href="javascript:void(0);" class="add_new_subbubble" data-type="doc_kirjavahetus">Kirjavahetus</a><br>
-        <a href="javascript:void(0);" class="add_new_subbubble" data-type="doc_other">Muu dokument</a><br>
+        {% for t in bubble.allowed_subbubble_types %}
+        <a href="javascript:void(0);" class="open_new" data-type="{{ t.type }}">{{ t.displayname }}</a><br />
+        {% endfor %}
     </div>
 </div>
 
@@ -67,7 +67,6 @@
         tools = [
             {% if bubble.allowed_subbubble_types %}'<a id="open_new_tipmenu" href="javascript:void(0);" class="icon add" title="{{ str.bubble_add_new }}"></a>',{% endif %}
             '<a id="open_edit" href="javascript:void(0);" class="icon pencil tiptip" title="{{ str.bubble_edit }}"></a>',
-            '<a id="open_document" href="javascript:void(0);" class="icon printer space tiptip" title="{{ str.open_document }}"></a>',
         ];
         $('#tools').html(tools.join(''));
 
