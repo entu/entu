@@ -64,7 +64,7 @@
             activation: 'click',
             edgeOffset: -5,
             keepAlive: true,
-            content: '{% for t in bubble.allowed_subbubble_types %}<a id="open_new_{{ t.type }}" href="javascript:open_new('{{ t.type }}');">{{ t.displayname }}</a><br />{% endfor %}',
+            content: '{% for t in bubble.allowed_subbubble_types %}<a href="javascript:void(0);" class="open_new" data-type="{{ t.type }}">{{ t.displayname }}</a><br />{% endfor %}',
         });
 
         $("#open_document").tipTip({
@@ -74,12 +74,11 @@
             content: '<a href="/bubble/xml/{{ bubble.key.id }}" target="_blank">XML</a><br /><a href="/bubble/d1/{{ bubble.key.id }}" target="_blank">{{ str.bubble_doc_gradesheet }}</a><br /><a href="/person/csv?bubble_leechers={{ bubble.key }}">{{ str.bubble_doc_leechers_csv }}</a>',
         });
 
-        function open_new (type) {
-            $('#open_new_'+type).remove();
-            $.post('/bubble/add/{{ bubble.key.id }}', {type: type}, function(bubble_id) {
+        $('.open_new').live('click', function() {
+            $.post('/bubble/add/{{ bubble.key.id }}', {type: $(this).data('type')}, function(bubble_id) {
                 open_edit(bubble_id);
             });
-        };
+        });
 
         $('#open_edit').click(function() {
             open_edit('{{ bubble.key.id }}');
