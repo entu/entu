@@ -29,7 +29,7 @@
     </div>
     <div id="tiptip_content">
         {% for t in bubble.allowed_subbubble_types %}
-        <a href="javascript:void(0);" class="open_new" data-type="{{ t.type }}">{{ t.displayname }}</a><br />
+        <a href="javascript:void(0);" class="add_new_subbubble" data-type="{{ t.type }}">{{ t.displayname }}</a><br />
         {% endfor %}
     </div>
 </div>
@@ -82,15 +82,8 @@
             $(this).hide();
         });
 
-/*
-        $("#open_document").tipTip({
-            activation: 'click',
-            edgeOffset: -5,
-            keepAlive: true,
-            content: '<a href="/bubble/xml/{{ bubble.key.id }}" target="_blank">XML</a><br /><a href="/bubble/d1/{{ bubble.key.id }}" target="_blank">{{ str.bubble_doc_gradesheet }}</a><br /><a href="/person/csv?bubble_leechers={{ bubble.key }}">{{ str.bubble_doc_leechers_csv }}</a>',
-        });
-
-*/        $('.add_new_subbubble').click(function() {
+        $('.add_new_subbubble').click(function() {
+            $("#tiptip_holder").hide();
             $.post('/bubble/add/{{ bubble.key.id }}', {type: $(this).data('type')}, function(bubble_id) {
                 open_edit(bubble_id);
             });
