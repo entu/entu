@@ -6,6 +6,7 @@
 @toolbar_height: 48px;
 @search_height: 48px;
 @text_font: HelveticaNeue-Regular, 'Helvetica Neue', Helvetica, Arial, Tahoma, Verdana, sans-serif;
+@text_size: 14px;
 @bordercolor: #B9B9B9;
 @dark-bordercolor: #222222;
 @grayboxbg: #F0F0F0;
@@ -20,6 +21,8 @@
 
 /* ICONS */
 @import "Lungo.widgets.icon.less";
+@import "chosen.less";
+@import "tipTip.less";
 
 
 
@@ -39,7 +42,7 @@ table, caption, tbody, tfoot, thead, tr, th, td {
     outline: 0;
     font-weight: inherit;
     font-style: inherit;
-    font-size: 14px;
+    font-size: @text_size;
     font-family: inherit;
     vertical-align: baseline;
     list-style: none;
@@ -55,7 +58,8 @@ header, footer, aside, nav, article, section {
 
 body {
     font-family: @text_font;
-    margin: 50px;
+    margin: 50px auto;
+    max-width: 900px;
 }
 
 h1 {
@@ -71,7 +75,7 @@ h1 {
 h2 {
     padding-top: 20px;
     margin-bottom: 5px;
-    font-size: 14px;
+    font-size: @text_size;
     font-weight: bold;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -96,6 +100,11 @@ img.spinner {
 
 
 
+.wide_content {
+    width: 100%;
+}
+
+
 /* TABLE */
 .table {
     display: table;
@@ -111,7 +120,7 @@ img.spinner {
             padding: 5px 10px;
             text-align: right;
             font-weight: bold;
-            vertical-align: top;
+            vertical-align: middle;
             white-space: nowrap;
             border-right: 1px solid @bordercolor;
             border-top: 1px solid @bordercolor;
@@ -123,11 +132,12 @@ img.spinner {
 
         .h_header {
             display: table-cell;
-            padding: 20px 10px 5px 10px;
+            padding: 5px 10px;
             text-align: center;
             font-weight: bold;
             vertical-align: middle;
             border-right: 1px solid @bordercolor;
+            border-top: 1px solid @bordercolor;
 
             &:last-child {
                 border-right: none;
@@ -136,13 +146,20 @@ img.spinner {
 
         .cell {
             display: table-cell;
-            padding: 5px 10px;
+            margin: 0px;
+            padding: 5px 16px 5px 10px;
             vertical-align: top;
+            border: none;
             border-right: 1px solid @bordercolor;
             border-top: 1px solid @bordercolor;
+            font-size: @text_size;
 
             &:last-child {
                 border-right: none;
+            }
+
+            input, textarea, select {
+                font-size: @text_size;
             }
         }
     }
@@ -180,3 +197,36 @@ img.spinner {
         top:1px;
     }
 }
+
+
+
+/* INFO */
+.info_accordion {
+    clear: both;
+
+    div {
+        margin: 20px 0px 0px 0px;
+        padding: 0px 10px 5px 10px;
+        background: @grayboxbg;
+        .rounded-corners(5px);
+
+        h2 {
+            margin: 0px;
+            padding: 10px 0px 5px 0px;
+            cursor: pointer;
+
+            span {
+                float: right;
+            }
+        }
+
+        div {
+            margin: 0px;
+            padding: 0px;
+            clear: both;
+        }
+
+    }
+}
+
+

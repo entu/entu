@@ -3,10 +3,12 @@ import datetime
 import random
 import string
 
+from operator import attrgetter
+
+from libraries.gmemsess import *
+
 from bo import *
 from database.bubble import *
-from database.person import *
-from libraries.gmemsess import *
 
 class ShowSignin(boRequestHandler):
     def get(self):
@@ -28,9 +30,9 @@ class ShowSignin(boRequestHandler):
         self.view(
             language = language,
             main_template='main/print.html',
-            template_file = 'application/signup.html',
+            template_file = 'application/signin.html',
             values = {
-                'account_login_url': users.create_login_url('/application/ratings'),
+                'account_login_url': users.create_login_url('/application'),
                 'languages': languages,
                 'language': language,
             }
@@ -65,24 +67,73 @@ class ShowSignin(boRequestHandler):
                 SendMail(
                     to = email,
                     reply_to = 'sisseastumine@artun.ee',
-                    subject = Translate('application_signup_mail_subject'),
-                    message = Translate('application_signup_mail_message') % p.password
+                    subject = Translate('application_signup_mail_subject', language),
+                    message = Translate('application_signup_mail_message', language) % p.password
                 )
                 self.echo('OK', False)
 
         else:
             if password:
-                p = db.Query(Bubble).filter('type', 'applicant').filter('password', password).get()
-                if p:
+                b = db.Query(Bubble).filter('type', 'applicant').filter('password', password).get()
+                if b:
                     sess = Session(self, timeout=86400)
-                    sess['applicant_key'] = p.key()
+                    sess['applicant_key'] = str(b.key())
                     sess.save()
                     self.response.out.write('OK')
 
 
 class ShowApplication(boRequestHandler):
-    def get(self, url):
-        self.redirect('/application/signin')
+    def get(self):
+        sess = Session(self, timeout=86400)
+        if 'applicant_key' not in sess:
+            self.redirect('/application/signin')
+            return
+
+        p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+        if not p:
+            self.redirect('/application/signin')
+            return
+
+        language = self.request.get('language', p.language).strip()
+
+        receptions = []
+        for g in sorted(db.Query(Bubble).filter('type', 'reception_group').fetch(1000), key=attrgetter('sort_%s' % language)):
+            gname = getattr(Dictionary.get(g.name), language)
+            gname2 = ''
+            for r in sorted(db.Query(Bubble).filter('type', 'reception').filter('__key__ IN', g.optional_bubbles).fetch(1000), key=attrgetter('sort_%s' % language)):
+                for s in sorted(db.Query(Bubble).filter('type', 'submission').filter('__key__ IN', r.optional_bubbles).fetch(1000), key=attrgetter('sort_%s' % language)):
+                    if getattr(s, 'start_datetime', datetime.now()) < datetime.now():
+                        receptions.append({
+                            'key': str(s.key()),
+                            'group': gname if gname != gname2 else None,
+                            'displayname': getattr(Dictionary.get(s.name), language),
+                            'url': s.url if hasattr(s, 'url') else None,
+                        })
+                        gname2 = gname
+
+        languages = []
+        for l in SystemPreferences().get('languages'):
+            if l != language:
+                languages.append({'value': l, 'label': Translate('language_%s' % l, language=language)})
+
+        rgtype=db.Query(BubbleType).filter('type', 'reception').get()
+        rglabel = getattr(rgtype.name_plural, language)
+        btype=db.Query(BubbleType).filter('type', 'applicant').get()
+        blabel = getattr(btype.name, language)
+
+        self.view(
+            language = language,
+            main_template='main/print.html',
+            template_file = 'application/application.html',
+            values = {
+                'languages': languages,
+                'language': language,
+                'bubble': p.GetProperties(language),
+                'bubble_label': blabel,
+                'receptions': receptions,
+                'receptions_label': rglabel,
+            }
+        )
 
 
 
@@ -422,13 +473,13 @@ class ShowApplication(boRequestHandler):
 def main():
     Route([
             ('/application/signin', ShowSignin),
+            ('/application', ShowApplication),
             # ('/application/ratings', ShowPersonRatings),
             # ('/application/person', EditPerson),
             # ('/application/contact', EditContact),
             # ('/application/cv', EditCV),
             # ('/application/stateexam', StateExam),
             # ('/application/message', PostMessage),
-            (r'/application(.*)', ShowApplication),
         ])
 
 

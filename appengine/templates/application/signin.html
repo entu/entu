@@ -4,38 +4,42 @@
 <div id="wide_content">
 
     {% for l in languages %}
-    <a href="?language={{ l.value }}" style="float:right; margin-left:10px;">{{ l.label }}</a><br />
+    <a href="?language={{ l.value }}" style="float:right;">{{ l.label }}</a><br />
     {% endfor %}
 
     {% if system_logo %}
-    <img src="{{ system_logo }}" alt="logo" style="margin:10px auto; display:block;" />
+    <img src="{{ system_logo }}" alt="logo" style="margin:0px auto 50px auto; display:block;" />
     {% endif %}
 
     <h1>{{ str.application }}</h1>
     {{ str.application_signup_desc }}
 
-    <div id="login" class="box" style="margin-top:20px; margin-bottom:10px;">
-        <a id="signup_show" href="javascript:void(0);" style="font-weight:bold; display:block;">{{ str.application_create_account }}</a>
-        <div id="signup_form" style="display:none; padding:10px;">
-            {{ str.application_email }}: <input type="email" id="signup_email" name="signup_email" style="width:200px;" /> <a id="signup_send" href="javascript:void(0);" class="button" style="font-size:10px;">{{ str.application_send_invitation }}</a> <span id="signup_sent" style="display:none; margin-left:20px; color:red;">{{ str.application_invitation_sent }}</span>
+    <section class="info_accordion">
+        <div style="margin-top:20px; margin-bottom:10px;">
+            <h2>{{ str.application_create_account }}</h2>
+            <div id="signup_form" class="box" style="display:none; padding:10px 0px;">
+                {{ str.application_email }}: <input type="email" id="signup_email" name="signup_email" style="width:200px;" /> <a id="signup_send" href="javascript:void(0);" class="button" style="font-size:10px;">{{ str.application_send_invitation }}</a> <span id="signup_sent" style="display:none; margin-left:20px; color:red;">{{ str.application_invitation_sent }}</span>
+            </div>
         </div>
-    </div>
-
-    <div id="login" class="box" style="margin-bottom:10px;">
-        <a id="applicant_pass_show" href="javascript:void(0);" style="font-weight:bold; display:block;">{{ str.application_login_with_password }}</a>
-        <div id="applicant_pass_form" style="display:none; padding:10px;">
-            {{ str.application_password }}: <input type="password" id="applicant_pass" name="applicant_pass" /> <a id="applicant_pass_send" href="javascript:void(0);" class="button" style="font-size:10px;">{{ str.application_login }}</a>
+        <div style="margin-bottom:10px;">
+            <h2>{{ str.application_login_with_password }}</h2>
+            <div id="applicant_pass_form" class="box" style="display:none; padding:10px 0px;">
+                {{ str.application_password }}: <input type="password" id="applicant_pass" name="applicant_pass" /> <a id="applicant_pass_send" href="javascript:void(0);" class="button" style="font-size:10px;">{{ str.application_login }}</a>
+            </div>
         </div>
-    </div>
-
-    <div id="login" class="box">
-        <a href="{{ account_login_url }}" style="font-weight:bold; display:block;">{{ str.application_login_with_account }}</a>
-    </div>
-
+        <div>
+            <h2><a href="{{ account_login_url }}" style="font-weight:bold; display:block;">{{ str.application_login_with_account }}</a></h2>
+        </div>
+    </section>
 </div>
 
 <script>
     $(document).ready(function(){
+
+        $('.info_accordion div h2').click(function() {
+            $('.box').slideUp();
+            $(this).next().slideToggle();
+        });
 
         //LOG IN
         $('#applicant_pass_show').click(function() {
@@ -56,7 +60,7 @@
             if($('#applicant_pass').val()) {
                 $.post('/application/signin', { applicant_pass: $('#applicant_pass').val() }, function(data) {
                     if(data == 'OK') {
-                        location.href = '/application/signin';
+                        location.href = '/application';
                     } else {
                         $('#applicant_pass_form').effect("shake", { times:3 }, 90);
                         $('#applicant_pass').val('');
@@ -100,5 +104,4 @@
 
     });
 </script>
-
 {% endblock %}

@@ -1,80 +1,102 @@
 {% extends main_template %}
 
-{% block head %}
-<script src="/javascript/jquery.elastic.js" type="text/javascript"></script>
-<script src="/javascript/jquery.placeholder.min.js" type="text/javascript"></script>
-{% endblock %}
-
-{% block nav %}
-<a href="/application" style="color:#a6ff20">{{ str.application }}</a> |
-<a href="/application/ratings">{{ str.ratings }}</a> |
-<a href="/application/signin">{{ str.logout }}</a>
-{% endblock %}
-
-{% block breadcrumb %}
-{% ifequal post_url "/reception" %}
-<nav>
-    <ul id="crumbs">
-        <li><a href="/">{{ system_title }}</a></li>
-        <li><a href="/reception">{{ str.reception }}</a></li>
-        <li>{{ person.displayname }}</li>
-    </ul>
-</nav>
-{% endifequal %}
-{% endblock %}
-
 {% block content %}
+<div id="wide_content">
 
-<section id="wide_content">
+    {% for l in languages %}
+    <a href="?language={{ l.value }}" style="float:right;">{{ l.label }}</a><br />
+    {% endfor %}
+
     {% if system_logo %}
-    <img src="{{ system_logo }}" alt="logo" style="margin:20px auto; display:block;" />
+    <img src="{{ system_logo }}" alt="logo" style="margin:0px auto 50px auto; display:block;" />
     {% endif %}
 
-    <h1 style="margin-top:30px; text-align:center; color:black;">{{ str.application }}</h1>
-    {% ifequal application_status "submitted" %}
-    <h1 style="margin-top:30px; text-align:center; color:#00AFF0; font-weight:bold;">{{ str.application_status_submitted }}</h1>
-    {% endifequal %}
-    {% ifequal application_status "accepted" %}
-    <h1 style="margin-top:30px; text-align:center; color:green; font-weight:bold;">{{ str.application_status_accepted }}</h1>
-    {% endifequal %}
+    <h1>{{ str.application }}</h1>
 
-    {% include "receptions.html" %}
-    {% include "person.html" %}
-    {% include "cv_secondaryschools.html" %}
-    {% include "stateexams.html" %}
-    {% include "cv_highschools.html" %}
-    {% include "cv_workplaces.html" %}
-    {% include "documents.html" %}
-    {% include "conversation.html" %}
+    <section class="table" style="margin:0px; width:100%;">
+            <div class="row">
+                <div class="cell" style="width:300px; padding:0px; border-right:none; border-top:none;">
+                    <h2>{{ receptions_label }}</h2>
+                </div>
+                <div class="cell" style="padding:0px; border-top:none;">
+                </div>
+            </div>
+        {% for r in receptions %}
+            <div class="row">
+                <div class="v_header" style="{% if not r.group %} border-top:none;{% endif %}" style="width:300px;">
+                    {{ r.group|default:"" }}
+                </div>
+                <div class="cell" style="width:590px;padding-right:10px;">
+                    {% if r.url %}
+                    <a href="{{ r.url }}" target="_blank">{{ r.displayname }}</a>
+                    {% else %}
+                    {{ r.displayname }}
+                    {% endif %}
+                    <a href="javascript:void(0);" class="icon check" style="float:right; color:#F0F0F0; font-size:20px;"></a>
+                    <br />{{ r.key }}
+                </div>
+            </div>
+        {% endfor %}
+            <div class="row">
+                <div class="cell" style="width:300px; padding:0px; border-right:none;">
+                    <h2>{{ bubble_label }}</h2>
+                </div>
+                <div class="cell" style="padding:0px;">
+                </div>
+            </div>
+        {% for t in bubble %}
+            {% for v in t.value %}
+            <div class="row">
+                <div class="v_header" style="width:300px;{% if t.is_public %} color:red;{% endif %}">
+                    {{ t.name }}
+                </div>
+                {% if t.data_type == "string" or t.data_type == "integer" or t.data_type == "float" or t.data_type == "date" or t.data_type == "datetime" %}
+                    <input class="cell" type="text" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}" value="{{ v }}" style="width:590px" />
+                {% endif %}
 
-    <div id="application_completed_info" style="clear:both; margin-top:50px; display:block; text-align:center; font-weight:bold; color:green;">
-        {{ application_completed_info }}
-    </div>
+                {% if t.data_type == "text" %}
+                    <textarea class="cell" type="text" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}" style="width:590px">{{ v }}</textarea>
+                {% endif %}
+
+                {% ifequal t.data_type "boolean" %}
+                    <div class="cell" style="width:590px">
+                        <input type="checkbox" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}"{% if v %} checked{% endif %} />
+                    </div>
+                {% endifequal %}
+
+                {% ifequal t.data_type "blobstore" %}
+                    {{ v.filename }}{% if not forloop.last %}, {% endif %}
+                    {% if forloop.last and t.can_add_new %}
+                    <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML);" style="display:none;"></iframe>
+                    <form method="post" action="{{ blobstore_upload_url }}" target="iframe_{{ t.key }}" enctype="multipart/form-data">
+                        <input type="file" name="file" class="dtype_{{ t.data_type }}" style="border:none;" />
+                        <input type="hidden" name="property" value="{{ t.key }}" />
+                    </form>
+                    {% endif %}
+                {% endifequal %}
+
+                {% if t.choices %}
+                    <div class="cell" style="width:590px">
+                        <select name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}" data-placeholder="{{ v.value }}">
+                            <option value=""></option>
+                            {% for c in t.choices %}
+                            <option value="{{ c.key }}"{% ifequal v c.key %} selected{% endifequal %}>{{ c.value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% endfor %}
+    </section>
 
 </section>
 
 <script>
     $(document).ready(function(){
-        $("input").placeholder({css_class: "placeholder"});
-        $('textarea').elastic();
-
-        $("#confirm_application").click(function(){
-            location.href = '{{ post_url }}/submit';
+        $('.check').click(function() {
+            $(this).css('color', 'green');
         });
     });
-
-    function autoSave(input, url, data) {
-        if(!data['key']) data['key'] = input.attr('alt');
-        if(!data['field']) data['field'] = input.attr('name');
-        if(!data['value']) data['value'] = input.val();
-        data['person'] = '{{ person.key }}';
-
-        $.post(url, data, function(json) {
-            input.effect("highlight", {}, 1000);
-            input.attr('alt', json['key']);
-            $('#application_completed_info').html(json['application_completed_info']);
-        }, "json");
-    }
 </script>
-
 {% endblock %}

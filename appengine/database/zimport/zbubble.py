@@ -85,6 +85,9 @@ class zBubble(db.Expando):
 
         if self.allowed_subtypes:
             b.allowed_subtypes = StrToList(self.allowed_subtypes)
+        else:
+            if hasattr(b, 'allowed_subtypes'):
+                delattr(b, 'allowed_subtypes')
 
         if self.url:
             b.url = self.url

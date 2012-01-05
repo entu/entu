@@ -19,11 +19,11 @@ class Counter(ChangeLogModel):
     def displayname(self):
         return self.name.value
 
-    @property
-    def next_value(self):
-        self.value += self.increment
-        self.put()
-        return self.value
+def GetCounterNextValue(counter_key):
+    c = Counter().get(counter_key)
+    c.value += c.increment
+    c.put()
+    return c.value
 
 
 class RatingScale(ChangeLogModel):
@@ -377,21 +377,21 @@ class Bubble(ChangeLogModel):
         self.optional_bubbles = AddToList(newbubble.key(), self.optional_bubbles)
         self.put()
 
-        br = db.Query(BubbleRelation).filter('_is_deleted', False).filter('bubble', self.key()).filter('related_bubble', newbubble.key()).get()
-        if not br:
-            br = BubbleRelation()
-            br.bubble = self.key()
-            br.related_bubble = newbubble.key()
-            br.type = 'subbuble'
-            br.put()
+        # br = db.Query(BubbleRelation).filter('_is_deleted', False).filter('bubble', self.key()).filter('related_bubble', newbubble.key()).get()
+        # if not br:
+        #     br = BubbleRelation()
+        #     br.bubble = self.key()
+        #     br.related_bubble = newbubble.key()
+        #     br.type = 'subbuble'
+        #     br.put()
 
         tags = self.tags
         for bp in db.Query(BubbleProperty).filter('data_type', 'counter').filter('__key__ IN ', self.GetType().bubble_properties).fetch(1000):
             data_value = getattr(self, bp.data_property, None)
             if data_value:
-                c = Counter().get(data_value)
+                counter_value = db.run_in_transaction(GetCounterNextValue, data_value)
 
-                dname = bp.format_string.replace('@_counter_value@', str(c.next_value))
+                dname = bp.format_string.replace('@_counter_value@', str(counter_value))
                 for t in tags:
                     dname = dname.replace('@%s@' % t['data_property'], ', '.join(t['value']))
                 setattr(newbubble, bp.target_property, dname)
@@ -400,9 +400,11 @@ class Bubble(ChangeLogModel):
         return newbubble
 
 
-    def GetProperties(self):
+    def GetProperties(self, language = None):
         bt = self.GetType()
         result = []
+        if not language:
+            language = UserPreferences().current.language
 
         for bp in sorted(BubbleProperty().get(bt.bubble_properties), key=attrgetter('ordinal')):
             data_value = getattr(self, bp.data_property, None)
@@ -417,7 +419,7 @@ class Bubble(ChangeLogModel):
                     if v != None:
                         if bp.data_type in ['dictionary_string', 'dictionary_text']:
                             d = Dictionary().get(v)
-                            v = {'key': d.key(), 'value': d.value }
+                            v = {'key': str(d.key()), 'value': getattr(d, language) }
                         if bp.data_type == 'datetime':
                             v = v.strftime('%d.%m.%Y %H:%M')
                         if bp.data_type == 'date':
@@ -426,13 +428,13 @@ class Bubble(ChangeLogModel):
                             v = v
                         if bp.data_type == 'blobstore':
                             b = blobstore.BlobInfo.get(v)
-                            v = {'key': b.key(), 'filename': b.filename, 'size': GetFileSize(b.size)}
+                            v = {'key': str(b.key()), 'filename': b.filename, 'size': GetFileSize(b.size)}
                         if v:
                             value.append(v)
 
             if bp.data_type == 'dictionary_select':
                 for d in sorted(db.Query(Dictionary).filter('name', bp.dictionary_name), key=attrgetter('value')):
-                    choices.append({'key': d.key(), 'value': d.value})
+                    choices.append({'key': d.key(), 'value': getattr(d, language)})
 
             if bp.data_type == 'reference':
                 for e in sorted(db.Query(bp.reference_entitykind).filter('_is_deleted', False), key=attrgetter('displayname')):
@@ -440,7 +442,7 @@ class Bubble(ChangeLogModel):
 
             if bp.data_type == 'counter':
                 for c in sorted(db.Query(Counter).filter('_is_deleted', False), key=attrgetter('displayname')):
-                    choices.append({'key': c.key(), 'value': c.displayname})
+                    choices.append({'key': str(c.key()), 'value': c.displayname})
 
             if (bp.count == 0 or bp.count > len(value)) and bp.is_read_only == False:
                 value.append('')
@@ -449,7 +451,7 @@ class Bubble(ChangeLogModel):
                 'key': bp.key(),
                 'data_type': bp.data_type,
                 'data_property': bp.data_property,
-                'name': bp.name_plural.value if len(value) > 1 else bp.name.value,
+                'name': getattr(bp.name_plural, language) if len(value) > 1 else getattr(bp.name, language),
                 'choices': choices,
                 'value': value,
                 'is_public': bp.key() in bt.public_properties,
