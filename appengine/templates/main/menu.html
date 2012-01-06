@@ -1,10 +1,11 @@
 <nav>
     <div class="accordion">
+    {% regroup bubbletypes|dictsort:"group" by group as menu %}
     {% for m in menu %}
-        <h3><a href="#">{{ m.title }}</a></h3>
+        <h3><a href="#">{{ m.grouper|safe }}</a></h3>
         <div>
-        {% for c in m.childs|dictsort:"title" %}
-            <a href="{{ c.link }}">{{ c.title }}</a>
+        {% for c in m.list|dictsort:"title" %}
+            <a href="{{ c.link }}">{{ c.title|safe }}</a>
         {% endfor %}
         </div>
     {% endfor %}
