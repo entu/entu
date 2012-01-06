@@ -151,6 +151,11 @@ class zBubbleType(db.Expando):
                 estonian = self.name_estonian,
                 english = self.name_english
             ).put('zimport')
+        bt.menugroup            = Dictionary(
+                name = 'bubbletype_menugroup',
+                estonian = self.menugroup_estonian,
+                english = self.menugroup_english
+            ).put('zimport')
         bt.name_plural          = Dictionary(
                 name = 'bubbletype_name_plural',
                 estonian = self.name_plural_estonian,
