@@ -5,10 +5,12 @@
 
 {% block content %}
 
-<section id="wide_content">
+<section id="wide_content"  style="text-align:center">
     {% if system_logo %}
     <img src="{{ system_logo }}" alt="logo" style="margin:50px auto; display:block;" />
     {% endif %}
+
+    <iframe width="420" height="315" src="http://www.youtube.com/embed/vy8p8hFctuA" frameborder="0" allowfullscreen style="margin:50px auto;"></iframe>
 
     <section class="info_accordion">
         {% if person.grades_count %}
