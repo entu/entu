@@ -314,6 +314,10 @@ transformers:
       external_name: value
       import_transform: transform.none_if_empty(int)
 
+    - property: value_property
+      external_name: value_property
+      import_transform: transform.none_if_empty(int)
+
     - property: increment
       external_name: increment
       import_transform: transform.none_if_empty(int)
