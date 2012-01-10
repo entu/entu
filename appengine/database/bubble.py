@@ -89,6 +89,7 @@ class BubbleType(ChangeLogModel):
     name                    = db.ReferenceProperty(Dictionary, collection_name='bubbletype_name')
     name_plural             = db.ReferenceProperty(Dictionary, collection_name='bubbletype_name_plural')
     description             = db.ReferenceProperty(Dictionary, collection_name='bubbletype_description')
+    menugroup               = db.ReferenceProperty(Dictionary, collection_name='bubbletype_menugroup')
     allowed_subtypes        = db.StringListProperty()
     maximum_leecher_count   = db.IntegerProperty()
     is_exclusive            = db.BooleanProperty(default=False) # no two exclusive events should happen to same person at same time

@@ -200,6 +200,14 @@ transformers:
       external_name: type
       import_transform: transform.none_if_empty(unicode)
 
+    - property: menugroup_estonian
+      external_name: menugroup_estonian
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: menugroup_english
+      external_name: menugroup_english
+      import_transform: transform.none_if_empty(db.Text)
+
     - property: name_estonian
       external_name: name_estonian
       import_transform: transform.none_if_empty(db.Text)

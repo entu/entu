@@ -29,28 +29,16 @@ class ShowMenu(boRequestHandler):
         for bt in db.Query(BubbleType).fetch(50):
             if db.Query(Bubble, keys_only=True).filter('type', bt.type).filter('viewers', Person().current).get():
                 bubbletypes.append({
+                    'group': bt.menugroup.value if bt.menugroup else '&nbsp;',
                     'link': '/bubble/%s' % bt.type,
                     'title': bt.name_plural.value,
                 })
-        menu.append({
-            'title': Translate('menu_bubbles'),
-            'childs': bubbletypes
-        })
-
-        if self.authorize('questionary') or self.authorize('reception'):
-            menu.append({
-                'title': Translate('menu_admin'),
-                'childs': [
-                    {'link': '/person', 'title': Translate('menu_persons')},
-                    {'link': '/questionary', 'title': Translate('menu_feedback')},
-                ]
-            })
 
         self.view(
             template_file = 'main/menu.html',
             main_template = None,
             values = {
-                'menu': menu,
+                'bubbletypes': bubbletypes,
             }
         )
 

@@ -72,7 +72,7 @@ class ShowBubbleList(boRequestHandler):
 
         if master_bubble:
             bubble = Bubble().get(master_bubble)
-            keys = [str(b.key()) for b in sorted(Bubble().get(bubble.subbubbles), key=attrgetter('sort_'+UserPreferences().current.language)) if b.type == btype and b.Authorize('viewer')]
+            keys = [str(b.key()) for b in sorted(Bubble().get(bubble.subbubbles), key=attrgetter('_created'), reverse=True) if b.type == btype and b.Authorize('viewer')]
 
         self.echo_json({'keys': keys})
 
