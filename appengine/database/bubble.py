@@ -443,7 +443,7 @@ class Bubble(ChangeLogModel):
 
             if bp.data_type == 'counter':
                 for c in sorted(db.Query(Counter).filter('_is_deleted', False), key=attrgetter('displayname')):
-                    choices.append({'key': str(c.key()), 'value': c.displayname})
+                    choices.append({'key': c.key(), 'value': c.displayname})
 
             if (bp.count == 0 or bp.count > len(value)) and bp.is_read_only == False:
                 value.append('')
