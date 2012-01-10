@@ -29,6 +29,17 @@ class Dokumendid(boRequestHandler):
             attachments = [('Docs.csv', '\n'.join(csv))],
         )
 
+class FixStuff(boRequestHandler):
+    def get(self):
+        b = Bubble().get('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYjcmwAgw')
+        b.optional_bubbles = AddToList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYy4S1Agw'), b.optional_bubbles)
+        b.put()
+
+        b = Bubble().get('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYrNuyAgw')
+        b.optional_bubbles = AddToList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYnP20Agw'), b.optional_bubbles)
+        b.optional_bubbles = AddToList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYwKe0Agw'), b.optional_bubbles)
+        b.put()
+
 
 class AddUser(boRequestHandler):
     def get(self, type):
@@ -44,6 +55,7 @@ class AddUser(boRequestHandler):
 def main():
     Route([
             ('/update/docs', Dokumendid),
+            ('/update/stuff', FixStuff),
             (r'/update/user/(.*)', AddUser),
         ])
 

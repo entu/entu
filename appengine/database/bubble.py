@@ -20,6 +20,7 @@ class Counter(ChangeLogModel):
     def displayname(self):
         return self.name.value
 
+
 def GetCounterNextValue(counter_key):
     c = Counter().get(counter_key)
     c.value += c.increment
@@ -371,14 +372,41 @@ class Bubble(ChangeLogModel):
         return 'http://www.gravatar.com/avatar/%s?s=%s&d=identicon' % (hashlib.md5(str(self.key()).strip().lower()).hexdigest(), size)
 
     def AddSubbubble(self, type):
+        bt = self.GetType()
+
+        # Create new bubble
         newbubble = Bubble()
         newbubble.type = type
         newbubble.viewers = self.viewers
+
+        # Propagate properties
+        for pp_key in getattr(bt, 'propagated_properties', []):
+            pp = BubbleProperty().get(pp_key)
+            if hasattr(self, pp.data_property):
+                setattr(newbubble, pp.data_property, getattr(self, pp.data_property))
+
+        # Set Counters
+        tags = self.tags
+        for bp in db.Query(BubbleProperty).filter('data_type', 'counter').filter('__key__ IN ', bt.bubble_properties).fetch(1000):
+            if bp.key() not in getattr(bt, 'propagated_properties', []):
+                data_value = getattr(self, bp.data_property, None)
+                if data_value:
+                    c = Counter().get(data_value)
+                    if getattr(c, 'value_property', None):
+                        counter_value = getattr(self, c.value_property, c.value) + c.increment
+                        setattr(self, c.value_property, counter_value)
+                        self.put()
+                    else:
+                        counter_value = db.run_in_transaction(GetCounterNextValue, data_value)
+                    dname = bp.format_string.replace('@_counter_value@', str(counter_value))
+                    for t in tags:
+                        dname = dname.replace('@%s@' % t['data_property'], ', '.join(t['value']))
+                    setattr(newbubble, bp.target_property, dname)
+
+        # Save new bubble
         newbubble.put()
 
-        self.optional_bubbles = AddToList(newbubble.key(), self.optional_bubbles)
-        self.put()
-
+        # Create BubbleRelation's
         # br = db.Query(BubbleRelation).filter('_is_deleted', False).filter('bubble', self.key()).filter('related_bubble', newbubble.key()).get()
         # if not br:
         #     br = BubbleRelation()
@@ -387,20 +415,11 @@ class Bubble(ChangeLogModel):
         #     br.type = 'subbuble'
         #     br.put()
 
-        tags = self.tags
-        for bp in db.Query(BubbleProperty).filter('data_type', 'counter').filter('__key__ IN ', self.GetType().bubble_properties).fetch(1000):
-            data_value = getattr(self, bp.data_property, None)
-            if data_value:
-                counter_value = db.run_in_transaction(GetCounterNextValue, data_value)
-
-                dname = bp.format_string.replace('@_counter_value@', str(counter_value))
-                for t in tags:
-                    dname = dname.replace('@%s@' % t['data_property'], ', '.join(t['value']))
-                setattr(newbubble, bp.target_property, dname)
-                newbubble.put()
+        # Add new bubble to optional_bubbles list
+        self.optional_bubbles = AddToList(newbubble.key(), self.optional_bubbles)
+        self.put()
 
         return newbubble
-
 
     def GetProperties(self, language = None):
         bt = self.GetType()
