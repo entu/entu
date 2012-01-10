@@ -316,7 +316,7 @@ transformers:
 
     - property: value_property
       external_name: value_property
-      import_transform: transform.none_if_empty(int)
+      import_transform: transform.none_if_empty(unicode)
 
     - property: increment
       external_name: increment
