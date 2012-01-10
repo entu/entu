@@ -13,6 +13,7 @@ from database.person import *
 class Counter(ChangeLogModel):
     name            = db.ReferenceProperty(Dictionary, collection_name='counter_name')
     value           = db.IntegerProperty(default=0)
+    value_property  = db.StringProperty()
     increment       = db.IntegerProperty(default=1)
 
     @property
@@ -482,11 +483,11 @@ class Bubble(ChangeLogModel):
             oldvalue = db.Key(oldvalue) if oldvalue else None
             newvalue = db.Key(newvalue) if newvalue else None
         if bp.data_type == 'datetime':
-            oldvalue = datetime.strptime(oldvalue, '%d.%m.%Y %H:%M') if oldvalue else None
-            newvalue = datetime.strptime(newvalue, '%d.%m.%Y %H:%M') if newvalue else None
+            oldvalue = datetime.strptime('%s:00' % oldvalue, '%d.%m.%Y %H:%M:%S') if oldvalue else None
+            newvalue = datetime.strptime('%s:00' % newvalue, '%d.%m.%Y %H:%M:%S') if newvalue else None
         if bp.data_type == 'date':
-            oldvalue = datetime.strptime('%s 00:00' % oldvalue, '%d.%m.%Y %H:%M') if oldvalue else None
-            newvalue = datetime.strptime('%s 00:00' % newvalue, '%d.%m.%Y %H:%M') if newvalue else None
+            oldvalue = datetime.strptime('%s 00:00:00' % oldvalue, '%d.%m.%Y %H:%M:%S') if oldvalue else None
+            newvalue = datetime.strptime('%s 00:00:00' % newvalue, '%d.%m.%Y %H:%M:%S') if newvalue else None
         if bp.data_type == 'float':
             oldvalue = float(oldvalue) if oldvalue else None
             newvalue = float(newvalue) if newvalue else None

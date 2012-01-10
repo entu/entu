@@ -197,7 +197,8 @@ class zCounter(db.Expando):
                 estonian = self.name_estonian,
                 english = self.name_english
             ).put('zimport')
-        c.value     = self.value
+        c.value = self.value
+        c.value_property = self.value_property
         c.increment = self.increment
         c.put('zimport')
 
