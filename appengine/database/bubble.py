@@ -524,7 +524,10 @@ class Bubble(ChangeLogModel):
         if oldvalue:
             data_value = RemoveFromList(oldvalue, data_value)
         if newvalue:
-            data_value = AddToList(newvalue, data_value)
+            if bp.count == 1:
+                data_value = [newvalue]
+            else:
+                data_value = AddToList(newvalue, data_value)
 
         if len(data_value) > 0:
             if len(data_value) == 1:

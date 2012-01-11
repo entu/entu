@@ -75,7 +75,8 @@ def translation():
         'feedback_unanswered_questionaries':    'Sul on veel vastata %s küsimustiku',
 
 
-        'application':          'Sisseastumisavaldus',
+        'application':                          'Sisseastumisavaldus',
+        'application_info':                     '',
         'application_signup_desc':              'Sisseastumisavalduse esitamiseks on sul vaja sisse logida. Kui sul on olemas @artun.ee konto, sisene kindlasti sellega. Kui sul seda ei ole, saad sa luua sisseastuja konto. Konto parool saadetakse sulle meilitsi. Kui oled parooli unustanud, siis kasuta uue konto loomise vormi ja sulle saadetakse uus parool.',
         'application_create_account':           'Mul pole kontot ega parooli. Soovin luua konto...',
         'application_send_invitation':                      'Saada kutse meilile',
@@ -87,6 +88,9 @@ def translation():
         'application_login_with_account':       'Mul on @artun.ee konto. Sisenen sellega...',
         'application_signup_mail_subject':      'Sisseastuja konto',
         'application_signup_mail_message':      'Tere tulemast Eesti Kunstiakadeemiasse!<br /><br />Meil on hea meel, et oled otsustanud asuda õppima meie akadeemiasse.<br /><br />Sinu konto Eesti Kunstiakadeemia sisseastumisavalduse esitamiseks on loodud.<br />Konto parool on: <b>%s</b><br /><br />Sisseastumisavalduse saad täita aadressil <a href="http://bubbledu.artun.ee/application">http://bubbledu.artun.ee/application</a><br /><br />Täname!',
+        'application_no_more_submissions':      'Lubatud on valida maksimaalselt neli eriala!',
+        'application_apply':                    'Kandideerin',
+        'application_submit':                   'Esita avaldus',
 
 
 

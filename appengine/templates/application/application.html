@@ -12,6 +12,7 @@
     {% endif %}
 
     <h1>{{ str.application }}</h1>
+    <div style="display:block; margin:20px; text-align:center;">{{ str.application_info }}</div>
 
     <section class="table" style="margin:0px; width:100%;">
             <div class="row">
@@ -32,8 +33,7 @@
                     {% else %}
                     {{ r.displayname }}
                     {% endif %}
-                    <a href="javascript:void(0);" class="icon check" style="float:right; color:#F0F0F0; font-size:20px;"></a>
-                    <br />{{ r.key }}
+                    <a href="javascript:void(0);" class="check" style="float:right; {% if r.is_selected %}color:#008000; font-weight:bold;{% else %}color:#222222;{% endif %}" data-bubble="{{ r.key }}" data-value="{{ r.is_selected }}">{{ str.application_apply }}</a>
                 </div>
             </div>
         {% endfor %}
@@ -47,56 +47,186 @@
         {% for t in bubble %}
             {% for v in t.value %}
             <div class="row">
-                <div class="v_header" style="width:300px;{% if t.is_public %} color:red;{% endif %}">
+                <div class="v_header" style="width:300px;{% if t.is_public %} color:red;{% endif %} white-space:normal;">
                     {{ t.name }}
                 </div>
-                {% if t.data_type == "string" or t.data_type == "integer" or t.data_type == "float" or t.data_type == "date" or t.data_type == "datetime" %}
-                    <input class="cell" type="text" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}" value="{{ v }}" style="width:590px" />
-                {% endif %}
-
-                {% if t.data_type == "text" %}
-                    <textarea class="cell" type="text" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}" style="width:590px">{{ v }}</textarea>
-                {% endif %}
-
-                {% ifequal t.data_type "boolean" %}
+                {% if t.is_read_only %}
                     <div class="cell" style="width:590px">
-                        <input type="checkbox" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}"{% if v %} checked{% endif %} />
+                        {{ v }}
                     </div>
-                {% endifequal %}
+                {% else %}
 
-                {% ifequal t.data_type "blobstore" %}
-                    {{ v.filename }}{% if not forloop.last %}, {% endif %}
-                    {% if forloop.last and t.can_add_new %}
-                    <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML);" style="display:none;"></iframe>
-                    <form method="post" action="{{ blobstore_upload_url }}" target="iframe_{{ t.key }}" enctype="multipart/form-data">
-                        <input type="file" name="file" class="dtype_{{ t.data_type }}" style="border:none;" />
-                        <input type="hidden" name="property" value="{{ t.key }}" />
-                    </form>
+                    {% if t.data_type == "string" or t.data_type == "integer" or t.data_type == "float" or t.data_type == "date" or t.data_type == "datetime" %}
+                        <input type="text" name="{{ t.key }}" data-oldvalue="{{ v }}" class="cell autosave dtype_{{ t.data_type }}" value="{{ v }}" style="width:590px" />
                     {% endif %}
-                {% endifequal %}
 
-                {% if t.choices %}
-                    <div class="cell" style="width:590px">
-                        <select name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}" data-placeholder="{{ v.value }}">
-                            <option value=""></option>
-                            {% for c in t.choices %}
-                            <option value="{{ c.key }}"{% ifequal v c.key %} selected{% endifequal %}>{{ c.value }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    {% if t.data_type == "text" %}
+                        <textarea type="text" name="{{ t.key }}" data-oldvalue="{{ v }}" class="cell autosave dtype_{{ t.data_type }}" style="width:590px">{{ v }}</textarea>
+                    {% endif %}
+
+                    {% ifequal t.data_type "boolean" %}
+                        <div class="cell" style="width:590px">
+                            <input type="checkbox" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}"{% if v %} checked{% endif %} />
+                        </div>
+                    {% endifequal %}
+
+                    {% ifequal t.data_type "blobstore" %}
+                        <div class="cell" style="width:590px">
+                            {% if v %}{{ v.filename }}<br />{% endif %}
+                            <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML);" style="display:none;"></iframe>
+                            <form method="post" action="{{ blobstore_upload_url }}" target="iframe_{{ t.key }}" enctype="multipart/form-data">
+                                <input type="file" name="file" class="dtype_{{ t.data_type }}" style="border:none;" />
+                                <input type="hidden" name="property" value="{{ t.key }}" />
+                            </form>
+                        </div>
+                    {% endifequal %}
+
+                    {% if t.choices %}
+                        <div class="cell" style="width:590px">
+                            <select name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}" data-placeholder="{{ v.value }}">
+                                <option value=""></option>
+                                {% for c in t.choices %}
+                                <option value="{{ c.key }}"{% ifequal v c.key %} selected{% endifequal %}>{{ c.value }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
                 {% endif %}
             </div>
             {% endfor %}
         {% endfor %}
     </section>
 
+    {% for sb in subbubbles %}
+        <h2>{{ sb.label }}<span>{{ sb.info|default:""|safe }}</span></h2>
+        <section class="table" style="margin:0px; width:100%;">
+        {% for e in sb.bubbles %}
+            {% if forloop.first %}
+            <div class="row">
+            {% for t in e.props %}
+                <div class="h_header">
+                    {{ t.name }}
+                </div>
+            {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="row">
+            {% for t in e.props %}
+                <div class="cell" style="text-align:center; padding:0px;">
+                {% for v in t.value %}
+                    {% if t.data_type == "string" or t.data_type == "integer" or t.data_type == "float" or t.data_type == "date" or t.data_type == "datetime" %}
+                        <input type="text" name="{{ t.key }}" data-type="{{ sb.type }}" data-bubble="{{ e.key|default:"" }}" data-oldvalue="{{ v }}" class="autosave_cv dtype_{{ t.data_type }}" value="{{ v }}" style="border:none; width:100%; padding:0px;" />
+                    {% endif %}
+
+                    {% if t.data_type == "text" %}
+                        <textarea type="text" name="{{ t.key }}" data-type="{{ sb.type }}" data-bubble="{{ e.key|default:"" }}" data-oldvalue="{{ v }}" class="autosave_cv dtype_{{ t.data_type }}" style="border:none; width:100%; height:20px;">{{ v }}</textarea>
+                    {% endif %}
+
+                    {% ifequal t.data_type "boolean" %}
+                        <input type="checkbox" name="{{ t.key }}" data-type="{{ sb.type }}" data-bubble="{{ e.key|default:"" }}" data-oldvalue="{{ v }}" class="autosave_cv dtype_{{ t.data_type }}"{% if v %} checked{% endif %} />
+                    {% endifequal %}
+
+                    {% ifequal t.data_type "blobstore" %}
+                        {% if v %}{{ v.filename }}<br />{% endif %}
+                        <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML);" style="display:none;"></iframe>
+                        <form method="post" action="{{ blobstore_upload_url }}" target="iframe_{{ t.key }}" enctype="multipart/form-data">
+                            <input type="file" name="file" class="dtype_{{ t.data_type }}" style="border:none;" />
+                            <input type="hidden" name="property" value="{{ t.key }}" />
+                        </form>
+                    {% endifequal %}
+                {% endfor %}
+                </div>
+            {% endfor %}
+            </div>
+        {% endfor %}
+        </section>
+    {% endfor %}
+
+<a id="submit_application" href="javascript:void(0);" class="button" style="margin:50px auto;">{{ str.application_submit }}</a>
 </section>
 
 <script>
     $(document).ready(function(){
+        leeching_count = {{ leeching_count }};
+
         $('.check').click(function() {
-            $(this).css('color', 'green');
+            chkbox = $(this);
+            if (chkbox.data('value') == 'False') {
+                if(leeching_count < 4) {
+                    leeching_count += 1;
+                    chkbox.data('value', 'True');
+                    chkbox.css('color', '#008000');
+                    chkbox.css('font-weight', 'bold');
+                    $.post('/application/leech', {bubble: chkbox.data('bubble'), action: 'add'});
+                } else {
+                    alert('{{ str.application_no_more_submissions }}');
+                }
+            } else {
+                leeching_count -= 1;
+                chkbox.data('value', 'False');
+                chkbox.css('color', '#222222');
+                chkbox.css('font-weight', 'normal');
+                $.post('/application/leech', {bubble: chkbox.data('bubble'), action: 'remove'});
+            }
         });
+
+        $('textarea').elastic();
+
+        $('.dtype_blobstore').change(function() {
+            $(this).parent().submit();
+        });
+
+        function showDocument(json_string){
+            alert(json_string);
+        };
+
+        $('.dtype_datetime').change(function() {
+            $(this).val(format_date($(this).val(), 'dd.MM.yyyy HH:mm'));
+        });
+
+        $('.dtype_date').change(function() {
+            $(this).val(format_date($(this).val(), 'dd.MM.yyyy'));
+        });
+
+        function format_date(dinput, format) {
+            result = ''
+            dvalue = Date.parse(dinput);
+            if(dvalue) {
+                result = dvalue.toString(format);
+            }
+            return result;
+        }
+
+        $('.autosave').change(function() {
+            inputbox = $(this);
+            if (inputbox.attr('type') == 'checkbox') {
+                value = inputbox.is(':checked');
+            } else {
+                value = inputbox.val();
+            }
+            if (value != inputbox.data('oldvalue')) {
+                $.post('/application', {property: inputbox.attr('name'), oldvalue: inputbox.data('oldvalue'), newvalue: value}, function(newvalue) {
+                    inputbox.data('oldvalue', newvalue);
+                });
+            }
+        });
+
+        $('.autosave_cv').change(function() {
+            inputbox = $(this);
+            if (inputbox.attr('type') == 'checkbox') {
+                value = inputbox.is(':checked');
+            } else {
+                value = inputbox.val();
+            }
+            if (value != inputbox.data('oldvalue')) {
+                $.post('/application/cv', {bubble: inputbox.data('bubble'), type: inputbox.data('type'), property: inputbox.attr('name'), oldvalue: inputbox.data('oldvalue'), newvalue: value}, function(newvalue) {
+                    inputbox.data('oldvalue', newvalue);
+
+                });
+            }
+        });
+
     });
 </script>
 {% endblock %}

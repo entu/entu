@@ -74,6 +74,7 @@ def translation():
 
 
         'application':                          'Application',
+        'application_info':                     'Please note that all Bachelor programmes are taught in Estonian.',
 
 
         'application_signup_desc':              'You need to log in to fill out an application. Please enter with @artun.ee account if you already have it. If you do not have the @artun.ee account, then please create new applicants account. The password for your account will be sent to you by e-mail. If you forget your password – please make new account and you will receive new password.',
@@ -87,5 +88,8 @@ def translation():
         'application_login_with_account':       'I have @artun.ee account. I will enter with that...',
         'application_signup_mail_subject':      'Applicants account',
         'application_signup_mail_message':      'Welcome to Estonian Academy of Arts!<br /><br />We are glad You have chosen our academy.<br /><br />Your applicant accountis ready.<br />Your applicants password is: <b>%s</b><br /><br />Please proceed here and fill out Your application: <a href="http://bubbledu.artun.ee/application">http://bubbledu.artun.ee/application</a><br /><br />Thank You!',
+        'application_no_more_submissions':      'Only four selections are allowed!',
+        'application_apply':                    'Apply',
+        'application_submit':                   'Submit application',
 
      }
