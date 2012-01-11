@@ -39,7 +39,6 @@ class ShowSignin(boRequestHandler):
         )
 
     def post(self):
-
         email = self.request.get('email').strip()
         password = self.request.get('applicant_pass').strip()
         language = self.request.get('language').strip()
@@ -97,19 +96,36 @@ class ShowApplication(boRequestHandler):
         language = self.request.get('language', p.language).strip()
 
         receptions = []
+        leeching_count = 0
         for g in sorted(db.Query(Bubble).filter('type', 'reception_group').fetch(1000), key=attrgetter('sort_%s' % language)):
             gname = getattr(Dictionary.get(g.name), language)
             gname2 = ''
             for r in sorted(db.Query(Bubble).filter('type', 'reception').filter('__key__ IN', g.optional_bubbles).fetch(1000), key=attrgetter('sort_%s' % language)):
                 for s in sorted(db.Query(Bubble).filter('type', 'submission').filter('__key__ IN', r.optional_bubbles).fetch(1000), key=attrgetter('sort_%s' % language)):
-                    if getattr(s, 'start_datetime', datetime.now()) < datetime.now():
+                    # if getattr(s, 'start_datetime', datetime.now()) < datetime.now() and getattr(s, 'end_datetime', datetime.now()) > datetime.now():
+                    if getattr(s, 'start_date', datetime.now()) < datetime.now() and getattr(s, 'end_date', datetime.now()) > datetime.now():
+                        br = db.Query(BubbleRelation).filter('bubble', s.key()).filter('related_bubble', p.key()).filter('type', 'leecher').filter('_is_deleted', False).get()
+                        if br:
+                            leeching_count += 1
                         receptions.append({
                             'key': str(s.key()),
                             'group': gname if gname != gname2 else None,
                             'displayname': getattr(Dictionary.get(s.name), language),
                             'url': s.url if hasattr(s, 'url') else None,
+                            'is_selected': True if br else False,
                         })
                         gname2 = gname
+
+        subbubbles = []
+        for t in ['cv_edu', 'cv_work', 'applicant_doc']:
+            props = []
+            for b in db.Query(Bubble).filter('_is_deleted', False).filter('type', t).filter('__key__ IN', p.optional_bubbles).fetch(1000):
+                props.append({'key': str(b.key()), 'props': b.GetProperties(language)})
+            eb = Bubble()
+            eb.type = t
+            props.append({'key': None, 'props': eb.GetProperties(language)})
+            ltype=db.Query(BubbleType).filter('type', t).get()
+            subbubbles.append({'label': getattr(ltype.name_plural, language), 'info': getattr(ltype.description, language, ''), 'type': t, 'bubbles': props})
 
         languages = []
         for l in SystemPreferences().get('languages'):
@@ -117,9 +133,7 @@ class ShowApplication(boRequestHandler):
                 languages.append({'value': l, 'label': Translate('language_%s' % l, language=language)})
 
         rgtype=db.Query(BubbleType).filter('type', 'reception').get()
-        rglabel = getattr(rgtype.name_plural, language)
         btype=db.Query(BubbleType).filter('type', 'applicant').get()
-        blabel = getattr(btype.name, language)
 
         self.view(
             language = language,
@@ -129,12 +143,89 @@ class ShowApplication(boRequestHandler):
                 'languages': languages,
                 'language': language,
                 'bubble': p.GetProperties(language),
-                'bubble_label': blabel,
+                'bubble_label': getattr(btype.name, language),
                 'receptions': receptions,
-                'receptions_label': rglabel,
+                'receptions_label': getattr(rgtype.name_plural, language),
+                'subbubbles': subbubbles,
+                'leeching_count': leeching_count,
             }
         )
 
+    def post(self):
+        sess = Session(self, timeout=86400)
+        if 'applicant_key' not in sess:
+            return
+
+        p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+        if not p:
+            return
+
+        value = p.SetProperty(
+            propertykey = self.request.get('property').strip(),
+            oldvalue = self.request.get('oldvalue').strip(),
+            newvalue = self.request.get('newvalue').strip(),
+        )
+        self.echo(self.request.get('newvalue').strip(), False)
+
+
+class EditSubmission(boRequestHandler):
+    def post(self):
+        sess = Session(self, timeout=86400)
+        if 'applicant_key' not in sess:
+            return
+
+        p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+        if not p:
+            return
+
+        action = self.request.get('action').strip()
+        bubblekey = self.request.get('bubble').strip()
+        if not bubblekey:
+            return
+
+        br = db.Query(BubbleRelation).filter('bubble', db.Key(bubblekey)).filter('related_bubble', p.key()).filter('type', 'leecher').get()
+        if action == 'add':
+            if br:
+                br._is_deleted = False
+            else:
+                br = BubbleRelation()
+                br.type = 'leecher'
+                br.bubble = db.Key(bubblekey)
+                br.related_bubble = p.key()
+            br.put()
+        else:
+            if br:
+                br._is_deleted = True
+                br.put()
+
+
+class EditCV(boRequestHandler):
+    def post(self):
+        sess = Session(self, timeout=86400)
+        if 'applicant_key' not in sess:
+            return
+
+        p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+        if not p:
+            return
+
+        bubblekey = self.request.get('bubble').strip()
+        if bubblekey:
+            bubble = Bubble().get(bubblekey)
+        else:
+            bubble = Bubble()
+            bubble.type = self.request.get('type').strip()
+            bubble.put()
+            p.optional_bubbles = AddToList(bubble.key(), p.optional_bubbles)
+            p.put()
+
+        value = bubble.SetProperty(
+            propertykey = self.request.get('property').strip(),
+            oldvalue = self.request.get('oldvalue').strip(),
+            newvalue = self.request.get('newvalue').strip(),
+        )
+
+        self.echo(str(bubble.key()), False)
 
 
 
@@ -473,6 +564,8 @@ class ShowApplication(boRequestHandler):
 def main():
     Route([
             ('/application/signin', ShowSignin),
+            ('/application/leech', EditSubmission),
+            ('/application/cv', EditCV),
             ('/application', ShowApplication),
             # ('/application/ratings', ShowPersonRatings),
             # ('/application/person', EditPerson),
