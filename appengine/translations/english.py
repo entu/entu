@@ -91,5 +91,6 @@ def translation():
         'application_no_more_submissions':      'Only four selections are allowed!',
         'application_apply':                    'Apply',
         'application_submit':                   'Submit application',
+        'application_submit_success_message':   'Application submitted. Thank You!',
 
      }

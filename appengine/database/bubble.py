@@ -1,5 +1,6 @@
 from google.appengine.ext import db
 from google.appengine.ext import blobstore
+from google.appengine.api import images
 from datetime import *
 from operator import attrgetter
 
@@ -449,7 +450,12 @@ class Bubble(ChangeLogModel):
                             v = v
                         if bp.data_type == 'blobstore':
                             b = blobstore.BlobInfo.get(v)
-                            v = {'key': str(b.key()), 'filename': b.filename, 'size': GetFileSize(b.size)}
+                            v = {
+                                'key': str(b.key()),
+                                'filename': b.filename,
+                                'size': GetFileSize(b.size),
+                                'image_url': images.get_serving_url(b.key()) if bp.data_property == 'photo' and b.content_type in ['image/bmp', 'image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/tiff', 'image/x-icon'] else None
+                            }
                         if v:
                             value.append(v)
 

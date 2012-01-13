@@ -169,7 +169,7 @@
 header,footer,aside,nav,article,section{display:block;}
 body{font-family:HelveticaNeue-Regular,'Helvetica Neue',Helvetica,Arial,Tahoma,Verdana,sans-serif;}
 h1{margin-bottom:20px;font-size:18px;font-weight:bold;letter-spacing:1px;color:#006600;}
-h2{padding-top:30px;margin-bottom:5px;font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#b9b9b9;clear:both;}h2 span{float:right;padding-top:2px;font-size:12px;font-weight:normal;letter-spacing:normal;text-transform:none;}
+h2{padding-top:30px;margin-bottom:5px;font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#006600;clear:both;}h2 span{float:right;padding-top:2px;font-size:12px;font-weight:normal;letter-spacing:normal;text-transform:none;}
 a,a:active,a:visited{color:#454a4e;text-decoration:none;}
 a:hover{text-decoration:underline;}
 input,textarea{border:1px solid #b9b9b9;padding:2px;font-size:12px;}

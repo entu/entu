@@ -65,17 +65,19 @@
                     {% endif %}
 
                     {% ifequal t.data_type "boolean" %}
-                        <div class="cell" style="width:590px">
+                        <div class="cell" style="width:590px; vertical-align:middle;">
                             <input type="checkbox" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}"{% if v %} checked{% endif %} />
                         </div>
                     {% endifequal %}
 
                     {% ifequal t.data_type "blobstore" %}
-                        <div class="cell" style="width:590px">
-                            {% if v %}{{ v.filename }}<br />{% endif %}
-                            <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML);" style="display:none;"></iframe>
+                        <div class="cell" style="width:590px" id="blobstore_{{ bubble_key }}_{{ t.key }}">
+                            {% if v %}<img src="{{ v.image_url }}=s100-c" style="padding-bottom:5px;" />{% endif %}
+                            <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showImage(this.contentWindow.document.body.innerHTML, 'blobstore_{{ bubble_key }}_{{ t.key }}');" style="display:none;"></iframe>
                             <form method="post" action="{{ blobstore_upload_url }}" target="iframe_{{ t.key }}" enctype="multipart/form-data">
-                                <input type="file" name="file" class="dtype_{{ t.data_type }}" style="border:none;" />
+                                <input type="file" name="file" class="dtype_{{ t.data_type }}" style="border:none; width:82px;" />
+                                <input type="hidden" name="type" value="{{ t.data_type }}" />
+                                <input type="hidden" name="bubble" value="{{ bubble_key }}" />
                                 <input type="hidden" name="property" value="{{ t.key }}" />
                             </form>
                         </div>
@@ -113,40 +115,69 @@
 
             <div class="row">
             {% for t in e.props %}
-                <div class="cell" style="text-align:center; padding:0px;">
                 {% for v in t.value %}
                     {% if t.data_type == "string" or t.data_type == "integer" or t.data_type == "float" or t.data_type == "date" or t.data_type == "datetime" %}
-                        <input type="text" name="{{ t.key }}" data-type="{{ sb.type }}" data-bubble="{{ e.key|default:"" }}" data-oldvalue="{{ v }}" class="autosave_cv dtype_{{ t.data_type }}" value="{{ v }}" style="border:none; width:100%; padding:0px;" />
+                        <div class="cell" style="text-align:center; padding:0px;" id="blobstore_{{ e.key|default:"" }}_{{ t.key }}">
+                            <input type="text" name="{{ t.key }}" data-type="{{ sb.type }}" data-bubble="{{ e.key|default:"" }}" data-oldvalue="{{ v }}" class="autosave_subbubble dtype_{{ t.data_type }}" value="{{ v }}" style="border:none; width:100%; padding: 5px 0px;" />
+                        </div>
                     {% endif %}
 
                     {% if t.data_type == "text" %}
-                        <textarea type="text" name="{{ t.key }}" data-type="{{ sb.type }}" data-bubble="{{ e.key|default:"" }}" data-oldvalue="{{ v }}" class="autosave_cv dtype_{{ t.data_type }}" style="border:none; width:100%; height:20px;">{{ v }}</textarea>
+                        <div class="cell" style="text-align:center; padding:0px;" id="blobstore_{{ e.key|default:"" }}_{{ t.key }}">
+                            <textarea type="text" name="{{ t.key }}" data-type="{{ sb.type }}" data-bubble="{{ e.key|default:"" }}" data-oldvalue="{{ v }}" class="autosave_subbubble dtype_{{ t.data_type }}" style="border:none; width:100%; height:20px; padding: 5px 0px;" rows="1">{{ v }}</textarea>
+                        </div>
                     {% endif %}
 
                     {% ifequal t.data_type "boolean" %}
-                        <input type="checkbox" name="{{ t.key }}" data-type="{{ sb.type }}" data-bubble="{{ e.key|default:"" }}" data-oldvalue="{{ v }}" class="autosave_cv dtype_{{ t.data_type }}"{% if v %} checked{% endif %} />
+                        <div class="cell" style="text-align:center; vertical-align:middle; padding:0px;" id="blobstore_{{ e.key|default:"" }}_{{ t.key }}">
+                            <input type="checkbox" name="{{ t.key }}" data-type="{{ sb.type }}" data-bubble="{{ e.key|default:"" }}" data-oldvalue="{{ v }}" class="autosave_subbubble dtype_{{ t.data_type }}"{% if v %} checked{% endif %} />
+                        </div>
                     {% endifequal %}
 
                     {% ifequal t.data_type "blobstore" %}
-                        {% if v %}{{ v.filename }}<br />{% endif %}
-                        <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML);" style="display:none;"></iframe>
-                        <form method="post" action="{{ blobstore_upload_url }}" target="iframe_{{ t.key }}" enctype="multipart/form-data">
-                            <input type="file" name="file" class="dtype_{{ t.data_type }}" style="border:none;" />
-                            <input type="hidden" name="property" value="{{ t.key }}" />
-                        </form>
+                        {% if v %}
+                            <div class="cell" style="padding:5px; vertical-align:middle;" id="blobstore_{{ e.key|default:"" }}_{{ t.key }}">
+                                {{ v.filename }}
+                            </div>
+                        {% else %}
+                            <div class="cell" style="text-align:center; padding:5px;" id="blobstore_{{ e.key|default:"" }}_{{ t.key }}">
+                                <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML, 'blobstore_{{ e.key|default:"" }}_{{ t.key }}');" style="display:none;"></iframe>
+                                <form method="post" action="{{ blobstore_upload_url }}" target="iframe_{{ t.key }}" enctype="multipart/form-data">
+                                    <input type="file" name="file" class="dtype_{{ t.data_type }}" style="border:none; width:82px;" />
+                                    <input type="hidden" name="type" value="{{ sb.type }}" />
+                                    <input type="hidden" class="autosave_subbubble blobstore_bubble" name="bubble" value="{{ e.key|default:"" }}" />
+                                    <input type="hidden" name="property" value="{{ t.key }}" />
+                                </form>
+                            </div>
+                        {% endif %}
                     {% endifequal %}
                 {% endfor %}
-                </div>
             {% endfor %}
             </div>
         {% endfor %}
         </section>
     {% endfor %}
-
-<a id="submit_application" href="javascript:void(0);" class="button" style="margin:50px auto;">{{ str.application_submit }}</a>
+    <div style="display:block; color:green; font-weight:bold; margin:50px; text-align:center;">
+        <a id="submit_application" href="javascript:void(0);" class="button">{{ str.application_submit }}</a>
+    </div>
 </section>
 
 <script>
+
+    function showDocument(json_string, div){
+        var json = jQuery.parseJSON(json_string);
+        $('#'+div).html(json['filename']);
+        $('#'+div).parent().find('.autosave_subbubble').each(function() {
+            if(!$(this).data('bubble')){
+                $(this).data('bubble', json['bubble']);
+            }
+        });
+    };
+
+    function showImage(image, div){
+        $('#'+div).append('<img src="'+image+'=s100-c" style="padding-bottom:5px;" />');
+    };
+
     $(document).ready(function(){
         leeching_count = {{ leeching_count }};
 
@@ -174,12 +205,10 @@
         $('textarea').elastic();
 
         $('.dtype_blobstore').change(function() {
+            $(this).parent().hide();
+            $(this).parent().parent().append('<img src="/images/spinner_white.gif"/>')
             $(this).parent().submit();
         });
-
-        function showDocument(json_string){
-            alert(json_string);
-        };
 
         $('.dtype_datetime').change(function() {
             $(this).val(format_date($(this).val(), 'dd.MM.yyyy HH:mm'));
@@ -212,7 +241,7 @@
             }
         });
 
-        $('.autosave_cv').change(function() {
+        $('.autosave_subbubble').change(function() {
             inputbox = $(this);
             if (inputbox.attr('type') == 'checkbox') {
                 value = inputbox.is(':checked');
@@ -220,13 +249,29 @@
                 value = inputbox.val();
             }
             if (value != inputbox.data('oldvalue')) {
-                $.post('/application/cv', {bubble: inputbox.data('bubble'), type: inputbox.data('type'), property: inputbox.attr('name'), oldvalue: inputbox.data('oldvalue'), newvalue: value}, function(newvalue) {
-                    inputbox.data('oldvalue', newvalue);
-
-                });
+                $.post('/application/subbubble', {bubble: inputbox.data('bubble'), type: inputbox.data('type'), property: inputbox.attr('name'), oldvalue: inputbox.data('oldvalue'), newvalue: value}, function(json) {
+                    inputbox.data('oldvalue', json['value']);
+                    if (!inputbox.data('bubble')) {
+                        var newrow = inputbox.parent().parent().clone(true);
+                        newrow.find('.autosave_subbubble').val('')
+                        inputbox.parent().parent().find('.autosave_subbubble').each(function() {
+                            if($(this).hasClass('blobstore_bubble')) {
+                                $(this).val(json['bubble']);
+                            }
+                            if(!$(this).data('bubble')){
+                                $(this).data('bubble', json['bubble']);
+                            }
+                        });
+                        inputbox.parent().parent().after(newrow);
+                    }
+                }, 'json');
             }
         });
 
-    });
+         $('#submit_application').click(function() {
+            $(this).parent().html('{{ str.application_submit_success_message }}');
+        });
+
+   });
 </script>
 {% endblock %}

@@ -91,6 +91,7 @@ def translation():
         'application_no_more_submissions':      'Lubatud on valida maksimaalselt neli eriala!',
         'application_apply':                    'Kandideerin',
         'application_submit':                   'Esita avaldus',
+        'application_submit_success_message':   'Avaldus vastu võetud. Täname!',
 
 
 

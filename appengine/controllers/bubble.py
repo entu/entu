@@ -163,6 +163,7 @@ class DownloadBubbleFile(blobstore_handlers.BlobstoreDownloadHandler):
                 return
         self.error(404)
 
+
 class UploadBubbleFile(blobstore_handlers.BlobstoreUploadHandler):
     def post(self, bubble_id):
         bubble = Bubble().get_by_id(int(bubble_id))
@@ -182,6 +183,7 @@ class UploadBubbleFile(blobstore_handlers.BlobstoreUploadHandler):
         )
 
         self.response.out.write(blob_info.filename)
+
 
 class ShowBubbleDoc1(boRequestHandler):
     def get(self, id):
