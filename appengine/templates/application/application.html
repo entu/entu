@@ -47,7 +47,7 @@
         {% for t in bubble %}
             {% for v in t.value %}
             <div class="row">
-                <div class="v_header" style="width:300px;{% if t.is_public %} color:red;{% endif %} white-space:normal;">
+                <div class="v_header" style="width:300px;{% if t.is_mandatory %} color:red;{% endif %} white-space:normal;">
                     {{ t.name }}
                 </div>
                 {% if t.is_read_only %}
@@ -57,11 +57,11 @@
                 {% else %}
 
                     {% if t.data_type == "string" or t.data_type == "integer" or t.data_type == "float" or t.data_type == "date" or t.data_type == "datetime" %}
-                        <input type="text" name="{{ t.key }}" data-oldvalue="{{ v }}" class="cell autosave dtype_{{ t.data_type }}" value="{{ v }}" style="width:590px" />
+                        <input type="text" name="{{ t.key }}" data-oldvalue="{{ v }}" class="cell autosave dtype_{{ t.data_type }}{% if t.is_mandatory %} mandatory{% endif %}" value="{{ v }}" style="width:590px" />
                     {% endif %}
 
                     {% if t.data_type == "text" %}
-                        <textarea type="text" name="{{ t.key }}" data-oldvalue="{{ v }}" class="cell autosave dtype_{{ t.data_type }}" style="width:590px">{{ v }}</textarea>
+                        <textarea type="text" name="{{ t.key }}" data-oldvalue="{{ v }}" class="cell autosave dtype_{{ t.data_type }}{% if t.is_mandatory %} mandatory{% endif %}" style="width:590px">{{ v }}</textarea>
                     {% endif %}
 
                     {% ifequal t.data_type "boolean" %}
@@ -85,7 +85,7 @@
 
                     {% if t.choices %}
                         <div class="cell" style="width:590px">
-                            <select name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}" data-placeholder="{{ v.value }}">
+                            <select name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}{% if t.is_mandatory %} mandatory{% endif %}" data-placeholder="{{ v.value }}">
                                 <option value=""></option>
                                 {% for c in t.choices %}
                                 <option value="{{ c.key }}"{% ifequal v c.key %} selected{% endifequal %}>{{ c.value }}</option>
@@ -140,7 +140,7 @@
                                 {{ v.filename }}
                             </div>
                         {% else %}
-                            <div class="cell" style="text-align:center; padding:5px;" id="blobstore_{{ e.key|default:"" }}_{{ t.key }}">
+                            <div class="cell" style="padding:5px;" id="blobstore_{{ e.key|default:"" }}_{{ t.key }}">
                                 <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML, 'blobstore_{{ e.key|default:"" }}_{{ t.key }}');" style="display:none;"></iframe>
                                 <form method="post" action="{{ blobstore_upload_url }}" target="iframe_{{ t.key }}" enctype="multipart/form-data">
                                     <input type="file" name="file" class="dtype_{{ t.data_type }}" style="border:none; width:82px;" />
@@ -269,7 +269,26 @@
         });
 
          $('#submit_application').click(function() {
-            $(this).parent().html('{{ str.application_submit_success_message }}');
+            apply_ok = false;
+            mandatory_ok = true;
+            $('.check').each(function() {
+                if($(this).data('value') == 'True') {
+                    apply_ok = true;
+                }
+            });
+            $('.mandatory').each(function() {
+                if(!$(this).val()) {
+                    mandatory_ok = false;
+                }
+            });
+
+            if(apply_ok == true && mandatory_ok == true) {
+                $(this).parent().html('{{ str.application_submit_success_message }}');
+            } else if (apply_ok == false) {
+                alert('{{ str.application_missing_apply }}');
+            } else {
+                alert('{{ str.application_missing_mandatory_fields }}');
+            }
         });
 
    });
