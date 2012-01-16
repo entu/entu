@@ -443,7 +443,7 @@ class Bubble(ChangeLogModel):
                             d = Dictionary().get(v)
                             v = {'key': str(d.key()), 'value': getattr(d, language) }
                         if bp.data_type == 'datetime':
-                            v = v.strftime('%d.%m.%Y %H:%M')
+                            v = UtcToLocalDateTime(v).strftime('%d.%m.%Y %H:%M')
                         if bp.data_type == 'date':
                             v = v.strftime('%d.%m.%Y')
                         if bp.data_type in ['reference', 'counter', 'dictionary_select']:
@@ -509,8 +509,8 @@ class Bubble(ChangeLogModel):
             oldvalue = db.Key(oldvalue) if oldvalue else None
             newvalue = db.Key(newvalue) if newvalue else None
         if bp.data_type == 'datetime':
-            oldvalue = datetime.strptime('%s:00' % oldvalue, '%d.%m.%Y %H:%M:%S') if oldvalue else None
-            newvalue = datetime.strptime('%s:00' % newvalue, '%d.%m.%Y %H:%M:%S') if newvalue else None
+            oldvalue = UtcFromLocalDateTime(datetime.strptime('%s:00' % oldvalue, '%d.%m.%Y %H:%M:%S')) if oldvalue else None
+            newvalue = UtcFromLocalDateTime(datetime.strptime('%s:00' % newvalue, '%d.%m.%Y %H:%M:%S')) if newvalue else None
         if bp.data_type == 'date':
             oldvalue = datetime.strptime('%s 00:00:00' % oldvalue, '%d.%m.%Y %H:%M:%S') if oldvalue else None
             newvalue = datetime.strptime('%s 00:00:00' % newvalue, '%d.%m.%Y %H:%M:%S') if newvalue else None
