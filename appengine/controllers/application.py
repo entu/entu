@@ -122,7 +122,7 @@ class ShowApplication(boRequestHandler):
                         gname2 = gname
 
         subbubbles = []
-        for t in ['cv_edu', 'cv_work', 'applicant_doc']:
+        for t in ['cv_edu', 'cv_work', 'applicant_doc', 'message']:
             props = []
             for b in Bubble.get(p.optional_bubbles):
                 if b:
@@ -286,12 +286,34 @@ class UploadFile(blobstore_handlers.BlobstoreUploadHandler):
             }))
 
 
+class EditSubmission(boRequestHandler):
+    def get(self):
+        pass
+
+    def post(self):
+        sess = Session(self, timeout=86400)
+        if 'applicant_key' not in sess:
+            return
+
+        p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+        if not p:
+            return
+
+        for s in db.Query(Bubble).filter('type', 'submission').fetch(1000):
+            # if getattr(s, 'start_datetime', datetime.now()) < datetime.now() and getattr(s, 'end_datetime', datetime.now()) > datetime.now():
+            if getattr(s, 'start_date', datetime.now()) < datetime.now() and getattr(s, 'end_date', datetime.now()) > datetime.now():
+                br = db.Query(BubbleRelation).filter('bubble', s.key()).filter('related_bubble', p.key()).filter('type', 'leecher').filter('_is_deleted', False).get()
+                if br:
+
+
+
 def main():
     Route([
             ('/application/signin', ShowSignin),
             ('/application/leech', EditSubmission),
             ('/application/subbubble', EditSubbubble),
             ('/application/upload_file', UploadFile),
+            ('/application/submit', Submit),
             ('/application', ShowApplication),
         ])
 

@@ -153,7 +153,9 @@ class ChangeLog(db.Expando):
 class ChangeLogModel(db.Expando):
     _version    = db.StringProperty(default='A')
     _created    = db.DateTimeProperty(auto_now_add=True)
+    _created_by = db.StringProperty()
     _changed    = db.DateTimeProperty(auto_now=True)
+    _changed_by = db.StringProperty()
     _is_deleted = db.BooleanProperty(default=False)
 
     def put(self, email=None):
@@ -162,6 +164,7 @@ class ChangeLogModel(db.Expando):
             if user:
                 email = user.email()
         if self.is_saved():
+            self._changed_by = email
             old = db.get(self.key())
             for prop_key, prop_value in self.properties().iteritems():
                 if old:
@@ -182,6 +185,8 @@ class ChangeLogModel(db.Expando):
                         cl.old_value = old_value
                     cl.new_value = new_value
                     cl.put()
+        else:
+            self._created_by = email
         return db.Model.put(self)
 
     @property
@@ -358,17 +363,19 @@ def StringToSearchIndex(s):
     return result
 
 
-def UtcToLocalDateTime(utc_time):
+def UtcToLocalDateTime(utc_time, tz=None):
     utc = pytz.timezone('UTC')
-    tz = pytz.timezone(UserPreferences().current.timezone)
+    if not tz:
+        tz = pytz.timezone(UserPreferences().current.timezone)
     d_tz = utc.normalize(utc.localize(utc_time))
     d_utc = d_tz.astimezone(tz)
     return d_utc
 
 
-def UtcFromLocalDateTime(local_time):
+def UtcFromLocalDateTime(local_time, tz=None):
     utc = pytz.timezone('UTC')
-    tz = pytz.timezone(UserPreferences().current.timezone)
+    if not tz:
+        tz = pytz.timezone(UserPreferences().current.timezone)
     d_tz = tz.normalize(tz.localize(local_time))
     d_utc = d_tz.astimezone(utc)
     return d_utc
