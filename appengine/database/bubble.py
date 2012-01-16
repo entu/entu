@@ -283,7 +283,7 @@ class Bubble(ChangeLogModel):
                             d = Dictionary().get(v)
                             v = d.value
                         if bp.data_type == 'datetime':
-                            v = v.strftime('%d.%m.%Y %H:%M')
+                            v = UtcToLocalDateTime(v).strftime('%d.%m.%Y %H:%M')
                         if bp.data_type == 'date':
                             v = v.strftime('%d.%m.%Y')
                         if bp.data_type == 'reference':
@@ -483,6 +483,7 @@ class Bubble(ChangeLogModel):
                 'value': value,
                 'is_public': bp.key() in bt.public_properties,
                 'is_read_only': bp.is_read_only,
+                'is_mandatory': True if bp.key() in bt.mandatory_properties else False,
                 'can_add_new': (bp.count == 0 or bp.count > len(value))
             })
         return result
