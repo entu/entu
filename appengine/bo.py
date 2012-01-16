@@ -369,7 +369,7 @@ def UtcToLocalDateTime(utc_time, tz=None):
         tz = pytz.timezone(UserPreferences().current.timezone)
     d_tz = utc.normalize(utc.localize(utc_time))
     d_utc = d_tz.astimezone(tz)
-    return d_utc
+    return d_utc.replace(tzinfo=None)
 
 
 def UtcFromLocalDateTime(local_time, tz=None):
@@ -378,7 +378,7 @@ def UtcFromLocalDateTime(local_time, tz=None):
         tz = pytz.timezone(UserPreferences().current.timezone)
     d_tz = tz.normalize(tz.localize(local_time))
     d_utc = d_tz.astimezone(utc)
-    return d_utc
+    return d_utc.replace(tzinfo=None)
 
 
 def AddToList(s_value=None, s_list=[], unique=True):
