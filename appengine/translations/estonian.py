@@ -94,6 +94,7 @@ def translation():
         'application_submit_success_message':   'Avaldus vastu võetud. Täname!',
         'application_missing_mandatory_fields': 'Punased väljad on kohustuslikud!',
         'application_missing_apply':            'Valige eriala!',
+        'application_logout':                   'Välju',
 
 
 

@@ -13,6 +13,7 @@ from libraries.gmemsess import *
 
 from bo import *
 from database.bubble import *
+from database.person import *
 from django.utils import simplejson
 
 class ShowSignin(boRequestHandler):
@@ -287,23 +288,27 @@ class UploadFile(blobstore_handlers.BlobstoreUploadHandler):
 
 
 class Submit(boRequestHandler):
-    def get(self):
-        pass
+    def post(self):
+        sess = Session(self, timeout=86400)
+        if 'applicant_key' not in sess:
+            return
 
-    # def post(self):
-    #     sess = Session(self, timeout=86400)
-    #     if 'applicant_key' not in sess:
-    #         return
+        p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+        if not p:
+            return
 
-    #     p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
-    #     if not p:
-    #         return
+        for s in db.Query(Bubble).filter('type', 'submission').fetch(1000):
+            # if getattr(s, 'start_datetime', datetime.now()) < datetime.now() and getattr(s, 'end_datetime', datetime.now()) > datetime.now():
+            if getattr(s, 'start_date', datetime.now()) < datetime.now() and getattr(s, 'end_date', datetime.now()) > datetime.now():
+                br = db.Query(BubbleRelation).filter('bubble', s.key()).filter('related_bubble', p.key()).filter('type', 'leecher').filter('_is_deleted', False).get()
+                if br:
+                    p.viewers = s.viewers
+                    p.put()
 
-    #     for s in db.Query(Bubble).filter('type', 'submission').fetch(1000):
-    #         # if getattr(s, 'start_datetime', datetime.now()) < datetime.now() and getattr(s, 'end_datetime', datetime.now()) > datetime.now():
-    #         if getattr(s, 'start_date', datetime.now()) < datetime.now() and getattr(s, 'end_date', datetime.now()) > datetime.now():
-    #             br = db.Query(BubbleRelation).filter('bubble', s.key()).filter('related_bubble', p.key()).filter('type', 'leecher').filter('_is_deleted', False).get()
-    #             if br:
+                    for sb in Bubble.get(p.optional_bubbles):
+                        if sb.type in ['cv_edu', 'cv_work', 'applicant_doc', 'message']:
+                            sb.viewers = s.viewers
+                            sb.put()
 
 
 

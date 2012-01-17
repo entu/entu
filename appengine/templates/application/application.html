@@ -157,7 +157,8 @@
         {% endfor %}
         </section>
     {% endfor %}
-    <div style="display:block; color:green; font-weight:bold; margin:50px; text-align:center;">
+    <div style="display:block; color:green; font-weight:bold; margin:50px 0px;">
+        <a href="/application/signin" class="button" style="float:right;">{{ str.application_logout }}</a>
         <a id="submit_application" href="javascript:void(0);" class="button">{{ str.application_submit }}</a>
     </div>
 </section>
@@ -283,7 +284,8 @@
             });
 
             if(apply_ok == true && mandatory_ok == true) {
-                $(this).parent().html('{{ str.application_submit_success_message }}');
+                $(this).replaceWith('{{ str.application_submit_success_message }}');
+                $.post('/application/submit');
             } else if (apply_ok == false) {
                 alert('{{ str.application_missing_apply }}');
             } else {

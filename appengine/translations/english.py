@@ -94,5 +94,6 @@ def translation():
         'application_submit_success_message':   'Application submitted. Thank You!',
         'application_missing_mandatory_fields': 'Red fields are mandatory!',
         'application_missing_apply':            'Select admission!',
+        'application_logout':                   'Exit',
 
      }
