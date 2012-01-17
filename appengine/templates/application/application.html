@@ -106,7 +106,7 @@
             {% if forloop.first %}
             <div class="row">
             {% for t in e.props %}
-                <div class="h_header">
+                <div class="h_header" style="{% if t.is_mandatory %}color:red;{% endif %}">
                     {{ t.name }}
                 </div>
             {% endfor %}
