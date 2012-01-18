@@ -380,7 +380,9 @@ class Bubble(ChangeLogModel):
                         url += '=s%s-c' % size
                     return url
 
-        return 'http://www.gravatar.com/avatar/%s?s=%s&d=identicon' % (hashlib.md5(str(self.key()).strip().lower()).hexdigest(), size)
+        gravatar_type = 'monsterid' if getattr(self, 'type', '') in ['person', 'applicant'] else 'identicon'
+
+        return 'http://www.gravatar.com/avatar/%s?s=%s&d=%s' % (hashlib.md5(str(self.key()).strip().lower()).hexdigest(), size, gravatar_type)
 
     def AddSubbubble(self, type):
         bt = self.GetType()
