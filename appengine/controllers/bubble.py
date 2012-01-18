@@ -149,19 +149,22 @@ class AddBubble(boRequestHandler):
 
 
 class DownloadBubbleFile(blobstore_handlers.BlobstoreDownloadHandler):
-    def get(self, file_key=None):
+    def get(self, data_property, file_key=None):
         b = blobstore.BlobInfo.get(urllib.unquote(file_key))
-        bubble = db.Query(Bubble).filter('files', b.key()).get()
-        if bubble:
-            if bubble.Authorize('viewer'):
-                self.send_blob(b, save_as = ReplaceUTF(b.filename))
-                return
-        bubble = db.Query(Bubble).filter('public_files', b.key()).get()
-        if bubble:
-            if bubble.Authorize('viewer'):
-                self.send_blob(b, save_as = ReplaceUTF(b.filename))
-                return
-        self.error(404)
+        if not b:
+            self.error(404)
+            return
+
+        bubble = db.Query(Bubble).filter(data_property, b.key()).get()
+        if not bubble:
+            self.error(404)
+            return
+
+        if not bubble.Authorize('viewer'):
+            self.error(404)
+            return
+
+        self.send_blob(b, save_as = ReplaceUTF(b.filename))
 
 
 class UploadBubbleFile(blobstore_handlers.BlobstoreUploadHandler):
@@ -589,7 +592,7 @@ def main():
             (r'/bubble/show/(.*)', ShowBubble),
             (r'/bubble/edit/(.*)', EditBubble),
             (r'/bubble/add/(.*)', AddBubble),
-            (r'/bubble/file/(.*)', DownloadBubbleFile),
+            (r'/bubble/file/(.*)/(.*)', DownloadBubbleFile),
             (r'/bubble/upload_file/(.*)', UploadBubbleFile),
             (r'/bubble/d1/(.*)', ShowBubbleDoc1),
             (r'/bubble/xml/(.*)', ShowBubbleXML),

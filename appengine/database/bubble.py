@@ -294,7 +294,7 @@ class Bubble(ChangeLogModel):
                             v = c.displayname
                         if bp.data_type == 'blobstore':
                             b = blobstore.BlobInfo.get(v)
-                            v = '<a href="/bubble/file/%s" title="%s">%s</a>' % (b.key(), GetFileSize(b.size), b.filename)
+                            v = '<a href="/bubble/file/%s/%s" title="%s">%s</a>' % (bp.data_property, b.key(), GetFileSize(b.size), b.filename)
                         if bp.data_type == 'boolean':
                             v = Translate('true') if v == True else Translate('false')
                         if v:
@@ -369,7 +369,17 @@ class Bubble(ChangeLogModel):
             return False
         return True
 
-    def GetPhotoUrl(self, size = ''):
+    def GetPhotoUrl(self, size = 150):
+        blob_key = getattr(self, 'photo', None)
+        if blob_key:
+            b = blobstore.BlobInfo.get(blob_key)
+            if b:
+                if b.content_type in ['image/bmp', 'image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/tiff', 'image/x-icon']:
+                    url = images.get_serving_url(b.key())
+                    if size:
+                        url += '=s%s-c' % size
+                    return url
+
         return 'http://www.gravatar.com/avatar/%s?s=%s&d=identicon' % (hashlib.md5(str(self.key()).strip().lower()).hexdigest(), size)
 
     def AddSubbubble(self, type):
