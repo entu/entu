@@ -34,9 +34,12 @@ class FixStuff(boRequestHandler):
     def get(self):
         # taskqueue.Task(url='/update/stuff').add()
 
-        for b in db.Query(Bubble).filter('type', 'doc_kirjavahetus').fetch(1000):
-            setattr(b, 'reply_counter', db.Key('agpzfmJ1YmJsZWR1chALEgdDb3VudGVyGK30twIM'))
-            b.put()
+        b = Bubble().get('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY0OOwAgw')
+        b.optional_bubbles = AddToList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYhJSxAgw'))
+        b.optional_bubbles = AddToList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYpNOyAgw'), b.optional_bubbles)
+        b.optional_bubbles = AddToList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYmuiwAgw'), b.optional_bubbles)
+        b.optional_bubbles = AddToList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYtPewAgw'), b.optional_bubbles)
+        b.put()
 
     def post(self):
         # b = Bubble().get('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYjcmwAgw')
