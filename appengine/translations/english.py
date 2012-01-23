@@ -57,6 +57,7 @@ def translation():
         'bubble_edit':                          'Edit',
         'bubble_max_leecher_count':             'Max leechers count',
         'bubble_seeders':                       'Seeders',
+        'bubble_leecher':                       'Leecher',
         'bubble_leechers':                      'Leechers',
         'bubble_waitinglist':                   'Waitinglist',
         'bubble_subbubbles':                    'Subbubbles',

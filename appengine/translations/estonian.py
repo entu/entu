@@ -59,6 +59,7 @@ def translation():
         'bubble_edit':                  'Muuda',
         'bubble_max_leecher_count':     'Maks. saajate arv',
         'bubble_seeders':               'Andjad',
+        'bubble_leecher':               'Saaja',
         'bubble_leechers':              'Saajad',
         'bubble_waitinglist':           'Ootejärjekord',
         'bubble_subbubbles':            'Alammullid',

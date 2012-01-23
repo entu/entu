@@ -36,21 +36,17 @@
 
 <section class="info_accordion">
     <div style="display:none;">
-        <h2>{{ str.bubble_seeders }}<span><img src="/images/spinner_gray_small.gif" /></span></h2>
-        <div id="seeders" class="persons_list"></div>
+        <h2>{{ str.bubble_leecher }}<span><img src="/images/spinner_gray_small.gif" /></span></h2>
+        <div id="leecher" class="subbubbles_list"></div>
     </div>
     <div style="display:none;">
         <h2>{{ str.bubble_leechers }}<span><img src="/images/spinner_gray_small.gif" /></span></h2>
-        <div id="leechers" class="persons_list"></div>
-    </div>
-    <div style="display:none;">
-        <h2>{{ str.bubble_waitinglist }}<span><img src="/images/spinner_gray_small.gif" /></span></h2>
-        <div id="waitinglist" class="persons_list"></div>
+        <div id="leechers" class="subbubbles_list"></div>
     </div>
     {% for t in bubbletypes %}
     <div style="display:none;">
         <h2>{{ t.name_plural.value }}<span><img src="/images/spinner_gray_small.gif" /></span></h2>
-        <div class="subbubbles_list" data-type="{{ t.type }}"></div>
+        <div class="subbubbles_list subbubbles" data-type="{{ t.type }}"></div>
     </div>
     {% endfor %}
 </section>
@@ -119,11 +115,10 @@
             $("#open_document_box").slideUp();
         });
 
-        ajax_persons_list('/person', { bubble_seeders: '{{ bubble.key }}' }, $('#seeders'), 'seeder');
-        ajax_persons_list('/person', { bubble_leechers: '{{ bubble.key }}' }, $('#leechers'), 'leecher');
-        ajax_persons_list('/person', { bubble_waitinglist: '{{ bubble.key }}' }, $('#waitinglist'), 'waitinglist');
+        ajax_bubbles_list('/bubble', { leecher_in_bubble: '{{ bubble.key }}' }, $('#leecher'), 'leecher');
+        ajax_bubbles_list('/bubble', { bubble_leechers: '{{ bubble.key }}' }, $('#leechers'), 'leechers');
 
-        $('.subbubbles_list').each(function() {
+        $('.subbubbles').each(function() {
             ajax_bubbles_list('/bubble', { master_bubble: '{{ bubble.key }}', type: $(this).data('type') }, $(this), 'subbubbles');
         });
 

@@ -53,8 +53,10 @@ class ShowBubbleList(boRequestHandler):
         keys = None
         bubbletype = bubbletype.strip('/')
         search = self.request.get('search').strip().lower()
-        leecher = self.request.get('leecher').strip()
-        seeder = self.request.get('seeder').strip()
+
+        leecher_in_bubble = self.request.get('leecher_in_bubble').strip()
+        bubble_leechers = self.request.get('bubble_leechers').strip()
+
         master_bubble = self.request.get('master_bubble').strip()
         btype = self.request.get('type').strip()
 
@@ -64,11 +66,11 @@ class ShowBubbleList(boRequestHandler):
         if bubbletype and not search:
             keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('viewers', Person().current.key()).filter('type', bubbletype).filter('_is_deleted', False).order('sort_'+UserPreferences().current.language))]
 
-        if leecher:
-            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('viewers', Person().current.key()).filter('leechers', db.Key(leecher)).filter('_is_deleted', False).order('sort_'+UserPreferences().current.language))]
+        if leecher_in_bubble:
+            keys = [str(b.bubble.key()) for b in db.Query(BubbleRelation).filter('related_bubble', db.Key(leecher_in_bubble)).filter('type', 'leecher').filter('_is_deleted', False)]
 
-        if seeder:
-            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('viewers', Person().current.key()).filter('seeders', db.Key(seeder)).filter('_is_deleted', False).order('sort_'+UserPreferences().current.language))]
+        if bubble_leechers:
+            keys = [str(b.related_bubble.key()) for b in db.Query(BubbleRelation).filter('bubble', db.Key(bubble_leechers)).filter('type', 'leecher').filter('_is_deleted', False)]
 
         if master_bubble:
             bubble = Bubble().get(master_bubble)
