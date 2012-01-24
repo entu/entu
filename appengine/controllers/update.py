@@ -5,6 +5,7 @@ import time
 from bo import *
 from database.bubble import *
 from database.person import *
+from database.feedback import *
 from database.zimport.zoin import *
 from database.zimport.zbubble import *
 
@@ -75,16 +76,94 @@ class AddUser(boRequestHandler):
             b.put()
 
 
-                if not db.Query(BubbleRelation).filter('bubble', related_bubble).filter('related_bubble', bubble).filter('type', 'leecher').get():
+class Person2Bubble(boRequestHandler):
+    def get(self):
+        taskqueue.Task(url='/update/p2b').add()
+
+
+    def post(self):
+
+        rc = 0
+        limit = 100
+        step = int(self.request.get('step', 1))
+        offset = int(self.request.get('offset', 0))
+
+        for person in db.Query(Person).filter('is_guest', False).order('__key__').fetch(limit=limit, offset=offset):
+            rc += 1
+            bubble = None
+            if hasattr(person, 'person2bubble'):
+                bubble = Bubble().get(person.person2bubble)
+
+            if not bubble:
+                bubble = Bubble()
+                bubble.type = 'person'
+                bubble.put()
+
+            person.person2bubble = bubble.key()
+            person.put()
+
+            if getattr(person, 'forename', None):
+                bubble.forename   = person.forename
+            if getattr(person, 'surname', None):
+                bubble.surname    = person.surname
+            if getattr(person, 'users', None):
+                bubble.users      = person.users
+            if getattr(person, 'idcode', None):
+                bubble.id_code    = person.idcode
+            if getattr(person, 'gender', None):
+                if person.gender.lower() == 'male':
+                    bubble.gender = db.Key('agpzfmJ1YmJsZWR1chMLEgpEaWN0aW9uYXJ5GJ2tsAIM')
+                if person.gender.lower() == 'female':
+                    bubble.gender = db.Key('agpzfmJ1YmJsZWR1chMLEgpEaWN0aW9uYXJ5GJyGsAIM')
+            if getattr(person, 'birth_date', None):
+                bubble.birth_date = datetime(*(person.birth_date.timetuple()[:6]))
+
+            bubble.viewers = [db.Key('agpzfmJ1YmJsZWR1cg8LEgZQZXJzb24Ykf2yAgw'), db.Key('agpzfmJ1YmJsZWR1cg8LEgZQZXJzb24Yq-2yAgw')]
+            bubble.put()
+
+            # bubble.seeder
+            for related_bubble in Bubble().get(person.seeder):
+                if not db.Query(BubbleRelation).filter('bubble', related_bubble).filter('related_bubble', bubble).filter('type', 'seeder').get():
+                    br = BubbleRelation()
                     br.bubble = related_bubble.key()
+                    br.related_bubble = bubble.key()
+                    br.type = 'seeder'
+                    br.put()
+
+            # bubble.leecher
+            for related_bubble in Bubble().get(person.leecher):
+                if not db.Query(BubbleRelation).filter('bubble', related_bubble).filter('related_bubble', bubble).filter('type', 'leecher').get():
+                    br = BubbleRelation()
+                    br.bubble = related_bubble.key()
+                    br.related_bubble = bubble.key()
                     br.type = 'leecher'
                     br.put()
+
+            # QuestionaryPerson
             for qp in db.Query(QuestionaryPerson).filter('person', person.key()).fetch(1000):
                 qp.person_b = bubble.key()
+                qp.put()
+
+            # QuestionAnswer.person
+            for qa in db.Query(QuestionAnswer).filter('person', person.key()).fetch(1000):
+                qa.person_b = bubble.key()
+                qa.put()
+
+            # QuestionAnswer.target_person
+            for qa in db.Query(QuestionAnswer).filter('target_person', person.key()).fetch(1000):
+                qa.target_person_b = bubble.key()
+                qa.put()
+
+        if rc == limit:
+            taskqueue.Task(url='/update/p2b', params={'offset': (offset + rc), 'step': (step + 1)}).add()
+
+
+
 def main():
     Route([
             ('/update/docs', Dokumendid),
             ('/update/stuff', FixStuff),
+            ('/update/p2b', Person2Bubble),
             (r'/update/user/(.*)', AddUser),
         ])
 
