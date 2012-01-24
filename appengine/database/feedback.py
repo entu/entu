@@ -44,6 +44,7 @@ class Question(ChangeLogModel):
 class QuestionaryPerson(ChangeLogModel):
     questionary         = db.ReferenceProperty(Questionary, collection_name='questionary_persons')
     person              = db.ReferenceProperty(Person, collection_name='questionary_persons')
+    person_b            = db.ReferenceProperty(Bubble, collection_name='questionary_persons_b')
     bubble              = db.ReferenceProperty(Bubble, collection_name='questionary_persons')
     is_completed        = db.BooleanProperty(default=False)
     is_obsolete         = db.BooleanProperty(default=False)
@@ -52,7 +53,9 @@ class QuestionaryPerson(ChangeLogModel):
 class QuestionAnswer(ChangeLogModel):
     questionary_person  = db.ReferenceProperty(QuestionaryPerson, collection_name='answers')
     person              = db.ReferenceProperty(Person, collection_name='person_answers')
+    person_b            = db.ReferenceProperty(Bubble, collection_name='person_answers_b')
     target_person       = db.ReferenceProperty(Person, collection_name='target_person_answers')
+    target_person_b     = db.ReferenceProperty(Bubble, collection_name='target_person_answers_b')
     questionary         = db.ReferenceProperty(Questionary, collection_name='answers')
     bubble              = db.ReferenceProperty(Bubble, collection_name='questionary_answers')
     question            = db.ReferenceProperty(Question, collection_name='answers')

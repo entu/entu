@@ -75,6 +75,12 @@ class AddUser(boRequestHandler):
             b.put()
 
 
+                if not db.Query(BubbleRelation).filter('bubble', related_bubble).filter('related_bubble', bubble).filter('type', 'leecher').get():
+                    br.bubble = related_bubble.key()
+                    br.type = 'leecher'
+                    br.put()
+            for qp in db.Query(QuestionaryPerson).filter('person', person.key()).fetch(1000):
+                qp.person_b = bubble.key()
 def main():
     Route([
             ('/update/docs', Dokumendid),
