@@ -71,7 +71,7 @@
                     {% endifequal %}
 
                     {% ifequal t.data_type "blobstore" %}
-                        <div class="cell" style="width:590px" id="blobstore_{{ bubble_key }}_{{ t.key }}">
+                        <div class="cell" style="width:590px" id="{{ t.data_type }}_{{ bubble_key }}_{{ t.key }}">
                             {% if v %}<img src="{{ v.image_url }}=s100-c" style="padding-bottom:5px;" />{% endif %}
                             <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showImage(this.contentWindow.document.body.innerHTML, 'blobstore_{{ bubble_key }}_{{ t.key }}');" style="display:none;"></iframe>
                             <form method="post" action="{{ blobstore_upload_url }}" target="iframe_{{ t.key }}" enctype="multipart/form-data">
@@ -116,41 +116,58 @@
             <div class="row">
             {% for t in e.props %}
                 {% for v in t.value %}
-                    {% if t.data_type == "string" or t.data_type == "integer" or t.data_type == "float" or t.data_type == "date" or t.data_type == "datetime" %}
-                        <div class="cell" style="text-align:center; padding:0px;" id="blobstore_{{ e.key|default:"" }}_{{ t.key }}">
-                            <input type="text" name="{{ t.key }}" data-type="{{ sb.type }}" data-bubble="{{ e.key|default:"" }}" data-oldvalue="{{ v }}" class="autosave_subbubble dtype_{{ t.data_type }}" value="{{ v }}" style="border:none; width:100%; padding: 5px 0px;" />
+                    {% if t.is_read_only %}
+                        <div class="cell">
+                            {{ v }}
                         </div>
-                    {% endif %}
-
-                    {% if t.data_type == "text" %}
-                        <div class="cell" style="text-align:center; padding:0px;" id="blobstore_{{ e.key|default:"" }}_{{ t.key }}">
-                            <textarea type="text" name="{{ t.key }}" data-type="{{ sb.type }}" data-bubble="{{ e.key|default:"" }}" data-oldvalue="{{ v }}" class="autosave_subbubble dtype_{{ t.data_type }}" style="border:none; width:100%; height:20px; padding: 5px 0px;" rows="1">{{ v }}</textarea>
-                        </div>
-                    {% endif %}
-
-                    {% ifequal t.data_type "boolean" %}
-                        <div class="cell" style="text-align:center; vertical-align:middle; padding:0px;" id="blobstore_{{ e.key|default:"" }}_{{ t.key }}">
-                            <input type="checkbox" name="{{ t.key }}" data-type="{{ sb.type }}" data-bubble="{{ e.key|default:"" }}" data-oldvalue="{{ v }}" class="autosave_subbubble dtype_{{ t.data_type }}"{% if v %} checked{% endif %} />
-                        </div>
-                    {% endifequal %}
-
-                    {% ifequal t.data_type "blobstore" %}
-                        {% if v %}
-                            <div class="cell" style="padding:5px; vertical-align:middle;" id="blobstore_{{ e.key|default:"" }}_{{ t.key }}">
-                                {{ v.filename }}
-                            </div>
-                        {% else %}
-                            <div class="cell" style="padding:5px;" id="blobstore_{{ e.key|default:"" }}_{{ t.key }}">
-                                <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML, 'blobstore_{{ e.key|default:"" }}_{{ t.key }}');" style="display:none;"></iframe>
-                                <form method="post" action="{{ blobstore_upload_url }}" target="iframe_{{ t.key }}" enctype="multipart/form-data">
-                                    <input type="file" name="file" class="dtype_{{ t.data_type }}" style="border:none; width:82px;" />
-                                    <input type="hidden" name="type" value="{{ sb.type }}" />
-                                    <input type="hidden" class="autosave_subbubble blobstore_bubble" name="bubble" value="{{ e.key|default:"" }}" />
-                                    <input type="hidden" name="property" value="{{ t.key }}" />
-                                </form>
+                    {% else %}
+                        {% if t.data_type == "string" or t.data_type == "integer" or t.data_type == "float" or t.data_type == "date" or t.data_type == "datetime" %}
+                            <div class="cell" style="text-align:center; padding:0px;" id="{{ t.data_type }}_{{ e.key|default:"" }}_{{ t.key }}">
+                                <input type="text" name="{{ t.key }}" data-type="{{ sb.type }}" data-bubble="{{ e.key|default:"" }}" data-oldvalue="{{ v }}" class="autosave_subbubble dtype_{{ t.data_type }}" value="{{ v }}" style="border:none; width:100%; padding: 5px 0px;" />
                             </div>
                         {% endif %}
-                    {% endifequal %}
+
+                        {% if t.data_type == "text" %}
+                            <div class="cell" style="text-align:center; padding:0px;" id="{{ t.data_type }}_{{ e.key|default:"" }}_{{ t.key }}">
+                                <textarea type="text" name="{{ t.key }}" data-type="{{ sb.type }}" data-bubble="{{ e.key|default:"" }}" data-oldvalue="{{ v }}" class="autosave_subbubble dtype_{{ t.data_type }}" style="border:none; width:100%; height:20px; padding: 5px 0px;" rows="1">{{ v }}</textarea>
+                            </div>
+                        {% endif %}
+
+                        {% ifequal t.data_type "boolean" %}
+                            <div class="cell" style="text-align:center; vertical-align:middle; padding:0px;" id="{{ t.data_type }}_{{ e.key|default:"" }}_{{ t.key }}">
+                                <input type="checkbox" name="{{ t.key }}" data-type="{{ sb.type }}" data-bubble="{{ e.key|default:"" }}" data-oldvalue="{{ v }}" class="autosave_subbubble dtype_{{ t.data_type }}"{% if v %} checked{% endif %} />
+                            </div>
+                        {% endifequal %}
+
+                        {% ifequal t.data_type "blobstore" %}
+                            {% if v %}
+                                <div class="cell" style="padding:5px; vertical-align:middle;" id="{{ t.data_type }}_{{ e.key|default:"" }}_{{ t.key }}">
+                                    {{ v.filename }}
+                                </div>
+                            {% else %}
+                                <div class="cell" style="padding:5px;" id="{{ t.data_type }}_{{ e.key|default:"" }}_{{ t.key }}">
+                                    <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML, 'blobstore_{{ e.key|default:"" }}_{{ t.key }}');" style="display:none;"></iframe>
+                                    <form method="post" action="{{ blobstore_upload_url }}" target="iframe_{{ t.key }}" enctype="multipart/form-data">
+                                        <input type="file" name="file" class="dtype_{{ t.data_type }}" style="border:none; width:82px;" />
+                                        <input type="hidden" name="type" value="{{ sb.type }}" />
+                                        <input type="hidden" class="autosave_subbubble blobstore_bubble" name="bubble" value="{{ e.key|default:"" }}" />
+                                        <input type="hidden" name="property" value="{{ t.key }}" />
+                                    </form>
+                                </div>
+                            {% endif %}
+                        {% endifequal %}
+
+                        {% if t.choices %}
+                            <div class="cell">
+                                <select name="{{ t.key }}" data-type="{{ sb.type }}" data-bubble="{{ e.key|default:"" }}" data-oldvalue="{{ v }}" class="autosave_subbubble dtype_{{ t.data_type }}">
+                                    <option value=""></option>
+                                    {% for c in t.choices %}
+                                    <option value="{{ c.key }}"{% ifequal v c.key %} selected{% endifequal %}>{{ c.value }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        {% endif %}
+                    {% endif %}
                 {% endfor %}
             {% endfor %}
             </div>

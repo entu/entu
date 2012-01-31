@@ -123,7 +123,7 @@ class ShowApplication(boRequestHandler):
                         gname2 = gname
 
         subbubbles = []
-        for t in ['cv_edu', 'cv_work', 'applicant_doc', 'message']:
+        for t in ['cv_edu', 'cv_work', 'state_exam', 'applicant_doc', 'message']:
             props = []
             for b in Bubble.get(p.optional_bubbles):
                 if b:
@@ -306,7 +306,7 @@ class Submit(boRequestHandler):
                     p.put()
 
                     for sb in Bubble.get(p.optional_bubbles):
-                        if sb.type in ['cv_edu', 'cv_work', 'applicant_doc', 'message']:
+                        if sb.type in ['cv_edu', 'cv_work', 'state_exam', 'applicant_doc', 'message']:
                             sb.viewers = s.viewers
                             sb.put()
 

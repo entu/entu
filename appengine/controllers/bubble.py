@@ -136,7 +136,7 @@ class EditBubble(boRequestHandler):
             oldvalue = self.request.get('oldvalue').strip(),
             newvalue = self.request.get('newvalue').strip(),
         )
-        self.echo(self.request.get('newvalue').strip(), False)
+        self.echo(value, False)
 
 
 class AddBubble(boRequestHandler):

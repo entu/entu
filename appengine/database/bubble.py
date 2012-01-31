@@ -503,6 +503,7 @@ class Bubble(ChangeLogModel):
     def SetProperty(self, propertykey, oldvalue = '', newvalue = ''):
         bp = BubbleProperty().get(propertykey)
 
+        result = newvalue
         data_value = getattr(self, bp.data_property, [])
         if type(data_value) is not list:
             data_value = [data_value]
@@ -517,6 +518,7 @@ class Bubble(ChangeLogModel):
             d.put()
             oldvalue = None
             newvalue = d.key()
+            result = str(d.key())
         if bp.data_type in ['dictionary_select', 'reference', 'counter']:
             oldvalue = db.Key(oldvalue) if oldvalue else None
             newvalue = db.Key(newvalue) if newvalue else None
@@ -558,7 +560,7 @@ class Bubble(ChangeLogModel):
 
         self.put()
 
-        return newvalue
+        return result
 
     def GetType(self):
         return db.Query(BubbleType).filter('type', self.type).get()
