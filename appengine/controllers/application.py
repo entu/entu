@@ -58,7 +58,7 @@ class ShowSignin(boRequestHandler):
                         p = Bubble()
                         p.type = 'applicant'
                         p.email = email
-                        p.put()
+                        p.put(email)
 
                 password = ''.join(random.choice(string.ascii_letters) for x in range(2))
                 password += str(p.key().id())
@@ -67,7 +67,7 @@ class ShowSignin(boRequestHandler):
 
                 p.language = language
                 p.password = password
-                p.put()
+                p.put(getattr(p, 'email', ''))
 
                 SendMail(
                     to = email,
@@ -174,6 +174,7 @@ class ShowApplication(boRequestHandler):
             propertykey = self.request.get('property').strip(),
             oldvalue = self.request.get('oldvalue').strip(),
             newvalue = self.request.get('newvalue').strip(),
+            user = getattr(p, 'email', ''),
         )
         self.echo(self.request.get('newvalue').strip(), False)
 
@@ -202,11 +203,11 @@ class EditSubmission(boRequestHandler):
                 br.type = 'leecher'
                 br.bubble = db.Key(bubblekey)
                 br.related_bubble = p.key()
-            br.put()
+            br.put(getattr(p, 'email', ''))
         else:
             if br:
                 br._is_deleted = True
-                br.put()
+                br.put(getattr(p, 'email', ''))
 
 
 class EditSubbubble(boRequestHandler):
@@ -225,14 +226,15 @@ class EditSubbubble(boRequestHandler):
         else:
             bubble = Bubble()
             bubble.type = self.request.get('type').strip()
-            bubble.put()
+            bubble.put(getattr(p, 'email', ''))
             p.optional_bubbles = AddToList(bubble.key(), p.optional_bubbles)
-            p.put()
+            p.put(getattr(p, 'email', ''))
 
         value = bubble.SetProperty(
             propertykey = self.request.get('property').strip(),
             oldvalue = self.request.get('oldvalue').strip(),
             newvalue = self.request.get('newvalue').strip(),
+            user = getattr(p, 'email', ''),
         )
 
         self.echo_json({
@@ -263,6 +265,7 @@ class UploadFile(blobstore_handlers.BlobstoreUploadHandler):
             value = p.SetProperty(
                 propertykey = self.request.get('property').strip(),
                 newvalue = blob_info.key(),
+                user = getattr(p, 'email', ''),
             )
             if blob_info.content_type in ['image/bmp', 'image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/tiff', 'image/x-icon']:
                 self.response.out.write(images.get_serving_url(blob_info.key()))
@@ -272,14 +275,15 @@ class UploadFile(blobstore_handlers.BlobstoreUploadHandler):
             else:
                 bubble = Bubble()
                 bubble.type = self.request.get('type').strip()
-                bubble.put()
+                bubble.put(getattr(p, 'email', ''))
                 p.optional_bubbles = AddToList(bubble.key(), p.optional_bubbles)
-                p.put()
+                p.put(getattr(p, 'email', ''))
 
             value = bubble.SetProperty(
                 propertykey = self.request.get('property').strip(),
                 oldvalue = self.request.get('oldvalue').strip(),
                 newvalue = blob_info.key(),
+                user = getattr(p, 'email', ''),
             )
             self.response.out.write(simplejson.dumps({
                 'filename': blob_info.filename,
@@ -303,12 +307,12 @@ class Submit(boRequestHandler):
                 br = db.Query(BubbleRelation).filter('bubble', s.key()).filter('related_bubble', p.key()).filter('type', 'leecher').filter('_is_deleted', False).get()
                 if br:
                     p.viewers = s.viewers
-                    p.put()
+                    p.put(getattr(p, 'email', ''))
 
                     for sb in Bubble.get(p.optional_bubbles):
                         if sb.type in ['cv_edu', 'cv_work', 'state_exam', 'applicant_doc', 'message']:
                             sb.viewers = s.viewers
-                            sb.put()
+                            sb.put(getattr(p, 'email', ''))
 
 
 

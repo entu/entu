@@ -500,7 +500,7 @@ class Bubble(ChangeLogModel):
             })
         return result
 
-    def SetProperty(self, propertykey, oldvalue = '', newvalue = ''):
+    def SetProperty(self, propertykey, oldvalue = '', newvalue = '', user = None):
         bp = BubbleProperty().get(propertykey)
 
         result = newvalue
@@ -558,7 +558,7 @@ class Bubble(ChangeLogModel):
             if hasattr(self, bp.data_property):
                 delattr(self, bp.data_property)
 
-        self.put()
+        self.put(user)
 
         return result
 
