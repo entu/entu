@@ -35,9 +35,13 @@ class FixStuff(boRequestHandler):
     def get(self):
         # taskqueue.Task(url='/update/stuff').add()
 
-        for b in db.Query(Bubble).filter('viewers', db.Key('agpzfmJ1YmJsZWR1cg8LEgZQZXJzb24YsqyyAgw')).fetch(1000):
-            b.viewers = AddToList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZQZXJzb24Ytca3Agw'), b.viewers)
-            b.put()
+        b = Bubble().get('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYtPewAgw')
+        b.optional_bubbles = AddToList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY2-i3Agw'), b.optional_bubbles)
+        b.put()
+
+        b = Bubble().get('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYoYCyAgw')
+        b.optional_bubbles = RemoveFromList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY2-i3Agw'), b.optional_bubbles)
+        b.put()
 
 
     def post(self):

@@ -269,6 +269,12 @@ class Bubble(ChangeLogModel):
 
     @property
     def tags(self):
+
+        cache_key = 'bubble_tags_' + UserPreferences().current.language + '_' + str(self.key())
+        result = Cache().get(cache_key)
+        if result:
+            return result
+
         bt = self.GetType()
         result = []
         for bp in sorted(BubbleProperty().get(bt.bubble_properties), key=attrgetter('ordinal')):
@@ -305,6 +311,8 @@ class Bubble(ChangeLogModel):
                 'name': bp.name_plural.value if len(value) > 1 else bp.name.value,
                 'value': value
             })
+
+        Cache().set(cache_key, result)
         return result
 
     @property
@@ -314,29 +322,17 @@ class Bubble(ChangeLogModel):
         if not bt.property_displayname:
             return ''
 
+        cache_key = 'bubble_dname_' + UserPreferences().current.language + '_' + str(self.key())
+        dname = Cache().get(cache_key)
+        if dname:
+            return dname
+
         dname = bt.property_displayname
         for t in self.tags:
             dname = dname.replace('@%s@' % t['data_property'], ', '.join(['%s' % n for n in t['value']]))
 
+        Cache().set(cache_key, dname)
         return dname
-
-        # if not getattr(self, 'name', None):
-        #     return ''
-
-        # d = Dictionary().get(self.name)
-        # if not d:
-        #     return ''
-
-        # cache_key = 'bubble_dname_' + UserPreferences().current.language + '_' + str(self.key())
-        # name = Cache().get(cache_key)
-        # if not name:
-        #     name = StripTags(d.value)
-        #     Cache().set(cache_key, name)
-        # return name
-
-    def displayname_cache_reset(self):
-        cache_key = 'bubble_dname_' + UserPreferences().current.language + '_' + str(self.key())
-        Cache().set(cache_key)
 
     @property
     def displayinfo(self):
@@ -345,10 +341,16 @@ class Bubble(ChangeLogModel):
         if not bt.property_displayinfo:
             return ''
 
+        cache_key = 'bubble_dinfo_' + UserPreferences().current.language + '_' + str(self.key())
+        dname = Cache().get(cache_key)
+        if dname:
+            return dname
+
         dname = bt.property_displayinfo
         for t in self.tags:
             dname = dname.replace('@%s@' % t['data_property'], ', '.join(['%s' % n for n in t['value']]))
 
+        Cache().set(cache_key, dname)
         return dname
 
     @property
@@ -559,6 +561,7 @@ class Bubble(ChangeLogModel):
                 delattr(self, bp.data_property)
 
         self.put(user)
+        self.ResetCache()
 
         return result
 
@@ -567,6 +570,11 @@ class Bubble(ChangeLogModel):
 
     def GetAllowedTypes(self):
         return sorted(db.Query(BubbleType).filter('type IN', self.GetType().allowed_subtypes).fetch(1000), key=attrgetter('displayname'))
+
+    def ResetCache(self):
+        Cache().set('bubble_tags_' + UserPreferences().current.language + '_' + str(self.key()))
+        Cache().set('bubble_dname_' + UserPreferences().current.language + '_' + str(self.key()))
+        Cache().set('bubble_dinfo_' + UserPreferences().current.language + '_' + str(self.key()))
 
     # @property
     # def displaydate(self):
