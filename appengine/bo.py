@@ -259,7 +259,7 @@ def Translate(key = None, language=None):
 
 
 class Cache:
-    def set(self, key, value=None, user_specific=True, time=None):
+    def set(self, key, value=None, user_specific=False, time=None):
         if user_specific == True:
             user = users.get_current_user()
             if user:
@@ -283,7 +283,7 @@ class Cache:
             memcache.delete(key)
         return value
 
-    def get(self, key, user_specific=True):
+    def get(self, key, user_specific=False):
         if user_specific == True:
             user = users.get_current_user()
             if user:

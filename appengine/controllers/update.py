@@ -1,4 +1,5 @@
 from google.appengine.api import users
+from google.appengine.api import memcache
 from datetime import *
 import time
 
@@ -29,6 +30,17 @@ class Dokumendid(boRequestHandler):
             message = 'jee',
             attachments = [('Docs.csv', '\n'.join(csv))],
         )
+
+
+class MemCacheInfo(boRequestHandler):
+    def get(self):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        for k, v in memcache.get_stats().iteritems():
+            if k in ['bytes', 'byte_hits']:
+                v = '%skB' % (v/1024)
+            if k == 'oldest_item_age':
+                v = '%smin' % (v/60)
+            self.echo('%s: %s' % (k, v))
 
 
 class FixStuff(boRequestHandler):
@@ -163,6 +175,7 @@ class Person2Bubble(boRequestHandler):
 def main():
     Route([
             ('/update/docs', Dokumendid),
+            ('/update/cache', MemCacheInfo),
             ('/update/stuff', FixStuff),
             ('/update/p2b', Person2Bubble),
             (r'/update/user/(.*)', AddUser),
