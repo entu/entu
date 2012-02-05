@@ -101,6 +101,8 @@ class BubbleType(ChangeLogModel):
     property_displayinfo    = db.StringProperty()
     bubble_properties       = db.ListProperty(db.Key)
     mandatory_properties    = db.ListProperty(db.Key)
+    read_only_properties    = db.ListProperty(db.Key)
+    create_only_properties  = db.ListProperty(db.Key)
     public_properties       = db.ListProperty(db.Key)
     propagated_properties   = db.ListProperty(db.Key)
     escalated_properties    = db.ListProperty(db.Key)

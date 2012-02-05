@@ -256,6 +256,14 @@ transformers:
       external_name: mandatory_properties
       import_transform: transform.none_if_empty(db.Text)
 
+    - property: read_only_properties
+      external_name: read_only_properties
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: create_only_properties
+      external_name: create_only_properties
+      import_transform: transform.none_if_empty(db.Text)
+
     - property: public_properties
       external_name: public_properties
       import_transform: transform.none_if_empty(db.Text)
