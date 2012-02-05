@@ -125,7 +125,7 @@ class ShowApplication(boRequestHandler):
         subbubbles = []
         for t in ['cv_edu', 'cv_work', 'state_exam', 'applicant_doc', 'message']:
             props = []
-            for b in Bubble.get(p.optional_bubbles):
+            for b in sorted(Bubble.get(p.optional_bubbles), key=attrgetter('_created')):
                 if b:
                     if b.type == t and b._is_deleted == False:
                         props.append({'key': str(b.key()), 'props': b.GetProperties(language)})
