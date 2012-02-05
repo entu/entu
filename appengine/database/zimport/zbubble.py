@@ -176,6 +176,8 @@ class zBubbleType(db.Expando):
         bt.propagated_properties = GetZoinKeyList('BubbleProperty', self.propagated_properties)
         bt.escalated_properties = GetZoinKeyList('BubbleProperty', self.escalated_properties)
         bt.inherited_properties = GetZoinKeyList('BubbleProperty', self.inherited_properties)
+        bt.read_only_properties   = GetZoinKeyList('BubbleProperty', self.read_only_properties)
+        bt.create_only_properties = GetZoinKeyList('BubbleProperty', self.create_only_properties)
         bt.put('zimport')
 
         AddZoin(
