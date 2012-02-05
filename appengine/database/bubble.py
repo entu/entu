@@ -500,6 +500,7 @@ class Bubble(ChangeLogModel):
                 'is_public': bp.key() in bt.public_properties,
                 'is_read_only': bp.is_read_only,
                 'is_mandatory': True if bp.key() in bt.mandatory_properties else False,
+                'is_create_only': True if bp.key() in bt.create_only_properties else False,
                 'can_add_new': (bp.count == 0 or bp.count > len(value))
             })
         return result

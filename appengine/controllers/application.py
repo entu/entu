@@ -131,6 +131,7 @@ class ShowApplication(boRequestHandler):
                         props.append({'key': str(b.key()), 'props': b.GetProperties(language)})
             eb = Bubble()
             eb.type = t
+            eb._created = None
             props.append({'key': None, 'props': eb.GetProperties(language)})
             ltype=db.Query(BubbleType).filter('type', t).get()
             subbubbles.append({'label': getattr(ltype.name_plural, language), 'info': getattr(ltype.description, language, ''), 'type': t, 'bubbles': props})

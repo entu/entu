@@ -116,7 +116,7 @@
             <div class="row">
             {% for t in e.props %}
                 {% for v in t.value %}
-                    {% if t.is_read_only %}
+                    {% if t.is_read_only or t.is_create_only and v %}
                         <div class="cell">
                             {{ v }}
                         </div>
