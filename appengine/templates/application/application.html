@@ -142,7 +142,7 @@
                         {% ifequal t.data_type "blobstore" %}
                             {% if v %}
                                 <div class="cell" style="padding:5px; vertical-align:middle;" id="{{ t.data_type }}_{{ e.key|default:"" }}_{{ t.key }}">
-                                    {{ v.filename }}
+                                    <a href="/application/file/{{ t.data_property }}/{{ v.key }}">{{ v.filename }}</a>
                                 </div>
                             {% else %}
                                 <div class="cell" style="padding:5px;" id="{{ t.data_type }}_{{ e.key|default:"" }}_{{ t.key }}">

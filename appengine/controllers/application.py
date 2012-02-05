@@ -243,6 +243,35 @@ class EditSubbubble(boRequestHandler):
         })
 
 
+class DownloadFile(blobstore_handlers.BlobstoreDownloadHandler):
+    def get(self, data_property, file_key=None):
+        sess = Session(self, timeout=86400)
+        if 'applicant_key' not in sess:
+            self.error(404)
+            return
+
+        b = blobstore.BlobInfo.get(urllib.unquote(file_key))
+        if not b:
+            self.error(404)
+            return
+
+        p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+        if not p:
+            self.error(404)
+            return
+
+        bubble = db.Query(Bubble).filter(data_property, b.key()).get()
+        if not bubble:
+            self.error(404)
+            return
+
+        if not bubble.key() in p.optional_bubbles:
+            self.error(404)
+            return
+
+        self.send_blob(b, save_as = ReplaceUTF(b.filename))
+
+
 class UploadFile(blobstore_handlers.BlobstoreUploadHandler):
     def post(self):
         sess = Session(self, timeout=86400)
@@ -321,6 +350,7 @@ def main():
             ('/application/signin', ShowSignin),
             ('/application/leech', EditSubmission),
             ('/application/subbubble', EditSubbubble),
+            (r'/application/file/(.*)/(.*)', DownloadFile),
             ('/application/upload_file', UploadFile),
             ('/application/submit', Submit),
             ('/application', ShowApplication),
