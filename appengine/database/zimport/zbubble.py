@@ -166,18 +166,18 @@ class zBubbleType(db.Expando):
                 estonian = self.description_estonian,
                 english = self.description_english
             ).put('zimport')
-        bt.allowed_subtypes     = StrToList(self.allowed_subtypes)
-        bt.grade_display_method = self.grade_display_method
-        bt.property_displayname = self.property_displayname
-        bt.property_displayinfo = self.property_displayinfo
-        bt.bubble_properties    = GetZoinKeyList('BubbleProperty', self.bubble_properties)
-        bt.mandatory_properties = GetZoinKeyList('BubbleProperty', self.mandatory_properties)
-        bt.public_properties    = GetZoinKeyList('BubbleProperty', self.public_properties)
-        bt.propagated_properties = GetZoinKeyList('BubbleProperty', self.propagated_properties)
-        bt.escalated_properties = GetZoinKeyList('BubbleProperty', self.escalated_properties)
-        bt.inherited_properties = GetZoinKeyList('BubbleProperty', self.inherited_properties)
+        bt.allowed_subtypes       = StrToList(self.allowed_subtypes)
+        bt.grade_display_method   = self.grade_display_method
+        bt.property_displayname   = self.property_displayname
+        bt.property_displayinfo   = self.property_displayinfo
+        bt.bubble_properties      = GetZoinKeyList('BubbleProperty', self.bubble_properties)
+        bt.mandatory_properties   = GetZoinKeyList('BubbleProperty', self.mandatory_properties)
         bt.read_only_properties   = GetZoinKeyList('BubbleProperty', self.read_only_properties)
         bt.create_only_properties = GetZoinKeyList('BubbleProperty', self.create_only_properties)
+        bt.public_properties      = GetZoinKeyList('BubbleProperty', self.public_properties)
+        bt.propagated_properties  = GetZoinKeyList('BubbleProperty', self.propagated_properties)
+        bt.escalated_properties   = GetZoinKeyList('BubbleProperty', self.escalated_properties)
+        bt.inherited_properties   = GetZoinKeyList('BubbleProperty', self.inherited_properties)
         bt.put('zimport')
 
         AddZoin(
