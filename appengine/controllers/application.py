@@ -38,7 +38,7 @@ class ShowSignin(boRequestHandler):
             main_template='main/print.html',
             template_file = 'application/signin.html',
             values = {
-                'account_login_url': users.create_login_url('/application'),
+                'account_login_url': users.create_logout_url(users.create_login_url('/application')),
                 'languages': languages,
                 'language': language,
             }
@@ -89,17 +89,30 @@ class ShowSignin(boRequestHandler):
 
 class ShowApplication(boRequestHandler):
     def get(self):
-        sess = Session(self, timeout=86400)
-        if 'applicant_key' not in sess:
-            self.redirect('/application/signin')
-            return
+        language = self.request.get('language', SystemPreferences().get('default_language')).strip()
 
-        p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
-        if not p:
-            self.redirect('/application/signin')
-            return
+        user = users.get_current_user()
+        if user:
+            p = db.Query(Bubble).filter('users', user.email()).filter('_is_deleted', False).get()
+            if not p:
+                self.redirect('/application/signin')
+                return
+            if p.type != 'applicant':
+                p.type = 'applicant'
+                p.put()
+        else:
+            sess = Session(self, timeout=86400)
+            if 'applicant_key' not in sess:
+                self.redirect('/application/signin')
+                return
+            p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            if not p:
+                self.redirect('/application/signin')
+                return
 
-        language = self.request.get('language', p.language).strip()
+        if getattr(p, 'language', '') != language:
+            p.language = language
+            p.put()
 
         receptions = []
         leeching_count = 0
@@ -163,13 +176,19 @@ class ShowApplication(boRequestHandler):
         )
 
     def post(self):
-        sess = Session(self, timeout=86400)
-        if 'applicant_key' not in sess:
-            return
-
-        p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
-        if not p:
-            return
+        user = users.get_current_user()
+        if user:
+            p = db.Query(Bubble).filter('users', user.email()).filter('_is_deleted', False).get()
+            if not p:
+                self.redirect('/application/signin')
+                return
+        else:
+            sess = Session(self, timeout=86400)
+            if 'applicant_key' not in sess:
+                return
+            p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            if not p:
+                return
 
         value = p.SetProperty(
             propertykey = self.request.get('property').strip(),
@@ -182,13 +201,19 @@ class ShowApplication(boRequestHandler):
 
 class EditSubmission(boRequestHandler):
     def post(self):
-        sess = Session(self, timeout=86400)
-        if 'applicant_key' not in sess:
-            return
-
-        p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
-        if not p:
-            return
+        user = users.get_current_user()
+        if user:
+            p = db.Query(Bubble).filter('users', user.email()).filter('_is_deleted', False).get()
+            if not p:
+                self.redirect('/application/signin')
+                return
+        else:
+            sess = Session(self, timeout=86400)
+            if 'applicant_key' not in sess:
+                return
+            p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            if not p:
+                return
 
         action = self.request.get('action').strip()
         bubblekey = self.request.get('bubble').strip()
@@ -213,13 +238,19 @@ class EditSubmission(boRequestHandler):
 
 class EditSubbubble(boRequestHandler):
     def post(self):
-        sess = Session(self, timeout=86400)
-        if 'applicant_key' not in sess:
-            return
-
-        p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
-        if not p:
-            return
+        user = users.get_current_user()
+        if user:
+            p = db.Query(Bubble).filter('users', user.email()).filter('_is_deleted', False).get()
+            if not p:
+                self.redirect('/application/signin')
+                return
+        else:
+            sess = Session(self, timeout=86400)
+            if 'applicant_key' not in sess:
+                return
+            p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            if not p:
+                return
 
         bubblekey = self.request.get('bubble').strip()
         if bubblekey:
@@ -246,18 +277,22 @@ class EditSubbubble(boRequestHandler):
 
 class DownloadFile(blobstore_handlers.BlobstoreDownloadHandler):
     def get(self, data_property, file_key=None):
-        sess = Session(self, timeout=86400)
-        if 'applicant_key' not in sess:
-            self.error(404)
-            return
+        user = users.get_current_user()
+        if user:
+            p = db.Query(Bubble).filter('users', user.email()).filter('_is_deleted', False).get()
+            if not p:
+                self.redirect('/application/signin')
+                return
+        else:
+            sess = Session(self, timeout=86400)
+            if 'applicant_key' not in sess:
+                return
+            p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            if not p:
+                return
 
         b = blobstore.BlobInfo.get(urllib.unquote(file_key))
         if not b:
-            self.error(404)
-            return
-
-        p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
-        if not p:
             self.error(404)
             return
 
@@ -275,13 +310,19 @@ class DownloadFile(blobstore_handlers.BlobstoreDownloadHandler):
 
 class UploadFile(blobstore_handlers.BlobstoreUploadHandler):
     def post(self):
-        sess = Session(self, timeout=86400)
-        if 'applicant_key' not in sess:
-            return
-
-        p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
-        if not p:
-            return
+        user = users.get_current_user()
+        if user:
+            p = db.Query(Bubble).filter('users', user.email()).filter('_is_deleted', False).get()
+            if not p:
+                self.redirect('/application/signin')
+                return
+        else:
+            sess = Session(self, timeout=86400)
+            if 'applicant_key' not in sess:
+                return
+            p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            if not p:
+                return
 
         upload_files = self.get_uploads('file')
         if not upload_files:
@@ -323,13 +364,19 @@ class UploadFile(blobstore_handlers.BlobstoreUploadHandler):
 
 class Submit(boRequestHandler):
     def post(self):
-        sess = Session(self, timeout=86400)
-        if 'applicant_key' not in sess:
-            return
-
-        p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
-        if not p:
-            return
+        user = users.get_current_user()
+        if user:
+            p = db.Query(Bubble).filter('users', user.email()).filter('_is_deleted', False).get()
+            if not p:
+                self.redirect('/application/signin')
+                return
+        else:
+            sess = Session(self, timeout=86400)
+            if 'applicant_key' not in sess:
+                return
+            p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            if not p:
+                return
 
         for s in db.Query(Bubble).filter('type', 'submission').fetch(1000):
             # if getattr(s, 'start_datetime', datetime.now()) < datetime.now() and getattr(s, 'end_datetime', datetime.now()) > datetime.now():

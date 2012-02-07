@@ -194,11 +194,13 @@ class Bubble(ChangeLogModel):
             self.search_estonian = StringToSearchIndex(name.estonian)
             self.search_english = StringToSearchIndex(name.english)
 
-        # seeders = db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('seeder', self.key()).fetch(1000)
-        # self.seeders = seeders if seeders else []
+        if getattr(self, 'surname', None) and getattr(self, 'forename', None):
+            name = '%s %s' % (self.forename, self.surname)
+            self.sort_estonian = StringToSortable(name)
+            self.sort_english = self.sort_estonian
 
-        # leechers = db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('leecher', self.key()).fetch(1000)
-        # self.leechers = leechers if leechers else []
+            self.search_estonian = StringToSearchIndex(name)
+            self.search_english = self.search_estonian
 
         for k in self.mandatory_bubbles:
             if not Bubble().get(k):
@@ -208,64 +210,11 @@ class Bubble(ChangeLogModel):
             if not Bubble().get(k):
                 self.optional_bubbles.remove(k)
 
+        # seeders = db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('seeder', self.key()).fetch(1000)
+        # self.seeders = seeders if seeders else []
 
-        # if getattr(self, 'description', None):
-        #     d = Dictionary().get(self.description)
-        #     if d:
-        #         if not d.english and not d.estonian:
-        #             delattr(self, 'description')
-
-        # if getattr(self, 'badge', None):
-        #     d = Dictionary().get(self.badge)
-        #     if d:
-        #         if not d.english and not d.estonian:
-        #             delattr(self, 'badge')
-
-        # try:
-        #     if not self.state:
-        #         delattr(self, 'state')
-        # except:
-        #     pass
-        # try:
-        #     if not self.bubble_type:
-        #         delattr(self, 'bubble_type')
-        # except:
-        #     pass
-        # try:
-        #     if not self.url:
-        #         delattr(self, 'url')
-        # except:
-        #     pass
-        # try:
-        #     if not self.start_datetime:
-        #         delattr(self, 'start_datetime')
-        # except:
-        #     pass
-        # try:
-        #     if not self.end_datetime:
-        #         delattr(self, 'end_datetime')
-        # except:
-        #     pass
-        # try:
-        #     if not self.maximum_leecher_count:
-        #         delattr(self, 'maximum_leecher_count')
-        # except:
-        #     pass
-        # try:
-        #     if not self.minimum_bubble_count:
-        #         delattr(self, 'minimum_bubble_count')
-        # except:
-        #     pass
-        # try:
-        #     if not self.minimum_points:
-        #         delattr(self, 'minimum_points')
-        # except:
-        #     pass
-        # try:
-        #     if not self.points:
-        #         delattr(self, 'points')
-        # except:
-        #     pass
+        # leechers = db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('leecher', self.key()).fetch(1000)
+        # self.leechers = leechers if leechers else []
 
         self.put('autofix')
 

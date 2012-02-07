@@ -28,11 +28,13 @@ class ShowMenu(boRequestHandler):
         bubbletypes = []
         for bt in db.Query(BubbleType).fetch(50):
             if db.Query(Bubble, keys_only=True).filter('type', bt.type).filter('viewers', Person().current).get():
-                bubbletypes.append({
-                    'group': bt.menugroup.value if bt.menugroup else '&nbsp;',
-                    'link': '/bubble/%s' % bt.type,
-                    'title': bt.name_plural.value,
-                })
+                if bt.menugroup:
+                    if bt.menugroup.value:
+                        bubbletypes.append({
+                            'group': bt.menugroup.value,
+                            'link': '/bubble/%s' % bt.type,
+                            'title': bt.name_plural.value,
+                        })
 
         self.view(
             template_file = 'main/menu.html',
