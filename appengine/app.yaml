@@ -1,5 +1,5 @@
 application: bubbledu
-version: 2012-02-05
+version: dev
 runtime: python
 api_version: 1
 
@@ -60,9 +60,6 @@ handlers:
 - url: /application(.*)
   script: controllers/application.py
 
-- url: /document(.*)
-  script: controllers/document.py
-
 - url: /xml(.*)
   script: controllers/public_xml.py
 
@@ -93,20 +90,8 @@ handlers:
   script: controllers/person.py
   login: required
 
-- url: /btype(.*)
-  script: controllers/bubbletype.py
-  login: required
-
-- url: /bubbletype(.*)
-  script: controllers/bubble.py
-  login: required
-
 - url: /bubble(.*)
   script: controllers/bubble.py
-  login: required
-
-- url: /rating(.*)
-  script: controllers/rating.py
   login: required
 
 - url: /preferences(.*)
@@ -128,11 +113,6 @@ handlers:
 - url: /feedback(.*)
   script: controllers/feedback.py
   login: required
-
-- url: /reception(.*)
-  script: controllers/reception.py
-  login: required
-
 
 
 #admin only controllers

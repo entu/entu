@@ -37,6 +37,8 @@ class ShowBubbleList(boRequestHandler):
                 self.error(404)
                 return
 
+            bubble.AutoFix()
+
             self.echo_json({
                 'id': bubble.key().id(),
                 'key': str(bubble.key()),
@@ -83,8 +85,6 @@ class ShowBubble(boRequestHandler):
         if not bubble.Authorize('viewer'):
             self.error(404)
             return
-
-        bubble.AutoFix()
 
         bubble.photourl = bubble.GetPhotoUrl(150)
         self.view(
