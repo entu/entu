@@ -45,16 +45,24 @@ class MemCacheInfo(boRequestHandler):
 
 class FixStuff(boRequestHandler):
     def get(self):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
         # taskqueue.Task(url='/update/stuff').add()
 
-        b = Bubble().get('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYtPewAgw')
-        b.optional_bubbles = AddToList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY2-i3Agw'), b.optional_bubbles)
-        b.put()
+        # b = Bubble().get('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYtPewAgw')
+        # b.optional_bubbles = AddToList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY2-i3Agw'), b.optional_bubbles)
+        # b.put()
 
-        b = Bubble().get('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYoYCyAgw')
-        b.optional_bubbles = RemoveFromList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY2-i3Agw'), b.optional_bubbles)
-        b.put()
+        # b = Bubble().get('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYoYCyAgw')
+        # b.optional_bubbles = RemoveFromList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY2-i3Agw'), b.optional_bubbles)
+        # b.put()
 
+        for br in db.Query(BubbleRelation).filter('type', 'leecher').fetch(1000):
+            try:
+                b = br.related_bubble
+                bk = b.key()
+            except:
+                self.echo(str(br.key()))
+                br.delete()
 
     def post(self):
         # b = Bubble().get('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYjcmwAgw')

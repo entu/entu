@@ -68,7 +68,7 @@ class ShowBubbleList(boRequestHandler):
             keys = [str(b.bubble.key()) for b in db.Query(BubbleRelation).filter('related_bubble', db.Key(leecher_in_bubble)).filter('type', 'leecher').filter('_is_deleted', False)]
 
         if bubble_leechers:
-            keys = [str(b.related_bubble.key()) for b in db.Query(BubbleRelation).filter('bubble', db.Key(bubble_leechers)).filter('type', 'leecher').filter('_is_deleted', False)]
+            keys = [str(b.related_bubble.key()) for b in db.Query(BubbleRelation).filter('bubble', db.Key(bubble_leechers)).filter('type', 'leecher').filter('_is_deleted', False) if b.related_bubble.Authorize('viewer')]
 
         if master_bubble:
             bubble = Bubble().get(master_bubble)
