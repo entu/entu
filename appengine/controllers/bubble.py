@@ -41,8 +41,8 @@ class ShowBubbleList(boRequestHandler):
                 'id': bubble.key().id(),
                 'key': str(bubble.key()),
                 'image': bubble.GetPhotoUrl(32),
-                'title': bubble.displayname,
-                'info': bubble.displayinfo,
+                'title': StripTags(bubble.displayname),
+                'info': StripTags(bubble.displayinfo),
                 'type': bubble.type,
                 'type_name': bubble.GetType().displayname,
             })
