@@ -42,11 +42,13 @@ class boRequestHandler(webapp.RequestHandler):
         from database.person import *
         from database.feedback import *
 
-        if db.Query(QuestionaryPerson).filter('person', Person().current).filter('is_completed', False).filter('is_obsolete', False).get():
-            path = str(self.request.url)
-            Cache().set('redirect_after_feedback', path)
-            self.redirect('/feedback')
-            return False
+        # if db.Query(QuestionaryPerson).filter('person', Person().current).filter('is_completed', False).filter('is_obsolete', False).get():
+        #     path = str(self.request.url)
+        #     Cache().set('redirect_after_feedback', path)
+        #     self.redirect('/feedback')
+        #     return False
+        if 1 == 2:
+            pass
         else:
             if controller and users.is_current_user_admin() == False:
                 rights = []
@@ -166,14 +168,14 @@ class ChangeLogModel(db.Expando):
         if self.is_saved():
             self._changed_by = email
             old = db.get(self.key())
-            for prop_key, prop_value in self.properties().iteritems():
+            for prop_key in MergeLists(self.properties().keys(), self.dynamic_properties()):
                 if old:
-                    old_value = prop_value.get_value_for_datastore(old)
+                    old_value = getattr(old, prop_key, None)
                     if old_value == []:
                         old_value = None
                 else:
                     old_value = None
-                new_value = prop_value.get_value_for_datastore(self)
+                new_value = getattr(self, prop_key, None)
                 if new_value == []:
                     new_value = None
                 if old_value != new_value and prop_key != '_version':
@@ -267,6 +269,7 @@ class Cache:
             else:
                 return False
         if value:
+            key += '__' + os.environ['CURRENT_VERSION_ID'].split('.')[1]
             memcache.delete(key)
             if time:
                 memcache.add(
@@ -288,6 +291,7 @@ class Cache:
             user = users.get_current_user()
             if user:
                 key = key + '_' + user.user_id()
+        key += '__' + os.environ['CURRENT_VERSION_ID'].split('.')[1]
         return memcache.get(key)
 
 def CheckMailAddress(email):
