@@ -236,16 +236,32 @@ transformers:
       external_name: allowed_subtypes
       import_transform: transform.none_if_empty(db.Text)
 
-    - property: grade_display_method
-      external_name: grade_display_method
-      import_transform: transform.none_if_empty(unicode)
-
     - property: property_displayname
       external_name: display_name
       import_transform: transform.none_if_empty(unicode)
 
     - property: property_displayinfo
       external_name: display_info
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: property_displaytable
+      external_name: display_table
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: notify_on_create
+      external_name: notify_on_create
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: notify_on_alter
+      external_name: notify_on_alter
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: search_properties
+      external_name: search_properties
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: sort_string
+      external_name: sort_string
       import_transform: transform.none_if_empty(db.Text)
 
     - property: bubble_properties
