@@ -15,7 +15,11 @@
         <div class="cell">
             {% for v in t.values %}
                 {% if v.value %}
-                    {{ v.value|safe|urlize|linebreaks }}
+                    {% if t.data_type == "blobstore" %}
+                        <a href="/bubble/file/{{ t.data_property }}/{{ v.key }}">{{ v.value|linebreaks }}</a>
+                    {% else %}
+                        {{ v.value|safe|urlize|linebreaks }}
+                    {% endif %}
                 {% endif %}
             {% endfor %}
         </div>

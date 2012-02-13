@@ -436,8 +436,7 @@ class Bubble(ChangeLogModel):
 
     def GetSubtypes(self):
         bt = self.GetType()
-        if getattr(bt, 'allowed_subtypes', None):
-            return Bubble().get(bt.GetValueAsList('allowed_subtypes'))
+        return Bubble().get(MergeLists(self.GetValueAsList('allowed_subtypes'), bt.GetValueAsList('allowed_subtypes')))
 
     def GetAllowedSubtypes(self):
         if getattr(self, 'allowed_subtypes', None):
