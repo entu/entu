@@ -177,10 +177,13 @@ transformers:
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     - property: is_auto_complete
       external_name: is_auto_complete
       import_transform: transform.regexp_bool('true', re.IGNORECASE)
 
+=======
+>>>>>>> 28eaf688940a704141cdc15ae98daf302972a240
 =======
 >>>>>>> 28eaf688940a704141cdc15ae98daf302972a240
 =======
@@ -279,6 +282,7 @@ transformers:
       external_name: search_properties
       import_transform: transform.none_if_empty(db.Text)
 
+<<<<<<< HEAD
     - property: sort_string
       external_name: sort_string
 <<<<<<< HEAD
@@ -288,6 +292,27 @@ transformers:
       import_transform: transform.none_if_empty(db.Text)
 >>>>>>> 28eaf688940a704141cdc15ae98daf302972a240
 =======
+      import_transform: transform.none_if_empty(db.Text)
+>>>>>>> 28eaf688940a704141cdc15ae98daf302972a240
+=======
+    - property: property_displaytable
+      external_name: display_table
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: notify_on_create
+      external_name: notify_on_create
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: notify_on_alter
+      external_name: notify_on_alter
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: search_properties
+      external_name: search_properties
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: sort_string
+      external_name: sort_string
       import_transform: transform.none_if_empty(db.Text)
 >>>>>>> 28eaf688940a704141cdc15ae98daf302972a240
 
