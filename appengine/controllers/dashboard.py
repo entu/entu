@@ -22,14 +22,13 @@ class ShowMenu(boRequestHandler):
 
         bubbletypes = []
         for bt in db.Query(Bubble).filter('type', 'bubble_type').fetch(100):
-            #if getattr(bt, 'menugroup', None) and getattr(bt, 'path', None):
-                # GetDictionaryValue(bt.menugroup):
-                    # if db.Query(Bubble, keys_only=True).filter('x_type', bt.key()).filter('x_br_viewer', Person().current).get():
-                        bubbletypes.append({
-                            'group': GetDictionaryValue(bt.menugroup) if getattr(bt, 'menugroup', None) else 'XYZ',
-                            'link': '/bubble/%s' % bt.path,
-                            'title': GetDictionaryValue(bt.name_plural),
-                        })
+            if getattr(bt, 'menugroup', None) and getattr(bt, 'path', None):
+                if db.Query(Bubble, keys_only=True).filter('x_type', bt.key()).filter('x_br_viewer', Person().current).get():
+                    bubbletypes.append({
+                        'group': GetDictionaryValue(bt.menugroup) if getattr(bt, 'menugroup', None) else 'XYZ',
+                        'link': '/bubble/%s' % bt.path,
+                        'title': GetDictionaryValue(bt.name_plural),
+                    })
 
         self.view(
             template_file = 'main/menu.html',
