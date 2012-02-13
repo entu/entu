@@ -175,10 +175,13 @@ transformers:
       external_name: count
       import_transform: transform.none_if_empty(int)
 
+<<<<<<< HEAD
     - property: is_auto_complete
       external_name: is_auto_complete
       import_transform: transform.regexp_bool('true', re.IGNORECASE)
 
+=======
+>>>>>>> 28eaf688940a704141cdc15ae98daf302972a240
 
 - kind: zBubbleType
   connector: csv
@@ -248,13 +251,32 @@ transformers:
       external_name: notify_on_alter
       import_transform: transform.none_if_empty(db.Text)
 
+<<<<<<< HEAD
+=======
+    - property: property_displaytable
+      external_name: display_table
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: notify_on_create
+      external_name: notify_on_create
+      import_transform: transform.none_if_empty(db.Text)
+
+    - property: notify_on_alter
+      external_name: notify_on_alter
+      import_transform: transform.none_if_empty(db.Text)
+
+>>>>>>> 28eaf688940a704141cdc15ae98daf302972a240
     - property: search_properties
       external_name: search_properties
       import_transform: transform.none_if_empty(db.Text)
 
     - property: sort_string
       external_name: sort_string
+<<<<<<< HEAD
       import_transform: transform.none_if_empty(unicode)
+=======
+      import_transform: transform.none_if_empty(db.Text)
+>>>>>>> 28eaf688940a704141cdc15ae98daf302972a240
 
     - property: bubble_properties
       external_name: bubble_properties
