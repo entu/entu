@@ -1,5 +1,5 @@
 application: bubbledu
-version: dev
+version: 2012-02-13
 runtime: python
 api_version: 1
 
