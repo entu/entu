@@ -2,22 +2,17 @@ from string import ascii_lowercase
 
 from bo import *
 from database.bubble import *
+from database.dictionary import *
 
 
 class Show(boRequestHandler):
     def get(self):
         self.authorize()
 
-        person = Person().current
-        person.grades_count = db.Query(Grade).filter('person', person).filter('is_deleted', False).count()
-
         self.view(
             main_template='main/index.html',
             template_file = 'dashboard.html',
             page_title = 'page_dashboard',
-            values = {
-                'person': person,
-            }
         )
 
 
@@ -26,14 +21,14 @@ class ShowMenu(boRequestHandler):
         menu = []
 
         bubbletypes = []
-        for bt in db.Query(BubbleType).fetch(50):
-            if db.Query(Bubble, keys_only=True).filter('type', bt.type).filter('viewers', Person().current).get():
-                if bt.menugroup:
-                    if bt.menugroup.value:
+        for bt in db.Query(Bubble).filter('type', 'bubble_type').fetch(100):
+            #if getattr(bt, 'menugroup', None) and getattr(bt, 'path', None):
+                # GetDictionaryValue(bt.menugroup):
+                    # if db.Query(Bubble, keys_only=True).filter('x_type', bt.key()).filter('x_br_viewer', Person().current).get():
                         bubbletypes.append({
-                            'group': bt.menugroup.value,
-                            'link': '/bubble/%s' % bt.type,
-                            'title': bt.name_plural.value,
+                            'group': GetDictionaryValue(bt.menugroup) if getattr(bt, 'menugroup', None) else 'XYZ',
+                            'link': '/bubble/%s' % bt.path,
+                            'title': GetDictionaryValue(bt.name_plural),
                         })
 
         self.view(

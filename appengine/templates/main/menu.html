@@ -25,11 +25,5 @@
             $(this).addClass("active")
         })
 
-        $('#current_role').change(function() {
-            select = $(this);
-            $.post('/person/set_role', { role: select.val() }, function(json) {
-                select.effect("highlight", {}, 1000);
-            }, "json");
-        });
     });
 </script>

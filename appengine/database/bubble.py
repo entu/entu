@@ -29,248 +29,18 @@ def GetCounterNextValue(counter_key):
     return c.value
 
 
-class RatingScale(ChangeLogModel):
-    name                = db.ReferenceProperty(Dictionary, collection_name='ratingscale_name')
-
-    @property
-    def displayname(self):
-        return self.name.value
-
-    @property
-    def PositiveGradeDefinitions(self):
-        return db.Query(GradeDefinition).filter('rating_scale', self).filter('is_positive', True).order('equivalent').fetch(1000)
-
-    @property
-    def NegativeGradeDefinitions(self):
-        return db.Query(GradeDefinition).filter('rating_scale', self).filter('is_positive', False).order('equivalent').fetch(1000)
-
-    @property
-    def GradeDefinitions(self):
-        return self.gradedefinitions
-
-    @property
-    def gradedefinitions(self):                 # TODO: refactor to GradeDefinitions
-        return db.Query(GradeDefinition).filter('rating_scale', self).order('equivalent').fetch(1000)
-
-
-class BubbleProperty(ChangeLogModel):
-    name                    = db.ReferenceProperty(Dictionary, collection_name='bubbleproperty_name')
-    name_plural             = db.ReferenceProperty(Dictionary, collection_name='bubbleproperty_name_plural')
-    data_type               = db.StringProperty()
-    data_property           = db.StringProperty()
-    format_string           = db.StringProperty()
-    target_property         = db.StringProperty()
-    default                 = db.StringProperty()
-    choices                 = db.StringListProperty()
-    count                   = db.IntegerProperty()
-    ordinal                 = db.IntegerProperty()
-    is_unique               = db.BooleanProperty(default=False)
-    is_read_only            = db.BooleanProperty(default=False)
-    is_auto_complete        = db.BooleanProperty(default=False)
-
-    @property
-    def displayname(self):
-        return self.name.value
-
-    @property
-    def dictionary_name(self):
-        if getattr(self, 'choices', None):
-            if len(self.choices) > 0:
-                return self.choices[0]
-        if getattr(self, 'data_property', None):
-            return 'bubble_%s' % self.data_property.lower()
-
-    @property
-    def reference_entitykind(self):
-        if getattr(self, 'choices', None):
-            if len(self.choices) > 0:
-                return eval(self.choices[0])
-
-
-class BubbleType(ChangeLogModel):
-    type                    = db.StringProperty()
-    name                    = db.ReferenceProperty(Dictionary, collection_name='bubbletype_name')
-    name_plural             = db.ReferenceProperty(Dictionary, collection_name='bubbletype_name_plural')
-    description             = db.ReferenceProperty(Dictionary, collection_name='bubbletype_description')
-    menugroup               = db.ReferenceProperty(Dictionary, collection_name='bubbletype_menugroup')
-    allowed_subtypes        = db.StringListProperty()
-    maximum_leecher_count   = db.IntegerProperty()
-    is_exclusive            = db.BooleanProperty(default=False) # no two exclusive events should happen to same person at same time
-    grade_display_method    = db.StringProperty()
-    property_displayname    = db.StringProperty()
-    property_displayinfo    = db.StringProperty()
-    bubble_properties       = db.ListProperty(db.Key)
-    mandatory_properties    = db.ListProperty(db.Key)
-    read_only_properties    = db.ListProperty(db.Key)
-    create_only_properties  = db.ListProperty(db.Key)
-    public_properties       = db.ListProperty(db.Key)
-    propagated_properties   = db.ListProperty(db.Key)
-    escalated_properties    = db.ListProperty(db.Key)
-    inherited_properties    = db.ListProperty(db.Key)
-
-    @property
-    def displayname(self):
-        if not self.name:
-            return '-'
-
-        cache_key = 'bubbletype_dname_' + UserPreferences().current.language + '_' + str(self.key())
-        name = Cache().get(cache_key)
-        if not name:
-            name = StripTags(self.name.value)
-            Cache().set(cache_key, name)
-        return name
-
-    @property
-    def color(self):
-        return RandomColor(100,255,100,255,100,255)
-
-    @property
-    def allowed_subtypes2(self): #TODO refactor to AllowedSubtypes
-        return self.AllowedSubtypes
-
-    @property
-    def AllowedSubtypes(self):
-        if not self.allowed_subtypes:
-            return
-        if len(self.allowed_subtypes) == 0:
-            return
-        CandidateSubtypes = db.Query(BubbleType).fetch(1000)
-        AllowedSubtypes = []
-        for type in self.allowed_subtypes:
-            type_is_valid = False
-            for bt in CandidateSubtypes:
-                if bt.type == type:
-                    AllowedSubtypes.append(bt)
-                    type_is_valid = True
-                    break
-            # If there are non-existing subtypes, remove them and recursively try again
-            if not type_is_valid:
-                self.allowed_subtypes = RemoveFromList(type, self.allowed_subtypes)
-                self.put()
-                return self.AllowedSubtypes
-
-        return AllowedSubtypes
-
-    @property
-    def AvailableSubtypes(self):
-        AvailableSubtypes = db.Query(BubbleType).fetch(1000)
-        for type in self.allowed_subtypes:
-            for bt in AvailableSubtypes:
-                if bt.type == type:
-                    AvailableSubtypes.remove(bt)
-                    break
-        return AvailableSubtypes
-
-
-    def add_allowed_subtype(self, child_key):
-        subtype_to_add = BubbleType.get(child_key)
-        self.allowed_subtypes = AddToList(subtype_to_add.type, self.allowed_subtypes)
-        self.put()
-
-
-    def remove_allowed_subtype(self, child_key):
-        subtype_to_remove = BubbleType.get(child_key)
-        self.allowed_subtypes = RemoveFromList(subtype_to_remove.type, self.allowed_subtypes)
-        self.put()
-
-
 class Bubble(ChangeLogModel):
     type                    = db.StringProperty()
     mandatory_bubbles       = db.ListProperty(db.Key)
     optional_bubbles        = db.ListProperty(db.Key)
     prerequisite_bubbles    = db.ListProperty(db.Key)
     next_in_line            = db.ListProperty(db.Key)
-    sort_estonian           = db.StringProperty(default='')
-    sort_english            = db.StringProperty(default='')
-    search_estonian         = db.StringListProperty()
-    search_english          = db.StringListProperty()
-
-    def AutoFix(self):
-        if getattr(self, 'name', None):
-            name = Dictionary().get(self.name)
-            self.sort_estonian = StringToSortable(name.estonian)
-            self.sort_english = StringToSortable(name.english)
-
-            self.search_estonian = StringToSearchIndex(name.estonian)
-            self.search_english = StringToSearchIndex(name.english)
-
-        if getattr(self, 'surname', None) and getattr(self, 'forename', None):
-            name = '%s %s' % (self.forename, self.surname)
-            self.sort_estonian = StringToSortable(name)
-            self.sort_english = self.sort_estonian
-
-            self.search_estonian = StringToSearchIndex(name)
-            self.search_english = self.search_estonian
-
-        for k in self.mandatory_bubbles:
-            if not Bubble().get(k):
-                self.mandatory_bubbles.remove(k)
-
-        for k in self.optional_bubbles:
-            if not Bubble().get(k):
-                self.optional_bubbles.remove(k)
-
-        # seeders = db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('seeder', self.key()).fetch(1000)
-        # self.seeders = seeders if seeders else []
-
-        # leechers = db.Query(Person, keys_only=True).filter('_is_deleted', False).filter('leecher', self.key()).fetch(1000)
-        # self.leechers = leechers if leechers else []
-
-        self.put('autofix')
-
-    @property
-    def tags(self):
-
-        cache_key = 'bubble_tags_' + UserPreferences().current.language + '_' + str(self.key())
-        result = Cache().get(cache_key)
-        if result:
-            return result
-
-        bt = self.GetType()
-        result = []
-        for bp in sorted(BubbleProperty().get(bt.bubble_properties), key=attrgetter('ordinal')):
-            data_value = getattr(self, bp.data_property, None)
-            value = []
-            if data_value:
-                if type(data_value) is not list:
-                    data_value = [data_value]
-                for v in data_value:
-                    if v != None:
-                        if bp.data_type in ['dictionary_string', 'dictionary_text', 'dictionary_select']:
-                            d = Dictionary().get(v)
-                            v = d.value
-                        if bp.data_type == 'datetime':
-                            v = UtcToLocalDateTime(v).strftime('%d.%m.%Y %H:%M')
-                        if bp.data_type == 'date':
-                            v = v.strftime('%d.%m.%Y')
-                        if bp.data_type == 'reference':
-                            e = bp.reference_entitykind().get(v)
-                            v = e.displayname
-                        if bp.data_type == 'counter':
-                            c = Counter().get(v)
-                            v = c.displayname
-                        if bp.data_type == 'blobstore':
-                            b = blobstore.BlobInfo.get(v)
-                            v = '<a href="/bubble/file/%s/%s" title="%s">%s</a>' % (bp.data_property, b.key(), GetFileSize(b.size), b.filename)
-                        if bp.data_type == 'boolean':
-                            v = Translate('true') if v == True else Translate('false')
-                        if v:
-                            value.append(v)
-            result.append({
-                'data_type': bp.data_type,
-                'data_property': bp.data_property,
-                'name': bp.name_plural.value if len(value) > 1 else bp.name.value,
-                'value': value
-            })
-
-        Cache().set(cache_key, result)
-        return result
 
     @property
     def displayname(self):
         bt = self.GetType()
 
-        if not bt.property_displayname:
+        if not hasattr(bt, 'property_displayname'):
             return ''
 
         cache_key = 'bubble_dname_' + UserPreferences().current.language + '_' + str(self.key())
@@ -278,9 +48,10 @@ class Bubble(ChangeLogModel):
         if dname:
             return dname
 
-        dname = bt.property_displayname
-        for t in self.tags:
-            dname = dname.replace('@%s@' % t['data_property'], ', '.join(['%s' % n for n in t['value']]))
+        dname = getattr(bt, 'property_displayname', '')
+        for data_property in FindTags(dname, '@', '@'):
+            t = self.GetProperty(bubbletype = bt, data_property = data_property)
+            dname = dname.replace('@%s@' % data_property, ', '.join(['%s' % n['value'] for n in t['values'] if n['value']]))
 
         Cache().set(cache_key, dname)
         return dname
@@ -289,48 +60,115 @@ class Bubble(ChangeLogModel):
     def displayinfo(self):
         bt = self.GetType()
 
-        if not bt.property_displayinfo:
+        if not hasattr(bt, 'property_displayinfo'):
             return ''
 
         cache_key = 'bubble_dinfo_' + UserPreferences().current.language + '_' + str(self.key())
-        dname = Cache().get(cache_key)
-        if dname:
-            return dname
+        dinfo = Cache().get(cache_key)
+        if dinfo:
+            return dinfo
 
-        dname = bt.property_displayinfo
-        for t in self.tags:
-            dname = dname.replace('@%s@' % t['data_property'], ', '.join(['%s' % n for n in t['value']]))
+        dinfo = getattr(bt, 'property_displayinfo', '')
+        for data_property in FindTags(dinfo, '@', '@'):
+            t = self.GetProperty(bubbletype = bt, data_property = data_property)
+            dinfo = dinfo.replace('@%s@' % data_property, ', '.join(['%s' % n['value'] for n in t['values'] if n['value']]))
 
-        Cache().set(cache_key, dname)
-        return dname
+        Cache().set(cache_key, dinfo)
+        return dinfo
 
-    @property
-    def subbubbles(self):
-        return GetUniqueList(self.mandatory_bubbles + self.optional_bubbles)
+    def AutoFix(self):
+        bt = self.GetType()
 
-    @property
-    def allowed_subbubble_types(self):
-        if getattr(self, 'allowed_subtypes', None):
-            return db.Query(BubbleType).filter('type IN', self.allowed_subtypes).fetch(1000)
-        else:
-            return db.Query(BubbleType).filter('type IN', self.GetType().allowed_subtypes).fetch(1000)
+        setattr(self, 'x_type', bt.key())
+
+        if hasattr(self, '_version'):
+            setattr(self, 'x_version', self._version)
+            delattr(self, '_version')
+        if hasattr(self, '_created'):
+            setattr(self, 'x_created', self._created)
+            delattr(self, '_created')
+        if hasattr(self, '_created_by'):
+            setattr(self, 'x_created_by', self._created_by)
+            delattr(self, '_created_by')
+        if hasattr(self, '_changed'):
+            setattr(self, 'x_changed', self._changed)
+            delattr(self, '_changed')
+        if hasattr(self, '_changed_by'):
+            setattr(self, 'x_changed_by', self._changed_by)
+            delattr(self, '_changed_by')
+        if hasattr(self, '_is_deleted'):
+            setattr(self, 'x_is_deleted', self._is_deleted)
+            delattr(self, '_is_deleted')
+        if hasattr(self, 'viewers'):
+            setattr(self, 'x_br_viewer', self.viewers)
+            delattr(self, 'viewers')
+
+        if hasattr(self, 'seeders'):
+            if len(self.seeders) > 0:
+                setattr(self, 'x_br_seeder', self.seeders)
+
+        if hasattr(self, 'leechers'):
+            if len(self.leechers) > 0:
+                setattr(self, 'x_br_leecher', self.leechers)
+
+        subbubbleslist = MergeLists(self.GetValueAsList('optional_bubbles'), self.GetValueAsList('x_br_subbubble'))
+        if len(subbubbleslist) > 0:
+            setattr(self, 'x_br_subbubble', subbubbleslist)
+            setattr(self, 'optional_bubbles', subbubbleslist)
+
+        for language in SystemPreferences().get('languages'):
+            sorts = getattr(bt, 'sort_string', '')
+            for data_property in FindTags(sorts, '@', '@'):
+                t = self.GetProperty(bubbletype = bt, data_property = data_property, language = language)
+                sorts = sorts.replace('@%s@' % data_property, ', '.join(['%s' % n['value'] for n in t['values'] if n['value']]))
+            sorts = StringToSortable(sorts)
+            setattr(self, 'x_sort_%s' % language, sorts)
+
+            searchl = []
+            for bp in Bubble().get(bt.GetValueAsList('search_properties')):
+                if hasattr(bp, 'data_property'):
+                    t = self.GetProperty(bubbletype = bt, data_property = bp.data_property, language = language)
+                    for s in ['%s' % n['value'] for n in t['values'] if n['value']]:
+                        searchl = MergeLists(searchl, StringToSearchIndex(s))
+            if len(searchl) > 0:
+                setattr(self, 'x_search_%s' % language, searchl)
+            else:
+                if hasattr(self, 'x_search_%s'% language):
+                    delattr(self, 'x_search_%s'% language)
+
+            if hasattr(self, '_sort_%s'% language):
+                delattr(self, '_sort_%s'% language)
+            if hasattr(self, '_search_%s'% language):
+                delattr(self, '_search_%s'% language)
+            if hasattr(self, 'sort_%s'% language):
+                delattr(self, 'sort_%s'% language)
+            if hasattr(self, 'search_%s'% language):
+                delattr(self, 'search_%s'% language)
+
+        for key in self.dynamic_properties():
+            value = getattr(self, key)
+            if type(value) is list:
+                if len(value) == 1:
+                    setattr(self, key, value[0])
+
+        self.put('autofix')
 
     def Authorize(self, type):
-        if not getattr(self, 'viewers', None):
+        if Person().current.key() in getattr(self, 'x_br_viewer', []):
+            return True
+        else:
             return False
-        if Person().current.key() not in getattr(self, 'viewers', None):
-            return False
-        return True
 
-    def GetPhotoUrl(self, size = 150):
+    def GetPhotoUrl(self, size = 150, square = False):
         blob_key = getattr(self, 'photo', None)
         if blob_key:
             b = blobstore.BlobInfo.get(blob_key)
             if b:
                 if b.content_type in ['image/bmp', 'image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/tiff', 'image/x-icon']:
                     url = images.get_serving_url(b.key())
+                    sq = '-c' if square else ''
                     if size:
-                        url += '=s%s-c' % size
+                        url += '=s%s%s' % (size, sq)
                     return url
 
         gravatar_type = 'monsterid' if getattr(self, 'type', '') in ['person', 'applicant'] else 'identicon'
@@ -339,21 +177,22 @@ class Bubble(ChangeLogModel):
 
     def AddSubbubble(self, type):
         bt = self.GetType()
+        bt_new = Bubble.get(type)
 
         # Create new bubble
         newbubble = Bubble()
-        newbubble.type = type
-        newbubble.viewers = self.viewers
+        newbubble.x_type = bt_new.key()
+        newbubble.type = bt_new.path
+        newbubble.x_br_viewer = self.x_br_viewer
 
         # Propagate properties
         for pp_key in getattr(bt, 'propagated_properties', []):
-            pp = BubbleProperty().get(pp_key)
+            pp = Bubble().get(pp_key)
             if hasattr(self, pp.data_property):
                 setattr(newbubble, pp.data_property, getattr(self, pp.data_property))
 
         # Set Counters
-        tags = self.tags
-        for bp in db.Query(BubbleProperty).filter('data_type', 'counter').filter('__key__ IN ', bt.bubble_properties).fetch(1000):
+        for bp in db.Query(Bubble).filter('type', 'bubble_property').filter('data_type', 'counter').filter('__key__ IN ', bt.bubble_properties).fetch(1000):
             if bp.key() not in getattr(bt, 'propagated_properties', []):
                 data_value = getattr(self, bp.data_property, None)
                 if data_value:
@@ -363,10 +202,12 @@ class Bubble(ChangeLogModel):
                         setattr(self, c.value_property, counter_value)
                         self.put()
                     else:
-                        counter_value = db.run_in_transaction(GetCounterNextValue, data_value)
+                        counter_value = GetCounterNextValue(data_value)
                     dname = bp.format_string.replace('@_counter_value@', str(counter_value))
-                    for t in tags:
-                        dname = dname.replace('@%s@' % t['data_property'], ', '.join(t['value']))
+                    for data_property in FindTags(dname, '@', '@'):
+                        t = self.GetProperty(bubbletype = bt, data_property = data_property)
+                        dname = dname.replace('@%s@' % data_property, ', '.join(['%s' % n['value'] for n in t['values'] if n['value']]))
+
                     setattr(newbubble, bp.target_property, dname)
 
         # Save new bubble
@@ -382,80 +223,131 @@ class Bubble(ChangeLogModel):
         #     br.put()
 
         # Add new bubble to optional_bubbles list
-        self.optional_bubbles = AddToList(newbubble.key(), self.optional_bubbles)
+        self.x_br_subbubble = AddToList(newbubble.key(), self.GetValueAsList('x_br_subbubble'))
+        self.optional_bubbles = AddToList(newbubble.key(), self.GetValueAsList('optional_bubbles'))
         self.put()
 
         return newbubble
 
+    def GetValueAsList(self, data_property):
+        result = getattr(self, data_property, [])
+        if type(result) is list:
+            return result
+        else:
+            return [result]
+
+    def GetValue(self, data_property, default=None):
+        result = getattr(self, data_property, None)
+        if not result:
+            return default
+        if type(result) is list:
+            return result[0]
+        else:
+            return result
+
     def GetProperties(self, language = None):
-        bt = self.GetType()
-        result = []
         if not language:
             language = UserPreferences().current.language
 
-        for bp in sorted(BubbleProperty().get(bt.bubble_properties), key=attrgetter('ordinal')):
-            data_value = getattr(self, bp.data_property, None)
-            value = []
-            choices = []
+        if self.is_saved():
+            cache_key = 'bubble_properties_' + language + '_' + str(self.key())
+            result = Cache().get(cache_key)
+            if result:
+                return result
 
-            if data_value:
-                if type(data_value) is not list:
-                    data_value = [data_value]
+        bt = self.GetType()
 
-                for v in data_value:
-                    if v != None:
-                        if bp.data_type in ['dictionary_string', 'dictionary_text']:
-                            d = Dictionary().get(v)
-                            v = {'key': str(d.key()), 'value': getattr(d, language) }
-                        if bp.data_type == 'datetime':
-                            v = UtcToLocalDateTime(v).strftime('%d.%m.%Y %H:%M')
-                        if bp.data_type == 'date':
-                            v = v.strftime('%d.%m.%Y')
-                        if bp.data_type in ['reference', 'counter', 'dictionary_select']:
-                            v = v
-                        if bp.data_type == 'blobstore':
-                            b = blobstore.BlobInfo.get(v)
-                            v = {
-                                'key': str(b.key()),
-                                'filename': b.filename,
-                                'size': GetFileSize(b.size),
-                                'image_url': images.get_serving_url(b.key()) if bp.data_property == 'photo' and b.content_type in ['image/bmp', 'image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/tiff', 'image/x-icon'] else None
-                            }
-                        if v:
-                            value.append(v)
+        result = []
+        for bp in sorted(Bubble().get(bt.GetValueAsList('bubble_properties')), key=attrgetter('ordinal')):
+            if hasattr(bp, 'data_property'):
+                result.append(self.GetProperty(
+                    bubbletype = bt,
+                    data_property = bp.data_property,
+                    language = language,
+                ))
 
-            if bp.data_type == 'dictionary_select':
-                for d in sorted(db.Query(Dictionary).filter('name', bp.dictionary_name), key=attrgetter('value')):
-                    choices.append({'key': d.key(), 'value': getattr(d, language)})
+        if self.is_saved():
+            Cache().set(cache_key, result)
+        return result
 
-            if bp.data_type == 'reference':
-                for e in sorted(db.Query(bp.reference_entitykind).filter('_is_deleted', False), key=attrgetter('displayname')):
-                    choices.append({'key': e.key(), 'value': e.displayname})
+    def GetProperty(self, bubbletype, data_property, language = None):
+        if not language:
+            language = UserPreferences().current.language
 
-            if bp.data_type == 'counter':
-                for c in sorted(db.Query(Counter).filter('_is_deleted', False), key=attrgetter('displayname')):
-                    choices.append({'key': c.key(), 'value': c.displayname})
+        if self.is_saved():
+            cache_key = 'bubble_property_' + data_property + '_' + language + '_' + str(self.key())
+            result = Cache().get(cache_key)
+            if result:
+                return result
 
-            if (bp.count == 0 or bp.count > len(value)) and bp.is_read_only == False:
-                value.append('')
+        bp = db.Query(Bubble).filter('__key__ IN', bubbletype.GetValueAsList('bubble_properties')).filter('data_property', data_property).get()
 
-            result.append({
-                'key': bp.key(),
-                'data_type': bp.data_type,
-                'data_property': bp.data_property,
-                'name': getattr(bp.name_plural, language) if len(value) > 1 else getattr(bp.name, language),
-                'choices': choices,
-                'value': value,
-                'is_public': bp.key() in bt.public_properties,
-                'is_read_only': bp.is_read_only,
-                'is_mandatory': True if bp.key() in bt.mandatory_properties else False,
-                'is_create_only': True if bp.key() in bt.create_only_properties else False,
-                'can_add_new': (bp.count == 0 or bp.count > len(value))
-            })
+        data_value = getattr(self, bp.data_property, None)
+        values = []
+        has_values = False
+        choices = False
+
+        if data_value:
+            if type(data_value) is not list:
+                data_value = [data_value]
+
+            for v in data_value:
+                if v != None:
+                    if bp.data_type in ['string', 'text', 'integer', 'float', 'boolean']:
+                        v = {'value': v}
+                    if bp.data_type in ['dictionary_string', 'dictionary_text', 'dictionary_select']:
+                        d = Dictionary().get(v)
+                        v = {'value': getattr(d, language), 'key': str(d.key())}
+                    if bp.data_type == 'datetime':
+                        v = {'value': UtcToLocalDateTime(v).strftime('%d.%m.%Y %H:%M')}
+                    if bp.data_type == 'date':
+                        v = {'value': v.strftime('%d.%m.%Y')}
+                    if bp.data_type == 'reference':
+                        try:
+                            d = Bubble().get(v)
+                            v = {'value': d.displayname, 'key': str(d.key())}
+                        except:
+                            v = {'value': 'BT'}
+                    if bp.data_type == 'counter':
+                        d = Counter().get(v)
+                        v = {'value': d.displayname, 'key': str(d.key())}
+                    if bp.data_type == 'blobstore':
+                        b = blobstore.BlobInfo.get(v)
+                        v = {
+                            'value': b.filename,
+                            'key': str(b.key()),
+                            'size': GetFileSize(b.size),
+                            'image_url': images.get_serving_url(b.key()) if bp.data_property == 'photo' and b.content_type in ['image/bmp', 'image/jpeg', 'image/pjpeg', 'image/png', 'image/gif', 'image/tiff', 'image/x-icon'] else None
+                        }
+
+                    if v:
+                        values.append(v)
+                        has_values = True
+
+        if (bp.GetValue('count', 0) == 0 or bp.GetValue('count', 0) > len(values)) and bp.GetValue('is_read_only', False) == False:
+            values.append({'value': None})
+
+        result = {
+            'key': str(bp.key()),
+            'data_type': bp.GetValue('data_type', ''),
+            'data_property': bp.GetValue('data_property', ''),
+            'name': GetDictionaryValue(bp.GetValue('name_plural', ''), language) if len(values) > 1 else GetDictionaryValue(bp.GetValue('name', ''), language),
+            'has_values': has_values,
+            'values': values,
+            'is_public': bp.key() in bubbletype.GetValueAsList('public_properties'),
+            'is_read_only': bp.key() in bubbletype.GetValueAsList('read_only_properties'),
+            'is_mandatory': bp.key() in bubbletype.GetValueAsList('mandatory_properties'),
+            'is_create_only': bp.key() in bubbletype.GetValueAsList('create_only_properties'),
+            'can_add_new': (bp.GetValue('count', 0) == 0 or bp.GetValue('count', 0) > len(values)),
+            'choices': bp.data_type in ['select', 'dictionary_select', 'reference', 'counter'],
+        }
+
+        if self.is_saved():
+            Cache().set(cache_key, result)
         return result
 
     def SetProperty(self, propertykey, oldvalue = '', newvalue = '', user = None):
-        bp = BubbleProperty().get(propertykey)
+        bp = Bubble().get(propertykey)
 
         result = newvalue
         data_value = getattr(self, bp.data_property, [])
@@ -467,7 +359,10 @@ class Bubble(ChangeLogModel):
                 d = Dictionary().get(oldvalue)
             else:
                 d = Dictionary()
-                d.name = bp.dictionary_name
+                if bp.GetValue('choices', None):
+                    d.name = bp.GetValue('choices', None)
+                else:
+                    d.name = 'bubble_%s' % bp.data_property
             setattr(d, UserPreferences().current.language, newvalue)
             d.put()
             oldvalue = None
@@ -494,12 +389,10 @@ class Bubble(ChangeLogModel):
             data_value = AddToList(newvalue, data_value)
             data_value = RemoveFromList(oldvalue, data_value)
 
-
-
         if oldvalue:
             data_value = RemoveFromList(oldvalue, data_value)
         if newvalue:
-            if bp.count == 1:
+            if bp.GetValue('count', 0) == 1:
                 data_value = [newvalue]
             else:
                 data_value = AddToList(newvalue, data_value)
@@ -513,20 +406,52 @@ class Bubble(ChangeLogModel):
                 delattr(self, bp.data_property)
 
         self.put(user)
+
         self.ResetCache()
+        for language in SystemPreferences().get('languages'):
+            Cache().set('bubble_property_' + bp.data_property + '_' + language + '_' + str(self.key()))
 
         return result
 
     def GetType(self):
-        return db.Query(BubbleType).filter('type', self.type).get()
+        if self.is_saved():
+            cache_key = 'bubble_typekey_' + str(self.key())
+            result = Cache().get(cache_key)
+            if result:
+                return Bubble().get(result)
+        if hasattr(self, 'x_type'):
+            result = Bubble().get(self.x_type)
+        else:
+            if not hasattr(self, 'type'):
+                return None
+            result = db.Query(Bubble).filter('type', 'bubble_type').filter('path', self.type).get()
 
-    def GetAllowedTypes(self):
-        return sorted(db.Query(BubbleType).filter('type IN', self.GetType().allowed_subtypes).fetch(1000), key=attrgetter('displayname'))
+        if self.is_saved():
+            Cache().set(cache_key, result.key())
+        return result
+
+    def GetRelatives(self, relation):
+        if hasattr(self, 'x_br_%s' % relation):
+            return Bubble().get(self.GetValueAsList('x_br_%s' % relation))
+
+    def GetSubtypes(self):
+        bt = self.GetType()
+        if getattr(bt, 'allowed_subtypes', None):
+            return Bubble().get(bt.GetValueAsList('allowed_subtypes'))
+
+    def GetAllowedSubtypes(self):
+        if getattr(self, 'allowed_subtypes', None):
+            return Bubble().get(self.GetValueAsList('allowed_subtypes'))
+        bt = self.GetType()
+        if getattr(bt, 'allowed_subtypes', None):
+            return Bubble().get(bt.GetValueAsList('allowed_subtypes'))
 
     def ResetCache(self):
-        Cache().set('bubble_tags_' + UserPreferences().current.language + '_' + str(self.key()))
-        Cache().set('bubble_dname_' + UserPreferences().current.language + '_' + str(self.key()))
-        Cache().set('bubble_dinfo_' + UserPreferences().current.language + '_' + str(self.key()))
+        for language in SystemPreferences().get('languages'):
+            Cache().set('bubble_typekey_' + str(self.key()))
+            Cache().set('bubble_properties_' + language + '_' + str(self.key()))
+            Cache().set('bubble_dname_' + language + '_' + str(self.key()))
+            Cache().set('bubble_dinfo_' + language + '_' + str(self.key()))
 
 
 class BubbleRelation(ChangeLogModel):
@@ -537,49 +462,3 @@ class BubbleRelation(ChangeLogModel):
     end_datetime            = db.DateTimeProperty()
     name                    = db.ReferenceProperty(Dictionary, collection_name='bubblerelation_name')
     name_plural             = db.ReferenceProperty(Dictionary, collection_name='bubblerelation_name_plural')
-
-
-class GradeDefinition(ChangeLogModel):
-    rating_scale    = db.ReferenceProperty(RatingScale)
-    name            = db.ReferenceProperty(Dictionary, collection_name='gradedefinition_name')
-    is_positive     = db.BooleanProperty()
-    equivalent      = db.IntegerProperty()
-
-    @property
-    def displayname(self):
-        return self.name.value
-
-
-class Grade(ChangeLogModel):
-    person          = db.ReferenceProperty(Person, collection_name='grades')
-    gradedefinition = db.ReferenceProperty(GradeDefinition, collection_name='grades')
-    bubble          = db.ReferenceProperty(Bubble)
-    bubble_type     = db.StringProperty()
-    subject_name    = db.ReferenceProperty(Dictionary, collection_name='grade_subject_name')
-    datetime        = db.DateTimeProperty()
-    name            = db.ReferenceProperty(Dictionary, collection_name='grade_name')
-    equivalent      = db.IntegerProperty()
-    is_positive     = db.BooleanProperty()
-    points          = db.FloatProperty()
-    school          = db.ReferenceProperty(Dictionary, collection_name='grade_school')
-    teacher         = db.ReferenceProperty(Person, collection_name='given_grades')
-    teacher_name    = db.StringProperty()
-    typed_tags      = db.StringListProperty()
-    is_locked       = db.BooleanProperty(default=False)
-
-    @property
-    def displayname(self):
-        if self.name:
-            return self.name.value
-        else:
-            if self.gradedefinition:
-                if self.gradedefinition.name:
-                    return self.gradedefinition.name.value
-        return ''
-
-    @property
-    def displaydate(self):
-        if self.datetime:
-            return self.datetime.strftime('%d.%m.%Y %H:%M')
-        else:
-            return '...'

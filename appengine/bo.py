@@ -136,8 +136,8 @@ class boRequestHandler(webapp.RequestHandler):
 
 
 class AccessLog(db.Model):
-    _version        = db.StringProperty(default='A')
-    _created        = db.DateTimeProperty(auto_now_add=True)
+    x_version        = db.StringProperty(default='A')
+    x_created        = db.DateTimeProperty(auto_now_add=True)
     user            = db.StringProperty()
     remote_addr     = db.StringProperty()
     url             = db.TextProperty()
@@ -145,20 +145,20 @@ class AccessLog(db.Model):
 
 
 class ChangeLog(db.Expando):
-    _version        = db.StringProperty(default='A')
-    _created        = db.DateTimeProperty(auto_now_add=True)
+    x_version        = db.StringProperty(default='A')
+    x_created        = db.DateTimeProperty(auto_now_add=True)
     user            = db.StringProperty()
     kind_name       = db.StringProperty()
     property_name   = db.StringProperty()
 
 
 class ChangeLogModel(db.Expando):
-    _version    = db.StringProperty(default='A')
-    _created    = db.DateTimeProperty(auto_now_add=True)
-    _created_by = db.StringProperty()
-    _changed    = db.DateTimeProperty(auto_now=True)
-    _changed_by = db.StringProperty()
-    _is_deleted = db.BooleanProperty(default=False)
+    x_version    = db.StringProperty(default='A')
+    x_created    = db.DateTimeProperty(auto_now_add=True)
+    x_created_by = db.StringProperty()
+    x_changed    = db.DateTimeProperty(auto_now=True)
+    x_changed_by = db.StringProperty()
+    x_is_deleted = db.BooleanProperty(default=False)
 
     def put(self, email=None):
         if not email:
@@ -166,7 +166,6 @@ class ChangeLogModel(db.Expando):
             if user:
                 email = user.email()
         if self.is_saved():
-            self._changed_by = email
             old = db.get(self.key())
             for prop_key in MergeLists(self.properties().keys(), self.dynamic_properties()):
                 if old:
@@ -184,11 +183,18 @@ class ChangeLogModel(db.Expando):
                     cl.property_name = prop_key
                     cl.user = email
                     if old_value != None:
-                        cl.old_value = old_value
-                    cl.new_value = new_value
+                        try:
+                            cl.old_value = old_value
+                        except TypeError:
+                            cl.old_value = old_value.key()
+                    try:
+                        cl.new_value = new_value
+                    except TypeError:
+                        cl.new_value = new_value.key()
                     cl.put()
+            self.x_changed_by = email
         else:
-            self._created_by = email
+            self.x_created_by = email
         return db.Model.put(self)
 
     @property
@@ -265,11 +271,12 @@ class Cache:
         if user_specific == True:
             user = users.get_current_user()
             if user:
-                key = key + '_' + user.user_id()
+                key += '__' + user.user_id()
             else:
                 return False
+
+        key += '__' + os.environ['CURRENT_VERSION_ID'].split('.')[1]
         if value:
-            key += '__' + os.environ['CURRENT_VERSION_ID'].split('.')[1]
             memcache.delete(key)
             if time:
                 memcache.add(
@@ -343,6 +350,10 @@ def StrToKeyList(string):
     else:
         return []
 
+def FindTags(s, beginning, end):
+    if not s:
+        return []
+    return re.compile('%s(.*?)%s' % (beginning, end), re.DOTALL).findall(s)
 
 def rReplace(s, old, new, occurrence):
     li = s.rsplit(old, occurrence)
@@ -366,7 +377,6 @@ def StringToSearchIndex(s):
     result = []
     s = s.lower()
     wordlist = StrToList(s)
-    wordlist.append(s)
     for w in wordlist:
         for i in range(1, len(w)+1):
             result = AddToList(w[:i], result)

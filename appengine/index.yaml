@@ -2,62 +2,33 @@ indexes:
 
 - kind: Bubble
   properties:
-  - name: _is_deleted
-  - name: leechers
-  - name: sort_estonian
+  - name: x_br_viewer
+  - name: x_is_deleted
+  - name: x_type
+  - name: x_sort_estonian
 
 - kind: Bubble
   properties:
-  - name: _is_deleted
-  - name: leechers
-  - name: sort_english
+  - name: x_br_viewer
+  - name: x_is_deleted
+  - name: x_type
+  - name: x_sort_english
 
 - kind: Bubble
   properties:
-  - name: _is_deleted
-  - name: seeders
-  - name: sort_estonian
+  - name: x_br_viewer
+  - name: x_is_deleted
+  - name: x_search_estonian
+  - name: x_type
+  - name: x_sort_estonian
 
 - kind: Bubble
   properties:
-  - name: _is_deleted
-  - name: seeders
-  - name: sort_english
-
-- kind: Bubble
-  properties:
-  - name: _is_deleted
-  - name: type
-  - name: viewers
-  - name: sort_estonian
-
-- kind: Bubble
-  properties:
-  - name: _is_deleted
-  - name: type
-  - name: viewers
-  - name: sort_english
-
-- kind: Bubble
-  properties:
-  - name: _is_deleted
-  - name: search_english
-  - name: type
-  - name: sort_english
-
-- kind: Bubble
-  properties:
-  - name: _is_deleted
-  - name: search_estonian
-  - name: type
-  - name: sort_estonian
-
-- kind: BubblePerson
-  properties:
-  - name: _is_deleted
-  - name: bubble
-  - name: status
-  - name: start_datetime
+  - name: x_br_viewer
+  - name: x_is_deleted
+  - name: x_search_english
+  - name: x_type
+  - name: x_sort_english
 
 
 
@@ -67,21 +38,10 @@ indexes:
   - name: _created
     direction: desc
 
-
-
-- kind: Contact
-  ancestor: yes
+- kind: ChangeLog
   properties:
-  - name: _is_deleted
-  - name: type
-
-
-
-- kind: Grade
-  properties:
-  - name: _is_deleted
-  - name: person
-  - name: datetime
+  - name: property_name
+  - name: x_created
     direction: desc
 
 

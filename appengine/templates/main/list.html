@@ -41,7 +41,7 @@
             items = [];
             $('#list .spinner').show()
             $('#list_items').html('');
-            $.post('{{ list_url }}', {search: $('#searchbox').val()}, function(list) {
+            $.post('{{ list_url }}', {type: 'search', value: $('#searchbox').val()}, function(list) {
                 items = list.keys;
                 $('#list_search span').html('{{ str.search_found }} '+items.length);
                 $('#list .spinner').hide();

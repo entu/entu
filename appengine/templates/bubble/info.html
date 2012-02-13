@@ -6,20 +6,21 @@
 
 <h1>{{ bubble.displayname }}</h1>
 <section class="table">
-    {% for t in bubble.tags %}
-    {% if t.value %}{% ifequal t.data_property "name" %}
-    {% else %}
+    {% for t in bubble.GetProperties %}
+    {% if t.has_values %}{% if t.data_property != "name" %}
     <div class="row">
         <div class="v_header">
             {{ t.name }}
         </div>
         <div class="cell">
-            {% for v in t.value %}
-            {{ v|safe|urlize|linebreaks }}
+            {% for v in t.values %}
+                {% if v.value %}
+                    {{ v.value|safe|urlize|linebreaks }}
+                {% endif %}
             {% endfor %}
         </div>
     </div>
-    {% endifequal %}{% endif %}
+    {% endif %}{% endif %}
     {% endfor %}
 </section>
 
@@ -28,8 +29,8 @@
         <div id="tiptip_arrow_inner"></div>
     </div>
     <div id="tiptip_content">
-        {% for t in bubble.allowed_subbubble_types %}
-        <a href="javascript:void(0);" class="add_new_subbubble" data-type="{{ t.type }}">{{ t.displayname }}</a><br />
+        {% for t in bubble.GetAllowedSubtypes %}
+        <a href="javascript:void(0);" class="add_new_subbubble" data-type="{{ t.key }}">{{ t.displayname }}</a><br />
         {% endfor %}
     </div>
 </div>
@@ -45,8 +46,8 @@
     </div>
     {% for t in bubbletypes %}
     <div style="display:none;">
-        <h2>{{ t.name_plural.value }}<span><img src="/images/spinner_gray_small.gif" /></span></h2>
-        <div class="subbubbles_list subbubbles" data-type="{{ t.type }}"></div>
+        <h2>{{ t.displayname }}<span><img src="/images/spinner_gray_small.gif" /></span></h2>
+        <div class="subbubbles_list subbubbles" data-type="{{ t.path }}"></div>
     </div>
     {% endfor %}
 </section>
@@ -61,7 +62,7 @@
         });
 
         tools = [
-            {% if bubble.allowed_subbubble_types %}'<a id="open_new_tipmenu" href="javascript:void(0);" class="icon add" title="{{ str.bubble_add_new }}"></a>',{% endif %}
+            {% if bubble.GetAllowedSubtypes %}'<a id="open_new_tipmenu" href="javascript:void(0);" class="icon add" title="{{ str.bubble_add_new }}"></a>',{% endif %}
             '<a id="open_edit" href="javascript:void(0);" class="icon pencil tiptip" title="{{ str.bubble_edit }}"></a>',
         ];
         $('#tools').html(tools.join(''));
@@ -115,11 +116,11 @@
             $("#open_document_box").slideUp();
         });
 
-        ajax_bubbles_list('/bubble', { leecher_in_bubble: '{{ bubble.key }}' }, $('#leecher'), 'leecher');
-        ajax_bubbles_list('/bubble', { bubble_leechers: '{{ bubble.key }}' }, $('#leechers'), 'leechers');
+        ajax_bubbles_list('/bubble/', { leecher_in_bubble: '{{ bubble.key }}' }, $('#leecher'), 'leecher');
+        ajax_bubbles_list('/bubble/', { bubble_leechers: '{{ bubble.key }}' }, $('#leechers'), 'leechers');
 
         $('.subbubbles').each(function() {
-            ajax_bubbles_list('/bubble', { master_bubble: '{{ bubble.key }}', type: $(this).data('type') }, $(this), 'subbubbles');
+            ajax_bubbles_list('/bubble/'+$(this).data('type'), { type: 'subbubbles', value: '{{ bubble.key }}' }, $(this), 'subbubbles');
         });
 
         $('.open_subbubble').live('click', function() {
@@ -141,40 +142,6 @@
                 $('#list_content .spinner').hide();
                 $('#list_content div').html(html);
             });
-        }
-
-
-        function ajax_persons_list(post_url, post_data, div, id) {
-            $.post(post_url, post_data, function(list) {
-                for (i in list.keys) {
-                    div.append('<a href="#" id="'+id+'_'+list.keys[i]+'"></a>');
-                    $.post(post_url, {key: list.keys[i]}, function(item) {
-                        if(item.image) {
-                            image = '<img src="'+item.image+'" />';
-                        } else {
-                            image = '';
-                        }
-                        if(item.info) {
-                            info = '<span>'+item.info+'</span>';
-                        } else {
-                            info = '';
-                        }
-                        if('#'+item.id == window.location.hash) {
-                            active = 'class="active" ';
-                        } else {
-                            active = '';
-                        }
-                        $('#'+id+'_'+item.key).html(image+item.title);
-                        $('#'+id+'_'+item.key).attr('href', '/person#'+item.id);
-                    }, 'json');
-                }
-                if (list.keys.length > 0) {
-                    div.parent().show();
-                    div.parent().children('h2').children('span').html(list.keys.length);
-                } else {
-                    div.parent().hide();
-                }
-            }, 'json');
         }
 
         function ajax_bubbles_list(post_url, post_data, div, id) {

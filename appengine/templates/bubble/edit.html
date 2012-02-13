@@ -1,60 +1,60 @@
 <section class="table" style="margin:0px; width:100%;">
     {% for t in bubble.GetProperties %}
-    {% if t.is_read_only %}
-    {% else %}
         <div class="row">
             <div class="v_header" {% if t.is_public %}style="color:red;"{% endif %}>
                 {{ t.name }}
             </div>
             <div class="cell" style="width:100%">
-                {% for v in t.value %}
-                    {% if t.data_type == "string" or t.data_type == "integer" or t.data_type == "float" or t.data_type == "date" or t.data_type == "datetime" %}
-                    <input type="text" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}" value="{{ v }}" />
-                    {% endif %}
+                {% if t.is_read_only %}
+                    {% for v in t.values %}
+                        {{ v.value|default:"" }}{% if not forloop.last %}<br />{% endif %}
+                    {% endfor %}
+                {% else %}
+                    {% for v in t.values %}
+                        {% if t.data_type == "string" or t.data_type == "integer" or t.data_type == "float" or t.data_type == "date" or t.data_type == "datetime" %}
+                        <input type="text" name="{{ t.key }}" data-oldvalue="{{ v.value|default:"" }}" class="autosave dtype_{{ t.data_type }}" value="{{ v.value|default:"" }}" />
+                        {% endif %}
 
-                    {% if t.data_type == "dictionary_string" %}
-                    <input type="text" name="{{ t.key }}" data-oldvalue="{{ v.key }}" class="autosave dtype_{{ t.data_type }}" value="{{ v.value }}" />
-                    {% endif %}
+                        {% if t.data_type == "dictionary_string" %}
+                        <input type="text" name="{{ t.key }}" data-oldvalue="{{ v.key }}" class="autosave dtype_{{ t.data_type }}" value="{{ v.value|default:"" }}" />
+                        {% endif %}
 
-                    {% if t.data_type == "password"  %}
-                    <input type="password" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}" value="{{ v }}" />
-                    {% endif %}
+                        {% if t.data_type == "password"  %}
+                        <input type="password" name="{{ t.key }}" data-oldvalue="{{ v.value|default:"" }}" class="autosave dtype_{{ t.data_type }}" value="{{ v.value|default:"" }}" />
+                        {% endif %}
 
-                    {% if t.data_type == "dictionary_text" %}
-                    <textarea type="text" name="{{ t.key }}" data-oldvalue="{{ v.key }}" class="autosave dtype_{{ t.data_type }}">{{ v.value }}</textarea>
-                    {% endif %}
+                        {% if t.data_type == "dictionary_text" %}
+                        <textarea type="text" name="{{ t.key }}" data-oldvalue="{{ v.key }}" class="autosave dtype_{{ t.data_type }}">{{ v.value|default:"" }}</textarea>
+                        {% endif %}
 
-                    {% if t.data_type == "text" %}
-                    <textarea type="text" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}">{{ v }}</textarea>
-                    {% endif %}
+                        {% if t.data_type == "text" %}
+                        <textarea type="text" name="{{ t.key }}" data-oldvalue="{{ v.value|default:"" }}" class="autosave dtype_{{ t.data_type }}">{{ v.value|default:"" }}</textarea>
+                        {% endif %}
 
-                    {% ifequal t.data_type "boolean" %}
-                    <input type="checkbox" name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}"{% if v %} checked{% endif %} />
-                    {% endifequal %}
+                        {% ifequal t.data_type "boolean" %}
+                        <input type="checkbox" name="{{ t.key }}" data-oldvalue="{{ v.value|default:"" }}" class="autosave dtype_{{ t.data_type }}"{% if v.value|default:"" %} checked{% endif %} />
+                        {% endifequal %}
 
-                    {% ifequal t.data_type "blobstore" %}
-                    {{ v.filename }}{% if not forloop.last %}, {% endif %}
-                    {% if forloop.last and t.can_add_new %}
-                    <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML);" style="display:none;"></iframe>
-                    <form method="post" action="{{ blobstore_upload_url }}" target="iframe_{{ t.key }}" enctype="multipart/form-data">
-                        <input type="file" name="file" class="dtype_{{ t.data_type }}" style="border:none;" />
-                        <input type="hidden" name="property" value="{{ t.key }}" />
-                    </form>
-                    {% endif %}
-                    {% endifequal %}
+                        {% ifequal t.data_type "blobstore" %}
+                        {{ v.value|default:"" }}{% if not forloop.last %}<br />{% endif %}
+                        {% if forloop.last and t.can_add_new %}
+                        <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML);" style="display:none;"></iframe>
+                        <form method="post" action="{{ blobstore_upload_url }}" target="iframe_{{ t.key }}" enctype="multipart/form-data">
+                            <input type="file" name="file" class="dtype_{{ t.data_type }}" style="border:none;" />
+                            <input type="hidden" name="property" value="{{ t.key }}" />
+                        </form>
+                        {% endif %}
+                        {% endifequal %}
 
-                    {% if t.choices %}
-                    <select name="{{ t.key }}" data-oldvalue="{{ v }}" class="autosave dtype_{{ t.data_type }}" data-placeholder="{{ v.value }}">
-                        <option value=""></option>
-                        {% for c in t.choices %}
-                        <option value="{{ c.key }}"{% ifequal v c.key %} selected{% endifequal %}>{{ c.value }}</option>
-                        {% endfor %}
-                    </select>
-                    {% endif %}
-                {% endfor %}
+                        {% if t.choices %}
+                        <select name="{{ t.key }}" data-oldvalue="{{ v.key }}" class="autosave choices dtype_{{ t.data_type }}" data-placeholder="..." style="display:none;">
+                            <option value=""></option>
+                        </select>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
             </div>
         </div>
-    {% endif %}
     {% endfor %}
 </section>
 
@@ -65,17 +65,35 @@
 
         // $('input:password').dPassword();
 
-        $('.dtype_blobstore').change(function() {
+        $('.choices').each(function() {
+            $.post('/bubble/sfv', { property: $(this).attr('name') }, function(json) {
+                $('select[name='+json.property+']').each(function() {
+                    selectbox = $(this);
+                    for (i in json.values) {
+                        item = json.values[i];
+                        if(item.key == selectbox.data('oldvalue')) {
+                            selected = ' selected';
+                        } else {
+                            selected = '';
+                        }
+                        selectbox.width(selectbox.parent().width());
+                        selectbox.append('<option value="'+item.key+'"'+selected+'>'+item.value+'</option>');
+                        selectbox.chosen({
+                            allow_single_deselect: true,
+                        });
+                        selectbox.trigger("liszt:updated");
+                    };
+                });
+            }, 'json');
+        });
+
+       $('.dtype_blobstore').change(function() {
             $(this).parent().submit();
         });
 
         function showDocument(json_string){
             alert(json_string);
         };
-
-        $('select').chosen({
-            allow_single_deselect: true,
-        });
 
         $('.dtype_datetime').change(function() {
             $(this).val(format_date($(this).val(), 'dd.MM.yyyy HH:mm'));
