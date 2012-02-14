@@ -149,7 +149,7 @@ class EditBubble(boRequestHandler):
             message = ''
             for t in bubble.GetProperties():
                 message += '<b>%s</b>:<br/>\n' % t['name']
-                message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'] for n in t['values'] if n['value'].replace('\n', '<br/>\n')])
+                message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
                 message += '<br/>\n'
             for n in bubble.GetType().GetValueAsList('notify_on_alter'):
                 for r in bubble.GetRelatives(n):
