@@ -36,7 +36,7 @@ class ShowBubbleList(boRequestHandler):
         key = self.request.get('key').strip()
         if key:
             bubble = Bubble().get(key)
-            # bubble.AutoFix()
+            bubble.AutoFix()
 
             if not bubble.Authorize('viewer'):
                 self.error(404)
@@ -68,13 +68,15 @@ class ShowBubbleList(boRequestHandler):
                     keys = MergeLists(keys, [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', Person().current.key()).filter('x_type', bt.key()).filter('x_is_deleted', False).filter(searchfield, s).order(sortfield))])
             else:
                 keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', Person().current.key()).filter('x_type', bt.key()).filter('x_is_deleted', False).order(sortfield))]
-                # keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_type', bt.key()).filter('x_is_deleted', False))]
+                # keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_type', bt.key()))]
 
-        # if leecher_in_bubble:
-        #     keys = [str(b.bubble.key()) for b in db.Query(BubbleRelation).filter('related_bubble', db.Key(leecher_in_bubble)).filter('type', 'leecher').filter('_is_deleted', False)]
+        if filtertype == 'leecher':
+            keys = [str(b.related_bubble.key()) for b in db.Query(BubbleRelation).filter('bubble', db.Key(value)).filter('type', 'leecher').filter('x_is_deleted', False) if b.related_bubble.Authorize('viewer')]
+
+        if filtertype == 'leecher_in':
+            keys = [str(b.bubble.key()) for b in db.Query(BubbleRelation).filter('related_bubble', db.Key(value)).filter('type', 'leecher').filter('x_is_deleted', False)]
 
         # if bubble_leechers:
-        #     keys = [str(b.related_bubble.key()) for b in db.Query(BubbleRelation).filter('bubble', db.Key(bubble_leechers)).filter('type', 'leecher').filter('_is_deleted', False) if b.related_bubble.Authorize('viewer')]
 
         if filtertype == 'subbubbles':
             bubble = Bubble().get(value)

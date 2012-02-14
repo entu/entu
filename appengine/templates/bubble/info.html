@@ -120,8 +120,8 @@
             $("#open_document_box").slideUp();
         });
 
-        ajax_bubbles_list('/bubble/', { leecher_in_bubble: '{{ bubble.key }}' }, $('#leecher'), 'leecher');
-        ajax_bubbles_list('/bubble/', { bubble_leechers: '{{ bubble.key }}' }, $('#leechers'), 'leechers');
+        ajax_bubbles_list('/bubble/', { type: 'leecher_in', value: '{{ bubble.key }}' }, $('#leecher'), 'leecher');
+        ajax_bubbles_list('/bubble/', { type: 'leecher', value: '{{ bubble.key }}' }, $('#leechers'), 'leechers');
 
         $('.subbubbles').each(function() {
             ajax_bubbles_list('/bubble/'+$(this).data('type'), { type: 'subbubbles', value: '{{ bubble.key }}' }, $(this), 'subbubbles');

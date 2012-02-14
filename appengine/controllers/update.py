@@ -51,20 +51,40 @@ class MemCacheInfo(boRequestHandler):
 class FixStuff(boRequestHandler):
     def get(self):
         self.header('Content-Type', 'text/plain; charset=utf-8')
+        self.echo(str(db.Query(BubbleRelation).order('-_changed').count(limit=100000)))
         # taskqueue.Task(url='/update/stuff').add()
 
-        for b in db.Query(Bubble).filter('type', 'applicant').fetch(1000):
-            for sbk in b.GetValueAsList('x_br_viewer'):
-                try:
-                    sb = Bubble().get(sbk)
-                    sb.x_br_viewer = AddToList(b.key(), sb.GetValueAsList('x_br_viewer'))
-                    sb.put()
-                    self.echo(str(sb.x_br_viewer))
-                except:
-                    pass
-
     def post(self):
-        pass
+        for b in db.Query(BubbleRelation).order('-_changed').fetch(1000):
+            if hasattr(b, '_version'):
+                setattr(b, 'x_version', b._version)
+                delattr(b, '_version')
+            if hasattr(b, '_created'):
+                setattr(b, 'x_created', b._created)
+                delattr(b, '_created')
+            if hasattr(b, '_created_by'):
+                setattr(b, 'x_created_by', b._created_by)
+                delattr(b, '_created_by')
+            if hasattr(b, '_changed'):
+                setattr(b, 'x_changed', b._changed)
+                delattr(b, '_changed')
+            if hasattr(b, '_changed_by'):
+                setattr(b, 'x_changed_by', b._changed_by)
+                delattr(b, '_changed_by')
+            if hasattr(b, '_is_deleted'):
+                setattr(b, 'x_is_deleted', b._is_deleted)
+                delattr(b, '_is_deleted')
+            if hasattr(b, 'name'):
+                delattr(b, 'name')
+            if hasattr(b, 'name_plural'):
+                delattr(b, 'name_plural')
+            try:
+                b.put()
+            except:
+                pass
+
+        if db.Query(BubbleRelation).order('-_changed').count(limit=100000) > 0:
+            taskqueue.Task(url='/update/stuff').add()
 
 
 class AddUser(boRequestHandler):

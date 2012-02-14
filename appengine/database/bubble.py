@@ -463,5 +463,3 @@ class BubbleRelation(ChangeLogModel):
     type                    = db.StringProperty(choices=['subbuble', 'seeder','leecher','editor','owner','viewer','add_sub_bubbles'])
     start_datetime          = db.DateTimeProperty()
     end_datetime            = db.DateTimeProperty()
-    name                    = db.ReferenceProperty(Dictionary, collection_name='bubblerelation_name')
-    name_plural             = db.ReferenceProperty(Dictionary, collection_name='bubblerelation_name_plural')
