@@ -53,46 +53,18 @@ class FixStuff(boRequestHandler):
         self.header('Content-Type', 'text/plain; charset=utf-8')
         # taskqueue.Task(url='/update/stuff').add()
 
-        # b = Bubble().get('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYtPewAgw')
-        # b.optional_bubbles = AddToList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY2-i3Agw'), b.optional_bubbles)
-        # b.put()
-
-        # b = Bubble().get('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYoYCyAgw')
-        # b.optional_bubbles = RemoveFromList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY2-i3Agw'), b.optional_bubbles)
-        # b.put()
-
-        # for br in db.Query(BubbleRelation).filter('type', 'leecher').fetch(1000):
-        #     try:
-        #         b = br.related_bubble
-        #         bk = b.key()
-        #     except:
-        #         self.echo(str(br.key()))
-        #         br.delete()
-
-        for b in db.Query(Bubble).filter('type', 'bubble_type').fetch(1000):
-            if b.key() in getattr(b, 'allowed_subtypes', []):
-                self.echo(b.path)
+        for b in db.Query(Bubble).filter('type', 'applicant').fetch(1000):
+            for sbk in b.GetValueAsList('x_br_viewer'):
+                try:
+                    sb = Bubble().get(sbk)
+                    sb.x_br_viewer = AddToList(b.key(), sb.GetValueAsList('x_br_viewer'))
+                    sb.put()
+                    self.echo(str(sb.x_br_viewer))
+                except:
+                    pass
 
     def post(self):
-        # b = Bubble().get('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYjcmwAgw')
-        # b.optional_bubbles = AddToList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYy4S1Agw'), b.optional_bubbles)
-        # b.put()
-
-        # b = Bubble().get('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYrNuyAgw')
-        # b.optional_bubbles = AddToList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYnP20Agw'), b.optional_bubbles)
-        # b.optional_bubbles = AddToList(db.Key('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYwKe0Agw'), b.optional_bubbles)
-        # b.put()
-
-        for b in db.Query(Bubble).filter('allowed_subtypes', 'doc_kirjavahetus').fetch(1000):
-            b.reply_counter = db.Key('agpzfmJ1YmJsZWR1chALEgdDb3VudGVyGK30twIM')
-            b.put()
-            # bt = b.GetType()
-            # for pp_key in getattr(bt, 'propagated_properties', []):
-            #     pp = BubbleProperty().get(pp_key)
-            #     for sb in Bubble().get(b.optional_bubbles):
-            #         if not hasattr(sb, pp.data_property):
-            #             setattr(sb, pp.data_property, getattr(b, pp.data_property))
-            #         sb.put()
+        pass
 
 
 class AddUser(boRequestHandler):
@@ -167,8 +139,17 @@ class Person2Bubble(boRequestHandler):
             if getattr(person, 'birth_date', None):
                 bubble.birth_date = datetime(*(person.birth_date.timetuple()[:6]))
 
-            bubble.viewers = [db.Key('agpzfmJ1YmJsZWR1cg8LEgZQZXJzb24Ykf2yAgw'), db.Key('agpzfmJ1YmJsZWR1cg8LEgZQZXJzb24Yq-2yAgw')]
+            bubble.x_br_viewer = [db.Key('agpzfmJ1YmJsZWR1cg8LEgZQZXJzb24Ykf2yAgw'), db.Key('agpzfmJ1YmJsZWR1cg8LEgZQZXJzb24Yq-2yAgw')]
             bubble.put()
+
+            # bubble.viewer
+            for related_bubble in db.Query(Bubble).filter('x_br_viewer', person.key()).fetch(1000):
+                if not db.Query(BubbleRelation).filter('bubble', related_bubble).filter('related_bubble', bubble).filter('type', 'viewer').get():
+                    br = BubbleRelation()
+                    br.bubble = related_bubble.key()
+                    br.related_bubble = bubble.key()
+                    br.type = 'seeder'
+                    br.put()
 
             # bubble.seeder
             for related_bubble in Bubble().get(person.seeder):

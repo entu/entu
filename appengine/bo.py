@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-from types import ListType
 from pytz.gae import pytz
 from google.appengine.api import mail
 from google.appengine.api import users
@@ -301,37 +300,36 @@ class Cache:
         key += '__' + os.environ['CURRENT_VERSION_ID'].split('.')[1]
         return memcache.get(key)
 
-def CheckMailAddress(email):
-    return email_re.match((email))
+def CheckMailAddress(email=None):
+    if email:
+        return email_re.match((email))
 
 
 def SendMail(to, subject, message=' ', reply_to=None, html=True, attachments=None):
-    valid_to = []
-    if isinstance(to, ListType):
-        for t in to:
-            if CheckMailAddress(t):
-                valid_to.append(t)
-    else:
-        if CheckMailAddress(to):
-            valid_to.append(to)
-    if len(valid_to) > 0:
-        m = mail.EmailMessage()
-        m.sender = SystemPreferences().get('system_email')
-        if reply_to:
-            if CheckMailAddress(reply_to):
-                m.reply_to = reply_to
-        m.bcc = SystemPreferences().get('system_email')
-        m.to = valid_to
-        m.subject = SystemPreferences().get('system_email_prefix') + subject
-        if html == True:
-            m.html = message
-        else:
-            m.body = message
-        if attachments:
-            m.attachments = attachments
-        m.send()
+    if type(to) is not list:
+        to = [to]
 
-        return True
+    to = [t for t in to if CheckMailAddress(t)]
+
+    if len(to) < 1:
+        return False
+
+    m = mail.EmailMessage()
+    m.sender = SystemPreferences().get('system_email')
+    if CheckMailAddress(reply_to):
+        m.reply_to = reply_to
+    m.bcc = SystemPreferences().get('system_email')
+    m.to = to
+    m.subject = SystemPreferences().get('system_email_prefix') + subject
+    if html == True:
+        m.html = message
+    else:
+        m.body = message
+    if attachments:
+        m.attachments = attachments
+    m.send()
+
+    return True
 
 
 def StrToList(string):
@@ -425,7 +423,15 @@ def GetUniqueList(s_list):
     return list(set(s_list))
 
 
-def MergeLists(l1 = [], l2 = []):
+def MergeLists(l1 = None, l2 = None):
+    if not l1:
+        l1 = []
+    if not l2:
+        l2 = []
+    if type(l1) is not list:
+        l1 = [l1]
+    if type(l2) is not list:
+        l2 = [l2]
     return GetUniqueList(l1 + l2)
 
 

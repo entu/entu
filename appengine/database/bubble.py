@@ -432,7 +432,11 @@ class Bubble(ChangeLogModel):
 
     def GetRelatives(self, relation):
         if hasattr(self, 'x_br_%s' % relation):
-            return Bubble().get(self.GetValueAsList('x_br_%s' % relation))
+            # return Bubble().get(self.GetValueAsList('x_br_%s' % relation))
+            return db.get(self.GetValueAsList('x_br_%s' % relation))
+
+    def GetParents(self):
+        return db.Query(Bubble).filter('x_is_deleted', False).filter('x_br_subbubble', self.key()).fetch(100)
 
     def GetSubtypes(self):
         bt = self.GetType()

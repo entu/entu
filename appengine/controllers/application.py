@@ -16,6 +16,7 @@ from database.bubble import *
 from database.person import *
 from django.utils import simplejson
 
+
 class ShowSignin(boRequestHandler):
     def get(self):
 
@@ -122,8 +123,8 @@ class ShowApplication(boRequestHandler):
         for g in sorted(db.Query(Bubble).filter('type', 'reception_group').fetch(1000), key=attrgetter('x_sort_%s' % language)):
             gname = getattr(Dictionary.get(g.name), language)
             gname2 = ''
-            for r in sorted(db.Query(Bubble).filter('type', 'reception').filter('__key__ IN', g.optional_bubbles).fetch(1000), key=attrgetter('x_sort_%s' % language)):
-                for s in sorted(db.Query(Bubble).filter('type', 'submission').filter('__key__ IN', r.optional_bubbles).fetch(1000), key=attrgetter('x_sort_%s' % language)):
+            for r in sorted(db.Query(Bubble).filter('type', 'reception').filter('__key__ IN', g.GetValueAsList('x_br_subbubble')).fetch(1000), key=attrgetter('x_sort_%s' % language)):
+                for s in sorted(db.Query(Bubble).filter('type', 'submission').filter('__key__ IN', r.GetValueAsList('x_br_subbubble')).fetch(1000), key=attrgetter('x_sort_%s' % language)):
                     # if getattr(s, 'start_datetime', datetime.now()) < datetime.now() and getattr(s, 'end_datetime', datetime.now()) > datetime.now():
                     if getattr(s, 'start_date', datetime.now()) < datetime.now() and getattr(s, 'end_date', datetime.now()) > datetime.now():
                         br = db.Query(BubbleRelation).filter('bubble', s.key()).filter('related_bubble', p.key()).filter('type', 'leecher').filter('x_is_deleted', False).get()
@@ -141,7 +142,7 @@ class ShowApplication(boRequestHandler):
         subbubbles = []
         for t in ['cv_edu', 'cv_work', 'state_exam', 'applicant_doc', 'message']:
             props = []
-            for b in sorted(Bubble.get(p.optional_bubbles), key=attrgetter('x_created')):
+            for b in sorted(Bubble.get(p.GetValueAsList('x_br_subbubble')), key=attrgetter('x_created')):
                 if b:
                     if b.type == t and b.x_is_deleted == False:
                         props.append({'key': str(b.key()), 'props': b.GetProperties(language)})
@@ -265,9 +266,9 @@ class EditSubbubble(boRequestHandler):
             bubble = Bubble().get(bubblekey)
         else:
             bubble = Bubble()
-            bubble.type = self.request.get('type').strip()
+            bubble.x_type = self.request.get('type').strip()
             bubble.put(getattr(p, 'email', ''))
-            p.optional_bubbles = AddToList(bubble.key(), p.optional_bubbles)
+            p.x_br_subbubble = AddToList(bubble.key(), p.GetValueAsList('x_br_subbubble'))
             p.put(getattr(p, 'email', ''))
 
         value = bubble.SetProperty(
@@ -276,6 +277,25 @@ class EditSubbubble(boRequestHandler):
             newvalue = self.request.get('newvalue').strip(),
             user = getattr(p, 'email', ''),
         )
+
+        # Send messages
+        # if self.request.get('oldvalue').strip() != self.request.get('newvalue').strip():
+        #     message = ''
+        #     url = '%s/bubble/applicant#%s' % (self.request.headers.get('host'), p.key().id())
+        #     for t in bubble.GetProperties():
+        #         message += '<b>%s</b>:<br/>\n' % t['name']
+        #         message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'] for n in t['values'] if n['value'].replace('\n', '<br/>\n')])
+        #         message += '<br/>\n'
+        #         message += '<br/>\n'
+        #         message += '<a href="%s">%s</a>\n' % (url, url)
+        #     for n in bubble.GetType().GetValueAsList('notify_on_alter'):
+        #         for r in bubble.GetRelatives(n):
+        #             emails = MergeLists(getattr(r, 'email', []), getattr(r, 'users', []))
+        #             SendMail(
+        #                 to = emails,
+        #                 subject = Translate('message_notify_on_alter_subject') % bubble.GetType().displayname.lower(),
+        #                 message = message,
+        #             )
 
         self.echo_json({
             'bubble': str(bubble.key()),
@@ -309,7 +329,7 @@ class DownloadFile(blobstore_handlers.BlobstoreDownloadHandler):
             self.error(404)
             return
 
-        if not bubble.key() in p.optional_bubbles:
+        if not bubble.key() in p.GetValueAsList('x_br_subbubble'):
             self.error(404)
             return
 
@@ -355,7 +375,7 @@ class UploadFile(blobstore_handlers.BlobstoreUploadHandler):
                 bubble = Bubble()
                 bubble.type = self.request.get('type').strip()
                 bubble.put(getattr(p, 'email', ''))
-                p.optional_bubbles = AddToList(bubble.key(), p.optional_bubbles)
+                p.x_br_subbubble = AddToList(bubble.key(), p.GetValueAsList('x_br_subbubble'))
                 p.put(getattr(p, 'email', ''))
 
             value = bubble.SetProperty(
@@ -421,7 +441,6 @@ class Submit(boRequestHandler):
                         if sb.type in ['cv_edu', 'cv_work', 'state_exam', 'applicant_doc', 'message']:
                             sb.x_br_viewer = s.x_br_viewer
                             sb.put(getattr(p, 'email', ''))
-
 
 
 def main():

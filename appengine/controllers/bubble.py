@@ -68,7 +68,7 @@ class ShowBubbleList(boRequestHandler):
                     keys = MergeLists(keys, [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', Person().current.key()).filter('x_type', bt.key()).filter('x_is_deleted', False).filter(searchfield, s).order(sortfield))])
             else:
                 keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', Person().current.key()).filter('x_type', bt.key()).filter('x_is_deleted', False).order(sortfield))]
-                # keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).order('_version'))]
+                # keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_type', bt.key()).filter('x_is_deleted', False))]
 
         # if leecher_in_bubble:
         #     keys = [str(b.bubble.key()) for b in db.Query(BubbleRelation).filter('related_bubble', db.Key(leecher_in_bubble)).filter('type', 'leecher').filter('_is_deleted', False)]
@@ -143,6 +143,23 @@ class EditBubble(boRequestHandler):
             oldvalue = self.request.get('oldvalue').strip(),
             newvalue = self.request.get('newvalue').strip(),
         )
+
+        # Send messages
+        if self.request.get('oldvalue').strip() != self.request.get('newvalue').strip():
+            message = ''
+            for t in bubble.GetProperties():
+                message += '<b>%s</b>:<br/>\n' % t['name']
+                message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'] for n in t['values'] if n['value'].replace('\n', '<br/>\n')])
+                message += '<br/>\n'
+            for n in bubble.GetType().GetValueAsList('notify_on_alter'):
+                for r in bubble.GetRelatives(n):
+                    emails = MergeLists(getattr(r, 'email', []), getattr(r, 'users', []))
+                    SendMail(
+                        to = emails,
+                        subject = Translate('message_notify_on_alter_subject') % bubble.GetType().displayname.lower(),
+                        message = message,
+                    )
+
         self.echo(value, False)
 
 

@@ -97,4 +97,6 @@ def translation():
         'application_missing_apply':            'Valige eriala!',
         'application_logout':                   'Välju',
 
+        'message_notify_on_alter_subject':      'Lisati uus %s',
+
     }

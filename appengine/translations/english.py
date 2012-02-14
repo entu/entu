@@ -97,4 +97,6 @@ def translation():
         'application_missing_apply':            'Select admission!',
         'application_logout':                   'Exit',
 
+        'message_notify_on_alter_subject':      'New %s added',
+
      }
