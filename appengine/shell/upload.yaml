@@ -175,6 +175,18 @@ transformers:
       external_name: count
       import_transform: transform.none_if_empty(int)
 
+    - property: is_unique
+      external_name: is_unique
+      import_transform: transform.regexp_bool('true', re.IGNORECASE)
+
+    - property: is_read_only
+      external_name: is_read_only
+      import_transform: transform.regexp_bool('true', re.IGNORECASE)
+
+    - property: is_auto_complete
+      external_name: is_auto_complete
+      import_transform: transform.regexp_bool('true', re.IGNORECASE)
+
 
 - kind: zBubbleType
   connector: csv
@@ -266,14 +278,6 @@ transformers:
 
     - property: create_only_properties
       external_name: create_only_properties
-      import_transform: transform.none_if_empty(db.Text)
-
-    - property: unique_properties
-      external_name: unique_properties
-      import_transform: transform.none_if_empty(db.Text)
-
-    - property: autocomplete_properties
-      external_name: autocomplete_properties
       import_transform: transform.none_if_empty(db.Text)
 
     - property: public_properties
