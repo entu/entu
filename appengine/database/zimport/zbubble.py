@@ -104,35 +104,46 @@ class zBubble(db.Expando):
 
 class zBubbleProperty(db.Expando):
     def zimport(self):
-        bp = GetZoin('BubbleProperty', self.key().name())
+        bp = GetZoin('Bubble', self.key().name())
         if not bp:
-            bp = BubbleProperty()
+            bp = Bubble()
 
-        bp.name                 = Dictionary(
-                name = 'bubbleproperty_name',
+        bp.type = 'bubble_property'
+
+        if self.name_estonian or self.name_english:
+            bp.name = Dictionary(
+                name = 'bubble_name',
                 estonian = self.name_estonian,
                 english = self.name_english
             ).put('zimport')
-        bp.name_plural                 = Dictionary(
-                name = 'bubbleproperty_name_plural',
+        if self.name_plural_estonian or self.name_plural_english:
+            bp.name_plural = Dictionary(
+                name = 'bubble_name_plural',
                 estonian = self.name_plural_estonian,
                 english = self.name_plural_english
             ).put('zimport')
-        bp.data_type            = self.data_type.lower()
-        bp.data_property        = self.data_property.lower()
-        bp.format_string        = self.format_string
-        bp.target_property      = self.target_property
-        bp.default              = self.default
-        bp.choices              = StrToList(self.choices)
-        bp.ordinal              = int(self.ordinal)
-        bp.count                = int(self.count)
-        bp.is_unique            = self.is_unique
-        bp.is_read_only         = self.is_read_only
-        bp.is_auto_complete     = self.is_auto_complete
+        if self.data_type:
+            bp.data_type = self.data_type.lower()
+        if self.data_property:
+            bp.data_property = self.data_property.lower()
+        if self.format_string:
+            bp.format_string = self.format_string
+        if self.target_property:
+            bp.target_property = self.target_property
+        if self.default:
+            bp.default = self.default
+        if self.choices:
+            bp.choices = StrToList(self.choices)
+        if self.ordinal:
+            bp.ordinal = int(self.ordinal)
+        if self.count:
+            bp.count = int(self.count)
+        if self.is_auto_complete:
+            bp.is_auto_complete = self.is_auto_complete
         bp.put('zimport')
 
         AddZoin(
-            entity_kind = 'BubbleProperty',
+            entity_kind = 'Bubble',
             old_key = self.key().name(),
             new_key = bp.key(),
         )
@@ -141,47 +152,78 @@ class zBubbleProperty(db.Expando):
 
 class zBubbleType(db.Expando):
     def zimport(self):
-        bt = GetZoin('BubbleType', self.key().name())
+        bt = GetZoin('Bubble', self.key().name())
         if not bt:
-            bt = BubbleType()
+            bt = Bubble()
 
-        bt.type                 = self.type
-        bt.name                 = Dictionary(
-                name = 'bubbletype_name',
+        bt.type = 'bubble_type'
+
+        if self.path:
+            bt.path = self.path
+        if self.name_estonian or self.name_english:
+            bt.name = Dictionary(
+                name = 'bubble_name',
                 estonian = self.name_estonian,
                 english = self.name_english
             ).put('zimport')
-        bt.menugroup            = Dictionary(
-                name = 'bubbletype_menugroup',
+        if self.menugroup_estonian or self.menugroup_english:
+            bt.menugroup = Dictionary(
+                name = 'bubble_menugroup',
                 estonian = self.menugroup_estonian,
                 english = self.menugroup_english
             ).put('zimport')
-        bt.name_plural          = Dictionary(
-                name = 'bubbletype_name_plural',
+        if self.name_plural_estonian or self.name_plural_english:
+            bt.name_plural = Dictionary(
+                name = 'bubble_name_plural',
                 estonian = self.name_plural_estonian,
                 english = self.name_plural_english
             ).put('zimport')
-        bt.description          = Dictionary(
-                name = 'bubbletype_description',
+        if self.description_estonian or self.description_english:
+            bt.description = Dictionary(
+                name = 'bubble_description',
                 estonian = self.description_estonian,
                 english = self.description_english
             ).put('zimport')
-        bt.allowed_subtypes       = StrToList(self.allowed_subtypes)
-        bt.grade_display_method   = self.grade_display_method
-        bt.property_displayname   = self.property_displayname
-        bt.property_displayinfo   = self.property_displayinfo
-        bt.bubble_properties      = GetZoinKeyList('BubbleProperty', self.bubble_properties)
-        bt.mandatory_properties   = GetZoinKeyList('BubbleProperty', self.mandatory_properties)
-        bt.read_only_properties   = GetZoinKeyList('BubbleProperty', self.read_only_properties)
-        bt.create_only_properties = GetZoinKeyList('BubbleProperty', self.create_only_properties)
-        bt.public_properties      = GetZoinKeyList('BubbleProperty', self.public_properties)
-        bt.propagated_properties  = GetZoinKeyList('BubbleProperty', self.propagated_properties)
-        bt.escalated_properties   = GetZoinKeyList('BubbleProperty', self.escalated_properties)
-        bt.inherited_properties   = GetZoinKeyList('BubbleProperty', self.inherited_properties)
+        if GetZoinKeyList('Bubble', self.allowed_subtypes):
+            bt.allowed_subtypes = GetZoinKeyList('Bubble', self.allowed_subtypes)
+        if self.notify_on_create:
+            bt.notify_on_create = StrToList(self.notify_on_create)
+        if self.notify_on_alter:
+            bt.notify_on_alter = StrToList(self.notify_on_alter)
+        if GetZoinKeyList('Bubble', self.search_properties):
+            bt.search_properties = GetZoinKeyList('Bubble', self.search_properties)
+        if self.sort_string:
+            bt.sort_string = self.sort_string
+        if self.property_displayname:
+            bt.property_displayname = self.property_displayname
+        if self.property_displayinfo:
+            bt.property_displayinfo = self.property_displayinfo
+        if self.property_displayinfo:
+            bt.property_displaytable = self.property_displaytable
+        if GetZoinKeyList('Bubble', self.bubble_properties):
+            bt.bubble_properties = GetZoinKeyList('Bubble', self.bubble_properties)
+        if GetZoinKeyList('Bubble', self.mandatory_properties):
+            bt.mandatory_properties = GetZoinKeyList('Bubble', self.mandatory_properties)
+        if GetZoinKeyList('Bubble', self.read_only_properties):
+            bt.read_only_properties = GetZoinKeyList('Bubble', self.read_only_properties)
+        if GetZoinKeyList('Bubble', self.create_only_properties):
+            bt.create_only_properties = GetZoinKeyList('Bubble', self.create_only_properties)
+        if GetZoinKeyList('Bubble', self.unique_properties):
+            bt.unique_properties = GetZoinKeyList('Bubble', self.unique_properties)
+        # if GetZoinKeyList('Bubble', self.autocomplete_properties):
+        #     bt.autocomplete_properties = GetZoinKeyList('Bubble', self.autocomplete_properties)
+        if GetZoinKeyList('Bubble', self.public_properties):
+            bt.public_properties = GetZoinKeyList('Bubble', self.public_properties)
+        if GetZoinKeyList('Bubble', self.propagated_properties):
+            bt.propagated_properties = GetZoinKeyList('Bubble', self.propagated_properties)
+        if GetZoinKeyList('Bubble', self.escalated_properties):
+            bt.escalated_properties = GetZoinKeyList('Bubble', self.escalated_properties)
+        if GetZoinKeyList('Bubble', self.inherited_properties):
+            bt.inherited_properties = GetZoinKeyList('Bubble', self.inherited_properties)
         bt.put('zimport')
 
         AddZoin(
-            entity_kind = 'BubbleType',
+            entity_kind = 'Bubble',
             old_key = self.key().name(),
             new_key = bt.key(),
         )

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-from types import ListType
 from pytz.gae import pytz
 from google.appengine.api import mail
 from google.appengine.api import users
@@ -42,11 +41,13 @@ class boRequestHandler(webapp.RequestHandler):
         from database.person import *
         from database.feedback import *
 
-        if db.Query(QuestionaryPerson).filter('person', Person().current).filter('is_completed', False).filter('is_obsolete', False).get():
-            path = str(self.request.url)
-            Cache().set('redirect_after_feedback', path)
-            self.redirect('/feedback')
-            return False
+        # if db.Query(QuestionaryPerson).filter('person', Person().current).filter('is_completed', False).filter('is_obsolete', False).get():
+        #     path = str(self.request.url)
+        #     Cache().set('redirect_after_feedback', path)
+        #     self.redirect('/feedback')
+        #     return False
+        if 1 == 2:
+            pass
         else:
             if controller and users.is_current_user_admin() == False:
                 rights = []
@@ -134,8 +135,8 @@ class boRequestHandler(webapp.RequestHandler):
 
 
 class AccessLog(db.Model):
-    _version        = db.StringProperty(default='A')
-    _created        = db.DateTimeProperty(auto_now_add=True)
+    x_version        = db.StringProperty(default='A')
+    x_created        = db.DateTimeProperty(auto_now_add=True)
     user            = db.StringProperty()
     remote_addr     = db.StringProperty()
     url             = db.TextProperty()
@@ -143,20 +144,20 @@ class AccessLog(db.Model):
 
 
 class ChangeLog(db.Expando):
-    _version        = db.StringProperty(default='A')
-    _created        = db.DateTimeProperty(auto_now_add=True)
+    x_version        = db.StringProperty(default='A')
+    x_created        = db.DateTimeProperty(auto_now_add=True)
     user            = db.StringProperty()
     kind_name       = db.StringProperty()
     property_name   = db.StringProperty()
 
 
 class ChangeLogModel(db.Expando):
-    _version    = db.StringProperty(default='A')
-    _created    = db.DateTimeProperty(auto_now_add=True)
-    _created_by = db.StringProperty()
-    _changed    = db.DateTimeProperty(auto_now=True)
-    _changed_by = db.StringProperty()
-    _is_deleted = db.BooleanProperty(default=False)
+    x_version    = db.StringProperty(default='A')
+    x_created    = db.DateTimeProperty(auto_now_add=True)
+    x_created_by = db.StringProperty()
+    x_changed    = db.DateTimeProperty(auto_now=True)
+    x_changed_by = db.StringProperty()
+    x_is_deleted = db.BooleanProperty(default=False)
 
     def put(self, email=None):
         if not email:
@@ -164,16 +165,24 @@ class ChangeLogModel(db.Expando):
             if user:
                 email = user.email()
         if self.is_saved():
-            self._changed_by = email
             old = db.get(self.key())
-            for prop_key, prop_value in self.properties().iteritems():
+            for prop_key in MergeLists(self.properties().keys(), self.dynamic_properties()):
                 if old:
-                    old_value = prop_value.get_value_for_datastore(old)
+                    try:
+                        old_value = getattr(old, prop_key, None)
+                    except Exception, e:
+                        old_value = ['ERROR', '%s' % e]
+
                     if old_value == []:
                         old_value = None
                 else:
                     old_value = None
-                new_value = prop_value.get_value_for_datastore(self)
+
+                try:
+                    new_value = getattr(self, prop_key, None)
+                except Exception, e:
+                    new_value = ['ERROR', '%s' % e]
+
                 if new_value == []:
                     new_value = None
                 if old_value != new_value and prop_key != '_version':
@@ -182,11 +191,18 @@ class ChangeLogModel(db.Expando):
                     cl.property_name = prop_key
                     cl.user = email
                     if old_value != None:
-                        cl.old_value = old_value
-                    cl.new_value = new_value
+                        try:
+                            cl.old_value = old_value
+                        except TypeError:
+                            cl.old_value = old_value.key()
+                    try:
+                        cl.new_value = new_value
+                    except TypeError:
+                        cl.new_value = new_value.key()
                     cl.put()
+            self.x_changed_by = email
         else:
-            self._created_by = email
+            self.x_created_by = email
         return db.Model.put(self)
 
     @property
@@ -263,9 +279,11 @@ class Cache:
         if user_specific == True:
             user = users.get_current_user()
             if user:
-                key = key + '_' + user.user_id()
+                key += '__' + user.user_id()
             else:
                 return False
+
+        key += '__' + os.environ['CURRENT_VERSION_ID'].split('.')[1]
         if value:
             memcache.delete(key)
             if time:
@@ -288,39 +306,39 @@ class Cache:
             user = users.get_current_user()
             if user:
                 key = key + '_' + user.user_id()
+        key += '__' + os.environ['CURRENT_VERSION_ID'].split('.')[1]
         return memcache.get(key)
 
-def CheckMailAddress(email):
-    return email_re.match((email))
+def CheckMailAddress(email=None):
+    if email:
+        return email_re.match((email))
 
 
 def SendMail(to, subject, message=' ', reply_to=None, html=True, attachments=None):
-    valid_to = []
-    if isinstance(to, ListType):
-        for t in to:
-            if CheckMailAddress(t):
-                valid_to.append(t)
-    else:
-        if CheckMailAddress(to):
-            valid_to.append(to)
-    if len(valid_to) > 0:
-        m = mail.EmailMessage()
-        m.sender = SystemPreferences().get('system_email')
-        if reply_to:
-            if CheckMailAddress(reply_to):
-                m.reply_to = reply_to
-        m.bcc = SystemPreferences().get('system_email')
-        m.to = valid_to
-        m.subject = SystemPreferences().get('system_email_prefix') + subject
-        if html == True:
-            m.html = message
-        else:
-            m.body = message
-        if attachments:
-            m.attachments = attachments
-        m.send()
+    if type(to) is not list:
+        to = [to]
 
-        return True
+    to = [t for t in to if CheckMailAddress(t)]
+
+    if len(to) < 1:
+        return False
+
+    m = mail.EmailMessage()
+    m.sender = SystemPreferences().get('system_email')
+    if CheckMailAddress(reply_to):
+        m.reply_to = reply_to
+    m.bcc = SystemPreferences().get('system_email')
+    m.to = to
+    m.subject = SystemPreferences().get('system_email_prefix') + subject
+    if html == True:
+        m.html = message
+    else:
+        m.body = message
+    if attachments:
+        m.attachments = attachments
+    m.send()
+
+    return True
 
 
 def StrToList(string):
@@ -339,6 +357,10 @@ def StrToKeyList(string):
     else:
         return []
 
+def FindTags(s, beginning, end):
+    if not s:
+        return []
+    return re.compile('%s(.*?)%s' % (beginning, end), re.DOTALL).findall(s)
 
 def rReplace(s, old, new, occurrence):
     li = s.rsplit(old, occurrence)
@@ -362,7 +384,6 @@ def StringToSearchIndex(s):
     result = []
     s = s.lower()
     wordlist = StrToList(s)
-    wordlist.append(s)
     for w in wordlist:
         for i in range(1, len(w)+1):
             result = AddToList(w[:i], result)
@@ -411,7 +432,15 @@ def GetUniqueList(s_list):
     return list(set(s_list))
 
 
-def MergeLists(l1 = [], l2 = []):
+def MergeLists(l1 = None, l2 = None):
+    if not l1:
+        l1 = []
+    if not l2:
+        l2 = []
+    if type(l1) is not list:
+        l1 = [l1]
+    if type(l2) is not list:
+        l2 = [l2]
     return GetUniqueList(l1 + l2)
 
 
