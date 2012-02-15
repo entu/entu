@@ -51,11 +51,11 @@ class MemCacheInfo(boRequestHandler):
 class FixStuff(boRequestHandler):
     def get(self):
         self.header('Content-Type', 'text/plain; charset=utf-8')
-        self.echo(str(db.Query(BubbleRelation).order('-_changed').count(limit=100000)))
-        # taskqueue.Task(url='/update/stuff').add()
+        self.echo(str(db.Query(BubbleRelation).order('_changed').count(limit=100000)))
+        taskqueue.Task(url='/update/stuff').add()
 
     def post(self):
-        for b in db.Query(BubbleRelation).fetch(500):
+        for b in db.Query(BubbleRelation).order('_changed').fetch(500):
             if hasattr(b, '_version'):
                 setattr(b, 'x_version', b._version)
                 delattr(b, '_version')
@@ -83,7 +83,7 @@ class FixStuff(boRequestHandler):
             except:
                 pass
 
-        if db.Query(BubbleRelation).order('-_changed').count(limit=100000) > 0:
+        if db.Query(BubbleRelation).order('_changed').count(limit=100000) > 0:
             taskqueue.Task(url='/update/stuff').add()
 
 

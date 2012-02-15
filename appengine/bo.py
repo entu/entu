@@ -168,12 +168,21 @@ class ChangeLogModel(db.Expando):
             old = db.get(self.key())
             for prop_key in MergeLists(self.properties().keys(), self.dynamic_properties()):
                 if old:
-                    old_value = getattr(old, prop_key, None)
+                    try:
+                        old_value = getattr(old, prop_key, None)
+                    except Exception, e:
+                        old_value = ['ERROR', '%s' % e]
+
                     if old_value == []:
                         old_value = None
                 else:
                     old_value = None
-                new_value = getattr(self, prop_key, None)
+
+                try:
+                    new_value = getattr(self, prop_key, None)
+                except Exception, e:
+                    new_value = ['ERROR', '%s' % e]
+
                 if new_value == []:
                     new_value = None
                 if old_value != new_value and prop_key != '_version':
