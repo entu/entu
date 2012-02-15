@@ -24,7 +24,7 @@ class ShowSignin(boRequestHandler):
         if user:
             self.redirect(users.create_logout_url('/application/signin'))
 
-        sess = Session(self, timeout=86400)
+        sess = Session(self)
         sess.invalidate()
 
         language = self.request.get('language', SystemPreferences().get('default_language')).strip()
@@ -82,7 +82,7 @@ class ShowSignin(boRequestHandler):
             if password:
                 b = db.Query(Bubble).filter('type', 'applicant').filter('password', password).get()
                 if b:
-                    sess = Session(self, timeout=86400)
+                    sess = Session(self)
                     sess['applicant_key'] = str(b.key())
                     sess.save()
                     self.response.out.write('OK')
@@ -105,7 +105,7 @@ class ShowApplication(boRequestHandler):
                 p.email = p.GetValue('users', '')
                 p.put()
         else:
-            sess = Session(self, timeout=86400)
+            sess = Session(self)
             if 'applicant_key' not in sess:
                 self.redirect('/application/signin')
                 return
@@ -191,7 +191,7 @@ class ShowApplication(boRequestHandler):
                 self.redirect('/application/signin')
                 return
         else:
-            sess = Session(self, timeout=86400)
+            sess = Session(self)
             if 'applicant_key' not in sess:
                 return
             p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
@@ -216,7 +216,7 @@ class EditSubmission(boRequestHandler):
                 self.redirect('/application/signin')
                 return
         else:
-            sess = Session(self, timeout=86400)
+            sess = Session(self)
             if 'applicant_key' not in sess:
                 return
             p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
@@ -253,7 +253,7 @@ class EditSubbubble(boRequestHandler):
                 self.redirect('/application/signin')
                 return
         else:
-            sess = Session(self, timeout=86400)
+            sess = Session(self)
             if 'applicant_key' not in sess:
                 return
             p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
@@ -311,7 +311,7 @@ class DownloadFile(blobstore_handlers.BlobstoreDownloadHandler):
                 self.redirect('/application/signin')
                 return
         else:
-            sess = Session(self, timeout=86400)
+            sess = Session(self)
             if 'applicant_key' not in sess:
                 return
             p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
@@ -344,7 +344,7 @@ class UploadFile(blobstore_handlers.BlobstoreUploadHandler):
                 self.redirect('/application/signin')
                 return
         else:
-            sess = Session(self, timeout=86400)
+            sess = Session(self)
             if 'applicant_key' not in sess:
                 return
             p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
@@ -421,7 +421,7 @@ class Submit(boRequestHandler):
                 self.redirect('/application/signin')
                 return
         else:
-            sess = Session(self, timeout=86400)
+            sess = Session(self)
             if 'applicant_key' not in sess:
                 return
             p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()

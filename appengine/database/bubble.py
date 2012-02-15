@@ -120,7 +120,10 @@ class Bubble(ChangeLogModel):
             sorts = getattr(bt, 'sort_string', '')
             for data_property in FindTags(sorts, '@', '@'):
                 t = self.GetProperty(bubbletype = bt, data_property = data_property, language = language)
-                sorts = sorts.replace('@%s@' % data_property, ', '.join(['%s' % n['value'] for n in t['values'] if n['value']]))
+                if t['data_type'] in ['integer', 'float']:
+                    sorts = sorts.replace('@%s@' % data_property, ', '.join(['%09d' % n['value'] for n in t['values'] if n['value']]))
+                else:
+                    sorts = sorts.replace('@%s@' % data_property, ', '.join(['%s' % n['value'] for n in t['values'] if n['value']]))
             sorts = StringToSortable(sorts)
             setattr(self, 'x_sort_%s' % language, sorts)
 
@@ -295,6 +298,8 @@ class Bubble(ChangeLogModel):
                 if v != None:
                     if bp.data_type in ['string', 'text', 'integer', 'float', 'boolean']:
                         v = {'value': v}
+                    if bp.data_type == 'select':
+                        v = {'value': v, 'key': v}
                     if bp.data_type in ['dictionary_string', 'dictionary_text', 'dictionary_select']:
                         d = Dictionary().get(v)
                         v = {'value': getattr(d, language), 'key': str(d.key())}
@@ -368,7 +373,11 @@ class Bubble(ChangeLogModel):
             oldvalue = None
             newvalue = d.key()
             result = str(d.key())
-        if bp.data_type in ['select', 'dictionary_select', 'reference', 'counter']:
+        if bp.data_type == 'select':
+            data_value = [v for v in newvalue.split(' : ')] if newvalue else []
+            oldvalue = None
+            newvalue = None
+        if bp.data_type in ['dictionary_select', 'reference', 'counter']:
             data_value = [db.Key(v) for v in newvalue.split(' : ')] if newvalue else []
             oldvalue = None
             newvalue = None

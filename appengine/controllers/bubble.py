@@ -36,7 +36,7 @@ class ShowBubbleList(boRequestHandler):
         key = self.request.get('key').strip()
         if key:
             bubble = Bubble().get(key)
-            # bubble.AutoFix()
+            bubble.AutoFix()
 
             if not bubble.Authorize('viewer'):
                 self.error(404)
@@ -229,7 +229,7 @@ class SelectFieldValues(boRequestHandler):
 
         values = []
         if bp.GetValue('data_type') == 'select':
-            for c in bp.GetValueAsList('choices'):
+            for c in sorted(bp.GetValueAsList('choices')):
                 values.append({
                     'key': c,
                     'value': c

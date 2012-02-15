@@ -52,7 +52,7 @@ class FixStuff(boRequestHandler):
     def get(self):
         self.header('Content-Type', 'text/plain; charset=utf-8')
         self.echo(str(db.Query(BubbleRelation).order('_changed').count(limit=100000)))
-        taskqueue.Task(url='/update/stuff').add()
+        # taskqueue.Task(url='/update/stuff').add()
 
     def post(self):
         for b in db.Query(BubbleRelation).order('_changed').fetch(500):
