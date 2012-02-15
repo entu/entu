@@ -36,7 +36,7 @@ class ShowBubbleList(boRequestHandler):
         key = self.request.get('key').strip()
         if key:
             bubble = Bubble().get(key)
-            bubble.AutoFix()
+            # bubble.AutoFix()
 
             if not bubble.Authorize('viewer'):
                 self.error(404)
@@ -148,12 +148,12 @@ class EditBubble(boRequestHandler):
 
         # Send messages
         if self.request.get('oldvalue').strip() != self.request.get('newvalue').strip():
-            message = ''
-            for t in bubble.GetProperties():
-                message += '<b>%s</b>:<br/>\n' % t['name']
-                message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
-                message += '<br/>\n'
             for n in bubble.GetType().GetValueAsList('notify_on_alter'):
+                message = ''
+                for t in bubble.GetProperties():
+                    message += '<b>%s</b>:<br/>\n' % t['name']
+                    message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
+                    message += '<br/>\n'
                 for r in bubble.GetRelatives(n):
                     emails = MergeLists(getattr(r, 'email', []), getattr(r, 'users', []))
                     SendMail(
@@ -219,31 +219,51 @@ class UploadBubbleFile(blobstore_handlers.BlobstoreUploadHandler):
 class SelectFieldValues(boRequestHandler):
     def post(self):
         language = self.request.get('language', SystemPreferences().get('default_language')).strip()
+        p = Person().current
 
         bp = Bubble().get(self.request.get('property').strip())
-        if not bp:
+
+        cache_key = 'select_field_' + '_' + str(p.key())
+        result = Cache().get(cache_key, True)
+        if result:
+            self.echo_json(result)
             return
 
-        result = []
+        values = []
+        if bp.GetValue('data_type') == 'select':
+            for c in bp.GetValueAsList('choices'):
+                values.append({
+                    'key': c,
+                    'value': c
+                })
         if bp.GetValue('data_type') == 'dictionary_select':
             for c in bp.GetValueAsList('choices'):
                 for d in sorted(db.Query(Dictionary).filter('name', c).fetch(100), key=attrgetter(language)):
-                    result.append({
+                    values.append({
                         'key': str(d.key()),
                         'value': getattr(d, language)
                     })
+        if bp.GetValue('data_type') == 'reference':
+            for t in bp.GetValueAsList('choices'):
+                for d in sorted(db.Query(Bubble).filter('type', t).fetch(1000), key=attrgetter('displayname')):
+                    values.append({
+                        'key': str(d.key()),
+                        'value': d.displayname
+                    })
         if bp.GetValue('data_type') == 'counter':
             for d in sorted(db.Query(Counter).fetch(1000), key=attrgetter('displayname')):
-                result.append({
+                values.append({
                     'key': str(d.key()),
                     'value': d.displayname
                 })
 
-
-        self.echo_json({
+        result = {
             'property': str(bp.key()),
-            'values': result
-        })
+            'values': values
+        }
+        Cache().set(cache_key, result, True, 600)
+
+        self.echo_json(result)
 
 
 class ShowBubbleDoc1(boRequestHandler):

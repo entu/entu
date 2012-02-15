@@ -368,9 +368,10 @@ class Bubble(ChangeLogModel):
             oldvalue = None
             newvalue = d.key()
             result = str(d.key())
-        if bp.data_type in ['dictionary_select', 'reference', 'counter']:
-            oldvalue = db.Key(oldvalue) if oldvalue else None
-            newvalue = db.Key(newvalue) if newvalue else None
+        if bp.data_type in ['select', 'dictionary_select', 'reference', 'counter']:
+            data_value = [db.Key(v) for v in newvalue.split(' : ')] if newvalue else []
+            oldvalue = None
+            newvalue = None
         if bp.data_type == 'datetime':
             oldvalue = UtcFromLocalDateTime(datetime.strptime('%s:00' % oldvalue, '%d.%m.%Y %H:%M:%S')) if oldvalue else None
             newvalue = UtcFromLocalDateTime(datetime.strptime('%s:00' % newvalue, '%d.%m.%Y %H:%M:%S')) if newvalue else None
@@ -433,7 +434,7 @@ class Bubble(ChangeLogModel):
     def GetRelatives(self, relation):
         if hasattr(self, 'x_br_%s' % relation):
             # return Bubble().get(self.GetValueAsList('x_br_%s' % relation))
-            return db.get(self.GetValueAsList('x_br_%s' % relation))
+            return [b for b in db.get(self.GetValueAsList('x_br_%s' % relation)) if b]
 
     def GetParents(self):
         return db.Query(Bubble).filter('x_is_deleted', False).filter('x_br_subbubble', self.key()).fetch(100)

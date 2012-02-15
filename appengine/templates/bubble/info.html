@@ -84,6 +84,7 @@
         });
 
         $('.add_new_subbubble').click(function() {
+            $('#tools').html('');
             $("#tiptip_holder").hide();
             $.post('/bubble/add/{{ bubble.key.id }}', {type: $(this).data('type')}, function(bubble_id) {
                 open_edit(bubble_id);
@@ -91,6 +92,7 @@
         });
 
         $('#open_edit').click(function() {
+            $('#tools').html('');
             open_edit('{{ bubble.key.id }}');
         });
 

@@ -193,22 +193,44 @@
     $(document).ready(function(){
         leeching_count = {{ leeching_count }};
 
-        $('.choices').each(function() {
-            $.post('/application/sfv', { property: $(this).attr('name') }, function(json) {
-                $('select[name='+json.property+']').each(function() {
-                    selectbox = $(this);
-                    for (i in json.values) {
-                        item = json.values[i];
-                        if(item.key == selectbox.data('oldvalue')) {
-                            selected = ' selected';
-                        } else {
-                            selected = '';
-                        }
-                        selectbox.append('<option value="'+item.key+'"'+selected+'>'+item.value+'</option>');
-                    };
-                });
-            }, 'json');
-        });
+        fillSelects();
+
+        function sort_unique(arr) {
+            arr = arr.sort(function (a, b) { return a*1 - b*1; });
+            var ret = [arr[0]];
+            for (var i = 1; i < arr.length; i++) { // start loop at 1 as element 0 can never be a duplicate
+                if (arr[i-1] !== arr[i]) {
+                    ret.push(arr[i]);
+                }
+            }
+            return ret;
+        };
+
+        function fillSelects(){
+            names = [];
+            $('.choices').each(function() {
+                names.push($(this).attr('name'));
+            });
+            names = sort_unique(names);
+            for (n in names) {
+                $.post('/application/sfv', { 'property': names[n] }, function(json) {
+                    $('select[name='+json.property+']').each(function() {
+                        selectbox = $(this);
+                        for (i in json.values) {
+                            item = json.values[i];
+                            if(selectbox.data('oldvalue').indexOf(item.key) != -1) {
+                                selected = ' selected';
+                            } else {
+                                selected = '';
+                            }
+                            selectbox.append('<option value="'+item.key+'"'+selected+'>'+item.value+'</option>');
+                            selectbox.prev('img').hide();
+                        };
+                    });
+                }, 'json');
+            };
+
+        };
 
         $('.check').click(function() {
             chkbox = $(this);
