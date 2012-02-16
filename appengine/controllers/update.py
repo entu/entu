@@ -209,38 +209,12 @@ class Person2Bubble(boRequestHandler):
 
 
 
-class BubbleType2Bubble(boRequestHandler):
-    def get(self):
-        taskqueue.Task(url='/update/bt2b').add()
-        self.echo('OK')
-
-    def post(self):
-        # for b in db.Query(Bubble).filter('type', 'bubble_type').fetch(1000):
-        #     if hasattr(b, 'allowed_subtypes'):
-        #         if type(b.allowed_subtypes) is not list:
-        #             b.allowed_subtypes = [b.allowed_subtypes]
-        #         for v in b.allowed_subtypes:
-        #             ab = db.Query(Bubble).filter('type', 'bubble_type').filter('path', v).get()
-        #             if ab:
-        #                 b.allowed_subtypes = AddToList(ab.key(), b.allowed_subtypes)
-        #                 b.allowed_subtypes = RemoveFromList(v, b.allowed_subtypes)
-
-        #         if len(b.allowed_subtypes) == 1:
-        #             b.allowed_subtypes = b.allowed_subtypes[0]
-        #         b.put()
-
-        b = Bubble().get('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYh-6yAgw')
-        b.optional_bubbles = MergeLists(db.Query(Bubble, keys_only=True).filter('type', 'bubble_type').fetch(1000), db.Query(Bubble, keys_only=True).filter('type', 'bubble_property').fetch(1000))
-        b.put()
-
-
 def main():
     Route([
             ('/update/docs', Dokumendid),
             ('/update/cache', MemCacheInfo),
             ('/update/stuff', FixStuff),
             ('/update/p2b', Person2Bubble),
-            ('/update/bt2b', BubbleType2Bubble),
             ('/update/check', Check),
             (r'/update/user/(.*)', AddUser),
         ])

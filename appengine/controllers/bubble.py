@@ -216,7 +216,7 @@ class UploadBubbleFile(blobstore_handlers.BlobstoreUploadHandler):
 
 class SelectFieldValues(boRequestHandler):
     def post(self):
-        language = self.request.get('language', SystemPreferences().get('default_language')).strip()
+        language = UserPreferences().current.language
         p = Person().current
 
         bp = Bubble().get(self.request.get('property').strip())
@@ -243,7 +243,7 @@ class SelectFieldValues(boRequestHandler):
                     })
         if bp.GetValue('data_type') == 'reference':
             for t in bp.GetValueAsList('choices'):
-                for d in sorted(db.Query(Bubble).filter('type', t).fetch(1000), key=attrgetter('displayname')):
+                for d in sorted(db.Query(Bubble).filter('type', t).fetch(1000), key=attrgetter('x_sort_%s' % language)):
                     values.append({
                         'key': str(d.key()),
                         'value': d.displayname
