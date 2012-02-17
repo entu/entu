@@ -43,36 +43,46 @@
             $('#list_items').html('');
             $.post('{{ list_url }}', {type: 'search', value: $('#searchbox').val()}, function(list) {
                 items = list.keys;
+                for (i in items) {
+                    $('#list_items').append('<a id="item_'+items[i]+'" class="empty_item" href="" data-key="'+items[i]+'"></a>');
+                };
                 $('#list_search span').html('{{ str.search_found }} '+items.length);
                 $('#list .spinner').hide();
                 append_list();
+
             }, 'json');
         }
 
         function append_list() {
-            max = $('#list_items').height() / 30;
-            for (i=0;i<=max;i++) {
-                if (items.length < 1) break;
-                $.post('{{ list_url }}', {key: items[0]}, function(item) {
-                    if(item.image) {
-                        image = '<img src="'+item.image+'" />';
-                    } else {
-                        image = '';
-                    }
-                    if(item.info) {
-                        info = '<span>'+item.info+'</span>';
-                    } else {
-                        info = '';
-                    }
-                    if('#'+item.id == window.location.hash) {
-                        active = 'class="active" ';
-                    } else {
-                        active = '';
-                    }
-                    $('#list_items').append('<a href="#'+item.id+'"'+active+'>'+image+item.title+info+'</a>');
-                }, 'json');
-                items.splice(0,1);
-            }
+            $('.empty_item').each(function() {
+                item = $(this);
+                if (items.indexOf(item.data('key')) != -1) {
+                    position = item.position();
+                    if ((position.top - $('#list_items').height()) < 100) {
+                        $.post('{{ list_url }}', {key: item.data('key')}, function(item) {
+                            listitem = $('#item_'+item.key);
+                            if(item.image) {
+                                image = '<img src="'+item.image+'" />';
+                            } else {
+                                image = '';
+                            }
+                            if(item.info) {
+                                info = '<span>'+item.info+'</span>';
+                            } else {
+                                info = '';
+                            }
+                            if('#'+item.id == window.location.hash) {
+                                listitem.addClass('active');
+                            }
+                            listitem.attr('href', '#'+item.id);
+                            listitem.html(image+item.title+info);
+                            listitem.removeClass('empty_item');
+                        }, 'json');
+                        idx = items.indexOf(item.data('key'));
+                        if(idx != -1) items.splice(idx, 1);
+                    };
+                };
+            });
         }
 
         function open_item(id) {
@@ -92,11 +102,7 @@
         });
 
         $('#list_items').scroll(function() {
-            list = $(this);
-            position = $('#list_items a:last').position();
-            if ((position.top - $('#list_items').height()) < 0 && items.length > 0) {
-                append_list();
-            }
+            append_list();
         });
 
     });

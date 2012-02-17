@@ -36,7 +36,7 @@ class ShowBubbleList(boRequestHandler):
         key = self.request.get('key').strip()
         if key:
             bubble = Bubble().get(key)
-            bubble.AutoFix()
+            # bubble.AutoFix()
 
             if not bubble.Authorize('viewer'):
                 self.error(404)
