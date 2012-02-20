@@ -68,6 +68,7 @@
         tools = [
             {% if bubble.GetAllowedSubtypes %}'<a id="open_new_tipmenu" href="javascript:void(0);" class="icon add" title="{{ str.bubble_add_new }}"></a>',{% endif %}
             '<a id="open_edit" href="javascript:void(0);" class="icon pencil tiptip" title="{{ str.bubble_edit }}"></a>',
+            '<a id="open_rights" href="javascript:void(0);" class="icon key tiptip" title="{{ str.bubble_rights }}"></a>',
         ];
         $('#tools').html(tools.join(''));
 
@@ -87,16 +88,20 @@
             $('#tools').html('');
             $("#tiptip_holder").hide();
             $.post('/bubble/add/{{ bubble.key.id }}', {type: $(this).data('type')}, function(bubble_id) {
-                open_edit(bubble_id);
+                open_box('/bubble/edit/'+bubble_id);
             });
         });
 
         $('#open_edit').click(function() {
             $('#tools').html('');
-            open_edit('{{ bubble.key.id }}');
+            open_box('/bubble/edit/{{ bubble.key.id }}');
         });
 
-        function open_edit(bubble_id) {
+        $('#open_rights').click(function() {
+            open_box('/bubble/rights/{{ bubble.key.id }}');
+        });
+
+        function open_box(url) {
             $('#edit_bubble_box_content').html('');
             $('#edit_bubble_box .spinner').show();
             $("#edit_bubble_box").modal({
@@ -107,7 +112,7 @@
                 overlayClose: true,
                 onClose: reload_item,
             });
-            $.get('/bubble/edit/'+bubble_id, function(data) {
+            $.get(url, function(data) {
                 $('#edit_bubble_box .spinner').hide();
                 $("#edit_bubble_box_content").html(data);
                 if($('#edit_bubble_box_content').height() > $(window).height()*0.9) {

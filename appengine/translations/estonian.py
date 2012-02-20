@@ -99,4 +99,8 @@ def translation():
 
         'message_notify_on_alter_subject':      'Lisati uus %s',
 
+        'rights_viewer':                        'Vaataja',
+        'rights_editor':                        'Muutja',
+        'rights_owner':                         'Omanik',
+
     }
