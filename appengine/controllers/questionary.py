@@ -101,7 +101,7 @@ class ShowQuestionaryResults(boRequestHandler):
         message += '"Vastus"'
         message += '\n'
 
-        for qa in db.Query(QuestionAnswer).fetch(100):
+        for qa in db.Query(QuestionAnswer).fetch(20):
             mrow = ''
             mrow += '"' + qa.questionary_person.bubble.displayname.replace('"','""') + '",'
 
@@ -127,6 +127,11 @@ class ShowQuestionaryResults(boRequestHandler):
             message = '...',
             attachments = [('feedback_rating.csv', message)]
         )
+
+
+class ShowQuestionaryResultsTask(boRequestHandler):
+    def get(self, key):
+        taskqueue.Task(url='/questionary/results').add()
 
 
 class ShowQuestionaryResults2(boRequestHandler):
@@ -275,6 +280,7 @@ def main():
             ('/questionary/sort/(.*)', SortQuestionary),
             ('/questionary/delete/(.*)', DeleteQuestionary),
             ('/questionary/results/(.*)', ShowQuestionaryResults),
+            ('/questionary/results_task/(.*)', ShowQuestionaryResultsTask),
             ('/questionary/results2/(.*)', ShowQuestionaryResults2),
             ('/questionary/question/delete/(.*)', DeleteQuestion),
             ('/questionary/generate', GenerateQuestionaryPersons),
