@@ -60,15 +60,6 @@ class ShowQuestionary(boRequestHandler):
             }
         )
 
-
-
-
-
-
-
-
-
-
     def post(self, key):
         if self.authorize('questionary'):
             name = self.request.get('name').strip()
@@ -93,69 +84,57 @@ class ShowQuestionary(boRequestHandler):
 
 
 class ShowQuestionaryResults(boRequestHandler):
-    def get(self, key):
-        message = ''
-        message += '"Aine",'
-        message += '"Oppejoud",'
-        message += '"Kysimus",'
-        message += '"Vastus"'
-        message += '\n'
+    def get(self):
+        taskqueue.Task(url='/questionary/results').add()
+        self.echo(str(db.Query(QuestionAnswer).count(limit=100000)))
 
-        for qa in db.Query(QuestionAnswer).fetch(20):
+    def post(self):
+        limit = 500
+        step = int(self.request.get('step', 1))
+        offset = int(self.request.get('offset', 0))
+
+        message = ''
+        # message += '"Aine",'
+        # message += '"Oppejoud",'
+        # message += '"Kysimus",'
+        # message += '"Vastus"'
+        # message += '\n'
+
+        rc = 0
+        for qa in db.Query(QuestionAnswer).order('__key__').fetch(limit=limit, offset=offset):
+            rc += 1
             mrow = ''
             mrow += '"' + qa.questionary_person.bubble.displayname.replace('"','""') + '",'
 
             if qa.target_person:
                 tp = qa.target_person
-                mrow += '"' + tp.forename + " " + tp.surname + '",'
+                mrow += '"' + tp.displayname.replace('"','""') + '",'
             else:
-                mrow += ','
+                mrow += '"",'
 
             mrow += '"' + qa.question.name.value.replace('"','""') + '",'
 
             if qa.answer:
-                mrow += qa.answer
+                mrow += '"' + qa.answer.replace('"','""') + '",'
             else:
-                mrow += '0'
+                mrow += '"",'
 
             #self.echo(mrow)
             message += mrow + '\n'
 
         SendMail(
-            to = 'mihkel.putrinsh@artun.ee',
-            subject = 'Feedback',
+            to = ['mihkel.putrinsh@artun.ee', 'argo.roots@artun.ee'],
+            subject = 'Feedback #%s' % step,
             message = '...',
             attachments = [('feedback_rating.csv', message)]
         )
 
+        logging.debug('#' + str(step) + ' - ' + str(rc) + ' rows')
 
-class ShowQuestionaryResultsTask(boRequestHandler):
-    def get(self, key):
-        taskqueue.Task(url='/questionary/results').add()
+        if rc == limit:
+            taskqueue.Task(url='/questionary/results', params={'offset': (offset + rc), 'step': (step + 1)}).add()
 
-
-class ShowQuestionaryResults2(boRequestHandler):
-    def get(self, key):
-        message = ''
-        message += '"Aine",'
-        message += '"Vastus",'
-        message += '\n'
-
-        for a in db.Query(QuestionAnswer).filter('question', db.Key('agdib25nYXBwchALEghRdWVzdGlvbhi74kkM')).fetch(100000):
-
-            if a.answer:
-                message += '"' + a.course.subject.name.value.replace('"','""') + '",'
-                message += '"' + a.answer.strip().replace('"','""') + '",'
-                message += '\n'
-
-        #self.echo(message)
-
-        SendMail(
-            to = 'mihkel.putrinsh@artun.ee',
-            subject = 'Feedback',
-            message = '...',
-            attachments = [('feedback_text.csv', message)]
-        )
+        self.echo('done')
 
 
 class SortQuestionary(boRequestHandler):
@@ -279,9 +258,7 @@ def main():
             (r'/questionary/show/(.*)', ShowQuestionary),
             ('/questionary/sort/(.*)', SortQuestionary),
             ('/questionary/delete/(.*)', DeleteQuestionary),
-            ('/questionary/results/(.*)', ShowQuestionaryResults),
-            ('/questionary/results_task/(.*)', ShowQuestionaryResultsTask),
-            ('/questionary/results2/(.*)', ShowQuestionaryResults2),
+            ('/questionary/results', ShowQuestionaryResults),
             ('/questionary/question/delete/(.*)', DeleteQuestion),
             ('/questionary/generate', GenerateQuestionaryPersons),
             ('/questionary/question', EditQuestion),
