@@ -94,59 +94,35 @@ class ShowQuestionary(boRequestHandler):
 
 class ShowQuestionaryResults(boRequestHandler):
     def get(self, key):
-        message = ','
+        message = ''
         message += '"Aine",'
         message += '"Oppejoud",'
         message += '"Kysimus",'
-        message += '"Ankeete",'
-        message += '"Vastajaid",'
-        message += '"Noustujaid",'
-        #message += '"Osalus",'
+        message += '"Vastus"'
         message += '\n'
-        courses = []
-        questions = db.Query(Question).filter('type', 'like').fetch(10000)
-        for course in db.Query(Course).filter('is_feedback_started', True).fetch(10000):
-            for question in questions:
-                teachers = {}
-                for a in db.Query(QuestionAnswer).filter('course', course).filter('question', question).fetch(10000):
 
-                    if a.target_person:
-                        teacher_name = a.target_person.displayname
-                    else:
-                        teacher_name = '...'
-                    if teacher_name not in teachers:
-                        teachers[teacher_name] = {
-                            'totalcount': 0,
-                            'count': 0,
-                            'sum': 0,
-                        }
-                    teachers[teacher_name]['totalcount'] += 1
-                    if a.answer:
-                        teachers[teacher_name]['count'] += 1
-                        if int(a.answer) > 0:
-                            teachers[teacher_name]['sum'] += int(a.answer)
+        for qa in db.Query(QuestionAnswer).fetch(100):
+            mrow = ''
+            mrow += '"' + qa.questionary_person.bubble.displayname.replace('"','""') + '",'
 
-                for t_name, t_sums in teachers.iteritems():
-                    message += '"' + str(course.key()) + '",'
-                    message += '"' + course.subject.name.value.replace('"','""') + '",'
-                    message += '"' + t_name + '",'
-                    message += '"' + question.name.value.replace('"','""') + '",'
-                    message += str(t_sums['totalcount']) + ','
-                    message += str(t_sums['count']) + ','
-                    if t_sums['count'] > 0:
-                        message += str(float(t_sums['sum'])/float(t_sums['count'])*100.0) + ','
-                    else:
-                        message += '0,'
-                    #if t_sums['totalcount'] > 0:
-                    #    message += str(float(t_sums['count'])/float(t_sums['totalcount'])*100.0) + ','
-                    #else:
-                    #    message += '0,'
-                message += '\n'
+            if qa.target_person:
+                tp = qa.target_person
+                mrow += '"' + tp.forename + " " + tp.surname + '",'
+            else:
+                mrow += ','
 
-        #self.echo(message)
+            mrow += '"' + qa.question.name.value.replace('"','""') + '",'
+
+            if qa.answer:
+                mrow += qa.answer
+            else:
+                mrow += '0'
+
+            #self.echo(mrow)
+            message += mrow + '\n'
 
         SendMail(
-            to = 'argo.roots@artun.ee',
+            to = 'mihkel.putrinsh@artun.ee',
             subject = 'Feedback',
             message = '...',
             attachments = [('feedback_rating.csv', message)]
@@ -170,7 +146,7 @@ class ShowQuestionaryResults2(boRequestHandler):
         #self.echo(message)
 
         SendMail(
-            to = 'argo.roots@artun.ee',
+            to = 'mihkel.putrinsh@artun.ee',
             subject = 'Feedback',
             message = '...',
             attachments = [('feedback_text.csv', message)]
