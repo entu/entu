@@ -264,30 +264,105 @@ class SelectFieldValues(boRequestHandler):
         self.echo_json(result)
 
 
-class ShowBubbleDoc1(boRequestHandler):
-    def get(self, id):
-        bubble = Bubble().get_by_id(int(id))
+class BubbleRights(boRequestHandler):
+    def get(self, bubble_id):
+        bubble = Bubble().get_by_id(int(bubble_id))
         if not bubble.Authorize('viewer'):
             self.error(404)
             return
 
-        leechers = bubble.GetLeechers()
-        for l in leechers:
-            l.group = []
-            for g in db.Query(Bubble).filter('mandatory_bubbles', bubble.key()).filter('leechers', l.key()):
-                tags = g.GetTypedTags()
-                if 'code' in tags:
-                    l.group.append(g.GetTypedTags()['code'])
+        user_key = Person().current.key()
+        rights = ['viewer', 'editor', 'owner']
+        persons = []
+        for r in rights:
+            bubbles = bubble.GetRelatives(r)
+            if bubbles:
+                for b in bubbles:
+                    b.relation_type = r
+                    if b.key() == user_key:
+                        b.relation_currentuser = True
+                persons = MergeLists(persons, bubbles)
 
         self.view(
-            main_template = 'main/print.html',
-            template_file = 'bubble/doc1.html',
+            main_template = '',
+            template_file = 'bubble/rights.html',
             values = {
                 'bubble': bubble,
-                'leechers': leechers,
-                'date': datetime.today(),
+                'persons': persons,
             }
         )
+
+    def post(self, bubble_id):
+        bubble = Bubble().get_by_id(int(bubble_id))
+        if not bubble.Authorize('viewer'):
+            return
+
+        person_key = self.request.get('person').strip()
+        if not person_key:
+            return
+
+        person = db.get(person_key)
+
+        br = db.Query(BubbleRelation).filter('bubble', bubble).filter('related_bubble', person.key()).filter('type', 'viewer').get()
+        if not br:
+            br = db.Query(BubbleRelation).filter('bubble', bubble).filter('related_bubble', person.key()).filter('type', 'editor').get()
+        if not br:
+            br = db.Query(BubbleRelation).filter('bubble', bubble).filter('related_bubble', person.key()).filter('type', 'owner').get()
+
+        rights = ['viewer', 'editor', 'owner']
+        for r in rights:
+            br_list = RemoveFromList(person.key(), bubble.GetValueAsList('x_br_%s' % r))
+            if len(br_list) > 0:
+                setattr(bubble, 'x_br_%s' % r, br_list)
+            else:
+                if hasattr(bubble, 'x_br_%s' % r):
+                    delattr(bubble, 'x_br_%s' % r)
+            bubble.put()
+
+        right = self.request.get('right').strip()
+        if right in rights:
+            setattr(bubble, 'x_br_%s' % right, MergeLists(person.key(), bubble.GetValueAsList('x_br_%s' % right)))
+            bubble.put()
+
+            if not br:
+                br = BubbleRelation()
+                br.bubble = bubble.key()
+                br.related_bubble = person.key()
+
+            br.type = right
+            br.x_is_deleted = False
+            br.put()
+        else:
+            if br:
+                br.x_is_deleted = True
+                br.put()
+
+        self.echo_json({
+            'key': str(person.key()),
+            'name': person.displayname,
+            'right': right,
+        })
+
+
+class BubbleAutocomplete(boRequestHandler):
+    def get(self):
+        query = self.request.get('query').strip()
+        if not self.request.get('query').strip():
+            return
+
+        suggestions = []
+        data = []
+
+        for b in db.Query(Person).filter('_is_deleted', False).filter('search', query).order('sort').fetch(20):
+            suggestions.append(b.displayname)
+            data.append(str(b.key()))
+
+        self.echo_json({
+            'query': query,
+            'suggestions': suggestions,
+            'data': data
+        })
+
 
 
 def main():
@@ -298,7 +373,8 @@ def main():
             (r'/bubble/file/(.*)/(.*)', DownloadBubbleFile),
             (r'/bubble/upload_file/(.*)', UploadBubbleFile),
             ('/bubble/sfv', SelectFieldValues),
-            (r'/bubble/d1/(.*)', ShowBubbleDoc1),
+            (r'/bubble/rights/(.*)', BubbleRights),
+            (r'/bubble/autocomplete', BubbleAutocomplete),
             (r'/bubble/xml/(.*)', ShowBubbleXML),
             (r'/bubble/(.*)', ShowBubbleList),
         ])

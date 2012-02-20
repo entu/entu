@@ -1,3 +1,4 @@
+//@codekit-prepend "jquery.autocomplete.js";
 //@codekit-prepend "date-et-EE.js";
 //@codekit-prepend "jQuery.dPassword.js";
 //@codekit-prepend "chosen.jquery.js";

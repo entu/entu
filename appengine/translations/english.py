@@ -99,4 +99,8 @@ def translation():
 
         'message_notify_on_alter_subject':      'New %s added',
 
+        'rights_viewer':                        'Viewer',
+        'rights_editor':                        'Editor',
+        'rights_owner':                         'Owner',
+
      }
