@@ -60,15 +60,6 @@ class ShowQuestionary(boRequestHandler):
             }
         )
 
-
-
-
-
-
-
-
-
-
     def post(self, key):
         if self.authorize('questionary'):
             name = self.request.get('name').strip()
@@ -93,88 +84,57 @@ class ShowQuestionary(boRequestHandler):
 
 
 class ShowQuestionaryResults(boRequestHandler):
-    def get(self, key):
-        message = ','
-        message += '"Aine",'
-        message += '"Oppejoud",'
-        message += '"Kysimus",'
-        message += '"Ankeete",'
-        message += '"Vastajaid",'
-        message += '"Noustujaid",'
-        #message += '"Osalus",'
-        message += '\n'
-        courses = []
-        questions = db.Query(Question).filter('type', 'like').fetch(10000)
-        for course in db.Query(Course).filter('is_feedback_started', True).fetch(10000):
-            for question in questions:
-                teachers = {}
-                for a in db.Query(QuestionAnswer).filter('course', course).filter('question', question).fetch(10000):
+    def get(self):
+        taskqueue.Task(url='/questionary/results').add()
+        self.echo(str(db.Query(QuestionAnswer).count(limit=100000)))
 
-                    if a.target_person:
-                        teacher_name = a.target_person.displayname
-                    else:
-                        teacher_name = '...'
-                    if teacher_name not in teachers:
-                        teachers[teacher_name] = {
-                            'totalcount': 0,
-                            'count': 0,
-                            'sum': 0,
-                        }
-                    teachers[teacher_name]['totalcount'] += 1
-                    if a.answer:
-                        teachers[teacher_name]['count'] += 1
-                        if int(a.answer) > 0:
-                            teachers[teacher_name]['sum'] += int(a.answer)
+    def post(self):
+        limit = 500
+        step = int(self.request.get('step', 1))
+        offset = int(self.request.get('offset', 0))
 
-                for t_name, t_sums in teachers.iteritems():
-                    message += '"' + str(course.key()) + '",'
-                    message += '"' + course.subject.name.value.replace('"','""') + '",'
-                    message += '"' + t_name + '",'
-                    message += '"' + question.name.value.replace('"','""') + '",'
-                    message += str(t_sums['totalcount']) + ','
-                    message += str(t_sums['count']) + ','
-                    if t_sums['count'] > 0:
-                        message += str(float(t_sums['sum'])/float(t_sums['count'])*100.0) + ','
-                    else:
-                        message += '0,'
-                    #if t_sums['totalcount'] > 0:
-                    #    message += str(float(t_sums['count'])/float(t_sums['totalcount'])*100.0) + ','
-                    #else:
-                    #    message += '0,'
-                message += '\n'
+        message = ''
+        # message += '"Aine",'
+        # message += '"Oppejoud",'
+        # message += '"Kysimus",'
+        # message += '"Vastus"'
+        # message += '\n'
 
-        #self.echo(message)
+        rc = 0
+        for qa in db.Query(QuestionAnswer).order('__key__').fetch(limit=limit, offset=offset):
+            rc += 1
+            mrow = ''
+            mrow += '"' + qa.questionary_person.bubble.displayname.replace('"','""') + '",'
+
+            if qa.target_person:
+                tp = qa.target_person
+                mrow += '"' + tp.displayname.replace('"','""') + '",'
+            else:
+                mrow += '"",'
+
+            mrow += '"' + qa.question.name.value.replace('"','""') + '",'
+
+            if qa.answer:
+                mrow += '"' + qa.answer.replace('"','""') + '",'
+            else:
+                mrow += '"",'
+
+            #self.echo(mrow)
+            message += mrow + '\n'
 
         SendMail(
-            to = 'argo.roots@artun.ee',
-            subject = 'Feedback',
+            to = ['mihkel.putrinsh@artun.ee', 'argo.roots@artun.ee'],
+            subject = 'Feedback #%s' % step,
             message = '...',
             attachments = [('feedback_rating.csv', message)]
         )
 
+        logging.debug('#' + str(step) + ' - ' + str(rc) + ' rows')
 
-class ShowQuestionaryResults2(boRequestHandler):
-    def get(self, key):
-        message = ''
-        message += '"Aine",'
-        message += '"Vastus",'
-        message += '\n'
+        if rc == limit:
+            taskqueue.Task(url='/questionary/results', params={'offset': (offset + rc), 'step': (step + 1)}).add()
 
-        for a in db.Query(QuestionAnswer).filter('question', db.Key('agdib25nYXBwchALEghRdWVzdGlvbhi74kkM')).fetch(100000):
-
-            if a.answer:
-                message += '"' + a.course.subject.name.value.replace('"','""') + '",'
-                message += '"' + a.answer.strip().replace('"','""') + '",'
-                message += '\n'
-
-        #self.echo(message)
-
-        SendMail(
-            to = 'argo.roots@artun.ee',
-            subject = 'Feedback',
-            message = '...',
-            attachments = [('feedback_text.csv', message)]
-        )
+        self.echo('done')
 
 
 class SortQuestionary(boRequestHandler):
@@ -298,8 +258,7 @@ def main():
             (r'/questionary/show/(.*)', ShowQuestionary),
             ('/questionary/sort/(.*)', SortQuestionary),
             ('/questionary/delete/(.*)', DeleteQuestionary),
-            ('/questionary/results/(.*)', ShowQuestionaryResults),
-            ('/questionary/results2/(.*)', ShowQuestionaryResults2),
+            ('/questionary/results', ShowQuestionaryResults),
             ('/questionary/question/delete/(.*)', DeleteQuestion),
             ('/questionary/generate', GenerateQuestionaryPersons),
             ('/questionary/question', EditQuestion),
