@@ -64,13 +64,13 @@
                         <textarea type="text" name="{{ t.key }}" data-oldvalue="{{ v.value|default:"" }}" class="cell autosave dtype_{{ t.data_type }}{% if t.is_mandatory %} mandatory{% endif %}" style="width:590px">{{ v.value|default:"" }}</textarea>
                     {% endif %}
 
-                    {% ifequal t.data_type "boolean" %}
+                    {% if t.data_type == "boolean" %}
                         <div class="cell" style="width:590px; vertical-align:middle;">
                             <input type="checkbox" name="{{ t.key }}" data-oldvalue="{{ v.value|default:"" }}" class="autosave dtype_{{ t.data_type }}"{% if v.value|default:"" %} checked{% endif %} />
                         </div>
-                    {% endifequal %}
+                    {% endif %}
 
-                    {% ifequal t.data_type "blobstore" %}
+                    {% if t.data_type == "blobstore" %}
                         <div class="cell" style="width:590px" id="{{ t.data_type }}_{{ bubble_key }}_{{ t.key }}">
                             {% if v.image_url %}<img src="{{ v.image_url }}=s100-c" style="padding-bottom:5px;" />{% endif %}
                             <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showImage(this.contentWindow.document.body.innerHTML, 'blobstore_{{ bubble_key }}_{{ t.key }}');" style="display:none;"></iframe>
@@ -81,7 +81,7 @@
                                 <input type="hidden" name="property" value="{{ t.key }}" />
                             </form>
                         </div>
-                    {% endifequal %}
+                    {% endif %}
 
                     {% if t.choices %}
                         <div class="cell" style="width:590px">
@@ -115,7 +115,7 @@
                 {% for v in t.values %}
                     {% if t.is_read_only or t.is_create_only and v.value %}
                         <div class="cell">
-                            {{ v.value|default:"" }}
+                            {{ v.value|default:""|escape }}
                         </div>
                     {% else %}
                         {% if t.data_type == "string" or t.data_type == "integer" or t.data_type == "float" or t.data_type == "date" or t.data_type == "datetime" %}
@@ -130,18 +130,14 @@
                             </div>
                         {% endif %}
 
-                        {% ifequal t.data_type "boolean" %}
+                        {% if t.data_type == "boolean" %}
                             <div class="cell" style="text-align:center; vertical-align:middle; padding:0px;" id="{{ t.data_type }}_{{ e.key|default:"" }}_{{ t.key }}">
                                 <input type="checkbox" name="{{ t.key }}" data-type="{{ sb.type }}" data-bubble="{{ e.key|default:"" }}" data-oldvalue="{{ v.value|default:"" }}" class="autosave_subbubble dtype_{{ t.data_type }}"{% if v.value|default:"" %} checked{% endif %} />
                             </div>
-                        {% endifequal %}
+                        {% endif %}
 
-                        {% ifequal t.data_type "blobstore" %}
-                            {% if v.value %}
-                                <div class="cell" style="padding:5px; vertical-align:middle;" id="{{ t.data_type }}_{{ e.key|default:"" }}_{{ t.key }}">
-                                    <a href="/application/file/{{ t.data_property }}/{{ v.key }}">{{ v.value }}</a>
-                                </div>
-                            {% else %}
+                        {% if t.data_type == "blobstore" %}
+                            {% if not v.value and forloop.first %}
                                 <div class="cell" style="padding:5px;" id="{{ t.data_type }}_{{ e.key|default:"" }}_{{ t.key }}">
                                     <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML, 'blobstore_{{ e.key|default:"" }}_{{ t.key }}');" style="display:none;"></iframe>
                                     <form method="post" action="{{ blobstore_upload_url }}" target="iframe_{{ t.key }}" enctype="multipart/form-data">
@@ -152,7 +148,12 @@
                                     </form>
                                 </div>
                             {% endif %}
-                        {% endifequal %}
+                            {% if e.key and v.value %}
+                                <div class="cell" style="padding:5px; vertical-align:middle;" id="{{ t.data_type }}_{{ e.key|default:"" }}_{{ t.key }}">
+                                    <a href="/application/file/{{ t.data_property }}/{{ v.key }}">{{ v.value }}</a>
+                                </div>
+                            {% endif %}
+                        {% endif %}
 
                         {% if t.choices %}
                             <div class="cell">

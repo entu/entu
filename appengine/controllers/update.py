@@ -51,41 +51,17 @@ class MemCacheInfo(boRequestHandler):
 class FixStuff(boRequestHandler):
     def get(self):
         self.header('Content-Type', 'text/plain; charset=utf-8')
-        self.echo(str(db.Query(BubbleRelation).order('_changed').count(limit=100000)))
+        for b in db.Query(Bubble).filter('x_type', 'state_exam').fetch(200):
+            bt = db.Query(Bubble).filter('type', 'bubble_type').filter('path', b.x_type).get()
+            b.type = b.x_type
+            b.put()
+            b.x_type = bt.key()
+            b.put()
+
         # taskqueue.Task(url='/update/stuff').add()
 
     def post(self):
-        for b in db.Query(BubbleRelation).order('_changed').fetch(500):
-            if hasattr(b, '_version'):
-                setattr(b, 'x_version', b._version)
-                delattr(b, '_version')
-            if hasattr(b, '_created'):
-                setattr(b, 'x_created', b._created)
-                delattr(b, '_created')
-            if hasattr(b, '_created_by'):
-                setattr(b, 'x_created_by', b._created_by)
-                delattr(b, '_created_by')
-            if hasattr(b, '_changed'):
-                setattr(b, 'x_changed', b._changed)
-                delattr(b, '_changed')
-            if hasattr(b, '_changed_by'):
-                setattr(b, 'x_changed_by', b._changed_by)
-                delattr(b, '_changed_by')
-            if hasattr(b, '_is_deleted'):
-                setattr(b, 'x_is_deleted', b._is_deleted)
-                delattr(b, '_is_deleted')
-            if hasattr(b, 'name'):
-                delattr(b, 'name')
-            if hasattr(b, 'name_plural'):
-                delattr(b, 'name_plural')
-            try:
-                b.put()
-            except:
-                pass
-
-        if db.Query(BubbleRelation).order('_changed').count(limit=100000) > 0:
-            taskqueue.Task(url='/update/stuff').add()
-
+        pass
 
 class AddUser(boRequestHandler):
     def get(self, type):
