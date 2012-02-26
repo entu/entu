@@ -264,7 +264,7 @@ class EditSubbubble(boRequestHandler):
             bubble = Bubble().get(bubblekey)
         else:
             bubble = Bubble()
-            bubble.x_type = self.request.get('type').strip()
+            bubble.type = self.request.get('type').strip()
             bubble.put(getattr(p, 'email', ''))
             p.x_br_subbubble = AddToList(bubble.key(), p.GetValueAsList('x_br_subbubble'))
             p.put(getattr(p, 'email', ''))
