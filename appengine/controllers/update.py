@@ -54,6 +54,11 @@ class FixStuff(boRequestHandler):
         self.echo(str(db.Query(BubbleRelation).count(limit=1000000)))
         # taskqueue.Task(url='/update/stuff').add()
 
+        bt = db.Query(Bubble).filter('path', 'person').get()
+        b = Bubble().get('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYy_rLAgw')
+        b.x_type = bt.key()
+        b.put()
+
     def post(self):
         pass
 

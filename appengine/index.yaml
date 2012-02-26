@@ -28,6 +28,20 @@ indexes:
 
 - kind: Bubble
   properties:
+  - name: x_is_deleted
+  - name: x_search_estonian
+  - name: x_type
+  - name: x_sort_estonian
+
+- kind: Bubble
+  properties:
+  - name: x_is_deleted
+  - name: x_search_english
+  - name: x_type
+  - name: x_sort_english
+
+- kind: Bubble
+  properties:
   - name: x_br_viewer
   - name: x_is_deleted
   - name: x_search_estonian
@@ -55,16 +69,3 @@ indexes:
   - name: property_name
   - name: x_created
     direction: desc
-
-
-
-- kind: Person
-  properties:
-  - name: _is_deleted
-  - name: sort
-
-- kind: Person
-  properties:
-  - name: _is_deleted
-  - name: search
-  - name: sort

@@ -66,8 +66,8 @@ class ShowBubbleList(boRequestHandler):
                 for s in StrToList(value.lower()):
                     keys = MergeLists(keys, [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).filter(searchfield, s).order(sortfield))])
             else:
-                keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).order(sortfield))]
-                # keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_type', bt.key()))]
+                # keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).order(sortfield))]
+                keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_type', bt.key()))]
 
         if filtertype == 'leecher':
             keys = [str(b.related_bubble.key()) for b in db.Query(BubbleRelation).filter('bubble', db.Key(value)).filter('type', 'leecher').filter('x_is_deleted', False) if b.related_bubble.Authorize('viewer')]
@@ -352,9 +352,10 @@ class BubbleAutocomplete(boRequestHandler):
         suggestions = []
         data = []
 
+        bt = db.Query(Bubble).filter('path', 'person').get()
         sortfield = 'x_sort_%s' % UserPreferences().current.language
         searchfield = 'x_search_%s' % UserPreferences().current.language
-        for b in db.Query(Bubble).filter('x_is_deleted', False).filter('type', 'person').filter(searchfield, query).order(sortfield).fetch(20):
+        for b in db.Query(Bubble).filter('x_type', bt.key()).filter('x_is_deleted', False).filter(searchfield, query).order(sortfield).fetch(20):
             suggestions.append(b.displayname)
             data.append(str(b.key()))
 
