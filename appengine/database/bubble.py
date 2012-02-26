@@ -174,6 +174,14 @@ class Bubble(ChangeLogModel):
         else:
             return False
 
+    def GetMyRole(self):
+        if CurrentUser().key() in getattr(self, 'x_br_owner', []):
+            return 'owner'
+        if CurrentUser().key() in getattr(self, 'x_br_editor', []):
+            return 'editor'
+        if CurrentUser().key() in getattr(self, 'x_br_viewer', []):
+            return 'viewer'
+
     def GetPhotoUrl(self, size = 150, square = False):
         blob_key = getattr(self, 'photo', None)
         if blob_key:
@@ -198,7 +206,6 @@ class Bubble(ChangeLogModel):
         newbubble = Bubble()
         newbubble.x_type = bt_new.key()
         newbubble.type = bt_new.path
-        newbubble.x_br_viewer = self.x_br_viewer
 
         # Propagate properties
         for pp_key in getattr(bt, 'propagated_properties', []):
@@ -227,6 +234,18 @@ class Bubble(ChangeLogModel):
 
         # Save new bubble
         newbubble.put()
+
+        # Propagate rights
+        for r in ['owner', 'editor', 'viewer']:
+            if hasattr(self, 'x_br_%s' % r):
+                setattr(newbubble, 'x_br_%s' % r, getattr(self, 'x_br_%s' % r))
+                newbubble.put()
+            for br in db.Query(BubbleRelation).filter('bubble', self.key()).filter('type', r).fetch(1000):
+                new_br = BubbleRelation()
+                new_br.bubble = newbubble.key()
+                new_br.related_bubble = br.related_bubble
+                new_br.type = br.type
+                new_br.put()
 
         # Create BubbleRelation's
         br = db.Query(BubbleRelation).filter('bubble', self.key()).filter('related_bubble', newbubble.key()).filter('type', 'subbuble').get()
