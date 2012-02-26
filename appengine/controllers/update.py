@@ -196,6 +196,34 @@ class FixRelations(boRequestHandler):
             taskqueue.Task(url='/update/relations/%s' % type, params={'offset': (offset + rc), 'step': (step + 1)}).add()
 
 
+class FixRelations2(boRequestHandler):
+    def get(self, bubbletype, relationtype):
+        taskqueue.Task(url='/update/relations2/%s/%s' % (bubbletype, relationtype)).add()
+        self.echo(str(db.Query(Bubble).filter('type', bubbletype).filter('x_is_deleted', False).count(limit=100000)))
+        self.echo(str(db.Query(Bubble).filter('type', bubbletype).filter('x_is_deleted', True).count(limit=100000)))
+
+
+    def post(self, bubbletype, relationtype):
+        rc = 0
+        limit = 200
+        step = int(self.request.get('step', 1))
+        offset = int(self.request.get('offset', 0))
+
+        for bubble in db.Query(Bubble).filter('type', bubbletype).order('__key__').fetch(limit=limit, offset=offset):
+            rc += 1
+            for r in getattr(bubble, 'x_br_%s' % relationtype, []):
+                p = db.get(r)
+                if p.kind() == 'Person':
+                    if hasattr(p, 'person2bubble'):
+                        setattr(bubble, 'x_br_%s' % relationtype, MergeLists(getattr(bubble, 'x_br_%s' % relationtype, []), p.person2bubble))
+                        bubble.put()
+
+        logging.debug('#' + str(step) + ' - ' + bubbletype + ' - ' + relationtype + ' - ' + str(rc) + ' rows from ' + str(offset))
+
+        if rc == limit:
+            taskqueue.Task(url='/update/relations2/%s/%s' % (bubbletype, relationtype), params={'offset': (offset + rc), 'step': (step + 1)}).add()
+
+
 def main():
     Route([
             ('/update/docs', Dokumendid),
@@ -203,6 +231,7 @@ def main():
             ('/update/stuff', FixStuff),
             ('/update/p2b', Person2Bubble),
             (r'/update/relations/(.*)', FixRelations),
+            (r'/update/relations2/(.*)/(.*)', FixRelations2),
             (r'/update/user/(.*)', AddUser),
         ])
 

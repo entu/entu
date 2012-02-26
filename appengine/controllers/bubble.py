@@ -352,7 +352,9 @@ class BubbleAutocomplete(boRequestHandler):
         suggestions = []
         data = []
 
-        for b in db.Query(Bubble).filter('x_is_deleted', False).filter('type', 'person').filter('search', query).order('sort').fetch(20):
+        sortfield = 'x_sort_%s' % UserPreferences().current.language
+        searchfield = 'x_search_%s' % UserPreferences().current.language
+        for b in db.Query(Bubble).filter('x_is_deleted', False).filter('type', 'person').filter(searchfield, query).order(sortfield).fetch(20):
             suggestions.append(b.displayname)
             data.append(str(b.key()))
 
