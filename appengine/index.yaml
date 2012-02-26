@@ -2,6 +2,18 @@ indexes:
 
 - kind: Bubble
   properties:
+  - name: type
+  - name: x_is_deleted
+  - name: x_sort_estonian
+
+- kind: Bubble
+  properties:
+  - name: type
+  - name: x_is_deleted
+  - name: x_sort_english
+
+- kind: Bubble
+  properties:
   - name: x_br_viewer
   - name: x_is_deleted
   - name: x_type

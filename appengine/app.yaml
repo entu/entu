@@ -86,10 +86,6 @@ handlers:
   script: controllers/dashboard.py
   login: required
 
-- url: /person(.*)
-  script: controllers/person.py
-  login: required
-
 - url: /bubble(.*)
   script: controllers/bubble.py
   login: required
@@ -118,10 +114,6 @@ handlers:
 #admin only controllers
 - url: /bulka
   script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
-  login: admin
-
-- url: /cron(.*)
-  script: controllers/cron.py
   login: admin
 
 - url: /taskqueue(.*)

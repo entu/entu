@@ -154,10 +154,22 @@ class Bubble(ChangeLogModel):
                 if len(value) == 1:
                     setattr(self, key, value[0])
 
+        if self.type == 'applicant':
+            for br in db.Query(BubbleRelation).filter('x_is_deleted', False).filter('related_bubble', self.key()).filter('type', 'leecher').fetch(100):
+                b = br.bubble
+                if getattr(b, 'type', '') == 'submission':
+                    self.x_br_viewer = MergeLists(self.GetValueAsList('x_br_viewer'), b.GetValueAsList('x_br_viewer'))
+                    r = self.GetRelatives('subbuble')
+                    if r:
+                        for sb in r:
+                            sb.x_br_viewer = MergeLists(self.GetValueAsList('x_br_viewer'), sb.GetValueAsList('x_br_viewer'))
+                            sb.put()
+
+
         self.put('autofix')
 
     def Authorize(self, type):
-        if Person().current.key() in getattr(self, 'x_br_viewer', []):
+        if CurrentUser().key() in getattr(self, 'x_br_viewer', []):
             return True
         else:
             return False
@@ -217,13 +229,17 @@ class Bubble(ChangeLogModel):
         newbubble.put()
 
         # Create BubbleRelation's
-        # br = db.Query(BubbleRelation).filter('_is_deleted', False).filter('bubble', self.key()).filter('related_bubble', newbubble.key()).get()
-        # if not br:
-        #     br = BubbleRelation()
-        #     br.bubble = self.key()
-        #     br.related_bubble = newbubble.key()
-        #     br.type = 'subbuble'
-        #     br.put()
+        br = db.Query(BubbleRelation).filter('bubble', self.key()).filter('related_bubble', newbubble.key()).filter('type', 'subbuble').get()
+        if not br:
+            br = BubbleRelation()
+            br.bubble = self.key()
+            br.related_bubble = newbubble.key()
+            br.type = 'subbuble'
+            br.put()
+        else:
+            if br.x_is_deleted != False:
+                br.x_is_deleted = False
+                br.put()
 
         # Add new bubble to optional_bubbles list
         self.x_br_subbubble = AddToList(newbubble.key(), self.GetValueAsList('x_br_subbubble'))
@@ -443,7 +459,7 @@ class Bubble(ChangeLogModel):
     def GetRelatives(self, relation):
         if hasattr(self, 'x_br_%s' % relation):
             # return Bubble().get(self.GetValueAsList('x_br_%s' % relation))
-            return [b for b in db.get(self.GetValueAsList('x_br_%s' % relation)) if b]
+            return [b for b in db.get(self.GetValueAsList('x_br_%s' % relation)) if b.kind() == 'Bubble']
 
     def GetParents(self):
         return db.Query(Bubble).filter('x_is_deleted', False).filter('x_br_subbubble', self.key()).fetch(100)
@@ -465,6 +481,21 @@ class Bubble(ChangeLogModel):
             Cache().set('bubble_properties_' + language + '_' + str(self.key()))
             Cache().set('bubble_dname_' + language + '_' + str(self.key()))
             Cache().set('bubble_dinfo_' + language + '_' + str(self.key()))
+
+
+def CurrentUser():
+    user = users.get_current_user()
+    if user:
+        # if user.email() == 'argoroots@gmail.com':
+        #     return Bubble().get_by_id(5013376)
+        current_user = db.Query(Bubble).filter('type', 'person').filter('user', user.email()).filter('x_is_deleted', False).get()
+        if not current_user:
+            current_user = Bubble()
+            current_user.user = [user.email()]
+            current_user.is_guest = True
+            current_user.type = 'person'
+            current_user.put()
+        return current_user
 
 
 class BubbleRelation(ChangeLogModel):

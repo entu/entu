@@ -10,9 +10,6 @@ from database.oldauth import *
 
 class Login(boRequestHandler):
     def get(self):
-        if not self.authorize():
-            return
-
         if not self.request.get('site'):
             return
 

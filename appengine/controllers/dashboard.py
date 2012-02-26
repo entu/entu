@@ -7,8 +7,6 @@ from database.dictionary import *
 
 class Show(boRequestHandler):
     def get(self):
-        self.authorize()
-
         self.view(
             main_template='main/index.html',
             template_file = 'dashboard.html',
@@ -23,7 +21,7 @@ class ShowMenu(boRequestHandler):
         bubbletypes = []
         for bt in db.Query(Bubble).filter('type', 'bubble_type').fetch(100):
             if getattr(bt, 'menugroup', None) and getattr(bt, 'path', None):
-                if db.Query(Bubble, keys_only=True).filter('x_type', bt.key()).filter('x_br_viewer', Person().current).get():
+                if db.Query(Bubble, keys_only=True).filter('x_type', bt.key()).filter('x_br_viewer', CurrentUser().key()).get():
                     bubbletypes.append({
                         'group': GetDictionaryValue(bt.menugroup) if getattr(bt, 'menugroup', None) else 'XYZ',
                         'link': '/bubble/%s' % bt.path,

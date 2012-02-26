@@ -85,7 +85,7 @@ class Person(ChangeLogModel):
         if user:
             # if user.email() == 'argoroots@gmail.com':
             #     return Person().get_by_id(5013376)
-            person = db.Query(Person).filter('users', user.email()).filter('_is_deleted', False).get()
+            person = db.Query(Person).filter('users', user.email()).filter('x_is_deleted', False).get()
             if not person:
                 person = Person()
                 person.users = [user.email()]

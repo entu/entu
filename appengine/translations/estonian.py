@@ -99,8 +99,10 @@ def translation():
 
         'message_notify_on_alter_subject':      'Lisati uus %s',
 
-        'rights_viewer':                        'Vaataja',
-        'rights_editor':                        'Muutja',
-        'rights_owner':                         'Omanik',
+        'rights_caption':                       'Õigused',
+        'rights_add':                           'Õiguse lisamiseks otsi persoon...',
+        'rights_viewer':                        'Võib vaadata',
+        'rights_editor':                        'Võib muuta',
+        'rights_owner':                         'On omanik',
 
     }

@@ -1,4 +1,5 @@
-<section class="table" style="margin:0px; width:100%;">
+<h2>{{ str.rights_caption }}</h2>
+<section class="table" style="width:100%;">
     {% for p in persons|dictsort:"displayname" %}
         <div class="row">
             <div class="v_header">
@@ -15,8 +16,8 @@
         </div>
     {% endfor %}
         <div class="row">
-            <div class="v_header" {% if t.is_public %}style="color:red;"{% endif %}>
-                <input type="text" id="new_person" style="width:100%" />
+            <div class="v_header">
+                <input type="text" id="new_person" placeholder="{{ str.rights_add }}" style="width:100%" />
             </div>
             <div class="cell">
                 <select id="new_right" class="right" style="display:none;">
