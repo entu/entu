@@ -13,7 +13,6 @@ from libraries.gmemsess import *
 
 from bo import *
 from database.bubble import *
-from database.person import *
 from django.utils import simplejson
 
 
@@ -54,7 +53,7 @@ class ShowSignin(boRequestHandler):
             if CheckMailAddress(email):
                 p = db.Query(Bubble).filter('type', 'applicant').filter('email', email).get()
                 if not p:
-                    p = db.Query(Bubble).filter('users', email).get()
+                    p = db.Query(Bubble).filter('user', email).get()
                     if not p:
                         p = Bubble()
                         p.type = 'applicant'
@@ -94,7 +93,7 @@ class ShowApplication(boRequestHandler):
 
         user = users.get_current_user()
         if user:
-            p = db.Query(Bubble).filter('users', user.email()).filter('x_is_deleted', False).get()
+            p = db.Query(Bubble).filter('user', user.email()).filter('x_is_deleted', False).get()
             if not p:
                 self.redirect('/application/signin')
                 return
@@ -102,7 +101,7 @@ class ShowApplication(boRequestHandler):
                 p.type = 'applicant'
                 p.put()
             if not hasattr(p, 'email'):
-                p.email = p.GetValue('users', '')
+                p.email = p.GetValue('user', '')
                 p.put()
         else:
             sess = Session(self)
@@ -186,7 +185,7 @@ class ShowApplication(boRequestHandler):
     def post(self):
         user = users.get_current_user()
         if user:
-            p = db.Query(Bubble).filter('users', user.email()).filter('x_is_deleted', False).get()
+            p = db.Query(Bubble).filter('user', user.email()).filter('x_is_deleted', False).get()
             if not p:
                 self.redirect('/application/signin')
                 return
@@ -211,7 +210,7 @@ class EditSubmission(boRequestHandler):
     def post(self):
         user = users.get_current_user()
         if user:
-            p = db.Query(Bubble).filter('users', user.email()).filter('x_is_deleted', False).get()
+            p = db.Query(Bubble).filter('user', user.email()).filter('x_is_deleted', False).get()
             if not p:
                 self.redirect('/application/signin')
                 return
@@ -248,7 +247,7 @@ class EditSubbubble(boRequestHandler):
     def post(self):
         user = users.get_current_user()
         if user:
-            p = db.Query(Bubble).filter('users', user.email()).filter('x_is_deleted', False).get()
+            p = db.Query(Bubble).filter('user', user.email()).filter('x_is_deleted', False).get()
             if not p:
                 self.redirect('/application/signin')
                 return
@@ -289,7 +288,7 @@ class EditSubbubble(boRequestHandler):
         #         message += '<a href="%s">%s</a>\n' % (url, url)
         #     for n in bubble.GetType().GetValueAsList('notify_on_alter'):
         #         for r in bubble.GetRelatives(n):
-        #             emails = MergeLists(getattr(r, 'email', []), getattr(r, 'users', []))
+        #             emails = MergeLists(getattr(r, 'email', []), getattr(r, 'user', []))
         #             SendMail(
         #                 to = emails,
         #                 subject = Translate('message_notify_on_alter_subject') % bubble.GetType().displayname.lower(),
@@ -306,7 +305,7 @@ class DownloadFile(blobstore_handlers.BlobstoreDownloadHandler):
     def get(self, data_property, file_key=None):
         user = users.get_current_user()
         if user:
-            p = db.Query(Bubble).filter('users', user.email()).filter('x_is_deleted', False).get()
+            p = db.Query(Bubble).filter('user', user.email()).filter('x_is_deleted', False).get()
             if not p:
                 self.redirect('/application/signin')
                 return
@@ -339,7 +338,7 @@ class UploadFile(blobstore_handlers.BlobstoreUploadHandler):
     def post(self):
         user = users.get_current_user()
         if user:
-            p = db.Query(Bubble).filter('users', user.email()).filter('x_is_deleted', False).get()
+            p = db.Query(Bubble).filter('user', user.email()).filter('x_is_deleted', False).get()
             if not p:
                 self.redirect('/application/signin')
                 return
@@ -416,7 +415,7 @@ class Submit(boRequestHandler):
     def post(self):
         user = users.get_current_user()
         if user:
-            p = db.Query(Bubble).filter('users', user.email()).filter('x_is_deleted', False).get()
+            p = db.Query(Bubble).filter('user', user.email()).filter('x_is_deleted', False).get()
             if not p:
                 self.redirect('/application/signin')
                 return

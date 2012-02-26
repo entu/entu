@@ -1,7 +1,7 @@
 from pytz.gae import pytz
 
 from bo import *
-from database.person import *
+from database.bubble import *
 
 
 class ShowPreferences(boRequestHandler):
@@ -14,7 +14,7 @@ class ShowPreferences(boRequestHandler):
             template_file = 'preferences.html',
             page_title = 'page_preferences',
             values = {
-                'person': Person().current,
+                'person': CurrentUser(),
                 'preferences': UserPreferences().current,
                 'languages': languages,
                 'timezones': pytz.common_timezones,

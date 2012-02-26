@@ -11,7 +11,6 @@ from datetime import *
 
 from bo import *
 from database.bubble import *
-from database.person import *
 from database.dictionary import *
 
 
@@ -36,7 +35,7 @@ class ShowBubbleList(boRequestHandler):
         key = self.request.get('key').strip()
         if key:
             bubble = Bubble().get(key)
-            # bubble.AutoFix()
+            bubble.AutoFix()
 
             if not bubble.Authorize('viewer'):
                 self.error(404)
@@ -65,9 +64,9 @@ class ShowBubbleList(boRequestHandler):
             if value:
                 keys = []
                 for s in StrToList(value.lower()):
-                    keys = MergeLists(keys, [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', Person().current.key()).filter('x_type', bt.key()).filter('x_is_deleted', False).filter(searchfield, s).order(sortfield))])
+                    keys = MergeLists(keys, [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).filter(searchfield, s).order(sortfield))])
             else:
-                keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', Person().current.key()).filter('x_type', bt.key()).filter('x_is_deleted', False).order(sortfield))]
+                keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).order(sortfield))]
                 # keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_type', bt.key()))]
 
         if filtertype == 'leecher':
@@ -153,7 +152,7 @@ class EditBubble(boRequestHandler):
                     message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
                     message += '<br/>\n'
                 for r in bubble.GetRelatives(n):
-                    emails = MergeLists(getattr(r, 'email', []), getattr(r, 'users', []))
+                    emails = MergeLists(getattr(r, 'email', []), getattr(r, 'user', []))
                     SendMail(
                         to = emails,
                         subject = Translate('message_notify_on_alter_subject') % bubble.GetType().displayname.lower(),
@@ -217,7 +216,7 @@ class UploadBubbleFile(blobstore_handlers.BlobstoreUploadHandler):
 class SelectFieldValues(boRequestHandler):
     def post(self):
         language = UserPreferences().current.language
-        p = Person().current
+        p = CurrentUser()
 
         bp = Bubble().get(self.request.get('property').strip())
 
@@ -243,7 +242,7 @@ class SelectFieldValues(boRequestHandler):
                     })
         if bp.GetValue('data_type') == 'reference':
             for t in bp.GetValueAsList('choices'):
-                for d in sorted(db.Query(Bubble).filter('type', t).fetch(1000), key=attrgetter('x_sort_%s' % language)):
+                for d in db.Query(Bubble).filter('x_is_deleted', False).filter('type', t).order('x_sort_%s' % language).fetch(1000):
                     values.append({
                         'key': str(d.key()),
                         'value': d.displayname
@@ -271,7 +270,7 @@ class BubbleRights(boRequestHandler):
             self.error(404)
             return
 
-        user_key = Person().current.key()
+        user_key = CurrentUser().key()
         rights = ['viewer', 'editor', 'owner']
         persons = []
         for r in rights:
@@ -301,7 +300,7 @@ class BubbleRights(boRequestHandler):
         if not person_key:
             return
 
-        person = db.get(person_key)
+        person = Bubble().get(person_key)
 
         br = db.Query(BubbleRelation).filter('bubble', bubble).filter('related_bubble', person.key()).filter('type', 'viewer').get()
         if not br:
@@ -353,7 +352,7 @@ class BubbleAutocomplete(boRequestHandler):
         suggestions = []
         data = []
 
-        for b in db.Query(Person).filter('_is_deleted', False).filter('search', query).order('sort').fetch(20):
+        for b in db.Query(Bubble).filter('x_is_deleted', False).filter('type', 'person').filter('search', query).order('sort').fetch(20):
             suggestions.append(b.displayname)
             data.append(str(b.key()))
 

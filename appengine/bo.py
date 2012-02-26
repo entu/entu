@@ -37,32 +37,6 @@ class boRequestHandler(webapp.RequestHandler):
         self.starttime = time.time()
         webapp.RequestHandler.__init__(self, *args, **kwargs)
 
-    def authorize(self, controller=None):
-        from database.person import *
-        from database.feedback import *
-
-        # if db.Query(QuestionaryPerson).filter('person', Person().current).filter('is_completed', False).filter('is_obsolete', False).get():
-        #     path = str(self.request.url)
-        #     Cache().set('redirect_after_feedback', path)
-        #     self.redirect('/feedback')
-        #     return False
-        if 1 == 2:
-            pass
-        else:
-            if controller and users.is_current_user_admin() == False:
-                rights = []
-                if Person().current.GetRoles():
-                    for role in Person().current.GetRoles():
-                        rights = rights + role.rights
-                    if controller in rights:
-                        return True
-                    else:
-                        return False
-                else:
-                    return False
-            else:
-                return True
-
     def view(self, page_title = '', template_file = None, values={}, main_template='', language=None):
         controllertime = (time.time() - self.starttime)
         logging.debug('Controller: %ss' % round(controllertime, 2))
@@ -78,7 +52,7 @@ class boRequestHandler(webapp.RequestHandler):
         al.url = self.request.url[:500]
         al.put()
 
-        from database.person import *
+        from database.bubble import *
 
         browser = str(self.request.headers['User-Agent'])
         if browser.find('MSIE 5') > -1 or browser.find('MSIE 6') > -1 or browser.find('MSIE 7') > -1 or browser.find('MSIE 8') > -1:
@@ -95,7 +69,7 @@ class boRequestHandler(webapp.RequestHandler):
                 values['site_name'] = SystemPreferences().get('site_title')
                 values['page_title'] = '&nbsp;'
             values['site_url'] = self.request.headers.get('host')
-            values['user'] = Person().current
+            values['user'] = CurrentUser()
             values['loginurl'] = users.create_login_url('/')
             values['logouturl'] = users.create_logout_url('/')
             values['version'] = self.request.environ["CURRENT_VERSION_ID"].split('.')[1]
