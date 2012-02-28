@@ -55,8 +55,10 @@ class ShowSignin(boRequestHandler):
                 if not p:
                     p = db.Query(Bubble).filter('user', email).get()
                     if not p:
+                        bt = db.Query(Bubble).filter('type', 'bubble_type').filter('path', 'applicant').get()
                         p = Bubble()
-                        p.type = 'applicant'
+                        p.type = bt.path
+                        p.x_type = bt.key()
                         p.email = email
                         p.put(email)
 

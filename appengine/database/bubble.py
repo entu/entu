@@ -155,35 +155,35 @@ class Bubble(ChangeLogModel):
                 if len(value) == 1:
                     setattr(self, key, value[0])
 
-        if self.type == 'applicant':
-            if self.key() not in self.GetValueAsList('x_br_viewer'):
-                AddTask('/taskqueue/rights', {
-                    'bubble': str(self.key()),
-                    'person': str(self.key()),
-                    'right': 'viewer',
-                    'user': CurrentUser()._googleuser
-                }, 'bubble-one-by-one')
+        # if self.type == 'applicant':
+        #     if self.key() not in self.GetValueAsList('x_br_viewer'):
+        #         AddTask('/taskqueue/rights', {
+        #             'bubble': str(self.key()),
+        #             'person': str(self.key()),
+        #             'right': 'viewer',
+        #             'user': CurrentUser()._googleuser
+        #         }, 'bubble-one-by-one')
 
-            for br in db.Query(BubbleRelation).filter('x_is_deleted', False).filter('related_bubble', self.key()).filter('type', 'leecher').fetch(100):
-                b = br.bubble
-                if getattr(b, 'type', '') == 'submission':
-                    for p in b.GetValueAsList('x_br_viewer'):
-                        AddTask('/taskqueue/rights', {
-                            'bubble': str(self.key()),
-                            'person': str(p),
-                            'right': 'viewer',
-                            'user': CurrentUser()._googleuser
-                        }, 'bubble-one-by-one')
+        #     for br in db.Query(BubbleRelation).filter('x_is_deleted', False).filter('related_bubble', self.key()).filter('type', 'leecher').fetch(100):
+        #         b = br.bubble
+        #         if getattr(b, 'type', '') == 'submission':
+        #             for p in b.GetValueAsList('x_br_viewer'):
+        #                 AddTask('/taskqueue/rights', {
+        #                     'bubble': str(self.key()),
+        #                     'person': str(p),
+        #                     'right': 'viewer',
+        #                     'user': CurrentUser()._googleuser
+        #                 }, 'bubble-one-by-one')
 
-                    for sb in self.GetRelatives('subbuble'):
-                        for p in sb.GetValueAsList('x_br_viewer'):
-                            AddTask('/taskqueue/rights', {
-                                'bubble': str(self.key()),
-                                'person': str(p),
-                                'right': 'viewer',
-                                'user': CurrentUser()._googleuser
-                            }, 'bubble-one-by-one')
-                        sb.put()
+        #             for sb in self.GetRelatives('subbuble'):
+        #                 for p in sb.GetValueAsList('x_br_viewer'):
+        #                     AddTask('/taskqueue/rights', {
+        #                         'bubble': str(self.key()),
+        #                         'person': str(p),
+        #                         'right': 'viewer',
+        #                         'user': CurrentUser()._googleuser
+        #                     }, 'bubble-one-by-one')
+        #                 sb.put()
 
         self.put('autofix')
 
