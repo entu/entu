@@ -28,6 +28,22 @@ indexes:
 
 - kind: Bubble
   properties:
+  - name: x_br_viewer
+  - name: x_is_deleted
+  - name: x_type
+  - name: x_sort_estonian
+    direction: desc
+
+- kind: Bubble
+  properties:
+  - name: x_br_viewer
+  - name: x_is_deleted
+  - name: x_type
+  - name: x_sort_english
+    direction: desc
+
+- kind: Bubble
+  properties:
   - name: x_is_deleted
   - name: x_search_estonian
   - name: x_type
@@ -56,7 +72,23 @@ indexes:
   - name: x_type
   - name: x_sort_english
 
+- kind: Bubble
+  properties:
+  - name: x_br_viewer
+  - name: x_is_deleted
+  - name: x_search_estonian
+  - name: x_type
+  - name: x_sort_estonian
+    direction: desc
 
+- kind: Bubble
+  properties:
+  - name: x_br_viewer
+  - name: x_is_deleted
+  - name: x_search_english
+  - name: x_type
+  - name: x_sort_english
+    direction: desc
 
 - kind: ChangeLog
   properties:
