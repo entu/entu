@@ -7,7 +7,7 @@
             </div>
             <div class="cell">
                 <select class="right" data-person="{{ p.key }}" {% if p.relation_currentuser %} disabled{% endif %}>
-                    <option value=""></option>
+                    <option value="">{{ str.rights_no_access }}</option>
                     <option value="viewer" {% if p.relation_type == "viewer" %} selected{% endif %}>{{ str.rights_viewer }}</option>
                     <option value="subbubbler" {% if p.relation_type == "subbubbler" %} selected{% endif %}>{{ str.rights_subbubbler }}</option>
                     <option value="editor" {% if p.relation_type == "editor" %} selected{% endif %}>{{ str.rights_editor }}</option>
@@ -22,7 +22,7 @@
             </div>
             <div class="cell">
                 <select id="new_right" class="right" style="display:none;">
-                    <option value=""></option>
+                    <option value="">{{ str.rights_no_access }}</option>
                     <option value="viewer">{{ str.rights_viewer }}</option>
                     <option value="subbubbler">{{ str.rights_subbubbler }}</option>
                     <option value="editor">{{ str.rights_editor }}</option>

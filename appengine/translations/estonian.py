@@ -101,6 +101,7 @@ def translation():
 
         'rights_caption':                       'Õigused',
         'rights_add':                           'Õiguse lisamiseks otsi persoon...',
+        'rights_no_access':                     'Ligipääs puudub',
         'rights_viewer':                        'Võib vaadata',
         'rights_subbubbler':                    'Võib lisada almmulle',
         'rights_editor':                        'Võib muuta',

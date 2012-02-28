@@ -106,7 +106,7 @@ class FixRelations2(boRequestHandler): # Change Person keys from Bubble.x_br_...
 
         for bubble in db.Query(Bubble).filter('type', bubbletype).order('__key__').fetch(limit=limit, offset=offset):
             rc += 1
-            for r in getattr(bubble, 'x_br_%s' % relationtype, []):
+            for r in bubble.GetValueAsList('x_br_%s' % relationtype):
                 p = db.get(r)
                 if p.kind() == 'Person':
                     if hasattr(p, 'person2bubble'):
@@ -118,7 +118,7 @@ class FixRelations2(boRequestHandler): # Change Person keys from Bubble.x_br_...
         if rc == limit:
             taskqueue.Task(url='/update/relations2/%s/%s' % (bubbletype, relationtype), params={'offset': (offset + rc), 'step': (step + 1)}).add()
         else:
-            taskqueue.Task(url='/update/relations3/%s/x' % bubbletype, params={'offset': (offset + rc), 'step': (step + 1)}).add()
+            taskqueue.Task(url='/update/relations3/%s/x' % bubbletype, method='GET').add()
 
 
 class FixRelations3(boRequestHandler): # Bubble.x_br_... to Bubblerelation
@@ -136,7 +136,7 @@ class FixRelations3(boRequestHandler): # Bubble.x_br_... to Bubblerelation
 
         for bubble in db.Query(Bubble).filter('type', bubbletype).order('__key__').fetch(limit=limit, offset=offset):
             rc += 1
-            for r in getattr(bubble, 'x_br_%s' % relationtype, []):
+            for r in bubble.GetValueAsList('x_br_%s' % relationtype):
                 p = db.get(r)
                 if p.kind() == 'Bubble':
                     br = db.Query(BubbleRelation).filter('bubble', bubble.key()).filter('related_bubble', p.key()).filter('type', relationtype).get()
@@ -179,6 +179,41 @@ class FixType(boRequestHandler): # Bubble.x_br_... to Bubblerelation
             taskqueue.Task(url='/update/type/%s' % bubbletype, params={'offset': (offset + rc), 'step': (step + 1)}).add()
 
 
+class FixApplicants(boRequestHandler): # Bubble.x_br_... to Bubblerelation
+    def get(self, bubbletype):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        taskqueue.Task(url='/update/applicant/%s' % bubbletype).add()
+        self.echo(str(db.Query(Bubble).filter('type', 'applicant').filter('x_is_deleted', False).count(limit=100000)))
+
+    def post(self, bubbletype):
+        rc = 0
+        limit = 200
+        step = int(self.request.get('step', 1))
+        offset = int(self.request.get('offset', 0))
+
+        for bubble in db.Query(Bubble).filter('type', 'applicant').order('__key__').fetch(limit=limit, offset=offset):
+            rc += 1
+
+
+
+        logging.debug('#' + str(step) + ' - ' + str(rc) + ' rows from ' + str(offset))
+
+        if rc == limit:
+            taskqueue.Task(url='/update/type/%s' % bubbletype, params={'offset': (offset + rc), 'step': (step + 1)}).add()
+
+
+class ApplicantToPerson(boRequestHandler):
+    def get(self, id):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        bt = db.Query(Bubble).filter('path', 'person').get()
+        b = Bubble().get_by_id(int(id))
+        if b.type == 'applicant':
+            b.x_type = bt.key()
+            b.type = bt.path
+            b.put()
+        self.echo('OK')
+
+
 def main():
     Route([
             ('/update/docs', Dokumendid),
@@ -188,6 +223,8 @@ def main():
             (r'/update/relations2/(.*)/(.*)', FixRelations2),
             (r'/update/relations3/(.*)/(.*)', FixRelations3),
             (r'/update/type/(.*)', FixType),
+            ('/update/applicant', FixApplicants),
+            (r'/update/a2p/(.*)', ApplicantToPerson),
         ])
 
 
