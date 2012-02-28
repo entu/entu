@@ -51,11 +51,13 @@ class ShowSignin(boRequestHandler):
 
         if email:
             if CheckMailAddress(email):
-                p = db.Query(Bubble).filter('type', 'applicant').filter('email', email).get()
+                p = db.Query(Bubble).filter('type', 'pre_applicant').filter('email', email).get()
+                if not p:
+                    p = db.Query(Bubble).filter('type', 'applicant').filter('email', email).get()
                 if not p:
                     p = db.Query(Bubble).filter('user', email).get()
                     if not p:
-                        bt = db.Query(Bubble).filter('type', 'bubble_type').filter('path', 'applicant').get()
+                        bt = db.Query(Bubble).filter('type', 'bubble_type').filter('path', 'pre_applicant').get()
                         p = Bubble()
                         p.type = bt.path
                         p.x_type = bt.key()
@@ -71,6 +73,14 @@ class ShowSignin(boRequestHandler):
                 p.password = password
                 p.put(getattr(p, 'email', ''))
 
+                for k in ['agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY4PvbAgw', 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYwLLLAgw', 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYyvrLAgw', 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY1IfMAgw', 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYy_rLAgw']:
+                    AddTask('/taskqueue/rights', {
+                        'bubble': str(p.key()),
+                        'person': str(db.Key(k)),
+                        'right': 'viewer',
+                        'user': getattr(p, 'email', '')
+                    }, 'bubble-one-by-one')
+
                 SendMail(
                     to = email,
                     reply_to = 'sisseastumine@artun.ee',
@@ -81,7 +91,9 @@ class ShowSignin(boRequestHandler):
 
         else:
             if password:
-                b = db.Query(Bubble).filter('type', 'applicant').filter('password', password).get()
+                b = db.Query(Bubble).filter('type', 'pre_applicant').filter('password', password).get()
+                if not b:
+                    b = db.Query(Bubble).filter('type', 'applicant').filter('password', password).get()
                 if b:
                     sess = Session(self)
                     sess['applicant_key'] = str(b.key())
@@ -110,7 +122,9 @@ class ShowApplication(boRequestHandler):
             if 'applicant_key' not in sess:
                 self.redirect('/application/signin')
                 return
-            p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            p = db.Query(Bubble).filter('type', 'pre_applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            if not p:
+                p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
             if not p:
                 self.redirect('/application/signin')
                 return
@@ -199,7 +213,9 @@ class ShowApplication(boRequestHandler):
             sess = Session(self)
             if 'applicant_key' not in sess:
                 return
-            p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            p = db.Query(Bubble).filter('type', 'pre_applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            if not p:
+                p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
             if not p:
                 return
 
@@ -224,7 +240,9 @@ class EditSubmission(boRequestHandler):
             sess = Session(self)
             if 'applicant_key' not in sess:
                 return
-            p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            p = db.Query(Bubble).filter('type', 'pre_applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            if not p:
+                p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
             if not p:
                 return
 
@@ -261,7 +279,9 @@ class EditSubbubble(boRequestHandler):
             sess = Session(self)
             if 'applicant_key' not in sess:
                 return
-            p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            p = db.Query(Bubble).filter('type', 'pre_applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            if not p:
+                p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
             if not p:
                 return
 
@@ -321,7 +341,9 @@ class DownloadFile(blobstore_handlers.BlobstoreDownloadHandler):
             sess = Session(self)
             if 'applicant_key' not in sess:
                 return
-            p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            p = db.Query(Bubble).filter('type', 'pre_applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            if not p:
+                p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
             if not p:
                 return
 
@@ -354,7 +376,9 @@ class UploadFile(blobstore_handlers.BlobstoreUploadHandler):
             sess = Session(self)
             if 'applicant_key' not in sess:
                 return
-            p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            p = db.Query(Bubble).filter('type', 'pre_applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            if not p:
+                p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
             if not p:
                 return
 
@@ -433,9 +457,16 @@ class Submit(boRequestHandler):
             sess = Session(self)
             if 'applicant_key' not in sess:
                 return
-            p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            p = db.Query(Bubble).filter('type', 'pre_applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
+            if not p:
+                p = db.Query(Bubble).filter('type', 'applicant').filter('__key__', db.Key(sess['applicant_key'])).get()
             if not p:
                 return
+
+        bt = db.Query(Bubble).filter('type', 'bubble_type').filter('path', 'applicant').get()
+        p.type = bt.path
+        p.x_type = bt.key()
+        p.put(getattr(p, 'email', ''))
 
         for s in db.Query(Bubble).filter('type', 'submission').fetch(1000):
             if getattr(s, 'start_datetime', datetime.now()) < datetime.now() and getattr(s, 'end_datetime', datetime.now()) > datetime.now():
