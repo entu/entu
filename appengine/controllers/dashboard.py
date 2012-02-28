@@ -21,7 +21,20 @@ class ShowMenu(boRequestHandler):
         bubbletypes = []
         for bt in db.Query(Bubble).filter('type', 'bubble_type').fetch(100):
             if getattr(bt, 'menugroup', None) and getattr(bt, 'path', None):
-                if db.Query(Bubble, keys_only=True).filter('x_type', bt.key()).filter('x_br_viewer', CurrentUser().key()).get():
+                display = False
+                if display == False:
+                    if db.Query(Bubble, keys_only=True).filter('x_type', bt.key()).filter('x_br_viewer', CurrentUser().key()).get():
+                        display = True
+                if display == False:
+                    if db.Query(Bubble, keys_only=True).filter('x_type', bt.key()).filter('x_br_subbubbler', CurrentUser().key()).get():
+                        display = True
+                if display == False:
+                    if db.Query(Bubble, keys_only=True).filter('x_type', bt.key()).filter('x_br_editor', CurrentUser().key()).get():
+                        display = True
+                if display == False:
+                    if db.Query(Bubble, keys_only=True).filter('x_type', bt.key()).filter('x_br_owner', CurrentUser().key()).get():
+                        display = True
+                if display == True:
                     bubbletypes.append({
                         'group': GetDictionaryValue(bt.menugroup) if getattr(bt, 'menugroup', None) else 'XYZ',
                         'link': '/bubble/%s' % bt.path,

@@ -102,6 +102,7 @@ def translation():
         'rights_caption':                       'Rights',
         'rights_add':                           'Find person, to add rights...',
         'rights_viewer':                        'Can view',
+        'rights_subbubbler':                    'Can add subbubbles',
         'rights_editor':                        'Can edit',
         'rights_owner':                         'Is owner',
 

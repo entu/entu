@@ -54,45 +54,49 @@ class FixStuff(boRequestHandler):
         # taskqueue.Task(url='/update/stuff').add()
 
         bt = db.Query(Bubble).filter('path', 'person').get()
-        b = Bubble().get('agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYy_rLAgw')
-        b.x_type = bt.key()
-        b.put()
+        for k in ['agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYy_rLAgw', 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY1IfMAgw', 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYyvrLAgw']:
+            b = Bubble().get(k)
+            b.x_type = bt.key()
+            b.type = bt.path
+            b.put()
 
     def post(self):
         pass
 
 
 class FixRelations(boRequestHandler): # BubbleRelation to Bubble.x_br_...
-    def get(self, type):
-        taskqueue.Task(url='/update/relations/%s' % type).add()
-        self.echo(str(db.Query(BubbleRelation).filter('type', type).filter('x_is_deleted', False).count(limit=100000)))
-        self.echo(str(db.Query(BubbleRelation).filter('type', type).filter('x_is_deleted', True).count(limit=100000)))
+    def get(self, relationtype=None):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        for r in ['subbuble','seeder','leecher','editor','owner','subbubbler','viewer']:
+            taskqueue.Task(url='/update/relations/%s' % r).add()
+            self.echo(r + ': ' + str(db.Query(BubbleRelation).filter('type', relationtype).filter('x_is_deleted', False).count(limit=100000)))
 
-    def post(self, type):
+    def post(self, relationtype):
         rc = 0
         limit = 500
         step = int(self.request.get('step', 1))
         offset = int(self.request.get('offset', 0))
 
-        for br in db.Query(BubbleRelation).filter('type', type).filter('x_is_deleted', False).order('__key__').fetch(limit=limit, offset=offset):
+        for br in db.Query(BubbleRelation).filter('type', relationtype).filter('x_is_deleted', False).order('__key__').fetch(limit=limit, offset=offset):
             rc += 1
             try:
                 bubble = br.bubble
-                setattr(bubble, 'x_br_%s' % type, MergeLists(getattr(bubble, 'x_br_%s' % type, []), br.related_bubble.key()))
+                setattr(bubble, 'x_br_%s' % relationtype, MergeLists(getattr(bubble, 'x_br_%s' % relationtype, []), br.related_bubble.key()))
                 bubble.put()
             except:
                 pass
-        logging.debug('#' + str(step) + ' - ' + type + ' - ' + str(rc) + ' rows from ' + str(offset))
+        logging.debug('#' + str(step) + ' - ' + relationtype + ' - ' + str(rc) + ' rows from ' + str(offset))
 
         if rc == limit:
-            taskqueue.Task(url='/update/relations/%s' % type, params={'offset': (offset + rc), 'step': (step + 1)}).add()
+            taskqueue.Task(url='/update/relations/%s' % relationtype, params={'offset': (offset + rc), 'step': (step + 1)}).add()
 
 
-class FixRelations2(boRequestHandler): #Change Person keys from Bubble.x_br_... to Bubble keys
-    def get(self, bubbletype, relationtype):
-        taskqueue.Task(url='/update/relations2/%s/%s' % (bubbletype, relationtype)).add()
+class FixRelations2(boRequestHandler): # Change Person keys from Bubble.x_br_... to Bubble keys
+    def get(self, bubbletype, relationtype=None):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        for r in ['subbuble','seeder','leecher','editor','owner','subbubbler','viewer']:
+            taskqueue.Task(url='/update/relations2/%s/%s' % (bubbletype, r)).add()
         self.echo(str(db.Query(Bubble).filter('type', bubbletype).filter('x_is_deleted', False).count(limit=100000)))
-        self.echo(str(db.Query(Bubble).filter('type', bubbletype).filter('x_is_deleted', True).count(limit=100000)))
 
     def post(self, bubbletype, relationtype):
         rc = 0
@@ -113,6 +117,66 @@ class FixRelations2(boRequestHandler): #Change Person keys from Bubble.x_br_... 
 
         if rc == limit:
             taskqueue.Task(url='/update/relations2/%s/%s' % (bubbletype, relationtype), params={'offset': (offset + rc), 'step': (step + 1)}).add()
+        else:
+            taskqueue.Task(url='/update/relations3/%s/x' % bubbletype, params={'offset': (offset + rc), 'step': (step + 1)}).add()
+
+
+class FixRelations3(boRequestHandler): # Bubble.x_br_... to Bubblerelation
+    def get(self, bubbletype, relationtype=None):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        for r in ['subbuble','seeder','leecher','editor','owner','subbubbler','viewer']:
+            taskqueue.Task(url='/update/relations3/%s/%s' % (bubbletype, r)).add()
+        self.echo(str(db.Query(Bubble).filter('type', bubbletype).filter('x_is_deleted', False).count(limit=100000)))
+
+    def post(self, bubbletype, relationtype):
+        rc = 0
+        limit = 200
+        step = int(self.request.get('step', 1))
+        offset = int(self.request.get('offset', 0))
+
+        for bubble in db.Query(Bubble).filter('type', bubbletype).order('__key__').fetch(limit=limit, offset=offset):
+            rc += 1
+            for r in getattr(bubble, 'x_br_%s' % relationtype, []):
+                p = db.get(r)
+                if p.kind() == 'Bubble':
+                    br = db.Query(BubbleRelation).filter('bubble', bubble.key()).filter('related_bubble', p.key()).filter('type', relationtype).get()
+                    if not br:
+                        br = BubbleRelation()
+                        br.bubble = bubble.key()
+                        br.related_bubble = p.key()
+                    br.type = relationtype
+                    br.x_is_deleted = False
+                    br.put()
+
+        logging.debug('#' + str(step) + ' - ' + bubbletype + ' - ' + relationtype + ' - ' + str(rc) + ' rows from ' + str(offset))
+
+        if rc == limit:
+            taskqueue.Task(url='/update/relations3/%s/%s' % (bubbletype, relationtype), params={'offset': (offset + rc), 'step': (step + 1)}).add()
+
+
+class FixType(boRequestHandler): # Bubble.x_br_... to Bubblerelation
+    def get(self, bubbletype):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        taskqueue.Task(url='/update/type/%s' % bubbletype).add()
+        self.echo(str(db.Query(Bubble).filter('type', bubbletype).filter('x_is_deleted', False).count(limit=100000)))
+
+    def post(self, bubbletype):
+        rc = 0
+        limit = 200
+        step = int(self.request.get('step', 1))
+        offset = int(self.request.get('offset', 0))
+
+        for bubble in db.Query(Bubble).filter('type', bubbletype).order('__key__').fetch(limit=limit, offset=offset):
+            rc += 1
+            if not hasattr(bubble, 'x_type'):
+                bt = db.Query(Bubble).filter('type', 'bubble_type').filter('path', bubble.type).get()
+                setattr(bubble, 'x_type', bt.key())
+                bubble.put()
+
+        logging.debug('#' + str(step) + ' - ' + bubbletype + ' - ' + str(rc) + ' rows from ' + str(offset))
+
+        if rc == limit:
+            taskqueue.Task(url='/update/type/%s' % bubbletype, params={'offset': (offset + rc), 'step': (step + 1)}).add()
 
 
 def main():
@@ -122,6 +186,8 @@ def main():
             ('/update/stuff', FixStuff),
             (r'/update/relations/(.*)', FixRelations),
             (r'/update/relations2/(.*)/(.*)', FixRelations2),
+            (r'/update/relations3/(.*)/(.*)', FixRelations3),
+            (r'/update/type/(.*)', FixType),
         ])
 
 

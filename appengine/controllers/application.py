@@ -117,6 +117,10 @@ class ShowApplication(boRequestHandler):
             p.language = language
             p.put()
 
+        if p.key() not in p.GetValueAsList('x_br_viewer'):
+            setattr(p, 'x_br_viewer', MergeLists(p.key(), p.GetValueAsList('x_br_viewer')))
+            p.put()
+
         receptions = []
         leeching_count = 0
         for g in sorted(db.Query(Bubble).filter('type', 'reception_group').fetch(1000), key=attrgetter('x_sort_%s' % language)):
@@ -263,8 +267,10 @@ class EditSubbubble(boRequestHandler):
         if bubblekey:
             bubble = Bubble().get(bubblekey)
         else:
+            bt = db.Query(Bubble).filter('type', 'bubble_type').filter('path', self.request.get('type').strip()).get()
             bubble = Bubble()
-            bubble.type = self.request.get('type').strip()
+            bubble.type = bt.path
+            bubble.x_type = bt.key()
             bubble.put(getattr(p, 'email', ''))
             p.x_br_subbubble = AddToList(bubble.key(), p.GetValueAsList('x_br_subbubble'))
             p.put(getattr(p, 'email', ''))
@@ -277,23 +283,23 @@ class EditSubbubble(boRequestHandler):
         )
 
         # Send messages
-        # if self.request.get('oldvalue').strip() != self.request.get('newvalue').strip():
-        #     message = ''
-        #     url = '%s/bubble/applicant#%s' % (self.request.headers.get('host'), p.key().id())
-        #     for t in bubble.GetProperties():
-        #         message += '<b>%s</b>:<br/>\n' % t['name']
-        #         message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'] for n in t['values'] if n['value'].replace('\n', '<br/>\n')])
-        #         message += '<br/>\n'
-        #         message += '<br/>\n'
-        #         message += '<a href="%s">%s</a>\n' % (url, url)
-        #     for n in bubble.GetType().GetValueAsList('notify_on_alter'):
-        #         for r in bubble.GetRelatives(n):
-        #             emails = MergeLists(getattr(r, 'email', []), getattr(r, 'user', []))
-        #             SendMail(
-        #                 to = emails,
-        #                 subject = Translate('message_notify_on_alter_subject') % bubble.GetType().displayname.lower(),
-        #                 message = message,
-        #             )
+        if self.request.get('oldvalue').strip() != self.request.get('newvalue').strip():
+            bt = bubble.GetType()
+            alter = bt.GetValueAsList('notify_on_alter')
+            if len(alter) > 0:
+                message = ''
+                for t in bubble.GetProperties():
+                    message += '<b>%s</b>:<br/>\n' % t['name']
+                    message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
+                    message += '<br/>\n'
+                for a in alter:
+                    for r in bubble.GetRelatives(a):
+                        emails = MergeLists(getattr(r, 'email', []), getattr(r, 'user', []))
+                        SendMail(
+                            to = emails,
+                            subject = Translate('message_notify_on_alter_subject') % bt.displayname.lower(),
+                            message = message,
+                        )
 
         self.echo_json({
             'bubble': str(bubble.key()),
@@ -370,8 +376,10 @@ class UploadFile(blobstore_handlers.BlobstoreUploadHandler):
             if bubblekey:
                 bubble = Bubble().get(bubblekey)
             else:
+                bt = db.Query(Bubble).filter('type', 'bubble_type').filter('path', self.request.get('type').strip()).get()
                 bubble = Bubble()
-                bubble.type = self.request.get('type').strip()
+                bubble.type = bt.path
+                bubble.x_type = bt.key()
                 bubble.put(getattr(p, 'email', ''))
                 p.x_br_subbubble = AddToList(bubble.key(), p.GetValueAsList('x_br_subbubble'))
                 p.put(getattr(p, 'email', ''))

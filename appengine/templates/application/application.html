@@ -320,7 +320,7 @@
             }
         });
 
-         $('#submit_application').click(function() {
+        $('#submit_application').click(function() {
             apply_ok = false;
             mandatory_ok = true;
             $('.check').each(function() {
@@ -339,6 +339,7 @@
                 $.post('/application/submit');
             } else if (apply_ok == false) {
                 alert('{{ str.application_missing_apply }}');
+                scroll(0,0);
             } else {
                 alert('{{ str.application_missing_mandatory_fields }}');
             }

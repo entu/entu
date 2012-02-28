@@ -1,3 +1,4 @@
+from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext import blobstore
 from google.appengine.api import images
@@ -81,40 +82,40 @@ class Bubble(ChangeLogModel):
 
         setattr(self, 'x_type', bt.key())
 
-        if hasattr(self, '_version'):
-            setattr(self, 'x_version', self._version)
-            delattr(self, '_version')
-        if hasattr(self, '_created'):
-            setattr(self, 'x_created', self._created)
-            delattr(self, '_created')
-        if hasattr(self, '_created_by'):
-            setattr(self, 'x_created_by', self._created_by)
-            delattr(self, '_created_by')
-        if hasattr(self, '_changed'):
-            setattr(self, 'x_changed', self._changed)
-            delattr(self, '_changed')
-        if hasattr(self, '_changed_by'):
-            setattr(self, 'x_changed_by', self._changed_by)
-            delattr(self, '_changed_by')
-        if hasattr(self, '_is_deleted'):
-            setattr(self, 'x_is_deleted', self._is_deleted)
-            delattr(self, '_is_deleted')
-        if hasattr(self, 'viewers'):
-            setattr(self, 'x_br_viewer', self.viewers)
-            delattr(self, 'viewers')
+        # if hasattr(self, '_version'):
+        #     setattr(self, 'x_version', self._version)
+        #     delattr(self, '_version')
+        # if hasattr(self, '_created'):
+        #     setattr(self, 'x_created', self._created)
+        #     delattr(self, '_created')
+        # if hasattr(self, '_created_by'):
+        #     setattr(self, 'x_created_by', self._created_by)
+        #     delattr(self, '_created_by')
+        # if hasattr(self, '_changed'):
+        #     setattr(self, 'x_changed', self._changed)
+        #     delattr(self, '_changed')
+        # if hasattr(self, '_changed_by'):
+        #     setattr(self, 'x_changed_by', self._changed_by)
+        #     delattr(self, '_changed_by')
+        # if hasattr(self, '_is_deleted'):
+        #     setattr(self, 'x_is_deleted', self._is_deleted)
+        #     delattr(self, '_is_deleted')
+        # if hasattr(self, 'viewers'):
+        #     setattr(self, 'x_br_viewer', self.viewers)
+        #     delattr(self, 'viewers')
 
-        if hasattr(self, 'seeders'):
-            if len(self.seeders) > 0:
-                setattr(self, 'x_br_seeder', self.seeders)
+        # if hasattr(self, 'seeders'):
+        #     if len(self.seeders) > 0:
+        #         setattr(self, 'x_br_seeder', self.seeders)
 
-        if hasattr(self, 'leechers'):
-            if len(self.leechers) > 0:
-                setattr(self, 'x_br_leecher', self.leechers)
+        # if hasattr(self, 'leechers'):
+        #     if len(self.leechers) > 0:
+        #         setattr(self, 'x_br_leecher', self.leechers)
 
-        subbubbleslist = MergeLists(self.GetValueAsList('optional_bubbles'), self.GetValueAsList('x_br_subbubble'))
-        if len(subbubbleslist) > 0:
-            setattr(self, 'x_br_subbubble', subbubbleslist)
-            setattr(self, 'optional_bubbles', subbubbleslist)
+        # subbubbleslist = MergeLists(self.GetValueAsList('optional_bubbles'), self.GetValueAsList('x_br_subbubble'))
+        # if len(subbubbleslist) > 0:
+        #     setattr(self, 'x_br_subbubble', subbubbleslist)
+        #     setattr(self, 'optional_bubbles', subbubbleslist)
 
         for language in SystemPreferences().get('languages'):
             sorts = getattr(bt, 'sort_string', '')
@@ -155,31 +156,63 @@ class Bubble(ChangeLogModel):
                     setattr(self, key, value[0])
 
         if self.type == 'applicant':
+            if self.key() not in self.GetValueAsList('x_br_viewer'):
+                AddTask('/taskqueue/rights', {
+                    'bubble': str(self.key()),
+                    'person': str(self.key()),
+                    'right': 'viewer',
+                    'user': CurrentUser()._googleuser
+                }, 'bubble-one-by-one')
+
             for br in db.Query(BubbleRelation).filter('x_is_deleted', False).filter('related_bubble', self.key()).filter('type', 'leecher').fetch(100):
                 b = br.bubble
                 if getattr(b, 'type', '') == 'submission':
-                    self.x_br_viewer = MergeLists(self.GetValueAsList('x_br_viewer'), b.GetValueAsList('x_br_viewer'))
-                    r = self.GetRelatives('subbuble')
-                    if r:
-                        for sb in r:
-                            sb.x_br_viewer = MergeLists(self.GetValueAsList('x_br_viewer'), sb.GetValueAsList('x_br_viewer'))
-                            sb.put()
+                    for p in b.GetValueAsList('x_br_viewer'):
+                        AddTask('/taskqueue/rights', {
+                            'bubble': str(self.key()),
+                            'person': str(p),
+                            'right': 'viewer',
+                            'user': CurrentUser()._googleuser
+                        }, 'bubble-one-by-one')
 
+                    for sb in self.GetRelatives('subbuble'):
+                        for p in sb.GetValueAsList('x_br_viewer'):
+                            AddTask('/taskqueue/rights', {
+                                'bubble': str(self.key()),
+                                'person': str(p),
+                                'right': 'viewer',
+                                'user': CurrentUser()._googleuser
+                            }, 'bubble-one-by-one')
+                        sb.put()
 
         self.put('autofix')
 
     def Authorize(self, type):
-        if CurrentUser().key() in getattr(self, 'x_br_viewer', []):
+        # if users.is_current_user_admin():
+        #     return True
+        if type == 'owner':
+            allowed = ['owner']
+        if type == 'editor':
+            allowed = ['owner', 'editor']
+        if type == 'subbubler':
+            allowed = ['owner', 'editor', 'subbubler']
+        if type == 'viewer':
+            allowed = ['owner', 'editor', 'subbubler', 'viewer']
+        if self.GetMyRole() in allowed:
             return True
         else:
             return False
 
     def GetMyRole(self):
-        if CurrentUser().key() in getattr(self, 'x_br_owner', []):
+        # if users.is_current_user_admin():
+        #     return 'owner'
+        if CurrentUser().key() in self.GetValueAsList('x_br_owner'):
             return 'owner'
-        if CurrentUser().key() in getattr(self, 'x_br_editor', []):
+        if CurrentUser().key() in self.GetValueAsList('x_br_editor'):
             return 'editor'
-        if CurrentUser().key() in getattr(self, 'x_br_viewer', []):
+        if CurrentUser().key() in self.GetValueAsList('x_br_subbubler'):
+            return 'subbubler'
+        if CurrentUser().key() in self.GetValueAsList('x_br_viewer'):
             return 'viewer'
 
     def GetPhotoUrl(self, size = 150, square = False):
@@ -236,7 +269,7 @@ class Bubble(ChangeLogModel):
         newbubble.put()
 
         # Propagate rights
-        for r in ['owner', 'editor', 'viewer']:
+        for r in ['viewer', 'subbubbler', 'editor', 'owner']:
             if hasattr(self, 'x_br_%s' % r):
                 setattr(newbubble, 'x_br_%s' % r, getattr(self, 'x_br_%s' % r))
                 newbubble.put()
@@ -282,6 +315,25 @@ class Bubble(ChangeLogModel):
             return result[0]
         else:
             return result
+
+    def SetValue(self, data_property, value):
+        newvalue = MergeLists(getattr(self, data_property, []), value)
+        if len(newvalue) == 1:
+            setattr(self, data_property, newvalue[0])
+        if len(newvalue) > 1:
+            setattr(self, data_property, newvalue)
+
+    def RemoveValue(self, data_property, value):
+        oldvalue = getattr(self, data_property, [])
+        if type(oldvalue) is not list:
+            oldvalue = [oldvalue]
+        newvalue = RemoveFromList(value, oldvalue)
+        if len(newvalue) == 0 and hasattr(self, data_property):
+            delattr(self, data_property)
+        if len(newvalue) == 1:
+            setattr(self, data_property, newvalue[0])
+        if len(newvalue) > 1:
+            setattr(self, data_property, newvalue)
 
     def GetProperties(self, language = None):
         if not language:
@@ -483,6 +535,7 @@ class Bubble(ChangeLogModel):
                     if b.kind() == 'Bubble':
                         result.append(b)
             return result
+        return []
 
     def GetParents(self):
         return db.Query(Bubble).filter('x_is_deleted', False).filter('x_br_subbubble', self.key()).fetch(100)
@@ -518,12 +571,13 @@ def CurrentUser():
             current_user.is_guest = True
             current_user.type = 'person'
             current_user.put()
+        current_user._googleuser = user.email()
         return current_user
 
 
 class BubbleRelation(ChangeLogModel):
     bubble                  = db.ReferenceProperty(Bubble, collection_name='bubblerelation_bubble')
     related_bubble          = db.ReferenceProperty(Bubble, collection_name='bubblerelation_related_bubble')
-    type                    = db.StringProperty(choices=['subbuble', 'seeder','leecher','editor','owner','viewer','add_sub_bubbles'])
+    type                    = db.StringProperty(choices=['subbuble','seeder','leecher','editor','owner','subbubbler','viewer'])
     start_datetime          = db.DateTimeProperty()
     end_datetime            = db.DateTimeProperty()

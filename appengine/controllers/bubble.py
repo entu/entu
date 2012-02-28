@@ -66,8 +66,7 @@ class ShowBubbleList(boRequestHandler):
                 for s in StrToList(value.lower()):
                     keys = MergeLists(keys, [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).filter(searchfield, s).order(sortfield))])
             else:
-                # keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).order(sortfield))]
-                keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_type', bt.key()))]
+                keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).order(sortfield))]
 
         if filtertype == 'leecher':
             keys = [str(b.related_bubble.key()) for b in db.Query(BubbleRelation).filter('bubble', db.Key(value)).filter('type', 'leecher').filter('x_is_deleted', False) if b.related_bubble.Authorize('viewer')]
@@ -145,19 +144,22 @@ class EditBubble(boRequestHandler):
 
         # Send messages
         if self.request.get('oldvalue').strip() != self.request.get('newvalue').strip():
-            for n in bubble.GetType().GetValueAsList('notify_on_alter'):
+            bt = bubble.GetType()
+            alter = bt.GetValueAsList('notify_on_alter')
+            if len(alter) > 0:
                 message = ''
                 for t in bubble.GetProperties():
                     message += '<b>%s</b>:<br/>\n' % t['name']
                     message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
                     message += '<br/>\n'
-                for r in bubble.GetRelatives(n):
-                    emails = MergeLists(getattr(r, 'email', []), getattr(r, 'user', []))
-                    SendMail(
-                        to = emails,
-                        subject = Translate('message_notify_on_alter_subject') % bubble.GetType().displayname.lower(),
-                        message = message,
-                    )
+                for a in alter:
+                    for r in bubble.GetRelatives(a):
+                        emails = MergeLists(getattr(r, 'email', []), getattr(r, 'user', []))
+                        SendMail(
+                            to = emails,
+                            subject = Translate('message_notify_on_alter_subject') % bt.displayname.lower(),
+                            message = message,
+                        )
 
         self.echo(value, False)
 
@@ -271,7 +273,7 @@ class BubbleRights(boRequestHandler):
             return
 
         user_key = CurrentUser().key()
-        rights = ['viewer', 'editor', 'owner']
+        rights = ['viewer', 'subbubbler', 'editor', 'owner']
         persons = []
         for r in rights:
             bubbles = bubble.GetRelatives(r)
@@ -296,50 +298,19 @@ class BubbleRights(boRequestHandler):
         if not bubble.Authorize('viewer'):
             return
 
-        person_key = self.request.get('person').strip()
-        if not person_key:
-            return
+        person = Bubble().get(self.request.get('person').strip())
 
-        person = Bubble().get(person_key)
-
-        br = db.Query(BubbleRelation).filter('bubble', bubble).filter('related_bubble', person.key()).filter('type', 'viewer').get()
-        if not br:
-            br = db.Query(BubbleRelation).filter('bubble', bubble).filter('related_bubble', person.key()).filter('type', 'editor').get()
-        if not br:
-            br = db.Query(BubbleRelation).filter('bubble', bubble).filter('related_bubble', person.key()).filter('type', 'owner').get()
-
-        rights = ['viewer', 'editor', 'owner']
-        for r in rights:
-            br_list = RemoveFromList(person.key(), bubble.GetValueAsList('x_br_%s' % r))
-            if len(br_list) > 0:
-                setattr(bubble, 'x_br_%s' % r, br_list)
-            else:
-                if hasattr(bubble, 'x_br_%s' % r):
-                    delattr(bubble, 'x_br_%s' % r)
-            bubble.put()
-
-        right = self.request.get('right').strip()
-        if right in rights:
-            setattr(bubble, 'x_br_%s' % right, MergeLists(person.key(), bubble.GetValueAsList('x_br_%s' % right)))
-            bubble.put()
-
-            if not br:
-                br = BubbleRelation()
-                br.bubble = bubble.key()
-                br.related_bubble = person.key()
-
-            br.type = right
-            br.x_is_deleted = False
-            br.put()
-        else:
-            if br:
-                br.x_is_deleted = True
-                br.put()
+        AddTask('/taskqueue/rights', {
+            'bubble': str(bubble.key()),
+            'person': str(person.key()),
+            'right': self.request.get('right').strip(),
+            'user': CurrentUser()._googleuser
+        }, 'bubble-one-by-one')
 
         self.echo_json({
             'key': str(person.key()),
             'name': person.displayname,
-            'right': right,
+            'right': self.request.get('right').strip(),
         })
 
 

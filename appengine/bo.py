@@ -5,6 +5,7 @@ from pytz.gae import pytz
 from google.appengine.api import mail
 from google.appengine.api import users
 from google.appengine.api import memcache
+from google.appengine.api import taskqueue
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
@@ -159,7 +160,7 @@ class ChangeLogModel(db.Expando):
 
                 if new_value == []:
                     new_value = None
-                if old_value != new_value and prop_key != '_version':
+                if old_value != new_value:
                     cl = ChangeLog(parent=self)
                     cl.kind_name = self.kind()
                     cl.property_name = prop_key
@@ -313,6 +314,10 @@ def SendMail(to, subject, message=' ', reply_to=None, html=True, attachments=Non
     m.send()
 
     return True
+
+
+def AddTask(url, params, queue='default'):
+    taskqueue.Task(url=url, params=params).add(queue_name=queue)
 
 
 def StrToList(string):
