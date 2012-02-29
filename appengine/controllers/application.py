@@ -72,6 +72,7 @@ class ShowSignin(boRequestHandler):
                 p.language = language
                 p.password = password
                 p.put(getattr(p, 'email', ''))
+                p.AutoFix()
 
                 for k in ['agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY4PvbAgw', 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYwLLLAgw', 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYyvrLAgw', 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY1IfMAgw', 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYy_rLAgw']:
                     AddTask('/taskqueue/rights', {
@@ -467,6 +468,7 @@ class Submit(boRequestHandler):
         p.type = bt.path
         p.x_type = bt.key()
         p.put(getattr(p, 'email', ''))
+        p.AutoFix()
 
         for s in db.Query(Bubble).filter('type', 'submission').fetch(1000):
             if getattr(s, 'start_datetime', datetime.now()) < datetime.now() and getattr(s, 'end_datetime', datetime.now()) > datetime.now():

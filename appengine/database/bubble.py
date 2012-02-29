@@ -79,44 +79,6 @@ class Bubble(ChangeLogModel):
 
     def AutoFix(self):
         bt = self.GetType()
-
-        setattr(self, 'x_type', bt.key())
-
-        # if hasattr(self, '_version'):
-        #     setattr(self, 'x_version', self._version)
-        #     delattr(self, '_version')
-        # if hasattr(self, '_created'):
-        #     setattr(self, 'x_created', self._created)
-        #     delattr(self, '_created')
-        # if hasattr(self, '_created_by'):
-        #     setattr(self, 'x_created_by', self._created_by)
-        #     delattr(self, '_created_by')
-        # if hasattr(self, '_changed'):
-        #     setattr(self, 'x_changed', self._changed)
-        #     delattr(self, '_changed')
-        # if hasattr(self, '_changed_by'):
-        #     setattr(self, 'x_changed_by', self._changed_by)
-        #     delattr(self, '_changed_by')
-        # if hasattr(self, '_is_deleted'):
-        #     setattr(self, 'x_is_deleted', self._is_deleted)
-        #     delattr(self, '_is_deleted')
-        # if hasattr(self, 'viewers'):
-        #     setattr(self, 'x_br_viewer', self.viewers)
-        #     delattr(self, 'viewers')
-
-        # if hasattr(self, 'seeders'):
-        #     if len(self.seeders) > 0:
-        #         setattr(self, 'x_br_seeder', self.seeders)
-
-        # if hasattr(self, 'leechers'):
-        #     if len(self.leechers) > 0:
-        #         setattr(self, 'x_br_leecher', self.leechers)
-
-        # subbubbleslist = MergeLists(self.GetValueAsList('optional_bubbles'), self.GetValueAsList('x_br_subbubble'))
-        # if len(subbubbleslist) > 0:
-        #     setattr(self, 'x_br_subbubble', subbubbleslist)
-        #     setattr(self, 'optional_bubbles', subbubbleslist)
-
         for language in SystemPreferences().get('languages'):
             sorts = getattr(bt, 'sort_string', '')
             for data_property in FindTags(sorts, '@', '@'):
@@ -154,6 +116,7 @@ class Bubble(ChangeLogModel):
             if type(value) is list:
                 if len(value) == 1:
                     setattr(self, key, value[0])
+
 
         # if self.type == 'applicant':
         #     if self.key() not in self.GetValueAsList('x_br_viewer'):
@@ -227,7 +190,10 @@ class Bubble(ChangeLogModel):
                         url += '=s%s%s' % (size, sq)
                     return url
 
-        gravatar_type = 'monsterid' if getattr(self, 'type', '') in ['person', 'applicant'] else 'identicon'
+        if getattr(self, 'type', '') in ['pre_applicant', 'applicant']:
+            return '/images/avatar.png'
+
+        gravatar_type = 'monsterid' if getattr(self, 'type', '') == 'person' else 'identicon'
 
         return 'http://www.gravatar.com/avatar/%s?s=%s&d=%s' % (hashlib.md5(str(self.key()).strip().lower()).hexdigest(), size, gravatar_type)
 
