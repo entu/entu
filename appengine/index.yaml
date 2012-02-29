@@ -69,3 +69,9 @@ indexes:
   - name: property_name
   - name: x_created
     direction: desc
+
+- kind: ChangeLog
+  ancestor: yes
+  properties:
+  - name: x_created
+    direction: desc

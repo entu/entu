@@ -103,26 +103,7 @@
             });
             names = sort_unique(names);
             for (n in names) {
-                $.post('/bubble/sfv', { 'property': names[n] }, function(json) {
-                    $('select[name='+json.property+']').each(function() {
-                        selectbox = $(this);
-                        for (i in json.values) {
-                            item = json.values[i];
-                            if(selectbox.data('oldvalue').indexOf(item.key) != -1) {
-                                selected = ' selected';
-                            } else {
-                                selected = '';
-                            }
-                            selectbox.width(selectbox.parent().width());
-                            selectbox.append('<option value="'+item.key+'"'+selected+'>'+item.value+'</option>');
-                            selectbox.chosen({
-                                allow_single_deselect: true,
-                            });
-                            selectbox.prev('img').hide();
-                            selectbox.trigger('liszt:updated');
-                        };
-                    });
-                }, 'json');
+                getChoices(names[n]);
             };
 
         };

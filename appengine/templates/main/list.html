@@ -44,7 +44,7 @@
             $.post('{{ list_url }}', {type: 'search', value: $('#searchbox').val()}, function(list) {
                 items = list.keys;
                 for (i in items) {
-                    $('#list_items').append('<a id="item_'+items[i]+'" class="empty_item" href="" data-key="'+items[i]+'"></a>');
+                    $('#list_items').append('<a id="listitem_'+items[i]+'" class="empty_item" href="" data-key="'+items[i]+'"></a>');
                 };
                 $('#list_search span').html('{{ str.search_found }} '+items.length);
                 $('#list .spinner').hide();
@@ -55,30 +55,13 @@
 
         function append_list() {
             $('.empty_item').each(function() {
-                item = $(this);
-                if (items.indexOf(item.data('key')) != -1) {
-                    position = item.position();
+                listitem = $(this);
+                key = listitem.data('key');
+                if (items.indexOf(key) != -1) {
+                    position = listitem.position();
                     if ((position.top - $('#list_items').height()) < 100) {
-                        $.post('{{ list_url }}', {key: item.data('key')}, function(item) {
-                            listitem = $('#item_'+item.key);
-                            if(item.image) {
-                                image = '<img src="'+item.image+'" />';
-                            } else {
-                                image = '';
-                            }
-                            if(item.info) {
-                                info = '<span>'+item.info+'</span>';
-                            } else {
-                                info = '';
-                            }
-                            if('#'+item.id == window.location.hash) {
-                                listitem.addClass('active');
-                            }
-                            listitem.attr('href', '#'+item.id);
-                            listitem.html(image+item.title+info);
-                            listitem.removeClass('empty_item');
-                        }, 'json');
-                        idx = items.indexOf(item.data('key'));
+                        getBubbleInfo('', key, '#listitem_'+key, 'searchlist');
+                        idx = items.indexOf(key);
                         if(idx != -1) items.splice(idx, 1);
                     };
                 };

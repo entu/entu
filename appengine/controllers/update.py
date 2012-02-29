@@ -154,7 +154,7 @@ class FixRelations3(boRequestHandler): # Bubble.x_br_... to Bubblerelation
             taskqueue.Task(url='/update/relations3/%s/%s' % (bubbletype, relationtype), params={'offset': (offset + rc), 'step': (step + 1)}).add()
 
 
-class FixType(boRequestHandler): # Bubble.x_br_... to Bubblerelation
+class FixType(boRequestHandler):
     def get(self, bubbletype):
         self.header('Content-Type', 'text/plain; charset=utf-8')
         taskqueue.Task(url='/update/type/%s' % bubbletype).add()
@@ -179,39 +179,53 @@ class FixType(boRequestHandler): # Bubble.x_br_... to Bubblerelation
             taskqueue.Task(url='/update/type/%s' % bubbletype, params={'offset': (offset + rc), 'step': (step + 1)}).add()
 
 
-class FixApplicants(boRequestHandler): # Bubble.x_br_... to Bubblerelation
-    def get(self, bubbletype):
+class FixApplicants(boRequestHandler):
+    def get(self):
         self.header('Content-Type', 'text/plain; charset=utf-8')
-        taskqueue.Task(url='/update/applicant/%s' % bubbletype).add()
-        self.echo(str(db.Query(Bubble).filter('type', 'applicant').filter('x_is_deleted', False).count(limit=100000)))
+        taskqueue.Task(url='/update/applicant').add()
+        self.echo(str(db.Query(Bubble).filter('type', 'pre_applicant').filter('x_is_deleted', False).count(limit=100000)))
 
-    def post(self, bubbletype):
+    def post(self):
         rc = 0
+        bc = 0
         limit = 200
         step = int(self.request.get('step', 1))
         offset = int(self.request.get('offset', 0))
 
-        for bubble in db.Query(Bubble).filter('type', 'applicant').order('__key__').fetch(limit=limit, offset=offset):
+        for bubble in db.Query(Bubble).filter('type', 'pre_applicant').order('__key__').fetch(limit=limit, offset=offset):
             rc += 1
+            bubble.AutoFix()
+            # if len(bubble.GetValueAsList('x_br_viewer')) < 2 or not getattr(bubble, 'forename', None) or not getattr(bubble, 'surname', None):
+            #     bt = db.Query(Bubble).filter('type', 'bubble_type').filter('path', 'pre_applicant').get()
+            #     bubble.type = bt.path
+            #     bubble.x_type = bt.key()
+            #     bubble.put()
+            #     bc += 1
 
-
-
-        logging.debug('#' + str(step) + ' - ' + str(rc) + ' rows from ' + str(offset))
+        logging.debug('#' + str(step) + ' - ' +str(bc) + ' - ' + str(rc) + ' rows from ' + str(offset))
 
         if rc == limit:
-            taskqueue.Task(url='/update/type/%s' % bubbletype, params={'offset': (offset + rc), 'step': (step + 1)}).add()
+            taskqueue.Task(url='/update/applicant', params={'offset': (offset + rc), 'step': (step + 1)}).add()
 
 
-class ApplicantToPerson(boRequestHandler):
-    def get(self, id):
+class ChangeBubbleType(boRequestHandler):
+    def get(self, type, id):
         self.header('Content-Type', 'text/plain; charset=utf-8')
-        bt = db.Query(Bubble).filter('path', 'person').get()
+
+        bt = db.Query(Bubble).filter('path', type).get()
+        if not bt:
+            self.echo('No %s!' % type)
+            return
+
         b = Bubble().get_by_id(int(id))
-        if b.type == 'applicant':
-            b.x_type = bt.key()
-            b.type = bt.path
-            b.put()
-        self.echo('OK')
+        if not b:
+            self.echo('No %s!' % id)
+            return
+
+        self.echo(b.type + ' -> ' + bt.path)
+        b.x_type = bt.key()
+        b.type = bt.path
+        b.put()
 
 
 def main():
@@ -224,7 +238,7 @@ def main():
             (r'/update/relations3/(.*)/(.*)', FixRelations3),
             (r'/update/type/(.*)', FixType),
             ('/update/applicant', FixApplicants),
-            (r'/update/a2p/(.*)', ApplicantToPerson),
+            (r'/update/type2(.*)/(.*)', ChangeBubbleType),
         ])
 
 

@@ -72,7 +72,7 @@
             {% if bubble.GetMyRole == 'viewer' %}
                 '<a id="open_edit" href="javascript:void(0);" class="icon pencil tiptip" title="{{ str.bubble_edit }}"></a>',
             {% endif %}
-            {% if bubble.GetMyRole == 'owner' %}
+            {% if bubble.GetMyRole == 'viewer' %}
                 '<a id="open_rights" href="javascript:void(0);" class="icon key tiptip" title="{{ str.rights_caption }}"></a>',
             {% endif %}
         ];
@@ -149,7 +149,9 @@
 
         function reload_item() {
             $.modal.close();
-            open_item({{ bubble.key.id }})
+            open_item({{ bubble.key.id }});
+            removeBubbleInfo('{{ bubble.key }}');
+            getBubbleInfo('', '{{ bubble.key }}', '#listitem_{{ bubble.key }}', 'searchlist');
         }
 
         function open_item(id) {
@@ -165,25 +167,7 @@
             $.post(post_url, post_data, function(list) {
                 for (i in list.keys) {
                     div.append('<a href="#" id="'+id+'_'+list.keys[i]+'">&nbsp;</a>');
-                    $.post(post_url, {key: list.keys[i]}, function(item) {
-                        if(item.info) {
-                            info = '<span>'+item.info+'</span>';
-                        } else {
-                            info = '';
-                        }
-                        if('#'+item.id == window.location.hash) {
-                            active = 'class="active" ';
-                        } else {
-                            active = '';
-                        }
-                        $('#'+id+'_'+item.key).html(item.title+'<span>'+item.info+'</span>');
-                        if (item.type == '{{ bubble.type }}') {
-                            $('#'+id+'_'+item.key).attr('href', '#'+item.id);
-                            $('#'+id+'_'+item.key).addClass('open_subbubble');
-                        } else {
-                            $('#'+id+'_'+item.key).attr('href', '/bubble/'+item.type+'#'+item.id);
-                        }
-                    }, 'json');
+                    getBubbleInfo('{{ bubble.y_type }}', list.keys[i], '#'+id+'_'+list.keys[i], 'accordion');
                 }
                 if (list.keys.length > 0) {
                     div.parent().show();

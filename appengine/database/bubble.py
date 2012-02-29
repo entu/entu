@@ -38,6 +38,10 @@ class Bubble(ChangeLogModel):
     next_in_line            = db.ListProperty(db.Key)
 
     @property
+    def y_type(self):
+        return self.type
+
+    @property
     def displayname(self):
         bt = self.GetType()
 

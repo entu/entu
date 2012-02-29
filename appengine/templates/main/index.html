@@ -55,7 +55,7 @@
             $(document).ready(function(){
 
                 if(window.location.pathname == '/') {
-                    $.jStorage.deleteKey('main_menu'); //delete cached menu
+                    $.jStorage.flush()
                 }
 
                 menu = $.jStorage.get('main_menu');

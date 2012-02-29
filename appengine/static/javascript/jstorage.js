@@ -26,7 +26,7 @@
 
 /**
  * $.jStorage
- * 
+ *
  * USAGE:
  *
  * jStorage requires Prototype, MooTools or jQuery! If jQuery is used, then
@@ -47,22 +47,22 @@
  *
  * -flush()
  * $.jStorage.flush() -> clears the cache
- * 
+ *
  * -storageObj()
  * $.jStorage.storageObj() -> returns a read-ony copy of the actual storage
- * 
+ *
  * -storageSize()
  * $.jStorage.storageSize() -> returns the size of the storage in bytes
  *
  * -index()
  * $.jStorage.index() -> returns the used keys as an array
- * 
+ *
  * -storageAvailable()
  * $.jStorage.storageAvailable() -> returns true if storage is available
- * 
+ *
  * -reInit()
  * $.jStorage.reInit() -> reloads the data from browser storage
- * 
+ *
  * <value> can be any JSON-able value, including objects and arrays.
  *
  **/
@@ -71,9 +71,9 @@
     if(!$ || !($.toJSON || Object.toJSON || window.JSON)){
         throw new Error("jQuery, MooTools or Prototype needs to be loaded before jStorage!");
     }
-    
+
     var
-        /* This is the object, that holds the cached values */ 
+        /* This is the object, that holds the cached values */
         _storage = {},
 
         /* Actual browser storage (localStorage or globalStorage['domain']) */
@@ -81,7 +81,7 @@
 
         /* DOM element for older IE versions, holds userData behavior */
         _storage_elm = null,
-        
+
         /* How much space does the storage take */
         _storage_size = 0,
 
@@ -92,10 +92,13 @@
         json_decode = $.evalJSON || (window.JSON && (JSON.decode || JSON.parse)) || function(str){
             return String(str).evalJSON();
         },
-        
+
         /* which backend is currently used */
         _backend = false,
-        
+
+        /* Next check for TTL */
+        _ttl_timeout,
+
         /**
          * XML encoding and decoding as XML nodes can't be JSON'ized
          * XML nodes are encoded and decoded if the node is the value to be saved
@@ -105,7 +108,7 @@
          *   $.jStorage.set("key", {xml: xmlNode}); // NOT OK
          */
         _XMLService = {
-            
+
             /**
              * Validates a XML node to be XML
              * based on jQuery.isXML function
@@ -114,7 +117,7 @@
                 var documentElement = (elm ? elm.ownerDocument || elm : 0).documentElement;
                 return documentElement ? documentElement.nodeName !== "HTML" : false;
             },
-            
+
             /**
              * Encodes a XML node to string
              * based on http://www.mercurytide.co.uk/news/article/issues-when-working-ajax/
@@ -132,7 +135,7 @@
                 }
                 return false;
             },
-            
+
             /**
              * Decodes a XML node from string
              * loosely based on http://outwestmedia.com/jquery-plugins/xmldom/
@@ -216,8 +219,11 @@
         }
 
         _load_storage();
+
+        // remove dead keys
+        _handleTTL();
     }
-    
+
     /**
      * Loads the data from the storage based on the supported mechanism
      * @returns undefined
@@ -231,7 +237,7 @@
         }else{
             _storage_service.jStorage = "{}";
         }
-        _storage_size = _storage_service.jStorage?String(_storage_service.jStorage).length:0;    
+        _storage_size = _storage_service.jStorage?String(_storage_service.jStorage).length:0;
     }
 
     /**
@@ -257,18 +263,59 @@
         if(!key || (typeof key != "string" && typeof key != "number")){
             throw new TypeError('Key name must be string or numeric');
         }
+        if(key == "__jstorage_meta"){
+            throw new TypeError('Reserved key name');
+        }
         return true;
+    }
+
+    /**
+     * Removes expired keys
+     */
+    function _handleTTL(){
+        var curtime, i, TTL, nextExpire = Infinity, changed = false;
+
+        clearTimeout(_ttl_timeout);
+
+        if(!_storage.__jstorage_meta || typeof _storage.__jstorage_meta.TTL != "object"){
+            // nothing to do here
+            return;
+        }
+
+        curtime = +new Date();
+        TTL = _storage.__jstorage_meta.TTL;
+        for(i in TTL){
+            if(TTL.hasOwnProperty(i)){
+                if(TTL[i] <= curtime){
+                    delete TTL[i];
+                    delete _storage[i];
+                    changed = true;
+                }else if(TTL[i] < nextExpire){
+                    nextExpire = TTL[i];
+                }
+            }
+        }
+
+        // set next check
+        if(nextExpire != Infinity){
+            _ttl_timeout = setTimeout(_handleTTL, nextExpire - curtime);
+        }
+
+        // save changes
+        if(changed){
+            _save();
+        }
     }
 
     ////////////////////////// PUBLIC INTERFACE /////////////////////////
 
     $.jStorage = {
         /* Version number */
-        version: "0.1.5.4",
+        version: "0.1.6.1",
 
         /**
          * Sets a key's value.
-         * 
+         *
          * @param {String} key - Key to set. If this value is not set or not
          *              a string an exception is raised.
          * @param value - Value to set. This can be any value that is JSON
@@ -279,15 +326,20 @@
             _checkKey(key);
             if(_XMLService.isXML(value)){
                 value = {_is_xml:true,xml:_XMLService.encode(value)};
+            }else if(typeof value == "function"){
+                value = null; // functions can't be saved!
+            }else if(value && typeof value == "object"){
+                // clone the object before saving to _storage tree
+                value = json_decode(json_encode(value));
             }
             _storage[key] = value;
             _save();
             return value;
         },
-        
+
         /**
          * Looks up a key in cache
-         * 
+         *
          * @param {String} key - Key to look up.
          * @param {mixed} def - Default value to return, if key didn't exist.
          * @returns the key value, default value or <null>
@@ -305,10 +357,10 @@
             }
             return typeof(def) == 'undefined' ? null : def;
         },
-        
+
         /**
          * Deletes a key from cache.
-         * 
+         *
          * @param {String} key - Key to delete.
          * @returns true if key existed or false if it didn't
          */
@@ -316,6 +368,12 @@
             _checkKey(key);
             if(key in _storage){
                 delete _storage[key];
+                // remove from TTL list
+                if(_storage.__jstorage_meta &&
+                  typeof _storage.__jstorage_meta.TTL == "object" &&
+                  key in _storage.__jstorage_meta.TTL){
+                    delete _storage.__jstorage_meta.TTL[key];
+                }
                 _save();
                 return true;
             }
@@ -323,19 +381,54 @@
         },
 
         /**
+         * Sets a TTL for a key, or remove it if ttl value is 0 or below
+         *
+         * @param {String} key - key to set the TTL for
+         * @param {Number} ttl - TTL timeout in milliseconds
+         * @returns true if key existed or false if it didn't
+         */
+        setTTL: function(key, ttl){
+            var curtime = +new Date();
+            _checkKey(key);
+            ttl = Number(ttl) || 0;
+            if(key in _storage){
+
+                if(!_storage.__jstorage_meta){
+                    _storage.__jstorage_meta = {};
+                }
+                if(!_storage.__jstorage_meta.TTL){
+                    _storage.__jstorage_meta.TTL = {};
+                }
+
+                // Set TTL value for the key
+                if(ttl>0){
+                    _storage.__jstorage_meta.TTL[key] = curtime + ttl;
+                }else{
+                    delete _storage.__jstorage_meta.TTL[key];
+                }
+
+                _save();
+
+                _handleTTL();
+                return true;
+            }
+            return false;
+        },
+
+        /**
          * Deletes everything in cache.
-         * 
-         * @returns true
+         *
+         * @return true
          */
         flush: function(){
             _storage = {};
             _save();
             return true;
         },
-        
+
         /**
          * Returns a read-only copy of _storage
-         * 
+         *
          * @returns Object
         */
         storageObj: function(){
@@ -343,63 +436,63 @@
             F.prototype = _storage;
             return new F();
         },
-        
+
         /**
          * Returns an index of all used keys as an array
          * ['key1', 'key2',..'keyN']
-         * 
+         *
          * @returns Array
         */
         index: function(){
             var index = [], i;
             for(i in _storage){
-                if(_storage.hasOwnProperty(i)){
+                if(_storage.hasOwnProperty(i) && i != "__jstorage_meta"){
                     index.push(i);
                 }
             }
             return index;
         },
-        
+
         /**
          * How much space in bytes does the storage take?
-         * 
+         *
          * @returns Number
          */
         storageSize: function(){
             return _storage_size;
         },
-        
+
         /**
          * Which backend is currently in use?
-         * 
+         *
          * @returns String
          */
         currentBackend: function(){
             return _backend;
         },
-        
+
         /**
          * Test if storage is available
-         * 
+         *
          * @returns Boolean
          */
         storageAvailable: function(){
             return !!_backend;
         },
-        
+
         /**
          * Reloads the data from browser storage
-         * 
+         *
          * @returns undefined
          */
         reInit: function(){
             var new_storage_elm, data;
             if(_storage_elm && _storage_elm.addBehavior){
                 new_storage_elm = document.createElement('link');
-                
+
                 _storage_elm.parentNode.replaceChild(new_storage_elm, _storage_elm);
                 _storage_elm = new_storage_elm;
-                
+
                 /* Use a DOM element to act as userData storage */
                 _storage_elm.style.behavior = 'url(#default#userData)';
 
@@ -414,7 +507,7 @@
                 _storage_service.jStorage = data;
                 _backend = "userDataBehavior";
             }
-            
+
             _load_storage();
         }
     };
