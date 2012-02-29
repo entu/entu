@@ -31,6 +31,8 @@ def GetCounterNextValue(counter_key):
 
 
 class Bubble(ChangeLogModel):
+    x_sort_estonian         = db.StringProperty(default='')
+    x_sort_english          = db.StringProperty(default='')
     type                    = db.StringProperty()
     mandatory_bubbles       = db.ListProperty(db.Key)
     optional_bubbles        = db.ListProperty(db.Key)
