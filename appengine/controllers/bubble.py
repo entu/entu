@@ -58,25 +58,28 @@ class ShowBubbleList(boRequestHandler):
         filtertype = self.request.get('type').strip().lower()
         value = self.request.get('value').strip()
         sortfield = 'x_sort_%s' % UserPreferences().current.language
+        sortreverse = getattr(bt, 'sort_descending', False)
 
         if filtertype == 'search':
             searchfield = 'x_search_%s' % UserPreferences().current.language
             if value:
                 keys = []
                 for s in StrToList(value.lower()):
-                    keys = MergeLists(keys, [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).filter(searchfield, s).order(sortfield))])
+                    keys = MergeLists(keys, [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).filter(searchfield, s).order('%s%s' % ('-' if sortreverse else '', sortfield)))])
             else:
-                keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).order(sortfield))]
+                keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).order('%s%s' % ('-' if sortreverse else '', sortfield)))]
 
         if filtertype == 'leecher':
-            keys = [str(b.related_bubble.key()) for b in db.Query(BubbleRelation).filter('bubble', db.Key(value)).filter('type', 'leecher').filter('x_is_deleted', False) if b.related_bubble.Authorize('viewer')]
+            keys = [b.related_bubble.key() for b in db.Query(BubbleRelation).filter('bubble', db.Key(value)).filter('type', 'leecher').filter('x_is_deleted', False) if b.related_bubble.Authorize('viewer')]
+            keys = [str(b.key()) for b in sorted(Bubble().get(keys), key=attrgetter(sortfield), reverse=sortreverse) if b.Authorize('viewer')]
 
         if filtertype == 'leecher_in':
-            keys = [str(b.bubble.key()) for b in db.Query(BubbleRelation).filter('related_bubble', db.Key(value)).filter('type', 'leecher').filter('x_is_deleted', False)]
+            keys = [b.bubble.key() for b in db.Query(BubbleRelation).filter('related_bubble', db.Key(value)).filter('type', 'leecher').filter('x_is_deleted', False)]
+            keys = [str(b.key()) for b in sorted(Bubble().get(keys), key=attrgetter(sortfield), reverse=sortreverse) if b.Authorize('viewer')]
 
         if filtertype == 'subbubbles':
             bubble = Bubble().get(value)
-            keys = [str(b.key()) for b in sorted(bubble.GetRelatives('subbubble'), key=attrgetter('x_created'), reverse=True) if b.GetValue('x_type') == bt.key() and b.Authorize('viewer')]
+            keys = [str(b.key()) for b in sorted(bubble.GetRelatives('subbubble'), key=attrgetter(sortfield), reverse=sortreverse) if b.GetValue('x_type') == bt.key() and b.Authorize('viewer')]
 
         self.echo_json({'keys': keys})
 
