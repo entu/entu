@@ -146,7 +146,7 @@ class Bubble(ChangeLogModel):
         #                     'user': CurrentUser()._googleuser
         #                 }, 'bubble-one-by-one')
 
-        #             for sb in self.GetRelatives('subbuble'):
+        #             for sb in self.GetRelatives('subbubble'):
         #                 for p in sb.GetValueAsList('x_br_viewer'):
         #                     AddTask('/taskqueue/rights', {
         #                         'bubble': str(self.key()),
@@ -165,10 +165,10 @@ class Bubble(ChangeLogModel):
             allowed = ['owner']
         if type == 'editor':
             allowed = ['owner', 'editor']
-        if type == 'subbubler':
-            allowed = ['owner', 'editor', 'subbubler']
+        if type == 'subbubbler':
+            allowed = ['owner', 'editor', 'subbubbler']
         if type == 'viewer':
-            allowed = ['owner', 'editor', 'subbubler', 'viewer']
+            allowed = ['owner', 'editor', 'subbubbler', 'viewer']
         if self.GetMyRole() in allowed:
             return True
         else:
@@ -181,8 +181,8 @@ class Bubble(ChangeLogModel):
             return 'owner'
         if CurrentUser().key() in self.GetValueAsList('x_br_editor'):
             return 'editor'
-        if CurrentUser().key() in self.GetValueAsList('x_br_subbubler'):
-            return 'subbubler'
+        if CurrentUser().key() in self.GetValueAsList('x_br_subbubbler'):
+            return 'subbubbler'
         if CurrentUser().key() in self.GetValueAsList('x_br_viewer'):
             return 'viewer'
 
@@ -255,12 +255,12 @@ class Bubble(ChangeLogModel):
                 new_br.put()
 
         # Create BubbleRelation's
-        br = db.Query(BubbleRelation).filter('bubble', self.key()).filter('related_bubble', newbubble.key()).filter('type', 'subbuble').get()
+        br = db.Query(BubbleRelation).filter('bubble', self.key()).filter('related_bubble', newbubble.key()).filter('type', 'subbubble').get()
         if not br:
             br = BubbleRelation()
             br.bubble = self.key()
             br.related_bubble = newbubble.key()
-            br.type = 'subbuble'
+            br.type = 'subbubble'
             br.put()
         else:
             if br.x_is_deleted != False:
@@ -552,6 +552,6 @@ def CurrentUser():
 class BubbleRelation(ChangeLogModel):
     bubble                  = db.ReferenceProperty(Bubble, collection_name='bubblerelation_bubble')
     related_bubble          = db.ReferenceProperty(Bubble, collection_name='bubblerelation_related_bubble')
-    type                    = db.StringProperty(choices=['subbuble','seeder','leecher','editor','owner','subbubbler','viewer'])
+    type                    = db.StringProperty(choices=['subbubble','seeder','leecher','editor','owner','subbubbler','viewer'])
     start_datetime          = db.DateTimeProperty()
     end_datetime            = db.DateTimeProperty()
