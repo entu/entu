@@ -133,7 +133,7 @@ class FixRelations2(boRequestHandler): # Change Person keys from Bubble.x_br_...
 
     def post(self, bubbletype, relationtype):
         rc = 0
-        limit = 200
+        limit = 10
         step = int(self.request.get('step', 1))
         offset = int(self.request.get('offset', 0))
 
@@ -164,7 +164,7 @@ class FixRelations3(boRequestHandler): # Bubble.x_br_... to Bubblerelation
 
     def post(self, bubbletype, relationtype):
         rc = 0
-        limit = 200
+        limit = 10
         step = int(self.request.get('step', 1))
         offset = int(self.request.get('offset', 0))
 
@@ -338,12 +338,43 @@ class AutoFixBubble(boRequestHandler):
 
         for bubble in db.Query(Bubble).filter('type', bubbletype).order('__key__').fetch(limit=limit, offset=offset):
             rc += 1
+            # x_br_subbubble = MergeLists(bubble.GetValueAsList('x_br_subbuble'), bubble.GetValueAsList('x_br_subbubble'))
+            # if len(x_br_subbubble) > 0:
+            #     bubble.x_br_subbubble = x_br_subbubble
+            #     if hasattr(bubble, 'x_br_subbuble'):
+            #         delattr(bubble, 'x_br_subbuble')
+            #     bubble.put()
+            bt = db.Query(Bubble).filter('path', bubbletype).get()
+            bubble.x_type = bt.key()
+            bubble.put()
+
             bubble.AutoFix()
 
         logging.debug('#' + str(step) + ' - ' + str(rc) + ' rows from ' + str(offset))
 
         if rc == limit:
             taskqueue.Task(url='/update/autofix/%s' % bubbletype, params={'offset': (offset + rc), 'step': (step + 1)}).add()
+
+
+class XXX(boRequestHandler):
+    def get(self):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+
+        a = sorted(['a', 'd', 'c', 'b'])
+        b = sorted(['a', 'b', 'c', 'd'])
+
+        self.echo(a==b)
+
+        # for bubble in db.Query(BubbleRelation).filter('type', 'subbuble').fetch(100):
+        #     br = db.Query(BubbleRelation).filter('bubble', bubble.bubble).filter('related_bubble', bubble.related_bubble).filter('type', 'subbubble').get()
+        #     if br:
+        #         bubble.delete()
+        #         self.echo('a'+str(bubble.key().id()))
+        #     else:
+        #         bubble.type = 'subbubble'
+        #         bubble.put()
+        #         self.echo('b'+str(bubble.key().id()))
+
 
 
 def main():
@@ -353,6 +384,7 @@ def main():
             ('/update/applicant', FixApplicants),
             ('/update/cache', MemCacheInfo),
             ('/update/docs', Dokumendid),
+            ('/update/xxx', XXX),
             ('/update/sendmessage', SendMessage),
             (r'/update/autofix/(.*)', AutoFixBubble),
             (r'/update/relations/(.*)', FixRelations),

@@ -85,7 +85,9 @@ class Bubble(ChangeLogModel):
 
     def AutoFix(self):
         bt = self.GetType()
+        do_put = False
 
+        # Set x_sort_... and x_search_...
         for language in SystemPreferences().get('languages'):
             sorts = getattr(bt, 'sort_string', '')
             for data_property in FindTags(sorts, '@', '@'):
@@ -97,7 +99,9 @@ class Bubble(ChangeLogModel):
                 else:
                     sorts = sorts.replace('@%s@' % data_property, ', '.join(['%s' % n['value'] for n in t['values'] if n['value']]))
             sorts = StringToSortable(sorts)
-            setattr(self, 'x_sort_%s' % language, sorts)
+            if sorts != getattr(self, 'x_sort_%s' % language, ''):
+                setattr(self, 'x_sort_%s' % language, sorts)
+                do_put = True
 
             searchl = []
             for bp in Bubble().get(bt.GetValueAsList('search_properties')):
@@ -105,26 +109,22 @@ class Bubble(ChangeLogModel):
                     t = self.GetProperty(bubbletype = bt, data_property = bp.data_property, language = language)
                     for s in ['%s' % n['value'] for n in t['values'] if n['value']]:
                         searchl = MergeLists(searchl, StringToSearchIndex(s))
+                searchl = sorted(searchl)
             if len(searchl) > 0:
-                setattr(self, 'x_search_%s' % language, searchl)
+                if searchl != getattr(self, 'x_search_%s' % language, ''):
+                    setattr(self, 'x_search_%s' % language, searchl)
+                    do_put = True
             else:
                 if hasattr(self, 'x_search_%s'% language):
                     delattr(self, 'x_search_%s'% language)
-
-            if hasattr(self, '_sort_%s'% language):
-                delattr(self, '_sort_%s'% language)
-            if hasattr(self, '_search_%s'% language):
-                delattr(self, '_search_%s'% language)
-            if hasattr(self, 'sort_%s'% language):
-                delattr(self, 'sort_%s'% language)
-            if hasattr(self, 'search_%s'% language):
-                delattr(self, 'search_%s'% language)
+                    do_put = True
 
         for key in self.dynamic_properties():
             value = getattr(self, key)
             if type(value) is list:
                 if len(value) == 1:
                     setattr(self, key, value[0])
+                    do_put = True
 
         # if self.type in ['applicant', 'pre_applicant']:
         #     if self.key() not in self.GetValueAsList('x_br_viewer'):
@@ -156,7 +156,8 @@ class Bubble(ChangeLogModel):
         #                     }, 'bubble-one-by-one')
         #                 sb.put()
 
-        self.put('autofix')
+        if do_put == True:
+            self.put('autofix')
 
     def Authorize(self, type):
         # if users.is_current_user_admin():

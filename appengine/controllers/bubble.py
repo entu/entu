@@ -75,9 +75,7 @@ class ShowBubbleList(boRequestHandler):
             keys = [str(b.key()) for b in sorted(bubbles, key=attrgetter(sortfield), reverse=sortreverse) if b.Authorize('viewer')]
 
         if filtertype == 'leecher_in':
-            sortfield = 'displayname'
-            keys = [b.bubble.key() for b in db.Query(BubbleRelation).filter('related_bubble', db.Key(value)).filter('type', 'leecher').filter('x_is_deleted', False)]
-            keys = [str(b.key()) for b in sorted(Bubble().get(keys), key=attrgetter(sortfield), reverse=sortreverse) if b.Authorize('viewer')]
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_br_leecher', db.Key(value)).filter('x_is_deleted', False).order('%s%s' % ('-' if sortreverse else '', sortfield)))]
 
         if filtertype == 'subbubbles':
             bubble = Bubble().get(value)
