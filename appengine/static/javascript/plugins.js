@@ -8,6 +8,7 @@
 //@codekit-prepend "jquery.simplemodal-1.4.1.js";
 //@codekit-prepend "jstorage.js";
 
+
 function removeBubbleInfo(key) {
     $.jStorage.deleteKey('BubbleInfo_' + key);
 }
@@ -20,7 +21,7 @@ function getBubbleInfo(bubbletype, key, div, listtype) {
         $.post('/bubble/x', {key: key}, function(bubble_json) {
             makeBubbleInfo(bubbletype, bubble_json, div, listtype);
             $.jStorage.set('BubbleInfo_' + bubble_json.key, bubble_json);
-            $.jStorage.setTTL('BubbleInfo_' + bubble_json.key, 300000)
+            //$.jStorage.setTTL('BubbleInfo_' + bubble_json.key, 300000)
         }, 'json');
     }
 };
@@ -64,7 +65,7 @@ function getChoices(property) {
         $.post('/bubble/sfv', { 'property': names[n] }, function(choices_json) {
             makeChoices(choices_json);
             $.jStorage.set('Choices_' + choices_json.property, choices_json);
-            $.jStorage.setTTL('Choices_' + choices_json.property, 300000)
+            //$.jStorage.setTTL('Choices_' + choices_json.property, 300000)
         }, 'json');
     };
 };

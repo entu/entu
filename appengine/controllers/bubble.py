@@ -65,14 +65,13 @@ class ShowBubbleList(boRequestHandler):
             if value:
                 keys = []
                 for s in StrToList(value.lower()):
-                    keys = MergeLists(keys, [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).filter(searchfield, s).order('%s%s' % ('-' if sortreverse else '', sortfield)))])
+                    keys = MatchLists(keys, [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).filter(searchfield, s).order('%s%s' % ('-' if sortreverse else '', sortfield)))])
             else:
                 keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).order('%s%s' % ('-' if sortreverse else '', sortfield)))]
 
         if filtertype == 'leecher':
-            sortfield = 'displayname'
-            keys = [b.related_bubble.key() for b in db.Query(BubbleRelation).filter('bubble', db.Key(value)).filter('type', 'leecher').filter('x_is_deleted', False) if b.related_bubble.Authorize('viewer')]
-            keys = [str(b.key()) for b in sorted(Bubble().get(keys), key=attrgetter(sortfield), reverse=sortreverse) if b.Authorize('viewer')]
+            bubble = Bubble().get(value)
+            keys = [str(b.key()) for b in sorted(Bubble().get(bubble.GetValueAsList('x_br_leecher')), key=attrgetter(sortfield), reverse=sortreverse) if b.Authorize('viewer')]
 
         if filtertype == 'leecher_in':
             sortfield = 'displayname'
@@ -80,9 +79,8 @@ class ShowBubbleList(boRequestHandler):
             keys = [str(b.key()) for b in sorted(Bubble().get(keys), key=attrgetter(sortfield), reverse=sortreverse) if b.Authorize('viewer')]
 
         if filtertype == 'subbubbles':
-            sortfield = 'displayname'
             bubble = Bubble().get(value)
-            keys = [str(b.key()) for b in sorted(bubble.GetRelatives('subbubble'), key=attrgetter(sortfield), reverse=sortreverse) if b.GetValue('x_type') == bt.key() and b.Authorize('viewer')]
+            keys = [str(b.key()) for b in sorted(Bubble().get(bubble.GetValueAsList('x_br_subbubble')), key=attrgetter(sortfield), reverse=sortreverse) if b.GetValue('x_type') == bt.key() and b.Authorize('viewer')]
 
         self.echo_json({'keys': keys})
 

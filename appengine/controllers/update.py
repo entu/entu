@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from google.appengine.api import users
 from google.appengine.api import memcache
 from datetime import *
@@ -48,21 +50,51 @@ class MemCacheInfo(boRequestHandler):
             self.echo('%s: %s' % (k, v))
 
 
-class FixStuff(boRequestHandler):
+class SendMessage(boRequestHandler):
     def get(self):
         self.header('Content-Type', 'text/plain; charset=utf-8')
-        # taskqueue.Task(url='/update/stuff').add()
-
-        bt = db.Query(Bubble).filter('path', 'person').get()
-        for k in ['agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYy_rLAgw', 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY1IfMAgw', 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYyvrLAgw']:
-            b = Bubble().get(k)
-            b.x_type = bt.key()
-            b.type = bt.path
-            b.put()
+        taskqueue.Task(url='/update/sendmessage').add()
+        self.echo(str(db.Query(Bubble).filter('type', 'pre_applicant').filter('x_is_deleted', False).count(limit=100000)))
 
     def post(self):
-        pass
+        rc = 0
+        limit = 100
+        step = int(self.request.get('step', 1))
+        offset = int(self.request.get('offset', 0))
 
+        bt = db.Query(Bubble).filter('path', 'message').get()
+        alter = bt.GetValueAsList('notify_on_alter')
+
+        for b in db.Query(Bubble).filter('type', 'pre_applicant').filter('x_is_deleted', False).order('__key__').fetch(limit=limit, offset=offset):
+            rc += 1
+
+            # bubble = b.AddSubbubble(bt.key())
+            # bubble.x_created_by = 'helen.jyrgens@artun.ee'
+            # bubble.put()
+
+            # value = bubble.SetProperty(
+            #     propertykey = 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYk7zUAgw',
+            #     oldvalue = '',
+            #     newvalue = u'Kandideerimiseks Eesti Kunstiakadeemiasse täida avaldus lõpuni ja vajuta avalduse lõpus olevat nuppu "Esita avaldus"'
+            # )
+
+            # message = ''
+            # for t in bubble.GetProperties():
+            #     message += '<b>%s</b>:<br/>\n' % t['name']
+            #     message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
+            #     message += '<br/>\n'
+
+            # emails = MergeLists(getattr(b, 'email', []), getattr(b, 'user', []))
+            # SendMail(
+            #     to = emails,
+            #     subject = Translate('message_notify_on_alter_subject') % bt.displayname.lower(),
+            #     message = message,
+            # )
+
+        logging.debug('#' + str(step) + ' - ' + str(rc) + ' rows from ' + str(offset))
+
+        if rc == limit:
+            taskqueue.Task(url='/update/sendmessage', params={'offset': (offset + rc), 'step': (step + 1)}).add()
 
 class FixRelations(boRequestHandler): # BubbleRelation to Bubble.x_br_...
     def get(self, relationtype=None):
@@ -226,18 +258,42 @@ class ChangeBubbleType(boRequestHandler):
         b.x_type = bt.key()
         b.type = bt.path
         b.put()
+        bubble.AutoFix()
+
+
+class AutoFixBubble(boRequestHandler):
+    def get(self, bubbletype):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        taskqueue.Task(url='/update/autofix/%s' % bubbletype).add()
+        self.echo(str(db.Query(Bubble).filter('type', bubbletype).count(limit=1000000)))
+
+    def post(self, bubbletype):
+        rc = 0
+        limit = 20
+        step = int(self.request.get('step', 1))
+        offset = int(self.request.get('offset', 0))
+
+        for bubble in db.Query(Bubble).filter('type', bubbletype).order('__key__').fetch(limit=limit, offset=offset):
+            rc += 1
+            bubble.AutoFix()
+
+        logging.debug('#' + str(step) + ' - ' + str(rc) + ' rows from ' + str(offset))
+
+        if rc == limit:
+            taskqueue.Task(url='/update/autofix/%s' % bubbletype, params={'offset': (offset + rc), 'step': (step + 1)}).add()
 
 
 def main():
     Route([
-            ('/update/docs', Dokumendid),
+            ('/update/applicant', FixApplicants),
             ('/update/cache', MemCacheInfo),
-            ('/update/stuff', FixStuff),
+            ('/update/docs', Dokumendid),
+            ('/update/sendmessage', SendMessage),
+            (r'/update/autofix/(.*)', AutoFixBubble),
             (r'/update/relations/(.*)', FixRelations),
             (r'/update/relations2/(.*)/(.*)', FixRelations2),
             (r'/update/relations3/(.*)/(.*)', FixRelations3),
             (r'/update/type/(.*)', FixType),
-            ('/update/applicant', FixApplicants),
             (r'/update/type2(.*)/(.*)', ChangeBubbleType),
         ])
 

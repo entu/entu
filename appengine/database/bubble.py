@@ -85,11 +85,14 @@ class Bubble(ChangeLogModel):
 
     def AutoFix(self):
         bt = self.GetType()
+
         for language in SystemPreferences().get('languages'):
             sorts = getattr(bt, 'sort_string', '')
             for data_property in FindTags(sorts, '@', '@'):
                 t = self.GetProperty(bubbletype = bt, data_property = data_property, language = language)
-                if t['data_type'] in ['integer', 'float']:
+                if t['data_type'] in ['date', 'datetime']:
+                    sorts = sorts.replace('@%s@' % data_property, ', '.join(['%s' % n['forsort'] for n in t['values'] if n['forsort']]))
+                elif t['data_type'] in ['integer', 'float']:
                     sorts = sorts.replace('@%s@' % data_property, ', '.join(['%09d' % n['value'] for n in t['values'] if n['value']]))
                 else:
                     sorts = sorts.replace('@%s@' % data_property, ', '.join(['%s' % n['value'] for n in t['values'] if n['value']]))
@@ -123,8 +126,7 @@ class Bubble(ChangeLogModel):
                 if len(value) == 1:
                     setattr(self, key, value[0])
 
-
-        # if self.type == 'applicant':
+        # if self.type in ['applicant', 'pre_applicant']:
         #     if self.key() not in self.GetValueAsList('x_br_viewer'):
         #         AddTask('/taskqueue/rights', {
         #             'bubble': str(self.key()),
@@ -363,9 +365,9 @@ class Bubble(ChangeLogModel):
                         d = Dictionary().get(v)
                         v = {'value': getattr(d, language), 'key': str(d.key())}
                     if bp.data_type == 'datetime':
-                        v = {'value': UtcToLocalDateTime(v).strftime('%d.%m.%Y %H:%M')}
+                        v = {'value': UtcToLocalDateTime(v).strftime('%d.%m.%Y %H:%M'), 'forsort': UtcToLocalDateTime(v).strftime('%Y%m%d%H%M')}
                     if bp.data_type == 'date':
-                        v = {'value': v.strftime('%d.%m.%Y')}
+                        v = {'value': v.strftime('%d.%m.%Y'), 'forsort': UtcToLocalDateTime(v).strftime('%Y%m%d%H%M')}
                     if bp.data_type == 'reference':
                         try:
                             d = Bubble().get(v)

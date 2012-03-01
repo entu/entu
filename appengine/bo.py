@@ -422,6 +422,18 @@ def MergeLists(l1 = None, l2 = None):
         l2 = [l2]
     return GetUniqueList(l1 + l2)
 
+def MatchLists(l1 = None, l2 = None):
+    if not l1:
+        return l2
+    if not l2:
+        return l1
+    if type(l1) is not list:
+        l1 = [l1]
+    if type(l2) is not list:
+        l2 = [l2]
+    l = set(l1)
+    return list(l.intersection(l2))
+
 
 def GetListsDiff(l1, l2):
     return list(set(l1).symmetric_difference(set(l2)))
