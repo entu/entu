@@ -35,7 +35,7 @@ class ShowBubbleList(boRequestHandler):
         key = self.request.get('key').strip()
         if key:
             bubble = Bubble().get(key)
-            # bubble.AutoFix()
+            bubble.AutoFix()
 
             if not bubble.Authorize('viewer'):
                 self.error(404)
@@ -71,7 +71,8 @@ class ShowBubbleList(boRequestHandler):
 
         if filtertype == 'leecher':
             bubble = Bubble().get(value)
-            keys = [str(b.key()) for b in sorted(Bubble().get(bubble.GetValueAsList('x_br_leecher')), key=attrgetter(sortfield), reverse=sortreverse) if b.Authorize('viewer')]
+            bubbles = [b for b in Bubble().get(bubble.GetValueAsList('x_br_leecher')) if b]
+            keys = [str(b.key()) for b in sorted(bubbles, key=attrgetter(sortfield), reverse=sortreverse) if b.Authorize('viewer')]
 
         if filtertype == 'leecher_in':
             sortfield = 'displayname'
@@ -80,7 +81,8 @@ class ShowBubbleList(boRequestHandler):
 
         if filtertype == 'subbubbles':
             bubble = Bubble().get(value)
-            keys = [str(b.key()) for b in sorted(Bubble().get(bubble.GetValueAsList('x_br_subbubble')), key=attrgetter(sortfield), reverse=sortreverse) if b.GetValue('x_type') == bt.key() and b.Authorize('viewer')]
+            bubbles = [b for b in Bubble().get(bubble.GetValueAsList('x_br_subbubble')) if b]
+            keys = [str(b.key()) for b in sorted(bubbles, key=attrgetter(sortfield), reverse=sortreverse) if b.GetValue('x_type') == bt.key() and b.Authorize('viewer')]
 
         self.echo_json({'keys': keys})
 
