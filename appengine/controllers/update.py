@@ -141,10 +141,11 @@ class FixRelations2(boRequestHandler): # Change Person keys from Bubble.x_br_...
             rc += 1
             for r in bubble.GetValueAsList('x_br_%s' % relationtype):
                 p = db.get(r)
-                if p.kind() == 'Person':
-                    if hasattr(p, 'person2bubble'):
-                        setattr(bubble, 'x_br_%s' % relationtype, MergeLists(getattr(bubble, 'x_br_%s' % relationtype, []), p.person2bubble))
-                        bubble.put()
+                if p:
+                    if p.kind() == 'Person':
+                        if hasattr(p, 'person2bubble'):
+                            setattr(bubble, 'x_br_%s' % relationtype, MergeLists(getattr(bubble, 'x_br_%s' % relationtype, []), p.person2bubble))
+                            bubble.put()
 
         logging.debug('#' + str(step) + ' - ' + bubbletype + ' - ' + relationtype + ' - ' + str(rc) + ' rows from ' + str(offset))
 
@@ -171,15 +172,16 @@ class FixRelations3(boRequestHandler): # Bubble.x_br_... to Bubblerelation
             rc += 1
             for r in bubble.GetValueAsList('x_br_%s' % relationtype):
                 p = db.get(r)
-                if p.kind() == 'Bubble':
-                    br = db.Query(BubbleRelation).filter('bubble', bubble.key()).filter('related_bubble', p.key()).filter('type', relationtype).get()
-                    if not br:
-                        br = BubbleRelation()
-                        br.bubble = bubble.key()
-                        br.related_bubble = p.key()
-                    br.type = relationtype
-                    br.x_is_deleted = False
-                    br.put()
+                if p:
+                    if p.kind() == 'Bubble':
+                        br = db.Query(BubbleRelation).filter('bubble', bubble.key()).filter('related_bubble', p.key()).filter('type', relationtype).get()
+                        if not br:
+                            br = BubbleRelation()
+                            br.bubble = bubble.key()
+                            br.related_bubble = p.key()
+                        br.type = relationtype
+                        br.x_is_deleted = False
+                        br.put()
 
         logging.debug('#' + str(step) + ' - ' + bubbletype + ' - ' + relationtype + ' - ' + str(rc) + ' rows from ' + str(offset))
 
