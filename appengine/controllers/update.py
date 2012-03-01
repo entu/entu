@@ -96,6 +96,7 @@ class SendMessage(boRequestHandler):
         if rc == limit:
             taskqueue.Task(url='/update/sendmessage', params={'offset': (offset + rc), 'step': (step + 1)}).add()
 
+
 class FixRelations(boRequestHandler): # BubbleRelation to Bubble.x_br_...
     def get(self, relationtype=None):
         self.header('Content-Type', 'text/plain; charset=utf-8')
@@ -261,6 +262,66 @@ class ChangeBubbleType(boRequestHandler):
         bubble.AutoFix()
 
 
+class CopyBubble(boRequestHandler): # Assign Bubble as SubBubble to another Bubble
+    def get(self, subbubbleId, masterbubbleId):
+        subbubble = Bubble().get_by_id(int(subbubbleId))
+        masterbubble = Bubble().get_by_id(int(masterbubbleId))
+
+        # Add subbubble
+        masterbubble.x_br_subbubble = MergeLists(masterbubble.GetValueAsList('x_br_subbubble'), subbubble.key())
+        masterbubble.put()
+
+        # Create BubbleRelation's
+        br = db.Query(BubbleRelation).filter('bubble', masterbubble.key()).filter('related_bubble', subbubble.key()).filter('type', 'subbubble').get()
+        if not br:
+            br = BubbleRelation()
+            br.bubble = masterbubble.key()
+            br.related_bubble = subbubble.key()
+            br.type = 'subbubble'
+            br.put()
+        else:
+            if br.x_is_deleted != False:
+                br.x_is_deleted = False
+                br.put()
+
+
+class MoveBubble(boRequestHandler): # Assign Bubble as SubBubble to another Bubble
+    def get(self, subbubbleId, masterbubbleId):
+        subbubble = Bubble().get_by_id(int(subbubbleId))
+        masterbubble = Bubble().get_by_id(int(masterbubbleId))
+
+        # Remove from all previous master bubbles
+        for mb in db.Query(Bubble).filter('x_br_subbubble', subbubble.key()).fetch(1000):
+            x_br_subbubble = RemoveFromList(subbubble.key(), mb.GetValueAsList('x_br_subbubble'))
+            if len(x_br_subbubble) > 0:
+                mb.x_br_subbubble = x_br_subbubble
+            else:
+                delattr(mb, 'x_br_subbubble')
+            mb.put()
+
+        # Remove all previous BubbleRelations
+        for br in db.Query(BubbleRelation).filter('related_bubble', subbubble.key()).filter('type', 'subbubble').filter('x_is_deleted', False).fetch(1000):
+            br.x_is_deleted = True
+            br.put()
+
+        # Add subbubble
+        masterbubble.x_br_subbubble = MergeLists(masterbubble.GetValueAsList('x_br_subbubble'), subbubble.key())
+        masterbubble.put()
+
+        # Create BubbleRelation
+        br = db.Query(BubbleRelation).filter('bubble', masterbubble.key()).filter('related_bubble', subbubble.key()).filter('type', 'subbubble').get()
+        if not br:
+            br = BubbleRelation()
+            br.bubble = masterbubble.key()
+            br.related_bubble = subbubble.key()
+            br.type = 'subbubble'
+            br.put()
+        else:
+            if br.x_is_deleted != False:
+                br.x_is_deleted = False
+                br.put()
+
+
 class AutoFixBubble(boRequestHandler):
     def get(self, bubbletype):
         self.header('Content-Type', 'text/plain; charset=utf-8')
@@ -285,6 +346,8 @@ class AutoFixBubble(boRequestHandler):
 
 def main():
     Route([
+            (r'/update/copybubble/(.*)/(.*)', CopyBubble),
+            (r'/update/movebubble/(.*)/(.*)', MoveBubble),
             ('/update/applicant', FixApplicants),
             ('/update/cache', MemCacheInfo),
             ('/update/docs', Dokumendid),
