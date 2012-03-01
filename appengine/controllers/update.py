@@ -99,7 +99,7 @@ class SendMessage(boRequestHandler):
 class FixRelations(boRequestHandler): # BubbleRelation to Bubble.x_br_...
     def get(self, relationtype=None):
         self.header('Content-Type', 'text/plain; charset=utf-8')
-        for r in ['subbuble','seeder','leecher','editor','owner','subbubbler','viewer']:
+        for r in ['subbubble','seeder','leecher','editor','owner','subbubbler','viewer']:
             taskqueue.Task(url='/update/relations/%s' % r).add()
             self.echo(r + ': ' + str(db.Query(BubbleRelation).filter('type', relationtype).filter('x_is_deleted', False).count(limit=100000)))
 
@@ -126,7 +126,7 @@ class FixRelations(boRequestHandler): # BubbleRelation to Bubble.x_br_...
 class FixRelations2(boRequestHandler): # Change Person keys from Bubble.x_br_... to Bubble keys
     def get(self, bubbletype, relationtype=None):
         self.header('Content-Type', 'text/plain; charset=utf-8')
-        for r in ['subbuble','seeder','leecher','editor','owner','subbubbler','viewer']:
+        for r in ['subbubble','seeder','leecher','editor','owner','subbubbler','viewer']:
             taskqueue.Task(url='/update/relations2/%s/%s' % (bubbletype, r)).add()
         self.echo(str(db.Query(Bubble).filter('type', bubbletype).filter('x_is_deleted', False).count(limit=100000)))
 
@@ -156,7 +156,7 @@ class FixRelations2(boRequestHandler): # Change Person keys from Bubble.x_br_...
 class FixRelations3(boRequestHandler): # Bubble.x_br_... to Bubblerelation
     def get(self, bubbletype, relationtype=None):
         self.header('Content-Type', 'text/plain; charset=utf-8')
-        for r in ['subbuble','seeder','leecher','editor','owner','subbubbler','viewer']:
+        for r in ['subbubble','seeder','leecher','editor','owner','subbubbler','viewer']:
             taskqueue.Task(url='/update/relations3/%s/%s' % (bubbletype, r)).add()
         self.echo(str(db.Query(Bubble).filter('type', bubbletype).filter('x_is_deleted', False).count(limit=100000)))
 
