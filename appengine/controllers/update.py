@@ -100,9 +100,10 @@ class SendMessage(boRequestHandler):
 class FixRelations(boRequestHandler): # BubbleRelation to Bubble.x_br_...
     def get(self, relationtype=None):
         self.header('Content-Type', 'text/plain; charset=utf-8')
-        for r in ['subbubble','seeder','leecher','editor','owner','subbubbler','viewer']:
-            taskqueue.Task(url='/update/relations/%s' % r).add()
-            self.echo(r + ': ' + str(db.Query(BubbleRelation).filter('type', relationtype).filter('x_is_deleted', False).count(limit=100000)))
+        # for r in ['subbubble','seeder','leecher','editor','owner','subbubbler','viewer']:
+        for r in ['leecher']:
+            # taskqueue.Task(url='/update/relations/%s' % r).add()
+            self.echo(r + ': ' + str(db.Query(BubbleRelation).filter('type', r).filter('x_is_deleted', False).count(limit=100000)))
 
     def post(self, relationtype):
         rc = 0
@@ -344,9 +345,36 @@ class AutoFixBubble(boRequestHandler):
             #     if hasattr(bubble, 'x_br_subbuble'):
             #         delattr(bubble, 'x_br_subbuble')
             #     bubble.put()
-            bt = db.Query(Bubble).filter('path', bubbletype).get()
-            bubble.x_type = bt.key()
-            bubble.put()
+            # bt = db.Query(Bubble).filter('path', bubbletype).get()
+            # bubble.x_type = bt.key()
+            # bubble.put()
+
+            if bubble.type in ['applicant', 'pre_applicant']:
+                if bubble.key() not in bubble.GetValueAsList('x_br_viewer'):
+                    AddTask('/taskqueue/rights', {
+                        'bubble': str(bubble.key()),
+                        'person': str(bubble.key()),
+                        'right': 'viewer',
+                    }, 'bubble-one-by-one')
+
+                for br in db.Query(BubbleRelation).filter('x_is_deleted', False).filter('related_bubble', bubble.key()).filter('type', 'leecher').fetch(100):
+                    b = br.bubble
+                    if getattr(b, 'type', '') == 'submission':
+                        for p in b.GetValueAsList('x_br_viewer'):
+                            AddTask('/taskqueue/rights', {
+                                'bubble': str(bubble.key()),
+                                'person': str(p),
+                                'right': 'viewer',
+                            }, 'bubble-one-by-one')
+
+                        for sb in bubble.GetRelatives('subbubble'):
+                            for p in sb.GetValueAsList('x_br_viewer'):
+                                AddTask('/taskqueue/rights', {
+                                    'bubble': str(bubble.key()),
+                                    'person': str(p),
+                                    'right': 'viewer',
+                                }, 'bubble-one-by-one')
+                            sb.put()
 
             bubble.AutoFix()
 

@@ -126,42 +126,12 @@ class Bubble(ChangeLogModel):
                     setattr(self, key, value[0])
                     do_put = True
 
-        # if self.type in ['applicant', 'pre_applicant']:
-        #     if self.key() not in self.GetValueAsList('x_br_viewer'):
-        #         AddTask('/taskqueue/rights', {
-        #             'bubble': str(self.key()),
-        #             'person': str(self.key()),
-        #             'right': 'viewer',
-        #             'user': CurrentUser()._googleuser
-        #         }, 'bubble-one-by-one')
-
-        #     for br in db.Query(BubbleRelation).filter('x_is_deleted', False).filter('related_bubble', self.key()).filter('type', 'leecher').fetch(100):
-        #         b = br.bubble
-        #         if getattr(b, 'type', '') == 'submission':
-        #             for p in b.GetValueAsList('x_br_viewer'):
-        #                 AddTask('/taskqueue/rights', {
-        #                     'bubble': str(self.key()),
-        #                     'person': str(p),
-        #                     'right': 'viewer',
-        #                     'user': CurrentUser()._googleuser
-        #                 }, 'bubble-one-by-one')
-
-        #             for sb in self.GetRelatives('subbubble'):
-        #                 for p in sb.GetValueAsList('x_br_viewer'):
-        #                     AddTask('/taskqueue/rights', {
-        #                         'bubble': str(self.key()),
-        #                         'person': str(p),
-        #                         'right': 'viewer',
-        #                         'user': CurrentUser()._googleuser
-        #                     }, 'bubble-one-by-one')
-        #                 sb.put()
-
         if do_put == True:
             self.put('autofix')
 
     def Authorize(self, type):
-        # if users.is_current_user_admin():
-        #     return True
+        if users.is_current_user_admin():
+            return True
         if type == 'owner':
             allowed = ['owner']
         if type == 'editor':
@@ -176,8 +146,8 @@ class Bubble(ChangeLogModel):
             return False
 
     def GetMyRole(self):
-        # if users.is_current_user_admin():
-        #     return 'owner'
+        if users.is_current_user_admin():
+            return 'owner'
         if CurrentUser().key() in self.GetValueAsList('x_br_owner'):
             return 'owner'
         if CurrentUser().key() in self.GetValueAsList('x_br_editor'):
@@ -186,6 +156,12 @@ class Bubble(ChangeLogModel):
             return 'subbubbler'
         if CurrentUser().key() in self.GetValueAsList('x_br_viewer'):
             return 'viewer'
+
+    def CanEdit(self):
+        return True if self.GetMyRole() in ['owner', 'editor'] else False
+
+    def CanAddSubbubble(self):
+        return True if self.GetMyRole() in ['owner', 'editor', 'subbubbler'] else False
 
     def GetPhotoUrl(self, size = 150, square = False):
         blob_key = getattr(self, 'photo', None)
@@ -291,7 +267,7 @@ class Bubble(ChangeLogModel):
         else:
             return result
 
-    def SetValue(self, data_property, value):
+    def AddValue(self, data_property, value):
         newvalue = MergeLists(getattr(self, data_property, []), value)
         if len(newvalue) == 1:
             setattr(self, data_property, newvalue[0])

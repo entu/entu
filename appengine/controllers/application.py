@@ -80,7 +80,7 @@ class ShowSignin(boRequestHandler):
                         'person': str(db.Key(k)),
                         'right': 'viewer',
                         'user': getattr(p, 'email', '')
-                    }, 'bubble-one-by-one')
+                    }, 'one-by-one')
 
                 SendMail(
                     to = email,
@@ -113,7 +113,9 @@ class ShowApplication(boRequestHandler):
                 self.redirect('/application/signin')
                 return
             if p.type != 'applicant':
-                p.type = 'applicant'
+                bt = db.Query(Bubble).filter('type', 'bubble_type').filter('path', 'pre_applicant').get()
+                p.type = bt.path
+                p.x_type = bt.key()
                 p.put()
             if not hasattr(p, 'email'):
                 p.email = p.GetValue('user', '')
@@ -252,20 +254,20 @@ class EditSubmission(boRequestHandler):
         if not bubblekey:
             return
 
-        br = db.Query(BubbleRelation).filter('bubble', db.Key(bubblekey)).filter('related_bubble', p.key()).filter('type', 'leecher').get()
         if action == 'add':
-            if br:
-                br.x_is_deleted = False
-            else:
-                br = BubbleRelation()
-                br.type = 'leecher'
-                br.bubble = db.Key(bubblekey)
-                br.related_bubble = p.key()
-            br.put(getattr(p, 'email', ''))
+            AddTask('/taskqueue/add_relation', {
+                'bubble': str(db.Key(bubblekey)),
+                'related_bubble': str(p.key()),
+                'type': 'leecher',
+                'user': getattr(p, 'email', '')
+            }, 'one-by-one')
         else:
-            if br:
-                br.x_is_deleted = True
-                br.put(getattr(p, 'email', ''))
+            AddTask('/taskqueue/remove_relation', {
+                'bubble': str(db.Key(bubblekey)),
+                'related_bubble': str(p.key()),
+                'type': 'leecher',
+                'user': getattr(p, 'email', '')
+            }, 'one-by-one')
 
 
 class EditSubbubble(boRequestHandler):
@@ -295,8 +297,13 @@ class EditSubbubble(boRequestHandler):
             bubble.type = bt.path
             bubble.x_type = bt.key()
             bubble.put(getattr(p, 'email', ''))
-            p.x_br_subbubble = AddToList(bubble.key(), p.GetValueAsList('x_br_subbubble'))
-            p.put(getattr(p, 'email', ''))
+
+        AddTask('/taskqueue/add_relation', {
+            'bubble': str(p.key()),
+            'related_bubble': str(bubble.key()),
+            'type': 'subbubble',
+            'user': getattr(p, 'email', '')
+        }, 'one-by-one')
 
         value = bubble.SetProperty(
             propertykey = self.request.get('property').strip(),
@@ -408,8 +415,13 @@ class UploadFile(blobstore_handlers.BlobstoreUploadHandler):
                 bubble.type = bt.path
                 bubble.x_type = bt.key()
                 bubble.put(getattr(p, 'email', ''))
-                p.x_br_subbubble = AddToList(bubble.key(), p.GetValueAsList('x_br_subbubble'))
-                p.put(getattr(p, 'email', ''))
+
+            AddTask('/taskqueue/add_relation', {
+                'bubble': str(p.key()),
+                'related_bubble': str(bubble.key()),
+                'type': 'subbubble',
+                'user': getattr(p, 'email', '')
+            }, 'one-by-one')
 
             value = bubble.SetProperty(
                 propertykey = self.request.get('property').strip(),

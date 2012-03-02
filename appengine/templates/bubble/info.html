@@ -66,10 +66,10 @@
         });
 
         tools = [
-            {% if bubble.GetMyRole == 'viewer' and bubble.GetAllowedSubtypes %}
+            {% if bubble.CanAddSubbubble and bubble.GetAllowedSubtypes %}
                 '<a id="open_new_tipmenu" href="javascript:void(0);" class="icon add" title="{{ str.bubble_add_new }}"></a>',
             {% endif %}
-            {% if bubble.GetMyRole == 'viewer' %}
+            {% if bubble.CanEdit %}
                 '<a id="open_edit" href="javascript:void(0);" class="icon pencil tiptip" title="{{ str.bubble_edit }}"></a>',
             {% endif %}
             {% if bubble.GetMyRole == 'owner' %}

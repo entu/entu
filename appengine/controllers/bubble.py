@@ -72,15 +72,15 @@ class ShowBubbleList(boRequestHandler):
         if filtertype == 'leecher':
             bubble = Bubble().get(value)
             bubbles = [b for b in Bubble().get(bubble.GetValueAsList('x_br_leecher')) if b]
-            keys = [str(b.key()) for b in sorted(bubbles, key=attrgetter(sortfield), reverse=sortreverse) if b.Authorize('viewer')]
+            keys = [str(b.key()) for b in sorted(bubbles, key=attrgetter(sortfield), reverse=sortreverse)]
 
         if filtertype == 'leecher_in':
-            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_br_leecher', db.Key(value)).filter('x_is_deleted', False).order('%s%s' % ('-' if sortreverse else '', sortfield)))]
+            keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_leecher', db.Key(value)).filter('x_is_deleted', False).order('%s%s' % ('-' if sortreverse else '', sortfield)))]
 
         if filtertype == 'subbubbles':
             bubble = Bubble().get(value)
             bubbles = [b for b in Bubble().get(bubble.GetValueAsList('x_br_subbubble')) if b]
-            keys = [str(b.key()) for b in sorted(bubbles, key=attrgetter(sortfield), reverse=sortreverse) if b.GetValue('x_type') == bt.key() and b.Authorize('viewer')]
+            keys = [str(b.key()) for b in sorted(bubbles, key=attrgetter(sortfield), reverse=sortreverse) if b.GetValue('x_type') == bt.key()]
 
         self.echo_json({'keys': keys})
 

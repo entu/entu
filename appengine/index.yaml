@@ -104,6 +104,18 @@ indexes:
   - name: x_is_deleted
   - name: x_sort_english
 
+- kind: Bubble
+  properties:
+  - name: x_br_leecher
+  - name: x_is_deleted
+  - name: x_sort_estonian
+
+- kind: Bubble
+  properties:
+  - name: x_br_leecher
+  - name: x_is_deleted
+  - name: x_sort_english
+
 - kind: ChangeLog
   properties:
   - name: kind_name
