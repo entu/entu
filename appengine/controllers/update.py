@@ -265,6 +265,18 @@ class ChangeBubbleType(boRequestHandler):
         b.AutoFix()
 
 
+class AddLeecher(boRequestHandler):
+    def get(self, leecherId, masterbubbleId):
+        leecher = Bubble().get_by_id(int(leecherId))
+        masterbubble = Bubble().get_by_id(int(masterbubbleId))
+
+        AddTask('/taskqueue/add_relation', {
+            'bubble': str(masterbubble.key()),
+            'related_bubble': str(leecher.key()),
+            'type': 'leecher',
+        }, 'bubble-one-by-one')
+
+
 class CopyBubble(boRequestHandler): # Assign Bubble as SubBubble to another Bubble
     def get(self, subbubbleId, masterbubbleId):
         subbubble = Bubble().get_by_id(int(subbubbleId))
@@ -407,6 +419,7 @@ class XXX(boRequestHandler):
 
 def main():
     Route([
+            (r'/update/addleecher/(.*)/(.*)', AddLeecher),
             (r'/update/copybubble/(.*)/(.*)', CopyBubble),
             (r'/update/movebubble/(.*)/(.*)', MoveBubble),
             ('/update/applicant', FixApplicants),
