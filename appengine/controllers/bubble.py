@@ -37,9 +37,10 @@ class ShowBubbleList(boRequestHandler):
             bubble = Bubble().get(key)
             bubble.AutoFix()
 
-            if not bubble.Authorize('viewer'):
-                self.error(404)
-                return
+            if bubble.type not in ['cv_edu', 'cv_work', 'state_exam', 'applicant_doc', 'message']:
+                if not bubble.Authorize('viewer'):
+                    self.error(404)
+                    return
 
             self.echo_json({
                 'id': bubble.key().id(),

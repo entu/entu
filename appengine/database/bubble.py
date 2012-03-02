@@ -158,10 +158,12 @@ class Bubble(ChangeLogModel):
             return 'viewer'
 
     def CanEdit(self):
-        return True if self.GetMyRole() in ['owner', 'editor'] else False
+        # return True if self.GetMyRole() in ['owner', 'editor'] else False
+        return True if self.GetMyRole() in ['owner', 'editor', 'subbubbler', 'viewer'] else False
 
     def CanAddSubbubble(self):
-        return True if self.GetMyRole() in ['owner', 'editor', 'subbubbler'] else False
+        # return True if self.GetMyRole() in ['owner', 'editor', 'subbubbler'] else False
+        return True if self.GetMyRole() in ['owner', 'editor', 'subbubbler', 'viewer'] else False
 
     def GetPhotoUrl(self, size = 150, square = False):
         blob_key = getattr(self, 'photo', None)

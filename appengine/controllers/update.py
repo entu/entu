@@ -262,7 +262,7 @@ class ChangeBubbleType(boRequestHandler):
         b.x_type = bt.key()
         b.type = bt.path
         b.put()
-        bubble.AutoFix()
+        b.AutoFix()
 
 
 class CopyBubble(boRequestHandler): # Assign Bubble as SubBubble to another Bubble

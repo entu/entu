@@ -481,6 +481,7 @@ class Submit(boRequestHandler):
         p.x_type = bt.key()
         p.put(getattr(p, 'email', ''))
         p.AutoFix()
+        p.ResetCache()
 
         for s in db.Query(Bubble).filter('type', 'submission').fetch(1000):
             if getattr(s, 'start_datetime', datetime.now()) < datetime.now() and getattr(s, 'end_datetime', datetime.now()) > datetime.now():
