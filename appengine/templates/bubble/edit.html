@@ -50,7 +50,7 @@
                     {% if t.data_type == "blobstore" %}
                         {% for v in t.values %}
                             {{ v.value|default:"" }}{% if not forloop.last %}<br />{% endif %}
-                            {% if forloop.last and t.can_add_new %}
+                            {% if forloop.last %}
                                 <span id="blobstore_upload_{{ t.key }}"></span>
                                 <img src="/images/spinner_gray_small.gif" style="display:none;" />
                                 <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML, '#blobstore_upload_{{ t.key }}');" style="display:none;"></iframe>

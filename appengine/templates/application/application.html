@@ -45,54 +45,56 @@
                 </div>
             </div>
         {% for t in bubble %}
-            {% for v in t.values %}
-            <div class="row">
-                <div class="v_header" style="width:300px;{% if t.is_mandatory %} color:red;{% endif %} white-space:normal;">
-                    {{ t.name }}
-                </div>
-                {% if t.is_read_only %}
-                    <div class="cell" style="width:590px">
-                        {{ v.value|default:"" }}
+            {% if t.data_property != "x_type" and t.data_property != "confirmed" %}
+                {% for v in t.values %}
+                <div class="row">
+                    <div class="v_header" style="width:300px;{% if t.is_mandatory %} color:red;{% endif %} white-space:normal;">
+                        {{ t.name }}
                     </div>
-                {% else %}
-
-                    {% if t.data_type == "string" or t.data_type == "integer" or t.data_type == "float" or t.data_type == "date" or t.data_type == "datetime" %}
-                        <input type="text" name="{{ t.key }}" data-oldvalue="{{ v.value|default:"" }}" class="cell autosave dtype_{{ t.data_type }}{% if t.is_mandatory %} mandatory{% endif %}" value="{{ v.value|default:"" }}" style="width:590px" />
-                    {% endif %}
-
-                    {% if t.data_type == "text" %}
-                        <textarea type="text" name="{{ t.key }}" data-oldvalue="{{ v.value|default:"" }}" class="cell autosave dtype_{{ t.data_type }}{% if t.is_mandatory %} mandatory{% endif %}" style="width:590px">{{ v.value|default:"" }}</textarea>
-                    {% endif %}
-
-                    {% if t.data_type == "boolean" %}
-                        <div class="cell" style="width:590px; vertical-align:middle;">
-                            <input type="checkbox" name="{{ t.key }}" data-oldvalue="{{ v.value|default:"" }}" class="autosave dtype_{{ t.data_type }}"{% if v.value|default:"" %} checked{% endif %} />
-                        </div>
-                    {% endif %}
-
-                    {% if t.data_type == "blobstore" %}
-                        <div class="cell" style="width:590px" id="{{ t.data_type }}_{{ bubble_key }}_{{ t.key }}">
-                            {% if v.image_url %}<img src="{{ v.image_url }}=s100-c" style="padding-bottom:5px;" />{% endif %}
-                            <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showImage(this.contentWindow.document.body.innerHTML, 'blobstore_{{ bubble_key }}_{{ t.key }}');" style="display:none;"></iframe>
-                            <form method="post" action="{{ blobstore_upload_url }}" target="iframe_{{ t.key }}" enctype="multipart/form-data">
-                                <input type="file" name="file" class="dtype_{{ t.data_type }}" style="border:none; width:82px;" />
-                                <input type="hidden" name="type" value="{{ t.data_type }}" />
-                                <input type="hidden" name="bubble" value="{{ bubble_key }}" />
-                                <input type="hidden" name="property" value="{{ t.key }}" />
-                            </form>
-                        </div>
-                    {% endif %}
-
-                    {% if t.choices %}
+                    {% if t.is_read_only %}
                         <div class="cell" style="width:590px">
-                            <select name="{{ t.key }}" data-oldvalue="{{ v.key }}" class="autosave choices dtype_{{ t.data_type }}{% if t.is_mandatory %} mandatory{% endif %}" data-placeholder="{{ v.value|default:"" }}">
-                                <option value=""></option>
-                            </select>
+                            {{ v.value|default:"" }}
                         </div>
+                    {% else %}
+
+                        {% if t.data_type == "string" or t.data_type == "integer" or t.data_type == "float" or t.data_type == "date" or t.data_type == "datetime" %}
+                            <input type="text" name="{{ t.key }}" data-oldvalue="{{ v.value|default:"" }}" class="cell autosave dtype_{{ t.data_type }}{% if t.is_mandatory %} mandatory{% endif %}" value="{{ v.value|default:"" }}" style="width:590px" />
+                        {% endif %}
+
+                        {% if t.data_type == "text" %}
+                            <textarea type="text" name="{{ t.key }}" data-oldvalue="{{ v.value|default:"" }}" class="cell autosave dtype_{{ t.data_type }}{% if t.is_mandatory %} mandatory{% endif %}" style="width:590px">{{ v.value|default:"" }}</textarea>
+                        {% endif %}
+
+                        {% if t.data_type == "boolean" %}
+                            <div class="cell" style="width:590px; vertical-align:middle;">
+                                <input type="checkbox" name="{{ t.key }}" data-oldvalue="{{ v.value|default:"" }}" class="autosave dtype_{{ t.data_type }}"{% if v.value|default:"" %} checked{% endif %} />
+                            </div>
+                        {% endif %}
+
+                        {% if t.data_type == "blobstore" %}
+                            <div class="cell" style="width:590px" id="{{ t.data_type }}_{{ bubble_key }}_{{ t.key }}">
+                                {% if v.image_url %}<img src="{{ v.image_url }}=s100-c" style="padding-bottom:5px;" />{% endif %}
+                                <iframe name="iframe_{{ t.key }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showImage(this.contentWindow.document.body.innerHTML, 'blobstore_{{ bubble_key }}_{{ t.key }}');" style="display:none;"></iframe>
+                                <form method="post" action="{{ blobstore_upload_url }}" target="iframe_{{ t.key }}" enctype="multipart/form-data">
+                                    <input type="file" name="file" class="dtype_{{ t.data_type }}" style="border:none; width:82px;" />
+                                    <input type="hidden" name="type" value="{{ t.data_type }}" />
+                                    <input type="hidden" name="bubble" value="{{ bubble_key }}" />
+                                    <input type="hidden" name="property" value="{{ t.key }}" />
+                                </form>
+                            </div>
+                        {% endif %}
+
+                        {% if t.choices %}
+                            <div class="cell" style="width:590px">
+                                <select name="{{ t.key }}" data-oldvalue="{{ v.key }}" class="autosave choices dtype_{{ t.data_type }}{% if t.is_mandatory %} mandatory{% endif %}" data-placeholder="{{ v.value|default:"" }}">
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                        {% endif %}
                     {% endif %}
-                {% endif %}
-            </div>
-            {% endfor %}
+                </div>
+                {% endfor %}
+            {% endif %}
         {% endfor %}
     </section>
 
