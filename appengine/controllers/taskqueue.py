@@ -19,11 +19,12 @@ class AddBubbleRights(boRequestHandler):
 
         # Remove rights
         for r in rights:
-            bubble.RemoveValue('x_br_%s' % r, person.key())
-            bubble.put(user)
+            if person.key() in bubble.GetValueAsList('x_br_%s' % r):
+                bubble.RemoveValue('x_br_%s' % r, person.key())
+                bubble.put(user)
 
         # Add rights
-        if right:
+        if right and person.key() not in bubble.GetValueAsList('x_br_%s' % right):
             bubble.AddValue('x_br_%s' % right, person.key())
             bubble.put(user)
 

@@ -158,10 +158,12 @@ class Bubble(ChangeLogModel):
             return 'viewer'
 
     def CanEdit(self):
-        return True if self.GetMyRole() in ['owner', 'editor'] else False
+        # return True if self.GetMyRole() in ['owner', 'editor'] else False
+        return True if self.GetMyRole() in ['owner', 'editor', 'subbubbler', 'viewer'] else False
 
     def CanAddSubbubble(self):
-        return True if self.GetMyRole() in ['owner', 'editor', 'subbubbler'] else False
+        # return True if self.GetMyRole() in ['owner', 'editor', 'subbubbler'] else False
+        return True if self.GetMyRole() in ['owner', 'editor', 'subbubbler', 'viewer'] else False
 
     def GetPhotoUrl(self, size = 150, square = False):
         blob_key = getattr(self, 'photo', None)
@@ -225,11 +227,12 @@ class Bubble(ChangeLogModel):
                 setattr(newbubble, 'x_br_%s' % r, getattr(self, 'x_br_%s' % r))
                 newbubble.put()
             for br in db.Query(BubbleRelation).filter('bubble', self.key()).filter('type', r).fetch(1000):
-                new_br = BubbleRelation()
-                new_br.bubble = newbubble.key()
-                new_br.related_bubble = br.related_bubble
-                new_br.type = br.type
-                new_br.put()
+                if br.related_bubble.kind() == 'Bubble':
+                    new_br = BubbleRelation()
+                    new_br.bubble = newbubble.key()
+                    new_br.related_bubble = br.related_bubble
+                    new_br.type = br.type
+                    new_br.put()
 
         # Create BubbleRelation's
         br = db.Query(BubbleRelation).filter('bubble', self.key()).filter('related_bubble', newbubble.key()).filter('type', 'subbubble').get()

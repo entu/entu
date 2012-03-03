@@ -54,44 +54,53 @@ class SendMessage(boRequestHandler):
     def get(self):
         self.header('Content-Type', 'text/plain; charset=utf-8')
         taskqueue.Task(url='/update/sendmessage').add()
-        self.echo(str(db.Query(Bubble).filter('type', 'pre_applicant').filter('x_is_deleted', False).count(limit=100000)))
+        self.echo(str(db.Query(Bubble).filter('type', 'applicant').filter('confirmed', True).filter('x_is_deleted', False).count(limit=100000)))
 
     def post(self):
         rc = 0
-        limit = 100
+        bc = 0
+        limit = 400
         step = int(self.request.get('step', 1))
         offset = int(self.request.get('offset', 0))
 
         bt = db.Query(Bubble).filter('path', 'message').get()
         alter = bt.GetValueAsList('notify_on_alter')
 
-        for b in db.Query(Bubble).filter('type', 'pre_applicant').filter('x_is_deleted', False).order('__key__').fetch(limit=limit, offset=offset):
+        messagetext = u'Graafilise Disaini esimesed eksamiülesanded leiad siit: http://link.artun.ee/rrnpk'
+        # messagetext = u'Esimesed eksamiülesanded leiad siit:  http://link.artun.ee/iodtp http://link.artun.ee/ntdhj http://link.artun.ee/pcgvi'
+        submission_id = 4976705
+        submission = Bubble().get_by_id(submission_id)
+        submission_leechers = submission.x_br_leecher
+
+        for b in db.Query(Bubble).filter('type', 'applicant').filter('confirmed', True).filter('x_is_deleted', False).order('__key__').fetch(limit=limit, offset=offset):
             rc += 1
+            if b.key() in submission_leechers:
+                bc += 1
 
-            # bubble = b.AddSubbubble(bt.key())
-            # bubble.x_created_by = 'helen.jyrgens@artun.ee'
-            # bubble.put()
+                bubble = b.AddSubbubble(bt.key())
+                bubble.x_created_by = 'helen.jyrgens@artun.ee'
+                bubble.put()
 
-            # value = bubble.SetProperty(
-            #     propertykey = 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYk7zUAgw',
-            #     oldvalue = '',
-            #     newvalue = u'Kandideerimiseks Eesti Kunstiakadeemiasse täida avaldus lõpuni ja vajuta avalduse lõpus olevat nuppu "Esita avaldus"'
-            # )
+                value = bubble.SetProperty(
+                    propertykey = 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYk7zUAgw',
+                    oldvalue = '',
+                    newvalue = messagetext
+                )
 
-            # message = ''
-            # for t in bubble.GetProperties():
-            #     message += '<b>%s</b>:<br/>\n' % t['name']
-            #     message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
-            #     message += '<br/>\n'
+                message = ''
+                for t in bubble.GetProperties():
+                    message += '<b>%s</b>:<br/>\n' % t['name']
+                    message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
+                    message += '<br/>\n'
 
-            # emails = MergeLists(getattr(b, 'email', []), getattr(b, 'user', []))
-            # SendMail(
-            #     to = emails,
-            #     subject = Translate('message_notify_on_alter_subject') % bt.displayname.lower(),
-            #     message = message,
-            # )
+                emails = MergeLists(getattr(b, 'email', []), getattr(b, 'user', []))
+                SendMail(
+                    to = emails,
+                    subject = Translate('message_notify_on_alter_subject') % bt.displayname.lower(),
+                    message = message,
+                )
 
-        logging.debug('#' + str(step) + ' - ' + str(rc) + ' rows from ' + str(offset))
+        logging.debug('#' + str(step) + ' - emails:' + str(bc) + ' - ' + str(rc) + ' rows from ' + str(offset))
 
         if rc == limit:
             taskqueue.Task(url='/update/sendmessage', params={'offset': (offset + rc), 'step': (step + 1)}).add()
@@ -262,7 +271,7 @@ class ChangeBubbleType(boRequestHandler):
         b.x_type = bt.key()
         b.type = bt.path
         b.put()
-        bubble.AutoFix()
+        b.AutoFix()
 
 
 class CopyBubble(boRequestHandler): # Assign Bubble as SubBubble to another Bubble
@@ -388,10 +397,18 @@ class XXX(boRequestHandler):
     def get(self):
         self.header('Content-Type', 'text/plain; charset=utf-8')
 
-        a = sorted(['a', 'd', 'c', 'b'])
-        b = sorted(['a', 'b', 'c', 'd'])
+        for bt in db.Query(Bubble).filter('type', 'bubble_type').fetch(100):
+            if hasattr(bt, 'path'):
+                self.echo(bt.path+': '+str(db.Query(Bubble).filter('type', bt.path).filter('x_is_deleted', False).count(limit=1000000)))
 
-        self.echo(a==b)
+        # for b in db.Query(Bubble).filter('type', 'applicant').fetch(1000):
+        #     bt = db.Query(Bubble).filter('type', 'bubble_type').filter('path', b.type).get()
+        #     if getattr(b, 'x_type', None) != bt.key():
+        #         b.x_type = bt.key()
+        #         b.put()
+        #         b.AutoFix()
+
+        #         self.echo(str(b.key()))
 
         # for bubble in db.Query(BubbleRelation).filter('type', 'subbuble').fetch(100):
         #     br = db.Query(BubbleRelation).filter('bubble', bubble.bubble).filter('related_bubble', bubble.related_bubble).filter('type', 'subbubble').get()
