@@ -225,6 +225,9 @@ class SelectFieldValues(boRequestHandler):
         language = UserPreferences().current.language
         p = CurrentUser()
 
+        if not self.request.get('property').strip():
+            return
+
         bp = Bubble().get(self.request.get('property').strip())
 
         cache_key = 'select_field_' + '_' + str(p.key())
