@@ -82,7 +82,7 @@ h2{padding-top:30px;margin-bottom:5px;font-size:14px;font-weight:bold;letter-spa
 a,a:active,a:visited{color:#454a4e;text-decoration:none;}
 a:hover{text-decoration:underline;}
 input,textarea{border:1px solid #b9b9b9;padding:2px;font-size:12px;}
-img.spinner{margin:100px auto;display:block;}
+img.spinner{margin:200px auto;display:block;}
 #main_toolbar{height:48px;line-height:48px;position:fixed;top:0px;left:0px;right:0px;padding:0px 0px 0px 10px;font-size:20px;border-bottom:1px solid #222222;text-shadow:0px 1px 0px #F8F8F8;white-space:nowrap;overflow:hidden;background:#eeeeee;background:-moz-linear-gradient(top, #eeeeee 0%, #cccccc 100%);background:-webkit-gradient(linear, left top, left bottom, color-stop(0%, #eeeeee), color-stop(100%, #cccccc));background:-webkit-linear-gradient(top, #eeeeee 0%, #cccccc 100%);background:-o-linear-gradient(top, #eeeeee 0%, #cccccc 100%);background:-ms-linear-gradient(top, #eeeeee 0%, #cccccc 100%);background:linear-gradient(top, #eeeeee 0%, #cccccc 100%);}#main_toolbar #tools{margin-left:305px;}
 #main_toolbar #site_logo{width:200px;float:left;padding:0px;font-size:28px;font-weight:bold;}#main_toolbar #site_logo:hover{color:#163B60;}
 #main_toolbar #site_user{display:block;float:right;padding:0px 5px 0px 10px;font-size:16px;border-left:1px solid #b9b9b9;border-right:1px solid #b9b9b9;}#main_toolbar #site_user img{height:40px;width:40px;margin:0px 0px 5px 10px;vertical-align:middle;}

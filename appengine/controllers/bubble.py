@@ -37,7 +37,7 @@ class ShowBubbleList(boRequestHandler):
             bubble = Bubble().get(key)
             bubble.AutoFix()
 
-            if bubble.type not in ['cv_edu', 'cv_work', 'state_exam', 'applicant_doc', 'message']:
+            if bubble.type not in ['cv_edu', 'cv_work', 'state_exam', 'applicant_doc', 'message', 'submission']:
                 if not bubble.Authorize('viewer'):
                     self.error(404)
                     return
@@ -92,7 +92,10 @@ class ShowBubble(boRequestHandler):
         bubble.AutoFix()
 
         if not bubble.Authorize('viewer'):
-            self.error(404)
+            self.view(
+                main_template = '',
+                template_file = 'bubble/locked.html',
+            )
             return
 
         bubble.photourl = bubble.GetPhotoUrl(200, False)
@@ -313,7 +316,7 @@ class BubbleRights(boRequestHandler):
             'person': str(person.key()),
             'right': self.request.get('right').strip(),
             'user': CurrentUser()._googleuser
-        }, 'bubble-one-by-one')
+        }, 'rights')
 
         self.echo_json({
             'key': str(person.key()),
