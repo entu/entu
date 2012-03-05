@@ -67,13 +67,13 @@
 
         tools = [
             {% if bubble.CanAddSubbubble and bubble.GetAllowedSubtypes %}
-                '<a id="open_new_tipmenu" href="javascript:void(0);" class="icon add" title="{{ str.bubble_add_new }}"></a>',
+                '<a id="open_new_tipmenu" href="javascript:void(0);" data-icon="+" class="add" title="{{ str.bubble_add_new }}"></a>',
             {% endif %}
             {% if bubble.CanEdit %}
-                '<a id="open_edit" href="javascript:void(0);" class="icon pencil tiptip" title="{{ str.bubble_edit }}"></a>',
+                '<a id="open_edit" href="javascript:void(0);" data-icon="E" class="tiptip" title="{{ str.bubble_edit }}"></a>',
             {% endif %}
             {% if bubble.GetMyRole == 'owner' %}
-                '<a id="open_rights" href="javascript:void(0);" class="icon key tiptip" title="{{ str.rights_caption }}"></a>',
+                '<a id="open_rights" href="javascript:void(0);" data-icon="L" class="tiptip" title="{{ str.rights_caption }}"></a>',
             {% endif %}
         ];
         $('#tools').html(tools.join(''));
