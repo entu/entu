@@ -3,6 +3,7 @@ import datetime
 from bo import *
 from database.feedback import *
 from datetime import datetime
+from database.zimport.zoin import *
 
 
 class ShowQuestionariesList(boRequestHandler):
@@ -94,7 +95,9 @@ class ShowQuestionaryResults(boRequestHandler):
         offset = int(self.request.get('offset', 0))
 
         message = ''
+        # message += '"OldId",'
         # message += '"Aine",'
+        # message += '"Aine kood",'
         # message += '"Oppejoud",'
         # message += '"Kysimus",'
         # message += '"Vastus"'
@@ -104,7 +107,13 @@ class ShowQuestionaryResults(boRequestHandler):
         for qa in db.Query(QuestionAnswer).order('__key__').fetch(limit=limit, offset=offset):
             rc += 1
             mrow = ''
+            # OldId
+            zoin = db.Query(Zoin).filter('new_entity', qa.questionary_person.bubble.key()).get()
+            mrow += '"' + zoin.key().name() + '",'
+            # Aine
             mrow += '"' + qa.questionary_person.bubble.displayname.replace('"','""') + '",'
+            # Aine kood
+            mrow += '"' + getattr(qa.questionary_person.bubble,'typed_tags',str(qa.questionary_person.bubble.key())).replace('"','""') + '",'
 
             if qa.target_person:
                 tp = qa.target_person
@@ -123,10 +132,10 @@ class ShowQuestionaryResults(boRequestHandler):
             message += mrow + '\n'
 
         SendMail(
-            to = ['mihkel.putrinsh@artun.ee', 'argo.roots@artun.ee'],
-            subject = 'Feedback #%s' % step,
+            to = ['mihkel.putrinsh@artun.ee'],
+            subject = 'Feedback 20120305_1',
             message = '...',
-            attachments = [('feedback_rating.csv', message)]
+            attachments = [('feedback_rating_%s.csv' %step, message)]
         )
 
         logging.debug('#' + str(step) + ' - ' + str(rc) + ' rows')
