@@ -44,11 +44,11 @@
         });
 
         $('.right').change(function() {
-            rightbox = $(this);
+            var rightbox = $(this);
             if(rightbox.data('person')) {
                 $.post('/bubble/rights/{{ bubble.key.id }}', { person: rightbox.data('person'), right: rightbox.val() }, function(json){
                     if(rightbox.attr('id') == 'new_right') {
-                        oldrow = rightbox.parent().parent();
+                        var oldrow = rightbox.parent().parent();
                         var newrow = oldrow.clone(true);
                         oldrow.before(newrow);
                         oldrow.find('input').val('');

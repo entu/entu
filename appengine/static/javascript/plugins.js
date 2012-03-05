@@ -62,7 +62,7 @@ function getChoices(property) {
     if (choices_json) {
         makeChoices(choices_json)
     } else {
-        $.post('/bubble/sfv', { 'property': names[n] }, function(choices_json) {
+        $.post('/bubble/sfv', { 'property': property }, function(choices_json) {
             makeChoices(choices_json);
             $.jStorage.set('Choices_' + choices_json.property, choices_json);
             //$.jStorage.setTTL('Choices_' + choices_json.property, 300000)

@@ -6,3 +6,11 @@ queue:
 - name: bubble-one-by-one
   rate: 10/s
   max_concurrent_requests: 1
+
+- name: rights
+  rate: 10/s
+  max_concurrent_requests: 1
+
+- name: relations
+  rate: 10/s
+  max_concurrent_requests: 1

@@ -67,20 +67,20 @@
 
         tools = [
             {% if bubble.CanAddSubbubble and bubble.GetAllowedSubtypes %}
-                '<a id="open_new_tipmenu" href="javascript:void(0);" class="icon add" title="{{ str.bubble_add_new }}"></a>',
+                '<a id="open_new_tipmenu" href="javascript:void(0);" data-icon="+" class="add" title="{{ str.bubble_add_new }}"></a>',
             {% endif %}
             {% if bubble.CanEdit %}
-                '<a id="open_edit" href="javascript:void(0);" class="icon pencil tiptip" title="{{ str.bubble_edit }}"></a>',
+                '<a id="open_edit" href="javascript:void(0);" data-icon="E" class="tiptip" title="{{ str.bubble_edit }}"></a>',
             {% endif %}
             {% if bubble.GetMyRole == 'owner' %}
-                '<a id="open_rights" href="javascript:void(0);" class="icon key tiptip" title="{{ str.rights_caption }}"></a>',
+                '<a id="open_rights" href="javascript:void(0);" data-icon="L" class="tiptip" title="{{ str.rights_caption }}"></a>',
             {% endif %}
         ];
         $('#tools').html(tools.join(''));
 
         $("#open_new_tipmenu").click(function() {
-            tiptip = $('#tiptip_holder');
-            button = $(this);
+            var tiptip = $('#tiptip_holder');
+            var button = $(this);
             tiptip.left = button.left+(button.width/2)-(tiptip.width/2);
             tiptip.top = button.top+button.height;
             tiptip.show();
@@ -91,6 +91,7 @@
         });
 
         $('.add_new_subbubble').click(function() {
+            document.body.style.cursor = 'wait';
             $('#tools').html('');
             $("#tiptip_holder").hide();
             $.post('/bubble/add/{{ bubble.key.id }}', {type: $(this).data('type')}, function(bubble_id) {
@@ -126,6 +127,7 @@
                     $('#edit_bubble_box_content').css('overflow-y', 'auto');
                     $('#edit_bubble_box_content').css('max-height', $(window).height()*0.9);
                 };
+                document.body.style.cursor = 'default';
             });
         };
 
@@ -141,7 +143,7 @@
         });
 
         $('.open_subbubble').live('click', function() {
-            id = $(this).attr('href').substring(1)
+            var id = $(this).attr('href').substring(1)
             open_item(id);
             $('#list_items a.active').removeClass('active');
             $('#list_items a[href$="#'+id+'"]').addClass('active');

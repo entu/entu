@@ -18,12 +18,19 @@
 
 
 
-/* ICONS */
-@import "Lungo.widgets.icon.less";
+/* IMPORT */
 @import "chosen.less";
 @import "tipTip.less";
 @import "noprint.less";
 
+
+
+/* ICONS */
+[data-icon]:before {
+    font-family: 'Pictos Custom';
+    content: attr(data-icon);
+    -webkit-font-smoothing: antialiased;
+}
 
 
 
@@ -105,7 +112,7 @@ input, textarea {
 
 
 img.spinner {
-    margin:100px auto;
+    margin:200px auto;
     display: block;
 }
 
@@ -184,7 +191,7 @@ img.spinner {
     #logout {
         float: right;
         display: block;
-        padding: 13px;
+        padding: 0px 13px;
 
         &:hover {
             color: #990000;
@@ -204,7 +211,7 @@ img.spinner {
     a, a:active, a:visited, a:hover {
         padding: 5px 5px 5px 5px;
         text-decoration: none;
-        font-size: 21px;
+        font-size: 26px;
         color: gray;
     }
 
