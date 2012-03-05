@@ -55,13 +55,13 @@
 
         function append_list() {
             $('.empty_item').each(function() {
-                listitem = $(this);
-                key = listitem.data('key');
+                var listitem = $(this);
+                var key = listitem.data('key');
                 if (items.indexOf(key) != -1) {
                     position = listitem.position();
                     if ((position.top - $('#list_items').height()) < 100) {
                         getBubbleInfo('', key, '#listitem_'+key, 'searchlist');
-                        idx = items.indexOf(key);
+                        var idx = items.indexOf(key);
                         if(idx != -1) items.splice(idx, 1);
                     };
                 };
@@ -78,7 +78,7 @@
         }
 
         $('#list_items a').live('click', function() {
-            item = $(this);
+            var item = $(this);
             open_item(item.attr('href').substring(1));
             $('#list_items a.active').removeClass('active');
             item.addClass('active');

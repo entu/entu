@@ -128,7 +128,7 @@
         });
 
         $('.can_add_new').keypress(function() {
-            inputbox = $(this);
+            var inputbox = $(this);
             var newinput = inputbox.clone(true);
             newinput.val('');
             newinput.removeData('oldvalue');
@@ -139,7 +139,7 @@
 
 
         function format_date(dinput, format) {
-            result = ''
+            var result = ''
             dvalue = Date.parse(dinput);
             if(dvalue) {
                 result = dvalue.toString(format);
@@ -148,7 +148,7 @@
         }
 
         $('.autosave').change(function() {
-            inputbox = $(this);
+            var inputbox = $(this);
             if (inputbox.attr('type') == 'checkbox') {
                 value = inputbox.is(':checked');
             } else if (inputbox.attr('multiple')) {
