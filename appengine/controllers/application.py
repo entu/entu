@@ -147,16 +147,17 @@ class ShowApplication(boRequestHandler):
             gname2 = ''
             for r in sorted(db.Query(Bubble).filter('type', 'reception').filter('__key__ IN', g.GetValueAsList('x_br_subbubble')).fetch(1000), key=attrgetter('x_sort_%s' % language)):
                 for s in sorted(db.Query(Bubble).filter('type', 'submission').filter('__key__ IN', r.GetValueAsList('x_br_subbubble')).fetch(1000), key=attrgetter('x_sort_%s' % language)):
-                    if getattr(s, 'start_datetime', datetime.now()) < datetime.now() and getattr(s, 'end_datetime', datetime.now()) > datetime.now():
-                        br = db.Query(BubbleRelation).filter('bubble', s.key()).filter('related_bubble', p.key()).filter('type', 'leecher').filter('x_is_deleted', False).get()
-                        if br:
+                    leeching = p.key() in s.GetValueAsList('x_br_leecher')
+                    if (getattr(s, 'start_datetime', datetime.now()) < datetime.now() and getattr(s, 'end_datetime', datetime.now()) > datetime.now()) or leeching:
+                        if leeching:
                             leeching_count += 1
                         receptions.append({
                             'key': str(s.key()),
                             'group': gname if gname != gname2 else None,
                             'displayname': getattr(Dictionary.get(s.name), language),
                             'url': s.url if hasattr(s, 'url') else None,
-                            'is_selected': True if br else False,
+                            'is_selected': leeching,
+                            'is_open': getattr(s, 'start_datetime', datetime.now()) < datetime.now() and getattr(s, 'end_datetime', datetime.now()) > datetime.now()
                         })
                         gname2 = gname
 

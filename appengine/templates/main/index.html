@@ -6,6 +6,7 @@
 
         <title>{{ site_name }}</title>
 
+        <link rel="stylesheet" href="//get.pictos.cc/fonts/261/4" />
         <link rel="stylesheet" href="/css/screen.css?{{ version }}" />
 
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
@@ -30,13 +31,13 @@
     <body>
         <section id="main_toolbar">
             <a href="/" id="site_logo">{{ system_title }}</a>
-            <a href="{{ logouturl|escape }}" id="logout" class="icon on"></a>
+            <a href="{{ logouturl|escape }}" id="logout" data-icon="Q"></a>
             <a href="/preferences" id="site_user">{{ user.displayname }}<img src="{{ user.GetPhotoUrl }}" /></a>
             <span id="tools"></span>
             {% block toolbar %}
                 {% if toolbar %}
                     {% for t in toolbar %}
-                        <a href="{{ t.url }}" id="{{ t.id }}" class="icon {{ t.icon }}" title="{{ t.title }}"></a>
+                        <a href="{{ t.url }}" id="{{ t.id }}" data-icon="{{ t.icon }}" title="{{ t.title }}"></a>
                     {% endfor %}
                 {% endif %}
             {% endblock %}

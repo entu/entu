@@ -24,16 +24,20 @@
             </div>
         {% for r in receptions %}
             <div class="row">
-                <div class="v_header" style="{% if not r.group %} border-top:none;{% endif %}" style="width:300px;">
+                <div class="v_header" style="{% if not r.group %} border-top:none;{% endif %}{% if not r.is_open %}font-style:italic;{% endif %}width:300px;">
                     {{ r.group|default:"" }}
                 </div>
-                <div class="cell" style="width:590px;padding-right:10px;">
+                <div class="cell" style="width:590px;padding-right:10px;{% if not r.is_open %}font-style:italic;{% endif %}">
                     {% if r.url %}
                     <a href="{{ r.url }}" target="_blank">{{ r.displayname }}</a>
                     {% else %}
                     {{ r.displayname }}
                     {% endif %}
-                    <a href="javascript:void(0);" class="check" style="float:right; {% if r.is_selected %}color:#008000; font-weight:bold;{% else %}color:#222222;{% endif %}" data-bubble="{{ r.key }}" data-value="{{ r.is_selected }}">{{ str.application_apply }}</a>
+                    {% if r.is_open %}
+                        <a href="javascript:void(0);" class="check" style="float:right; {% if r.is_selected %}color:#008000; font-weight:bold;{% else %}color:#222222;{% endif %}" data-bubble="{{ r.key }}" data-value="{{ r.is_selected }}">{{ str.application_apply }}</a>
+                    {% else %}
+                        <span style="float:right; {% if r.is_selected %}color:#008000; font-weight:bold;{% else %}color:#222222;{% endif %}">{{ str.application_apply }}</span>
+                    {% endif %}
                 </div>
             </div>
         {% endfor %}
