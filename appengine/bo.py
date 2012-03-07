@@ -110,8 +110,8 @@ class boRequestHandler(webapp.RequestHandler):
 
 
 class AccessLog(db.Model):
-    x_version        = db.StringProperty(default='A')
-    x_created        = db.DateTimeProperty(auto_now_add=True)
+    x_version       = db.StringProperty(default='A')
+    x_created       = db.DateTimeProperty(auto_now_add=True)
     user            = db.StringProperty()
     remote_addr     = db.StringProperty()
     url             = db.TextProperty()
@@ -119,8 +119,8 @@ class AccessLog(db.Model):
 
 
 class ChangeLog(db.Expando):
-    x_version        = db.StringProperty(default='A')
-    x_created        = db.DateTimeProperty(auto_now_add=True)
+    x_version       = db.StringProperty(default='A')
+    x_created       = db.DateTimeProperty(auto_now_add=True)
     user            = db.StringProperty()
     kind_name       = db.StringProperty()
     property_name   = db.StringProperty()
@@ -141,7 +141,7 @@ class ChangeLogModel(db.Expando):
                 email = user.email()
         if self.is_saved():
             old = db.get(self.key())
-            for prop_key in MergeLists(self.properties().keys(), self.dynamic_properties()):
+            for prop_key in ListMerge(self.properties().keys(), self.dynamic_properties()):
                 if old:
                     try:
                         old_value = getattr(old, prop_key, None)
@@ -229,6 +229,7 @@ class UserPreferences(ChangeLogModel):
                 setattr(u, field, value)
                 u.put()
 
+
 def Translate(key = None, language=None):
     if language:
         languagefile = 'translations.' + language
@@ -284,6 +285,7 @@ class Cache:
         key += '__' + os.environ['CURRENT_VERSION_ID'].split('.')[1]
         return memcache.get(key)
 
+
 def CheckMailAddress(email=None):
     if email:
         return email_re.match((email))
@@ -326,6 +328,7 @@ def StrToList(string):
     else:
         return []
 
+
 def StrToKeyList(string):
     if string:
         strlist = StrToList(string)
@@ -336,14 +339,12 @@ def StrToKeyList(string):
     else:
         return []
 
+
 def FindTags(s, beginning, end):
     if not s:
         return []
     return re.compile('%s(.*?)%s' % (beginning, end), re.DOTALL).findall(s)
 
-def rReplace(s, old, new, occurrence):
-    li = s.rsplit(old, occurrence)
-    return new.join(li)
 
 def ReplaceUTF(s):
     letters = {'å':'a', 'ä':'a', 'é':'e', 'ö':'o', 'õ':'o', 'ü':'y', 'š':'sh', 'ž':'zh', 'Å':'A', 'Ä':'A', 'É':'E', 'Ö':'O', 'Õ':'O', 'Ü':'Y', 'Š':'SH', 'Ž':'ZH'}
@@ -351,6 +352,7 @@ def ReplaceUTF(s):
     for k, v in letters.iteritems():
         s = s.replace(k, v)
     return s
+
 
 def StringToSortable(s):
     return re.sub('[%s]' % re.escape(string.punctuation), '', s).lower().strip() if s else ''
@@ -365,8 +367,11 @@ def StringToSearchIndex(s):
     wordlist = StrToList(s)
     for w in wordlist:
         for i in range(1, len(w)+1):
-            result = AddToList(w[:i], result)
+            result = ListMerge(w[:i], result)
     return result
+
+def StripTags(string):
+    return striptags(string)
 
 
 def UtcToLocalDateTime(utc_time, tz=None):
@@ -387,31 +392,13 @@ def UtcFromLocalDateTime(local_time, tz=None):
     return d_utc.replace(tzinfo=None)
 
 
-def AddToList(s_value=None, s_list=[], unique=True):
-    if s_value:
-        s_list.append(s_value)
-    if unique==True:
-        return GetUniqueList(s_list)
-    else:
-        return s_list
+def ListUnique(l1):
+    # ListUnique(['a', 'b', 'c', 'd', 'b', 'c']) = ['a', 'b', 'c', 'd']
+    return list(set(l1))
 
 
-def RemoveFromList(s_value=None, s_list=[], unique=True):
-    if s_value in s_list:
-        s_list.remove(s_value)
-    if unique==True:
-        return GetUniqueList(s_list)
-    else:
-        return s_list
-
-
-def GetUniqueList(s_list):
-    if None in s_list:
-        s_list.remove(None)
-    return list(set(s_list))
-
-
-def MergeLists(l1 = None, l2 = None):
+def ListMerge(l1 = None, l2 = None):
+    # ListMerge(['a', 'b', 'c', 'd'], ['b', 'e', 'a']) = ['a', 'c', 'b', 'e', 'd']
     if not l1:
         l1 = []
     if not l2:
@@ -420,13 +407,26 @@ def MergeLists(l1 = None, l2 = None):
         l1 = [l1]
     if type(l2) is not list:
         l2 = [l2]
-    return GetUniqueList(l1 + l2)
+    return ListUnique(l1 + l2)
 
-def MatchLists(l1 = None, l2 = None):
+
+def ListSubtract(l1 = None, l2 = None):
+    # ListSubtract(['a', 'b', 'c', 'd'], ['b', 'e', 'a']) = ['c', 'd']
     if not l1:
-        return l2
+        return
     if not l2:
         return l1
+    if type(l1) is not list:
+        l1 = [l1]
+    if type(l2) is not list:
+        l2 = [l2]
+    return [i for i in l1 if i not in l2]
+
+
+def ListMatch(l1 = None, l2 = None):
+    # ListMatch(['a', 'b', 'c', 'd'], ['b', 'e', 'a']) = ['a', 'b']
+    if not l1 or not l2:
+        return
     if type(l1) is not list:
         l1 = [l1]
     if type(l2) is not list:
@@ -435,12 +435,17 @@ def MatchLists(l1 = None, l2 = None):
     return list(l.intersection(l2))
 
 
-def GetListsDiff(l1, l2):
+def ListDiff(l1 = None, l2 = None):
+    # ListDiff(['a', 'b', 'c', 'd'], ['b', 'e', 'a']) = ['c', 'e', 'd']
+    if not l1:
+        return l2
+    if not l2:
+        return l1
+    if type(l1) is not list:
+        l1 = [l1]
+    if type(l2) is not list:
+        l2 = [l2]
     return list(set(l1).symmetric_difference(set(l2)))
-
-
-def StripTags(string):
-    return striptags(string)
 
 
 def RandomColor(r1=0, r2=255, g1=0, g2=255, b1=0, b2=255):

@@ -93,7 +93,7 @@ class SendMessage(boRequestHandler):
                     message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
                     message += '<br/>\n'
 
-                emails = MergeLists(getattr(b, 'email', []), getattr(b, 'user', []))
+                emails = ListMerge(getattr(b, 'email', []), getattr(b, 'user', []))
                 SendMail(
                     to = emails,
                     subject = Translate('message_notify_on_alter_subject') % bt.displayname.lower(),
@@ -124,7 +124,7 @@ class FixRelations(boRequestHandler): # BubbleRelation to Bubble.x_br_...
             rc += 1
             try:
                 bubble = br.bubble
-                setattr(bubble, 'x_br_%s' % relationtype, MergeLists(getattr(bubble, 'x_br_%s' % relationtype, []), br.related_bubble.key()))
+                setattr(bubble, 'x_br_%s' % relationtype, ListMerge(getattr(bubble, 'x_br_%s' % relationtype, []), br.related_bubble.key()))
                 bubble.put()
             except:
                 pass
@@ -154,7 +154,7 @@ class FixRelations2(boRequestHandler): # Change Person keys from Bubble.x_br_...
                 if p:
                     if p.kind() == 'Person':
                         if hasattr(p, 'person2bubble'):
-                            setattr(bubble, 'x_br_%s' % relationtype, MergeLists(getattr(bubble, 'x_br_%s' % relationtype, []), p.person2bubble))
+                            setattr(bubble, 'x_br_%s' % relationtype, ListMerge(getattr(bubble, 'x_br_%s' % relationtype, []), p.person2bubble))
                             bubble.put()
 
         logging.debug('#' + str(step) + ' - ' + bubbletype + ' - ' + relationtype + ' - ' + str(rc) + ' rows from ' + str(offset))
@@ -237,15 +237,21 @@ class FixApplicants(boRequestHandler):
         step = int(self.request.get('step', 1))
         offset = int(self.request.get('offset', 0))
 
-        for bubble in db.Query(Bubble).filter('type', 'pre_applicant').order('__key__').fetch(limit=limit, offset=offset):
-            rc += 1
-            bubble.AutoFix()
-            # if len(bubble.GetValueAsList('x_br_viewer')) < 2 or not getattr(bubble, 'forename', None) or not getattr(bubble, 'surname', None):
-            #     bt = db.Query(Bubble).filter('type', 'bubble_type').filter('path', 'pre_applicant').get()
-            #     bubble.type = bt.path
-            #     bubble.x_type = bt.key()
-            #     bubble.put()
-            #     bc += 1
+        for applicant in db.Query(Bubble).filter('type', 'pre_applicant').order('__key__').fetch(limit=limit, offset=offset):
+            viewers = []
+            if applicant.key() not in applicant.GetValueAsList('x_br_viewer'):
+                viewers.append(applicant.key())
+
+            for submission in db.Query(Bubble).filter('type', 'submission').filter('x_br_leecher', applicant.key()).fetch(1000):
+                viewers = ListMerge(viewers, submission.GetValueAsList('x_br_viewer'))
+
+            applicant.AddRight(viewers, 'viewer')
+
+            for sb in applicant.GetRelatives('subbubble'):
+                sb.AddRight(viewers, 'viewer')
+
+            applicant.AutoFix()
+
 
         logging.debug('#' + str(step) + ' - ' +str(bc) + ' - ' + str(rc) + ' rows from ' + str(offset))
 
@@ -292,7 +298,7 @@ class CopyBubble(boRequestHandler): # Assign Bubble as SubBubble to another Bubb
         masterbubble = Bubble().get_by_id(int(masterbubbleId))
 
         # Add subbubble
-        masterbubble.x_br_subbubble = MergeLists(masterbubble.GetValueAsList('x_br_subbubble'), subbubble.key())
+        masterbubble.x_br_subbubble = ListMerge(masterbubble.GetValueAsList('x_br_subbubble'), subbubble.key())
         masterbubble.put()
 
         # Create BubbleRelation's
@@ -316,7 +322,7 @@ class MoveBubble(boRequestHandler): # Assign Bubble as SubBubble to another Bubb
 
         # Remove from all previous master bubbles
         for mb in db.Query(Bubble).filter('x_br_subbubble', subbubble.key()).fetch(1000):
-            x_br_subbubble = RemoveFromList(subbubble.key(), mb.GetValueAsList('x_br_subbubble'))
+            x_br_subbubble = ListSubtract(mb.GetValueAsList('x_br_subbubble'), subbubble.key())
             if len(x_br_subbubble) > 0:
                 mb.x_br_subbubble = x_br_subbubble
             else:
@@ -329,7 +335,7 @@ class MoveBubble(boRequestHandler): # Assign Bubble as SubBubble to another Bubb
             br.put()
 
         # Add subbubble
-        masterbubble.x_br_subbubble = MergeLists(masterbubble.GetValueAsList('x_br_subbubble'), subbubble.key())
+        masterbubble.x_br_subbubble = ListMerge(masterbubble.GetValueAsList('x_br_subbubble'), subbubble.key())
         masterbubble.put()
 
         # Create BubbleRelation
@@ -360,7 +366,7 @@ class AutoFixBubble(boRequestHandler):
 
         for bubble in db.Query(Bubble).filter('type', bubbletype).order('__key__').fetch(limit=limit, offset=offset):
             rc += 1
-            # x_br_subbubble = MergeLists(bubble.GetValueAsList('x_br_subbuble'), bubble.GetValueAsList('x_br_subbubble'))
+            # x_br_subbubble = ListMerge(bubble.GetValueAsList('x_br_subbuble'), bubble.GetValueAsList('x_br_subbubble'))
             # if len(x_br_subbubble) > 0:
             #     bubble.x_br_subbubble = x_br_subbubble
             #     if hasattr(bubble, 'x_br_subbuble'):
@@ -369,33 +375,6 @@ class AutoFixBubble(boRequestHandler):
             # bt = db.Query(Bubble).filter('path', bubbletype).get()
             # bubble.x_type = bt.key()
             # bubble.put()
-
-            if bubble.type in ['applicant', 'pre_applicant']:
-                if bubble.key() not in bubble.GetValueAsList('x_br_viewer'):
-                    AddTask('/taskqueue/rights', {
-                        'bubble': str(bubble.key()),
-                        'person': str(bubble.key()),
-                        'right': 'viewer',
-                    }, 'bubble-one-by-one')
-
-                for br in db.Query(BubbleRelation).filter('x_is_deleted', False).filter('related_bubble', bubble.key()).filter('type', 'leecher').fetch(100):
-                    b = br.bubble
-                    if getattr(b, 'type', '') == 'submission':
-                        for p in b.GetValueAsList('x_br_viewer'):
-                            AddTask('/taskqueue/rights', {
-                                'bubble': str(bubble.key()),
-                                'person': str(p),
-                                'right': 'viewer',
-                            }, 'bubble-one-by-one')
-
-                        for sb in bubble.GetRelatives('subbubble'):
-                            for p in sb.GetValueAsList('x_br_viewer'):
-                                AddTask('/taskqueue/rights', {
-                                    'bubble': str(bubble.key()),
-                                    'person': str(p),
-                                    'right': 'viewer',
-                                }, 'bubble-one-by-one')
-                            sb.put()
 
             bubble.AutoFix()
 
@@ -409,9 +388,17 @@ class XXX(boRequestHandler):
     def get(self):
         self.header('Content-Type', 'text/plain; charset=utf-8')
 
-        for bt in db.Query(Bubble).filter('type', 'bubble_type').fetch(100):
-            if hasattr(bt, 'path'):
-                self.echo(bt.path+': '+str(db.Query(Bubble).filter('type', bt.path).filter('x_is_deleted', False).count(limit=1000000)))
+        a = ['a', 'b', 'c', 'd']
+        b = ['b', 'e', 'a']
+
+        self.echo(ListMatch(a, b))
+        self.echo(ListMatch(a, a))
+        self.echo(ListMatch(a, 'a'))
+        self.echo(ListMatch(a, ['x', 'y']))
+
+        # for bt in db.Query(Bubble).filter('type', 'bubble_type').fetch(100):
+        #     if hasattr(bt, 'path'):
+        #         self.echo(bt.path+': '+str(db.Query(Bubble).filter('type', bt.path).filter('x_is_deleted', False).count(limit=1000000)))
 
         # for b in db.Query(Bubble).filter('type', 'applicant').fetch(1000):
         #     bt = db.Query(Bubble).filter('type', 'bubble_type').filter('path', b.type).get()

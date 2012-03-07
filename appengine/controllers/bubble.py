@@ -66,7 +66,11 @@ class ShowBubbleList(boRequestHandler):
             if value:
                 keys = []
                 for s in StrToList(value.lower()):
-                    keys = MatchLists(keys, [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).filter(searchfield, s).order('%s%s' % ('-' if sortreverse else '', sortfield)))])
+                    keylist = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).filter(searchfield, s).order('%s%s' % ('-' if sortreverse else '', sortfield)))]
+                    if len(keys) == 0:
+                        keys = keylist
+                    else:
+                        keys = ListMatch(keys, keylist)
             else:
                 keys = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).order('%s%s' % ('-' if sortreverse else '', sortfield)))]
 
@@ -162,7 +166,7 @@ class EditBubble(boRequestHandler):
                     message += '<br/>\n'
                 for a in alter:
                     for r in bubble.GetRelatives(a):
-                        emails = MergeLists(getattr(r, 'email', []), getattr(r, 'user', []))
+                        emails = ListMerge(getattr(r, 'email', []), getattr(r, 'user', []))
                         SendMail(
                             to = emails,
                             subject = Translate('message_notify_on_alter_subject') % bt.displayname.lower(),
@@ -293,7 +297,7 @@ class BubbleRights(boRequestHandler):
                     b.relation_type = r
                     if b.key() == user_key:
                         b.relation_currentuser = True
-                persons = MergeLists(persons, bubbles)
+                persons = ListMerge(persons, bubbles)
 
         self.view(
             main_template = '',

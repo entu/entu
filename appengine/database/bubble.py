@@ -108,7 +108,7 @@ class Bubble(ChangeLogModel):
                 if hasattr(bp, 'data_property'):
                     t = self.GetProperty(bubbletype = bt, data_property = bp.data_property, language = language)
                     for s in ['%s' % n['value'] for n in t['values'] if n['value']]:
-                        searchl = MergeLists(searchl, StringToSearchIndex(s))
+                        searchl = ListMerge(searchl, StringToSearchIndex(s))
                 searchl = sorted(searchl)
             if len(searchl) > 0:
                 if searchl != getattr(self, 'x_search_%s' % language, ''):
@@ -164,6 +164,41 @@ class Bubble(ChangeLogModel):
     def CanAddSubbubble(self):
         # return True if self.GetMyRole() in ['owner', 'editor', 'subbubbler'] else False
         return True if self.GetMyRole() in ['owner', 'editor', 'subbubbler', 'viewer'] else False
+
+    def AddRight(self, person_keys, right=None, user=None):
+        rights = ['viewer', 'subbubbler', 'editor', 'owner']
+
+        if type(person_keys) is not list:
+            person_keys = [person_keys]
+
+        # Remove rights
+        for r in rights:
+            if ListMatch(self.GetValueAsList('x_br_%s' % r), person_keys):
+                self.RemoveValue('x_br_%s' % r, person_keys)
+                self.put(user)
+
+        # Add rights
+        if right:
+            self.AddValue('x_br_%s' % right, person_keys)
+            self.put(user)
+
+        # Remove BubbleRelation
+        for pk in person_keys:
+            for br in db.Query(BubbleRelation).filter('bubble', self.key()).filter('related_bubble', pk).filter('type IN', rights).filter('x_is_deleted', False).fetch(100):
+                br.x_is_deleted = True
+                br.put(user)
+
+        # Set BubbleRelation
+        if right:
+            for pk in person_keys:
+                br = db.Query(BubbleRelation).filter('bubble', self.key()).filter('related_bubble', pk).filter('type', right).get()
+                if not br:
+                    br = BubbleRelation()
+                    br.bubble = self.key()
+                    br.related_bubble = pk
+                br.type = right
+                br.x_is_deleted = False
+                br.put(user)
 
     def GetPhotoUrl(self, size = 150, square = False):
         blob_key = getattr(self, 'photo', None)
@@ -224,15 +259,10 @@ class Bubble(ChangeLogModel):
         # Propagate rights
         for r in ['viewer', 'subbubbler', 'editor', 'owner']:
             if hasattr(self, 'x_br_%s' % r):
-                setattr(newbubble, 'x_br_%s' % r, getattr(self, 'x_br_%s' % r))
-                newbubble.put()
-            for br in db.Query(BubbleRelation).filter('bubble', self.key()).filter('type', r).fetch(1000):
-                if br.related_bubble.kind() == 'Bubble':
-                    new_br = BubbleRelation()
-                    new_br.bubble = newbubble.key()
-                    new_br.related_bubble = br.related_bubble
-                    new_br.type = br.type
-                    new_br.put()
+                newbubble.AddRight(
+                    person_keys = getattr(self, 'x_br_%s' % r),
+                    right = r
+                )
 
         # Create BubbleRelation's
         br = db.Query(BubbleRelation).filter('bubble', self.key()).filter('related_bubble', newbubble.key()).filter('type', 'subbubble').get()
@@ -248,8 +278,8 @@ class Bubble(ChangeLogModel):
                 br.put()
 
         # Add new bubble to optional_bubbles list
-        self.x_br_subbubble = AddToList(newbubble.key(), self.GetValueAsList('x_br_subbubble'))
-        self.optional_bubbles = AddToList(newbubble.key(), self.GetValueAsList('optional_bubbles'))
+        self.x_br_subbubble = ListMerge(newbubble.key(), self.GetValueAsList('x_br_subbubble'))
+        self.optional_bubbles = ListMerge(newbubble.key(), self.GetValueAsList('optional_bubbles'))
         self.put()
 
         return newbubble
@@ -270,8 +300,8 @@ class Bubble(ChangeLogModel):
         else:
             return result
 
-    def AddValue(self, data_property, value):
-        newvalue = MergeLists(getattr(self, data_property, []), value)
+    def AddValue(self, data_property, values):
+        newvalue = ListMerge(getattr(self, data_property, []), values)
         if len(newvalue) == 1:
             setattr(self, data_property, newvalue[0])
         if len(newvalue) > 1:
@@ -281,7 +311,7 @@ class Bubble(ChangeLogModel):
         oldvalue = getattr(self, data_property, [])
         if type(oldvalue) is not list:
             oldvalue = [oldvalue]
-        newvalue = RemoveFromList(value, oldvalue)
+        newvalue = ListSubtract(oldvalue, value)
         if len(newvalue) == 0 and hasattr(self, data_property):
             delattr(self, data_property)
         if len(newvalue) == 1:
@@ -437,16 +467,16 @@ class Bubble(ChangeLogModel):
         if bp.data_type == 'boolean':
             newvalue = True if newvalue.lower() == 'true' else False
             oldvalue = True if oldvalue.lower() == 'true' else False
-            data_value = AddToList(newvalue, data_value)
-            data_value = RemoveFromList(oldvalue, data_value)
+            data_value = ListMerge(newvalue, data_value)
+            data_value = ListSubtract(data_value, oldvalue)
 
         if oldvalue:
-            data_value = RemoveFromList(oldvalue, data_value)
+            data_value = ListSubtract(data_value, oldvalue)
         if newvalue:
             if bp.GetValue('count', 0) == 1:
                 data_value = [newvalue]
             else:
-                data_value = AddToList(newvalue, data_value)
+                data_value = ListMerge(newvalue, data_value)
 
         if len(data_value) > 0:
             if len(data_value) == 1:
@@ -496,7 +526,7 @@ class Bubble(ChangeLogModel):
 
     def GetSubtypes(self):
         bt = self.GetType()
-        return Bubble().get(MergeLists(self.GetValueAsList('allowed_subtypes'), bt.GetValueAsList('allowed_subtypes')))
+        return Bubble().get(ListMerge(self.GetValueAsList('allowed_subtypes'), bt.GetValueAsList('allowed_subtypes')))
 
     def GetAllowedSubtypes(self):
         if getattr(self, 'allowed_subtypes', None):

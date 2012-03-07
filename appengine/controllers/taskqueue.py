@@ -9,40 +9,12 @@ class AddBubbleRights(boRequestHandler):
         if person.kind() != 'Bubble':
             logging.error('Will skip %s %s' % (person.kind(), person.key()))
             return
-        right = self.request.get('right').strip()
-        user = self.request.get('user').strip()
 
-        rights = ['viewer', 'subbubbler', 'editor', 'owner']
-
-        if not bubble or not person:
-            return
-
-        # Remove rights
-        for r in rights:
-            if person.key() in bubble.GetValueAsList('x_br_%s' % r):
-                bubble.RemoveValue('x_br_%s' % r, person.key())
-                bubble.put(user)
-
-        # Add rights
-        if right and person.key() not in bubble.GetValueAsList('x_br_%s' % right):
-            bubble.AddValue('x_br_%s' % right, person.key())
-            bubble.put(user)
-
-        # Remove BubbleRelation
-        for br in db.Query(BubbleRelation).filter('bubble', bubble.key()).filter('related_bubble', person.key()).filter('type IN', rights).fetch(100):
-            br.x_is_deleted = True
-            br.put(user)
-
-        # Set BubbleRelation
-        if right:
-            br = db.Query(BubbleRelation).filter('bubble', bubble.key()).filter('related_bubble', person.key()).filter('type', right).get()
-            if not br:
-                br = BubbleRelation()
-                br.bubble = bubble.key()
-                br.related_bubble = person.key()
-            br.type = right
-            br.x_is_deleted = False
-            br.put(user)
+        bubble.AddRight(
+            person_keys = person.key(),
+            right = self.request.get('right').strip(),
+            user = self.request.get('user').strip()
+        )
 
 
 class AddBubbleRelation(boRequestHandler):
