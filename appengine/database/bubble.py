@@ -565,6 +565,6 @@ def CurrentUser():
 class BubbleRelation(ChangeLogModel):
     bubble                  = db.ReferenceProperty(Bubble, collection_name='bubblerelation_bubble')
     related_bubble          = db.ReferenceProperty(Bubble, collection_name='bubblerelation_related_bubble')
-    type                    = db.StringProperty(choices=['subbubble','seeder','leecher','editor','owner','subbubbler','viewer'])
+    type                    = db.StringProperty(choices=['nextinline','subbubble','seeder','leecher','editor','owner','subbubbler','viewer'])
     start_datetime          = db.DateTimeProperty()
     end_datetime            = db.DateTimeProperty()

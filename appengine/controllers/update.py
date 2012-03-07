@@ -280,8 +280,8 @@ class ChangeBubbleType(boRequestHandler):
         b.AutoFix()
 
 
-class AddLeecher(boRequestHandler):
-    def get(self, leecherId, masterbubbleId):
+class AddLeecher(boRequestHandler): # master / leecher
+    def get(self, masterbubbleId, leecherId):
         leecher = Bubble().get_by_id(int(leecherId))
         masterbubble = Bubble().get_by_id(int(masterbubbleId))
 
@@ -290,6 +290,32 @@ class AddLeecher(boRequestHandler):
             'related_bubble': str(leecher.key()),
             'type': 'leecher',
         }, 'bubble-one-by-one')
+
+
+class Relate(boRequestHandler): # relation_type / master / relatee
+    def get(self, relation_type, masterbubbleId, relatedbubbleId):
+        masterbubble = Bubble().get_by_id(int(masterbubbleId))
+        relatee = Bubble().get_by_id(int(relatedbubbleId))
+
+        AddTask('/taskqueue/add_relation', {
+            'bubble': str(masterbubble.key()),
+            'related_bubble': str(relatee.key()),
+            'type': relation_type,
+            'user': CurrentUser()._googleuser
+        }, 'relate-%s' % relation_type)
+
+
+class Unrelate(boRequestHandler): # relation_type / master / relatee
+    def get(self, relation_type, masterbubbleId, relatedbubbleId):
+        masterbubble = Bubble().get_by_id(int(masterbubbleId))
+        relatee = Bubble().get_by_id(int(relatedbubbleId))
+
+        AddTask('/taskqueue/remove_relation', {
+            'bubble': str(masterbubble.key()),
+            'related_bubble': str(relatee.key()),
+            'type': relation_type,
+            'user': CurrentUser()._googleuser
+        }, 'relate-%s' % relation_type)
 
 
 class CopyBubble(boRequestHandler): # Assign Bubble as SubBubble to another Bubble
@@ -424,6 +450,8 @@ class XXX(boRequestHandler):
 def main():
     Route([
             (r'/update/addleecher/(.*)/(.*)', AddLeecher),
+            (r'/update/relate/(.*)/(.*)/(.*)', Relate),
+            (r'/update/unrelate/(.*)/(.*)/(.*)', Unrelate),
             (r'/update/copybubble/(.*)/(.*)', CopyBubble),
             (r'/update/movebubble/(.*)/(.*)', MoveBubble),
             ('/update/applicant', FixApplicants),

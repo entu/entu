@@ -141,7 +141,7 @@ class ChangeLogModel(db.Expando):
                 email = user.email()
         if self.is_saved():
             old = db.get(self.key())
-            for prop_key in MergeLists(self.properties().keys(), self.dynamic_properties()):
+            for prop_key in ListMerge(self.properties().keys(), self.dynamic_properties()):
                 if prop_key not in ['x_search_english', 'x_search_estonian', 'x_sort_english', 'x_sort_estonian']:
                     if old:
                         try:

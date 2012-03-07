@@ -11,6 +11,15 @@ queue:
   rate: 10/s
   max_concurrent_requests: 1
 
-- name: relations
+- name: relate-leecher
   rate: 10/s
   max_concurrent_requests: 1
+
+- name: relate-subbuble
+  rate: 10/s
+  max_concurrent_requests: 1
+
+- name: relate-nextinline
+  rate: 10/s
+  max_concurrent_requests: 1
+
