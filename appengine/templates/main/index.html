@@ -29,10 +29,15 @@
 
     </head>
     <body>
+        <div id="dropdown">
+            <img src="/images/spinner_gray_small.gif" id="dropdown_spinner" class="spinner" />
+            <div id="dropdown_content" style="padding:10px;"></div>
+        </div>
+
         <section id="main_toolbar">
             <a href="/" id="site_logo">{{ system_title }}</a>
             <a href="{{ logouturl|escape }}" id="logout" data-icon="Q"></a>
-            <a href="/preferences" id="site_user">{{ user.displayname }}<img src="{{ user.GetPhotoUrl }}" /></a>
+            <a href="javascript:openDropdown('/preferences');" id="site_user">{{ user.displayname }}<img src="{{ user.GetPhotoUrl }}" /></a>
             <span id="tools"></span>
             {% block toolbar %}
                 {% if toolbar %}

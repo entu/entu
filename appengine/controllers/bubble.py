@@ -127,11 +127,15 @@ class ShowBubbleXML(boRequestHandler):
 
 
 class EditBubble(boRequestHandler):
-    def get(self, bubble_id):
+    def get(self, bubble_id=False):
         bubble = Bubble().get_by_id(int(bubble_id))
         if not bubble.Authorize('viewer'):
             self.error(404)
             return
+
+        if not bubble_id:
+            newbubble = bubble.AddSubbubble(self.request.get('type').strip())
+
 
         self.view(
             main_template = '',
@@ -177,14 +181,14 @@ class EditBubble(boRequestHandler):
 
 
 class AddBubble(boRequestHandler):
-    def post(self, bubble_id):
+    def get(self, bubbletype, bubble_id):
         bubble = Bubble().get_by_id(int(bubble_id))
         if not bubble.Authorize('viewer'):
             self.error(404)
             return
 
-        newbubble = bubble.AddSubbubble(self.request.get('type').strip())
-        self.echo(newbubble.key().id(), False)
+        newbubble = bubble.AddSubbubble(bubbletype)
+        self.redirect('/bubble/edit/%s' % newbubble.key().id())
 
 
 class DownloadBubbleFile(blobstore_handlers.BlobstoreDownloadHandler):
@@ -357,7 +361,7 @@ def main():
     Route([
             (r'/bubble/show/(.*)', ShowBubble),
             (r'/bubble/edit/(.*)', EditBubble),
-            (r'/bubble/add/(.*)', AddBubble),
+            (r'/bubble/add/(.*)/(.*)', AddBubble),
             (r'/bubble/file/(.*)/(.*)', DownloadBubbleFile),
             (r'/bubble/upload_file/(.*)', UploadBubbleFile),
             ('/bubble/sfv', SelectFieldValues),

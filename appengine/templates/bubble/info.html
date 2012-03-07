@@ -1,9 +1,4 @@
 <img src="{{ bubble.photourl }}" id="person_photo" />
-<div id="edit_bubble_box" class="dropdown">
-    <img src="/images/spinner_gray_small.gif" class="spinner" />
-    <div id="edit_bubble_box_content" style="padding:10px;"></div>
-</div>
-
 <h1>{{ bubble.displayname }}</h1>
 <section class="table">
     {% for t in bubble.GetProperties %}
@@ -91,48 +86,18 @@
         });
 
         $('.add_new_subbubble').click(function() {
-            document.body.style.cursor = 'wait';
             $('#tools').html('');
             $("#tiptip_holder").hide();
-            $.post('/bubble/add/{{ bubble.key.id }}', {type: $(this).data('type')}, function(bubble_id) {
-                open_box('/bubble/edit/'+bubble_id);
-            });
+            openDropdown('/bubble/add/'+$(this).data('type')+'/{{ bubble.key.id }}', reload_item);
         });
 
         $('#open_edit').click(function() {
             $('#tools').html('');
-            open_box('/bubble/edit/{{ bubble.key.id }}');
+            openDropdown('/bubble/edit/{{ bubble.key.id }}', reload_item);
         });
 
         $('#open_rights').click(function() {
-            open_box('/bubble/rights/{{ bubble.key.id }}');
-        });
-
-        function open_box(url) {
-            $('#edit_bubble_box_content').html('');
-            $('#edit_bubble_box .spinner').show();
-            $("#edit_bubble_box").modal({
-                position: [0,50],
-                opacity: 30,
-                overlayCss: {backgroundColor:"#000000"},
-                escClose: true,
-                overlayClose: true,
-                onClose: reload_item,
-            });
-            $.get(url, function(data) {
-                $('#edit_bubble_box .spinner').hide();
-                $("#edit_bubble_box_content").html(data);
-                if($('#edit_bubble_box_content').height() > $(window).height()*0.9) {
-                    $('#edit_bubble_box_content').css('overflow-x', 'hidden');
-                    $('#edit_bubble_box_content').css('overflow-y', 'auto');
-                    $('#edit_bubble_box_content').css('max-height', $(window).height()*0.9);
-                };
-                document.body.style.cursor = 'default';
-            });
-        };
-
-        $('#close_open_document_box').click(function() {
-            $("#open_document_box").slideUp();
+            openDropdown('/bubble/rights/{{ bubble.key.id }}');
         });
 
         ajax_bubbles_list('/bubble/', { type: 'leecher_in', value: '{{ bubble.key }}' }, $('#leecher'), 'leecher');
