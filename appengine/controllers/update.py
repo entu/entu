@@ -318,6 +318,30 @@ class Unrelate(boRequestHandler): # relation_type / master / relatee
         }, 'relate-%s' % relation_type)
 
 
+class ExecuteNextinline(boRequestHandler): # source_bubble_id
+    def get(self, sourcebubbleId):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+
+        sourcebubble = Bubble().get_by_id(int(sourcebubbleId))
+        relation_type = 'leecher'
+
+        for leecher in Bubble().get(sourcebubble.GetValueAsList('x_br_leecher')):
+            if not leecher:
+                continue
+            if getattr(leecher, 'confirmed', False) == False:
+                continue
+
+            self.echo(leecher.displayname)
+
+            for masterbubble in Bubble().get(sourcebubble.GetValueAsList('x_br_nextinline')):
+                AddTask('/taskqueue/add_relation', {
+                    'bubble': str(masterbubble.key()),
+                    'related_bubble': str(leecher.key()),
+                    'type': relation_type,
+                    'user': CurrentUser()._googleuser
+                }, 'relate-%s' % relation_type)
+
+
 class CopyBubble(boRequestHandler): # Assign Bubble as SubBubble to another Bubble
     def get(self, subbubbleId, masterbubbleId):
         subbubble = Bubble().get_by_id(int(subbubbleId))
@@ -452,6 +476,7 @@ def main():
             (r'/update/addleecher/(.*)/(.*)', AddLeecher),
             (r'/update/relate/(.*)/(.*)/(.*)', Relate),
             (r'/update/unrelate/(.*)/(.*)/(.*)', Unrelate),
+            (r'/update/nil/(.*)', ExecuteNextinline),
             (r'/update/copybubble/(.*)/(.*)', CopyBubble),
             (r'/update/movebubble/(.*)/(.*)', MoveBubble),
             ('/update/applicant', FixApplicants),
