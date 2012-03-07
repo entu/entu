@@ -282,6 +282,9 @@ class Bubble(ChangeLogModel):
         self.optional_bubbles = ListMerge(newbubble.key(), self.GetValueAsList('optional_bubbles'))
         self.put()
 
+        #AutoFix new bubble
+        newbubble.AutoFix()
+
         return newbubble
 
     def GetValueAsList(self, data_property):

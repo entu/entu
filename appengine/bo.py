@@ -141,40 +141,41 @@ class ChangeLogModel(db.Expando):
                 email = user.email()
         if self.is_saved():
             old = db.get(self.key())
-            for prop_key in ListMerge(self.properties().keys(), self.dynamic_properties()):
-                if old:
-                    try:
-                        old_value = getattr(old, prop_key, None)
-                    except Exception, e:
-                        old_value = ['ERROR', '%s' % e]
-
-                    if old_value == []:
-                        old_value = None
-                else:
-                    old_value = None
-
-                try:
-                    new_value = getattr(self, prop_key, None)
-                except Exception, e:
-                    new_value = ['ERROR', '%s' % e]
-
-                if new_value == []:
-                    new_value = None
-                if old_value != new_value:
-                    cl = ChangeLog(parent=self)
-                    cl.kind_name = self.kind()
-                    cl.property_name = prop_key
-                    cl.user = email
-                    if old_value != None:
+            for prop_key in MergeLists(self.properties().keys(), self.dynamic_properties()):
+                if prop_key not in ['x_search_english', 'x_search_estonian', 'x_sort_english', 'x_sort_estonian']:
+                    if old:
                         try:
-                            cl.old_value = old_value
-                        except TypeError:
-                            cl.old_value = old_value.key()
+                            old_value = getattr(old, prop_key, None)
+                        except Exception, e:
+                            old_value = ['ERROR', '%s' % e]
+
+                        if old_value == []:
+                            old_value = None
+                    else:
+                        old_value = None
+
                     try:
-                        cl.new_value = new_value
-                    except TypeError:
-                        cl.new_value = new_value.key()
-                    cl.put()
+                        new_value = getattr(self, prop_key, None)
+                    except Exception, e:
+                        new_value = ['ERROR', '%s' % e]
+
+                    if new_value == []:
+                        new_value = None
+                    if old_value != new_value:
+                        cl = ChangeLog(parent=self)
+                        cl.kind_name = self.kind()
+                        cl.property_name = prop_key
+                        cl.user = email
+                        if old_value != None:
+                            try:
+                                cl.old_value = old_value
+                            except TypeError:
+                                cl.old_value = old_value.key()
+                        try:
+                            cl.new_value = new_value
+                        except TypeError:
+                            cl.new_value = new_value.key()
+                        cl.put()
             self.x_changed_by = email
         else:
             self.x_created_by = email
