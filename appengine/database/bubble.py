@@ -45,43 +45,49 @@ class Bubble(ChangeLogModel):
 
     @property
     def displayname(self):
-        bt = self.GetType()
+        try:
+            bt = self.GetType()
 
-        if not hasattr(bt, 'property_displayname'):
-            return ''
+            if not hasattr(bt, 'property_displayname'):
+                return ''
 
-        cache_key = 'bubble_dname_' + UserPreferences().current.language + '_' + str(self.key())
-        dname = Cache().get(cache_key)
-        if dname:
+            cache_key = 'bubble_dname_' + UserPreferences().current.language + '_' + str(self.key())
+            dname = Cache().get(cache_key)
+            if dname:
+                return dname
+
+            dname = getattr(bt, 'property_displayname', '')
+            for data_property in FindTags(dname, '@', '@'):
+                t = self.GetProperty(bubbletype = bt, data_property = data_property)
+                dname = dname.replace('@%s@' % data_property, ', '.join(['%s' % n['value'] for n in t['values'] if n['value']]))
+
+            Cache().set(cache_key, dname)
             return dname
-
-        dname = getattr(bt, 'property_displayname', '')
-        for data_property in FindTags(dname, '@', '@'):
-            t = self.GetProperty(bubbletype = bt, data_property = data_property)
-            dname = dname.replace('@%s@' % data_property, ', '.join(['%s' % n['value'] for n in t['values'] if n['value']]))
-
-        Cache().set(cache_key, dname)
-        return dname
+        except Exception, e:
+            logging.error('Bubble().displayname: %s' % e)
 
     @property
     def displayinfo(self):
-        bt = self.GetType()
+        try:
+            bt = self.GetType()
 
-        if not hasattr(bt, 'property_displayinfo'):
-            return ''
+            if not hasattr(bt, 'property_displayinfo'):
+                return ''
 
-        cache_key = 'bubble_dinfo_' + UserPreferences().current.language + '_' + str(self.key())
-        dinfo = Cache().get(cache_key)
-        if dinfo:
+            cache_key = 'bubble_dinfo_' + UserPreferences().current.language + '_' + str(self.key())
+            dinfo = Cache().get(cache_key)
+            if dinfo:
+                return dinfo
+
+            dinfo = getattr(bt, 'property_displayinfo', '')
+            for data_property in FindTags(dinfo, '@', '@'):
+                t = self.GetProperty(bubbletype = bt, data_property = data_property)
+                dinfo = dinfo.replace('@%s@' % data_property, ', '.join(['%s' % n['value'] for n in t['values'] if n['value']]))
+
+            Cache().set(cache_key, dinfo)
             return dinfo
-
-        dinfo = getattr(bt, 'property_displayinfo', '')
-        for data_property in FindTags(dinfo, '@', '@'):
-            t = self.GetProperty(bubbletype = bt, data_property = data_property)
-            dinfo = dinfo.replace('@%s@' % data_property, ', '.join(['%s' % n['value'] for n in t['values'] if n['value']]))
-
-        Cache().set(cache_key, dinfo)
-        return dinfo
+        except Exception, e:
+            logging.error('Bubble().displayinfo: %s' % e)
 
     def AutoFix(self):
         bt = self.GetType()
@@ -93,7 +99,7 @@ class Bubble(ChangeLogModel):
             for data_property in FindTags(sorts, '@', '@'):
                 t = self.GetProperty(bubbletype = bt, data_property = data_property, language = language)
                 if t['data_type'] in ['date', 'datetime']:
-                    sorts = sorts.replace('@%s@' % data_property, ', '.join(['%s' % n['forsort'] for n in t['values'] if n['forsort']]))
+                    sorts = sorts.replace('@%s@' % data_property, ', '.join(['%s' % n['forsort'] for n in t['values'] if 'forsort' in n]))
                 elif t['data_type'] in ['integer', 'float']:
                     sorts = sorts.replace('@%s@' % data_property, ', '.join(['%09d' % n['value'] for n in t['values'] if n['value']]))
                 else:
@@ -219,7 +225,7 @@ class Bubble(ChangeLogModel):
 
         return 'http://www.gravatar.com/avatar/%s?s=%s&d=%s' % (hashlib.md5(str(self.key()).strip().lower()).hexdigest(), size, gravatar_type)
 
-    def AddSubbubble(self, type):
+    def AddSubbubble(self, type, properties = None, user = None):
         bt = self.GetType()
         bt_new = Bubble.get(type)
 
@@ -228,9 +234,13 @@ class Bubble(ChangeLogModel):
         newbubble.x_type = bt_new.key()
         newbubble.type = bt_new.path
 
+        # Set properties
+        if properties:
+            for p, v in properties.iteritems():
+                newbubble.AddValue(p, v)
+
         # Propagate properties
-        for pp_key in getattr(bt, 'propagated_properties', []):
-            pp = Bubble().get(pp_key)
+        for pp in Bubble().get(bt.GetValueAsList('propagated_properties')):
             if hasattr(self, pp.data_property):
                 setattr(newbubble, pp.data_property, getattr(self, pp.data_property))
 
@@ -243,7 +253,7 @@ class Bubble(ChangeLogModel):
                     if getattr(c, 'value_property', None):
                         counter_value = getattr(self, c.value_property, c.value) + c.increment
                         setattr(self, c.value_property, counter_value)
-                        self.put()
+                        self.put(user)
                     else:
                         counter_value = GetCounterNextValue(data_value)
                     dname = bp.format_string.replace('@_counter_value@', str(counter_value))
@@ -254,7 +264,7 @@ class Bubble(ChangeLogModel):
                     setattr(newbubble, bp.target_property, dname)
 
         # Save new bubble
-        newbubble.put()
+        newbubble.put(user)
 
         # Propagate rights
         for r in ['viewer', 'subbubbler', 'editor', 'owner']:
@@ -271,16 +281,15 @@ class Bubble(ChangeLogModel):
             br.bubble = self.key()
             br.related_bubble = newbubble.key()
             br.type = 'subbubble'
-            br.put()
+            br.put(user)
         else:
             if br.x_is_deleted != False:
                 br.x_is_deleted = False
-                br.put()
+                br.put(user)
 
         # Add new bubble to optional_bubbles list
         self.x_br_subbubble = ListMerge(newbubble.key(), self.GetValueAsList('x_br_subbubble'))
-        self.optional_bubbles = ListMerge(newbubble.key(), self.GetValueAsList('optional_bubbles'))
-        self.put()
+        self.put(user)
 
         #AutoFix new bubble
         newbubble.AutoFix()

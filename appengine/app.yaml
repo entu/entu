@@ -90,6 +90,10 @@ handlers:
   script: controllers/bubble.py
   login: required
 
+- url: /action(.*)
+  script: controllers/action.py
+  login: required
+
 - url: /preferences(.*)
   script: controllers/preferences.py
   login: required

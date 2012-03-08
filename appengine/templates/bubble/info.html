@@ -70,6 +70,9 @@
             {% if bubble.GetMyRole == 'owner' %}
                 '<a id="open_rights" href="javascript:void(0);" data-icon="L" class="tiptip" title="{{ str.rights_caption }}"></a>',
             {% endif %}
+            {% if bubbletype.action %}
+                '<a id="open_action" href="javascript:void(0);" data-icon="A" class="tiptip" title="{{ str.rights_caption }}"></a>',
+            {% endif %}
         ];
         $('#tools').html(tools.join(''));
 
@@ -94,6 +97,11 @@
         $('#open_edit').click(function() {
             $('#tools').html('');
             openDropdown('/bubble/edit/{{ bubble.key.id }}', reload_item);
+        });
+
+        $('#open_action').click(function() {
+            $('#tools').html('');
+            openDropdown('/action/timeslot/{{ bubble.key.id }}', reload_item);
         });
 
         $('#open_rights').click(function() {

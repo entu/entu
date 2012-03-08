@@ -107,6 +107,7 @@ function openDropdown(url, onclose) {
         onClose: onclose,
     });
     $.get(url, function(data) {
+        document.body.style.cursor = 'default';
         $('#dropdown_spinner').hide();
         $("#dropdown_content").html(data);
         if($('#dropdown_content').height() > $(window).height()*0.9) {
@@ -114,6 +115,5 @@ function openDropdown(url, onclose) {
             $('#dropdown_content').css('overflow-y', 'auto');
             $('#dropdown_content').css('max-height', $(window).height()*0.9);
         };
-        document.body.style.cursor = 'default';
     });
 };

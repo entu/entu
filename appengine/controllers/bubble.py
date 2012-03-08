@@ -109,7 +109,8 @@ class ShowBubble(boRequestHandler):
             page_title = StripTags(bubble.displayname),
             values = {
                 'bubble': bubble,
-                'bubbletypes': bubble.GetSubtypes()
+                'bubbletype': bubble.GetType(),
+                'bubbletypes': bubble.GetSubtypes(),
                 # 'bubbletypes': db.Query(Bubble).filter('type', 'bubble_type').fetch(100)
             }
         )
@@ -127,15 +128,11 @@ class ShowBubbleXML(boRequestHandler):
 
 
 class EditBubble(boRequestHandler):
-    def get(self, bubble_id=False):
+    def get(self, bubble_id):
         bubble = Bubble().get_by_id(int(bubble_id))
         if not bubble.Authorize('viewer'):
             self.error(404)
             return
-
-        if not bubble_id:
-            newbubble = bubble.AddSubbubble(self.request.get('type').strip())
-
 
         self.view(
             main_template = '',
