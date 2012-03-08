@@ -416,11 +416,11 @@ class AutoFixBubble(boRequestHandler):
 
         for bubble in db.Query(Bubble).filter('type', bubbletype).order('__key__').fetch(limit=limit, offset=offset):
             rc += 1
-            # x_br_subbubble = ListMerge(bubble.GetValueAsList('x_br_subbuble'), bubble.GetValueAsList('x_br_subbubble'))
+            # x_br_subbubble = ListMerge(bubble.GetValueAsList('x_br_subbubble'), bubble.GetValueAsList('x_br_subbubble'))
             # if len(x_br_subbubble) > 0:
             #     bubble.x_br_subbubble = x_br_subbubble
-            #     if hasattr(bubble, 'x_br_subbuble'):
-            #         delattr(bubble, 'x_br_subbuble')
+            #     if hasattr(bubble, 'x_br_subbubble'):
+            #         delattr(bubble, 'x_br_subbubble')
             #     bubble.put()
             # bt = db.Query(Bubble).filter('path', bubbletype).get()
             # bubble.x_type = bt.key()
@@ -432,6 +432,75 @@ class AutoFixBubble(boRequestHandler):
 
         if rc == limit:
             taskqueue.Task(url='/update/autofix/%s' % bubbletype, params={'offset': (offset + rc), 'step': (step + 1)}).add()
+
+
+class Person2TimeSlot(boRequestHandler):
+    def get(self, exam_id):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        taskqueue.Task(url='/update/p2ts/%s' % exam_id).add()
+
+    def post(self, exam_id):
+        exam = Bubble().get_by_id(int(exam_id))
+
+        sent_slots = []
+
+        for leecher in  sorted(Bubble().get(exam.GetValueAsList('x_br_leecher')), key=attrgetter('displayname')):
+            if db.Query(Bubble).filter('type', 'personal_time_slot').filter('x_br_leecher', leecher.key()).filter('__key__ IN', exam.GetValueAsList('x_br_subbubble')).get():
+                continue
+
+            for timeslot in sorted(Bubble().get(exam.GetValueAsList('x_br_subbubble')), key=attrgetter('start_datetime')):
+                if timeslot.type == 'personal_time_slot' and len(timeslot.GetValueAsList('x_br_leecher')) == 0 and timeslot.key() not in sent_slots:
+                    sent_slots.append(timeslot.key())
+                    AddTask('/taskqueue/add_relation', {
+                        'bubble': str(timeslot.key()),
+                        'related_bubble': str(leecher.key()),
+                        'type': 'leecher',
+                    }, 'relate-leecher')
+                    logging.debug('%s %s - %s' % (timeslot.displayname, timeslot.start_datetime, leecher.displayname ))
+                    break
+
+
+class Message2TimeSlotLeecher(boRequestHandler):
+    def get(self, exam_id):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        taskqueue.Task(url='/update/m2tsl/%s' % exam_id).add()
+
+    def post(self, exam_id):
+        exam = Bubble().get_by_id(int(exam_id))
+        exam_desc = exam.GetProperty(exam.GetType(), 'description')['values'][0]['value']
+
+        rc = 0
+        limit = 100
+        step = int(self.request.get('step', 1))
+        offset = int(self.request.get('offset', 0))
+
+        bt = db.Query(Bubble).filter('path', 'message').get()
+
+        for timeslot in sorted(Bubble().get(exam.GetValueAsList('x_br_subbubble')), key=attrgetter('start_datetime')):
+            if timeslot.type != 'personal_time_slot':
+                continue
+
+            if getattr(timeslot, 'is_message_sent', False):
+                logging.debug('%s %s already sent!' % (timeslot.displayname, timeslot.start_datetime))
+                continue
+
+            time = timeslot.GetProperty(timeslot.GetType(), 'start_datetime')['values'][0]['value']
+            message = u'Oled kutsutud <b>%(time)s</b> <br><b>%(exam)s</b> <br>%(exam_desc)s' % {'exam': exam.displayname, 'exam_desc': exam_desc, 'time': time}
+
+            for leecher in timeslot.GetRelatives('leecher'):
+
+                bubble = leecher.AddSubbubble(bt.key(), {'message': StripTags(message)})
+                bubble.x_created_by = 'helen.jyrgens@artun.ee'
+                bubble.put()
+
+                emails = ListMerge(getattr(leecher, 'email', []), getattr(leecher, 'user', []))
+                SendMail(
+                    to = emails,
+                    subject = '%s' % exam.displayname,
+                    message = message,
+                )
+            timeslot.is_message_sent = True
+            timeslot.put()
 
 
 class XXX(boRequestHandler):
@@ -446,28 +515,11 @@ class XXX(boRequestHandler):
         self.echo(ListMatch(a, 'a'))
         self.echo(ListMatch(a, ['x', 'y']))
 
-        # for bt in db.Query(Bubble).filter('type', 'bubble_type').fetch(100):
-        #     if hasattr(bt, 'path'):
-        #         self.echo(bt.path+': '+str(db.Query(Bubble).filter('type', bt.path).filter('x_is_deleted', False).count(limit=1000000)))
-
-        # for b in db.Query(Bubble).filter('type', 'applicant').fetch(1000):
-        #     bt = db.Query(Bubble).filter('type', 'bubble_type').filter('path', b.type).get()
-        #     if getattr(b, 'x_type', None) != bt.key():
-        #         b.x_type = bt.key()
-        #         b.put()
-        #         b.AutoFix()
-
-        #         self.echo(str(b.key()))
-
-        # for bubble in db.Query(BubbleRelation).filter('type', 'subbuble').fetch(100):
-        #     br = db.Query(BubbleRelation).filter('bubble', bubble.bubble).filter('related_bubble', bubble.related_bubble).filter('type', 'subbubble').get()
-        #     if br:
-        #         bubble.delete()
-        #         self.echo('a'+str(bubble.key().id()))
-        #     else:
-        #         bubble.type = 'subbubble'
-        #         bubble.put()
-        #         self.echo('b'+str(bubble.key().id()))
+        for b in db.Query(Bubble).order('message').fetch(1000):
+            if hasattr(b, 'message'):
+                b.notes = b.message
+                delattr(b, 'message')
+                b.put()
 
 
 
@@ -490,6 +542,8 @@ def main():
             (r'/update/relations3/(.*)/(.*)', FixRelations3),
             (r'/update/type/(.*)', FixType),
             (r'/update/type2(.*)/(.*)', ChangeBubbleType),
+            (r'/update/p2ts/(.*)', Person2TimeSlot),
+            (r'/update/m2tsl/(.*)', Message2TimeSlotLeecher),
         ])
 
 
