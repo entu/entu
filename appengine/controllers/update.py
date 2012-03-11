@@ -278,10 +278,11 @@ class PropagateRigths(boRequestHandler):
             subbubble = Bubble().get(subbubble_key)
             try:
                 subbubble.AddRight(right_holders, right_str)
+                subbubble.put()
             # AttributeError: 'NoneType' object has no attribute 'key'
             except AttributeError:
                 logging.debug('failed on bubble ' + str(subbubble_key))
-                return
+                continue
             except:
                 raise
 
