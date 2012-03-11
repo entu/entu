@@ -259,6 +259,35 @@ class FixApplicants(boRequestHandler):
             taskqueue.Task(url='/update/applicant', params={'offset': (offset + rc), 'step': (step + 1)}).add()
 
 
+class PropagateRigths(boRequestHandler):
+    def get(self, bubble_id, right_str):
+        if right_str != 'viewer':
+            return 0
+
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        taskqueue.Task(url='/update/propagate_rights/' + str(Bubble().get_by_id(int(bubble_id)).key()) + '/' + right_str).add()
+        self.echo('Bubble ' + bubble_id + ' propagate ' + right_str + ' rights is GO')
+
+    def post(self, bubble_key, right_str):
+        bubble = Bubble().get(bubble_key)
+
+        right_holders = bubble.GetValueAsList('x_br_' + right_str)
+        subbubbles = ListMerge(bubble.GetValueAsList('x_br_subbubble'), bubble.GetValueAsList('x_br_leecher'))
+
+        for subbubble_key in subbubbles:
+            subbubble = Bubble().get(subbubble_key)
+            try:
+                subbubble.AddRight(right_holders, right_str)
+            # AttributeError: 'NoneType' object has no attribute 'key'
+            except AttributeError:
+                logging.debug('failed on bubble ' + str(subbubble_key))
+                return
+            except:
+                raise
+
+            taskqueue.Task(url='/update/propagate_rights/' + str(subbubble.key()) + '/' + right_str).add()
+
+
 class ChangeBubbleType(boRequestHandler):
     def get(self, type, id):
         self.header('Content-Type', 'text/plain; charset=utf-8')
@@ -531,6 +560,7 @@ def main():
             (r'/update/nil/(.*)', ExecuteNextinline),
             (r'/update/copybubble/(.*)/(.*)', CopyBubble),
             (r'/update/movebubble/(.*)/(.*)', MoveBubble),
+            (r'/update/propagate_rights/(.*)/(.*)', PropagateRigths),
             ('/update/applicant', FixApplicants),
             ('/update/cache', MemCacheInfo),
             ('/update/docs', Dokumendid),

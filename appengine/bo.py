@@ -398,6 +398,7 @@ def ListUnique(l1):
     return list(set(l1))
 
 
+# Please-please refactor to ListUnion
 def ListMerge(l1 = None, l2 = None):
     # ListMerge(['a', 'b', 'c', 'd'], ['b', 'e', 'a']) = ['a', 'c', 'b', 'e', 'd']
     if not l1:
@@ -424,6 +425,7 @@ def ListSubtract(l1 = None, l2 = None):
     return [i for i in l1 if i not in l2]
 
 
+# Please-please refactor to ListIntersect
 def ListMatch(l1 = None, l2 = None):
     # ListMatch(['a', 'b', 'c', 'd'], ['b', 'e', 'a']) = ['a', 'b']
     if not l1 or not l2:
