@@ -101,7 +101,7 @@ class boRequestHandler(webapp.RequestHandler):
         for row in rowslist:
             csvWriter.writerow(row)
         self.header('Content-Type', 'text/csv; charset=utf-8')
-        self.header('Content-Disposition', 'attachment; filename=' + unicode(filename.encode('utf-8'), errors='ignore') + '.csv')
+        self.header('Content-Disposition', 'attachment; filename="' + unicode(filename.encode('utf-8'), errors='ignore') + '.csv"')
         self.echo(csvfile.getvalue())
         csvfile.close()
 

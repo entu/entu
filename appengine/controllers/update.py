@@ -289,6 +289,32 @@ class PropagateRigths(boRequestHandler):
             taskqueue.Task(url='/update/propagate_rights/' + str(subbubble.key()) + '/' + right_str).add()
 
 
+class TimeSlotList(boRequestHandler):
+    def get(self, id):
+        # self.header('Content-Type', 'text/plain; charset=utf-8')
+
+        csv = []
+        bubble = Bubble().get_by_id(int(id))
+        subbubbles = bubble.GetRelatives('subbubble')
+        for sb in sorted(subbubbles, key = attrgetter('start_datetime')):
+            row = []
+            display_leechers = []
+            if sb.type != 'personal_time_slot':
+                continue
+
+            row.append(UtcToLocalDateTime(sb.start_datetime))
+            # row.append(sb.end_datetime)
+            leechers = sb.GetRelatives('leecher')
+            for l in leechers:
+                display_leechers.append(l.displayname.encode('utf-8'))
+
+            row.append(', '.join(display_leechers))
+            csv.append(row)
+
+
+        self.echo_csv('%s' % bubble.displayname, csv)
+
+
 class ChangeBubbleType(boRequestHandler):
     def get(self, type, id):
         self.header('Content-Type', 'text/plain; charset=utf-8')
@@ -562,6 +588,7 @@ def main():
             (r'/update/copybubble/(.*)/(.*)', CopyBubble),
             (r'/update/movebubble/(.*)/(.*)', MoveBubble),
             (r'/update/propagate_rights/(.*)/(.*)', PropagateRigths),
+            (r'/update/timeslotlist/(.*)', TimeSlotList),
             ('/update/applicant', FixApplicants),
             ('/update/cache', MemCacheInfo),
             ('/update/docs', Dokumendid),
