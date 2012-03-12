@@ -73,6 +73,9 @@
             {% if bubbletype.action %}
                 '<a id="open_action" href="javascript:void(0);" data-icon="A" class="tiptip" title="{{ str.bubble_actions }}"></a>',
             {% endif %}
+            {% if bubble.icalurl %}
+                '<a href="{{ bubble.icalurl }}" data-icon="C"></a>',
+            {% endif %}
         ];
         $('#tools').html(tools.join(''));
 

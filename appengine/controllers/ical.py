@@ -1,4 +1,4 @@
-from icalendar import Calendar, Event, vCalAddress, vText, UTC
+from icalendar import Calendar, Event, vCalAddress, vText
 from datetime import datetime, date
 from datetime import *
 
@@ -8,54 +8,94 @@ from database.bubble import *
 # http://tools.ietf.org/html/rfc5545
 # http://icalvalid.cloudapp.net/Default.aspx
 # http://codespeak.net/icalendar/
+# https://github.com/collective/icalendar
 
 
-class BubbleTypeCalendar(boRequestHandler):
-    def get(self, key):
-        type = db.Query(BubbleType).filter('type', key).get()
-        if type:
-            cal = Calendar()
-            cal.add('prodid', '-//%s//artun.ee//EN' % type.displayname)
-            cal.add('version', '2.0')
-            cal.add('x-wr-calname', type.displayname)
-            if type.description:
-                cal.add('x-wr-caldesc', type.description.value)
-            cal.add('method', 'PUBLISH')
+class BubbleSubbubbles(boRequestHandler):
+    def get(self, bubble_key):
+        bubble = Bubble().get(bubble_key)
 
-            for b in db.Query(Bubble).filter('type', type.type).order('start_datetime').fetch(1000000):
-                if b.start_datetime and b.end_datetime:
+        cal = Calendar()
+        cal.add('prodid', '-//%s//artun.ee//EN' % bubble.displayname)
+        cal.add('version', '2.0')
+        cal.add('x-wr-calname', bubble.displayname)
+        cal.add('x-wr-caldesc', bubble.displayinfo)
+        cal.add('method', 'PUBLISH')
+
+        for subbubble in sorted(bubble.GetRelatives('subbubble'), key=attrgetter('start_datetime')):
+            if getattr(subbubble, 'start_datetime', False) and getattr(subbubble, 'end_datetime', False):
+                emptytime = True
+                for leecher in subbubble.GetRelatives('leecher'):
+                    emptytime = False
                     event = Event()
-                    event.add('summary', b.displayname)
-                    if b.description:
-                        event.add('description', b.description.value)
-                    if b.start_datetime.strftime('%H:%M') == '00:00':
-                        event.add('dtstart', b.start_datetime.date())
+                    event.add('summary', leecher.displayname)
+                    # event.add('description', subbubble.displayinfo)
+                    if subbubble.start_datetime.strftime('%H:%M') == '00:00':
+                        event.add('dtstart', subbubble.start_datetime.date())
                     else:
-                        event.add('dtstart', b.start_datetime)
-                    if b.end_datetime.strftime('%H:%M') == '00:00':
-                        event.add('dtend', b.end_datetime.date())
+                        event.add('dtstart', subbubble.start_datetime)
+                    if subbubble.end_datetime.strftime('%H:%M') == '00:00':
+                        event.add('dtend', subbubble.end_datetime.date())
                     else:
-                        event.add('dtend', b.end_datetime)
-                    if b.last_change.datetime:
-                        event.add('dtstamp', b.last_change.datetime)
-                    event['uid'] = '%s@artun.ee' % b.key()
+                        event.add('dtend', subbubble.end_datetime)
+                    event.add('dtstamp', subbubble.x_changed)
+                    event['uid'] = '%s@artun.ee' % subbubble.key()
 
-                    """if b.leechers:
-                        for p in db.get(b.leechers):
-                            attendee = vCalAddress('MAILTO:%s' % p.primary_email)
-                            attendee.params['cn'] = vText('%s' % p.displayname)
-                            attendee.params['ROLE'] = vText('CHAIR')
-                            event.add('attendee', attendee, encode=0)"""
+                if emptytime:
+                    event = Event()
+                    event.add('summary', '')
+                    # event.add('description', subbubble.displayinfo)
+                    if subbubble.start_datetime.strftime('%H:%M') == '00:00':
+                        event.add('dtstart', subbubble.start_datetime.date())
+                    else:
+                        event.add('dtstart', subbubble.start_datetime)
+                    if subbubble.end_datetime.strftime('%H:%M') == '00:00':
+                        event.add('dtend', subbubble.end_datetime.date())
+                    else:
+                        event.add('dtend', subbubble.end_datetime)
+                    event.add('dtstamp', subbubble.x_changed)
+                    event['uid'] = '%s@artun.ee' % subbubble.key()
 
-                    event.add('priority', 5)
-                    cal.add_component(event)
 
-            self.header('Content-Type', 'text/plain; charset=utf-8')
-            self.echo(cal.as_string(), False)
+
+                # for leecher in subbubble.GetRelatives('leecher'):
+                #     attendee = vCalAddress(leecher.displayname.encode('utf-8'))
+                #     # attendee.params['cn'] = vText('%s' % leecher.displayname)
+                #     # attendee.params['ROLE'] = vText('CHAIR')
+                #     event.add('attendee', attendee, encode=0)
+
+                event.add('priority', 5)
+                cal.add_component(event)
+
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        self.echo(cal.to_ical(), False)
 
 
 class Test(boRequestHandler):
     def get(self):
+
+
+        cal = Calendar()
+        from datetime import datetime
+        from icalendar.tools import utctz # timezone
+        cal.add('prodid', '-//My calendar product//mxm.dk//')
+        cal.add('version', '2.0')
+
+        event = Event()
+        event.add('summary', 'Python meeting about calendaring')
+        event.add('dtstart', datetime(2005,4,4,8,0,0,tzinfo=utctz()))
+        event.add('dtend', datetime(2005,4,4,10,0,0,tzinfo=utctz()))
+        event.add('dtstamp', datetime(2005,4,4,0,10,0,tzinfo=utctz()))
+        event['uid'] = '20050115T101010/27346262376@mxm.dk'
+        event.add('priority', 5)
+
+        cal.add_component(event)
+
+        self.echo(cal.to_ical())
+        return
+
+
+
 
         cal = Calendar()
         cal.add('prodid', '-//qsalidfuoisudfo//mxm.dk//')
@@ -118,7 +158,7 @@ class Test(boRequestHandler):
 def main():
     Route([
             ('/ical/test', Test),
-            ('/ical/(.*)', BubbleTypeCalendar),
+            ('/ical/(.*)', BubbleSubbubbles),
         ])
 
 
