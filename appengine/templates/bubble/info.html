@@ -75,6 +75,9 @@
             {% if bubble.GetMyRole == 'owner' %}
                 '<a id="open_rights" href="javascript:void(0);" data-icon="L" class="tiptip" title="{{ str.rights_caption }}"></a>',
             {% endif %}
+            {% if bubble.icalurl %}
+                '<a href="{{ bubble.icalurl }}" data-icon="C"></a>',
+            {% endif %}
         ];
         $('#tools').html(tools.join(''));
 

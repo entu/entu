@@ -99,6 +99,8 @@ class ShowBubble(boRequestHandler):
             return
 
         bubble.photourl = bubble.GetPhotoUrl(200, False)
+        if bubble.type == 'exam':
+            bubble.icalurl = 'webcal://%s/ical/%s' % (self.request.headers.get('host'), str(bubble.key()))
         self.view(
             main_template = 'main/index.html',
             template_file = 'bubble/info.html',
