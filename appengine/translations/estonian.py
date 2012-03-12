@@ -65,6 +65,7 @@ def translation():
         'bubble_subbubbles':            'Alammullid',
         'bubble_doc_gradesheet':        'Arvestusleht',
         'bubble_doc_leechers_csv':      'Saajate nimekiri (CSV)',
+        'bubble_actions':               'Toimingud',
 
         'dashboard_grades':     'Minu hinded',
 
