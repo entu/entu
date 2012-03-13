@@ -264,37 +264,52 @@ class PropagateRigths(boRequestHandler):
         if right_str != 'viewer':
             return 0
 
+        b = Bubble().get_by_id(int(bubble_id))
+        separator = ' : '
+        right_holders_str = separator.join(map(str, b.GetValueAsList('x_br_' + right_str)))
+
+        AddTask('/update/propagate_rights/' + str(b.key()) + '/' + right_str, {'right_holders': right_holders_str, 'separator': separator}, 'rights')
+
         self.header('Content-Type', 'text/plain; charset=utf-8')
-        taskqueue.Task(url='/update/propagate_rights/' + str(Bubble().get_by_id(int(bubble_id)).key()) + '/' + right_str).add()
         self.echo('Bubble ' + bubble_id + ' propagate ' + right_str + ' rights is GO')
 
     def post(self, bubble_key, right_str):
         bubble = Bubble().get(bubble_key)
+        separator = self.request.get('separator')
+        right_holders_str = self.request.get('right_holders', '')
+        right_holders = right_holders_str.split(' : ')
 
-        right_holders = bubble.GetValueAsList('x_br_' + right_str)
-        subbubbles = ListMerge(bubble.GetValueAsList('x_br_subbubble'), bubble.GetValueAsList('x_br_leecher'))
+        # logging.debug('<a href="http://bubbledu.artun.ee/bubble/person#"' + str(bubble.key().id()) + '">' + str(bubble.key().id()) + '</a>')
+
+        subbubbles = self.recurse(bubble)
+
+        logging.debug(len(subbubbles))
+        subbubbles = list(set(subbubbles))
+        logging.debug(len(subbubbles))
+        logging.debug(subbubbles)
 
         for subbubble_key in subbubbles:
-            subbubble = Bubble().get(subbubble_key)
-            try:
-                subbubble.AddRight(right_holders, right_str)
-                subbubble.put()
-            # AttributeError: 'NoneType' object has no attribute 'key'
-            except AttributeError:
-                logging.debug('failed on bubble ' + str(subbubble_key))
-                continue
-            except:
-                raise
+            for rh in right_holders:
+                AddTask('/taskqueue/rights', {'bubble': str(subbubble_key), 'person': rh, 'right': right_str}, 'rights')
 
-            taskqueue.Task(url='/update/propagate_rights/' + str(subbubble.key()) + '/' + right_str).add()
+    def recurse(self, bubble):
+        # bubble = Bubble().get(bubble_key)
+        keylist = ListMerge(bubble.GetValueAsList('x_br_subbubble'), bubble.GetValueAsList('x_br_leecher'))
+        for key in keylist:
+            b = Bubble().get(key)
+            if b.x_is_deleted == True:
+                continue
+            keylist = keylist + self.recurse(b)
+        return keylist
 
 
 class TimeSlotList(boRequestHandler):
     def get(self, id):
         # self.header('Content-Type', 'text/plain; charset=utf-8')
 
-        csv = []
         bubble = Bubble().get_by_id(int(id))
+        csv = []
+        csv.append([bubble.displayname.encode('utf-8')])
         subbubbles = bubble.GetRelatives('subbubble')
         for sb in sorted(subbubbles, key = attrgetter('start_datetime')):
             row = []
@@ -303,7 +318,6 @@ class TimeSlotList(boRequestHandler):
                 continue
 
             row.append(UtcToLocalDateTime(sb.start_datetime))
-            # row.append(sb.end_datetime)
             leechers = sb.GetRelatives('leecher')
             for l in leechers:
                 display_leechers.append(l.displayname.encode('utf-8'))
@@ -350,8 +364,13 @@ class AddLeecher(boRequestHandler): # master / leecher
 
 class Relate(boRequestHandler): # relation_type / master / relatee
     def get(self, relation_type, masterbubbleId, relatedbubbleId):
-        masterbubble = Bubble().get_by_id(int(masterbubbleId))
-        relatee = Bubble().get_by_id(int(relatedbubbleId))
+        try:
+            masterbubble = Bubble().get_by_id(int(masterbubbleId))
+            relatee = Bubble().get_by_id(int(relatedbubbleId))
+        except Exception, e:
+            self.header('Content-Type', 'text/plain; charset=utf-8')
+            self.echo('relation_type / master / relatee')
+            return
 
         AddTask('/taskqueue/add_relation', {
             'bubble': str(masterbubble.key()),
@@ -363,8 +382,13 @@ class Relate(boRequestHandler): # relation_type / master / relatee
 
 class Unrelate(boRequestHandler): # relation_type / master / relatee
     def get(self, relation_type, masterbubbleId, relatedbubbleId):
-        masterbubble = Bubble().get_by_id(int(masterbubbleId))
-        relatee = Bubble().get_by_id(int(relatedbubbleId))
+        try:
+            masterbubble = Bubble().get_by_id(int(masterbubbleId))
+            relatee = Bubble().get_by_id(int(relatedbubbleId))
+        except Exception, e:
+            self.header('Content-Type', 'text/plain; charset=utf-8')
+            self.echo('relation_type / master / relatee')
+            return
 
         AddTask('/taskqueue/remove_relation', {
             'bubble': str(masterbubble.key()),

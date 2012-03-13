@@ -4,6 +4,9 @@ from database.bubble import *
 class AddBubbleRights(boRequestHandler):
     def post(self):
         bubble = Bubble().get(self.request.get('bubble').strip())
+        if not bubble:
+            return
+
         #person = Bubble().get(self.request.get('person').strip())
         person = db.get(self.request.get('person').strip())
         if person.kind() != 'Bubble':
