@@ -264,33 +264,66 @@ class PropagateRigths(boRequestHandler):
         if right_str != 'viewer':
             return 0
 
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+
         b = Bubble().get_by_id(int(bubble_id))
         separator = ' : '
-        right_holders_str = separator.join(map(str, b.GetValueAsList('x_br_' + right_str)))
+        right_holders = []
+        for rh in b.GetValueAsList('x_br_' + right_str):
+            if db.get(rh).kind() == 'Bubble':
+                right_holders.append(rh)
+            else:
+                b.RemoveValue('x_br_' + right_str, rh)
+                self.echo('Encountered ' + db.get(rh).kind() + ' instead of Bubble at ' + str(rh))
+                b.put()
 
-        AddTask('/update/propagate_rights/' + str(b.key()) + '/' + right_str, {'right_holders': right_holders_str, 'separator': separator}, 'rights')
+        right_holders_str = separator.join(map(str, right_holders))
 
-        self.header('Content-Type', 'text/plain; charset=utf-8')
+        AddTask('/update/propagate_rights/' + right_str + '/' + str(b.key()), {
+            'right_holders': right_holders_str,
+            'separator': separator
+        }, 'rights')
+
         self.echo('Bubble ' + bubble_id + ' propagate ' + right_str + ' rights is GO')
 
-    def post(self, bubble_key, right_str):
-        bubble = Bubble().get(bubble_key)
+    def post(self, right_str, bubble_key = None):
         separator = self.request.get('separator')
         right_holders_str = self.request.get('right_holders', '')
-        right_holders = right_holders_str.split(' : ')
+        right_holders = [db.Key(r) for r in right_holders_str.split(separator)]
 
-        # logging.debug('<a href="http://bubbledu.artun.ee/bubble/person#"' + str(bubble.key().id()) + '">' + str(bubble.key().id()) + '</a>')
+        if bubble_key:
+            bubble = Bubble().get(bubble_key)
 
-        subbubbles = self.recurse(bubble)
+            bubble_keys = self.recurse(bubble)
 
-        logging.debug(len(subbubbles))
-        subbubbles = list(set(subbubbles))
-        logging.debug(len(subbubbles))
-        logging.debug(subbubbles)
+            logging.debug(len(bubble_keys))
+            bubble_keys = list(set(bubble_keys))
+            logging.debug(len(bubble_keys))
+            bubble_keys_str = separator.join(map(str, bubble_keys))
+            logging.debug(bubble_keys_str)
+            AddTask('/update/propagate_rights/' + right_str + '/', {
+                'right_holders': right_holders_str,
+                'separator': separator,
+                'bubble_keys': bubble_keys_str
+            }, 'rights')
+            return
 
-        for subbubble_key in subbubbles:
-            for rh in right_holders:
-                AddTask('/taskqueue/rights', {'bubble': str(subbubble_key), 'person': rh, 'right': right_str}, 'rights')
+        bubble_keys_str = self.request.get('bubble_keys', '')
+        bubble_keys = bubble_keys_str.split(separator)
+        for i in range(0, 10):
+            if len(bubble_keys) == 0:
+                break
+            b = Bubble().get(bubble_keys.pop())
+            if b:
+                b.AddRight(right_holders, right_str)
+
+        logging.debug(str(len(bubble_keys)) + ' bubbles left.')
+        bubble_keys_str = separator.join(bubble_keys)
+        AddTask('/update/propagate_rights/' + right_str + '/', {
+            'right_holders': right_holders_str,
+            'separator': separator,
+            'bubble_keys': bubble_keys_str
+        }, 'rights')
 
     def recurse(self, bubble):
         # bubble = Bubble().get(bubble_key)
