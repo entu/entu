@@ -318,13 +318,8 @@ class PropagateRigths(boRequestHandler):
                 logging.debug(identifier + ': ' + 'Out of bubbles.')
                 return
             bubble_key = bubble_keys.pop()
-            try:
-                b = Bubble().get(bubble_key) # BadKeyError: Invalid string key
-                b.AddRight(right_holders, right_str)
-            except BadKeyError, e:
-                logging.warning(identifier + ': bubble_key ' + str(bubble_key) + ' gave us ' + str(e))
-            except Exception, e:
-                raise e
+            b = Bubble().get(bubble_key)
+            b.AddRight(right_holders, right_str)
 
         logging.debug(identifier + ': ' + str(len(bubble_keys)) + ' bubbles left.')
         bubble_keys_str = separator.join(bubble_keys)
