@@ -37,8 +37,13 @@ function makeBubbleInfo(bubbletype, bubble_json, div, listtype) {
     } else {
         info = '';
     };
+    if(bubble_json.count) {
+        count = '<div>'+bubble_json.count+'</div>';
+    } else {
+        count = '';
+    };
     if(listtype == 'searchlist') {
-        $(div).html(image+bubble_json.title+info);
+        $(div).html(count+image+bubble_json.title+info);
         $(div).attr('href', '#'+bubble_json.id);
         $(div).removeClass('empty_item');
         if('#'+bubble_json.id == window.location.hash) {

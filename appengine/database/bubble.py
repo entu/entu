@@ -89,6 +89,18 @@ class Bubble(ChangeLogModel):
         except Exception, e:
             logging.error('Bubble().displayinfo: %s' % e)
 
+    @property
+    def displaycount(self):
+        try:
+            bt = self.GetType()
+
+            if not hasattr(bt, 'property_displaycount'):
+                return
+
+            return len(self.GetValueAsList(getattr(bt, 'property_displaycount')))
+        except Exception, e:
+            logging.error('Bubble().displaycount: %s' % e)
+
     def AutoFix(self):
         bt = self.GetType()
         do_put = False
