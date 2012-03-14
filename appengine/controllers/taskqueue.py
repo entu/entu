@@ -10,7 +10,7 @@ class AddBubbleRights(boRequestHandler):
         #person = Bubble().get(self.request.get('person').strip())
         person = db.get(self.request.get('person').strip())
         if person.kind() != 'Bubble':
-            logging.error('Will skip %s %s' % (person.kind(), person.key()))
+            logging.info('Will skip %s %s' % (person.kind(), person.key()))
             return
 
         bubble.AddRight(

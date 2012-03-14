@@ -267,6 +267,7 @@ class PropagateRigths(boRequestHandler):
         self.header('Content-Type', 'text/plain; charset=utf-8')
 
         b = Bubble().get_by_id(int(bubble_id))
+        identifier = bubble_id + ' - ' + b.displayname.encode('utf-8')
         separator = ' : '
         right_holders = []
         for rh in b.GetValueAsList('x_br_' + right_str):
@@ -281,14 +282,16 @@ class PropagateRigths(boRequestHandler):
 
         AddTask('/update/propagate_rights/' + right_str + '/' + str(b.key()), {
             'right_holders': right_holders_str,
-            'separator': separator
-        }, 'rights')
+            'separator': separator,
+            'identifier': identifier
+        }, 'default')
 
         self.echo('Bubble ' + bubble_id + ' propagate ' + right_str + ' rights is GO')
 
     def post(self, right_str, bubble_key = None):
         separator = self.request.get('separator')
         right_holders_str = self.request.get('right_holders', '')
+        identifier = self.request.get('identifier')
         right_holders = [db.Key(r) for r in right_holders_str.split(separator)]
 
         if bubble_key:
@@ -296,34 +299,41 @@ class PropagateRigths(boRequestHandler):
 
             bubble_keys = self.recurse(bubble)
 
-            logging.debug(len(bubble_keys))
+            logging.debug(identifier + ': ' + str(len(bubble_keys)))
             bubble_keys = list(set(bubble_keys))
-            logging.debug(len(bubble_keys))
+            logging.debug(identifier + ': ' + str(len(bubble_keys)))
             bubble_keys_str = separator.join(map(str, bubble_keys))
-            logging.debug(bubble_keys_str)
             AddTask('/update/propagate_rights/' + right_str + '/', {
                 'right_holders': right_holders_str,
                 'separator': separator,
-                'bubble_keys': bubble_keys_str
-            }, 'rights')
+                'bubble_keys': bubble_keys_str,
+                'identifier': identifier
+            }, 'default')
             return
 
         bubble_keys_str = self.request.get('bubble_keys', '')
         bubble_keys = bubble_keys_str.split(separator)
         for i in range(0, 10):
             if len(bubble_keys) == 0:
-                break
-            b = Bubble().get(bubble_keys.pop())
-            if b:
+                logging.debug(identifier + ': ' + 'Out of bubbles.')
+                return
+            bubble_key = bubble_keys.pop()
+            try:
+                b = Bubble().get(bubble_key) # BadKeyError: Invalid string key
                 b.AddRight(right_holders, right_str)
+            except BadKeyError, e:
+                logging.warning(identifier + ': bubble_key ' + str(bubble_key) + ' gave us ' + str(e))
+            except Exception, e:
+                raise e
 
-        logging.debug(str(len(bubble_keys)) + ' bubbles left.')
+        logging.debug(identifier + ': ' + str(len(bubble_keys)) + ' bubbles left.')
         bubble_keys_str = separator.join(bubble_keys)
         AddTask('/update/propagate_rights/' + right_str + '/', {
             'right_holders': right_holders_str,
             'separator': separator,
-            'bubble_keys': bubble_keys_str
-        }, 'rights')
+            'bubble_keys': bubble_keys_str,
+            'identifier': identifier
+        }, 'default')
 
     def recurse(self, bubble):
         # bubble = Bubble().get(bubble_key)
