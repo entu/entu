@@ -15,6 +15,10 @@ queue:
   rate: 10/s
   max_concurrent_requests: 1
 
+- name: relate-viewer
+  rate: 10/s
+  max_concurrent_requests: 1
+
 - name: relate-subbuble
   rate: 10/s
   max_concurrent_requests: 1
