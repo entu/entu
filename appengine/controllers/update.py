@@ -259,6 +259,63 @@ class FixApplicants(boRequestHandler):
             taskqueue.Task(url='/update/applicant', params={'offset': (offset + rc), 'step': (step + 1)}).add()
 
 
+class MarkEuro(boRequestHandler):
+    def get(self):
+        separator = ' : '
+        # applicant_keys = Bubble().all().filter('type IN', ['applicant', 'pre_applicant'])
+        # applicant_keys_str = separator.join(map(str, applicant_keys))
+
+        euro_keys = db.Query(Bubble, keys_only = True).filter('type', 'cv_edu').filter('has_been_subsidised', True).fetch(100000)
+        euro_keys_str = separator.join(map(str, euro_keys))
+        identifier = '€:' + str(len(euro_keys))
+
+        AddTask('/update/mark_euro', {
+            'identifier': identifier,
+            'euro_keys': euro_keys_str,
+            'separator': separator,
+        }, 'default')
+
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        self.echo(identifier + ' is GO')
+
+        logging.debug(identifier + ' is GO')
+
+    def post(self):
+        separator = self.request.get('separator')
+        identifier = self.request.get('identifier')
+        euro_keys_str = self.request.get('euro_keys')
+        euro_keys = [db.Key(r) for r in euro_keys_str.split(separator)]
+
+        for i in range(0, 1000):
+            if len(euro_keys) == 0:
+                logging.debug(identifier + ': ' + 'Out of bubbles.')
+                return
+            euro_key = euro_keys.pop()
+            b = Bubble().all().filter('x_br_subbubble', euro_key).get()
+            if b:
+                delattr(b, 'has_been_subsidised')
+                # cv = Bubble().get(euro_key)
+                # cv_str  = '"http://bubbledu.artun.ee/bubble/cv_edu#' + str(cv.key().id()) + '","'
+                # cv_str += b.displayname + '","'
+                # cv_str += getattr(cv,'notes','') + '","'
+                # cv_str += getattr(cv,'cv_start','') + '","'
+                # cv_str += getattr(cv,'cv_to','') + '","'
+                # cv_str += getattr(cv,'school','') + '","'
+                # cv_str += getattr(cv,'level_of_education','') + '"'
+                # logging.debug(cv_str)
+                # logging.debug('cv_edu ' + str(euro_key) + ' matching ' + b.displayname.encode('utf-8'))
+                b.put()
+
+        euro_keys_str = separator.join(map(str, euro_keys))
+        AddTask('/update/mark_euro', {
+            'identifier': identifier,
+            'euro_keys': euro_keys_str,
+            'separator': separator,
+        }, 'default')
+
+        logging.debug(identifier + ' - ' + str(len(euro_keys)) + 'left')
+
+
 class PropagateRigths(boRequestHandler):
     def get(self, bubble_id, right_str):
         if right_str != 'viewer':
@@ -319,7 +376,11 @@ class PropagateRigths(boRequestHandler):
                 return
             bubble_key = bubble_keys.pop()
             b = Bubble().get(bubble_key)
-            b.AddRight(right_holders, right_str)
+            try:
+                b.AddRight(right_holders, right_str)
+            except Exception, e:
+                logging.debug(str(e))
+
 
         logging.debug(identifier + ': ' + str(len(bubble_keys)) + ' bubbles left.')
         bubble_keys_str = separator.join(bubble_keys)
@@ -651,6 +712,7 @@ def main():
             (r'/update/movebubble/(.*)/(.*)', MoveBubble),
             (r'/update/propagate_rights/(.*)/(.*)', PropagateRigths),
             (r'/update/timeslotlist/(.*)', TimeSlotList),
+            ('/update/mark_euro', MarkEuro),
             ('/update/applicant', FixApplicants),
             ('/update/cache', MemCacheInfo),
             ('/update/docs', Dokumendid),

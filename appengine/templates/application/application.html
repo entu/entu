@@ -49,7 +49,7 @@
                 </div>
             </div>
         {% for t in bubble %}
-            {% if t.data_property != "x_type" and t.data_property != "confirmed" %}
+            {% if t.data_property != "x_type" and t.data_property != "confirmed" and t.data_property != "has_been_subsidised" %}
                 {% for v in t.values %}
                 <div class="row">
                     <div class="v_header" style="width:300px;{% if t.is_mandatory %} color:red;{% endif %} white-space:normal;">
