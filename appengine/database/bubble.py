@@ -88,46 +88,49 @@ class Bubble(ChangeLogModel):
         do_put = False
 
         # Set x_sort_... and x_search_...
-        for language in SystemPreferences().get('languages'):
-            sorts = getattr(bt, 'sort_string', '')
-            for data_property in FindTags(sorts, '@', '@'):
-                t = self.GetProperty(bubbletype = bt, data_property = data_property, language = language)
-                if t['data_type'] in ['date', 'datetime']:
-                    sorts = sorts.replace('@%s@' % data_property, ', '.join(['%s' % n['forsort'] for n in t['values'] if n['forsort']]))
-                elif t['data_type'] in ['integer', 'float']:
-                    sorts = sorts.replace('@%s@' % data_property, ', '.join(['%09d' % n['value'] for n in t['values'] if n['value']]))
+        try:
+            for language in SystemPreferences().get('languages'):
+                sorts = getattr(bt, 'sort_string', '')
+                for data_property in FindTags(sorts, '@', '@'):
+                    t = self.GetProperty(bubbletype = bt, data_property = data_property, language = language)
+                    if t['data_type'] in ['date', 'datetime']:
+                        sorts = sorts.replace('@%s@' % data_property, ', '.join(['%s' % n['forsort'] for n in t['values'] if n['forsort']]))
+                    elif t['data_type'] in ['integer', 'float']:
+                        sorts = sorts.replace('@%s@' % data_property, ', '.join(['%09d' % n['value'] for n in t['values'] if n['value']]))
+                    else:
+                        sorts = sorts.replace('@%s@' % data_property, ', '.join(['%s' % n['value'] for n in t['values'] if n['value']]))
+                sorts = StringToSortable(sorts)
+                if sorts != getattr(self, 'x_sort_%s' % language, ''):
+                    setattr(self, 'x_sort_%s' % language, sorts)
+                    do_put = True
+
+                searchl = []
+                for bp in Bubble().get(bt.GetValueAsList('search_properties')):
+                    if hasattr(bp, 'data_property'):
+                        t = self.GetProperty(bubbletype = bt, data_property = bp.data_property, language = language)
+                        for s in ['%s' % n['value'] for n in t['values'] if n['value']]:
+                            searchl = MergeLists(searchl, StringToSearchIndex(s))
+                    searchl = sorted(searchl)
+                if len(searchl) > 0:
+                    if searchl != getattr(self, 'x_search_%s' % language, ''):
+                        setattr(self, 'x_search_%s' % language, searchl)
+                        do_put = True
                 else:
-                    sorts = sorts.replace('@%s@' % data_property, ', '.join(['%s' % n['value'] for n in t['values'] if n['value']]))
-            sorts = StringToSortable(sorts)
-            if sorts != getattr(self, 'x_sort_%s' % language, ''):
-                setattr(self, 'x_sort_%s' % language, sorts)
-                do_put = True
+                    if hasattr(self, 'x_search_%s'% language):
+                        delattr(self, 'x_search_%s'% language)
+                        do_put = True
 
-            searchl = []
-            for bp in Bubble().get(bt.GetValueAsList('search_properties')):
-                if hasattr(bp, 'data_property'):
-                    t = self.GetProperty(bubbletype = bt, data_property = bp.data_property, language = language)
-                    for s in ['%s' % n['value'] for n in t['values'] if n['value']]:
-                        searchl = MergeLists(searchl, StringToSearchIndex(s))
-                searchl = sorted(searchl)
-            if len(searchl) > 0:
-                if searchl != getattr(self, 'x_search_%s' % language, ''):
-                    setattr(self, 'x_search_%s' % language, searchl)
-                    do_put = True
-            else:
-                if hasattr(self, 'x_search_%s'% language):
-                    delattr(self, 'x_search_%s'% language)
-                    do_put = True
+            for key in self.dynamic_properties():
+                value = getattr(self, key)
+                if type(value) is list:
+                    if len(value) == 1:
+                        setattr(self, key, value[0])
+                        do_put = True
 
-        for key in self.dynamic_properties():
-            value = getattr(self, key)
-            if type(value) is list:
-                if len(value) == 1:
-                    setattr(self, key, value[0])
-                    do_put = True
-
-        if do_put == True:
-            self.put('autofix')
+            if do_put == True:
+                self.put('autofix')
+        except:
+            pass
 
     def Authorize(self, type):
         if users.is_current_user_admin():
@@ -194,7 +197,7 @@ class Bubble(ChangeLogModel):
         newbubble.type = bt_new.path
 
         # Propagate properties
-        for pp_key in getattr(bt, 'propagated_properties', []):
+        for pp_key in bt.GetValueAsList('propagated_properties'):
             pp = Bubble().get(pp_key)
             if hasattr(self, pp.data_property):
                 setattr(newbubble, pp.data_property, getattr(self, pp.data_property))
