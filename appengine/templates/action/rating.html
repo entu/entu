@@ -1,0 +1,26 @@
+<section class="table" style="width:100%;">
+    {% for l in leechers %}
+    <div class="row">
+        <div class="v_header">
+            {{ l.displayname }}
+        </div>
+        <div class="cell">
+            <select class="rating" data-person="{{ l.key }}">
+                <option value=""></option>
+                {% for g in grades %}
+                <option value="{{ g.key }}"{% ifequal l.grade g.key %} selected{% endifequal %}>{{ g.displayname }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    {% endfor %}
+</section>
+
+<script>
+    $(document).ready(function(){
+        $('.rating').change(function() {
+            var rating = $(this);
+            $.post('/action/rating/{{ bubble.key.id }}', {person: rating.data('person'), grade: rating.val()});
+        });
+    });
+</script>

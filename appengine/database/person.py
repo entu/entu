@@ -50,9 +50,9 @@ class Person(ChangeLogModel):
 
     def AutoFix(self):
         if self.merged_from:
-            l1 = GetUniqueList([str(k) for k in self.merged_from])
-            l2 = GetUniqueList([str(k) for k in self.merged_from_all])
-            if len(GetListsDiff(l1, l2))>0:
+            l1 = ListUnique([str(k) for k in self.merged_from])
+            l2 = ListUnique([str(k) for k in self.merged_from_all])
+            if len(ListDiff(l1, l2))>0:
                 self.merged_from = self.merged_from_all
 
         if self.forename:
@@ -114,11 +114,11 @@ class Person(ChangeLogModel):
     def emails(self):
         emails = []
         if self.users:
-            emails = AddToList(self.users[0], emails)
+            emails = ListMerge(self.users[0], emails)
         if self.email:
-            emails = AddToList(self.email, emails)
+            emails = ListMerge(self.email, emails)
         for contact in db.Query(Contact).ancestor(self).filter('type', 'email').fetch(1000):
-            emails = AddToList(contact.value, emails)
+            emails = ListMerge(contact.value, emails)
         return emails
 
     @property
@@ -145,12 +145,12 @@ class Person(ChangeLogModel):
             result = self.merged_from
             for pk in self.merged_from:
                 p = Person().get(pk)
-                result = MergeLists(result, p.merged_from_all)
-        return GetUniqueList(result)
+                result = ListMerge(result, p.merged_from_all)
+        return ListUnique(result)
 
     @property
     def merged_to(self):
-        return GetUniqueList(db.Query(Person, keys_only=True).filter('merged_from', self.key()))
+        return ListUnique(db.Query(Person, keys_only=True).filter('merged_from', self.key()))
 
     def GetPhotoUrl(self, size = ''):
         email = self.primary_email if self.primary_email else self.displayname
@@ -166,7 +166,7 @@ class Person(ChangeLogModel):
             return Role().get(self.roles)
 
     def AddLeecher(self, bubble_key):
-        self.leecher = AddToList(bubble_key, self.leecher)
+        self.leecher = ListMerge(bubble_key, self.leecher)
         self.put()
         taskqueue.Task(url='/taskqueue/bubble_change_leecher', params={'action': 'add', 'bubble_key': str(bubble_key), 'person_key': str(self.key())}).add(queue_name='bubble-one-by-one')
 
@@ -220,7 +220,7 @@ class Conversation(ChangeLogModel):
     participants    = db.ListProperty(db.Key)
 
     def AddMessage(self, message, person = None):
-        self.participants = AddToList(person, self.participants)
+        self.participants = ListMerge(person, self.participants)
         self.put()
 
         mes = Message(parent=self)

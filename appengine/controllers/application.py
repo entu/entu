@@ -137,7 +137,7 @@ class ShowApplication(boRequestHandler):
             p.put()
 
         if p.key() not in p.GetValueAsList('x_br_viewer'):
-            setattr(p, 'x_br_viewer', MergeLists(p.key(), p.GetValueAsList('x_br_viewer')))
+            setattr(p, 'x_br_viewer', ListMerge(p.key(), p.GetValueAsList('x_br_viewer')))
             p.put()
 
         receptions = []
@@ -325,7 +325,7 @@ class EditSubbubble(boRequestHandler):
                     message += '<br/>\n'
                 for a in alter:
                     for r in bubble.GetRelatives(a):
-                        emails = MergeLists(getattr(r, 'email', []), getattr(r, 'user', []))
+                        emails = ListMerge(getattr(r, 'email', []), getattr(r, 'user', []))
                         SendMail(
                             to = emails,
                             subject = Translate('message_notify_on_alter_subject') % bt.displayname.lower(),

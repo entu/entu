@@ -14,15 +14,15 @@ class zPerson(db.Expando):
 
         if self.user:
             if '@' in self.user:
-                p.users = AddToList(self.user, p.users)
+                p.users = ListMerge(self.user, p.users)
         p.forename = self.forename
         p.surname = self.surname
         p.idcode = self.idcode
         p.gender = self.gender
         if self.birth_date:
             p.birth_date = self.birth_date.date()
-        p.leecher = MergeLists(p.leecher, GetZoinKeyList('Bubble', self.leecher))
-        p.seeder = MergeLists(p.seeder, GetZoinKeyList('Bubble', self.seeder))
+        p.leecher = ListMerge(p.leecher, GetZoinKeyList('Bubble', self.leecher))
+        p.seeder = ListMerge(p.seeder, GetZoinKeyList('Bubble', self.seeder))
         p.put('zimport')
         p.AutoFix()
 
@@ -63,7 +63,7 @@ class zPersonRole(db.Expando):
         person = GetZoin('Person', self.person)
         role_key = GetZoinKey('Role', self.role)
         if person and role_key:
-            person.roles = AddToList(role_key, person.roles)
+            person.roles = ListMerge(role_key, person.roles)
             person.put('zimport')
 
         self.delete()

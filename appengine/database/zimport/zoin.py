@@ -38,5 +38,5 @@ def GetZoinKeyList(entity_kind, old_keys):
         for k in StrToList(old_keys):
             z = GetZoin(entity_kind, k)
             if z:
-                result = AddToList(z.key(), result)
+                result = ListMerge(z.key(), result)
     return result

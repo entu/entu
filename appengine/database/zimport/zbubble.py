@@ -54,13 +54,13 @@ class zBubble(db.Expando):
             b.minimum_bubble_count = self.minimum_bubble_count
 
         if GetZoinKeyList('Bubble', self.mandatory_bubbles):
-            b.mandatory_bubbles = MergeLists(b.mandatory_bubbles, GetZoinKeyList('Bubble', self.mandatory_bubbles))
+            b.mandatory_bubbles = ListMerge(b.mandatory_bubbles, GetZoinKeyList('Bubble', self.mandatory_bubbles))
 
         if GetZoinKeyList('Bubble', self.optional_bubbles):
-            b.optional_bubbles = MergeLists(b.optional_bubbles, GetZoinKeyList('Bubble', self.optional_bubbles))
+            b.optional_bubbles = ListMerge(b.optional_bubbles, GetZoinKeyList('Bubble', self.optional_bubbles))
 
         if GetZoinKeyList('Bubble', self.prerequisite_bubbles):
-            b.prerequisite_bubbles = MergeLists(b.prerequisite_bubbles, GetZoinKeyList('Bubble', self.prerequisite_bubbles))
+            b.prerequisite_bubbles = ListMerge(b.prerequisite_bubbles, GetZoinKeyList('Bubble', self.prerequisite_bubbles))
 
         if self.state:
             b.state = self.state

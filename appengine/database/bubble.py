@@ -45,43 +45,61 @@ class Bubble(ChangeLogModel):
 
     @property
     def displayname(self):
-        bt = self.GetType()
+        try:
+            bt = self.GetType()
 
-        if not hasattr(bt, 'property_displayname'):
-            return ''
+            if not hasattr(bt, 'property_displayname'):
+                return ''
 
-        cache_key = 'bubble_dname_' + UserPreferences().current.language + '_' + str(self.key())
-        dname = Cache().get(cache_key)
-        if dname:
+            cache_key = 'bubble_dname_' + UserPreferences().current.language + '_' + str(self.key())
+            dname = Cache().get(cache_key)
+            if dname:
+                return dname
+
+            dname = getattr(bt, 'property_displayname', '')
+            for data_property in FindTags(dname, '@', '@'):
+                t = self.GetProperty(bubbletype = bt, data_property = data_property)
+                dname = dname.replace('@%s@' % data_property, ', '.join(['%s' % n['value'] for n in t['values'] if n['value']]))
+
+            Cache().set(cache_key, dname)
             return dname
-
-        dname = getattr(bt, 'property_displayname', '')
-        for data_property in FindTags(dname, '@', '@'):
-            t = self.GetProperty(bubbletype = bt, data_property = data_property)
-            dname = dname.replace('@%s@' % data_property, ', '.join(['%s' % n['value'] for n in t['values'] if n['value']]))
-
-        Cache().set(cache_key, dname)
-        return dname
+        except Exception, e:
+            logging.error('Bubble().displayname: %s' % e)
 
     @property
     def displayinfo(self):
-        bt = self.GetType()
+        try:
+            bt = self.GetType()
 
-        if not hasattr(bt, 'property_displayinfo'):
-            return ''
+            if not hasattr(bt, 'property_displayinfo'):
+                return ''
 
-        cache_key = 'bubble_dinfo_' + UserPreferences().current.language + '_' + str(self.key())
-        dinfo = Cache().get(cache_key)
-        if dinfo:
+            cache_key = 'bubble_dinfo_' + UserPreferences().current.language + '_' + str(self.key())
+            dinfo = Cache().get(cache_key)
+            if dinfo:
+                return dinfo
+
+            dinfo = getattr(bt, 'property_displayinfo', '')
+            for data_property in FindTags(dinfo, '@', '@'):
+                t = self.GetProperty(bubbletype = bt, data_property = data_property)
+                dinfo = dinfo.replace('@%s@' % data_property, ', '.join(['%s' % n['value'] for n in t['values'] if n['value']]))
+
+            Cache().set(cache_key, dinfo)
             return dinfo
+        except Exception, e:
+            logging.error('Bubble().displayinfo: %s' % e)
 
-        dinfo = getattr(bt, 'property_displayinfo', '')
-        for data_property in FindTags(dinfo, '@', '@'):
-            t = self.GetProperty(bubbletype = bt, data_property = data_property)
-            dinfo = dinfo.replace('@%s@' % data_property, ', '.join(['%s' % n['value'] for n in t['values'] if n['value']]))
+    @property
+    def displaycount(self):
+        try:
+            bt = self.GetType()
 
-        Cache().set(cache_key, dinfo)
-        return dinfo
+            if not hasattr(bt, 'property_displaycount'):
+                return
+
+            return len(self.GetValueAsList(getattr(bt, 'property_displaycount')))
+        except Exception, e:
+            logging.error('Bubble().displaycount: %s' % e)
 
     def AutoFix(self):
         bt = self.GetType()
@@ -168,6 +186,41 @@ class Bubble(ChangeLogModel):
         # return True if self.GetMyRole() in ['owner', 'editor', 'subbubbler'] else False
         return True if self.GetMyRole() in ['owner', 'editor', 'subbubbler', 'viewer'] else False
 
+    def AddRight(self, person_keys, right=None, user=None):
+        rights = ['viewer', 'subbubbler', 'editor', 'owner']
+
+        if type(person_keys) is not list:
+            person_keys = [person_keys]
+
+        # Remove rights
+        for r in rights:
+            if ListMatch(self.GetValueAsList('x_br_%s' % r), person_keys):
+                self.RemoveValue('x_br_%s' % r, person_keys)
+                self.put(user)
+
+        # Add rights
+        if right:
+            self.AddValue('x_br_%s' % right, person_keys)
+            self.put(user)
+
+        # Remove BubbleRelation
+        for pk in person_keys:
+            for br in db.Query(BubbleRelation).filter('bubble', self.key()).filter('related_bubble', pk).filter('type IN', rights).filter('x_is_deleted', False).fetch(100):
+                br.x_is_deleted = True
+                br.put(user)
+
+        # Set BubbleRelation
+        if right:
+            for pk in person_keys:
+                br = db.Query(BubbleRelation).filter('bubble', self.key()).filter('related_bubble', pk).filter('type', right).get()
+                if not br:
+                    br = BubbleRelation()
+                    br.bubble = self.key()
+                    br.related_bubble = pk
+                br.type = right
+                br.x_is_deleted = False
+                br.put(user)
+
     def GetPhotoUrl(self, size = 150, square = False):
         blob_key = getattr(self, 'photo', None)
         if blob_key:
@@ -187,7 +240,7 @@ class Bubble(ChangeLogModel):
 
         return 'http://www.gravatar.com/avatar/%s?s=%s&d=%s' % (hashlib.md5(str(self.key()).strip().lower()).hexdigest(), size, gravatar_type)
 
-    def AddSubbubble(self, type):
+    def AddSubbubble(self, type, properties = None, user = None):
         bt = self.GetType()
         bt_new = Bubble.get(type)
 
@@ -196,9 +249,13 @@ class Bubble(ChangeLogModel):
         newbubble.x_type = bt_new.key()
         newbubble.type = bt_new.path
 
+        # Set properties
+        if properties:
+            for p, v in properties.iteritems():
+                newbubble.AddValue(p, v)
+
         # Propagate properties
-        for pp_key in bt.GetValueAsList('propagated_properties'):
-            pp = Bubble().get(pp_key)
+        for pp in Bubble().get(bt.GetValueAsList('propagated_properties')):
             if hasattr(self, pp.data_property):
                 setattr(newbubble, pp.data_property, getattr(self, pp.data_property))
 
@@ -211,7 +268,7 @@ class Bubble(ChangeLogModel):
                     if getattr(c, 'value_property', None):
                         counter_value = getattr(self, c.value_property, c.value) + c.increment
                         setattr(self, c.value_property, counter_value)
-                        self.put()
+                        self.put(user)
                     else:
                         counter_value = GetCounterNextValue(data_value)
                     dname = bp.format_string.replace('@_counter_value@', str(counter_value))
@@ -222,20 +279,15 @@ class Bubble(ChangeLogModel):
                     setattr(newbubble, bp.target_property, dname)
 
         # Save new bubble
-        newbubble.put()
+        newbubble.put(user)
 
         # Propagate rights
         for r in ['viewer', 'subbubbler', 'editor', 'owner']:
             if hasattr(self, 'x_br_%s' % r):
-                setattr(newbubble, 'x_br_%s' % r, getattr(self, 'x_br_%s' % r))
-                newbubble.put()
-            for br in db.Query(BubbleRelation).filter('bubble', self.key()).filter('type', r).fetch(1000):
-                if br.related_bubble.kind() == 'Bubble':
-                    new_br = BubbleRelation()
-                    new_br.bubble = newbubble.key()
-                    new_br.related_bubble = br.related_bubble
-                    new_br.type = br.type
-                    new_br.put()
+                newbubble.AddRight(
+                    person_keys = getattr(self, 'x_br_%s' % r),
+                    right = r
+                )
 
         # Create BubbleRelation's
         br = db.Query(BubbleRelation).filter('bubble', self.key()).filter('related_bubble', newbubble.key()).filter('type', 'subbubble').get()
@@ -244,16 +296,15 @@ class Bubble(ChangeLogModel):
             br.bubble = self.key()
             br.related_bubble = newbubble.key()
             br.type = 'subbubble'
-            br.put()
+            br.put(user)
         else:
             if br.x_is_deleted != False:
                 br.x_is_deleted = False
-                br.put()
+                br.put(user)
 
         # Add new bubble to optional_bubbles list
-        self.x_br_subbubble = AddToList(newbubble.key(), self.GetValueAsList('x_br_subbubble'))
-        self.optional_bubbles = AddToList(newbubble.key(), self.GetValueAsList('optional_bubbles'))
-        self.put()
+        self.x_br_subbubble = ListMerge(newbubble.key(), self.GetValueAsList('x_br_subbubble'))
+        self.put(user)
 
         #AutoFix new bubble
         newbubble.AutoFix()
@@ -276,8 +327,8 @@ class Bubble(ChangeLogModel):
         else:
             return result
 
-    def AddValue(self, data_property, value):
-        newvalue = MergeLists(getattr(self, data_property, []), value)
+    def AddValue(self, data_property, values):
+        newvalue = ListMerge(getattr(self, data_property, []), values)
         if len(newvalue) == 1:
             setattr(self, data_property, newvalue[0])
         if len(newvalue) > 1:
@@ -287,7 +338,7 @@ class Bubble(ChangeLogModel):
         oldvalue = getattr(self, data_property, [])
         if type(oldvalue) is not list:
             oldvalue = [oldvalue]
-        newvalue = RemoveFromList(value, oldvalue)
+        newvalue = ListSubtract(oldvalue, value)
         if len(newvalue) == 0 and hasattr(self, data_property):
             delattr(self, data_property)
         if len(newvalue) == 1:
@@ -443,16 +494,16 @@ class Bubble(ChangeLogModel):
         if bp.data_type == 'boolean':
             newvalue = True if newvalue.lower() == 'true' else False
             oldvalue = True if oldvalue.lower() == 'true' else False
-            data_value = AddToList(newvalue, data_value)
-            data_value = RemoveFromList(oldvalue, data_value)
+            data_value = ListMerge(newvalue, data_value)
+            data_value = ListSubtract(data_value, oldvalue)
 
         if oldvalue:
-            data_value = RemoveFromList(oldvalue, data_value)
+            data_value = ListSubtract(data_value, oldvalue)
         if newvalue:
             if bp.GetValue('count', 0) == 1:
                 data_value = [newvalue]
             else:
-                data_value = AddToList(newvalue, data_value)
+                data_value = ListMerge(newvalue, data_value)
 
         if len(data_value) > 0:
             if len(data_value) == 1:
@@ -487,10 +538,14 @@ class Bubble(ChangeLogModel):
             Cache().set(cache_key, result.key())
         return result
 
-    def GetRelatives(self, relation):
+    def GetRelatives(self, relation, type=None):
         if hasattr(self, 'x_br_%s' % relation):
             result = []
             for b in db.get(self.GetValueAsList('x_br_%s' % relation)):
+                if not b:
+                    continue
+                if type and b.type != type:
+                    continue
                 if b:
                     if b.kind() == 'Bubble':
                         result.append(b)
@@ -502,7 +557,7 @@ class Bubble(ChangeLogModel):
 
     def GetSubtypes(self):
         bt = self.GetType()
-        return Bubble().get(MergeLists(self.GetValueAsList('allowed_subtypes'), bt.GetValueAsList('allowed_subtypes')))
+        return Bubble().get(ListMerge(self.GetValueAsList('allowed_subtypes'), bt.GetValueAsList('allowed_subtypes')))
 
     def GetAllowedSubtypes(self):
         if getattr(self, 'allowed_subtypes', None):
@@ -538,6 +593,6 @@ def CurrentUser():
 class BubbleRelation(ChangeLogModel):
     bubble                  = db.ReferenceProperty(Bubble, collection_name='bubblerelation_bubble')
     related_bubble          = db.ReferenceProperty(Bubble, collection_name='bubblerelation_related_bubble')
-    type                    = db.StringProperty(choices=['subbubble','seeder','leecher','editor','owner','subbubbler','viewer'])
+    type                    = db.StringProperty(choices=['nextinline','subbubble','seeder','leecher','editor','owner','subbubbler','viewer'])
     start_datetime          = db.DateTimeProperty()
     end_datetime            = db.DateTimeProperty()
