@@ -73,6 +73,9 @@
             {% if bubbletype.action %}
                 '<a id="open_action" href="javascript:void(0);" data-icon="A" class="tiptip" title="{{ str.bubble_actions }}"></a>',
             {% endif %}
+            {% if bubble.rating_scale %}
+                '<a id="open_rating" href="javascript:void(0);" data-icon="r" class="tiptip" title="{{ str.bubble_actions }}"></a>',
+            {% endif %}
             {% if bubble.icalurl %}
                 '<a href="{{ bubble.icalurl }}" data-icon="C"></a>',
             {% endif %}
@@ -105,6 +108,11 @@
         $('#open_action').click(function() {
             $('#tools').html('');
             openDropdown('/action/timeslot/{{ bubble.key.id }}', reload_item);
+        });
+
+        $('#open_rating').click(function() {
+            $('#tools').html('');
+            openDropdown('/action/rating/{{ bubble.key.id }}', reload_item);
         });
 
         $('#open_rights').click(function() {

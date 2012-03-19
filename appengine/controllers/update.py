@@ -54,53 +54,60 @@ class SendMessage(boRequestHandler):
     def get(self):
         self.header('Content-Type', 'text/plain; charset=utf-8')
         taskqueue.Task(url='/update/sendmessage').add()
-        self.echo(str(db.Query(Bubble).filter('type', 'applicant').filter('confirmed', True).filter('x_is_deleted', False).count(limit=100000)))
 
     def post(self):
         rc = 0
         bc = 0
-        limit = 400
+        limit = 60
         step = int(self.request.get('step', 1))
         offset = int(self.request.get('offset', 0))
 
         bt = db.Query(Bubble).filter('path', 'message').get()
         alter = bt.GetValueAsList('notify_on_alter')
 
-        messagetext = u'Graafilise Disaini esimesed eksamiülesanded leiad siit: http://link.artun.ee/rrnpk'
-        # messagetext = u'Esimesed eksamiülesanded leiad siit:  http://link.artun.ee/iodtp http://link.artun.ee/ntdhj http://link.artun.ee/pcgvi'
-        submission_id = 4976705
-        submission = Bubble().get_by_id(submission_id)
-        submission_leechers = submission.x_br_leecher
+        exam_id = 5058233
 
-        for b in db.Query(Bubble).filter('type', 'applicant').filter('confirmed', True).filter('x_is_deleted', False).order('__key__').fetch(limit=limit, offset=offset):
+        exam = Bubble().get_by_id(exam_id)
+
+        for g in db.Query(Bubble).filter('type', 'rating').filter('bubble', exam.key()).filter('x_is_deleted', False).order('__key__').fetch(limit=limit, offset=offset):
             rc += 1
-            if b.key() in submission_leechers:
-                bc += 1
+            b = Bubble().get(g.person)
 
-                bubble = b.AddSubbubble(bt.key())
-                bubble.x_created_by = 'helen.jyrgens@artun.ee'
-                bubble.put()
+            messagetext = None
+            if g.grade.id() == 6372319: #JAH
+                messagetext = u'Siit leiad sisearhitektuuri eksamiülesande "Essee": http://link.artun.ee/ghmyg'
+            # if g.grade.id() == 6371320: #EI
+            #     messagetext = u'Kahjuks sa ei läbinud graafilise disaini eriala vestlust. Edu edaspidiseks.'
 
-                value = bubble.SetProperty(
-                    propertykey = 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYk7zUAgw',
-                    oldvalue = '',
-                    newvalue = messagetext
-                )
+            if not messagetext:
+                continue
 
-                message = ''
-                for t in bubble.GetProperties():
-                    message += '<b>%s</b>:<br/>\n' % t['name']
-                    message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
-                    message += '<br/>\n'
+            bc += 1
+            # bubble = b.AddSubbubble(bt.key())
+            # bubble.x_created_by = 'helen.jyrgens@artun.ee'
+            # bubble.put()
 
-                emails = ListMerge(getattr(b, 'email', []), getattr(b, 'user', []))
-                SendMail(
-                    to = emails,
-                    subject = Translate('message_notify_on_alter_subject') % bt.displayname.lower(),
-                    message = message,
-                )
+            # value = bubble.SetProperty(
+            #     propertykey = 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYk7zUAgw',
+            #     oldvalue = '',
+            #     newvalue = messagetext
+            # )
 
-        logging.debug('#' + str(step) + ' - emails:' + str(bc) + ' - ' + str(rc) + ' rows from ' + str(offset))
+            # message = ''
+            # for t in bubble.GetProperties():
+            #     message += '<b>%s</b>:<br/>\n' % t['name']
+            #     message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
+            #     message += '<br/>\n'
+
+            # emails = ListMerge(getattr(b, 'email', []), getattr(b, 'user', []))
+            # SendMail(
+            #     to = emails,
+            #     subject = Translate('message_notify_on_alter_subject') % bt.displayname.lower(),
+            #     message = message,
+            # )
+
+            logging.debug(b.displayname + ' - ' + messagetext)
+        logging.debug('#' + str(step) + ' - emails sent: ' + str(bc) + ' - ' + str(rc) + ' - rows from ' + str(offset))
 
         if rc == limit:
             taskqueue.Task(url='/update/sendmessage', params={'offset': (offset + rc), 'step': (step + 1)}).add()

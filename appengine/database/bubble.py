@@ -535,10 +535,14 @@ class Bubble(ChangeLogModel):
             Cache().set(cache_key, result.key())
         return result
 
-    def GetRelatives(self, relation):
+    def GetRelatives(self, relation, type=None):
         if hasattr(self, 'x_br_%s' % relation):
             result = []
             for b in db.get(self.GetValueAsList('x_br_%s' % relation)):
+                if not b:
+                    continue
+                if type and b.type != type:
+                    continue
                 if b:
                     if b.kind() == 'Bubble':
                         result.append(b)

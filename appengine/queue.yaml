@@ -19,7 +19,7 @@ queue:
   rate: 10/s
   max_concurrent_requests: 1
 
-- name: relate-subbuble
+- name: relate-subbubble
   rate: 10/s
   max_concurrent_requests: 1
 
