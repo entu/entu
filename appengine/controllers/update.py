@@ -65,7 +65,7 @@ class SendMessage(boRequestHandler):
         bt = db.Query(Bubble).filter('path', 'message').get()
         alter = bt.GetValueAsList('notify_on_alter')
 
-        exam_id = 5058233
+        exam_id = 5363173
 
         exam = Bubble().get_by_id(exam_id)
 
@@ -75,7 +75,7 @@ class SendMessage(boRequestHandler):
 
             messagetext = None
             if g.grade.id() == 6372319: #JAH
-                messagetext = u'Siit leiad sisearhitektuuri eksamiülesande "Essee": http://link.artun.ee/ghmyg'
+                messagetext = u'Fotograafia eksami ülesanne: http://link.artun.ee/fxvgb'
             # if g.grade.id() == 6371320: #EI
             #     messagetext = u'Kahjuks sa ei läbinud graafilise disaini eriala vestlust. Edu edaspidiseks.'
 

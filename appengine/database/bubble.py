@@ -127,7 +127,7 @@ class Bubble(ChangeLogModel):
                     if hasattr(bp, 'data_property'):
                         t = self.GetProperty(bubbletype = bt, data_property = bp.data_property, language = language)
                         for s in ['%s' % n['value'] for n in t['values'] if n['value']]:
-                            searchl = MergeLists(searchl, StringToSearchIndex(s))
+                            searchl = ListMerge(searchl, StringToSearchIndex(s))
                     searchl = sorted(searchl)
                 if len(searchl) > 0:
                     if searchl != getattr(self, 'x_search_%s' % language, ''):
@@ -147,7 +147,8 @@ class Bubble(ChangeLogModel):
 
             if do_put == True:
                 self.put('autofix')
-        except:
+        except Exception, e:
+            logging.error('AutoFix ERROR (%s): %s' % (str(self.key()), e))
             pass
 
     def Authorize(self, type):
@@ -494,8 +495,8 @@ class Bubble(ChangeLogModel):
         if bp.data_type == 'boolean':
             newvalue = True if newvalue.lower() == 'true' else False
             oldvalue = True if oldvalue.lower() == 'true' else False
-            data_value = ListMerge(newvalue, data_value)
-            data_value = ListSubtract(data_value, oldvalue)
+            # data_value = ListMerge(newvalue, data_value)
+            # data_value = ListSubtract(data_value, oldvalue)
 
         if oldvalue:
             data_value = ListSubtract(data_value, oldvalue)
