@@ -63,21 +63,19 @@ class Rating(boRequestHandler):
         rating = db.Query(Bubble).filter('type', 'bubble_type').filter('path', 'rating').get()
         grade_key = db.Key(self.request.get('grade').strip())
 
-
-
         newbubble = db.Query(Bubble).filter('type', 'rating').filter('person', person.key()).filter('bubble', bubble.key()).get()
         if not newbubble:
             newbubble = person.AddSubbubble(rating.key(), {'grade': grade_key, 'person': person.key(), 'bubble': bubble.key()})
-            AddTask('/taskqueue/add_relation', {
-                'bubble': str(bubble.key()),
-                'related_bubble': str(newbubble.key()),
-                'type': 'subbubble',
-                'user': CurrentUser()._googleuser
-            }, 'relate-subbubble')
         else:
             newbubble.grade = grade_key
             newbubble.put()
 
+        AddTask('/taskqueue/add_relation', {
+            'bubble': str(bubble.key()),
+            'related_bubble': str(newbubble.key()),
+            'type': 'subbubble',
+            'user': CurrentUser()._googleuser
+        }, 'relate-subbubble')
 
 
 def main():
