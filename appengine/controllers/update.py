@@ -65,7 +65,7 @@ class SendMessage(boRequestHandler):
         bt = db.Query(Bubble).filter('path', 'message').get()
         alter = bt.GetValueAsList('notify_on_alter')
 
-        exam_id = 5363173
+        exam_id = 5095178
 
         exam = Bubble().get_by_id(exam_id)
 
@@ -75,9 +75,9 @@ class SendMessage(boRequestHandler):
 
             messagetext = None
             if g.grade.id() == 6372319: #JAH
-                messagetext = u'Fotograafia eksami ülesanne: http://link.artun.ee/fxvgb'
-            # if g.grade.id() == 6371320: #EI
-            #     messagetext = u'Kahjuks sa ei läbinud graafilise disaini eriala vestlust. Edu edaspidiseks.'
+                messagetext = u'Õnnitleme. Oled edukalt läbinud stsenograafia eriala vestluse. Siit leiad sisseastumiseksamite järgmise vooru ülesanded: http://link.artun.ee/qkvfm ja http://link.artun.ee/etqwf'
+            if g.grade.id() == 6371320: #EI
+                messagetext = u'Kahjuks sa ei läbinud stsenograafia eriala vestlust. Edu edaspidiseks.'
 
             if not messagetext:
                 continue

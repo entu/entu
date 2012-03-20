@@ -37,7 +37,7 @@ class Rating(boRequestHandler):
             return
 
         ratingscale = Bubble().get(bubble.rating_scale)
-        grades = ratingscale.GetRelatives('subbubble')
+        grades = sorted(ratingscale.GetRelatives('subbubble'), key=attrgetter('x_sort_%s' % UserPreferences().current.language))
         leechers = sorted(bubble.GetRelatives('leecher'), key=attrgetter('displayname'))
         ratings = {}
         for r in bubble.GetRelatives('subbubble', 'rating'):
