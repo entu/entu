@@ -237,6 +237,44 @@ class FixApplicants(boRequestHandler):
     def get(self):
         self.header('Content-Type', 'text/plain; charset=utf-8')
         taskqueue.Task(url='/update/applicant').add()
+        self.echo(str(db.Query(Bubble).filter('type', 'applicant').filter('x_is_deleted', False).count(limit=100000)))
+
+    def post(self):
+        rc = 0
+        bc = 0
+        limit = 1
+        step = int(self.request.get('step', 1))
+        offset = int(self.request.get('offset', 0))
+
+        for applicant in db.Query(Bubble).filter('type', 'applicant').filter('x_is_deleted', False).order('__key__').fetch(limit=limit, offset=offset):
+            rc += 1
+
+            viewers = []
+            for rh in applicant.GetValueAsList('x_br_viewer'):
+                if db.get(rh).kind() == 'Bubble':
+                    viewers.append(rh)
+                else:
+                    applicant.RemoveValue('x_br_viewer', rh)
+                    applicant.put()
+
+            viewers.append(applicant.key())
+
+            subbubbles = applicant.GetRelatives('subbubble')
+
+            logging.debug(str(applicant.key().id()) + ' - v:' + str(len(viewers)) + ' x sb:' + str(len(subbubbles)) + ' = r:' + str(len(viewers)*len(subbubbles)))
+            for sb in subbubbles:
+                sb.AddRight(viewers, 'viewer')
+
+        logging.debug('#' + str(step) + ' - ' +str(bc) + ' - ' + str(rc) + ' rows from ' + str(offset))
+
+        if rc == limit:
+            taskqueue.Task(url='/update/applicant', params={'offset': (offset + rc), 'step': (step + 1)}).add()
+
+
+class FixApplicants2(boRequestHandler):
+    def get(self):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        taskqueue.Task(url='/update/applicant').add()
         self.echo(str(db.Query(Bubble).filter('type', 'pre_applicant').filter('x_is_deleted', False).count(limit=100000)))
 
     def post(self):
@@ -516,14 +554,35 @@ class ExecuteNextinline(boRequestHandler): # source_bubble_id
         for leecher in Bubble().get(sourcebubble.GetValueAsList('x_br_leecher')):
             if not leecher:
                 continue
-            if getattr(leecher, 'confirmed', False) == False:
+
+            rating = db.Query(Bubble).filter('type', 'rating').filter('bubble', sourcebubble.key()).filter('person', leecher.key()).get()
+            grade = Bubble().get(rating.grade)
+            if getattr(grade, 'is_positive', False):
+                for targetbubble in Bubble().get(sourcebubble.GetValueAsList('x_br_nextinline')):
+                    self.echo('bubble:' + targetbubble.displayname + '; related_bubble:' + leecher.displayname)
+                    AddTask('/taskqueue/add_relation', {
+                        'bubble': str(targetbubble.key()),
+                        'related_bubble': str(leecher.key()),
+                        'type': relation_type,
+                        'user': CurrentUser()._googleuser
+                    }, 'relate-%s' % relation_type)
+
+
+class RemoveNextinline(boRequestHandler): # source_bubble_id
+    def get(self, sourcebubbleId):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+
+        sourcebubble = Bubble().get_by_id(int(sourcebubbleId))
+        relation_type = 'leecher'
+
+        for leecher in Bubble().get(sourcebubble.GetValueAsList('x_br_leecher')):
+            if not leecher:
                 continue
 
-            self.echo(leecher.displayname)
-
-            for masterbubble in Bubble().get(sourcebubble.GetValueAsList('x_br_nextinline')):
-                AddTask('/taskqueue/add_relation', {
-                    'bubble': str(masterbubble.key()),
+            for targetbubble in Bubble().get(sourcebubble.GetValueAsList('x_br_nextinline')):
+                self.echo('bubble:' + targetbubble.displayname + '; related_bubble:' + leecher.displayname)
+                AddTask('/taskqueue/remove_relation', {
+                    'bubble': str(targetbubble.key()),
                     'related_bubble': str(leecher.key()),
                     'type': relation_type,
                     'user': CurrentUser()._googleuser
@@ -717,6 +776,7 @@ def main():
             (r'/update/relate/(.*)/(.*)/(.*)', Relate),
             (r'/update/unrelate/(.*)/(.*)/(.*)', Unrelate),
             (r'/update/nil/(.*)', ExecuteNextinline),
+            (r'/update/unil/(.*)', RemoveNextinline),
             (r'/update/copybubble/(.*)/(.*)', CopyBubble),
             (r'/update/movebubble/(.*)/(.*)', MoveBubble),
             (r'/update/propagate_rights/(.*)/(.*)', PropagateRigths),
