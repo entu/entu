@@ -340,12 +340,20 @@ class Bubble(ChangeLogModel):
         if type(oldvalue) is not list:
             oldvalue = [oldvalue]
         newvalue = ListSubtract(oldvalue, value)
+
+        if  not newvalue:
+            if hasattr(self, data_property):
+                delattr(self, data_property)
+            return
         if len(newvalue) == 0 and hasattr(self, data_property):
             delattr(self, data_property)
+            return
         if len(newvalue) == 1:
             setattr(self, data_property, newvalue[0])
+            return
         if len(newvalue) > 1:
             setattr(self, data_property, newvalue)
+            return
 
     def GetProperties(self, language = None):
         if not language:

@@ -363,6 +363,73 @@ class MarkEuro(boRequestHandler):
         logging.debug(identifier + ' - ' + str(len(euro_keys)) + 'left')
 
 
+# Copy viewers to all subbubbles ( single level )
+class PropagateRigths1(boRequestHandler):
+    def get(self, bubble_id, right_str):
+        if right_str != 'viewer':
+            return 0
+
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+
+        b = Bubble().get_by_id(int(bubble_id))
+        identifier = bubble_id + ' - ' + b.displayname.encode('utf-8')
+        separator = ' : '
+        right_holders = []
+        for rh in b.GetValueAsList('x_br_' + right_str):
+            if db.get(rh).kind() == 'Bubble':
+                right_holders.append(rh)
+            else:
+                b.RemoveValue('x_br_' + right_str, rh)
+                self.echo('Encountered ' + db.get(rh).kind() + ' instead of Bubble at ' + str(rh))
+                b.put()
+
+        right_holders_str = separator.join(map(str, right_holders))
+
+        bubble_keys = ListMerge(b.GetValueAsList('x_br_subbubble'), b.GetValueAsList('x_br_leecher'))
+        bubble_keys_str = separator.join(map(str, bubble_keys))
+
+        AddTask('/update/propagate_rights1/' + right_str + '/', {
+            'right_holders': right_holders_str,
+            'separator': separator,
+            'bubble_keys': bubble_keys_str,
+            'identifier': identifier
+        }, 'default')
+
+        logging.debug(identifier + ': ' + str(len(bubble_keys)) + ' bubbles left.')
+
+        self.echo('Bubble ' + bubble_id + ' propagate ' + right_str + ' rights is GO')
+
+    def post(self, right_str, bubble_key = None):
+        separator = self.request.get('separator')
+        identifier = self.request.get('identifier')
+
+        right_holders_str = self.request.get('right_holders', '')
+        right_holders = [db.Key(r) for r in right_holders_str.split(separator)]
+
+        bubble_keys_str = self.request.get('bubble_keys', '')
+        # bubbles = [db.Key(r) for r in bubble_keys_str.split(separator)]
+        bubble_keys = bubble_keys_str.split(separator)
+        for i in range(0, 10):
+            if len(bubble_keys) == 0:
+                logging.debug(identifier + ': ' + 'Out of bubbles.')
+                return
+            bubble_key = bubble_keys.pop()
+            b = Bubble().get(bubble_key)
+            try:
+                b.AddRight(right_holders, right_str)
+            except Exception, e:
+                logging.debug(str(e))
+
+        logging.debug(identifier + ': ' + str(len(bubble_keys)) + ' bubbles left.')
+        bubble_keys_str = separator.join(bubble_keys)
+        AddTask('/update/propagate_rights1/' + right_str + '/', {
+            'right_holders': right_holders_str,
+            'separator': separator,
+            'bubble_keys': bubble_keys_str,
+            'identifier': identifier
+        }, 'default')
+
+
 class PropagateRigths(boRequestHandler):
     def get(self, bubble_id, right_str):
         if right_str != 'viewer':
@@ -421,12 +488,20 @@ class PropagateRigths(boRequestHandler):
             if len(bubble_keys) == 0:
                 logging.debug(identifier + ': ' + 'Out of bubbles.')
                 return
+
             bubble_key = bubble_keys.pop()
+            if not bubble_key:
+                continue
+
             b = Bubble().get(bubble_key)
+            if not b:
+                continue
+
             try:
                 b.AddRight(right_holders, right_str)
             except Exception, e:
-                logging.debug(str(e))
+                logging.debug('bubble: "' + str(b) + '"')
+                raise e
 
 
         logging.debug(identifier + ': ' + str(len(bubble_keys)) + ' bubbles left.')
@@ -438,11 +513,16 @@ class PropagateRigths(boRequestHandler):
             'identifier': identifier
         }, 'default')
 
+
     def recurse(self, bubble):
         # bubble = Bubble().get(bubble_key)
         keylist = ListMerge(bubble.GetValueAsList('x_br_subbubble'), bubble.GetValueAsList('x_br_leecher'))
         for key in keylist:
             b = Bubble().get(key)
+            if not b:
+                continue
+            if b.kind() != 'Bubble':
+                continue
             if b.x_is_deleted == True:
                 continue
             keylist = keylist + self.recurse(b)
@@ -780,6 +860,7 @@ def main():
             (r'/update/copybubble/(.*)/(.*)', CopyBubble),
             (r'/update/movebubble/(.*)/(.*)', MoveBubble),
             (r'/update/propagate_rights/(.*)/(.*)', PropagateRigths),
+            (r'/update/propagate_rights1/(.*)/(.*)', PropagateRigths1),
             (r'/update/timeslotlist/(.*)', TimeSlotList),
             ('/update/mark_euro', MarkEuro),
             ('/update/applicant', FixApplicants),
