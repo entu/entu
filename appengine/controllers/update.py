@@ -65,19 +65,21 @@ class SendMessage(boRequestHandler):
         bt = db.Query(Bubble).filter('path', 'message').get()
         alter = bt.GetValueAsList('notify_on_alter')
 
-        exam_id = 5095178
+        exam_id = 5060383
 
         exam = Bubble().get_by_id(exam_id)
 
-        for g in db.Query(Bubble).filter('type', 'rating').filter('bubble', exam.key()).filter('x_is_deleted', False).order('__key__').fetch(limit=limit, offset=offset):
-            rc += 1
-            b = Bubble().get(g.person)
+        # for g in db.Query(Bubble).filter('type', 'rating').filter('bubble', exam.key()).filter('x_is_deleted', False).order('__key__').fetch(limit=limit, offset=offset):
+        #     b = Bubble().get(g.person)
+            # messagetext = None
 
-            messagetext = None
-            if g.grade.id() == 6372319: #JAH
-                messagetext = u'Õnnitleme. Oled edukalt läbinud stsenograafia eriala vestluse. Siit leiad sisseastumiseksamite järgmise vooru ülesanded: http://link.artun.ee/qkvfm ja http://link.artun.ee/etqwf'
-            if g.grade.id() == 6371320: #EI
-                messagetext = u'Kahjuks sa ei läbinud stsenograafia eriala vestlust. Edu edaspidiseks.'
+        for b in exam.GetRelatives('leecher'):
+            rc += 1
+            messagetext = u'Õnnitleme! Oled edukalt läbinud tootedisaini eriala esimese vooru ja oled oodatud  24. märtsil kell 10:00-16:00 Estonia pst.7-417 Disainiülesande eksamile. Kaasa võtta materjalid: joonestuspaber (3 lehte A2), lisaks paber visanditeks (A4), joonestusvahendid, värvilised pliiatsid (võivad olla ka tindipliiatsid või viltpliiatsid), käärid, liim, joonlaud, sirkel, lõikenuga ja lõikealuseks paksem kartong.'
+            # if g.grade.id() == 6372319: #JAH
+            #     messagetext = u'Õnnitleme. Oled edukalt läbinud stsenograafia eriala vestluse. Siit leiad sisseastumiseksamite järgmise vooru ülesanded: http://link.artun.ee/qkvfm ja http://link.artun.ee/etqwf'
+            # if g.grade.id() == 6371320: #EI
+            #     messagetext = u'Kahjuks sa ei läbinud stsenograafia eriala vestlust. Edu edaspidiseks.'
 
             if not messagetext:
                 continue

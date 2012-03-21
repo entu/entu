@@ -41,7 +41,8 @@ class Rating(boRequestHandler):
         leechers = sorted(bubble.GetRelatives('leecher'), key=attrgetter('displayname'))
         ratings = {}
         for r in bubble.GetRelatives('subbubble', 'rating'):
-            ratings[str(r.person)] = r.grade
+            if r.x_is_deleted == False:
+                ratings[str(r.person)] = r.grade
 
         for l in leechers:
             if str(l.key()) in ratings:
@@ -61,21 +62,42 @@ class Rating(boRequestHandler):
         bubble = Bubble().get_by_id(int(bubble_id))
         person = Bubble().get(self.request.get('person').strip())
         rating = db.Query(Bubble).filter('type', 'bubble_type').filter('path', 'rating').get()
-        grade_key = db.Key(self.request.get('grade').strip())
+        if self.request.get('grade').strip():
+            grade_key = db.Key(self.request.get('grade').strip())
 
-        newbubble = db.Query(Bubble).filter('type', 'rating').filter('person', person.key()).filter('bubble', bubble.key()).get()
-        if not newbubble:
-            newbubble = person.AddSubbubble(rating.key(), {'grade': grade_key, 'person': person.key(), 'bubble': bubble.key()})
+            rating = db.Query(Bubble).filter('type', 'rating').filter('person', person.key()).filter('bubble', bubble.key()).get()
+            if not rating:
+                rating = person.AddSubbubble(rating.key(), {'grade': grade_key, 'person': person.key(), 'bubble': bubble.key()})
+            else:
+                rating.grade = grade_key
+                rating.x_is_deleted = False
+                rating.put()
+
+            AddTask('/taskqueue/add_relation', {
+                'bubble': str(bubble.key()),
+                'related_bubble': str(rating.key()),
+                'type': 'subbubble',
+                'user': CurrentUser()._googleuser
+            }, 'relate-subbubble')
         else:
-            newbubble.grade = grade_key
-            newbubble.put()
+            rating = db.Query(Bubble).filter('type', 'rating').filter('person', person.key()).filter('bubble', bubble.key()).get()
+            if rating:
+                rating.x_is_deleted = True
+                rating.put()
 
-        AddTask('/taskqueue/add_relation', {
-            'bubble': str(bubble.key()),
-            'related_bubble': str(newbubble.key()),
-            'type': 'subbubble',
-            'user': CurrentUser()._googleuser
-        }, 'relate-subbubble')
+                AddTask('/taskqueue/remove_relation', {
+                    'bubble': str(bubble.key()),
+                    'related_bubble': str(rating.key()),
+                    'type': 'subbubble',
+                    'user': CurrentUser()._googleuser
+                }, 'relate-subbubble')
+                AddTask('/taskqueue/remove_relation', {
+                    'bubble': str(person.key()),
+                    'related_bubble': str(rating.key()),
+                    'type': 'subbubble',
+                    'user': CurrentUser()._googleuser
+                }, 'relate-subbubble')
+
 
 
 def main():
