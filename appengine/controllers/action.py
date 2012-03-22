@@ -74,13 +74,13 @@ class Rating(boRequestHandler):
     def post(self, bubble_id):
         bubble = Bubble().get_by_id(int(bubble_id))
         person = Bubble().get(self.request.get('person').strip())
-        rating = db.Query(Bubble).filter('type', 'bubble_type').filter('path', 'rating').get()
         if self.request.get('grade').strip():
             grade_key = db.Key(self.request.get('grade').strip())
 
+            bt = db.Query(Bubble).filter('type', 'bubble_type').filter('path', 'rating').get()
             rating = db.Query(Bubble).filter('type', 'rating').filter('person', person.key()).filter('bubble', bubble.key()).get()
             if not rating:
-                rating = person.AddSubbubble(rating.key(), {'grade': grade_key, 'person': person.key(), 'bubble': bubble.key()})
+                rating = person.AddSubbubble(bt.key(), {'grade': grade_key, 'person': person.key(), 'bubble': bubble.key()})
             else:
                 rating.grade = grade_key
                 rating.x_is_deleted = False
