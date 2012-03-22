@@ -43,7 +43,7 @@ class Rating(boRequestHandler):
             grades.append({
                 'key': str(g.key()),
                 'displayname' : g.displayname,
-                'sort': 'x_sort_%s' % UserPreferences().current.language
+                'sort': getattr(g, 'x_sort_%s' % UserPreferences().current.language)
             })
         grades = sorted(grades, key=itemgetter('sort'))
 
@@ -104,6 +104,7 @@ class Rating(boRequestHandler):
                     'type': 'subbubble',
                     'user': CurrentUser()._googleuser
                 }, 'relate-subbubble')
+
                 AddTask('/taskqueue/remove_relation', {
                     'bubble': str(person.key()),
                     'related_bubble': str(rating.key()),

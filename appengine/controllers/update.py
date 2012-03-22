@@ -66,21 +66,25 @@ class SendMessage(boRequestHandler):
         bt = db.Query(Bubble).filter('path', 'message').get()
         alter = bt.GetValueAsList('notify_on_alter')
 
-        exam_id = 5052291
+        exam_id = 5108723
 
         exam = Bubble().get_by_id(exam_id)
 
-        # for g in db.Query(Bubble).filter('type', 'rating').filter('bubble', exam.key()).filter('x_is_deleted', False).order('__key__').fetch(limit=limit, offset=offset):
-        #     b = Bubble().get(g.person)
-            # messagetext = None
+        # for b in exam.GetRelatives('leecher'):
+        #     rc += 1
+        #     messagetext = u'Oled läbinud  sisseastumiseksamite I vooru tekstiilidisaini erialale ning ootame Sind II vooru. Täpsema informatsiooni leiad siit http://link.artun.ee/rofgl'
 
-        for b in exam.GetRelatives('leecher'):
+        for g in db.Query(Bubble).filter('type', 'rating').filter('bubble', exam.key()).filter('x_is_deleted', False).order('__key__').fetch(limit=limit, offset=offset):
             rc += 1
-            messagetext = u'Oled läbinud  sisseastumiseksamite I vooru tekstiilidisaini erialale ning ootame Sind II vooru. Täpsema informatsiooni leiad siit http://link.artun.ee/rofgl'
+            b = Bubble().get(g.person)
+            messagetext = None
+
             # if g.grade.id() == 6372319: #JAH
-            #     messagetext = u'Õnnitleme. Oled edukalt läbinud stsenograafia eriala vestluse. Siit leiad sisseastumiseksamite järgmise vooru ülesanded: http://link.artun.ee/qkvfm ja http://link.artun.ee/etqwf'
+            if g.grade.id() == 6432049: #6
+                messagetext = u'Õnnitleme! Oled edukalt läbinud moedisaini eriala esimese vooru ja oled oodatud 24. märtsil kell 10:00 Estonia pst.7-244 vestlusele. Kaasa võtta materjalid: vähemalt 9 lehte paberit A3 (420 x 297 mm), pliiats, värvipliiats, söepliiats, tušš, pintsel, viltpliiats jne.'
             # if g.grade.id() == 6371320: #EI
-            #     messagetext = u'Kahjuks sa ei läbinud stsenograafia eriala vestlust. Edu edaspidiseks.'
+            if g.grade.id() == 6430006: #1
+                messagetext = u'Kahjuks ei läbinud sa moedisaini eriala esimest vooru. Edu edsapidiseks.'
 
             if not messagetext:
                 continue
