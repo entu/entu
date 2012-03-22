@@ -37,16 +37,29 @@ class Rating(boRequestHandler):
             return
 
         ratingscale = Bubble().get(bubble.rating_scale)
-        grades = sorted(ratingscale.GetRelatives('subbubble'), key=attrgetter('x_sort_%s' % UserPreferences().current.language))
-        leechers = sorted(bubble.GetRelatives('leecher'), key=attrgetter('displayname'))
+
+        grades = []
+        for g in ratingscale.GetRelatives('subbubble'):
+            grades.append({
+                'key': str(g.key()),
+                'displayname' : g.displayname,
+                'sort': 'x_sort_%s' % UserPreferences().current.language
+            })
+        grades = sorted(grades, key=itemgetter('sort'))
+
         ratings = {}
         for r in bubble.GetRelatives('subbubble', 'rating'):
-            if r.x_is_deleted == False:
-                ratings[str(r.person)] = r.grade
+            if r.x_is_deleted == False and getattr(r, 'grade', False):
+                ratings[str(r.person)] = str(r.grade)
 
-        for l in leechers:
-            if str(l.key()) in ratings:
-                l.grade = ratings[str(l.key())]
+        leechers = []
+        for l in bubble.GetRelatives('leecher'):
+            leechers.append({
+                'key': str(l.key()),
+                'displayname' : l.displayname,
+                'grade': ratings[str(l.key())] if str(l.key()) in ratings else False
+            })
+        leechers = sorted(leechers, key=itemgetter('displayname'))
 
         self.view(
             main_template = '',

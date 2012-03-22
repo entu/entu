@@ -3,6 +3,7 @@
 from google.appengine.api import users
 from google.appengine.api import memcache
 from datetime import *
+from random import shuffle
 import time
 import re
 
@@ -65,7 +66,7 @@ class SendMessage(boRequestHandler):
         bt = db.Query(Bubble).filter('path', 'message').get()
         alter = bt.GetValueAsList('notify_on_alter')
 
-        exam_id = 5060383
+        exam_id = 5052291
 
         exam = Bubble().get_by_id(exam_id)
 
@@ -75,7 +76,7 @@ class SendMessage(boRequestHandler):
 
         for b in exam.GetRelatives('leecher'):
             rc += 1
-            messagetext = u'Õnnitleme! Oled edukalt läbinud tootedisaini eriala esimese vooru ja oled oodatud  24. märtsil kell 10:00-16:00 Estonia pst.7-417 Disainiülesande eksamile. Kaasa võtta materjalid: joonestuspaber (3 lehte A2), lisaks paber visanditeks (A4), joonestusvahendid, värvilised pliiatsid (võivad olla ka tindipliiatsid või viltpliiatsid), käärid, liim, joonlaud, sirkel, lõikenuga ja lõikealuseks paksem kartong.'
+            messagetext = u'Oled läbinud  sisseastumiseksamite I vooru tekstiilidisaini erialale ning ootame Sind II vooru. Täpsema informatsiooni leiad siit http://link.artun.ee/rofgl'
             # if g.grade.id() == 6372319: #JAH
             #     messagetext = u'Õnnitleme. Oled edukalt läbinud stsenograafia eriala vestluse. Siit leiad sisseastumiseksamite järgmise vooru ülesanded: http://link.artun.ee/qkvfm ja http://link.artun.ee/etqwf'
             # if g.grade.id() == 6371320: #EI
@@ -771,7 +772,9 @@ class Person2TimeSlot(boRequestHandler):
 
         sent_slots = []
 
-        for leecher in  sorted(Bubble().get(exam.GetValueAsList('x_br_leecher')), key=attrgetter('displayname')):
+        leechers = Bubble().get(exam.GetValueAsList('x_br_leecher'))
+        shuffle(leechers)
+        for leecher in leechers:
             if db.Query(Bubble).filter('type', 'personal_time_slot').filter('x_br_leecher', leecher.key()).filter('__key__ IN', exam.GetValueAsList('x_br_subbubble')).get():
                 continue
 

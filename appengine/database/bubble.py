@@ -4,6 +4,7 @@ from google.appengine.ext import blobstore
 from google.appengine.api import images
 from datetime import *
 from operator import attrgetter
+from operator import itemgetter
 
 import hashlib
 
@@ -553,11 +554,11 @@ class Bubble(ChangeLogModel):
             for b in db.get(self.GetValueAsList('x_br_%s' % relation)):
                 if not b:
                     continue
+                if b.kind() != 'Bubble':
+                    continue
                 if type and b.type != type:
                     continue
-                if b:
-                    if b.kind() == 'Bubble':
-                        result.append(b)
+                result.append(b)
             return result
         return []
 
