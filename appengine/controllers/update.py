@@ -626,7 +626,7 @@ class Unrelate(boRequestHandler): # relation_type / master / relatee
 
 
 class ExecuteNextinline(boRequestHandler): # source_bubble_id
-    def get(self, sourcebubbleId):
+    def get(self, sourcebubbleId, targetbubbleId = None):
         self.header('Content-Type', 'text/plain; charset=utf-8')
 
         sourcebubble = Bubble().get_by_id(int(sourcebubbleId))
@@ -639,7 +639,8 @@ class ExecuteNextinline(boRequestHandler): # source_bubble_id
             rating = db.Query(Bubble).filter('type', 'rating').filter('bubble', sourcebubble.key()).filter('person', leecher.key()).get()
             grade = Bubble().get(rating.grade)
             if getattr(grade, 'is_positive', False):
-                for targetbubble in Bubble().get(sourcebubble.GetValueAsList('x_br_nextinline')):
+                if targetbubbleId:
+                    targetbubble = Bubble().get_by_id(int(targetbubbleId))
                     self.echo('bubble:' + targetbubble.displayname + '; related_bubble:' + leecher.displayname)
                     AddTask('/taskqueue/add_relation', {
                         'bubble': str(targetbubble.key()),
@@ -647,6 +648,15 @@ class ExecuteNextinline(boRequestHandler): # source_bubble_id
                         'type': relation_type,
                         'user': CurrentUser()._googleuser
                     }, 'relate-%s' % relation_type)
+                else:
+                    for targetbubble in Bubble().get(sourcebubble.GetValueAsList('x_br_nextinline')):
+                        self.echo('bubble:' + targetbubble.displayname + '; related_bubble:' + leecher.displayname)
+                        AddTask('/taskqueue/add_relation', {
+                            'bubble': str(targetbubble.key()),
+                            'related_bubble': str(leecher.key()),
+                            'type': relation_type,
+                            'user': CurrentUser()._googleuser
+                        }, 'relate-%s' % relation_type)
 
 
 class RemoveNextinline(boRequestHandler): # source_bubble_id
@@ -858,7 +868,7 @@ def main():
             (r'/update/addleecher/(.*)/(.*)', AddLeecher),
             (r'/update/relate/(.*)/(.*)/(.*)', Relate),
             (r'/update/unrelate/(.*)/(.*)/(.*)', Unrelate),
-            (r'/update/nil/(.*)', ExecuteNextinline),
+            (r'/update/nil/(.*)/(.*)', ExecuteNextinline),
             (r'/update/unil/(.*)', RemoveNextinline),
             (r'/update/copybubble/(.*)/(.*)', CopyBubble),
             (r'/update/movebubble/(.*)/(.*)', MoveBubble),
