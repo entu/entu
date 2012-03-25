@@ -66,48 +66,50 @@ class SendMessage(boRequestHandler):
         bt = db.Query(Bubble).filter('path', 'message').get()
         alter = bt.GetValueAsList('notify_on_alter')
 
-        exam_id = 5052291
+        exam_id = 5052293
 
         exam = Bubble().get_by_id(exam_id)
 
-        # for g in db.Query(Bubble).filter('type', 'rating').filter('bubble', exam.key()).filter('x_is_deleted', False).order('__key__').fetch(limit=limit, offset=offset):
-        #     b = Bubble().get(g.person)
-            # messagetext = None
-
-        for b in exam.GetRelatives('leecher'):
+        for g in db.Query(Bubble).filter('type', 'rating').filter('bubble', exam.key()).filter('x_is_deleted', False).order('__key__').fetch(limit=limit, offset=offset):
             rc += 1
-            messagetext = u'Oled läbinud  sisseastumiseksamite I vooru tekstiilidisaini erialale ning ootame Sind II vooru. Täpsema informatsiooni leiad siit http://link.artun.ee/rofgl'
-            # if g.grade.id() == 6372319: #JAH
-            #     messagetext = u'Õnnitleme. Oled edukalt läbinud stsenograafia eriala vestluse. Siit leiad sisseastumiseksamite järgmise vooru ülesanded: http://link.artun.ee/qkvfm ja http://link.artun.ee/etqwf'
-            # if g.grade.id() == 6371320: #EI
-            #     messagetext = u'Kahjuks sa ei läbinud stsenograafia eriala vestlust. Edu edaspidiseks.'
+            b = Bubble().get(g.person)
+            messagetext = None
+
+        # for b in exam.GetRelatives('leecher'):
+        #     rc += 1
+        #     messagetext = u'Oled läbinud  sisseastumiseksamite I vooru tekstiilidisaini erialale ning ootame Sind II vooru. Täpsema informatsiooni leiad siit http://link.artun.ee/rofgl'
+
+            if g.grade.id() == 6372319: #JAH
+                messagetext = u'Õnnitleme! Oled siiani edukalt sooritanud sisseastumiskatseid ja oled oodatud homme, 25. 03 kell 10:00 erialaeksam II Estonia pst. 7-303-304, 336 Kaasa võtta 2 lehte A 3 paberit, töövahendid ja kindlasti ka kleepmass eksamitööde (kodutöö, figuurivisandid ja ül nr 2) seinale kinnitamiseks.'
+            if g.grade.id() == 6371320: #EI
+                messagetext = u'Kahjuks ei läbinud sa moedisaini eriala esimest vooru. Soovi korral võid proovida kandideerida Avatud Akadeemia moestilistika erialale, vastuvõtuvestlus on 9. juulil ja täiendav vastuvõtt 21. augustil algusega 10.00. Täpsem info vilve.unt@artun.ee Edu edaspidiseks.'
 
             if not messagetext:
                 continue
 
             bc += 1
-            # bubble = b.AddSubbubble(bt.key())
-            # bubble.x_created_by = 'helen.jyrgens@artun.ee'
-            # bubble.put()
+            bubble = b.AddSubbubble(bt.key())
+            bubble.x_created_by = 'helen.jyrgens@artun.ee'
+            bubble.put()
 
-            # value = bubble.SetProperty(
-            #     propertykey = 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYk7zUAgw',
-            #     oldvalue = '',
-            #     newvalue = messagetext
-            # )
+            value = bubble.SetProperty(
+                propertykey = 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYk7zUAgw',
+                oldvalue = '',
+                newvalue = messagetext
+            )
 
-            # message = ''
-            # for t in bubble.GetProperties():
-            #     message += '<b>%s</b>:<br/>\n' % t['name']
-            #     message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
-            #     message += '<br/>\n'
+            message = ''
+            for t in bubble.GetProperties():
+                message += '<b>%s</b>:<br/>\n' % t['name']
+                message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
+                message += '<br/>\n'
 
-            # emails = ListMerge(getattr(b, 'email', []), getattr(b, 'user', []))
-            # SendMail(
-            #     to = emails,
-            #     subject = Translate('message_notify_on_alter_subject') % bt.displayname.lower(),
-            #     message = message,
-            # )
+            emails = ListMerge(getattr(b, 'email', []), getattr(b, 'user', []))
+            SendMail(
+                to = emails,
+                subject = Translate('message_notify_on_alter_subject') % bt.displayname.lower(),
+                message = message,
+            )
 
             logging.debug(b.displayname + ' - ' + messagetext)
         logging.debug('#' + str(step) + ' - emails sent: ' + str(bc) + ' - ' + str(rc) + ' - rows from ' + str(offset))
