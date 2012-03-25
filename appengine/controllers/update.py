@@ -90,28 +90,28 @@ class SendMessage(boRequestHandler):
                 continue
 
             bc += 1
-            # bubble = b.AddSubbubble(bt.key())
-            # bubble.x_created_by = 'helen.jyrgens@artun.ee'
-            # bubble.put()
+            bubble = b.AddSubbubble(bt.key())
+            bubble.x_created_by = 'helen.jyrgens@artun.ee'
+            bubble.put()
 
-            # value = bubble.SetProperty(
-            #     propertykey = 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYk7zUAgw',
-            #     oldvalue = '',
-            #     newvalue = messagetext
-            # )
+            value = bubble.SetProperty(
+                propertykey = 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYk7zUAgw',
+                oldvalue = '',
+                newvalue = messagetext
+            )
 
-            # message = ''
-            # for t in bubble.GetProperties():
-            #     message += '<b>%s</b>:<br/>\n' % t['name']
-            #     message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
-            #     message += '<br/>\n'
+            message = ''
+            for t in bubble.GetProperties():
+                message += '<b>%s</b>:<br/>\n' % t['name']
+                message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
+                message += '<br/>\n'
 
-            # emails = ListMerge(getattr(b, 'email', []), getattr(b, 'user', []))
-            # SendMail(
-            #     to = emails,
-            #     subject = Translate('message_notify_on_alter_subject') % bt.displayname.lower(),
-            #     message = message,
-            # )
+            emails = ListMerge(getattr(b, 'email', []), getattr(b, 'user', []))
+            SendMail(
+                to = emails,
+                subject = Translate('message_notify_on_alter_subject') % bt.displayname.lower(),
+                message = message,
+            )
 
             logging.debug(b.displayname + ' - ' + messagetext)
         logging.debug('#' + str(step) + ' - emails sent: ' + str(bc) + ' - ' + str(rc) + ' - rows from ' + str(offset))
@@ -630,7 +630,7 @@ class Unrelate(boRequestHandler): # relation_type / master / relatee
 
 
 class ExecuteNextinline(boRequestHandler): # source_bubble_id
-    def get(self, sourcebubbleId):
+    def get(self, sourcebubbleId, targetbubbleId = None):
         self.header('Content-Type', 'text/plain; charset=utf-8')
 
         sourcebubble = Bubble().get_by_id(int(sourcebubbleId))
@@ -643,7 +643,8 @@ class ExecuteNextinline(boRequestHandler): # source_bubble_id
             rating = db.Query(Bubble).filter('type', 'rating').filter('bubble', sourcebubble.key()).filter('person', leecher.key()).get()
             grade = Bubble().get(rating.grade)
             if getattr(grade, 'is_positive', False):
-                for targetbubble in Bubble().get(sourcebubble.GetValueAsList('x_br_nextinline')):
+                if targetbubbleId:
+                    targetbubble = Bubble().get_by_id(int(targetbubbleId))
                     self.echo('bubble:' + targetbubble.displayname + '; related_bubble:' + leecher.displayname)
                     AddTask('/taskqueue/add_relation', {
                         'bubble': str(targetbubble.key()),
@@ -651,6 +652,15 @@ class ExecuteNextinline(boRequestHandler): # source_bubble_id
                         'type': relation_type,
                         'user': CurrentUser()._googleuser
                     }, 'relate-%s' % relation_type)
+                else:
+                    for targetbubble in Bubble().get(sourcebubble.GetValueAsList('x_br_nextinline')):
+                        self.echo('bubble:' + targetbubble.displayname + '; related_bubble:' + leecher.displayname)
+                        AddTask('/taskqueue/add_relation', {
+                            'bubble': str(targetbubble.key()),
+                            'related_bubble': str(leecher.key()),
+                            'type': relation_type,
+                            'user': CurrentUser()._googleuser
+                        }, 'relate-%s' % relation_type)
 
 
 class RemoveNextinline(boRequestHandler): # source_bubble_id
@@ -862,7 +872,7 @@ def main():
             (r'/update/addleecher/(.*)/(.*)', AddLeecher),
             (r'/update/relate/(.*)/(.*)/(.*)', Relate),
             (r'/update/unrelate/(.*)/(.*)/(.*)', Unrelate),
-            (r'/update/nil/(.*)', ExecuteNextinline),
+            (r'/update/nil/(.*)/(.*)', ExecuteNextinline),
             (r'/update/unil/(.*)', RemoveNextinline),
             (r'/update/copybubble/(.*)/(.*)', CopyBubble),
             (r'/update/movebubble/(.*)/(.*)', MoveBubble),
