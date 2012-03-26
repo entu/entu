@@ -5,6 +5,9 @@
         <div class="v_header">
             {{ l.displayname }}
         </div>
+        <div class="v_header">
+            {{ l.equivalent }}
+        </div>
         {% for sg in l.subgrades %}
         <div class="cell" title="{{ sg.bubble.displayname }}" style="text-align:center; vertical-align:middle;{%if not sg.grade.is_positive %} color:red;{% endif %}">
             {{ sg.grade.displayname }}

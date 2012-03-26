@@ -8,7 +8,9 @@
 <h1>{{ bubble.displayname }}</h1>
 <section class="table" style="width:100%;">
     <div class="row">
-        <div class="v_header" style="border-top:none;">
+        <div class="v_header" style="border-top:none;border-right:none;">
+        </div>
+        <div class="cell" style="border-top:none;">
         </div>
         {% for sg in subbubbles %}
         <div class="h_header" style="border-top:none;">
@@ -22,6 +24,9 @@
     <div class="row">
         <div class="v_header">
             {{ l.displayname }}
+        </div>
+        <div class="v_header">
+            {{ l.equivalent }}
         </div>
         {% for sg in l.subgrades %}
         <div class="cell" title="{{ sg.bubble.displayname }}" style="text-align:center; vertical-align:middle;{%if not sg.grade.is_positive %} color:red;{% endif %}">

@@ -36,6 +36,8 @@ class Rating(boRequestHandler):
             self.error(404)
             return
 
+        is_print = self.request.get('print').strip().lower() == 'true'
+
         ratingscale = Bubble().get(bubble.rating_scale)
 
         grades = {}
@@ -45,6 +47,7 @@ class Rating(boRequestHandler):
                 'displayname' : g.displayname,
                 'sort': getattr(g, 'x_sort_%s' % UserPreferences().current.language),
                 'is_positive': getattr(g, 'is_positive', False),
+                'equivalent': getattr(g, 'equivalent', 0),
             }
 
         ratings = {}
@@ -58,6 +61,7 @@ class Rating(boRequestHandler):
                 'key': str(l.key()),
                 'displayname' : l.displayname,
                 'grade': ratings[str(l.key())] if str(l.key()) in ratings else False,
+                'equivalent' : 0
             }
 
         subgrades = {}
@@ -77,8 +81,10 @@ class Rating(boRequestHandler):
                     allgrades[str(sr.grade)] = {
                         'displayname': gb.displayname,
                         'is_positive': getattr(gb, 'is_positive', False),
+                        'equivalent': getattr(gb, 'equivalent', 0),
                     }
 
+                leechers[str(sr.person)]['equivalent'] += allgrades[str(sr.grade)]['equivalent']
                 subgrades[str(sr.bubble)+str(sr.person)] = {'grade': allgrades[str(sr.grade)], 'bubble': subbubbles[str(s.key())]}
 
         for bk, bv in subbubbles.iteritems():
@@ -90,14 +96,19 @@ class Rating(boRequestHandler):
                 else:
                     leechers[lk]['subgrades'].append('X')
 
+        if is_print:
+            leechers = sorted(leechers.values(), key=itemgetter('equivalent'), reverse=True)
+        else:
+            leechers = sorted(leechers.values(), key=itemgetter('displayname'))
+
         self.view(
-            main_template = 'main/print.html' if self.request.get('print').strip().lower() == 'true' else '',
-            template_file =  'action/rating_print.html' if self.request.get('print').strip().lower() == 'true' else 'action/rating.html',
+            main_template = 'main/print.html' if is_print else '',
+            template_file =  'action/rating_print.html' if is_print else 'action/rating.html',
             values = {
                 'bubble': bubble,
                 'grades': sorted(grades.values(), key=itemgetter('sort')),
                 'subbubbles': subbubbles.values(),
-                'leechers': sorted(leechers.values(), key=itemgetter('displayname')),
+                'leechers': leechers,
             }
         )
 
