@@ -52,7 +52,7 @@ class Rating(boRequestHandler):
 
         ratings = {}
         for r in bubble.GetRelatives('subbubble', 'rating'):
-            if r.x_is_deleted == False and getattr(r, 'grade', False):
+            if r.x_is_deleted == False and getattr(r, 'grade', False) and str(r.grade) in grades:
                 ratings[str(r.person)] = grades[str(r.grade)]
 
         leechers = {}
