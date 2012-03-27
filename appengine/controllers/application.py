@@ -145,8 +145,8 @@ class ShowApplication(boRequestHandler):
         for g in sorted(db.Query(Bubble).filter('type', 'reception_group').fetch(1000), key=attrgetter('x_sort_%s' % language)):
             gname = getattr(Dictionary.get(g.name), language)
             gname2 = ''
-            for r in sorted(db.Query(Bubble).filter('type', 'reception').filter('__key__ IN', g.GetValueAsList('x_br_subbubble')).fetch(1000), key=attrgetter('x_sort_%s' % language)):
-                for s in sorted(db.Query(Bubble).filter('type', 'submission').filter('__key__ IN', r.GetValueAsList('x_br_subbubble')).fetch(1000), key=attrgetter('x_sort_%s' % language)):
+            for r in sorted(g.GetRelatives('subbubble', 'reception'), key=attrgetter('x_sort_%s' % language)):
+                for s in sorted(r.GetRelatives('subbubble', 'submission'), key=attrgetter('x_sort_%s' % language)):
                     leeching = p.key() in s.GetValueAsList('x_br_leecher')
                     if (getattr(s, 'start_datetime', datetime.now()) < datetime.now() and getattr(s, 'end_datetime', datetime.now()) > datetime.now()) or leeching:
                         if leeching:

@@ -554,6 +554,8 @@ class Bubble(ChangeLogModel):
             for b in db.get(self.GetValueAsList('x_br_%s' % relation)):
                 if not b:
                     continue
+                if b.x_is_deleted == True:
+                    continue
                 if b.kind() != 'Bubble':
                     continue
                 if type and b.type != type:
@@ -592,7 +594,7 @@ def CurrentUser():
         current_user = db.Query(Bubble).filter('type', 'person').filter('user', user.email()).filter('x_is_deleted', False).get()
         if not current_user:
             current_user = Bubble()
-            current_user.user = [user.email()]
+            current_user.user = user.email()
             current_user.is_guest = True
             current_user.type = 'person'
             current_user.put()
