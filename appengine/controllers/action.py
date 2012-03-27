@@ -61,7 +61,8 @@ class Rating(boRequestHandler):
                 'key': str(l.key()),
                 'displayname' : l.displayname,
                 'grade': ratings[str(l.key())] if str(l.key()) in ratings else False,
-                'equivalent' : 0
+                'equivalent' : 0,
+                'is_positive' : True,
             }
 
         subgrades = {}
@@ -71,7 +72,6 @@ class Rating(boRequestHandler):
             subbubbles[str(s.key())] = {
                 'displayname': s.displayname,
             }
-
 
             for sr in s.GetRelatives('subbubble', 'rating'):
                 if str(sr.person) not in leechers or  sr.x_is_deleted == True or not getattr(sr, 'grade', False):
@@ -85,6 +85,7 @@ class Rating(boRequestHandler):
                     }
 
                 leechers[str(sr.person)]['equivalent'] += allgrades[str(sr.grade)]['equivalent']
+                leechers[str(sr.person)]['is_positive'] = False if allgrades[str(sr.grade)]['is_positive'] == False else leechers[str(sr.person)]['is_positive']
                 subgrades[str(sr.bubble)+str(sr.person)] = {'grade': allgrades[str(sr.grade)], 'bubble': subbubbles[str(s.key())]}
 
         for bk, bv in subbubbles.iteritems():
@@ -97,7 +98,7 @@ class Rating(boRequestHandler):
                     leechers[lk]['subgrades'].append('X')
 
         if is_print:
-            leechers = sorted(leechers.values(), key=itemgetter('equivalent'), reverse=True)
+            leechers = sorted(leechers.values(), key=itemgetter('is_positive', 'equivalent'), reverse=True)
         else:
             leechers = sorted(leechers.values(), key=itemgetter('displayname'))
 
