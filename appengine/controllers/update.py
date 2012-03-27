@@ -470,19 +470,16 @@ class PropagateRigths(boRequestHandler):
         identifier = self.request.get('identifier')
         right_holders = [db.Key(r) for r in right_holders_str.split(separator)]
 
+        # If there were no deadline issues in get(), this block wouldn't be here
         if bubble_key:
-            bubble = Bubble().get(bubble_key)
-
-            bubble_keys = self.recurse(bubble)
-
+            bubble_keys = self.recurse(Bubble().get(bubble_key))
             logging.debug(identifier + ': ' + str(len(bubble_keys)))
             bubble_keys = list(set(bubble_keys))
             logging.debug(identifier + ': ' + str(len(bubble_keys)))
-            bubble_keys_str = separator.join(map(str, bubble_keys))
             AddTask('/update/propagate_rights/' + right_str + '/', {
                 'right_holders': right_holders_str,
                 'separator': separator,
-                'bubble_keys': bubble_keys_str,
+                'bubble_keys': separator.join(map(str, bubble_keys)),
                 'identifier': identifier
             }, 'default')
             return
@@ -686,8 +683,13 @@ class RemoveNextinline(boRequestHandler): # source_bubble_id
 
 class CopyBubble(boRequestHandler): # Assign Bubble as SubBubble to another Bubble
     def get(self, subbubbleId, masterbubbleId):
-        subbubble = Bubble().get_by_id(int(subbubbleId))
-        masterbubble = Bubble().get_by_id(int(masterbubbleId))
+        try:
+            subbubble = Bubble().get_by_id(int(subbubbleId))
+            masterbubble = Bubble().get_by_id(int(masterbubbleId))
+        except Exception, e:
+            self.header('Content-Type', 'text/plain; charset=utf-8')
+            self.echo('subbubbleId / masterbubbleId')
+            return
 
         # Add subbubble
         masterbubble.x_br_subbubble = ListMerge(masterbubble.GetValueAsList('x_br_subbubble'), subbubble.key())
