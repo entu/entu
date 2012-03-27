@@ -859,6 +859,10 @@ class XXX(boRequestHandler):
         self.echo(ListMatch(a, 'a'))
         self.echo(ListMatch(a, ['x', 'y']))
 
+        b = Bubble().get_by_id(6704417)
+        delattr(b, 'files')
+        b.put()
+
         for b in db.Query(Bubble).order('message').fetch(1000):
             if hasattr(b, 'message'):
                 b.notes = b.message
