@@ -147,6 +147,8 @@ class ShowApplication(boRequestHandler):
             gname2 = ''
             for r in sorted(g.GetRelatives('subbubble', 'reception'), key=attrgetter('x_sort_%s' % language)):
                 for s in sorted(r.GetRelatives('subbubble', 'submission'), key=attrgetter('x_sort_%s' % language)):
+                    if not getattr(Dictionary.get(s.name), language, False):
+                        continue
                     leeching = p.key() in s.GetValueAsList('x_br_leecher')
                     if (getattr(s, 'start_datetime', datetime.now()) < datetime.now() and getattr(s, 'end_datetime', datetime.now()) > datetime.now()) or leeching:
                         if leeching:
@@ -162,7 +164,7 @@ class ShowApplication(boRequestHandler):
                         gname2 = gname
 
         subbubbles = []
-        for t in ['cv_edu', 'cv_work', 'state_exam', 'applicant_doc', 'message']:
+        for t in ['cv_edu', 'cv_edu_ba', 'cv_edu_ma', 'cv_work', 'state_exam', 'applicant_doc', 'message']:
             props = []
             for b in sorted(Bubble.get(p.GetValueAsList('x_br_subbubble')), key=attrgetter('x_created')):
                 if b:
@@ -492,7 +494,7 @@ class Submit(boRequestHandler):
                     p.put(getattr(p, 'email', ''))
 
                     for sb in Bubble.get(p.x_br_subbubble):
-                        if sb.type in ['cv_edu', 'cv_work', 'state_exam', 'applicant_doc', 'message']:
+                        if sb.type in ['cv_edu', 'cv_edu_ba', 'cv_edu_ma', 'cv_work', 'state_exam', 'applicant_doc', 'message']:
                             sb.x_br_viewer = s.x_br_viewer
                             sb.put(getattr(p, 'email', ''))
 

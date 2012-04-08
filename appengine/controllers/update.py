@@ -59,6 +59,9 @@ class SendMessage(boRequestHandler):
     def post(self):
         rc = 0
         bc = 0
+        b1 = 0
+        b2 = 0
+        b3 = 0
         limit = 60
         step = int(self.request.get('step', 1))
         offset = int(self.request.get('offset', 0))
@@ -66,7 +69,7 @@ class SendMessage(boRequestHandler):
         bt = db.Query(Bubble).filter('path', 'message').get()
         alter = bt.GetValueAsList('notify_on_alter')
 
-        exam_id = 5108723
+        exam_id = 5042226
 
         exam = Bubble().get_by_id(exam_id)
 
@@ -79,42 +82,57 @@ class SendMessage(boRequestHandler):
             b = Bubble().get(g.person)
             messagetext = None
 
-            # if g.grade.id() == 6372319: #JAH
-            if g.grade.id() == 6432049: #6
-                messagetext = u'Õnnitleme! Oled edukalt läbinud moedisaini eriala esimese vooru ja oled oodatud 24. märtsil kell 10:00 Estonia pst.7-244 vestlusele. Kaasa võtta materjalid: vähemalt 9 lehte paberit A3 (420 x 297 mm), pliiats, värvipliiats, söepliiats, tušš, pintsel, viltpliiats jne.'
-            # if g.grade.id() == 6371320: #EI
-            if g.grade.id() == 6430006: #1
-                messagetext = u'Kahjuks ei läbinud sa moedisaini eriala esimest vooru. Edu edsapidiseks.'
+            if g.grade.id() == 6762206: #RE
+                b1 += 1
+                subjecttext = u'Teade Eesti Kunstiakadeemiasse vastu võtmise kohta'
+                messagetext = u'Eesti Kunstiakadeemial on rõõm Teile teatada, et olete edukalt sooritanud sisseastumiseksamid bakalaureuseõppe stsenograafia õppekava riigieelarvelisele õppekohale.<br><br>2012. aasta gümnaasiumi lõpetajatel palume oma lõputunnistus ja riigieksamitunnistus esitada hiljemalt 25. juuniks 2012. Dokumendid võib üles laadida sisseastumissüsteemis oma avalduse juurde või tuua isiklikult 25. juunil 2012 Estonia pst.7- 265/266.<br>Lõplik nimekiri kinnitatakse 29. juunil 2012.<br><br>Eksamitööde tagastamine osakonnas 05.04-12.04.2012.<br><br>Õppeaasta algab 27. augustil 2012 sissejuhatava nädalaga (sissejuhatava nädala täpsema kava leiate EKA koduleheküljelt www.artun.ee augusti teisel poolel).<br>Õppeaasta avaaktus toimub 31.augustil 2012 (täpne kellaaeg ja koht täpsustatakse augusti teises pooles).<br>Auditoorne õppetöö algab 3. septembril 2012.<br><br>Üliõpilaseks registreeruma ei pea, kuid riigieelarvelisest õppekohast loobumisest palume teatada hiljemalt 22. juuliks 2012. Avalduse saab tuua EKA õppeosakonda (Estonia pst. 7, ruum 530) või saata meilile helen.jyrgens@artun.ee<br><br>Kui sissesaanud üliõpilane ei asu õppetööle mõjuva põhjuseta hiljemalt 10 päeva jooksul pärast õppetöö algust, siis ta eksmatrikuleeritakse ja vabanenud õppekohale immatrikuleeritakse pingereas järgmine kandidaat (Eesti Kunstiakadeemia õppekorralduseeskirja punkt 2.6.10.1.)<br><br>Ühiselamusse saab esitada avaldusi kodulehel www.yhikas.ee.<br><br><br>Vastuvõtt<br>6267 305<br>helen.jyrgens@artun.ee'
+
+            if g.grade.id() == 6748194: #REV
+                b2 += 1
+                subjecttext = u'Teade Eesti Kunstiakadeemia vastuvõtu kohta'
+                messagetext = u'Käesolevaga teatame, et sooritasite sisseastumiseksamid Eesti Kunstiakadeemia stsenograafia erialale positiivsele tulemusele, kuid ei pääsenud õppima riigieelarvelisele õppekohale.<br>Tasulisel õppekohal õppimise soov palume kinnitada hiljemalt 22. juuliks 2012, teatades sellest e-posti aadressile helen.jyrgens@artun.ee.<br>Peale 22. juulit 2012 teatatakse tasulised üliõpilased, kes on erialaosakonna poolt vastu võetud ja on kohustatud sõlmima õppeosakonnas (Estonia pst 7-530) lepingu  21.-22.08.2012.<br>Lepinguliste üliõpilaste I semestri õppeteenustasu tasumise tähtaeg on 24.08.2012.<br>2012. aasta gümnaasiumi lõpetajatel palume oma lõputunnistus ja riigieksamitunnistus esitada hiljemalt 25. juuniks 2012. Dokumendid võib üles laadida sisseastumissüsteemis oma avalduse juurde või tuua isiklikult 25. juunil 2012 Estonia pst.7- 265/266.<br><br>Õppeaasta algab 27. augustil 2012 sissejuhatava nädalaga.<br>Õppeaasta avaaktus toimub 31. augustil 2012 (täpne kellaaeg ja koht täpsustatakse augusti teises pooles).<br>Auditoorne õppetöö algab 3. septembril 2012.<br><br>Kui sissesaanud üliõpilane ei asu õppetööle mõjuva põhjuseta hiljemalt 10 päeva jooksul pärast õppetöö algust, siis ta eksmatrikuleeritakse ja vabanenud õppekohale immatrikuleeritakse pingereas järgmine kandidaat (Eesti Kunstiakadeemia õppekorralduseeskirja punkt 2.6.10.1.)<br><br>Ühiselamusse saab esitada avaldusi kodulehel www.yhikas.ee.<br><br>Eksamitööde tagastamine osakonnas 05.04-12.04.2012.<br><br><br>Vastuvõtt<br>6267 305<br>helen.jyrgens@artun.ee'
+
+            # if g.grade.id() == 6766197: #EI
+            #     b3 += 1
+            #     subjecttext = u'Täname Teid kandideerimise eest Eesti Kunstiakadeemia vabade kunstide erialale'
+            #     messagetext = u'Kahjuks ei läbinud Te sisseastumiseksameid edukalt.<br>Soovime edu edaspidiseks ja olete teretulnud järgmisel aastal uuesti proovima!<br>Oma tööd saate kätte vahemikus 05.-12.04.2012 eriala osakonnast.<br><br><br>Vastuvõtt<br>6267 305<br>helen.jyrgens@artun.ee'
+
 
             if not messagetext:
                 continue
 
             bc += 1
-            bubble = b.AddSubbubble(bt.key())
-            bubble.x_created_by = 'helen.jyrgens@artun.ee'
-            bubble.put()
+            # bubble = b.AddSubbubble(bt.key())
+            # bubble.x_created_by = 'helen.jyrgens@artun.ee'
+            # bubble.put()
 
-            value = bubble.SetProperty(
-                propertykey = 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYk7zUAgw',
-                oldvalue = '',
-                newvalue = messagetext
-            )
+            # value = bubble.SetProperty(
+            #     propertykey = 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYk7zUAgw',
+            #     oldvalue = '',
+            #     newvalue = messagetext if len(messagetext) <= 500 else messagetext[:500]
+            # )
 
-            message = ''
-            for t in bubble.GetProperties():
-                message += '<b>%s</b>:<br/>\n' % t['name']
-                message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
-                message += '<br/>\n'
+            # # message = ''
+            # # for t in bubble.GetProperties():
+            # #     message += '<b>%s</b>:<br/>\n' % t['name']
+            # #     message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
+            # #     message += '<br/>\n'
 
-            emails = ListMerge(getattr(b, 'email', []), getattr(b, 'user', []))
-            SendMail(
-                to = emails,
-                subject = Translate('message_notify_on_alter_subject') % bt.displayname.lower(),
-                message = message,
-            )
+            # emails = ListMerge(getattr(b, 'email', []), getattr(b, 'user', []))
+            # # SendMail(
+            # #     to = emails,
+            # #     subject = Translate('message_notify_on_alter_subject') % bt.displayname.lower(),
+            # #     message = message,
+            # # )
+
+            # SendMail(
+            #     to = emails,
+            #     subject = subjecttext,
+            #     message = messagetext,
+            # )
 
             logging.debug(b.displayname + ' - ' + messagetext)
-        logging.debug('#' + str(step) + ' - emails sent: ' + str(bc) + ' - ' + str(rc) + ' - rows from ' + str(offset))
+        logging.debug('#' + str(step) + ' - emails sent: ' + str(bc) + ' - (' + str(b1) + '/' + str(b2) + '/' + str(b3) + ') - ' + str(rc) + ' - rows from ' + str(offset))
 
         if rc == limit:
             taskqueue.Task(url='/update/sendmessage', params={'offset': (offset + rc), 'step': (step + 1)}).add()

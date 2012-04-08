@@ -85,8 +85,7 @@ class ShowBubbleList(boRequestHandler):
 
         if filtertype == 'subbubbles':
             bubble = Bubble().get(value)
-            bubbles = [b for b in Bubble().get(bubble.GetValueAsList('x_br_subbubble')) if b]
-            keys = [str(b.key()) for b in sorted(bubbles, key=attrgetter(sortfield), reverse=sortreverse) if b.GetValue('x_type') == bt.key()]
+            keys = [str(b.key()) for b in sorted(bubble.GetRelatives('subbubble', bt.path), key=attrgetter(sortfield), reverse=sortreverse)]
 
         self.echo_json({'keys': keys})
 
