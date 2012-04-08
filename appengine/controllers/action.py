@@ -66,7 +66,7 @@ class Rating(boRequestHandler):
                 'grade': ratings[str(l.key())] if str(l.key()) in ratings else False,
                 'equivalent' : 0,
                 'is_positive' : True,
-                'ordinal' : 0,
+                'ordinal' : 9999999,
             }
 
         subgrades = {}
@@ -110,6 +110,7 @@ class Rating(boRequestHandler):
                 else:
                     leechers[lk]['subgrades'].append('X')
 
+        #logging.debug('Leechers:' + str(leechers))
         if is_print:
             leechers = sorted(leechers.values(), key=itemgetter('is_positive', 'equivalent', 'ordinal'), reverse=True)
         else:
