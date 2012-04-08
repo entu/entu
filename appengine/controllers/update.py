@@ -656,8 +656,12 @@ class ExecuteNextinline(boRequestHandler): # source_bubble_id
                 continue
 
             rating = db.Query(Bubble).filter('type', 'rating').filter('bubble', sourcebubble.key()).filter('person', leecher.key()).get()
-            grade = Bubble().get(rating.grade)
-            if getattr(grade, 'is_positive', False):
+            if rating:
+                grade = Bubble().get(rating.grade)
+            else:
+                grade = Bubble()
+
+            if getattr(grade, 'is_positive', False) or getattr(leecher, 'confirmed', False):
                 if targetbubbleId:
                     targetbubble = Bubble().get_by_id(int(targetbubbleId))
                     self.echo('bubble:' + targetbubble.displayname + '; related_bubble:' + leecher.displayname)
