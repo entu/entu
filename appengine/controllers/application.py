@@ -503,8 +503,16 @@ class Rating(boRequestHandler):
     def get(self, bubble_id, person_key):
         language = self.request.get('language', SystemPreferences().get('default_language')).strip()
 
-        bubble = Bubble().get_by_id(int(bubble_id))
-        person = Bubble().get(person_key)
+        try:
+            bubble = Bubble().get_by_id(int(bubble_id))
+        except Exception, e:
+            self.error(404)
+            return
+        try:
+            person = Bubble().get(person_key)
+        except Exception, e:
+            self.error(404)
+            return
 
         ratingscale = Bubble().get(bubble.rating_scale)
         # Collect all possible grades on scale
