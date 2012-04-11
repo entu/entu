@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from datetime import *
 
 from bo import *
@@ -124,6 +126,7 @@ class Rating(boRequestHandler):
                 'grades': sorted(grades.values(), key=itemgetter('sort')),
                 'subbubbles': exams.values(),
                 'leechers': leechers,
+                'print_private_ratings': True,
             }
         )
 
@@ -169,11 +172,46 @@ class Rating(boRequestHandler):
                 }, 'relate-subbubble')
 
 
+class SendPrivateRatingList(boRequestHandler):
+    def get(self, bubble_id):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+
+        bubble = Bubble().get_by_id(int(bubble_id))
+        message_bt = db.Query(Bubble).filter('path', 'message').get()
+
+        subjecttext = bubble.displayname + u' - pingerida'
+        for leecher in bubble.GetRelatives('leecher'):
+            self.echo(bubble.displayname + ': ' + leecher.displayname + ': ' + self.request.host_url + '/application/ratings/' + bubble_id + '/' + str(leecher.key()))
+
+            messagetext = leecher.displayname + u'<br><br>Sinu ' + bubble.displayname + u'vastuvõtu pingerida on siin:<br>' + self.request.host_url + '/application/ratings/' + bubble_id + '/' + str(leecher.key()) + u'<br><br>Vastuvõtt<br>6267 305<br>helen.jyrgens@artun.ee'
+
+            # email = 'mihkel.putrinsh@artun.ee'
+            email = leecher.email
+            SendMail(
+                to = email,
+                subject = subjecttext,
+                message = messagetext,
+            )
+
+            message = leecher.AddSubbubble(message_bt.key())
+            message.x_created_by = 'helen.jyrgens@artun.ee'
+            message.put()
+
+            #
+            # HACK alert!
+            #
+            value = message.SetProperty(
+                propertykey = 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYk7zUAgw',
+                oldvalue = '',
+                newvalue = messagetext if len(messagetext) <= 500 else messagetext[:500]
+            )
+
 
 def main():
     Route([
             (r'/action/timeslot/(.*)', TimeSlot),
             (r'/action/rating/(.*)', Rating),
+            (r'/action/private_rating_list/(.*)', SendPrivateRatingList),
         ])
 
 

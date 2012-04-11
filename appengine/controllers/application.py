@@ -499,7 +499,7 @@ class Submit(boRequestHandler):
                             sb.put(getattr(p, 'email', ''))
 
 
-class Rating(boRequestHandler):
+class Ratings(boRequestHandler):
     def get(self, bubble_id, person_key):
         language = self.request.get('language', SystemPreferences().get('default_language')).strip()
 
@@ -612,7 +612,7 @@ def main():
             ('/application/leech', EditSubmission),
             ('/application/subbubble', EditSubbubble),
             (r'/application/file/(.*)/(.*)', DownloadFile),
-            (r'/application/ratings/(.*)/(.*)', Rating),
+            (r'/application/ratings/(.*)/(.*)', Ratings),
             ('/application/upload_file', UploadFile),
             ('/application/sfv', SelectFieldValues),
             ('/application/submit', Submit),
