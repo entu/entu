@@ -39,4 +39,8 @@
     </div>
     {% endfor %}
 </section>
-{% endblock %}
+{% if print_private_ratings %}
+    <a href="/action/private_rating_list/{{ bubble.key.id }}">Saada personaalsed hinnetelehed</a>
+{% endif %}
+
+    {% endblock %}

@@ -499,12 +499,120 @@ class Submit(boRequestHandler):
                             sb.put(getattr(p, 'email', ''))
 
 
+class Ratings(boRequestHandler):
+    def get(self, bubble_id, person_key):
+        language = self.request.get('language', SystemPreferences().get('default_language')).strip()
+
+        try:
+            bubble = Bubble().get_by_id(int(bubble_id))
+        except Exception, e:
+            self.error(404)
+            return
+        try:
+            person = Bubble().get(person_key)
+        except Exception, e:
+            self.error(404)
+            return
+
+        ratingscale = Bubble().get(bubble.rating_scale)
+        # Collect all possible grades on scale
+        grades = {}
+        for g in ratingscale.GetRelatives('subbubble'):
+            grades[str(g.key())] = {
+                'key': str(g.key()),
+                'displayname' : g.displayname,
+                'sort': getattr(g, 'x_sort_%s' % UserPreferences().current.language),
+                'is_positive': getattr(g, 'is_positive', False),
+                'equivalent': getattr(g, 'equivalent', 0),
+            }
+
+        # Collect all ratings that match available grades
+        ratings = {}
+        for r in bubble.GetRelatives('subbubble', 'rating'):
+            if r.x_is_deleted == False and getattr(r, 'grade', False) and str(r.grade) in grades:
+                ratings[str(r.person)] = grades[str(r.grade)]
+
+        # Collect leechers of bubble
+        leechers = {}
+        for l in bubble.GetRelatives('leecher'):
+            leechers[str(l.key())] = {
+                'key': str(l.key()),
+                'displayname' : '-',
+                'grade': ratings[str(l.key())] if str(l.key()) in ratings else False,
+                'equivalent' : 0,
+                'is_positive' : True,
+                'ordinal' : 9999999,
+            }
+
+        if person_key in leechers.keys():
+            leechers[person_key]['displayname'] = person.displayname
+        else:
+            self.error(404)
+            return
+
+        subgrades = {}
+        allgrades = {}
+        exams = {}
+        for exam_bubble in bubble.GetRelatives('subbubble', 'exam'):
+            exam_key = str(exam_bubble.key())
+            exams[exam_key] = {
+                'displayname': exam_bubble.displayname,
+            }
+
+            for exam_rating in exam_bubble.GetRelatives('subbubble', 'rating'):
+                if exam_rating.x_is_deleted == True:
+                    continue
+                if str(exam_rating.person) not in leechers:
+                    logging.warning('Person ' + str(exam_rating.person) + ' not in leechers of bubble ' + str(bubble.key()))
+                    continue
+                if not getattr(exam_rating, 'grade', False):
+                    logging.warning('Rating ' + str(exam_rating.key()) + ' has no grade')
+                    continue
+                grade_key = str(exam_rating.grade)
+                if grade_key not in allgrades:
+                    grade_bubble = Bubble().get(exam_rating.grade)
+                    allgrades[grade_key] = {
+                        'displayname': grade_bubble.displayname,
+                        'is_positive': getattr(grade_bubble, 'is_positive', False),
+                        'equivalent': getattr(grade_bubble, 'equivalent', 0),
+                    }
+
+                leechers[str(exam_rating.person)]['equivalent'] += allgrades[grade_key]['equivalent']
+                leechers[str(exam_rating.person)]['ordinal'] -= getattr(exam_rating, 'ordinal', 0)
+                leechers[str(exam_rating.person)]['is_positive'] = False if allgrades[grade_key]['is_positive'] == False else leechers[str(exam_rating.person)]['is_positive']
+                subgrades[str(exam_rating.bubble)+str(exam_rating.person)] = {'grade': allgrades[grade_key], 'bubble': exams[exam_key]}
+
+        for bk, bv in exams.iteritems():
+            for lk, lv in leechers.iteritems():
+                if 'subgrades' not in lv:
+                    leechers[lk]['subgrades'] = []
+                if bk+lk in subgrades:
+                    leechers[lk]['subgrades'].append(subgrades[bk+lk])
+                else:
+                    leechers[lk]['subgrades'].append('X')
+
+        #logging.debug('Leechers:' + str(leechers))
+        leechers = sorted(leechers.values(), key=itemgetter('is_positive', 'equivalent', 'ordinal'), reverse=True)
+
+        self.view(
+            main_template = 'main/print.html',
+            template_file =  'action/rating_print.html',
+            values = {
+                'bubble': bubble,
+                'grades': sorted(grades.values(), key=itemgetter('sort')),
+                'subbubbles': exams.values(),
+                'leechers': leechers,
+            }
+        )
+
+
 def main():
     Route([
             ('/application/signin', ShowSignin),
             ('/application/leech', EditSubmission),
             ('/application/subbubble', EditSubbubble),
             (r'/application/file/(.*)/(.*)', DownloadFile),
+            (r'/application/ratings/(.*)/(.*)', Ratings),
             ('/application/upload_file', UploadFile),
             ('/application/sfv', SelectFieldValues),
             ('/application/submit', Submit),
