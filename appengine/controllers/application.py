@@ -540,7 +540,7 @@ class Ratings(boRequestHandler):
                 'displayname' : '-',
                 'grade': ratings[str(l.key())] if str(l.key()) in ratings else False,
                 'equivalent' : 0,
-                'is_positive' : True,
+                'is_positive' : ratings[str(l.key())]['is_positive'] if str(l.key()) in ratings else False,
                 'ordinal' : 9999999,
             }
 
@@ -599,7 +599,7 @@ class Ratings(boRequestHandler):
             order_number += 1
             if leecher['key'] == person_key:
                 one_leecher = [leecher]
-                break
+                order_str = str(order_number)
 
 
         self.view(
@@ -609,7 +609,7 @@ class Ratings(boRequestHandler):
                 'bubble': bubble,
                 'grades': sorted(grades.values(), key=itemgetter('sort')),
                 'subbubbles': exams.values(),
-                'order_number': order_number,
+                'order_number': order_str + '/' + str(order_number),
                 'leechers': one_leecher,
             }
         )

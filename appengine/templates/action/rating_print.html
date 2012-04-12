@@ -26,7 +26,7 @@
         {% if order_number %}
             {{ order_number }}.
         {% endif %}
-            {{ l.displayname }}
+        <a href="/application/ratings/{{bubble.key.id}}/{{ l.key }}">{{ l.displayname }}</a>
         </div>
         <div class="v_header">
             {{ l.equivalent }}

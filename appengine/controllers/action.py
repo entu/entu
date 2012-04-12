@@ -67,7 +67,7 @@ class Rating(boRequestHandler):
                 'displayname' : l.displayname,
                 'grade': ratings[str(l.key())] if str(l.key()) in ratings else False,
                 'equivalent' : 0,
-                'is_positive' : True,
+                'is_positive' : ratings[str(l.key())]['is_positive'] if str(l.key()) in ratings else False,
                 'ordinal' : 9999999,
             }
 
