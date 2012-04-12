@@ -4,12 +4,19 @@ def translation():
     return {
         '':                     '',
         'logout':               'Välju',
+        'help':                 'Abi',
 
         'true':                 'Jah',
         'false':                'Ei',
 
         'search':               'Otsi',
         'search_found':         'Leiti',
+        'search_placeholder':   'Pime kana leiab tera...',
+
+        'public_result_count_0':                'Ei leidnud midagi. Proovi uuesti.',
+        'public_result_count_1':                'Leiti üks',
+        'public_result_count_more':             'Leiti %s',
+        'public_result_count_much_more':        '%(total)s leitud vastest kuvatakse esimesed %(show)s',
 
         'language':             'Keel',
         'language_english':     'English',

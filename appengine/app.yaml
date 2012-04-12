@@ -28,21 +28,9 @@ error_handlers:
 handlers:
 
 #static files
-- url: /css
-  static_dir: static/css
-  #expiration: "1d"
-
-- url: /fonts
-  static_dir: static/fonts
-  #expiration: "1d"
-
 - url: /images
   static_dir: static/images
   expiration: "1d"
-
-- url: /javascript
-  static_dir: static/javascript
-  expiration: "90d"
 
 - url: /robots.txt
   static_files: static/robots.txt
@@ -55,13 +43,48 @@ handlers:
   expiration: "90d"
 
 
+- url: /assets/screen.css
+  static_files: static/screen.css
+  upload: static/screen.css
+
+- url: /assets/print.css
+  static_files: static/print.css
+  upload: static/print.css
+
+- url: /assets/plugins.min.js
+  static_files: static/plugins.min.js
+  upload: static/plugins.min.js
+
+
+- url: /assets/bootstrap.css
+  static_files: static/bootstrap/bootstrap.css
+  upload: static/bootstrap/bootstrap.css
+
+- url: /assets/responsive.css
+  static_files: static/bootstrap/responsive.css
+  upload: static/bootstrap/responsive.css
+
+- url: /assets/bootstrap.min.js
+  static_files: static/bootstrap/bootstrap.min.js
+  upload: static/bootstrap/bootstrap.min.js
+
+- url: /assets/glyphicons-halflings.png
+  static_files: static/bootstrap/img/glyphicons-halflings.png
+  upload: static/bootstrap/img/glyphicons-halflings.png
+
+- url: /assets/glyphicons-halflings-white.png
+  static_files: static/bootstrap/img/glyphicons-halflings-white.png
+  upload: static/bootstrap/img/glyphicons-halflings-white.png
+
+
 
 #public controllers
 - url: /application(.*)
   script: controllers/application.py
 
-- url: /xml(.*)
-  script: controllers/public_xml.py
+- url: /public(.*)
+  script: controllers/public.py
+  login: admin
 
 - url: /ical(.*)
   script: controllers/ical.py
