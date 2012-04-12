@@ -23,6 +23,9 @@
     {% for l in leechers %}
     <div class="row">
         <div class="v_header">
+        {% if order_number %}
+            {{ order_number }}.
+        {% endif %}
             {{ l.displayname }}
         </div>
         <div class="v_header">

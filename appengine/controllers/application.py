@@ -593,6 +593,14 @@ class Ratings(boRequestHandler):
 
         #logging.debug('Leechers:' + str(leechers))
         leechers = sorted(leechers.values(), key=itemgetter('is_positive', 'equivalent', 'ordinal'), reverse=True)
+        order_number = 0
+        one_leecher = []
+        for leecher in leechers:
+            order_number += 1
+            if leecher['key'] == person_key:
+                one_leecher = [leecher]
+                break
+
 
         self.view(
             main_template = 'main/print.html',
@@ -601,7 +609,8 @@ class Ratings(boRequestHandler):
                 'bubble': bubble,
                 'grades': sorted(grades.values(), key=itemgetter('sort')),
                 'subbubbles': exams.values(),
-                'leechers': leechers,
+                'order_number': order_number,
+                'leechers': one_leecher,
             }
         )
 
