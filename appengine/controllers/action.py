@@ -67,7 +67,7 @@ class Rating(boRequestHandler):
                 'displayname' : l.displayname,
                 'grade': ratings[str(l.key())] if str(l.key()) in ratings else False,
                 'equivalent' : 0,
-                'is_positive' : True,
+                'is_positive' : ratings[str(l.key())]['is_positive'] if str(l.key()) in ratings else False,
                 'ordinal' : 9999999,
             }
 
@@ -183,7 +183,7 @@ class SendPrivateRatingList(boRequestHandler):
         for leecher in bubble.GetRelatives('leecher'):
             self.echo(bubble.displayname + ': ' + leecher.displayname + ': ' + self.request.host_url + '/application/ratings/' + bubble_id + '/' + str(leecher.key()))
 
-            messagetext = leecher.displayname + u'<br><br>Sinu ' + bubble.displayname + u'vastuvõtu pingerida on siin:<br>' + self.request.host_url + '/application/ratings/' + bubble_id + '/' + str(leecher.key()) + u'<br><br>Vastuvõtt<br>6267 305<br>helen.jyrgens@artun.ee'
+            messagetext = leecher.displayname + u'<br><br>Sinu ' + bubble.displayname + u' vastuvõtu pingerida on siin:<br>' + self.request.host_url + '/application/ratings/' + bubble_id + '/' + str(leecher.key()) + u'<br><br>Vastuvõtt<br>6267 305<br>helen.jyrgens@artun.ee'
 
             # email = 'mihkel.putrinsh@artun.ee'
             email = leecher.email
