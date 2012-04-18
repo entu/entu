@@ -18,9 +18,9 @@
                 {% for v in t.values %}
                     {% if v.value %}
                         {% if t.data_type == "blobstore" %}
-                            <a href="/public/file/{{ t.data_property }}/{{ v.key }}">{{ v.value }}</a>
+                            <a href="/public/{{ key }}/{{ v.key }}">{{ v.value }}</a>{% if not forloop.last %}<br />{% endif %}
                         {% else %}
-                            {{ v.value|safe|urlize }}
+                            {{ v.value|safe|urlize }}{% if not forloop.last %}<br />{% endif %}
                         {% endif %}
                     {% endif %}
                 {% endfor %}

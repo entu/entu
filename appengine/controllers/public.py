@@ -1,5 +1,9 @@
+from google.appengine.ext import blobstore
+from google.appengine.ext.webapp import blobstore_handlers
 from google.appengine.api import urlfetch
 from datetime import *
+import urllib
+import logging
 
 from bo import *
 from database.bubble import *
@@ -9,7 +13,7 @@ from database.dictionary import *
 
 class ShowSearech(boRequestHandler):
     def get(self):
-        search = self.request.get('q').strip().lower()
+        search = urllib.unquote_plus(self.request.get('q').strip().lower())
         language = self.request.get('language', SystemPreferences().get('default_language')).strip()
 
         if not search:
@@ -19,37 +23,35 @@ class ShowSearech(boRequestHandler):
             )
             return
 
-        cache_key = 'public_search_%s' % hashlib.md5(search).hexdigest()
+        cache_key = 'public_search_%s' % hashlib.md5(search.encode('utf-8')).hexdigest()
         cached_search = Cache().get(cache_key)
 
         if not cached_search:
             cached_search = {}
             keys = []
             for s in StrToList(search):
-                keylist = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('is_public', True).filter('x_is_deleted', False).filter('x_search_%s' % language, search))]
+                keylist = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('is_public', True).filter('x_is_deleted', False).filter('x_search_%s' % language, s))]
                 if len(keys) == 0:
                     keys = keylist
                 else:
                     keys = ListMatch(keys, keylist)
 
             cached_search['totalcount'] = len(keys)
-            keys = keys[:25]
 
             bubbles = []
-            for bubble in Bubble.get(keys):
-                bt = bubble.GetType()
+            for k in keys:
+                if len(bubbles) >= 50:
+                    break
 
-                b_number = bubble.GetProperty(bt, 'registry_number', language)
-                b_name = bubble.GetProperty(bt, 'name', language)
-                b_created = bubble.GetProperty(bt, 'x_created', language)
+                bubble = Bubble.get(k)
+                if bubble.type not in ['doc_kirjavahetus', 'doc_vastuskiri', 'doc_lahetuskorraldus', 'doc_other']:
+                    continue
 
-                # props = bubble.GetProperties()
                 bubbles.append({
                     'key': bubble.public_key,
-                    'type': bt.displayname,
-                    'number': ', '.join([v['value'] for v in b_number['values'] if v['value']]) if b_number else '',
-                    'name': ', '.join([v['value'] for v in b_name['values'] if v['value']]) if b_name else '',
-                    'created': ', '.join([v['value'] for v in b_created['values'] if v['value']]) if b_created else '',
+                    'number': bubble.GetValue('registry_number'),
+                    'name': GetDictionaryValue(bubble.GetValue('name'), language),
+                    'created': UtcToLocalDateTime(bubble.GetValue('x_created')).strftime('%d.%m.%Y'),
                 })
 
             cached_search['bubbles'] = sorted(bubbles, key=lambda k: k['name'].lower())
@@ -92,8 +94,28 @@ class ShowBubble(boRequestHandler):
             values = {
                 'name': ', '.join([v['value'] for v in bubble.GetProperty(bubble.GetType(), 'name', language)['values'] if v['value']]),
                 'bubble': bubble,
+                'key': key,
             }
         )
+
+
+class DownloadBubbleFile(blobstore_handlers.BlobstoreDownloadHandler):
+    def get(self, bubble_key, file_key):
+        if not bubble_key:
+            return self.redirect('/public')
+
+        if not file_key:
+            return self.redirect('/public/%s' % bubble_key)
+
+        b = blobstore.BlobInfo.get(urllib.unquote(file_key))
+        if not b:
+            return self.redirect('/public/%s' % bubble_key)
+
+        bubble = db.Query(Bubble).filter('is_public', True).filter('x_public_key', bubble_key).filter('public_files', b.key()).get()
+        if not bubble:
+            return self.redirect('/public')
+
+        self.send_blob(b, save_as = ReplaceUTF(b.filename))
 
 
 class Feedback(boRequestHandler):
@@ -136,6 +158,7 @@ class ShowStatus(boRequestHandler):
 def main():
     Route([
             ('/public', ShowSearech),
+            ('/public/(.*)/(.*)', DownloadBubbleFile),
             ('/public/(.*)', ShowBubble),
             ('/public/feedback', Feedback),
             ('/public/status', ShowStatus),

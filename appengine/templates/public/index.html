@@ -8,6 +8,8 @@
     <meta name="author" content="Argo Roots">
     <link href="/assets/bootstrap.css?{{ version }}" rel="stylesheet">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+    <script src="https://github.com/twitter/bootstrap/raw/2.0.3-wip/js/bootstrap-tab.js"></script>
+    <script src="/assets/bootstrap.min.js"></script>
     <style type="text/css">
       body {
         padding-top: 60px;
@@ -46,7 +48,14 @@
 ">{{ system_title }}</a>
           <div class="nav-collapse">
             <ul class="nav pull-right">
+              <li id="menusearch" style="display:none;">
+                <form action="/public" class="navbar-search pull-left">
+                  <input id="menusearch_input" type="text" name="q" class="search-query" placeholder="{{ str.search_placeholder }}" value="{{ search|default:"" }}" style="height:16px;" />
+                </form>
+              </li>
+              {% block menu %}
               <li><a data-toggle="modal" href="#mHelp">{{ str.help }}</a></li>
+              {% endblock %}
             </ul>
           </div>
         </div>
@@ -69,7 +78,6 @@
         Kas abist on abi, kui abistaja on abistamisel abitu?
     </div>
 
-    <script src="/assets/bootstrap.min.js"></script>
     <script>
       $(document).ready(function(){
 
