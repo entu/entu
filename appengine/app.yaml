@@ -84,7 +84,6 @@ handlers:
 
 - url: /public(.*)
   script: controllers/public.py
-  login: admin
 
 - url: /ical(.*)
   script: controllers/ical.py
