@@ -4,12 +4,19 @@ def translation():
     return {
         '':                                     '',
         'logout':                               'Log out',
+        'help':                                 'Help',
 
         'true':                                 'True',
         'false':                                'False',
 
         'search':                               'Search',
         'search_found':                         'Found',
+
+        'public_search_placeholder':            'Search something...',
+        'public_result_count_0':                'Didn\'t found enything. Try again.',
+        'public_result_count_1':                'Found just one',
+        'public_result_count_more':             'Found %s',
+        'public_result_count_much_more':        'Found %(total)s, but we show only first %(show)s',
 
         'language':                             'Language',
         'language_english':                     'English',

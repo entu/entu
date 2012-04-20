@@ -7,6 +7,7 @@ from operator import attrgetter
 from operator import itemgetter
 
 import hashlib
+import time
 
 from bo import *
 from database.dictionary import *
@@ -101,6 +102,13 @@ class Bubble(ChangeLogModel):
             return len(self.GetValueAsList(getattr(bt, 'property_displaycount')))
         except Exception, e:
             logging.error('Bubble().displaycount: %s' % e)
+
+    @property
+    def public_key(self):
+        if not getattr(self, 'x_public_key', None):
+            self.x_public_key = hashlib.md5(str(self.key()) + str(time.time())).hexdigest()
+            self.put()
+        return self.x_public_key
 
     def AutoFix(self):
         bt = self.GetType()
@@ -392,6 +400,8 @@ class Bubble(ChangeLogModel):
                 return result
 
         bp = db.Query(Bubble).filter('__key__ IN', bubbletype.GetValueAsList('bubble_properties')).filter('data_property', data_property).get()
+        if not bp:
+            return
 
         data_value = getattr(self, bp.data_property, None)
         values = []
