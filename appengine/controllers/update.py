@@ -626,6 +626,24 @@ class Relate(boRequestHandler): # relation_type / master / relatee
         }, 'relate-%s' % relation_type)
 
 
+class UnrelateByKey(boRequestHandler): # relation_type / master / relatee
+    def get(self, relation_type, masterbubbleKey, relatedbubbleKey):
+        try:
+            masterbubble = Bubble().get(masterbubbleKey)
+            relatee = Bubble().get(relatedbubbleKey)
+        except Exception, e:
+            self.header('Content-Type', 'text/plain; charset=utf-8')
+            self.echo('relation_type / master / relatee')
+            return
+
+        AddTask('/taskqueue/remove_relation', {
+            'bubble': masterbubbleKey,
+            'related_bubble': relatedbubbleKey,
+            'type': relation_type,
+            'user': CurrentUser()._googleuser
+        }, 'relate-%s' % relation_type)
+
+
 class Unrelate(boRequestHandler): # relation_type / master / relatee
     def get(self, relation_type, masterbubbleId, relatedbubbleId):
         try:
@@ -900,6 +918,7 @@ def main():
             (r'/update/addleecher/(.*)/(.*)', AddLeecher),
             (r'/update/relate/(.*)/(.*)/(.*)', Relate),
             (r'/update/unrelate/(.*)/(.*)/(.*)', Unrelate),
+            (r'/update/unrelate_by_key/(.*)/(.*)/(.*)', UnrelateByKey),
             (r'/update/nil/(.*)/(.*)', ExecuteNextinline),
             (r'/update/unil/(.*)', RemoveNextinline),
             (r'/update/copybubble/(.*)/(.*)', CopyBubble),
