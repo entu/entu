@@ -175,36 +175,9 @@ class Rating(boRequestHandler):
 class SendPrivateRatingList(boRequestHandler):
     def get(self, bubble_id):
         self.header('Content-Type', 'text/plain; charset=utf-8')
-
+        taskqueue.Task(url='/taskqueue/private_rating_list/%s' % bubble_id).add()
         bubble = Bubble().get_by_id(int(bubble_id))
-        message_bt = db.Query(Bubble).filter('path', 'message').get()
-
-        subjecttext = bubble.displayname + u' - pingerida'
-        for leecher in bubble.GetRelatives('leecher'):
-            self.echo(bubble.displayname + ': ' + leecher.displayname + ': ' + self.request.host_url + '/application/ratings/' + bubble_id + '/' + str(leecher.key()))
-
-            messagetext = leecher.displayname + u'<br><br>Sinu ' + bubble.displayname + u' vastuvõtu pingerida on siin:<br>' + self.request.host_url + '/application/ratings/' + bubble_id + '/' + str(leecher.key()) + u'<br><br>Vastuvõtt<br>6267 305<br>helen.jyrgens@artun.ee'
-
-            # email = 'mihkel.putrinsh@artun.ee'
-            email = leecher.email
-            SendMail(
-                to = email,
-                subject = subjecttext,
-                message = messagetext,
-            )
-
-            message = leecher.AddSubbubble(message_bt.key())
-            message.x_created_by = 'helen.jyrgens@artun.ee'
-            message.put()
-
-            #
-            # HACK alert!
-            #
-            value = message.SetProperty(
-                propertykey = 'agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYk7zUAgw',
-                oldvalue = '',
-                newvalue = messagetext if len(messagetext) <= 500 else messagetext[:500]
-            )
+        self.echo(u'%s - pingeread käivitatud.' % bubble.displayname)
 
 
 def main():
