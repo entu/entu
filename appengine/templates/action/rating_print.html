@@ -26,7 +26,7 @@
         {% if order_number %}
             {{ order_number }}.
         {% endif %}
-        <a href="/application/ratings/{{bubble.key.id}}/{{ l.key }}">{{ l.displayname }}</a>
+        <a href="/application/ratings/{{ bubble.key.id }}/{{ l.key }}">{{ l.displayname }}</a>
         </div>
         <div class="v_header">
             {{ l.equivalent }}
@@ -38,6 +38,9 @@
         {% endfor %}
         <div class="cell" style="{%if not l.grade.is_positive %} color:red;{% endif %}">
             {{ l.grade.displayname }}
+        </div>
+        <div class="v_header">
+        <a href="/update/unrelate_by_key/leecher/{{ bubble.key }}/{{ l.key }}"><i>-unleech-</i></a>
         </div>
     </div>
     {% endfor %}

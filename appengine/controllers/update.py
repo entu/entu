@@ -6,6 +6,7 @@ from datetime import *
 from random import shuffle
 import time
 import re
+import urllib
 
 from bo import *
 from database.bubble import *
@@ -626,6 +627,24 @@ class Relate(boRequestHandler): # relation_type / master / relatee
         }, 'relate-%s' % relation_type)
 
 
+class UnrelateByKey(boRequestHandler): # relation_type / master / relatee
+    def get(self, relation_type, masterbubbleKey, relatedbubbleKey):
+        try:
+            masterbubble = Bubble().get(masterbubbleKey)
+            relatee = Bubble().get(relatedbubbleKey)
+        except Exception, e:
+            self.header('Content-Type', 'text/plain; charset=utf-8')
+            self.echo('relation_type / master / relatee')
+            return
+
+        AddTask('/taskqueue/remove_relation', {
+            'bubble': masterbubbleKey,
+            'related_bubble': relatedbubbleKey,
+            'type': relation_type,
+            'user': CurrentUser()._googleuser
+        }, 'relate-%s' % relation_type)
+
+
 class Unrelate(boRequestHandler): # relation_type / master / relatee
     def get(self, relation_type, masterbubbleId, relatedbubbleId):
         try:
@@ -894,12 +913,37 @@ class XXX(boRequestHandler):
                 b.put()
 
 
+class DeleteFile(boRequestHandler):
+    def get(self, file_key=None):
+
+        bs = blobstore.BlobInfo.get(urllib.unquote(file_key))
+        if not bs:
+            self.error(404)
+            return
+
+        delete_ok = True
+        for datastore_properties in db.Query(Bubble).filter('type', 'bubble_property').filter('data_type', 'blobstore'):
+            for bubble in db.Query(Bubble).filter(datastore_properties.data_property, bs.key()):
+                if not bubble.Authorize('viewer'):
+                    delete_ok = False
+                    logging.debug('Cant remove blobstore from ' + bubble.displayname + ' | ' + str(bubble.key().id()))
+                    continue
+                logging.debug('Removing file from ' + bubble.displayname + ' | ' + str(bubble.key().id()))
+                bubble.RemoveValue(datastore_properties.data_property, bs.key())
+                bubble.put()
+                bubble.ResetCache()
+
+        if delete_ok:
+            logging.debug('Deleting blobstore ' + file_key)
+            bs.delete()
+
 
 def main():
     Route([
             (r'/update/addleecher/(.*)/(.*)', AddLeecher),
             (r'/update/relate/(.*)/(.*)/(.*)', Relate),
             (r'/update/unrelate/(.*)/(.*)/(.*)', Unrelate),
+            (r'/update/unrelate_by_key/(.*)/(.*)/(.*)', UnrelateByKey),
             (r'/update/nil/(.*)/(.*)', ExecuteNextinline),
             (r'/update/unil/(.*)', RemoveNextinline),
             (r'/update/copybubble/(.*)/(.*)', CopyBubble),
@@ -921,6 +965,7 @@ def main():
             (r'/update/type2(.*)/(.*)', ChangeBubbleType),
             (r'/update/p2ts/(.*)', Person2TimeSlot),
             (r'/update/m2tsl/(.*)', Message2TimeSlotLeecher),
+            (r'/update/delete_file/(.*)', DeleteFile),
         ])
 
 
