@@ -36,7 +36,7 @@ class Bubble(ChangeLogModel):
     x_search                = db.StringListProperty(indexed=False)
     x_sort_estonian         = db.StringProperty(default='')
     x_sort_english          = db.StringProperty(default='')
-    x_type                  = db.ReferenceProperty()
+    # x_type                  = db.ReferenceProperty()
     type                    = db.StringProperty()
     # optional_bubbles        = db.ListProperty(db.Key)
 

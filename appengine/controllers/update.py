@@ -832,7 +832,7 @@ class TranslateTitle(boRequestHandler):
         for bubble in db.Query(Bubble).filter('type', bubbletype).fetch(limit=limit):
             if not getattr(bubble, 'name', None):
                 continue
-            title = GetDictionaryValue(bubble.name, 'estonian')
+            title = u'%s' % GetDictionaryValue(bubble.name, 'estonian')
             if not title:
                 logging.warning('Skipping ' + bubble.displayname)
                 continue
