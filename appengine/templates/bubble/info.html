@@ -2,7 +2,7 @@
 <h1>{{ bubble.displayname }}</h1>
 <section class="table">
     {% for t in bubble.GetProperties %}
-    {% if t.has_values %}{% if t.data_property != "name" %}
+    {% if t.has_values %}
     <div class="row">
         <div class="v_header">
             {{ t.name }}
@@ -19,7 +19,7 @@
             {% endfor %}
         </div>
     </div>
-    {% endif %}{% endif %}
+    {% endif %}
     {% endfor %}
 </section>
 

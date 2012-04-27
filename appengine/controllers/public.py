@@ -30,7 +30,7 @@ class ShowSearech(boRequestHandler):
             cached_search = {}
             keys = []
             for s in StrToList(search):
-                keylist = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('is_public', True).filter('x_is_deleted', False).filter('x_search_%s' % language, s))]
+                keylist = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('is_public', True).filter('x_is_deleted', False).filter('x_search', '%s:%s' % (language, s)))]
                 if len(keys) == 0:
                     keys = keylist
                 else:
@@ -50,7 +50,7 @@ class ShowSearech(boRequestHandler):
                 bubbles.append({
                     'key': bubble.public_key,
                     'number': bubble.GetValue('registry_number'),
-                    'name': GetDictionaryValue(bubble.GetValue('name'), language),
+                    'name': bubble.GetValue('title'),
                     'created': UtcToLocalDateTime(bubble.GetValue('x_created')).strftime('%d.%m.%Y'),
                 })
 

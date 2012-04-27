@@ -63,11 +63,10 @@ class ShowBubbleList(boRequestHandler):
         sortreverse = getattr(bt, 'sort_descending', False)
 
         if filtertype == 'search':
-            searchfield = 'x_search_%s' % UserPreferences().current.language
             if value:
                 keys = []
                 for s in StrToList(value.lower()):
-                    keylist = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).filter(searchfield, s).order('%s%s' % ('-' if sortreverse else '', sortfield)))]
+                    keylist = [str(k) for k in list(db.Query(Bubble, keys_only=True).filter('x_br_viewer', CurrentUser().key()).filter('x_type', bt.key()).filter('x_is_deleted', False).filter('x_search', '%s:%s' % (UserPreferences().current.language, s)).order('%s%s' % ('-' if sortreverse else '', sortfield)))]
                     if len(keys) == 0:
                         keys = keylist
                     else:
@@ -343,8 +342,7 @@ class BubbleAutocomplete(boRequestHandler):
 
         bt = db.Query(Bubble).filter('path', 'person').get()
         sortfield = 'x_sort_%s' % UserPreferences().current.language
-        searchfield = 'x_search_%s' % UserPreferences().current.language
-        for b in db.Query(Bubble).filter('x_type', bt.key()).filter('x_is_deleted', False).filter(searchfield, query).order(sortfield).fetch(20):
+        for b in db.Query(Bubble).filter('x_type', bt.key()).filter('x_is_deleted', False).filter('x_search', '%s:%s' % (UserPreferences().current.language, query)).order(sortfield).fetch(20):
             suggestions.append(b.displayname)
             data.append(str(b.key()))
 
