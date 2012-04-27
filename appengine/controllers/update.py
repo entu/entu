@@ -819,6 +819,34 @@ class AutoFixBubble(boRequestHandler):
             taskqueue.Task(url='/update/autofix/%s' % bubbletype, params={'offset': (offset + rc), 'step': (step + 1)}).add()
 
 
+class TranslateTitle(boRequestHandler):
+    def get(self, bubbletype):
+        self.header('Content-Type', 'text/plain; charset=utf-8')
+        taskqueue.Task(url='/update/translate_title/%s' % bubbletype).add()
+        self.echo(str(db.Query(Bubble).filter('type', bubbletype).count(limit=1000000)))
+
+    def post(self, bubbletype):
+        limit = 20000
+        step = int(self.request.get('step', 1))
+
+        for bubble in db.Query(Bubble).filter('type', bubbletype).fetch(limit=limit):
+            if not getattr(bubble, 'name', None):
+                continue
+            title = u'%s' % GetDictionaryValue(bubble.name, 'estonian')
+            if not title:
+                logging.warning('Skipping ' + bubble.displayname)
+                continue
+
+            bubble.title = title
+            delattr(bubble, 'name')
+            bubble.put()
+            bubble.AutoFix()
+            bubble.ResetCache()
+
+        # if db.Query(Bubble, keys_only = True).filter('type', bubbletype).get():
+        #     taskqueue.Task(url='/update/translate_title/%s' % bubbletype).add()
+
+
 class Person2TimeSlot(boRequestHandler):
     def get(self, exam_id):
         self.header('Content-Type', 'text/plain; charset=utf-8')
@@ -958,6 +986,7 @@ def main():
             ('/update/xxx', XXX),
             ('/update/sendmessage', SendMessage),
             (r'/update/autofix/(.*)', AutoFixBubble),
+            (r'/update/translate_title/(.*)', TranslateTitle),
             (r'/update/relations/(.*)', FixRelations),
             (r'/update/relations2/(.*)/(.*)', FixRelations2),
             (r'/update/relations3/(.*)/(.*)', FixRelations3),

@@ -33,13 +33,12 @@ def GetCounterNextValue(counter_key):
 
 
 class Bubble(ChangeLogModel):
+    x_search                = db.StringListProperty()
     x_sort_estonian         = db.StringProperty(default='')
     x_sort_english          = db.StringProperty(default='')
+    # x_type                  = db.ReferenceProperty()
     type                    = db.StringProperty()
-    mandatory_bubbles       = db.ListProperty(db.Key)
-    optional_bubbles        = db.ListProperty(db.Key)
-    prerequisite_bubbles    = db.ListProperty(db.Key)
-    next_in_line            = db.ListProperty(db.Key)
+    # optional_bubbles        = db.ListProperty(db.Key)
 
     @property
     def y_type(self):
@@ -116,6 +115,7 @@ class Bubble(ChangeLogModel):
 
         # Set x_sort_... and x_search_...
         try:
+            search = []
             for language in SystemPreferences().get('languages'):
                 sorts = getattr(bt, 'sort_string', '')
                 for data_property in FindTags(sorts, '@', '@'):
@@ -137,15 +137,20 @@ class Bubble(ChangeLogModel):
                         t = self.GetProperty(bubbletype = bt, data_property = bp.data_property, language = language)
                         for s in ['%s' % n['value'] for n in t['values'] if n['value']]:
                             searchl = ListMerge(searchl, StringToSearchIndex(s))
-                    searchl = sorted(searchl)
-                if len(searchl) > 0:
-                    if searchl != getattr(self, 'x_search_%s' % language, ''):
-                        setattr(self, 'x_search_%s' % language, searchl)
-                        do_put = True
-                else:
-                    if hasattr(self, 'x_search_%s'% language):
-                        delattr(self, 'x_search_%s'% language)
-                        do_put = True
+
+                search = ListMerge(search, ['%s:%s' % (language, l) for l in searchl if l])
+
+                if hasattr(self, 'x_search_%s' % language):
+                    delattr(self, 'x_search_%s' % language)
+
+            if len(search) > 0:
+                if search != getattr(self, 'x_search', []):
+                    setattr(self, 'x_search', search)
+                    do_put = True
+            else:
+                if hasattr(self, 'x_search'):
+                    delattr(self, 'x_search')
+                    do_put = True
 
             for key in self.dynamic_properties():
                 value = getattr(self, key)
