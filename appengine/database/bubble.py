@@ -33,7 +33,7 @@ def GetCounterNextValue(counter_key):
 
 
 class Bubble(ChangeLogModel):
-    x_search                = db.StringListProperty(indexed=False)
+    x_search                = db.StringListProperty()
     x_sort_estonian         = db.StringProperty(default='')
     x_sort_english          = db.StringProperty(default='')
     # x_type                  = db.ReferenceProperty()
