@@ -15,6 +15,14 @@ class Dictionary(ChangeLogModel):
         return getattr(self, language) if getattr(self, language) else ''
 
 
-def GetDictionaryValue(key, language=None):
+def GetDictionaryValue(key=None, language=None):
+    if not key:
+        return ''
     d = Dictionary().get(key)
-    return getattr(d, language, '') if language else getattr(d, UserPreferences().current.language, '')
+    if not d:
+        return ''
+    returnvalue = getattr(d, language, '') if language else getattr(d, UserPreferences().current.language, '')
+    if not returnvalue:
+        return ''
+
+    return returnvalue
