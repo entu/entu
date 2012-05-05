@@ -1,0 +1,21 @@
+[group:bubbledu]
+programs        = bubbledu-dev-00, bubbledu-dev-01
+
+
+[program:bubbledu-dev-00]
+command         = python /var/www/bubbledu/dev/app/main.py --port=8000
+directory       = /var/www/bubbledu/dev/app
+user            = www-data
+autorestart     = true
+redirect_stderr = true
+stdout_logfile  = /var/www/bubbledu/dev/tornado.log
+loglevel        = info
+
+[program:bubbledu-dev-01]
+command         = python /var/www/bubbledu/dev/app/main.py --port=8001
+directory       = /var/www/bubbledu/dev/app
+user            = www-data
+autorestart     = true
+redirect_stderr = true
+stdout_logfile  = /var/www/bubbledu/dev/tornado.log
+loglevel        = info
