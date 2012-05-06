@@ -1,21 +1,30 @@
-[group:bubbledu]
-programs        = bubbledu-dev-00, bubbledu-dev-01
+[group:arx]
+programs        = arx-dev, arx-eka, arx-eka2
 
 
-[program:bubbledu-dev-00]
-command         = python /var/www/bubbledu/dev/app/main.py --port=8000
-directory       = /var/www/bubbledu/dev/app
+[program:arx-dev]
+command         = python /var/www/arx/dev/app/main.py --logging=warning --port=8000 --database=bubbledu
+directory       = /var/www/arx/dev/app
 user            = www-data
 autorestart     = true
 redirect_stderr = true
-stdout_logfile  = /var/www/bubbledu/dev/tornado.log
+stdout_logfile  = /var/www/arx/dev/tornado.log
 loglevel        = info
 
-[program:bubbledu-dev-01]
-command         = python /var/www/bubbledu/dev/app/main.py --port=8001
-directory       = /var/www/bubbledu/dev/app
+[program:arx-eka]
+command         = python /var/www/arx/dev/app/main.py --logging=warning --port=8010 --database=bubbledu
+directory       = /var/www/arx/dev/app
 user            = www-data
 autorestart     = true
 redirect_stderr = true
-stdout_logfile  = /var/www/bubbledu/dev/tornado.log
+stdout_logfile  = /var/www/arx/dev/tornado.log
+loglevel        = info
+
+[program:arx-eka2]
+command         = python /var/www/arx/dev/app/main.py --logging=warning --port=8011 --database=bubbledu
+directory       = /var/www/arx/dev/app
+user            = www-data
+autorestart     = true
+redirect_stderr = true
+stdout_logfile  = /var/www/arx/dev/tornado.log
 loglevel        = info
