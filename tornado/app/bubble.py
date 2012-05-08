@@ -1,9 +1,13 @@
-from tornado.web import RequestHandler
-from tornado.options import options
+from tornado import auth, web
 
-class MainHandler(RequestHandler):
+from helper import *
+
+
+class MainHandler(myRequestHandler):
+    @web.authenticated
     def get(self):
-        self.write('arx:' + str(options.port))
+        self.write(self.current_user)
+
 
 handlers = [
     (r'/', MainHandler),

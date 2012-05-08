@@ -1,17 +1,26 @@
 from tornado.web import RequestHandler
 from tornado.options import options
+from tornado import locale
+
+from helper import *
 
 
-class PublicHandler(RequestHandler):
-    def get(self):
-        self.write('public arx:' + str(options.port))
+class PublicHandler(myRequestHandler):
+    def get(self, search):
+        items = []
+        # for i in self.getresults(search):
+        #     items.append(i)
 
+        self.render('public/list.html',
+            page_title = self.locale.translate('search_results'),
+            items = items,
+        )
 
-class PublicHandler1(RequestHandler):
-    def get(self, jama):
-        self.write(jama + ' public arx:' + str(options.port))
+    def getresults(self, search):
+        for item in myDb().query('SELECT * FROM items WHERE search LIKE %s LIMIT 1000;', ('%'+search+'%')):
+            yield item
+
 
 handlers = [
-    (r'/public', PublicHandler),
-    (r'/public(.*)', PublicHandler1),
+    (r'/public(.*)', PublicHandler),
 ]

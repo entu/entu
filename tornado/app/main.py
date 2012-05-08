@@ -1,26 +1,51 @@
-import tornado.ioloop
-import tornado.options
+from os import path
 
+import tornado.ioloop
+import tornado.locale
+import tornado.web
+import tornado.httpserver
+import tornado.options
 from tornado.options import define, options
 
-define('port', default=8000, help='run on the given port', type=int)
-define('database', help='database name', type=str)
+
+from helper import *
+
+define('port',           help = 'run on the given port',    type = int, default=8000)
+define('mysql_host',     help = 'mysql database host',      type = str)
+define('mysql_database', help = 'mysql database name',      type = str)
+define('mysql_user',     help = 'mysql database user',      type = str)
+define('mysql_password', help = 'mysql database password',  type = str)
 
 controllers = [
+    'auth',
     'bubble',
     'public',
 ]
-handlers = []
-for controller in controllers:
-    c = __import__ (controller, globals(), locals(), ['*'], -1)
-    handlers.extend(c.handlers)
 
-application = tornado.web.Application(
-    handlers = handlers,
-    debug = True
-)
+
+class myApplication(tornado.web.Application):
+    def __init__(self):
+        handlers = []
+        for controller in controllers:
+            c = __import__ (controller, globals(), locals(), ['*'], -1)
+            handlers.extend(c.handlers)
+
+        settings = {
+            'template_path':    path.join(path.dirname(__file__), '..', 'templates'),
+            'static_path':      path.join(path.dirname(__file__), '..', 'static'),
+            'debug':            True,
+            'login_url':        '/auth/google',
+            'xsrf_coocies':     True,
+        }
+        for preference in myDb().query('SELECT * FROM app_settings WHERE value IS NOT NULL;'):
+            settings[preference.name] = preference.value
+
+        tornado.web.Application.__init__(self, handlers, **settings)
 
 if __name__ == '__main__':
+    tornado.options.parse_config_file(path.join(path.dirname(__file__), '..', 'app.config'))
     tornado.options.parse_command_line()
-    application.listen(options.port)
+    tornado.locale.load_translations(path.join(path.dirname(__file__), '..', 'translations'))
+
+    tornado.httpserver.HTTPServer(myApplication()).listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
