@@ -979,130 +979,347 @@ class ExportBubbletypes(boRequestHandler):
         for bt in db.Query(Bubble).filter('type', 'bubble_type').fetch(500):
             btout = []
             btout.append('gae_key = \'' + str(bt.key()) + '\'')
-            if GetDictionaryValue(bt.GetValue('name'),        'estonian')  :
-                btout.append('estonian_label = \''          + GetDictionaryValue(bt.GetValue('name'),        'estonian') + '\'' )
-            if GetDictionaryValue(bt.GetValue('name'),        'english')   :
-                btout.append('english_label = \''           + GetDictionaryValue(bt.GetValue('name'),        'english')  + '\'' )
-            if GetDictionaryValue(bt.GetValue('name_plural'), 'estonian')  :
-                btout.append('estonian_label_plural = \''   + GetDictionaryValue(bt.GetValue('name_plural'), 'estonian') + '\'' )
-            if GetDictionaryValue(bt.GetValue('name_plural'), 'english')   :
-                btout.append('english_label_plural = \''    + GetDictionaryValue(bt.GetValue('name_plural'), 'english')  + '\'' )
-            if GetDictionaryValue(bt.GetValue('description'), 'estonian')  :
-                btout.append('estonian_description = \''    + GetDictionaryValue(bt.GetValue('description'), 'estonian') + '\'' )
-            if GetDictionaryValue(bt.GetValue('description'), 'english')   :
-                btout.append('english_description = \''     + GetDictionaryValue(bt.GetValue('description'), 'english')  + '\'' )
-            if                    bt.GetValue('property_displayname', '')  :
-                btout.append('estonian_displayname = \''    +                    bt.GetValue('property_displayname', '') + '\'' )
-            if                    bt.GetValue('property_displayname', '')  :
-                btout.append('english_displayname = \''     +                    bt.GetValue('property_displayname', '') + '\'' )
-            if                    bt.GetValue('property_displayinfo', '')  :
-                btout.append('estonian_displayinfo = \''    +                    bt.GetValue('property_displayinfo', '') + '\'' )
-            if                    bt.GetValue('property_displayinfo', '')  :
-                btout.append('english_displayinfo = \''     +                    bt.GetValue('property_displayinfo', '') + '\'' )
-            if                    bt.GetValue('property_displaytable', '') :
-                btout.append('estonian_displaytable = \''   +                    bt.GetValue('property_displaytable', '')+ '\'' )
-            if                    bt.GetValue('property_displaytable', '') :
-                btout.append('english_displaytable = \''    +                    bt.GetValue('property_displaytable', '')+ '\'' )
-            if                    bt.GetValue('sort_string', '')           :
-                btout.append('estonian_sort = \''           +                    bt.GetValue('sort_string', '')          + '\'' )
-            if                    bt.GetValue('sort_string', '')           :
-                btout.append('english_sort = \''            +                    bt.GetValue('sort_string', '')          + '\'' )
+            if GetDictionaryValue(bt.GetValue('name'), 'estonian') :
+                btout.append('estonian_label = \'' + GetDictionaryValue(bt.GetValue('name'), 'estonian') + '\'' )
+            if GetDictionaryValue(bt.GetValue('name'), 'english') :
+                btout.append('english_label = \'' + GetDictionaryValue(bt.GetValue('name'), 'english')  + '\'' )
+            if GetDictionaryValue(bt.GetValue('name_plural'), 'estonian') :
+                btout.append('estonian_label_plural = \'' + GetDictionaryValue(bt.GetValue('name_plural'), 'estonian') + '\'' )
+            if GetDictionaryValue(bt.GetValue('name_plural'), 'english') :
+                btout.append('english_label_plural = \'' + GetDictionaryValue(bt.GetValue('name_plural'), 'english')  + '\'' )
+            if GetDictionaryValue(bt.GetValue('description'), 'estonian') :
+                btout.append('estonian_description = \'' + GetDictionaryValue(bt.GetValue('description'), 'estonian') + '\'' )
+            if GetDictionaryValue(bt.GetValue('description'), 'english') :
+                btout.append('english_description = \'' + GetDictionaryValue(bt.GetValue('description'), 'english')  + '\'' )
+            if bt.GetValue('property_displayname', '') :
+                btout.append('estonian_displayname = \'' + bt.GetValue('property_displayname', '') + '\'' )
+            if bt.GetValue('property_displayname', '') :
+                btout.append('english_displayname = \'' + bt.GetValue('property_displayname', '') + '\'' )
+            if bt.GetValue('property_displayinfo', '') :
+                btout.append('estonian_displayinfo = \'' + bt.GetValue('property_displayinfo', '') + '\'' )
+            if bt.GetValue('property_displayinfo', '') :
+                btout.append('english_displayinfo = \'' + bt.GetValue('property_displayinfo', '') + '\'' )
+            if bt.GetValue('property_displaytable', '') :
+                btout.append('estonian_displaytable = \'' + bt.GetValue('property_displaytable', '')+ '\'' )
+            if bt.GetValue('property_displaytable', '') :
+                btout.append('english_displaytable = \'' + bt.GetValue('property_displaytable', '')+ '\'' )
+            if bt.GetValue('sort_string', '') :
+                btout.append('estonian_sort = \'' + bt.GetValue('sort_string', '') + '\'' )
+            if bt.GetValue('sort_string', '') :
+                btout.append('english_sort = \'' + bt.GetValue('sort_string', '') + '\'' )
             # btout['search_properties'] = bt.search_properties
             yield btout
 
 
-class ExportBubbleproperties(boRequestHandler):
-    def get(self):
+class ExportBubbletype(boRequestHandler):
+    def get(self, bubbletype_path):
         self.header('Content-Type', 'text/plain; charset=utf-8')
-        # self.echo(str(db.Query(Bubble).filter('type', 'bubble_property').count(limit=100000)))
 
-        for btout in self.fetch():
-            self.echo('INSERT INTO property_definition SET ' + ', '.join(btout) +
-                ' ON DUPLICATE KEY UPDATE ' + ', '.join(btout) + ';')
+        bubbletype = db.Query(Bubble).filter('path', bubbletype_path).get()
+        properties = {}
+        for bprop_key in bubbletype.GetValueAsList('bubble_properties'): #  bubbletype.bubble_properties:
+            bprop = Bubble().get(bprop_key)
 
-    def fetch(self):
-        for bt in db.Query(Bubble).filter('type', 'bubble_property').fetch(5000):
-            btout = []
-            btout.append('gae_key = \'' + str(bt.key()) + '\'')
-            if GetDictionaryValue(bt.GetValue('name'), 'estonian'):
-                btout.append('estonian_label = \'' + GetDictionaryValue(bt.GetValue('name'), 'estonian').replace('\'', '\\\'') + '\'' )
-            if GetDictionaryValue(bt.GetValue('name'), 'english'):
-                btout.append('english_label = \'' + GetDictionaryValue(bt.GetValue('name'), 'english').replace('\'', '\\\'')  + '\'' )
-            if GetDictionaryValue(bt.GetValue('name_plural'), 'estonian'):
-                btout.append('estonian_label_plural = \'' + GetDictionaryValue(bt.GetValue('name_plural'), 'estonian').replace('\'', '\\\'') + '\'' )
-            if GetDictionaryValue(bt.GetValue('name_plural'), 'english'):
-                btout.append('english_label_plural = \'' + GetDictionaryValue(bt.GetValue('name_plural'), 'english').replace('\'', '\\\'')  + '\'' )
-            if GetDictionaryValue(bt.GetValue('description'), 'estonian'):
-                btout.append('estonian_description = \'' + GetDictionaryValue(bt.GetValue('description'), 'estonian').replace('\'', '\\\'') + '\'' )
-            if GetDictionaryValue(bt.GetValue('description'), 'english'):
-                btout.append('english_description = \'' + GetDictionaryValue(bt.GetValue('description'), 'english').replace('\'', '\\\'')  + '\'' )
-            if bt.GetValue('data_type', ''):
-                btout.append('data_type = \'' + bt.GetValue('data_type', '') + '\'' )
-            if bt.GetValue('format_string', ''):
-                btout.append('estonian_formatstring = \'' + bt.GetValue('format_string', '') + '\'' )
-                btout.append('english_formatstring = \'' + bt.GetValue('format_string', '') + '\'' )
-            if bt.GetValue('count', ''):
-                btout.append('multiplicity = ' + str(bt.GetValue('count', '')))
-            # btout['search_properties'] = bt.search_properties
-            yield btout
+            if bprop.data_type not in properties:
+                properties[bprop.data_type] = bprop.data_property
+            else:
+                properties[bprop.data_type] = properties[bprop.data_type] + ',' + bprop.data_property
+
+
+        self.echo(str(db.Query(Bubble).filter('type', bubbletype_path).count(limit=1000000)))
+
+        post_url = '/update/export/bubbletype/%s' % bubbletype_path
+
+        post_data = properties
+        post_data['post_property_types'] = ','.join(properties.keys())
+        self.echo(post_data['post_property_types'])
+
+        post_bubble_keys = map(str, db.Query(Bubble, keys_only = True).filter('type', bubbletype_path).fetch(1000000))
+
+        for key_chunk in self.chunks(post_bubble_keys, 2000):
+            post_data['post_bubble_keys'] = ','.join(key_chunk)
+            try:
+                AddTask(post_url, post_data, 'default')
+            except Exception, e:
+                logging.debug('Failed to request ' + '/update/export/bubbletype/%s' % bubbletype_path)
+                raise e
+
+    def chunks(self, l, n):
+        for i in xrange(0, len(l), n):
+            yield l[i:i+n]
+
+
+    def post(self, bubbletype_path):
+        post_property_types = self.request.get('post_property_types').split(',')
+        post_bubble_keys = self.request.get('post_bubble_keys').split(',')
+
+        bubbletype = db.Query(Bubble).filter('path', bubbletype_path).get()
+        bt_key = str(bubbletype.key())
+        property_keys = {}
+        for bprop_key in bubbletype.GetValueAsList('bubble_properties'):
+            bprop = Bubble().get(bprop_key)
+            property_keys[bprop.data_property] = str(bprop_key)
+
+        b_sql = []
+
+        for b_key in post_bubble_keys:
+            b_out = []
+            b_out.append('gae_key = \'' + b_key + '\'')
+            b_out.append('bubble_definition_id = (SELECT id FROM bubble_definition WHERE gae_key = \'' + bt_key + '\')' )
+
+            try:
+                bubble = Bubble().get(b_key)
+            except Exception, e:
+                logging.debug('b_key = "' + str(b_key) + '"')
+                raise e
+
+            if getattr(bubble,'is_public', False):
+                b_out.append('public = 1')
+
+            if getattr(bubble,'x_is_deleted', False):
+                b_out.append('deleted = 1')
+
+            x_changed = bubble.GetValue('x_changed')
+            if x_changed:
+                b_out.append('changed = \'' + str(x_changed)[:19] + '\'' )
+
+            x_changed_by = bubble.GetValue('x_changed_by')
+            if x_changed_by:
+                b_out.append('changed_by = \'' + x_changed_by + '\'' )
+
+            x_created = bubble.GetValue('x_created')
+            if x_created:
+                b_out.append('created = \'' + str(x_created)[:19] + '\'' )
+
+            x_created_by = bubble.GetValue('x_created_by')
+            if x_created_by:
+                b_out.append('created_by = \'' + x_created_by + '\'' )
+
+            b_sql.append('INSERT INTO bubble SET ' + ', '.join(b_out) + ' ON DUPLICATE KEY UPDATE ' + ', '.join(b_out) + ';')
+
+            #####
+            # continue
+            #####
+
+            b_fk = 'bubble_id = (SELECT id FROM bubble WHERE gae_key = \'' + b_key + '\')'
+            b_sql.append('DELETE FROM property WHERE ' + b_fk + ';')
+
+            # post_property_types: string,reference,blobstore,dictionary_select,boolean,date,select
+            value_type = {
+                'string': 'value_string',
+                'text': 'value_text',
+                'dictionary_string': 'value_string',
+                'dictionary_text': 'value_text',
+                'integer': 'value_integer',
+                'float': 'value_decimal',
+                'date': 'value_datetime',
+                'datetime': 'value_datetime',
+                'reference': 'value_reference',
+                'blobstore': 'value_file',
+                'boolean': 'value_boolean',
+                'select': 'value_select',
+                'dictionary_select': 'value_select',
+                }
+            for post_property_type in post_property_types:
+                post_property_names = self.request.get(post_property_type)
+                # logging.debug(post_property_type + ': ' + post_property_names)
+
+                for post_property_name in post_property_names.split(','):
+                    pd_key = bt_key + '_' + property_keys[post_property_name]
+                    pd_fk = 'property_definition_id = (SELECT id FROM property_definition WHERE gae_key = \'' + pd_key + '\')'
+
+                    if post_property_type in ['string', 'text', 'select']:
+                        for b_value in bubble.GetValueAsList(post_property_name):
+                            if b_value:
+                                b_out = [b_fk]
+                                b_out.append(pd_fk)
+                                b_out.append(value_type[post_property_type] + ' = \'' + b_value.replace('\'', '\\\'') + '\'' )
+                                b_sql.append('INSERT INTO property SET ' + ', '.join(b_out) + ';')
+
+                    elif post_property_type in ['dictionary_string', 'dictionary_text', 'dictionary_select']:
+                        for b_value in bubble.GetValueAsList(post_property_name):
+
+                            b_value_estonian = GetDictionaryValue(b_value, 'estonian')
+                            if b_value_estonian:
+                                b_out = [b_fk]
+                                b_out.append(pd_fk)
+                                b_out.append('language = \'estonian\'')
+                                b_out.append(value_type[post_property_type] + ' = \'' + b_value_estonian.replace('\'', '\\\'') + '\'' )
+                                b_sql.append('INSERT INTO property SET ' + ', '.join(b_out) + ';')
+
+                            b_value_english = GetDictionaryValue(b_value, 'english')
+                            if b_value_english:
+                                b_out = [b_fk]
+                                b_out.append(pd_fk)
+                                b_out.append('language = \'english\'')
+                                b_out.append(value_type[post_property_type] + ' = \'' + b_value_english.replace('\'', '\\\'') + '\'' )
+                                b_sql.append('INSERT INTO property SET ' + ', '.join(b_out) + ';')
+
+                    elif post_property_type in ['integer','float']:
+                        for b_value in bubble.GetValueAsList(post_property_name):
+                            if b_value:
+                                b_out = [b_fk]
+                                b_out.append(pd_fk)
+                                b_out.append(value_type[post_property_type] + ' = ' + str(b_value) )
+                                b_sql.append('INSERT INTO property SET ' + ', '.join(b_out) + ';')
+
+                    elif post_property_type in ['date', 'datetime']:
+                        for b_value in bubble.GetValueAsList(post_property_name):
+                            if b_value:
+                                b_out = [b_fk]
+                                b_out.append(pd_fk)
+                                b_out.append(value_type[post_property_type] + ' = \'' + str(b_value)[:19] + '\'' )
+                                b_sql.append('INSERT INTO property SET ' + ', '.join(b_out) + ';')
+
+                    elif post_property_type == 'reference':
+                        for b_value in bubble.GetValueAsList(post_property_name):
+                            if b_value:
+                                b_out = [b_fk]
+                                b_out.append(pd_fk)
+                                b_out.append(value_type[post_property_type] + ' = (SELECT id FROM bubble WHERE gae_key = \'' + str(b_value) + '\')' )
+                                b_sql.append('INSERT INTO property SET ' + ', '.join(b_out) + ';')
+
+                    elif post_property_type == 'blobstore':
+                        for b_value in bubble.GetValueAsList(post_property_name):
+                            if b_value:
+                                blobfile = blobstore.BlobInfo.get(b_value)
+                                created = str(blobfile.creation)[:19]
+                                filesize = blobfile.size
+                                filename = blobstore.BlobInfo.get(b_value).filename
+                                gae_key = str(b_value)
+                                b_sql.append('INSERT INTO file SET gae_key=\'' + gae_key + '\', filename=\'' + filename + '\', filesize=' + str(filesize) + ', created=\'' + created + '\'' + ' ON DUPLICATE KEY UPDATE gae_key=\'' + gae_key + '\', filename=\'' + filename + '\', filesize=' + str(filesize) + ', created=\'' + created + '\';')
+
+                                b_out = [b_fk]
+                                b_out.append(pd_fk)
+                                b_out.append(value_type[post_property_type] + ' = (SELECT id FROM file WHERE gae_key = \'' + str(b_value) + '\')' )
+                                b_sql.append('INSERT INTO property SET ' + ', '.join(b_out) + ' ON DUPLICATE KEY UPDATE ' + ', '.join(b_out) + ';')
+
+                    elif post_property_type == 'boolean':
+                        b_value = bubble.GetValue(post_property_name, False)
+                        if b_value:
+                            b_out = [b_fk]
+                            b_out.append(pd_fk)
+                            b_out.append(value_type[post_property_type] + ' = 1' )
+                            b_sql.append('INSERT INTO property SET ' + ', '.join(b_out) + ';')
+
+                    else:
+                        continue
+
+        SendMail(
+            to = ['mihkel.putrinsh@artun.ee'],#, 'argo.roots@artun.ee'],
+            subject = 'bubbles for ' + bubbletype_path,
+            message = bubbletype_path,
+            attachments = [('bubbles_' + bubbletype_path + '.sql', '\n'.join(b_sql))]
+        )
+
+        return 0
+
+        logging.debug(self.request.get('post_bubble_keys'))
+        return 0
 
 
 class ExportR2D2(boRequestHandler):
     def get(self):
         self.header('Content-Type', 'text/plain; charset=utf-8')
-        # self.echo(str(db.Query(Bubble).filter('type', 'bubble_property').count(limit=100000)))
+        self.echo(str(db.Query(Bubble).filter('type', 'bubble_property').count(limit=100000)))
 
-        i = 0
-        j = 0
-        for bt in db.Query(Bubble).filter('type', 'bubble_type').fetch(5000):
-            i += 1
-            # self.echo('i:' + str(i))
+        post_url = '/update/export/r2d2'
+        post_data = []
+        try:
+            AddTask(post_url, post_data, 'default')
+        except Exception, e:
+            logging.debug('Failed to request ' + post_url)
+            raise e
+
+    def post(self):
+        b_sql = []
+        for bt in db.Query(Bubble).filter('type', 'bubble_type').fetch(100000):
             for propkey in bt.GetValueAsList('bubble_properties'):
-                j += 1
-                # self.echo('j:' + str(j))
                 btlist = []
                 btlist.append('gae_key = \'' + str(bt.key()) + '_' + str(propkey) + '\'')
 
                 bubble_property = Bubble().get(propkey)
 
-                # label_estonian = GetDictionaryValue(bubble_property.GetValue('name'), 'estonian')
-                # if label_estonian:
-                #     btlist.append('estonian_label = \'' + label_estonian.replace('\'', '\\\'') + '\'' )
-                # label_english = GetDictionaryValue(bubble_property.GetValue('name'), 'english')
-                # if label_english:
-                #     btlist.append('english_label = \'' + label_english.replace('\'', '\\\'')  + '\'' )
+                label_estonian = GetDictionaryValue(bubble_property.GetValue('name'), 'estonian')
+                if label_estonian:
+                    btlist.append('estonian_label = \'' + label_estonian.replace('\'', '\\\'') + '\'' )
+                label_english = GetDictionaryValue(bubble_property.GetValue('name'), 'english')
+                if label_english:
+                    btlist.append('english_label = \'' + label_english.replace('\'', '\\\'') + '\'' )
 
                 label_estonian_plural = GetDictionaryValue(bubble_property.GetValue('name_plural'), 'estonian')
                 if label_estonian_plural:
                     btlist.append('estonian_label_plural = \'' + label_estonian_plural.replace('\'', '\\\'') + '\'' )
                 label_english_plural = GetDictionaryValue(bubble_property.GetValue('name_plural'), 'english')
                 if label_english_plural:
-                    btlist.append('english_label_plural = \'' + label_english_plural.replace('\'', '\\\'')  + '\'' )
+                    btlist.append('english_label_plural = \'' + label_english_plural.replace('\'', '\\\'') + '\'' )
 
-                # description_estonian = GetDictionaryValue(bubble_property.GetValue('description'), 'estonian')
-                # if description_estonian:
-                #     btlist.append('estonian_description = \'' + description_estonian.replace('\'', '\\\'') + '\'' )
-                # description_english = GetDictionaryValue(bubble_property.GetValue('description'), 'english')
-                # if description_english:
-                #     btlist.append('english_description = \'' + description_english.replace('\'', '\\\'')  + '\'' )
+                description_estonian = GetDictionaryValue(bubble_property.GetValue('description'), 'estonian')
+                if description_estonian:
+                    btlist.append('estonian_description = \'' + description_estonian.replace('\'', '\\\'') + '\'' )
+                description_english = GetDictionaryValue(bubble_property.GetValue('description'), 'english')
+                if description_english:
+                    btlist.append('english_description = \'' + description_english.replace('\'', '\\\'') + '\'' )
 
+                target_property_str = bubble_property.GetValue('target_property')
+                if target_property_str:
+                    property_key = str(db.Query(Bubble, keys_only=True).filter('type', 'bubble_property').filter('data_property', target_property_str).get())
+                    btlist.append('target_property_definition_id = (SELECT id FROM property_definition WHERE gae_key = \'' + property_key + '\')')
 
-                # btlist.append('bubble_definition_id = (SELECT id FROM bubble_definition WHERE gae_key = \'' + str(bt.key()) + '\')')
-                # if propkey in bt.GetValueAsList('mandatory_properties'):
-                #     btlist.append('mandatory = 1')
-                # if propkey in bt.GetValueAsList('public_properties'):
-                #     btlist.append('public = 1')
-                # if propkey in bt.GetValueAsList('search_properties'):
-                #     btlist.append('search = 1')
-                # if propkey in bt.GetValueAsList('create_only_properties'):
-                #     btlist.append('createonly = 1')
-                # if propkey in bt.GetValueAsList('read_only_properties'):
-                #     btlist.append('readonly = 1')
-                # if propkey in bt.GetValueAsList('propagated_properties'):
-                #     btlist.append('propagates = 1')
+                field_group_estonian = GetDictionaryValue(bubble_property.GetValue('field_group'), 'estonian')
+                if field_group_estonian:
+                    btlist.append('estonian_fieldset = \'' + field_group_estonian.replace('\'', '\\\'') + '\'' )
+                field_group_english = GetDictionaryValue(bubble_property.GetValue('field_group'), 'english')
+                if field_group_english:
+                    btlist.append('english_fieldset = \'' + field_group_english.replace('\'', '\\\'') + '\'' )
 
-                self.echo('INSERT INTO property_definition SET ' + ', '.join(btlist) +
-                    ' ON DUPLICATE KEY UPDATE ' + ', '.join(btlist) + ';\n')
+                data_type = bubble_property.GetValue('data_type')
+                if data_type:
+                    btlist.append('datatype = \'' + data_type.replace('\'', '\\\'') + '\'' )
+                data_property = bubble_property.GetValue('data_property')
+                if data_property:
+                    btlist.append('dataproperty = \'' + data_property.replace('\'', '\\\'') + '\'' )
+                format_string = bubble_property.GetValue('format_string')
+                if format_string:
+                    btlist.append('estonian_formatstring = \'' + format_string.replace('\'', '\\\'') + '\'' )
+                    btlist.append('english_formatstring = \'' + format_string.replace('\'', '\\\'') + '\'' )
+                default = bubble_property.GetValue('default')
+                if default:
+                    btlist.append('defaultvalue = \'' + default.replace('\'', '\\\'') + '\'' )
+
+                ordinal = bubble_property.GetValue('ordinal')
+                if ordinal:
+                    btlist.append('ordinal = ' + str(ordinal) + '' )
+                count = bubble_property.GetValue('count')
+                if count:
+                    btlist.append('multiplicity = ' + str(count) + '' )
+
+                is_auto_complete = bubble_property.GetValue('is_auto_complete')
+                if is_auto_complete:
+                    btlist.append('autocomplete = 1')
+
+                btlist.append('bubble_definition_id = (SELECT id FROM bubble_definition WHERE gae_key = \'' + str(bt.key()) + '\')')
+                if propkey in bt.GetValueAsList('mandatory_properties'):
+                    btlist.append('mandatory = 1')
+                if propkey in bt.GetValueAsList('public_properties'):
+                    btlist.append('public = 1')
+                if propkey in bt.GetValueAsList('search_properties'):
+                    btlist.append('search = 1')
+                if propkey in bt.GetValueAsList('create_only_properties'):
+                    btlist.append('createonly = 1')
+                if propkey in bt.GetValueAsList('read_only_properties'):
+                    btlist.append('readonly = 1')
+                if propkey in bt.GetValueAsList('propagated_properties'):
+                    btlist.append('propagates = 1')
+
+                b_sql.append('INSERT INTO property_definition SET ' + ', '.join(btlist) + ' ON DUPLICATE KEY UPDATE ' + ', '.join(btlist) + ';\n')
+
+        SendMail(
+            to = ['mihkel.putrinsh@artun.ee'],#, 'argo.roots@artun.ee'],
+            subject = 'bubbles for ' + 'r2d2',
+            message = 'r2d2',
+            attachments = [('r2d2.sql', '\n'.join(b_sql))]
+        )
 
 
 def main():
@@ -1135,7 +1352,7 @@ def main():
             (r'/update/m2tsl/(.*)', Message2TimeSlotLeecher),
             (r'/update/delete_file/(.*)', DeleteFile),
             ('/update/export/bubbletypes', ExportBubbletypes),
-            ('/update/export/bubbleproperties', ExportBubbleproperties),
+            (r'/update/export/bubbletype/(.*)', ExportBubbletype),
             ('/update/export/r2d2', ExportR2D2),
         ])
 
