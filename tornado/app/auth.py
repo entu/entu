@@ -12,6 +12,7 @@ import logging
 import json
 
 from helper import *
+from db import *
 
 
 class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
@@ -166,10 +167,11 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
 class AuthMobileID(myRequestHandler, auth.OpenIdMixin):
     @web.asynchronous
     def get(self):
-        self._OPENID_ENDPOINT = 'https://openid.ee/server/mid'
+        self._OPENID_ENDPOINT = 'https://openid.ee/server/xrds/mid'
 
         if not self.get_argument('openid.mode', None):
-            return self.authenticate_redirect()
+            url = self.request.protocol + '://' + self.request.host + '/auth/mobileid'
+            self.authenticate_redirect(callback_uri=url)
 
         self.get_authenticated_user(self.async_callback(self._got_user))
 
@@ -226,7 +228,7 @@ def LoginUser(rh, user):
     session_key = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest()
     user_key = hashlib.md5(rh.request.remote_ip + rh.request.headers.get('User-Agent', None)).hexdigest()
 
-    myDb().execute_lastrowid('INSERT INTO user_profile SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, session = %s, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, changed = NOW();',
+    profile_id = myDb().db.execute_lastrowid('INSERT INTO user_profile SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, session = %s, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, changed = NOW();',
             user['provider'],
             user['id'],
             user['email'],
@@ -238,6 +240,17 @@ def LoginUser(rh, user):
             user['picture'],
             session_key+user_key
         )
+    profile = myDb().db.get('SELECT id, user_id FROM user_profile WHERE id = %s', profile_id)
+
+    if not profile.user_id:
+        user_id = myDb().db.execute_lastrowid('INSERT INTO user SET email = %s, name = %s, picture = %s, language = %s, created = NOW();',
+            user['email'],
+            user['name'],
+            user['picture'],
+            rh.settings['default_language']
+        )
+        myDb().db.execute('UPDATE user_profile SET user_id = %s WHERE id = %s;', user_id, profile.id)
+
     rh.set_secure_cookie('session', str(session_key))
     rh.redirect('/')
 

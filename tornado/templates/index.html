@@ -10,8 +10,23 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
     <script src="{{ static_url('bootstrap/bootstrap.min.js') }}"></script>
     <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 10px;
+      }
+      .auth_link {
+        margin:0px;
+        padding:0px;
+      }
+      .auth_link a {
+        margin:0px;
+        padding:0px;
+        width: 160px;
+        height: 31px;
+        background: url('{{ static_url('images/auth_providers.png') }}') no-repeat top left;
+      }
     </style>
-    <link href="/assets/responsive.css" rel="stylesheet">
+    <link href="{{ static_url('bootstrap/responsive.css') }}" rel="stylesheet">
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
@@ -30,7 +45,7 @@
             <span class="icon-bar"></span>
           </a>
           <a class="brand" href="/public" style="font-weight:bold; letter-spacing:1px; color:rgba(0, 0, 0, .3); text-shadow: 0 1px 0 rgba(255, 255, 255, .1), 0 0 30px rgba(255, 255, 255, .125);
-">{{ 'system_title' }}</a>
+">{{ app_title }}</a>
           <div class="nav-collapse">
             <ul class="nav pull-right">
               <li id="menusearch" style="display:none;">

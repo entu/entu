@@ -1,0 +1,23 @@
+{% extends '../index.html' %}
+
+{% block content %}
+
+{% include 'search.html' %}
+
+<h3>{{ item_name }}</h3>
+<table class="table table-condensed">
+    <tbody>
+        {% for i in properties %}
+        <tr>
+            <th style="text-align:right; white-space:nowrap;">
+                {{ i['label'] }}
+            </th>
+            <td style="width:100%;">
+                {{ i['value'] }}
+            </td>
+        </tr>
+        {% end %}
+    </tbody>
+</table>
+
+{% end %}

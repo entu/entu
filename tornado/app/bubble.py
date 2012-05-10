@@ -1,6 +1,8 @@
 from tornado import auth, web
 
 from helper import *
+from db import *
+
 
 
 class MainHandler(myRequestHandler):

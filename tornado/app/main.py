@@ -4,12 +4,13 @@ import tornado.ioloop
 import tornado.locale
 import tornado.web
 import tornado.httpserver
+import tornado.database
 import tornado.options
 from tornado.options import define, options
 
+from db import *
 
-from helper import *
-
+define('debug',          help = 'run on debug mode',        type = str, default='False')
 define('port',           help = 'run on the given port',    type = int, default=8000)
 define('mysql_host',     help = 'mysql database host',      type = str)
 define('mysql_database', help = 'mysql database name',      type = str)
@@ -33,19 +34,19 @@ class myApplication(tornado.web.Application):
         settings = {
             'template_path':    path.join(path.dirname(__file__), '..', 'templates'),
             'static_path':      path.join(path.dirname(__file__), '..', 'static'),
-            'debug':            True,
+            'debug':            True if str(options.debug).lower() == 'true' else False,
             'login_url':        '/auth/google',
             'xsrf_coocies':     True,
         }
-        for preference in myDb().query('SELECT * FROM app_settings WHERE value IS NOT NULL;'):
+        for preference in myDb().db.query('SELECT * FROM app_settings WHERE value IS NOT NULL;'):
             settings[preference.name] = preference.value
 
         tornado.web.Application.__init__(self, handlers, **settings)
 
+
 if __name__ == '__main__':
+    tornado.locale.load_translations(path.join(path.dirname(__file__), '..', 'translations'))
     tornado.options.parse_config_file(path.join(path.dirname(__file__), '..', 'app.config'))
     tornado.options.parse_command_line()
-    tornado.locale.load_translations(path.join(path.dirname(__file__), '..', 'translations'))
-
     tornado.httpserver.HTTPServer(myApplication()).listen(options.port)
     tornado.ioloop.IOLoop.instance().start()

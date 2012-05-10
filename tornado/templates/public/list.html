@@ -2,9 +2,29 @@
 
 {% block content %}
 
-{% for i in items %}
-    {{ i.code }}<br />
-{% end %}
+{% include 'search.html' %}
 
-jeee
+<table class="table table-bordered">
+    <tbody>
+        {% for i in items %}
+        <tr>
+            <td style="white-space:nowrap;">
+                {{ i['number'] }}
+            </td>
+            <td style="1white-space:nowrap; width:100%;">
+                <a href="{{ i['url'] }}">{{ i['name'] }}</a>
+            </td>
+            <td style="white-space:nowrap;">
+                {{ i['date'] }}
+            </td>
+        </tr>
+        {% end %}
+        <tr>
+            <td colspan="3" style="text-align:center;">
+                {{ itemcount }}
+            </td>
+        </tr>
+    </tbody>
+</table>
+
 {% end %}
