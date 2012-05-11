@@ -1012,8 +1012,11 @@ class ExportBubbletypes(boRequestHandler):
 
 
 class ExportBubbletype(boRequestHandler):
-    def get(self, bubbletype_path):
+    def get(self, bubbletype_path = None):
         self.header('Content-Type', 'text/plain; charset=utf-8')
+        if not bubbletype_path:
+            self.echo('Try providing bubble type.')
+            return
 
         bubbletype = db.Query(Bubble).filter('path', bubbletype_path).get()
         properties = {}
@@ -1063,78 +1066,87 @@ class ExportBubbletype(boRequestHandler):
         b_sql = []
 
         for b_key in post_bubble_keys:
+            if b_key == '':
+                continue
+
             b_out = []
-            b_out.append('gae_key = \'' + b_key + '\'')
-            b_out.append('bubble_definition_id = (SELECT id FROM bubble_definition WHERE gae_key = \'' + bt_key + '\')' )
+            b_out.append(u'gae_key = \'%s\'' % b_key)
+            b_out.append(u'bubble_definition_id = (SELECT id FROM bubble_definition WHERE gae_key = \'%s\')' % bt_key )
 
             try:
                 bubble = Bubble().get(b_key)
             except Exception, e:
-                logging.debug('b_key = "' + str(b_key) + '"')
+                logging.debug('b_key = "%s"' % str(b_key))
                 raise e
 
-            if getattr(bubble,'is_public', False):
-                b_out.append('public = 1')
+            if getattr(bubble, 'is_public', False):
+                b_out.append(u'public = 1')
 
-            if getattr(bubble,'x_is_deleted', False):
-                b_out.append('deleted = 1')
+            if getattr(bubble, 'x_is_deleted', False):
+                b_out.append(u'deleted = 1')
 
             x_changed = bubble.GetValue('x_changed')
             if x_changed:
-                b_out.append('changed = \'' + str(x_changed)[:19] + '\'' )
+                b_out.append(u'changed = \'%s\'' % str(x_changed)[:19])
 
             x_changed_by = bubble.GetValue('x_changed_by')
             if x_changed_by:
-                b_out.append('changed_by = \'' + x_changed_by + '\'' )
+                b_out.append(u'changed_by = \'%s\'' % x_changed_by )
 
             x_created = bubble.GetValue('x_created')
             if x_created:
-                b_out.append('created = \'' + str(x_created)[:19] + '\'' )
+                b_out.append(u'created = \'%s\'' % str(x_created)[:19])
 
             x_created_by = bubble.GetValue('x_created_by')
             if x_created_by:
-                b_out.append('created_by = \'' + x_created_by + '\'' )
+                b_out.append(u'created_by = \'%s\'' % x_created_by)
 
-            b_sql.append('INSERT INTO bubble SET ' + ', '.join(b_out) + ' ON DUPLICATE KEY UPDATE ' + ', '.join(b_out) + ';')
+            join_out = u', '.join(b_out)
+            b_sql.append(u'INSERT INTO bubble SET %s ON DUPLICATE KEY UPDATE %s;' % (join_out, join_out))
 
             #####
             # continue
             #####
 
-            b_fk = 'bubble_id = (SELECT id FROM bubble WHERE gae_key = \'' + b_key + '\')'
-            b_sql.append('DELETE FROM property WHERE ' + b_fk + ';')
+            b_fk = u'bubble_id = (SELECT id FROM bubble WHERE gae_key = \'%s\')' % b_key
+            b_sql.append(u'DELETE FROM property WHERE %s;' % b_fk)
 
             # post_property_types: string,reference,blobstore,dictionary_select,boolean,date,select
             value_type = {
-                'string': 'value_string',
-                'text': 'value_text',
-                'dictionary_string': 'value_string',
-                'dictionary_text': 'value_text',
-                'integer': 'value_integer',
-                'float': 'value_decimal',
-                'date': 'value_datetime',
-                'datetime': 'value_datetime',
-                'reference': 'value_reference',
-                'blobstore': 'value_file',
-                'boolean': 'value_boolean',
-                'select': 'value_select',
-                'dictionary_select': 'value_select',
+                'string':            u'value_string',
+                'text':              u'value_text',
+                'dictionary_string': u'value_string',
+                'dictionary_text':   u'value_text',
+                'integer':           u'value_integer',
+                'float':             u'value_decimal',
+                'date':              u'value_datetime',
+                'datetime':          u'value_datetime',
+                'reference':         u'value_reference',
+                'blobstore':         u'value_file',
+                'boolean':           u'value_boolean',
+                'select':            u'value_select',
+                'dictionary_select': u'value_select',
                 }
             for post_property_type in post_property_types:
                 post_property_names = self.request.get(post_property_type)
                 # logging.debug(post_property_type + ': ' + post_property_names)
+                post_property_type_value = value_type[post_property_type]
 
                 for post_property_name in post_property_names.split(','):
                     pd_key = bt_key + '_' + property_keys[post_property_name]
-                    pd_fk = 'property_definition_id = (SELECT id FROM property_definition WHERE gae_key = \'' + pd_key + '\')'
+                    pd_fk = u'property_definition_id = (SELECT id FROM property_definition WHERE gae_key = \'%s\')' % pd_key
 
                     if post_property_type in ['string', 'text', 'select']:
                         for b_value in bubble.GetValueAsList(post_property_name):
                             if b_value:
                                 b_out = [b_fk]
                                 b_out.append(pd_fk)
-                                b_out.append(value_type[post_property_type] + ' = \'' + b_value.replace('\'', '\\\'') + '\'' )
-                                b_sql.append('INSERT INTO property SET ' + ', '.join(b_out) + ';')
+                                try:
+                                    foo = b_value.replace('\'', '\\\'')
+                                except AttributeError, e:
+                                    foo = str(b_value)
+                                b_out.append(u'%s = \'%s\'' % (post_property_type_value, foo))
+                                b_sql.append(u'INSERT INTO property SET %s;' % u', '.join(b_out))
 
                     elif post_property_type in ['dictionary_string', 'dictionary_text', 'dictionary_select']:
                         for b_value in bubble.GetValueAsList(post_property_name):
@@ -1143,41 +1155,49 @@ class ExportBubbletype(boRequestHandler):
                             if b_value_estonian:
                                 b_out = [b_fk]
                                 b_out.append(pd_fk)
-                                b_out.append('language = \'estonian\'')
-                                b_out.append(value_type[post_property_type] + ' = \'' + b_value_estonian.replace('\'', '\\\'') + '\'' )
-                                b_sql.append('INSERT INTO property SET ' + ', '.join(b_out) + ';')
+                                b_out.append(u'language = \'estonian\'')
+                                try:
+                                    foo = b_value_estonian.replace('\'', '\\\'')
+                                except AttributeError, e:
+                                    foo = str(b_value_estonian)
+                                b_out.append(u'%s = \'%s\'' % (post_property_type_value, foo))
+                                b_sql.append(u'INSERT INTO property SET %s;' % u', '.join(b_out))
 
                             b_value_english = GetDictionaryValue(b_value, 'english')
                             if b_value_english:
                                 b_out = [b_fk]
                                 b_out.append(pd_fk)
-                                b_out.append('language = \'english\'')
-                                b_out.append(value_type[post_property_type] + ' = \'' + b_value_english.replace('\'', '\\\'') + '\'' )
-                                b_sql.append('INSERT INTO property SET ' + ', '.join(b_out) + ';')
+                                b_out.append(u'language = \'english\'')
+                                try:
+                                    foo = b_value_english.replace('\'', '\\\'')
+                                except AttributeError, e:
+                                    foo = str(b_value_english)
+                                b_out.append(u'%s = \'%s\'' % (post_property_type_value, foo))
+                                b_sql.append(u'INSERT INTO property SET %s;' % u', '.join(b_out))
 
                     elif post_property_type in ['integer','float']:
                         for b_value in bubble.GetValueAsList(post_property_name):
                             if b_value:
                                 b_out = [b_fk]
                                 b_out.append(pd_fk)
-                                b_out.append(value_type[post_property_type] + ' = ' + str(b_value) )
-                                b_sql.append('INSERT INTO property SET ' + ', '.join(b_out) + ';')
+                                b_out.append(u'%s = \'%s\'' % (post_property_type_value, str(b_value)))
+                                b_sql.append(u'INSERT INTO property SET %s;' % u', '.join(b_out))
 
                     elif post_property_type in ['date', 'datetime']:
                         for b_value in bubble.GetValueAsList(post_property_name):
                             if b_value:
                                 b_out = [b_fk]
                                 b_out.append(pd_fk)
-                                b_out.append(value_type[post_property_type] + ' = \'' + str(b_value)[:19] + '\'' )
-                                b_sql.append('INSERT INTO property SET ' + ', '.join(b_out) + ';')
+                                b_out.append(u'%s = \'%s\'' % (post_property_type_value, str(b_value)[:19]))
+                                b_sql.append(u'INSERT INTO property SET %s;' % u', '.join(b_out))
 
                     elif post_property_type == 'reference':
                         for b_value in bubble.GetValueAsList(post_property_name):
                             if b_value:
                                 b_out = [b_fk]
                                 b_out.append(pd_fk)
-                                b_out.append(value_type[post_property_type] + ' = (SELECT id FROM bubble WHERE gae_key = \'' + str(b_value) + '\')' )
-                                b_sql.append('INSERT INTO property SET ' + ', '.join(b_out) + ';')
+                                b_out.append(u'%s = (SELECT id FROM bubble WHERE gae_key = \'%s\')' % (post_property_type_value, str(b_value)))
+                                b_sql.append(u'INSERT INTO property SET %s;' % u', '.join(b_out))
 
                     elif post_property_type == 'blobstore':
                         for b_value in bubble.GetValueAsList(post_property_name):
@@ -1187,20 +1207,20 @@ class ExportBubbletype(boRequestHandler):
                                 filesize = blobfile.size
                                 filename = blobstore.BlobInfo.get(b_value).filename
                                 gae_key = str(b_value)
-                                b_sql.append('INSERT INTO file SET gae_key=\'' + gae_key + '\', filename=\'' + filename + '\', filesize=' + str(filesize) + ', created=\'' + created + '\'' + ' ON DUPLICATE KEY UPDATE gae_key=\'' + gae_key + '\', filename=\'' + filename + '\', filesize=' + str(filesize) + ', created=\'' + created + '\';')
+                                b_sql.append(u'INSERT INTO file SET gae_key=\'%s\', filename=\'%s\', filesize=%s, created=\'%s\' ON DUPLICATE KEY UPDATE gae_key=\'%s\', filename=\'%s\', filesize=%s, created=\'%s\';' % (gae_key, filename, str(filesize), created, gae_key, filename, str(filesize), created))
 
                                 b_out = [b_fk]
                                 b_out.append(pd_fk)
-                                b_out.append(value_type[post_property_type] + ' = (SELECT id FROM file WHERE gae_key = \'' + str(b_value) + '\')' )
-                                b_sql.append('INSERT INTO property SET ' + ', '.join(b_out) + ' ON DUPLICATE KEY UPDATE ' + ', '.join(b_out) + ';')
+                                b_out.append(u'%s = (SELECT id FROM file WHERE gae_key = \'%s\')' % (post_property_type_value, str(b_value)))
+                                b_sql.append(u'INSERT INTO property SET %s ON DUPLICATE KEY UPDATE %s;' % (u', '.join(b_out), u', '.join(b_out)))
 
                     elif post_property_type == 'boolean':
                         b_value = bubble.GetValue(post_property_name, False)
                         if b_value:
                             b_out = [b_fk]
                             b_out.append(pd_fk)
-                            b_out.append(value_type[post_property_type] + ' = 1' )
-                            b_sql.append('INSERT INTO property SET ' + ', '.join(b_out) + ';')
+                            b_out.append(u'%s = 1' % post_property_type_value)
+                            b_sql.append(u'INSERT INTO property SET %s;' % u', '.join(b_out))
 
                     else:
                         continue
@@ -1209,7 +1229,7 @@ class ExportBubbletype(boRequestHandler):
             to = ['mihkel.putrinsh@artun.ee'],#, 'argo.roots@artun.ee'],
             subject = 'bubbles for ' + bubbletype_path,
             message = bubbletype_path,
-            attachments = [('bubbles_' + bubbletype_path + '.sql', '\n'.join(b_sql))]
+            attachments = [('bubbles_' + bubbletype_path + '.sql', u'\n'.join(b_sql))]
         )
 
         return 0
@@ -1312,7 +1332,7 @@ class ExportR2D2(boRequestHandler):
                 if propkey in bt.GetValueAsList('propagated_properties'):
                     btlist.append('propagates = 1')
 
-                b_sql.append('INSERT INTO property_definition SET ' + ', '.join(btlist) + ' ON DUPLICATE KEY UPDATE ' + ', '.join(btlist) + ';\n')
+                b_sql.append(u'INSERT INTO property_definition SET ' + u', '.join(btlist) + ' ON DUPLICATE KEY UPDATE ' + u', '.join(btlist) + ';\n')
 
         SendMail(
             to = ['mihkel.putrinsh@artun.ee'],#, 'argo.roots@artun.ee'],
