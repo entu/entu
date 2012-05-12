@@ -1015,8 +1015,13 @@ class ExportBubbletype(boRequestHandler):
     def get(self, bubbletype_path = None):
         self.header('Content-Type', 'text/plain; charset=utf-8')
         if not bubbletype_path:
-            self.echo('Try providing bubble type.')
+            bubbletype_paths = ['course','earticle','inventory_computer','institution','award_grant','applicant_doc','document','submission','exam','personal_time_slot','exam_group','rating_scale','grade_on_scale','inventory','folder','cv_edu','doc_kirjavahetus','classifier','cl_value','conference_presentation','cv_edu_ba','cv_edu_ma','creative_activity','doc_lahetuskorraldus','emedia','module','bubble_type','doc_other','department','person','doc_publication','epublication','book','library','state_exam','bubble_configuration','semester','applicant','pre_applicant','phd_applicant','rating','bubble_relation_template','concentration','message','event','timetable','cv_work','doc_vastuskiri','reception','reception_group','bubble_property','study_group','curriculum','subject','level_of_education']
+            self.echo('Initialaizing tasks for all bubble types:\n' + str(bubbletype_paths))
+            for bubbletype_path in bubbletype_paths:
+                post_url = '/update/export/bubbletype/%s' % bubbletype_path
+                AddTask(post_url, [], 'default', 'GET')
             return
+
 
         bubbletype = db.Query(Bubble).filter('path', bubbletype_path).get()
         properties = {}
@@ -1126,6 +1131,7 @@ class ExportBubbletype(boRequestHandler):
                 'boolean':           u'value_boolean',
                 'select':            u'value_select',
                 'dictionary_select': u'value_select',
+                'counter':           u'value_counter',
                 }
             for post_property_type in post_property_types:
                 post_property_names = self.request.get(post_property_type)
@@ -1205,7 +1211,7 @@ class ExportBubbletype(boRequestHandler):
                                 blobfile = blobstore.BlobInfo.get(b_value)
                                 created = str(blobfile.creation)[:19]
                                 filesize = blobfile.size
-                                filename = blobstore.BlobInfo.get(b_value).filename
+                                filename = blobstore.BlobInfo.get(b_value).filename.replace('\'', '\\\'')
                                 gae_key = str(b_value)
                                 b_sql.append(u'INSERT INTO file SET gae_key=\'%s\', filename=\'%s\', filesize=%s, created=\'%s\' ON DUPLICATE KEY UPDATE gae_key=\'%s\', filename=\'%s\', filesize=%s, created=\'%s\';' % (gae_key, filename, str(filesize), created, gae_key, filename, str(filesize), created))
 
