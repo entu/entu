@@ -92,7 +92,7 @@ class ShowBubble(boRequestHandler):
             main_template = 'public/index.html',
             template_file = 'public/bubble.html',
             values = {
-                'name': ', '.join([v['value'] for v in bubble.GetProperty(bubble.GetType(), 'name', language)['values'] if v['value']]),
+                'name': ', '.join([v['value'] for v in bubble.GetProperty(bubble.GetType(), 'title', language)['values'] if v['value']]),
                 'bubble': bubble,
                 'key': key,
             }
