@@ -315,6 +315,23 @@ class EditSubbubble(boRequestHandler):
             user = getattr(p, 'email', ''),
         )
 
+
+        # Set rights
+        viewers_for_message = []
+        for s in db.Query(Bubble).filter('type', 'submission').fetch(1000):
+            if getattr(s, 'start_datetime', datetime.now()) < datetime.now() and getattr(s, 'end_datetime', datetime.now()) > datetime.now():
+                br = db.Query(BubbleRelation).filter('bubble', s.key()).filter('related_bubble', p.key()).filter('type', 'leecher').filter('x_is_deleted', False).get()
+                if br:
+                    p.x_br_viewer = s.x_br_viewer
+                    p.put(getattr(p, 'email', ''))
+
+                    for sb in Bubble.get(p.x_br_subbubble):
+                        if sb.type in ['cv_edu', 'cv_edu_ba', 'cv_edu_ma', 'cv_work', 'state_exam', 'applicant_doc', 'message']:
+                            sb.x_br_viewer = s.x_br_viewer
+                            sb.put(getattr(p, 'email', ''))
+                            viewers_for_message = ListMerge(viewers_for_message, s.x_br_viewer)
+
+
         # Send messages
         if self.request.get('oldvalue').strip() != self.request.get('newvalue').strip():
             bt = bubble.GetType()
@@ -326,7 +343,7 @@ class EditSubbubble(boRequestHandler):
                     message += '%s<br/>\n' % '<br/>\n'.join(['%s' % n['value'].replace('\n', '<br/>\n') for n in t['values'] if n['value']])
                     message += '<br/>\n'
                 for a in alter:
-                    for r in bubble.GetRelatives(a):
+                    for r in [x for x in db.get(viewers_for_message) if x.kind() == 'Bubble']:
                         emails = ListMerge(getattr(r, 'email', []), getattr(r, 'user', []))
                         SendMail(
                             to = emails,
@@ -436,6 +453,19 @@ class UploadFile(blobstore_handlers.BlobstoreUploadHandler):
                 'filename': blob_info.filename,
                 'bubble': str(bubble.key())
             }))
+
+        # Set rights
+        for s in db.Query(Bubble).filter('type', 'submission').fetch(1000):
+            if getattr(s, 'start_datetime', datetime.now()) < datetime.now() and getattr(s, 'end_datetime', datetime.now()) > datetime.now():
+                br = db.Query(BubbleRelation).filter('bubble', s.key()).filter('related_bubble', p.key()).filter('type', 'leecher').filter('x_is_deleted', False).get()
+                if br:
+                    p.x_br_viewer = s.x_br_viewer
+                    p.put(getattr(p, 'email', ''))
+
+                    for sb in Bubble.get(p.x_br_subbubble):
+                        if sb.type in ['cv_edu', 'cv_edu_ba', 'cv_edu_ma', 'cv_work', 'state_exam', 'applicant_doc', 'message']:
+                            sb.x_br_viewer = s.x_br_viewer
+                            sb.put(getattr(p, 'email', ''))
 
 
 class SelectFieldValues(boRequestHandler):
