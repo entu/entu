@@ -315,6 +315,21 @@ class EditSubbubble(boRequestHandler):
             user = getattr(p, 'email', ''),
         )
 
+
+        # Set rights
+        for s in db.Query(Bubble).filter('type', 'submission').fetch(1000):
+            if getattr(s, 'start_datetime', datetime.now()) < datetime.now() and getattr(s, 'end_datetime', datetime.now()) > datetime.now():
+                br = db.Query(BubbleRelation).filter('bubble', s.key()).filter('related_bubble', p.key()).filter('type', 'leecher').filter('x_is_deleted', False).get()
+                if br:
+                    p.x_br_viewer = s.x_br_viewer
+                    p.put(getattr(p, 'email', ''))
+
+                    for sb in Bubble.get(p.x_br_subbubble):
+                        if sb.type in ['cv_edu', 'cv_edu_ba', 'cv_edu_ma', 'cv_work', 'state_exam', 'applicant_doc', 'message']:
+                            sb.x_br_viewer = s.x_br_viewer
+                            sb.put(getattr(p, 'email', ''))
+
+
         # Send messages
         if self.request.get('oldvalue').strip() != self.request.get('newvalue').strip():
             bt = bubble.GetType()
@@ -436,6 +451,19 @@ class UploadFile(blobstore_handlers.BlobstoreUploadHandler):
                 'filename': blob_info.filename,
                 'bubble': str(bubble.key())
             }))
+
+        # Set rights
+        for s in db.Query(Bubble).filter('type', 'submission').fetch(1000):
+            if getattr(s, 'start_datetime', datetime.now()) < datetime.now() and getattr(s, 'end_datetime', datetime.now()) > datetime.now():
+                br = db.Query(BubbleRelation).filter('bubble', s.key()).filter('related_bubble', p.key()).filter('type', 'leecher').filter('x_is_deleted', False).get()
+                if br:
+                    p.x_br_viewer = s.x_br_viewer
+                    p.put(getattr(p, 'email', ''))
+
+                    for sb in Bubble.get(p.x_br_subbubble):
+                        if sb.type in ['cv_edu', 'cv_edu_ba', 'cv_edu_ma', 'cv_work', 'state_exam', 'applicant_doc', 'message']:
+                            sb.x_br_viewer = s.x_br_viewer
+                            sb.put(getattr(p, 'email', ''))
 
 
 class SelectFieldValues(boRequestHandler):
