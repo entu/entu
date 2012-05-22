@@ -1014,14 +1014,23 @@ class ExportBubbletypes(boRequestHandler):
 class ExportBubbletype(boRequestHandler):
     def get(self, bubbletype_path = None):
         self.header('Content-Type', 'text/plain; charset=utf-8')
+
+        # To avoid "Exceeded soft private memory limit with 528.277 MB after servicing 1 requests total" we limit the number of bubbles in one run
+        chunk_size = 500 #1000 looks viable for most bubbles
+
         if not bubbletype_path:
             bubbletype_paths = ['course','earticle','inventory_computer','institution','award_grant','applicant_doc','document','submission','exam','personal_time_slot','exam_group','rating_scale','grade_on_scale','inventory','folder','cv_edu','doc_kirjavahetus','classifier','cl_value','conference_presentation','cv_edu_ba','cv_edu_ma','creative_activity','doc_lahetuskorraldus','emedia','module','bubble_type','doc_other','department','person','doc_publication','epublication','book','library','state_exam','bubble_configuration','semester','applicant','pre_applicant','phd_applicant','rating','bubble_relation_template','concentration','message','event','timetable','cv_work','doc_vastuskiri','reception','reception_group','bubble_property','study_group','curriculum','subject','level_of_education']
             self.echo('Initialaizing tasks for all bubble types:\n' + str(bubbletype_paths))
             for bubbletype_path in bubbletype_paths:
                 post_url = '/update/export/bubbletype/%s' % bubbletype_path
                 AddTask(post_url, [], 'default', 'GET')
-            return
 
+            self.echo('<hr/>\nDon\'t forget to run these before import:')
+            self.echo('INSERT IGNORE INTO bubble_definition (gae_key, created, created_by, changed, changed_by, deleted, deleted_by, allowed_subtypes_id, estonian_label, estonian_label_plural, estonian_description, estonian_displayname, estonian_displayinfo, estonian_displaytable, estonian_sort, english_label, english_label_plural, english_description, english_displayname, english_displayinfo, english_displaytable, english_sort) VALUES (\'classifier\', NULL, NULL, NULL, NULL, NULL, NULL, NULL, \'Klassifikaator\', \'Klassifikaatorid\', NULL, \'@name@\', NULL, NULL, \'@name@\', \'Classifier\', \'Classifiers\', NULL, \'@name@\', NULL, NULL, \'@name@\');')
+            self.echo('INSERT IGNORE INTO bubble_definition (gae_key, created, created_by, changed, changed_by, deleted, deleted_by, allowed_subtypes_id, estonian_label, estonian_label_plural, estonian_description, estonian_displayname, estonian_displayinfo, estonian_displaytable, estonian_sort, english_label, english_label_plural, english_description, english_displayname, english_displayinfo, english_displaytable, english_sort) VALUES (\'classifier value\', NULL, NULL, NULL, NULL, NULL, NULL, NULL, \'Klassifikaatori väärtus\', \'Klassifikaatori väärtused\', NULL, \'@name@\', NULL, NULL, \'@name@\', \'Classifier Value\', \'Classifier Values\', NULL, \'@name@\', NULL, NULL, \'@name@\');')
+            self.echo('INSERT IGNORE INTO property_definition (gae_key, created, created_by, changed, changed_by, deleted, deleted_by, bubble_definition_id, dataproperty, estonian_fieldset, estonian_label, estonian_label_plural, estonian_description, estonian_formatstring, english_fieldset, english_label, english_label_plural, english_description, english_formatstring, datatype, defaultvalue, ordinal, multiplicity, readonly, createonly, public, mandatory, search, propagates, autocomplete, classifying_bubble_definition_id, target_property_definition_id) VALUES (\'classifier name\', NULL, NULL, NULL, NULL, NULL, NULL, (SELECT id FROM bubble_definition WHERE gae_key=\'classifier\'), \'name\', NULL, \'Nimi\', \'Nimed\', NULL, NULL, NULL, \'Name\', \'Names\', NULL, NULL, \'dictionary\', NULL, 3, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0);')
+            self.echo('INSERT IGNORE INTO property_definition (gae_key, created, created_by, changed, changed_by, deleted, deleted_by, bubble_definition_id, dataproperty, estonian_fieldset, estonian_label, estonian_label_plural, estonian_description, estonian_formatstring, english_fieldset, english_label, english_label_plural, english_description, english_formatstring, datatype, defaultvalue, ordinal, multiplicity, readonly, createonly, public, mandatory, search, propagates, autocomplete, classifying_bubble_definition_id, target_property_definition_id) VALUES (\'classifier value name\', NULL, NULL, NULL, NULL, NULL, NULL, (SELECT id FROM bubble_definition WHERE gae_key=\'classifier value\'), \'name\', NULL, \'Nimi\', \'Nimed\', NULL, NULL, NULL, \'Name\', \'Names\', NULL, NULL, \'dictionary\', NULL, 3, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0);')
+            return
 
         bubbletype = db.Query(Bubble).filter('path', bubbletype_path).get()
         properties = {}
@@ -1044,7 +1053,7 @@ class ExportBubbletype(boRequestHandler):
 
         post_bubble_keys = map(str, db.Query(Bubble, keys_only = True).filter('type', bubbletype_path).fetch(1000000))
 
-        for key_chunk in self.chunks(post_bubble_keys, 2000):
+        for key_chunk in self.chunks(post_bubble_keys, chunk_size):
             post_data['post_bubble_keys'] = ','.join(key_chunk)
             try:
                 AddTask(post_url, post_data, 'default')
@@ -1152,9 +1161,9 @@ class ExportBubbletype(boRequestHandler):
                                 except AttributeError, e:
                                     foo = str(b_value)
                                 b_out.append(u'%s = \'%s\'' % (post_property_type_value, foo))
-                                b_sql.append(u'INSERT INTO property SET %s;' % u', '.join(b_out))
+                                b_sql.append(u'INSERT INTO property SET %s ON DUPLICATE KEY UPDATE %s;' % (u', '.join(b_out), u', '.join(b_out)))
 
-                    elif post_property_type in ['dictionary_string', 'dictionary_text', 'dictionary_select']:
+                    elif post_property_type in ['dictionary_string', 'dictionary_text']:
                         for b_value in bubble.GetValueAsList(post_property_name):
 
                             b_value_estonian = GetDictionaryValue(b_value, 'estonian')
@@ -1167,7 +1176,7 @@ class ExportBubbletype(boRequestHandler):
                                 except AttributeError, e:
                                     foo = str(b_value_estonian)
                                 b_out.append(u'%s = \'%s\'' % (post_property_type_value, foo))
-                                b_sql.append(u'INSERT INTO property SET %s;' % u', '.join(b_out))
+                                b_sql.append(u'INSERT INTO property SET %s ON DUPLICATE KEY UPDATE %s;' % (u', '.join(b_out), u', '.join(b_out)))
 
                             b_value_english = GetDictionaryValue(b_value, 'english')
                             if b_value_english:
@@ -1179,7 +1188,80 @@ class ExportBubbletype(boRequestHandler):
                                 except AttributeError, e:
                                     foo = str(b_value_english)
                                 b_out.append(u'%s = \'%s\'' % (post_property_type_value, foo))
+                                b_sql.append(u'INSERT INTO property SET %s ON DUPLICATE KEY UPDATE %s;' % (u', '.join(b_out), u', '.join(b_out)))
+
+                    elif post_property_type in ['dictionary_select']:
+                        for value_gae_key in bubble.GetValueAsList(post_property_name):
+                            classifier_gae_key = GetDictionaryName(value_gae_key)
+
+                            # Bubble for classifier
+                            classifier_bubbledefinition_fk = u'bubble_definition_id = (SELECT id FROM bubble_definition WHERE gae_key = \'classifier\')'
+
+                            b_out = [classifier_bubbledefinition_fk]
+                            b_out.append(u'gae_key = \'%s\'' % classifier_gae_key)
+                            b_sql.append(u'INSERT INTO bubble SET %s ON DUPLICATE KEY UPDATE %s;' % (u', '.join(b_out), u', '.join(b_out)))
+
+                            # Properties for classifier name
+                            classifier_bubble_fk = u'bubble_id = (SELECT id FROM bubble WHERE gae_key = \'%s\')' % classifier_gae_key
+                            b_sql.append(u'DELETE FROM property WHERE %s;' % classifier_bubble_fk)
+
+                            classifier_name_propertydefinition_fk = u'property_definition_id = (SELECT id FROM property_definition WHERE gae_key = \'classifier name\')'
+
+                            b_out = [classifier_name_propertydefinition_fk]
+                            b_out.append(classifier_bubble_fk)
+                            b_out.append(u'language = \'estonian\'')
+                            b_out.append(u'value_string = \'%s\'' % classifier_gae_key)
+                            b_sql.append(u'INSERT INTO property SET %s;' % u', '.join(b_out))
+
+                            b_out = [classifier_name_propertydefinition_fk]
+                            b_out.append(classifier_bubble_fk)
+                            b_out.append(u'language = \'english\'')
+                            b_out.append(u'value_string = \'%s\'' % classifier_gae_key)
+                            b_sql.append(u'INSERT INTO property SET %s;' % u', '.join(b_out))
+
+                            # Bubble for classifier value
+                            classifier_value_bubbledefinition_fk = u'bubble_definition_id = (SELECT id FROM bubble_definition WHERE gae_key = \'classifier value\')'
+
+                            b_out = [classifier_value_bubbledefinition_fk]
+                            b_out.append(u'gae_key = \'%s\'' % value_gae_key)
+                            b_sql.append(u'INSERT INTO bubble SET %s ON DUPLICATE KEY UPDATE %s;' % (u', '.join(b_out), u', '.join(b_out)))
+
+                            # Properties for classifier value name and store value properties of bubble
+                            # Instead of reference(s) to selected classifier value(s) we'll store string values
+                            clvalue_bubble_fk = u'bubble_id = (SELECT id FROM bubble WHERE gae_key = \'%s\')' % value_gae_key
+                            b_sql.append(u'DELETE FROM property WHERE %s;' % clvalue_bubble_fk)
+
+                            clv_name_propertydefinition_fk = u'property_definition_id = (SELECT id FROM property_definition WHERE gae_key = \'classifier value name\')'
+
+                            b_value_estonian = GetDictionaryValue(value_gae_key, 'estonian').replace('\'', '\\\'')
+                            if b_value_estonian:
+                                b_out = [clv_name_propertydefinition_fk]    # property for classifier
+                                b_out.append(clvalue_bubble_fk)
+                                b_out.append(u'language = \'estonian\'')
+                                b_out.append(u'value_string = \'%s\'' % b_value_estonian)
                                 b_sql.append(u'INSERT INTO property SET %s;' % u', '.join(b_out))
+
+                                b_out = [b_fk]                              # property for bubble
+                                b_out.append(pd_fk)
+                                b_out.append(u'language = \'estonian\'')
+                                b_out.append(u'%s = \'%s\'' % (post_property_type_value, b_value_estonian))
+                                b_sql.append(u'INSERT INTO property SET %s ON DUPLICATE KEY UPDATE %s;' % (u', '.join(b_out), u', '.join(b_out)))
+
+                            b_value_english = GetDictionaryValue(value_gae_key, 'english').replace('\'', '\\\'')
+                            if b_value_english:
+                                b_out = [clv_name_propertydefinition_fk]    # property for classifier
+                                b_out.append(clvalue_bubble_fk)
+                                b_out.append(u'language = \'english\'')
+                                b_out.append(u'value_string = \'%s\'' % b_value_english)
+                                b_sql.append(u'INSERT INTO property SET %s;' % u', '.join(b_out))
+
+                                b_out = [b_fk]                              # property for bubble
+                                b_out.append(pd_fk)
+                                b_out.append(u'language = \'english\'')
+                                b_out.append(u'%s = \'%s\'' % (post_property_type_value, b_value_english))
+                                b_sql.append(u'INSERT INTO property SET %s ON DUPLICATE KEY UPDATE %s;' % (u', '.join(b_out), u', '.join(b_out)))
+
+
 
                     elif post_property_type in ['integer','float']:
                         for b_value in bubble.GetValueAsList(post_property_name):
@@ -1187,7 +1269,7 @@ class ExportBubbletype(boRequestHandler):
                                 b_out = [b_fk]
                                 b_out.append(pd_fk)
                                 b_out.append(u'%s = \'%s\'' % (post_property_type_value, str(b_value)))
-                                b_sql.append(u'INSERT INTO property SET %s;' % u', '.join(b_out))
+                                b_sql.append(u'INSERT INTO property SET %s ON DUPLICATE KEY UPDATE %s;' % (u', '.join(b_out), u', '.join(b_out)))
 
                     elif post_property_type in ['date', 'datetime']:
                         for b_value in bubble.GetValueAsList(post_property_name):
@@ -1195,7 +1277,7 @@ class ExportBubbletype(boRequestHandler):
                                 b_out = [b_fk]
                                 b_out.append(pd_fk)
                                 b_out.append(u'%s = \'%s\'' % (post_property_type_value, str(b_value)[:19]))
-                                b_sql.append(u'INSERT INTO property SET %s;' % u', '.join(b_out))
+                                b_sql.append(u'INSERT INTO property SET %s ON DUPLICATE KEY UPDATE %s;' % (u', '.join(b_out), u', '.join(b_out)))
 
                     elif post_property_type == 'reference':
                         for b_value in bubble.GetValueAsList(post_property_name):
@@ -1203,7 +1285,7 @@ class ExportBubbletype(boRequestHandler):
                                 b_out = [b_fk]
                                 b_out.append(pd_fk)
                                 b_out.append(u'%s = (SELECT id FROM bubble WHERE gae_key = \'%s\')' % (post_property_type_value, str(b_value)))
-                                b_sql.append(u'INSERT INTO property SET %s;' % u', '.join(b_out))
+                                b_sql.append(u'INSERT INTO property SET %s ON DUPLICATE KEY UPDATE %s;' % (u', '.join(b_out), u', '.join(b_out)))
 
                     elif post_property_type == 'blobstore':
                         for b_value in bubble.GetValueAsList(post_property_name):
@@ -1226,7 +1308,7 @@ class ExportBubbletype(boRequestHandler):
                             b_out = [b_fk]
                             b_out.append(pd_fk)
                             b_out.append(u'%s = 1' % post_property_type_value)
-                            b_sql.append(u'INSERT INTO property SET %s;' % u', '.join(b_out))
+                            b_sql.append(u'INSERT INTO property SET %s ON DUPLICATE KEY UPDATE %s;' % (u', '.join(b_out), u', '.join(b_out)))
 
                     else:
                         continue
@@ -1238,9 +1320,6 @@ class ExportBubbletype(boRequestHandler):
             attachments = [('bubbles_' + bubbletype_path + '.sql', u'\n'.join(b_sql))]
         )
 
-        return 0
-
-        logging.debug(self.request.get('post_bubble_keys'))
         return 0
 
 

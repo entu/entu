@@ -26,3 +26,16 @@ def GetDictionaryValue(key=None, language=None):
         return ''
 
     return returnvalue
+
+
+def GetDictionaryName(key=None):
+    if not key:
+        return ''
+    d = Dictionary().get(key)
+    if not d:
+        return ''
+    returnvalue = getattr(d, 'name', '')
+    if not returnvalue:
+        return ''
+
+    return returnvalue
