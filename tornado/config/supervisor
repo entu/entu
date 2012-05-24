@@ -1,0 +1,30 @@
+[group:arx]
+programs        = arx-dev, arx-eka, arx-eka2
+
+
+[program:arx-dev]
+command         = python /var/www/arx/dev/app/main.py --logging=warning --port=8000 --database=bubbledu
+directory       = /var/www/arx/dev/app
+user            = www-data
+autorestart     = true
+redirect_stderr = true
+stdout_logfile  = /var/www/arx/dev/tornado.log
+loglevel        = info
+
+[program:arx-eka]
+command         = python /var/www/arx/dev/app/main.py --logging=warning --port=8010 --database=bubbledu
+directory       = /var/www/arx/dev/app
+user            = www-data
+autorestart     = true
+redirect_stderr = true
+stdout_logfile  = /var/www/arx/dev/tornado.log
+loglevel        = info
+
+[program:arx-eka2]
+command         = python /var/www/arx/dev/app/main.py --logging=warning --port=8011 --database=bubbledu
+directory       = /var/www/arx/dev/app
+user            = www-data
+autorestart     = true
+redirect_stderr = true
+stdout_logfile  = /var/www/arx/dev/tornado.log
+loglevel        = info

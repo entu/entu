@@ -1,0 +1,28 @@
+{% extends '../index.html' %}
+{% autoescape None %}
+
+{% block content %}
+
+{% include 'search.html' %}
+
+<h3>{{ item_name }}</h3>
+<table class="table">
+    <tbody>
+        {% for i in properties %}
+        <tr>
+            <th style="text-align:right; white-space:nowrap;">
+                <h6>{{ i['label'] }}</h6>
+            </th>
+            <td style="width:100%;">
+                {% if 'url' in i %}
+                <a hrfef="{{ i['value'] }}">{{ i['value'] }}</a>
+                {% else %}
+                {{ i['value'] }}
+                {% end %}
+            </td>
+        </tr>
+        {% end %}
+    </tbody>
+</table>
+
+{% end %}
