@@ -2,12 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>{{ page_title }}</title>
+    <title>{{ app_title }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="Argo Roots">
+    <link href="//get.pictos.cc/fonts/261/7" rel="stylesheet" type="text/css">
     <link href="{{ static_url('bootstrap/bootstrap.css') }}" rel="stylesheet">
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
     <script src="{{ static_url('bootstrap/bootstrap.min.js') }}"></script>
     <style type="text/css">
       body {
@@ -25,15 +26,31 @@
         height: 31px;
         background: url('{{ static_url('images/auth_providers.png') }}') no-repeat top left;
       }
+      [data-icon]:before {
+          font-family: 'Pictos Custom';
+          content: attr(data-icon);
+          -webkit-font-smoothing: antialiased;
+      }
     </style>
     <link href="{{ static_url('bootstrap/responsive.css') }}" rel="stylesheet">
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <link rel="shortcut icon" href="/assets/favicon.ico">
-    <!--link rel="apple-touch-icon-precomposed" sizes="114x114" href="/assets/apple-touch-icon-114-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/assets/apple-touch-icon-72-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" href="/assets/apple-touch-icon-57-precomposed.png"-->
+    <link rel="shortcut icon" href="{{ static_url('images/favicon/favicon.png') }}">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="{{ static_url('images/favicon/apple-touch-icon-144-precomposed.png') }}">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="{{ static_url('images/favicon/apple-touch-icon-114-precomposed.png') }}">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="{{ static_url('images/favicon/apple-touch-icon-72-precomposed.png') }}">
+    <link rel="apple-touch-icon-precomposed" href="{{ static_url('images/favicon/apple-touch-icon-57-precomposed.png') }}">
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-260765-22']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
   </head>
   <body>
     <div class="navbar navbar-fixed-top">
@@ -55,7 +72,6 @@
               </li>
               {% block menu %}
               <li><a data-toggle="modal" href="#mHelp">{{ _('help') }}</a></li>
-              {% include 'login.html' %}
               {% end %}
             </ul>
           </div>

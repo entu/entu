@@ -20,6 +20,14 @@ class myRequestHandler(RequestHandler):
 
         RequestHandler.render(self, template_name, **kwargs)
 
+    def forbidden(self):
+        self.set_status(403)
+        self.write('Nothing to see here!')
+
+    def missing(self):
+        self.set_status(404)
+        self.write('404')
+
     def get_current_user(self):
         session_key = self.get_secure_cookie('session')
         if not session_key:
@@ -35,14 +43,12 @@ class myRequestHandler(RequestHandler):
             return locale.get(self.settings['default_language'])
 
 
-
 def toURL(s):
-    letters = {'å':'a', 'ä':'a', 'é':'e', 'ö':'o', 'õ':'o', 'ü':'y', 'š':'sh', 'ž':'zh', 'Å':'A', 'Ä':'A', 'É':'E', 'Ö':'O', 'Õ':'O', 'Ü':'Y', 'Š':'SH', 'Ž':'ZH'}
-    #s = s.encode('utf-8')
+    letters = {'å':'a', 'ä':'a', 'é':'e', 'ö':'o', 'õ':'o', 'ü':'y', 'š':'sh', 'ž':'zh', 'Å':'A', 'Ä':'A', 'É':'E', 'Ö':'O', 'Õ':'O', 'Ü':'Y', 'Š':'SH', 'Ž':'ZH', '/':'-', ' ': '-', '"': '', '_': '-'}
+    s = s.encode('utf-8')
     for k, v in letters.iteritems():
         s = s.replace(k, v)
-    s = s.replace(' ', '-')
     s = s.lower()
-    s = re.sub(r'[^-a-zA-Z0-9: ]', '', s)
+    s = re.sub(r'/[^a-zA-Z0-9]/', '', s)
     s = s.replace('--', '-')
     return s

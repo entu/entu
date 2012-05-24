@@ -4,6 +4,7 @@ from tornado import locale
 
 from operator import itemgetter
 import urllib
+import magic
 
 from helper import *
 from db import *
@@ -25,7 +26,7 @@ class PublicSearchHandler(myRequestHandler):
         locale = self.get_user_locale()
         items = []
         if len(search) > 1:
-            for item in myDb().getBubbleList(search=search, only_public=True, bubble_definition=[55, 61, 62, 92]):
+            for item in myDb().getBubbleList(search=search, only_public=True, bubble_definition=[1, 7, 8, 38]):
                 name = ', '.join([x['value'] for x in item.setdefault('properties', {}).setdefault('title', {}).setdefault('values', {}).values()])
                 number = ', '.join([x['value'] for x in item.setdefault('properties', {}).setdefault('registry_number', {}).setdefault('values', {}).values()])
                 items.append({
@@ -33,6 +34,7 @@ class PublicSearchHandler(myRequestHandler):
                     'number': number,
                     'name': name,
                     'date': item.setdefault('created', '').strftime('%d.%m.%Y'),
+                    'file': len(item.setdefault('properties', {}).setdefault('public_files', {}).setdefault('values', {}).values()),
                 })
 
         if len(search) < 2:
@@ -72,10 +74,15 @@ class PublicItemHandler(myRequestHandler):
         for p in item.setdefault('properties', {}).values():
             if p.setdefault('dataproperty', '') == 'title':
                 continue
+            if p.setdefault('datatype', '') == 'blobstore':
+                value = '<br />'.join(['<a href="/public/file/%s/%s" title="%s">%s</a>' % (x['file_id'], toURL(x['value']), x['filesize'], x['value']) for x in p.setdefault('values', {}).values() if x['value']])
+            else:
+                value = '<br />'.join([x['value'] for x in p.setdefault('values', {}).values() if x['value']])
+
             props.append({
                 'ordinal' : p.setdefault('ordinal', 0),
                 'label' : p.setdefault('label', ''),
-                'value': ', '.join([x['value'] for x in p.setdefault('values', {}).values()]),
+                'value': value
             })
 
         self.render('public/item.html',
@@ -86,10 +93,28 @@ class PublicItemHandler(myRequestHandler):
         )
 
 
+class PublicFileHandler(myRequestHandler):
+    def get(self, id=None, url=None):
+        file = myDb().getFile(id, True)
+        if not file:
+            return self.missing()
+
+        ms = magic.open(magic.MAGIC_MIME)
+        ms.load()
+        mime = ms.buffer(file.file)
+        ms.close()
+
+        self.add_header('Content-Type', mime)
+        self.add_header('Content-Disposition', 'attachment; filename="%s"' % file.filename)
+        self.write(file.file)
+
+
 handlers = [
     (r'/public', PublicHandler),
     (r'/public/search', PublicSearchHandler),
     (r'/public/search/(.*)', PublicSearchHandler),
+    (r'/public/file/([0-9]+)', PublicFileHandler),
+    (r'/public/file/([0-9]+)/(.*)', PublicFileHandler),
     (r'/public/([0-9]+)', PublicItemHandler),
     (r'/public/([0-9]+)/(.*)', PublicItemHandler),
 ]

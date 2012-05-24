@@ -134,7 +134,7 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 logging.error('%s oauth error: %s' % (provider, user['error']))
                 return self.redirect('/')
         except:
-            pass
+            return
 
         if self.oauth2_provider['provider'] == 'facebook':
             LoginUser(self, {

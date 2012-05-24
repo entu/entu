@@ -14,13 +14,17 @@
             <td style="1white-space:nowrap; width:100%;">
                 <a href="{{ i['url'] }}">{{ i['name'] }}</a>
             </td>
+            <td style="white-space:nowrap; font-size:22px; border-left:none;">
+                {% if i['file'] == 1 %}<span data-icon="d"></span>{% end %}
+                {% if i['file'] > 1 %}<span data-icon="D"></span>{% end %}
+            </td>
             <td style="white-space:nowrap;">
                 {{ i['date'] }}
             </td>
         </tr>
         {% end %}
         <tr>
-            <td colspan="3" style="text-align:center;">
+            <td colspan="4" style="text-align:center;">
                 {{ itemcount }}
             </td>
         </tr>

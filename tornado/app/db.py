@@ -43,7 +43,7 @@ class myDb():
 
         sql += ';'
 
-        logging.warning(sql)
+        # logging.warning(sql)
         itemlist = self.db.query(sql)
         if not itemlist:
             return []
@@ -70,26 +70,15 @@ class myDb():
             property_definition.%(language)s_description AS property_description,
 
             property.id AS property_id,
-            IF(property_definition.datatype='string',
-                value_string,
-                IF(property_definition.datatype='text',
-                    value_text,
-                    IF(property_definition.datatype='integer',
-                        value_integer,
-                        IF(property_definition.datatype='decimal',
-                            value_decimal,
-                            IF(property_definition.datatype='boolean',
-                                value_boolean,
-                                IF(property_definition.datatype='datetime' OR property_definition.datatype='date',
-                                    value_datetime,
-                                    NULL
-                                )
-                            )
-                        )
-                    )
-                )
-            ) AS property_value,
+            property.value_string AS value_string,
+            property.value_text AS value_text,
+            property.value_integer AS value_integer,
+            property.value_decimal AS value_decimal,
+            property.value_boolean AS value_boolean,
             property.value_datetime AS value_datetime,
+            property.value_reference AS value_reference,
+            property.value_file AS value_file,
+            property.value_select AS value_select,
             property_definition.datatype AS property_datatype,
             property_definition.dataproperty AS property_dataproperty,
             property_definition.multiplicity AS property_multiplicity,
@@ -100,19 +89,18 @@ class myDb():
             bubble_definition,
             property,
             property_definition
-            WHERE 1=1
+            WHERE property.bubble_id = bubble.id
             #AND bubble_definition.id = bubble.bubble_definition_id
-            AND property.bubble_id = bubble.id
             AND property_definition.id = property.property_definition_id
             AND bubble_definition.id = property_definition.bubble_definition_id
-            #AND property_definition.datatype = 'date'
+            AND (property.language = '%(language)s' OR property.language IS NULL)
             %(public)s
             AND bubble.id IN (%(search)s)
         """ % {'language': self.language, 'public': publicsql, 'search': idlist}
 
         items = {}
         for row in self.db.query(sql):
-            if not row.property_value:
+            if not row.value_string and not row.value_text and not row.value_integer and not row.value_decimal and not row.value_boolean and not row.value_datetime and not row.value_reference and not row.value_file and not row.value_select:
                 continue
 
             #Item
@@ -120,6 +108,7 @@ class myDb():
             items.setdefault('item_%s' % row.bubble_id, {})['label'] = row.bubble_label
             items.setdefault('item_%s' % row.bubble_id, {})['description'] = row.bubble_description
             items.setdefault('item_%s' % row.bubble_id, {})['created'] = row.bubble_created
+
             #Property
             items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['id'] = row.property_id
             items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['label'] = row.property_label
@@ -128,16 +117,60 @@ class myDb():
             items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['dataproperty'] = row.property_dataproperty
             items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multiplicity'] = row.property_multiplicity
             items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['ordinal'] = row.property_ordinal
+
             #Value
-            items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['id'] = row.property_id
-            if row.property_datatype in ['date', 'datetime']:
+            if row.property_datatype in ['string', 'dictionary', 'dictionary_string', 'select', 'dictionary_select']:
+                value = row.value_string
+            elif row.property_datatype in ['text', 'dictionary_text']:
+                value = row.value_text
+            elif row.property_datatype == 'integer':
+                value = row.value_integer
+            elif row.property_datatype == 'float':
+                value = row.value_decimal
+            elif row.property_datatype == 'date':
                 value = row.value_datetime.strftime('%d.%m.%Y')
+            elif row.property_datatype == 'datetime':
+                value = row.value_datetime.strftime('%d.%m.%Y %H:%M')
+            elif row.property_datatype in ['reference']:
+                value = row.value_reference
+            elif row.property_datatype in ['blobstore']:
+                blobstore = self.db.get('SELECT id, filename, filesize FROM file WHERE id=%s', row.value_file)
+                value = blobstore.filename
+                items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['file_id'] = blobstore.id
+                items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['filesize'] = blobstore.filesize
+            elif row.property_datatype in ['boolean']:
+                value = row.value_boolean
+            elif row.property_datatype in ['counter']:
+                value = row.value_reference
             else:
-                value = row.property_value
+                value = 'X'
+
             items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['value'] = value
+            items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['id'] = row.property_id
 
         return items.values()
 
-    def getBubblePublicKey(id):
-        pass
+    def getFile(self, file_id, only_public = True):
+        if only_public == True:
+            publicsql = 'AND property_definition.public = 1'
+        else:
+            publicsql = ''
 
+        sql = """
+            SELECT
+            file.id,
+            file.file,
+            file.filename,
+            file.filesize
+            FROM
+            file,
+            property,
+            property_definition
+            WHERE property.value_file = file.id
+            AND property_definition.id = property.property_definition_id
+            AND file.id = %(file_id)s
+            %(public)s
+            LIMIT 1
+            """ % {'file_id': file_id, 'public': publicsql}
+
+        return self.db.get(sql)

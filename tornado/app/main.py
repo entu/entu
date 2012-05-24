@@ -21,6 +21,7 @@ controllers = [
     'auth',
     'bubble',
     'public',
+    'import',
 ]
 
 
@@ -35,7 +36,7 @@ class myApplication(tornado.web.Application):
             'template_path':    path.join(path.dirname(__file__), '..', 'templates'),
             'static_path':      path.join(path.dirname(__file__), '..', 'static'),
             'debug':            True if str(options.debug).lower() == 'true' else False,
-            'login_url':        '/auth/google',
+            'login_url':        '/public',
             'xsrf_coocies':     True,
         }
         for preference in myDb().db.query('SELECT * FROM app_settings WHERE value IS NOT NULL;'):
@@ -48,5 +49,5 @@ if __name__ == '__main__':
     tornado.locale.load_translations(path.join(path.dirname(__file__), '..', 'translations'))
     tornado.options.parse_config_file(path.join(path.dirname(__file__), '..', 'app.config'))
     tornado.options.parse_command_line()
-    tornado.httpserver.HTTPServer(myApplication()).listen(options.port)
+    tornado.httpserver.HTTPServer(myApplication(), xheaders=True).listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
