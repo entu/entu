@@ -13,6 +13,8 @@ from database.dictionary import *
 
 class ShowSearech(boRequestHandler):
     def get(self):
+        return self.redirect('http://eka.arx.ee/public')
+
         search = urllib.unquote_plus(self.request.get('q').strip().lower())
         language = self.request.get('language', SystemPreferences().get('default_language')).strip()
 
@@ -82,6 +84,8 @@ class ShowSearech(boRequestHandler):
 
 class ShowBubble(boRequestHandler):
     def get(self, key):
+        return self.redirect('http://eka.arx.ee/public')
+
         language = self.request.get('language', SystemPreferences().get('default_language')).strip()
         bubble = db.Query(Bubble).filter('is_public', True).filter('x_public_key', key).get()
 
@@ -101,6 +105,8 @@ class ShowBubble(boRequestHandler):
 
 class DownloadBubbleFile(blobstore_handlers.BlobstoreDownloadHandler):
     def get(self, bubble_key, file_key):
+        return self.redirect('http://eka.arx.ee/public')
+
         if not bubble_key:
             return self.redirect('/public')
 
