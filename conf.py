@@ -4,3 +4,4 @@ if on_rtd:
     html_theme = 'default'
 else:
     html_theme = 'nature'
+project == "Python"
