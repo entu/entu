@@ -20,3 +20,15 @@ Indices and tables
 
 .. automodule:: auth
    :members:
+
+.. automodule:: db
+   :members:
+
+.. automodule:: helper
+   :members:
+
+.. automodule:: main
+   :members:
+
+.. automodule:: public
+   :members:
