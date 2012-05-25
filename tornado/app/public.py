@@ -26,7 +26,7 @@ class PublicSearchHandler(myRequestHandler):
         locale = self.get_user_locale()
         items = []
         if len(search) > 1:
-            for item in myDb().getBubbleList(search=search, only_public=True, bubble_definition=[1, 7, 8, 38]):
+            for item in myDb().getBubbleList(search=search, only_public=True, bubble_definition=[55, 61, 62, 92]):
                 name = ', '.join([x['value'] for x in item.setdefault('properties', {}).setdefault('title', {}).setdefault('values', {}).values()])
                 number = ', '.join([x['value'] for x in item.setdefault('properties', {}).setdefault('registry_number', {}).setdefault('values', {}).values()])
                 items.append({
@@ -58,7 +58,7 @@ class PublicSearchHandler(myRequestHandler):
         search_get = self.get_argument('search', None)
         if not search_get:
             self.redirect('/public')
-        self.redirect('/public/search/%s' % urllib.quote_plus(search_get))
+        self.redirect('/public/search/%s' % urllib.quote_plus(search_get.encode('utf-8')))
 
 
 class PublicItemHandler(myRequestHandler):

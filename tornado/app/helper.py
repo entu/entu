@@ -44,10 +44,11 @@ class myRequestHandler(RequestHandler):
 
 
 def toURL(s):
-    letters = {'å':'a', 'ä':'a', 'é':'e', 'ö':'o', 'õ':'o', 'ü':'y', 'š':'sh', 'ž':'zh', 'Å':'A', 'Ä':'A', 'É':'E', 'Ö':'O', 'Õ':'O', 'Ü':'Y', 'Š':'SH', 'Ž':'ZH', '/':'-', ' ': '-', '"': '', '_': '-'}
+    letters = {'å':'a', 'ä':'a', 'é':'e', 'ö':'o', 'õ':'o', 'ü':'y', 'š':'sh', 'ž':'zh', 'Å':'A', 'Ä':'A', 'É':'E', 'Ö':'O', 'Õ':'O', 'Ü':'Y', 'Š':'SH', 'Ž':'ZH'}
     s = s.encode('utf-8')
     for k, v in letters.iteritems():
         s = s.replace(k, v)
+    s = s.replace(' ', '-')
     s = s.lower()
     s = re.sub(r'/[^a-zA-Z0-9]/', '', s)
     s = s.replace('--', '-')
