@@ -29,7 +29,8 @@ class Mock(object):
         else:
             return Mock()
 
-MOCK_MODULES = ['tornado', 'tornado.web']
+MOCK_MODULES = ['tornado', 'tornado.database', 'tornado.httpserver', 'tornado.ioloop', 'tornado.locale', 'tornado.options'
+'tornado.web']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()
 
