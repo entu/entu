@@ -20,7 +20,7 @@ CREATE TABLE `bubble` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `gae_key` (`gae_key`),
   KEY `bubble_definition_id` (`bubble_definition_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12142 DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
 -- Create syntax for TABLE 'bubble_definition'
 CREATE TABLE `bubble_definition` (
@@ -49,7 +49,7 @@ CREATE TABLE `bubble_definition` (
   `english_sort` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `gae_key` (`gae_key`)
-) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
 -- Create syntax for TABLE 'file'
 CREATE TABLE `file` (
@@ -62,6 +62,8 @@ CREATE TABLE `file` (
   `deleted` datetime DEFAULT NULL,
   `deleted_by` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
   `filename` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `filesize` int(13) unsigned DEFAULT NULL,
+  `file` longblob,
   PRIMARY KEY (`id`),
   UNIQUE KEY `gae_key` (`gae_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
@@ -77,7 +79,6 @@ CREATE TABLE `property` (
   `deleted_by` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
   `property_definition_id` int(11) unsigned DEFAULT NULL,
   `bubble_id` int(11) unsigned DEFAULT NULL,
-  `datatype` varchar(10) COLLATE utf8_estonian_ci DEFAULT NULL,
   `ordinal` int(11) DEFAULT NULL,
   `language` varchar(10) COLLATE utf8_estonian_ci DEFAULT NULL,
   `value_string` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
@@ -87,9 +88,16 @@ CREATE TABLE `property` (
   `value_boolean` tinyint(1) unsigned DEFAULT NULL,
   `value_datetime` datetime DEFAULT NULL,
   `value_reference` int(11) unsigned DEFAULT NULL,
+  `value_file` int(11) unsigned DEFAULT NULL,
+  `value_select` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `property_definition_id` (`property_definition_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=42514 DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
+  KEY `property_definition_id` (`property_definition_id`),
+  KEY `value_string` (`value_string`(255)),
+  KEY `ordinal` (`ordinal`),
+  KEY `language` (`language`),
+  KEY `value_file` (`value_file`),
+  CONSTRAINT `property_ibfk_1` FOREIGN KEY (`value_file`) REFERENCES `file` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
 -- Create syntax for TABLE 'property_definition'
 CREATE TABLE `property_definition` (
@@ -102,6 +110,10 @@ CREATE TABLE `property_definition` (
   `deleted` datetime DEFAULT NULL,
   `deleted_by` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
   `bubble_definition_id` int(11) unsigned DEFAULT NULL,
+  `dataproperty` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `multilingual` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `datatype` varchar(10) COLLATE utf8_estonian_ci NOT NULL,
+  `defaultvalue` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   `estonian_fieldset` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   `estonian_label` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   `estonian_label_plural` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
@@ -112,8 +124,6 @@ CREATE TABLE `property_definition` (
   `english_label_plural` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   `english_description` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   `english_formatstring` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
-  `datatype` varchar(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  `defaultvalue` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   `ordinal` int(11) DEFAULT NULL,
   `multiplicity` int(11) unsigned DEFAULT NULL,
   `readonly` tinyint(1) unsigned NOT NULL DEFAULT '0',
@@ -129,11 +139,12 @@ CREATE TABLE `property_definition` (
   UNIQUE KEY `gae_key` (`gae_key`),
   KEY `bubble_definition_id` (`bubble_definition_id`),
   KEY `ordinal` (`ordinal`)
-) ENGINE=InnoDB AUTO_INCREMENT=387 DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
 -- Create syntax for TABLE 'relationship'
 CREATE TABLE `relationship` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `gae_key` varchar(200) COLLATE utf8_estonian_ci DEFAULT NULL,
   `created` datetime DEFAULT NULL,
   `created_by` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
   `changed` datetime DEFAULT NULL,
@@ -142,8 +153,10 @@ CREATE TABLE `relationship` (
   `deleted_by` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
   `bubble_id` int(11) unsigned NOT NULL,
   `related_bubble_id` int(11) unsigned NOT NULL,
-  `relationship_id` int(11) unsigned NOT NULL,
-  PRIMARY KEY (`id`)
+  `type` varchar(20) COLLATE utf8_estonian_ci NOT NULL,
+  `master_relationship_id` int(11) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `gae_key` (`gae_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
 -- Create syntax for TABLE 'user'
@@ -155,6 +168,9 @@ CREATE TABLE `user` (
   `changed_by` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
   `deleted` datetime DEFAULT NULL,
   `deleted_by` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `name` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `email` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `picture` varchar(200) COLLATE utf8_estonian_ci DEFAULT NULL,
   `language` varchar(10) COLLATE utf8_estonian_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
@@ -178,4 +194,4 @@ CREATE TABLE `user_profile` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `provider` (`provider`,`provider_id`),
   KEY `user_id` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
