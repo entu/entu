@@ -12,7 +12,7 @@ class GAEFiles(myRequestHandler):
     def get(self):
         db = myDb().db
         for f in db.query('SELECT id, gae_key FROM file WHERE file IS NULL ORDER BY filesize DESC;'):
-            url = 'https://dev-m.bubbledu.appspot.com/export/file/%s' % f.gae_key
+            url = 'https://dev-m.bubbledu.appspot.com/update/export/file/%s' % f.gae_key
             httpclient.AsyncHTTPClient().fetch(url, callback=self._got_file)
         db.close()
         self.write('Done!')
@@ -23,7 +23,7 @@ class GAEFiles(myRequestHandler):
             return
 
         db = myDb().db
-        gae_key = response.request.url.replace('https://dev-m.bubbledu.appspot.com/export/file/', '').strip()
+        gae_key = response.request.url.replace('https://dev-m.bubbledu.appspot.com/update/export/file/', '').strip()
         db.execute('UPDATE file SET filesize = %s, file = %s WHERE gae_key = %s;', len(response.body), response.body, gae_key)
         db.close()
         self.write(str(len(response.body)))
