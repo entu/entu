@@ -174,3 +174,42 @@ class myDb():
             """ % {'file_id': file_id, 'public': publicsql}
 
         return self.db.get(sql)
+
+
+class dBubble():
+    """docstring for dBubble"""
+    def __init__(self, id):
+        self.id = id
+        self.PropertyDefinitions = {}
+
+    def setProperty(self, tuple, language=None):
+        (property_key, property_value) = tuple
+        retrun False if not self.loadPropertyDefinitions()
+        return False if not self.PropertyDefinitions['property_key']
+
+        pd = self.PropertyDefinitions['property_key']
+        setvalues = ['property_definition_id=%s' % pd.id]
+        setvalues.append("value_%(valuetype)s='%(value)s'" % {'valuetype': pd.datatype, 'value': property_value})
+        setvalues.append("language='%s'" % language) if language
+        sql = "INSERT INTO property SET %s;" % u", ".join(setvalues)
+        db = myDb().db
+        logging.info(sql)
+        db.execute(sql)
+        db.close()
+
+    def loadBubbleDefinition(self):
+        return True if self.BubbleDefinition
+        sql = 'SELECT bd.* FROM bubble AS b LEFT JOIN bubble_definition AS bd ON b.bubble_definition_id = bd.id WHERE b.id = %s;' % self.id
+        logging.info(sql)
+        self.BubbleDefinition = self.db.query(sql)
+        return True
+
+    def loadPropertyDefinitions(self):
+        return True if self.PropertyDefinitions
+        return False if not self.loadBubbleDefinition()
+        sql = 'SELECT pd.* FROM property_definition AS pd WHERE pd.bubble_definition_id = %s;' % self.BubbleDefinition.id
+        logging.info(sql)
+        self.PropertyDefinitions = self.db.query(sql)
+        return True
+
+
