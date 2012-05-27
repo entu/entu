@@ -1,11 +1,51 @@
--- Create syntax for TABLE 'app_settings'
+
+CREATE TABLE `all_props_mv` (
+  `bubble_definition_id` int(11) unsigned DEFAULT NULL,
+  `bubble_id` int(11) unsigned DEFAULT NULL,
+  `property_definition_id` int(11) unsigned DEFAULT NULL,
+  `property_id` int(11) unsigned NOT NULL DEFAULT '0',
+  `bubble_label` varchar(500) CHARACTER SET utf8 COLLATE utf8_estonian_ci DEFAULT NULL,
+  `bubble_label_plural` varchar(500) CHARACTER SET utf8 COLLATE utf8_estonian_ci DEFAULT NULL,
+  `bubble_description` varchar(500) CHARACTER SET utf8 COLLATE utf8_estonian_ci DEFAULT NULL,
+  `property_fieldset` varchar(500) CHARACTER SET utf8 COLLATE utf8_estonian_ci DEFAULT NULL,
+  `property_label` varchar(500) CHARACTER SET utf8 COLLATE utf8_estonian_ci DEFAULT NULL,
+  `property_label_plural` varchar(500) CHARACTER SET utf8 COLLATE utf8_estonian_ci DEFAULT NULL,
+  `property_description` varchar(500) CHARACTER SET utf8 COLLATE utf8_estonian_ci DEFAULT NULL,
+  `bubble_created` datetime DEFAULT NULL,
+  `property_value` longblob,
+  `property_datatype` varchar(10) CHARACTER SET utf8 COLLATE utf8_estonian_ci DEFAULT NULL,
+  `property_dataproperty` varchar(20) CHARACTER SET utf8 COLLATE utf8_estonian_ci DEFAULT NULL,
+  `property_multiplicity` int(11) unsigned DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+
+CREATE TABLE `all_props_view` (
+   `bubble_definition_id` INT(11) UNSIGNED DEFAULT '0',
+   `bubble_id` INT(11) UNSIGNED DEFAULT '0',
+   `property_definition_id` INT(11) UNSIGNED DEFAULT '0',
+   `property_id` INT(11) UNSIGNED NOT NULL DEFAULT '0',
+   `bubble_label` VARCHAR(500) DEFAULT NULL,
+   `bubble_label_plural` VARCHAR(500) DEFAULT NULL,
+   `bubble_description` VARCHAR(500) DEFAULT NULL,
+   `property_fieldset` VARCHAR(500) DEFAULT NULL,
+   `property_label` VARCHAR(500) DEFAULT NULL,
+   `property_label_plural` VARCHAR(500) DEFAULT NULL,
+   `property_description` VARCHAR(500) DEFAULT NULL,
+   `bubble_created` DATETIME DEFAULT NULL,
+   `property_value` LONGBLOB DEFAULT NULL,
+   `property_datatype` VARCHAR(10) DEFAULT NULL,
+   `property_dataproperty` VARCHAR(100) DEFAULT NULL,
+   `property_multiplicity` INT(11) UNSIGNED DEFAULT NULL
+) ENGINE=MyISAM;
+
+
 CREATE TABLE `app_settings` (
   `name` varchar(100) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   `value` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   PRIMARY KEY (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'bubble'
+
 CREATE TABLE `bubble` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `gae_key` varchar(200) COLLATE utf8_estonian_ci DEFAULT NULL,
@@ -22,7 +62,7 @@ CREATE TABLE `bubble` (
   KEY `bubble_definition_id` (`bubble_definition_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'bubble_definition'
+
 CREATE TABLE `bubble_definition` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `gae_key` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
@@ -36,6 +76,7 @@ CREATE TABLE `bubble_definition` (
   `estonian_label` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   `estonian_label_plural` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   `estonian_description` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `estonian_menu` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
   `estonian_displayname` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   `estonian_displayinfo` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   `estonian_displaytable` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
@@ -43,6 +84,7 @@ CREATE TABLE `bubble_definition` (
   `english_label` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   `english_label_plural` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   `english_description` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `english_menu` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
   `english_displayname` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   `english_displayinfo` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   `english_displaytable` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
@@ -51,7 +93,7 @@ CREATE TABLE `bubble_definition` (
   UNIQUE KEY `gae_key` (`gae_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'file'
+
 CREATE TABLE `file` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `gae_key` varchar(767) CHARACTER SET ascii DEFAULT NULL,
@@ -68,7 +110,7 @@ CREATE TABLE `file` (
   UNIQUE KEY `gae_key` (`gae_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'property'
+
 CREATE TABLE `property` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `created` datetime DEFAULT NULL,
@@ -89,7 +131,6 @@ CREATE TABLE `property` (
   `value_datetime` datetime DEFAULT NULL,
   `value_reference` int(11) unsigned DEFAULT NULL,
   `value_file` int(11) unsigned DEFAULT NULL,
-  `value_select` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `property_definition_id` (`property_definition_id`),
   KEY `value_string` (`value_string`(255)),
@@ -99,7 +140,7 @@ CREATE TABLE `property` (
   CONSTRAINT `property_ibfk_1` FOREIGN KEY (`value_file`) REFERENCES `file` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'property_definition'
+
 CREATE TABLE `property_definition` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `gae_key` varchar(200) COLLATE utf8_estonian_ci DEFAULT NULL,
@@ -141,7 +182,7 @@ CREATE TABLE `property_definition` (
   KEY `ordinal` (`ordinal`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'relationship'
+
 CREATE TABLE `relationship` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `gae_key` varchar(200) COLLATE utf8_estonian_ci DEFAULT NULL,
@@ -159,7 +200,7 @@ CREATE TABLE `relationship` (
   UNIQUE KEY `gae_key` (`gae_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'user'
+
 CREATE TABLE `user` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `created` datetime DEFAULT NULL,
@@ -175,7 +216,7 @@ CREATE TABLE `user` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'user_profile'
+
 CREATE TABLE `user_profile` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int(11) unsigned DEFAULT NULL,
@@ -195,3 +236,26 @@ CREATE TABLE `user_profile` (
   UNIQUE KEY `provider` (`provider`,`provider_id`),
   KEY `user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
+
+
+DROP TABLE `all_props_view`;
+CREATE ALGORITHM=UNDEFINED DEFINER=`bubbledu`@`%` SQL SECURITY DEFINER VIEW `all_props_view`
+AS select
+   `bubble_definition`.`id` AS `bubble_definition_id`,
+   `bubble`.`id` AS `bubble_id`,
+   `property_definition`.`id` AS `property_definition_id`,
+   `property`.`id` AS `property_id`,
+   `bubble_definition`.`estonian_label` AS `bubble_label`,
+   `bubble_definition`.`estonian_label_plural` AS `bubble_label_plural`,
+   `bubble_definition`.`estonian_description` AS `bubble_description`,
+   `property_definition`.`estonian_fieldset` AS `property_fieldset`,
+   `property_definition`.`estonian_label` AS `property_label`,
+   `property_definition`.`estonian_label_plural` AS `property_label_plural`,
+   `property_definition`.`estonian_description` AS `property_description`,
+   `bubble`.`created` AS `bubble_created`,if((`property_definition`.`datatype` = 'string'),`property`.`value_string`,if((`property_definition`.`datatype` = 'text'),`property`.`value_text`,if((`property_definition`.`datatype` = 'integer'),`property`.`value_integer`,if((`property_definition`.`datatype` = 'decimal'),`property`.`value_decimal`,if((`property_definition`.`datatype` = 'boolean'),`property`.`value_boolean`,if(((`property_definition`.`datatype` = 'datetime') or (`property_definition`.`datatype` = 'date')),`property`.`value_datetime`,NULL)))))) AS `property_value`,
+   `property_definition`.`datatype` AS `property_datatype`,
+   `property_definition`.`dataproperty` AS `property_dataproperty`,
+   `property_definition`.`multiplicity` AS `property_multiplicity`
+from (((`property` left join `property_definition` on((`property`.`property_definition_id` = `property_definition`.`id`))) left join `bubble` on((`property`.`bubble_id` = `bubble`.`id`))) left join `bubble_definition` on((`bubble`.`bubble_definition_id` = `bubble_definition`.`id`)))
+where ((1 = 1) and (`bubble`.`public` = 1) and (`property_definition`.`public` = 1)) order by `bubble`.`id`,`property_definition`.`ordinal`,`property`.`ordinal`;
+
