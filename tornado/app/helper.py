@@ -33,7 +33,22 @@ class myRequestHandler(RequestHandler):
         if not session_key:
             return
         user_key = hashlib.md5(self.request.remote_ip + self.request.headers.get('User-Agent', None)).hexdigest()
-        return myDb().db.get('SELECT user.id, user.language FROM user, user_profile WHERE user_profile.user_id = user.id AND user_profile.session = %s', session_key+user_key)
+        return myDb().db.get("""
+            SELECT
+            property.bubble_id AS id,
+            user.language,
+            user.email
+            FROM
+            property_definition,
+            property,
+            user,
+            user_profile
+            WHERE property.property_definition_id = property_definition.id
+            AND user.email = property.value_string
+            AND user_profile.user_id = user.id
+            AND property_definition.dataproperty = 'user'
+            AND user_profile.session = %s
+        """, session_key+user_key)
 
     def get_user_locale(self):
         self.require_setting('default_language', 'this application')

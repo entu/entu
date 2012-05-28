@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>{{ app_title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="" />
+    <meta name="author" content="Argo Roots" />
+
+    <link rel="shortcut icon" href="{{ static_url('images/favicon/favicon.png') }}" />
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="{{ static_url('images/favicon/apple-touch-icon-144-precomposed.png') }}">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="{{ static_url('images/favicon/apple-touch-icon-114-precomposed.png') }}">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="{{ static_url('images/favicon/apple-touch-icon-72-precomposed.png') }}">
+    <link rel="apple-touch-icon-precomposed" href="{{ static_url('images/favicon/apple-touch-icon-57-precomposed.png') }}">
+
+    <link href="{{ static_url('bootstrap/bootstrap.css') }}" rel="stylesheet" />
+    <link href="{{ static_url('bootstrap/responsive.css') }}" rel="stylesheet" />
+    <link href="{{ static_url('screen.css') }}" rel="stylesheet" />
+    <style type="text/css">
+      .container-fluid {
+        padding: 0px !important;
+      }
+      .navbar-inner {
+        padding: 0px !important;
+        border-bottom: 1px solid #222222;
+        text-shadow: 0px 1px 0px #F8F8F8;
+        color: rgba(0, 0, 0, .5) !important;
+      }
+      ul.nav li {
+        padding 0px;
+        border-left: 1px solid #B9B9B9;
+        height: 50px;
+      }
+      ul.nav li a:hover {
+        color: rgba(0, 0, 0, .5) !important;
+      }
+      ul.nav li a {
+        font-size: 16px;
+        line-height: 50px;
+        text-shadow: 0px 1px 0 rgba(255, 255, 255, .9), 0 0 30px rgba(255, 255, 255, .125) !important;
+      }
+      ul.nav li a[data-icon]{
+        padding-top: 17px;
+        padding-bottom: 0px;
+      }
+      .brand {
+        margin-left: 10px !important;
+        padding: 11px 0px 0px 0px !important;
+        font-weight: bold !important;
+        font-size: 26px !important;
+        letter-spacing: 1px !important;
+        text-shadow: 0px 1px 0 rgba(255, 255, 255, .9), 0 0 30px rgba(255, 255, 255, .125) !important;
+      }
+
+      .auth_link {
+        margin:0px;
+        padding:0px;
+      }
+      .auth_link a {
+        margin:0px;
+        padding:0px;
+        width: 160px;
+        height: 31px;
+        background: url('{{ static_url('images/auth_providers.png') }}') no-repeat top left;
+      }
+    </style>
+
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!--[if !IE]> -->
+      <link href="//get.pictos.cc/fonts/261/7" rel="stylesheet" type="text/css" />
+      <style type="text/css">
+        [data-icon]:before {
+            font-size: 24px;
+            font-family: 'Pictos Custom';
+            content: attr(data-icon);
+            -webkit-font-smoothing: antialiased;
+        }
+      </style>
+    <!-- <![endif]-->
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+    <script src="{{ static_url('bootstrap/bootstrap.min.js') }}"></script>
+    <script src="{{ static_url('javascript/scripts.js') }}"></script>
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-260765-22']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="header" class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container-fluid">
+          <a class="brand" href="/">{{ app_title }}</a>
+          <div id="list_search">
+              <input type="search" id="searchbox" class="search-query" placeholder="{{ _('search_placeholder') }}" />
+              <span></span>
+          </div>
+          <ul class="nav pull-right">
+            {% block menu %}
+            <li><a data-toggle="modal" href="/preferences">{{ current_user['email'] }}</a></li>
+            <li><a data-toggle="modal" href="/exit" data-icon="Q"></a></li>
+            {% end %}
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="container-fluid">
+      <div id="menu">
+          <div id="menu_accordion" class="accordion">
+          {% for menugroup, menuitems in menu.iteritems() %}
+            <h3><a href="#">{{ menugroup }}</a></h3>
+            <div>
+            {% for i in menuitems %}
+              <a href="/group-{{ i['id'] }}">{{ i['title'] }}</a>
+            {% end %}
+            </div>
+          {% end %}
+          </div>
+      </div>
+      {% include 'list.html'%}
+      <div id="content">
+      {% block content %}
+      {% end %}
+      </div>
+    </div>
+
+    <script>
+      $(document).ready(function(){
+
+        if (navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPod/i)) $('.hideonmobile').hide();
+
+        $(".accordion").accordion({
+            fillSpace: true,
+            navigation: true,
+        });
+        $("#menu").find("a[href='"+window.location.pathname+"']").each(function(){
+            $(this).addClass("active")
+        })
+
+        $(window).resize(function(){
+          $('#menu_accordion').accordion('resize');
+        });
+
+      });
+    </script>
+  </body>
+</html>

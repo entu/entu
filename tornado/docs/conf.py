@@ -13,31 +13,31 @@
 
 import sys, os
 
-class Mock(object):
-    def __init__(self, *args, **kwargs):
-        pass
+# class Mock(object):
+#     def __init__(self, *args, **kwargs):
+#         pass
 
-    def __call__(self, *args, **kwargs):
-        return Mock()
+#     def __call__(self, *args, **kwargs):
+#         return Mock()
 
-    @classmethod
-    def __getattr__(self, name):
-        if name in ('__file__', '__path__'):
-            return '/dev/null'
-        elif name[0] == name[0].upper():
-            return type(name, (), {})
-        else:
-            return Mock()
+#     @classmethod
+#     def __getattr__(self, name):
+#         if name in ('__file__', '__path__'):
+#             return '/dev/null'
+#         elif name[0] == name[0].upper():
+#             return type(name, (), {})
+#         else:
+#             return Mock()
 
-MOCK_MODULES = ['tornado', 'database', 'httpserver', 'ioloop', 'locale', 'options'
-'web']
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = Mock()
+# MOCK_MODULES = ['tornado', 'database', 'httpserver', 'ioloop', 'locale', 'options'
+# 'web']
+# for mod_name in MOCK_MODULES:
+#     sys.modules[mod_name] = Mock()
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.append(os.path.abspath('./app'))
+sys.path.append(os.path.abspath('../app'))
 
 # -- General configuration -----------------------------------------------------
 
@@ -112,7 +112,7 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
-html_theme = 'default'
+html_theme = 'pelican-sphinx-theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -120,7 +120,7 @@ html_theme = 'default'
 #html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
+html_theme_path = ['_themes']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

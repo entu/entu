@@ -16,6 +16,9 @@ from db import *
 
 
 class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
+    """
+        Use OAuth2 for authentication.
+    """
     @web.asynchronous
     def get(self, provider):
         # self.require_setting('google_client_key', 'Google OAuth2')

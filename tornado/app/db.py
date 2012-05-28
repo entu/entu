@@ -2,10 +2,28 @@ from tornado import database
 from tornado.options import options
 
 import logging
+import hashlib
 
 from collections import defaultdict
 
+
+def formatDatetime(d, format='%(day)d.%(month)d.%(year)d %(hour)d:%(minute)d'):
+    """
+        Formats and returns date as string. Format:
+        %%(day)d
+        %%(month)d
+        %%(year)d
+        %%(hour)d
+        %%(minute)d
+    """
+    return format % {'year': d.year, 'month': d.month, 'day': d.day, 'hour': d.hour, 'minute': d.minute}
+
+
 class myDb():
+    """
+    Main database class. All database actions should go thru this.
+
+    """
     def __init__(self, language='estonian'):
         self.language = language
 
@@ -18,38 +36,65 @@ class myDb():
             password    = options.mysql_password,
         )
 
-    def getBubbleList(self, id=None, search=None, only_public=True, bubble_definition=None, limit=None):
-        sql = 'SELECT DISTINCT bubble.id FROM property_definition, property, bubble WHERE property.property_definition_id = property_definition.id AND bubble.id = property.bubble_id'
-        if id:
-            if type(id) is not list:
-                id = [id]
-            sql += ' AND bubble.id IN (%s)' % ','.join(map(str, id))
+    def getBubbleList(self, bubble_id=None, search=None, only_public=True, bubble_definition=None, user_id=None, limit=None):
+        return self.getBubbleProperties(bubble_id=self.getBubbleIdList(bubble_id=bubble_id, search=search, only_public=only_public, bubble_definition=bubble_definition, user_id=user_id, limit=limit), only_public=only_public)
+
+    def getBubbleIdList(self, bubble_id=None, search=None, only_public=True, bubble_definition=None, user_id=None, limit=None):
+        """
+        Get list of Bubble IDs. bubble_id, bubble_definition and user_id can be single ID or list of IDs.
+
+        """
+        sql = 'SELECT STRAIGHT_JOIN DISTINCT bubble.id AS id FROM property_definition, property, bubble, relationship WHERE property.property_definition_id = property_definition.id AND bubble.id = property.bubble_id AND relationship.bubble_id = bubble.id'
+        if bubble_id:
+            if type(bubble_id) is not list:
+                bubble_id = [bubble_id]
+            sql += ' AND bubble.id IN (%s)' % ','.join(map(str, bubble_id))
 
         if search:
             for s in search.split(' '):
                 sql += ' AND value_string LIKE \'%%%%%s%%%%\'' % s
 
         if only_public == True:
-            publicsql = ' AND property_definition.public = 1 AND bubble.public = 1'
-            sql += publicsql
+            sql += ' AND property_definition.public = 1 AND bubble.public = 1'
 
         if bubble_definition:
             if type(bubble_definition) is not list:
                 bubble_definition = [bubble_definition]
             sql += ' AND bubble.bubble_definition_id IN (%s)' % ','.join(map(str, bubble_definition))
 
+        if user_id:
+            if type(user_id) is not list:
+                user_id = [user_id]
+            sql += ' AND relationship.related_bubble_id IN (%s) AND relationship.type IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, user_id))
+
+        sql += ' ORDER BY bubble.id'
+
         if limit:
             sql += ' LIMIT %d' % limit
 
         sql += ';'
+        logging.info(sql)
 
-        # logging.warning(sql)
-        itemlist = self.db.query(sql)
-        if not itemlist:
+        items = self.db.query(sql)
+        if not items:
+            return []
+        return [x.id for x in items]
+
+    def getBubbleProperties(self, bubble_id, only_public=True):
+        """
+        Get Bubble Properties. bubble_id can be single ID or list of IDs.
+
+        """
+        if not bubble_id:
             return []
 
-        logging.info(sql)
-        idlist = ','.join([str(x.id) for x in itemlist])
+        if type(bubble_id) is not list:
+            bubble_id = [bubble_id]
+
+        if only_public == True:
+            public = 'AND property_definition.public = 1 AND bubble.public = 1'
+        else:
+            public = ''
 
         sql = """
             SELECT
@@ -78,7 +123,6 @@ class myDb():
             property.value_datetime AS value_datetime,
             property.value_reference AS value_reference,
             property.value_file AS value_file,
-            property.value_select AS value_select,
             property_definition.datatype AS property_datatype,
             property_definition.dataproperty AS property_dataproperty,
             property_definition.multiplicity AS property_multiplicity,
@@ -89,18 +133,20 @@ class myDb():
             bubble_definition,
             property,
             property_definition
+
             WHERE property.bubble_id = bubble.id
-            #AND bubble_definition.id = bubble.bubble_definition_id
+            AND bubble_definition.id = bubble.bubble_definition_id
             AND property_definition.id = property.property_definition_id
             AND bubble_definition.id = property_definition.bubble_definition_id
             AND (property.language = '%(language)s' OR property.language IS NULL)
             %(public)s
-            AND bubble.id IN (%(search)s)
-        """ % {'language': self.language, 'public': publicsql, 'search': idlist}
+            AND bubble.id IN (%(idlist)s)
+        """ % {'language': self.language, 'public': public, 'idlist': ','.join(map(str, bubble_id))}
+        # logging.info(sql)
 
         items = {}
         for row in self.db.query(sql):
-            if not row.value_string and not row.value_text and not row.value_integer and not row.value_decimal and not row.value_boolean and not row.value_datetime and not row.value_reference and not row.value_file and not row.value_select:
+            if not row.value_string and not row.value_text and not row.value_integer and not row.value_decimal and not row.value_boolean and not row.value_datetime and not row.value_reference and not row.value_file:
                 continue
 
             #Item
@@ -128,9 +174,9 @@ class myDb():
             elif row.property_datatype == 'float':
                 value = row.value_decimal
             elif row.property_datatype == 'date':
-                value = row.value_datetime.strftime('%d.%m.%Y')
+                value = formatDatetime(row.value_datetime)
             elif row.property_datatype == 'datetime':
-                value = row.value_datetime.strftime('%d.%m.%Y %H:%M')
+                value = formatDatetime(row.value_datetime)
             elif row.property_datatype in ['reference']:
                 value = row.value_reference
             elif row.property_datatype in ['blobstore']:
@@ -150,7 +196,11 @@ class myDb():
 
         return items.values()
 
-    def getFile(self, file_id, only_public = True):
+    def getFile(self, file_id, only_public=True):
+        """
+        Returns file object. Properties are id, file, filename
+
+        """
         if only_public == True:
             publicsql = 'AND property_definition.public = 1'
         else:
@@ -160,8 +210,7 @@ class myDb():
             SELECT
             file.id,
             file.file,
-            file.filename,
-            file.filesize
+            file.filename
             FROM
             file,
             property,
@@ -172,8 +221,43 @@ class myDb():
             %(public)s
             LIMIT 1
             """ % {'file_id': file_id, 'public': publicsql}
+        # logging.info(sql)
 
         return self.db.get(sql)
+
+    def getBubbleImage(self, id):
+        return 'http://www.gravatar.com/avatar/%s?d=identicon' % (hashlib.md5(str(id)).hexdigest())
+
+    def getMenu(self, user_id):
+        """
+        Returns user menu
+
+        """
+
+        sql = """
+            SELECT DISTINCT
+            bubble_definition.id,
+            bubble_definition.%(language)s_menu AS menugroup,
+            bubble_definition.%(language)s_label AS item
+            FROM
+            bubble_definition,
+            bubble,
+            relationship
+            WHERE bubble.bubble_definition_id = bubble_definition.id
+            AND relationship.bubble_id = bubble.id
+            AND relationship.type IN ('viewer', 'editor', 'owner')
+            AND bubble_definition.estonian_menu IS NOT NULL
+            AND relationship.related_bubble_id = %(user_id)s
+            ORDER BY
+            bubble_definition.estonian_menu,
+            bubble_definition.estonian_label;
+        """ % {'language': self.language, 'user_id': user_id}
+        # logging.info(sql)
+
+        menu = {}
+        for m in self.db.query(sql):
+            menu.setdefault(m.menugroup, []).append({'id': m.id, 'title': m.item})
+        return menu
 
 
 class dBubble():
@@ -211,5 +295,3 @@ class dBubble():
         logging.info(sql)
         self.PropertyDefinitions = self.db.query(sql)
         return True
-
-
