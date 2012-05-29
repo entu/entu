@@ -36,7 +36,7 @@ class myApplication(tornado.web.Application):
             'template_path':    path.join(path.dirname(__file__), '..', 'templates'),
             'static_path':      path.join(path.dirname(__file__), '..', 'static'),
             'debug':            True if str(options.debug).lower() == 'true' else False,
-            'login_url':        '/public',
+            'login_url':        '/auth/google',
             'xsrf_coocies':     True,
         }
         for preference in myDb().db.query('SELECT * FROM app_settings WHERE value IS NOT NULL;'):

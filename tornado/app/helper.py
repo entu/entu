@@ -33,11 +33,13 @@ class myRequestHandler(RequestHandler):
         if not session_key:
             return
         user_key = hashlib.md5(self.request.remote_ip + self.request.headers.get('User-Agent', None)).hexdigest()
-        return myDb().db.get("""
+        user = myDb().db.get("""
             SELECT
             property.bubble_id AS id,
+            user.name,
             user.language,
-            user.email
+            user.email,
+            user.picture
             FROM
             property_definition,
             property,
@@ -49,6 +51,15 @@ class myRequestHandler(RequestHandler):
             AND property_definition.dataproperty = 'user'
             AND user_profile.session = %s
         """, session_key+user_key)
+
+        if not user:
+            return
+
+        if not user.picture:
+            user.picture = 'http://www.gravatar.com/avatar/%s?d=monsterid' % (hashlib.md5(user.email).hexdigest())
+            user['picture'] = user.picture
+
+        return user
 
     def get_user_locale(self):
         self.require_setting('default_language', 'this application')

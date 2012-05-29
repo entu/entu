@@ -261,7 +261,7 @@ def LoginUser(rh, user):
 class Exit(myRequestHandler):
     def get(self):
         self.clear_cookie('session')
-        self.redirect('/public')
+        self.redirect('/')
 
 
 handlers = [

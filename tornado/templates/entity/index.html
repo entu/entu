@@ -109,7 +109,7 @@
           {% end %}
           <ul class="nav pull-right">
             {% block menu %}
-            <li><a data-toggle="modal" href="/preferences">{{ current_user['email'] }}</a></li>
+            <li><a data-toggle="modal" href="" style="padding:5px 5px 5px 10px;">{{ current_user.name }}<img src="{{ current_user.picture }}" style="margin-left:10px; height:40px; width:40px;" /></a></li>
             <li><a data-toggle="modal" href="/exit" data-icon="Q"></a></li>
             {% end %}
           </ul>
