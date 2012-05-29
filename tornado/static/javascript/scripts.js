@@ -2,50 +2,50 @@ function removeBubbleInfo(key) {
     //$.jStorage.deleteKey('BubbleInfo_' + key);
 };
 
-function getBubbleInfo(bubbletype, id, div, listtype) {
-    bubble_json = '';// $.jStorage.get('BubbleInfo_' + key);
-    if (bubble_json) {
-        makeBubbleInfo(bubbletype, bubble_json, div, listtype)
+function getEntityInfo(bubbletype, id, div, listtype) {
+    entity_json = '';// $.jStorage.get('BubbleInfo_' + key);
+    if (entity_json) {
+        makeEntityInfo(bubbletype, entity_json, div, listtype)
     } else {
-        $.post('/item-'+id+'/listinfo', function(bubble_json) {
-            makeBubbleInfo(bubbletype, bubble_json, div, listtype);
-            //$.jStorage.set('BubbleInfo_' + bubble_json.key, bubble_json);
-            //$.jStorage.setTTL('BubbleInfo_' + bubble_json.key, 300000)
+        $.post('/item-'+id+'/listinfo', function(entity_json) {
+            makeEntityInfo(bubbletype, entity_json, div, listtype);
+            //$.jStorage.set('BubbleInfo_' + entity_json.key, entity_json);
+            //$.jStorage.setTTL('BubbleInfo_' + entity_json.key, 300000)
         }, 'json');
     }
 };
 
-function makeBubbleInfo(bubbletype, bubble_json, div, listtype) {
-    if(bubble_json.image) {
-        image = '<img src="'+bubble_json.image+'" />';
+function makeEntityInfo(bubbletype, entity_json, div, listtype) {
+    if(entity_json.image) {
+        image = '<img src="'+entity_json.image+'" />';
     } else {
         image = '';
     };
-    if(bubble_json.info) {
-        info = '<span>'+bubble_json.info+'</span>';
+    if(entity_json.info) {
+        info = '<span>'+entity_json.info+'</span>';
     } else {
         info = '';
     };
-    if(bubble_json.count) {
-        count = '<div>'+bubble_json.count+'</div>';
+    if(entity_json.count) {
+        count = '<div>'+entity_json.count+'</div>';
     } else {
         count = '';
     };
     if(listtype == 'searchlist') {
-        $(div).html(count+image+bubble_json.title+info);
-        $(div).attr('href', '#'+bubble_json.id);
+        $(div).html(count+image+entity_json.title+info);
+        $(div).attr('href', '#'+entity_json.id);
         $(div).removeClass('empty_item');
-        if('#'+bubble_json.id == window.location.hash) {
+        if('#'+entity_json.id == window.location.hash) {
             $(div).addClass('active');
         };
     };
     if(listtype == 'accordion') {
-        $(div).html(bubble_json.title+info);
-        if (bubble_json.type == bubbletype) {
-            $(div).attr('href', '#'+bubble_json.id);
+        $(div).html(entity_json.title+info);
+        if (entity_json.type == bubbletype) {
+            $(div).attr('href', '#'+entity_json.id);
             $(div).addClass('open_subbubble');
         } else {
-            $(div).attr('href', '/bubble/'+bubble_json.type+'#'+bubble_json.id);
+            $(div).attr('href', '/bubble/'+entity_json.type+'#'+entity_json.id);
         };
     };
 };

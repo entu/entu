@@ -6,14 +6,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="" />
     <meta name="author" content="Argo Roots" />
+
+    <link rel="shortcut icon" href="{{ static_url('images/favicon/favicon.png') }}" />
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="{{ static_url('images/favicon/apple-touch-icon-144-precomposed.png') }}">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="{{ static_url('images/favicon/apple-touch-icon-114-precomposed.png') }}">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="{{ static_url('images/favicon/apple-touch-icon-72-precomposed.png') }}">
+    <link rel="apple-touch-icon-precomposed" href="{{ static_url('images/favicon/apple-touch-icon-57-precomposed.png') }}">
+
     <link href="{{ static_url('bootstrap/bootstrap.css') }}" rel="stylesheet" />
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-    <script src="{{ static_url('bootstrap/bootstrap.min.js') }}"></script>
+    <link href="{{ static_url('bootstrap/responsive.css') }}" rel="stylesheet" />
+    <link href="{{ static_url('screen.css') }}" rel="stylesheet" />
     <style type="text/css">
-      body {
-        padding-top: 60px;
-        padding-bottom: 10px;
+      .navbar-inner {
+        padding: 0px !important;
+        border-bottom: 1px solid #222222;
+        text-shadow: 0px 1px 0px #F8F8F8;
+        color: rgba(0, 0, 0, .5) !important;
       }
+      ul.nav li {
+        padding 0px;
+        height: 50px;
+      }
+      ul.nav li a:hover {
+        color: rgba(0, 0, 0, .5) !important;
+      }
+      ul.nav li a {
+        font-size: 16px;
+        line-height: 50px;
+        text-shadow: 0px 1px 0 rgba(255, 255, 255, .9), 0 0 30px rgba(255, 255, 255, .125) !important;
+      }
+      ul.nav li a[data-icon]{
+        padding-top: 17px;
+        padding-bottom: 0px;
+      }
+      .brand {
+        margin-left: 10px !important;
+        padding: 11px 0px 0px 0px !important;
+        font-weight: bold !important;
+        font-size: 26px !important;
+        letter-spacing: 1px !important;
+        text-shadow: 0px 1px 0 rgba(255, 255, 255, .9), 0 0 30px rgba(255, 255, 255, .125) !important;
+      }
+
       .auth_link {
         margin:0px;
         padding:0px;
@@ -26,25 +60,27 @@
         background: url('{{ static_url('images/auth_providers.png') }}') no-repeat top left;
       }
     </style>
-    <link href="{{ static_url('bootstrap/responsive.css') }}" rel="stylesheet" />
+
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+
     <!--[if !IE]> -->
       <link href="//get.pictos.cc/fonts/261/7" rel="stylesheet" type="text/css" />
       <style type="text/css">
         [data-icon]:before {
+            font-size: 24px;
             font-family: 'Pictos Custom';
             content: attr(data-icon);
             -webkit-font-smoothing: antialiased;
         }
       </style>
     <!-- <![endif]-->
-    <link rel="shortcut icon" href="{{ static_url('images/favicon/favicon.png') }}" />
-    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="{{ static_url('images/favicon/apple-touch-icon-144-precomposed.png') }}">
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="{{ static_url('images/favicon/apple-touch-icon-114-precomposed.png') }}">
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="{{ static_url('images/favicon/apple-touch-icon-72-precomposed.png') }}">
-    <link rel="apple-touch-icon-precomposed" href="{{ static_url('images/favicon/apple-touch-icon-57-precomposed.png') }}">
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+    <script src="{{ static_url('bootstrap/bootstrap.min.js') }}"></script>
+    <script src="{{ static_url('javascript/scripts.js') }}"></script>
     <script type="text/javascript">
       var _gaq = _gaq || [];
       _gaq.push(['_setAccount', 'UA-260765-22']);
@@ -57,32 +93,25 @@
     </script>
   </head>
   <body>
-    <div class="navbar navbar-fixed-top">
+    <div id="header" class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </a>
-          <a class="brand" href="/public" style="font-weight:bold; letter-spacing:1px; color:rgba(0, 0, 0, .3); text-shadow: 0 1px 0 rgba(255, 255, 255, .1), 0 0 30px rgba(255, 255, 255, .125);
-">{{ app_title }}</a>
-          <div class="nav-collapse">
-            <ul class="nav pull-right">
-              <li id="menusearch" style="display:none;">
-                <form action="/public" class="navbar-search pull-left">
-                  <input id="menusearch_input" type="text" name="q" class="search-query" placeholder="{{ 'str.search_placeholder' }}" value="{{ 'search' }}" style="height:16px;" />
-                </form>
-              </li>
-              {% block menu %}
-              <li><a data-toggle="modal" href="#mHelp">{{ _('help') }}</a></li>
-              {% end %}
-            </ul>
-          </div>
+          <a class="brand" href="/">{{ app_title }}</a>
+          <ul class="nav pull-right">
+            <li id="menusearch" style="display:none;">
+              <form action="/public" class="navbar-search pull-left">
+                <input id="menusearch_input" type="text" name="q" class="search-query" placeholder="{{ 'str.search_placeholder' }}" value="{{ 'search' }}" style="height:16px;" />
+              </form>
+            </li>
+            {% block menu %}
+            <li><a data-toggle="modal" href="#mHelp">{{ _('help') }}</a></li>
+            {% end %}
+          </ul>
         </div>
       </div>
     </div>
-    <div class="container">
+
+    <div class="container" style="margin-top:70px;">
       {% block content %}
       {% end %}
       <footer>

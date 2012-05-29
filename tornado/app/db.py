@@ -36,19 +36,19 @@ class myDb():
             password    = options.mysql_password,
         )
 
-    def getBubbleList(self, bubble_id=None, search=None, only_public=True, bubble_definition=None, user_id=None, limit=None):
-        return self.getBubbleProperties(bubble_id=self.getBubbleIdList(bubble_id=bubble_id, search=search, only_public=only_public, bubble_definition=bubble_definition, user_id=user_id, limit=limit), only_public=only_public)
+    def getEntityList(self, entity_id=None, search=None, only_public=True, entity_definition=None, user_id=None, limit=None):
+        return self.getEntityProperties(entity_id=self.getEntityIdList(entity_id=entity_id, search=search, only_public=only_public, entity_definition=entity_definition, user_id=user_id, limit=limit), only_public=only_public)
 
-    def getBubbleIdList(self, bubble_id=None, search=None, only_public=True, bubble_definition=None, user_id=None, limit=None):
+    def getEntityIdList(self, entity_id=None, search=None, only_public=True, entity_definition=None, user_id=None, limit=None):
         """
-        Get list of Bubble IDs. bubble_id, bubble_definition and user_id can be single ID or list of IDs.
+        Get list of Bubble IDs. entity_id, entity_definition and user_id can be single ID or list of IDs.
 
         """
         sql = 'SELECT STRAIGHT_JOIN DISTINCT bubble.id AS id FROM property_definition, property, bubble, relationship WHERE property.property_definition_id = property_definition.id AND bubble.id = property.bubble_id AND relationship.bubble_id = bubble.id'
-        if bubble_id:
-            if type(bubble_id) is not list:
-                bubble_id = [bubble_id]
-            sql += ' AND bubble.id IN (%s)' % ','.join(map(str, bubble_id))
+        if entity_id:
+            if type(entity_id) is not list:
+                entity_id = [entity_id]
+            sql += ' AND bubble.id IN (%s)' % ','.join(map(str, entity_id))
 
         if search:
             for s in search.split(' '):
@@ -57,10 +57,10 @@ class myDb():
         if only_public == True:
             sql += ' AND property_definition.public = 1 AND bubble.public = 1'
 
-        if bubble_definition:
-            if type(bubble_definition) is not list:
-                bubble_definition = [bubble_definition]
-            sql += ' AND bubble.bubble_definition_id IN (%s)' % ','.join(map(str, bubble_definition))
+        if entity_definition:
+            if type(entity_definition) is not list:
+                entity_definition = [entity_definition]
+            sql += ' AND bubble.bubble_definition_id IN (%s)' % ','.join(map(str, entity_definition))
 
         if user_id:
             if type(user_id) is not list:
@@ -73,23 +73,23 @@ class myDb():
             sql += ' LIMIT %d' % limit
 
         sql += ';'
-        logging.info(sql)
+        # logging.info(sql)
 
         items = self.db.query(sql)
         if not items:
             return []
         return [x.id for x in items]
 
-    def getBubbleProperties(self, bubble_id, only_public=True):
+    def getEntityProperties(self, entity_id, only_public=True):
         """
-        Get Bubble Properties. bubble_id can be single ID or list of IDs.
+        Get Bubble Properties. entity_id can be single ID or list of IDs.
 
         """
-        if not bubble_id:
+        if not entity_id:
             return []
 
-        if type(bubble_id) is not list:
-            bubble_id = [bubble_id]
+        if type(entity_id) is not list:
+            entity_id = [entity_id]
 
         if only_public == True:
             public = 'AND property_definition.public = 1 AND bubble.public = 1'
@@ -141,7 +141,7 @@ class myDb():
             AND (property.language = '%(language)s' OR property.language IS NULL)
             %(public)s
             AND bubble.id IN (%(idlist)s)
-        """ % {'language': self.language, 'public': public, 'idlist': ','.join(map(str, bubble_id))}
+        """ % {'language': self.language, 'public': public, 'idlist': ','.join(map(str, entity_id))}
         # logging.info(sql)
 
         items = {}
@@ -174,7 +174,7 @@ class myDb():
             elif row.property_datatype == 'float':
                 value = row.value_decimal
             elif row.property_datatype == 'date':
-                value = formatDatetime(row.value_datetime)
+                value = formatDatetime(row.value_datetime, '%(day)d.%(month)d.%(year)d')
             elif row.property_datatype == 'datetime':
                 value = formatDatetime(row.value_datetime)
             elif row.property_datatype in ['reference']:
@@ -225,7 +225,7 @@ class myDb():
 
         return self.db.get(sql)
 
-    def getBubbleImage(self, id):
+    def getEntityImage(self, id):
         return 'http://www.gravatar.com/avatar/%s?d=identicon' % (hashlib.md5(str(id)).hexdigest())
 
     def getMenu(self, user_id):
@@ -258,40 +258,3 @@ class myDb():
         for m in self.db.query(sql):
             menu.setdefault(m.menugroup, []).append({'id': m.id, 'title': m.item})
         return menu
-
-
-class dBubble():
-    """docstring for dBubble"""
-    def __init__(self, id):
-        self.id = id
-        self.PropertyDefinitions = {}
-
-    def setProperty(self, tuple, language=None):
-        (property_key, property_value) = tuple
-        retrun False if not self.loadPropertyDefinitions()
-        return False if not self.PropertyDefinitions['property_key']
-
-        pd = self.PropertyDefinitions['property_key']
-        setvalues = ['property_definition_id=%s' % pd.id]
-        setvalues.append("value_%(valuetype)s='%(value)s'" % {'valuetype': pd.datatype, 'value': property_value})
-        setvalues.append("language='%s'" % language) if language
-        sql = "INSERT INTO property SET %s;" % u", ".join(setvalues)
-        db = myDb().db
-        logging.info(sql)
-        db.execute(sql)
-        db.close()
-
-    def loadBubbleDefinition(self):
-        return True if self.BubbleDefinition
-        sql = 'SELECT bd.* FROM bubble AS b LEFT JOIN bubble_definition AS bd ON b.bubble_definition_id = bd.id WHERE b.id = %s;' % self.id
-        logging.info(sql)
-        self.BubbleDefinition = self.db.query(sql)
-        return True
-
-    def loadPropertyDefinitions(self):
-        return True if self.PropertyDefinitions
-        return False if not self.loadBubbleDefinition()
-        sql = 'SELECT pd.* FROM property_definition AS pd WHERE pd.bubble_definition_id = %s;' % self.BubbleDefinition.id
-        logging.info(sql)
-        self.PropertyDefinitions = self.db.query(sql)
-        return True
