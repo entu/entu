@@ -101,10 +101,12 @@
       <div class="navbar-inner">
         <div class="container-fluid">
           <a class="brand" href="/">{{ app_title }}</a>
+          {% if show_list %}
           <div id="list_search">
               <input type="search" id="searchbox" class="search-query" placeholder="{{ _('search_placeholder') }}" />
               <span></span>
           </div>
+          {% end %}
           <ul class="nav pull-right">
             {% block menu %}
             <li><a data-toggle="modal" href="/preferences">{{ current_user['email'] }}</a></li>

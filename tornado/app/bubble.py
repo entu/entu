@@ -12,7 +12,7 @@ class ShowGroup(myRequestHandler):
         self.render('bubble/start.html',
             page_title = self.locale.translate('search_results'),
             menu = myDb().getMenu(user_id=self.current_user.id),
-            definition_id = definition_id
+            show_list = True if definition_id else False
         )
 
     @web.authenticated
