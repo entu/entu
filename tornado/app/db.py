@@ -26,7 +26,7 @@ def formatDatetime(date, format='%(day)d.%(month)d.%(year)d %(hour)d:%(minute)d'
     return format % {'year': date.year, 'month': date.month, 'day': date.day, 'hour': date.hour, 'minute': date.minute}
 
 
-class myEntity():
+class Entity():
     """
     """
     def __init__(self, language='estonian'):

@@ -2,8 +2,8 @@ from tornado import auth, web
 
 from operator import itemgetter
 
+import db
 from helper import *
-from db import *
 
 
 class ShowGroup(myRequestHandler):
@@ -17,7 +17,7 @@ class ShowGroup(myRequestHandler):
         """
         self.render('entity/start.html',
             page_title = self.locale.translate('search_results'),
-            menu = myEntity().getMenu(user_id=self.current_user.id),
+            menu = db.Entity().getMenu(user_id=self.current_user.id),
             show_list = True if entity_definition_id else False
         )
 
@@ -28,7 +28,7 @@ class ShowGroup(myRequestHandler):
 
         """
         search = self.get_argument('search', None, True)
-        self.write({'items': myEntity().getIdList(search=search, only_public=False, entity_definition=entity_definition_id, user_id=self.current_user.id)})
+        self.write({'items': db.Entity().getIdList(search=search, only_public=False, entity_definition=entity_definition_id, user_id=self.current_user.id)})
 
 
 class ShowListinfo(myRequestHandler):
@@ -40,19 +40,19 @@ class ShowListinfo(myRequestHandler):
         Returns Entitiy info for list as JSON.
 
         """
-        item = myEntity().getList(entity_id=entity_id, only_public=False, limit=1)[0]
+        item = db.Entity().getList(entity_id=entity_id, only_public=False, limit=1)[0]
         name = ', '.join([x['value'] for x in item.setdefault('properties', {}).setdefault('title', {}).setdefault('values', {}).values()])
         self.write({
             'id': item['id'],
             'title': name,
-            'image': myEntity().getImage(item['id']),
+            'image': db.Entity().getImage(item['id']),
         })
 
 
 class PublicItemHandler(myRequestHandler):
     @web.authenticated
     def get(self, id=None, url=None):
-        item = myEntity().getList(id=id, only_public=True, limit=1)
+        item = db.Entity().getList(id=id, only_public=True, limit=1)
         if not item:
             self.redirect('/public')
 

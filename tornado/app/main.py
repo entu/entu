@@ -8,8 +8,6 @@ import tornado.database
 import tornado.options
 from tornado.options import define, options
 
-from db import *
-
 define('debug',          help = 'run on debug mode',        type = str, default='False')
 define('port',           help = 'run on the given port',    type = int, default=8000)
 define('mysql_host',     help = 'mysql database host',      type = str)
@@ -45,7 +43,7 @@ class myApplication(tornado.web.Application):
             'xsrf_coocies':     True,
         }
 
-        db = database.Connection(
+        db = tornado.database.Connection(
             host        = options.mysql_host,
             database    = options.mysql_database,
             user        = options.mysql_user,
