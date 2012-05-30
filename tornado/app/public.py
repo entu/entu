@@ -34,7 +34,7 @@ class PublicSearchHandler(myRequestHandler):
         locale = self.get_user_locale()
         items = []
         if len(search) > 1:
-            for item in myDb().getEntityList(search=search, only_public=True, entity_definition=[1, 7, 8, 38]):
+            for item in myEntity().getList(search=search, only_public=True, entity_definition=[1, 7, 8, 38]):
                 name = ', '.join([x['value'] for x in item.setdefault('properties', {}).setdefault('title', {}).setdefault('values', {}).values()])
                 number = ', '.join([x['value'] for x in item.setdefault('properties', {}).setdefault('registry_number', {}).setdefault('values', {}).values()])
                 items.append({
@@ -75,7 +75,7 @@ class PublicEntityHandler(myRequestHandler):
 
     """
     def get(self, id=None, url=None):
-        item = myDb().getEntityList(id=id, only_public=True, limit=1)
+        item = myEntity().getList(id=id, only_public=True, limit=1)
         if not item:
             self.redirect('/public')
 
@@ -111,7 +111,7 @@ class PublicFileHandler(myRequestHandler):
 
     """
     def get(self, id=None, url=None):
-        file = myDb().getFile(id, True)
+        file = myEntity().getFile(id, True)
         if not file:
             return self.missing()
 

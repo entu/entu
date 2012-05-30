@@ -7,6 +7,19 @@ import hashlib
 from collections import defaultdict
 
 
+def db_connection():
+    """
+    Returns DB connection.
+
+    """
+    return database.Connection(
+        host        = options.mysql_host,
+        database    = options.mysql_database,
+        user        = options.mysql_user,
+        password    = options.mysql_password,
+    )
+
+
 def formatDatetime(date, format='%(day)d.%(month)d.%(year)d %(hour)d:%(minute)d'):
     """
     Formats and returns date as string. Format tags are %(day)d, %(month)d, %(year)d, %(hour)d and %(minute)d.
@@ -15,31 +28,21 @@ def formatDatetime(date, format='%(day)d.%(month)d.%(year)d %(hour)d:%(minute)d'
     return format % {'year': date.year, 'month': date.month, 'day': date.day, 'hour': date.hour, 'minute': date.minute}
 
 
-class myDb():
+class myEntity():
     """
-    Main database class. All database actions should go thru this.
-
     """
     def __init__(self, language='estonian'):
-        self.language = language
+        self.language   = language
+        self.db         = db_connection()
 
-    @property
-    def db(self):
-        return database.Connection(
-            host        = options.mysql_host,
-            database    = options.mysql_database,
-            user        = options.mysql_user,
-            password    = options.mysql_password,
-        )
-
-    def getEntityList(self, entity_id=None, search=None, only_public=True, entity_definition=None, user_id=None, limit=None):
+    def getList(self, entity_id=None, search=None, only_public=True, entity_definition=None, user_id=None, limit=None):
         """
         Get list of Entities (with properties). entity_id, entity_definition and user_id can be single ID or list of IDs.
 
         """
-        return self.getEntityProperties(entity_id=self.getEntityIdList(entity_id=entity_id, search=search, only_public=only_public, entity_definition=entity_definition, user_id=user_id, limit=limit), only_public=only_public)
+        return self.getProperties(entity_id=self.getIdList(entity_id=entity_id, search=search, only_public=only_public, entity_definition=entity_definition, user_id=user_id, limit=limit), only_public=only_public)
 
-    def getEntityIdList(self, entity_id=None, search=None, only_public=True, entity_definition=None, user_id=None, limit=None):
+    def getIdList(self, entity_id=None, search=None, only_public=True, entity_definition=None, user_id=None, limit=None):
         """
         Get list of Entity IDs. entity_id, entity_definition and user_id can be single ID or list of IDs.
 
@@ -80,7 +83,7 @@ class myDb():
             return []
         return [x.id for x in items]
 
-    def getEntityProperties(self, entity_id, only_public=True):
+    def getProperties(self, entity_id, only_public=True):
         """
         Get Entity properties. entity_id can be single ID or list of IDs.
 
@@ -229,7 +232,7 @@ class myDb():
 
         return self.db.get(sql)
 
-    def getEntityImage(self, id):
+    def getImage(self, id):
         return 'http://www.gravatar.com/avatar/%s?d=identicon' % (hashlib.md5(str(id)).hexdigest())
 
     def getMenu(self, user_id):
@@ -262,3 +265,62 @@ class myDb():
         for m in self.db.query(sql):
             menu.setdefault(m.menugroup, []).append({'id': m.id, 'title': m.item})
         return menu
+
+
+class myUser():
+    """
+    """
+    def __init__(self):
+        self.db = db_connection()
+
+    def createNew(self, provider='', id='', email='', name='', picture='', language='', session=''):
+        """
+        Creates new (or updates old) user.
+
+        """
+        profile_id = self.db.execute_lastrowid('INSERT INTO user_profile SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, session = %s, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, changed = NOW();',
+                provider,
+                id,
+                email,
+                name,
+                picture,
+                session,
+                email,
+                name,
+                picture,
+                session
+            )
+        profile = self.db.get('SELECT id, user_id FROM user_profile WHERE id = %s', profile_id)
+
+        if not profile.user_id:
+            user_id = self.db.execute_lastrowid('INSERT INTO user SET email = %s, name = %s, picture = %s, language = %s, created = NOW();',
+                email,
+                name,
+                picture,
+                language
+            )
+            self.db.execute('UPDATE user_profile SET user_id = %s WHERE id = %s;', user_id, profile.id)
+
+    def getBySession(self, session=''):
+        """
+        Returns user by session key.
+
+        """
+        return self.db.get("""
+            SELECT
+            property.bubble_id AS id,
+            user.name,
+            user.language,
+            user.email,
+            user.picture
+            FROM
+            property_definition,
+            property,
+            user,
+            user_profile
+            WHERE property.property_definition_id = property_definition.id
+            AND user.email = property.value_string
+            AND user_profile.user_id = user.id
+            AND property_definition.dataproperty = 'user'
+            AND user_profile.session = %s
+        """, session)

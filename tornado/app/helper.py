@@ -53,24 +53,8 @@ class myRequestHandler(RequestHandler):
         if not session_key:
             return
         user_key = hashlib.md5(self.request.remote_ip + self.request.headers.get('User-Agent', None)).hexdigest()
-        user = myDb().db.get("""
-            SELECT
-            property.bubble_id AS id,
-            user.name,
-            user.language,
-            user.email,
-            user.picture
-            FROM
-            property_definition,
-            property,
-            user,
-            user_profile
-            WHERE property.property_definition_id = property_definition.id
-            AND user.email = property.value_string
-            AND user_profile.user_id = user.id
-            AND property_definition.dataproperty = 'user'
-            AND user_profile.session = %s
-        """, session_key+user_key)
+
+        user = myUser().getBySession(session_key+user_key)
 
         if not user:
             return

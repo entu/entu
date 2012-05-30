@@ -44,7 +44,14 @@ class myApplication(tornado.web.Application):
             'login_url':        '/auth/google',
             'xsrf_coocies':     True,
         }
-        for preference in myDb().db.query('SELECT * FROM app_settings WHERE value IS NOT NULL;'):
+
+        db = database.Connection(
+            host        = options.mysql_host,
+            database    = options.mysql_database,
+            user        = options.mysql_user,
+            password    = options.mysql_password,
+        )
+        for preference in db.query('SELECT * FROM app_settings WHERE value IS NOT NULL;'):
             settings[preference.name] = preference.value
 
         tornado.web.Application.__init__(self, handlers, **settings)

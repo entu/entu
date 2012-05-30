@@ -239,28 +239,15 @@ def LoginUser(rh, user):
     session_key = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest()
     user_key = hashlib.md5(rh.request.remote_ip + rh.request.headers.get('User-Agent', None)).hexdigest()
 
-    profile_id = myDb().db.execute_lastrowid('INSERT INTO user_profile SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, session = %s, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, changed = NOW();',
-            user['provider'],
-            user['id'],
-            user['email'],
-            user['name'],
-            user['picture'],
-            session_key+user_key,
-            user['email'],
-            user['name'],
-            user['picture'],
-            session_key+user_key
-        )
-    profile = myDb().db.get('SELECT id, user_id FROM user_profile WHERE id = %s', profile_id)
-
-    if not profile.user_id:
-        user_id = myDb().db.execute_lastrowid('INSERT INTO user SET email = %s, name = %s, picture = %s, language = %s, created = NOW();',
-            user['email'],
-            user['name'],
-            user['picture'],
-            rh.settings['default_language']
-        )
-        myDb().db.execute('UPDATE user_profile SET user_id = %s WHERE id = %s;', user_id, profile.id)
+    myUser().createNew(
+        provider    = user['provider'],
+        id          = user['id'],
+        email       = user['email'],
+        name        = user['name'],
+        picture     = user['picture'],
+        language    = rh.settings['default_language'],
+        session     = session_key+user_key
+    )
 
     rh.set_secure_cookie('session', str(session_key))
     rh.redirect('/')
