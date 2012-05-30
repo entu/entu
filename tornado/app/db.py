@@ -5,7 +5,7 @@ import logging
 import hashlib
 
 
-def db_connection():
+def connection():
     """
     Returns DB connection.
 
@@ -31,7 +31,7 @@ class Entity():
     """
     def __init__(self, language='estonian'):
         self.language   = language
-        self.db         = db_connection()
+        self.db         = connection()
 
     def getList(self, entity_id=None, search=None, only_public=True, entity_definition=None, user_id=None, limit=None):
         """
@@ -201,35 +201,6 @@ class Entity():
 
         return items.values()
 
-    def getFile(self, file_id, only_public=True):
-        """
-        Returns file object. Properties are id, file, filename
-
-        """
-        if only_public == True:
-            publicsql = 'AND property_definition.public = 1'
-        else:
-            publicsql = ''
-
-        sql = """
-            SELECT
-            file.id,
-            file.file,
-            file.filename
-            FROM
-            file,
-            property,
-            property_definition
-            WHERE property.value_file = file.id
-            AND property_definition.id = property.property_definition_id
-            AND file.id = %(file_id)s
-            %(public)s
-            LIMIT 1
-            """ % {'file_id': file_id, 'public': publicsql}
-        # logging.info(sql)
-
-        return self.db.get(sql)
-
     def getImage(self, id):
         return 'http://www.gravatar.com/avatar/%s?d=identicon' % (hashlib.md5(str(id)).hexdigest())
 
@@ -265,18 +236,66 @@ class Entity():
         return menu
 
 
+class File():
+    """
+    Returns file object. Properties are id, file, filename
+
+    """
+    id = None
+    file = None
+    filename = None
+
+    def __init__(self, id=None, only_public=True):
+        if not id:
+            return
+
+        publicsql = 'AND property_definition.public = 1' if only_public == True else ''
+        sql = """
+            SELECT
+            file.id,
+            file.file,
+            file.filename
+            FROM
+            file,
+            property,
+            property_definition
+            WHERE property.value_file = file.id
+            AND property_definition.id = property.property_definition_id
+            AND file.id = %(file_id)s
+            %(public)s
+            LIMIT 1
+            """ % {'file_id': id, 'public': publicsql}
+        # logging.info(sql)
+
+        db = connection()
+        file = db.get(sql)
+
+        if not file:
+            return
+
+        for k, v in file.items():
+            setattr(self, k, v)
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+
 class User():
     """
     If session is given returns user.
 
     """
-    is_guest = True
+    id          = None
+    name        = None
+    email       = None
+    picture     = None
+    language    = None
 
     def __init__(self, session=None):
         if not session:
             return
 
-        db = db_connection()
+        db = connection()
         user = db.get("""
             SELECT
             property.bubble_id AS id,
@@ -303,8 +322,6 @@ class User():
         for k, v in user.items():
             setattr(self, k, v)
 
-        self.is_guest = False
-
     def __setitem__(self, key, value):
         setattr(self, key, value)
 
@@ -316,7 +333,7 @@ class User():
         Creates new (or updates old) user.
 
         """
-        db = db_connection()
+        db = connection()
         profile_id = db.execute_lastrowid('INSERT INTO user_profile SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, session = %s, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, changed = NOW();',
                 provider,
                 id,

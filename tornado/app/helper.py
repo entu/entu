@@ -56,7 +56,7 @@ class myRequestHandler(RequestHandler):
 
         user = db.User(session_key+user_key)
 
-        if user.is_guest == True:
+        if not user.id:
             return
 
         if not user.picture:

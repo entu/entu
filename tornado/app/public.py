@@ -75,7 +75,7 @@ class PublicEntityHandler(myRequestHandler):
 
     """
     def get(self, id=None, url=None):
-        item = db.Entity().getList(id=id, only_public=True, limit=1)
+        item = db.Entity().getList(entity_id=id, only_public=True, limit=1)
         if not item:
             self.redirect('/public')
 
@@ -111,8 +111,8 @@ class PublicFileHandler(myRequestHandler):
 
     """
     def get(self, id=None, url=None):
-        file = db.Entity().getFile(id, True)
-        if not file:
+        file = db.File(id, True)
+        if not file.file:
             return self.missing()
 
         ms = magic.open(magic.MAGIC_MIME)
