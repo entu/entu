@@ -7,7 +7,7 @@ import hashlib
 import re
 import string
 
-from db import *
+import db
 
 
 class myRequestHandler(RequestHandler):
@@ -54,9 +54,9 @@ class myRequestHandler(RequestHandler):
             return
         user_key = hashlib.md5(self.request.remote_ip + self.request.headers.get('User-Agent', None)).hexdigest()
 
-        user = myUser().getBySession(session_key+user_key)
+        user = db.User(session_key+user_key)
 
-        if not user:
+        if user.is_guest == True:
             return
 
         if not user.picture:

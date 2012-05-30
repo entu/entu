@@ -11,8 +11,8 @@ import urlparse
 import logging
 import json
 
+import db
 from helper import *
-from db import *
 
 
 class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
@@ -239,7 +239,7 @@ def LoginUser(rh, user):
     session_key = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest()
     user_key = hashlib.md5(rh.request.remote_ip + rh.request.headers.get('User-Agent', None)).hexdigest()
 
-    myUser().createNew(
+    db.User().create(
         provider    = user['provider'],
         id          = user['id'],
         email       = user['email'],

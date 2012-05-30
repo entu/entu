@@ -4,8 +4,6 @@ from tornado.options import options
 import logging
 import hashlib
 
-from collections import defaultdict
-
 
 def db_connection():
     """
@@ -267,46 +265,19 @@ class myEntity():
         return menu
 
 
-class myUser():
+class User():
     """
+    If session is given returns user.
+
     """
-    def __init__(self):
-        self.db = db_connection()
+    is_guest = True
 
-    def createNew(self, provider='', id='', email='', name='', picture='', language='', session=''):
-        """
-        Creates new (or updates old) user.
+    def __init__(self, session=None):
+        if not session:
+            return
 
-        """
-        profile_id = self.db.execute_lastrowid('INSERT INTO user_profile SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, session = %s, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, changed = NOW();',
-                provider,
-                id,
-                email,
-                name,
-                picture,
-                session,
-                email,
-                name,
-                picture,
-                session
-            )
-        profile = self.db.get('SELECT id, user_id FROM user_profile WHERE id = %s', profile_id)
-
-        if not profile.user_id:
-            user_id = self.db.execute_lastrowid('INSERT INTO user SET email = %s, name = %s, picture = %s, language = %s, created = NOW();',
-                email,
-                name,
-                picture,
-                language
-            )
-            self.db.execute('UPDATE user_profile SET user_id = %s WHERE id = %s;', user_id, profile.id)
-
-    def getBySession(self, session=''):
-        """
-        Returns user by session key.
-
-        """
-        return self.db.get("""
+        db = db_connection()
+        user = db.get("""
             SELECT
             property.bubble_id AS id,
             user.name,
@@ -323,4 +294,48 @@ class myUser():
             AND user_profile.user_id = user.id
             AND property_definition.dataproperty = 'user'
             AND user_profile.session = %s
+            LIMIT 1;
         """, session)
+
+        if not user:
+            return
+
+        for k, v in user.items():
+            setattr(self, k, v)
+
+        self.is_guest = False
+
+    def __setitem__(self, key, value):
+        setattr(self, key, value)
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+    def create(self, provider='', id='', email='', name='', picture='', language='', session=''):
+        """
+        Creates new (or updates old) user.
+
+        """
+        db = db_connection()
+        profile_id = db.execute_lastrowid('INSERT INTO user_profile SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, session = %s, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, changed = NOW();',
+                provider,
+                id,
+                email,
+                name,
+                picture,
+                session,
+                email,
+                name,
+                picture,
+                session
+            )
+        profile = db.get('SELECT id, user_id FROM user_profile WHERE id = %s', profile_id)
+
+        if not profile.user_id:
+            user_id = db.execute_lastrowid('INSERT INTO user SET email = %s, name = %s, picture = %s, language = %s, created = NOW();',
+                email,
+                name,
+                picture,
+                language
+            )
+            db.execute('UPDATE user_profile SET user_id = %s WHERE id = %s;', user_id, profile.id)
