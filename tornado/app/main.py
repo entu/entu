@@ -17,15 +17,20 @@ define('mysql_database', help = 'mysql database name',      type = str)
 define('mysql_user',     help = 'mysql database user',      type = str)
 define('mysql_password', help = 'mysql database password',  type = str)
 
+#: List of controllers to load.
 controllers = [
     'auth',
-    'bubble',
+    'entity',
     'public',
     'import',
 ]
 
 
 class myApplication(tornado.web.Application):
+    """
+    Main Application handler. Imports controllers, settings, translations.
+
+    """
     def __init__(self):
         handlers = []
         for controller in controllers:

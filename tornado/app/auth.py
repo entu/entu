@@ -17,13 +17,11 @@ from db import *
 
 class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
     """
-        Use OAuth2 for authentication.
+    Google, Facebook and MSLive authentication.
+
     """
     @web.asynchronous
     def get(self, provider):
-        # self.require_setting('google_client_key', 'Google OAuth2')
-        # self.require_setting('google_client_secret', 'Google OAuth2')
-
         self.oauth2_provider = None
 
         if provider == 'facebook' and 'facebook_api_key' in self.settings and 'facebook_secret' in self.settings:
@@ -107,8 +105,6 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
 
     @web.asynchronous
     def _got_token(self, response):
-        # self.write(response.body)
-        # self.finish()
         access_token = response.body
         try:
             access_token = json.loads(access_token)
@@ -129,8 +125,6 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
 
     @web.asynchronous
     def _got_user(self, response):
-        # self.write(response.body)
-        # self.finish()
         try:
             user = json.loads(response.body)
             if 'error' in user:
@@ -168,6 +162,10 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
 
 
 class AuthMobileID(myRequestHandler, auth.OpenIdMixin):
+    """
+    Estonian Mobile ID authentication.
+
+    """
     @web.asynchronous
     def get(self):
         self._OPENID_ENDPOINT = 'https://openid.ee/server/xrds/mid'
@@ -187,6 +185,10 @@ class AuthMobileID(myRequestHandler, auth.OpenIdMixin):
 
 
 class AuthIDcard(myRequestHandler, auth.OpenIdMixin):
+    """
+    Estonian ID card authentication.
+
+    """
     @web.asynchronous
     def get(self):
         self._OPENID_ENDPOINT = 'https://openid.ee/server/eid'
@@ -205,6 +207,10 @@ class AuthIDcard(myRequestHandler, auth.OpenIdMixin):
 
 
 class AuthTwitter(myRequestHandler, auth.TwitterMixin):
+    """
+    Twitter authentication.
+
+    """
     @web.asynchronous
     def get(self):
         if not self.get_argument('oauth_token', None):
@@ -226,8 +232,10 @@ class AuthTwitter(myRequestHandler, auth.TwitterMixin):
 
 
 def LoginUser(rh, user):
-    # return rh.write(user)
+    """
+    Starts session. Creates new user.
 
+    """
     session_key = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest()
     user_key = hashlib.md5(rh.request.remote_ip + rh.request.headers.get('User-Agent', None)).hexdigest()
 
@@ -259,6 +267,10 @@ def LoginUser(rh, user):
 
 
 class Exit(myRequestHandler):
+    """
+    Log out.
+
+    """
     def get(self):
         self.clear_cookie('session')
         self.redirect('/')

@@ -1,33 +1,32 @@
-.. BUBBLedu documentation master file, created by
-   sphinx-quickstart on Fri May 25 14:39:15 2012.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+The Documentation
+=================
 
-Welcome to BUBBLedu's documentation!
-====================================
-
-Contents:
-
-.. toctree::
-   :maxdepth: 2
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-
+auth.py
+-------
 .. automodule:: auth
    :members:
 
+db.py
+-----
 .. automodule:: db
    :members:
 
+entity.py
+---------
+.. automodule:: entity
+   :members:
+
+helper.py
+---------
 .. automodule:: helper
    :members:
 
+main.py
+-------
 .. automodule:: main
    :members:
 
+public.py
+---------
 .. automodule:: public
    :members:

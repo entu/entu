@@ -7,8 +7,14 @@ from db import *
 
 
 class ShowGroup(myRequestHandler):
+    """
+    """
     @web.authenticated
     def get(self, entity_definition_id=None):
+        """
+        Show entities page with menu.
+
+        """
         self.render('entity/start.html',
             page_title = self.locale.translate('search_results'),
             menu = myDb().getMenu(user_id=self.current_user.id),
@@ -17,13 +23,23 @@ class ShowGroup(myRequestHandler):
 
     @web.authenticated
     def post(self, entity_definition_id=None):
+        """
+        Returns searched Entitiy IDs as JSON.
+
+        """
         search = self.get_argument('search', None, True)
         self.write({'items': myDb().getEntityIdList(search=search, only_public=False, entity_definition=entity_definition_id, user_id=self.current_user.id)})
 
 
 class ShowListinfo(myRequestHandler):
+    """
+    """
     @web.authenticated
     def post(self, entity_id=None):
+        """
+        Returns Entitiy info for list as JSON.
+
+        """
         item = myDb().getEntityList(entity_id=entity_id, only_public=False, limit=1)[0]
         name = ', '.join([x['value'] for x in item.setdefault('properties', {}).setdefault('title', {}).setdefault('values', {}).values()])
         self.write({
@@ -64,8 +80,6 @@ class PublicItemHandler(myRequestHandler):
             properties = sorted(props, key=itemgetter('ordinal')),
             search = ''
         )
-
-
 
 
 handlers = [

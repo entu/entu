@@ -35,7 +35,7 @@
                 items = list.items;
                 for (i in list.items) {
                     var id = list.items[i];
-                    $('#list_items').append('<a id="listitem_'+id+'" class="empty_item" href="/item-'+id+'" data-item="'+id+'"></a>');
+                    $('#list_items').append('<a id="listitem_'+id+'" class="empty_item" href="#'+id+'" data-item="'+id+'"></a>');
                 };
                 $('#list_search span').html('{{ _('search_result') }} '+list.items.length);
                 $('#list .spinner').hide();

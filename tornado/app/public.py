@@ -11,6 +11,10 @@ from db import *
 
 
 class PublicHandler(myRequestHandler):
+    """
+    Show public startpage.
+
+    """
     def get(self):
         self.render('public/start.html',
             page_title = self.locale.translate('search_results'),
@@ -19,6 +23,10 @@ class PublicHandler(myRequestHandler):
 
 
 class PublicSearchHandler(myRequestHandler):
+    """
+    Show public search results.
+
+    """
     def get(self, search=None):
         if not search:
             self.redirect('/public')
@@ -61,7 +69,11 @@ class PublicSearchHandler(myRequestHandler):
         self.redirect('/public/search/%s' % urllib.quote_plus(search_get.encode('utf-8')))
 
 
-class PublicItemHandler(myRequestHandler):
+class PublicEntityHandler(myRequestHandler):
+    """
+    Show public entity.
+
+    """
     def get(self, id=None, url=None):
         item = myDb().getEntityList(id=id, only_public=True, limit=1)
         if not item:
@@ -94,6 +106,10 @@ class PublicItemHandler(myRequestHandler):
 
 
 class PublicFileHandler(myRequestHandler):
+    """
+    Download public file.
+
+    """
     def get(self, id=None, url=None):
         file = myDb().getFile(id, True)
         if not file:
@@ -115,6 +131,6 @@ handlers = [
     (r'/public/search/(.*)', PublicSearchHandler),
     (r'/public/file/([0-9]+)', PublicFileHandler),
     (r'/public/file/([0-9]+)/(.*)', PublicFileHandler),
-    (r'/public/([0-9]+)', PublicItemHandler),
-    (r'/public/([0-9]+)/(.*)', PublicItemHandler),
+    (r'/public/([0-9]+)', PublicEntityHandler),
+    (r'/public/([0-9]+)/(.*)', PublicEntityHandler),
 ]

@@ -7,16 +7,12 @@ import hashlib
 from collections import defaultdict
 
 
-def formatDatetime(d, format='%(day)d.%(month)d.%(year)d %(hour)d:%(minute)d'):
+def formatDatetime(date, format='%(day)d.%(month)d.%(year)d %(hour)d:%(minute)d'):
     """
-        Formats and returns date as string. Format:
-        %%(day)d
-        %%(month)d
-        %%(year)d
-        %%(hour)d
-        %%(minute)d
+    Formats and returns date as string. Format tags are %(day)d, %(month)d, %(year)d, %(hour)d and %(minute)d.
+
     """
-    return format % {'year': d.year, 'month': d.month, 'day': d.day, 'hour': d.hour, 'minute': d.minute}
+    return format % {'year': date.year, 'month': date.month, 'day': date.day, 'hour': date.hour, 'minute': date.minute}
 
 
 class myDb():
@@ -37,11 +33,15 @@ class myDb():
         )
 
     def getEntityList(self, entity_id=None, search=None, only_public=True, entity_definition=None, user_id=None, limit=None):
+        """
+        Get list of Entities (with properties). entity_id, entity_definition and user_id can be single ID or list of IDs.
+
+        """
         return self.getEntityProperties(entity_id=self.getEntityIdList(entity_id=entity_id, search=search, only_public=only_public, entity_definition=entity_definition, user_id=user_id, limit=limit), only_public=only_public)
 
     def getEntityIdList(self, entity_id=None, search=None, only_public=True, entity_definition=None, user_id=None, limit=None):
         """
-        Get list of Bubble IDs. entity_id, entity_definition and user_id can be single ID or list of IDs.
+        Get list of Entity IDs. entity_id, entity_definition and user_id can be single ID or list of IDs.
 
         """
         sql = 'SELECT STRAIGHT_JOIN DISTINCT bubble.id AS id FROM property_definition, property, bubble, relationship WHERE property.property_definition_id = property_definition.id AND bubble.id = property.bubble_id AND relationship.bubble_id = bubble.id'
@@ -82,7 +82,7 @@ class myDb():
 
     def getEntityProperties(self, entity_id, only_public=True):
         """
-        Get Bubble Properties. entity_id can be single ID or list of IDs.
+        Get Entity properties. entity_id can be single ID or list of IDs.
 
         """
         if not entity_id:
@@ -98,16 +98,18 @@ class myDb():
 
         sql = """
             SELECT
-            bubble_definition.id AS bubble_definition_id,
-            bubble.id AS bubble_id,
+            bubble_definition.id AS entity_definition_id,
+            bubble.id AS entity_id,
             property_definition.id AS property_definition_id,
             property.id AS property_id,
 
-            bubble.created AS bubble_created,
+            bubble.created AS entity_created,
 
-            bubble_definition.%(language)s_label AS bubble_label,
-            bubble_definition.%(language)s_label_plural AS bubble_label_plural,
-            bubble_definition.%(language)s_description AS bubble_description,
+            bubble_definition.%(language)s_label AS entity_label,
+            bubble_definition.%(language)s_label_plural AS entity_label_plural,
+            bubble_definition.%(language)s_description AS entity_description,
+            bubble_definition.%(language)s_displayname AS entity_displayname,
+            bubble_definition.%(language)s_displayinfo AS entity_displayinfo,
 
             property_definition.%(language)s_fieldset AS property_fieldset,
             property_definition.%(language)s_label AS property_label,
@@ -149,20 +151,22 @@ class myDb():
             if not row.value_string and not row.value_text and not row.value_integer and not row.value_decimal and not row.value_boolean and not row.value_datetime and not row.value_reference and not row.value_file:
                 continue
 
-            #Item
-            items.setdefault('item_%s' % row.bubble_id, {})['id'] = row.bubble_id
-            items.setdefault('item_%s' % row.bubble_id, {})['label'] = row.bubble_label
-            items.setdefault('item_%s' % row.bubble_id, {})['description'] = row.bubble_description
-            items.setdefault('item_%s' % row.bubble_id, {})['created'] = row.bubble_created
+            #Entity
+            items.setdefault('item_%s' % row.entity_id, {})['id'] = row.entity_id
+            items.setdefault('item_%s' % row.entity_id, {})['label'] = row.entity_label
+            items.setdefault('item_%s' % row.entity_id, {})['description'] = row.entity_description
+            items.setdefault('item_%s' % row.entity_id, {})['created'] = row.entity_created
+            items.setdefault('item_%s' % row.entity_id, {})['displayname'] = row.entity_displayname
+            items.setdefault('item_%s' % row.entity_id, {})['displayinfo'] = row.entity_displayinfo
 
             #Property
-            items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['id'] = row.property_id
-            items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['label'] = row.property_label
-            items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['description'] = row.property_description
-            items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['datatype'] = row.property_datatype
-            items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['dataproperty'] = row.property_dataproperty
-            items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multiplicity'] = row.property_multiplicity
-            items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['ordinal'] = row.property_ordinal
+            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['id'] = row.property_id
+            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['label'] = row.property_label
+            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['description'] = row.property_description
+            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['datatype'] = row.property_datatype
+            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['dataproperty'] = row.property_dataproperty
+            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multiplicity'] = row.property_multiplicity
+            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['ordinal'] = row.property_ordinal
 
             #Value
             if row.property_datatype in ['string', 'dictionary', 'dictionary_string', 'select', 'dictionary_select']:
@@ -182,8 +186,8 @@ class myDb():
             elif row.property_datatype in ['blobstore']:
                 blobstore = self.db.get('SELECT id, filename, filesize FROM file WHERE id=%s', row.value_file)
                 value = blobstore.filename
-                items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['file_id'] = blobstore.id
-                items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['filesize'] = blobstore.filesize
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['file_id'] = blobstore.id
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['filesize'] = blobstore.filesize
             elif row.property_datatype in ['boolean']:
                 value = row.value_boolean
             elif row.property_datatype in ['counter']:
@@ -191,8 +195,8 @@ class myDb():
             else:
                 value = 'X'
 
-            items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['value'] = value
-            items.setdefault('item_%s' % row.bubble_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['id'] = row.property_id
+            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['value'] = value
+            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['id'] = row.property_id
 
         return items.values()
 
@@ -230,7 +234,7 @@ class myDb():
 
     def getMenu(self, user_id):
         """
-        Returns user menu
+        Returns user menu.
 
         """
 
