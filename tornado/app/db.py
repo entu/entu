@@ -28,19 +28,33 @@ def formatDatetime(date, format='%(day)d.%(month)d.%(year)d %(hour)d:%(minute)d'
 
 class Entity():
     """
+    Entity class. user_id can be single ID or list of IDs.
     """
-    def __init__(self, language='estonian'):
-        self.language   = language
-        self.db         = connection()
+    def __init__(self, only_public=True, user_id=None, language='estonian'):
+        self.db             = connection()
 
-    def getList(self, entity_id=None, search=None, only_public=True, entity_definition=None, user_id=None, limit=None):
+        self.only_public    = only_public
+        self.language       = language
+        self.user_id        = user_id
+
+        if self.user_id:
+            if type(self.user_id) is not list:
+                self.user_id = [self.user_id]
+
+
+    def get(self, ids_only=False, entity_id=None, search=None, entity_definition=None, limit=None):
         """
-        Get list of Entities (with properties). entity_id, entity_definition and user_id can be single ID or list of IDs.
+        If ids_only==True, then returns list of Entity IDs. Else returns list of Entities (with properties) as dictionary. entity_id and entity_definition can be single ID or list of IDs.
 
         """
-        return self.getProperties(entity_id=self.getIdList(entity_id=entity_id, search=search, only_public=only_public, entity_definition=entity_definition, user_id=user_id, limit=limit), only_public=only_public)
+        ids = self.__get_id_list(entity_id=entity_id, search=search, entity_definition=entity_definition, limit=limit)
 
-    def getIdList(self, entity_id=None, search=None, only_public=True, entity_definition=None, user_id=None, limit=None):
+        if ids_only:
+            return ids
+
+        return self.__get_properties(entity_id=ids)
+
+    def __get_id_list(self, entity_id=None, search=None, entity_definition=None, limit=None):
         """
         Get list of Entity IDs. entity_id, entity_definition and user_id can be single ID or list of IDs.
 
@@ -55,7 +69,7 @@ class Entity():
             for s in search.split(' '):
                 sql += ' AND value_string LIKE \'%%%%%s%%%%\'' % s
 
-        if only_public == True:
+        if self.only_public == True:
             sql += ' AND property_definition.public = 1 AND bubble.public = 1'
 
         if entity_definition:
@@ -63,10 +77,7 @@ class Entity():
                 entity_definition = [entity_definition]
             sql += ' AND bubble.bubble_definition_id IN (%s)' % ','.join(map(str, entity_definition))
 
-        if user_id:
-            if type(user_id) is not list:
-                user_id = [user_id]
-            sql += ' AND relationship.related_bubble_id IN (%s) AND relationship.type IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, user_id))
+            sql += ' AND relationship.related_bubble_id IN (%s) AND relationship.type IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
 
         sql += ' ORDER BY bubble.id'
 
@@ -81,7 +92,7 @@ class Entity():
             return []
         return [x.id for x in items]
 
-    def getProperties(self, entity_id, only_public=True):
+    def __get_properties(self, entity_id):
         """
         Get Entity properties. entity_id can be single ID or list of IDs.
 
@@ -92,7 +103,7 @@ class Entity():
         if type(entity_id) is not list:
             entity_id = [entity_id]
 
-        if only_public == True:
+        if self.only_public == True:
             public = 'AND property_definition.public = 1 AND bubble.public = 1'
         else:
             public = ''
@@ -201,10 +212,14 @@ class Entity():
 
         return items.values()
 
-    def getImage(self, id):
-        return 'http://www.gravatar.com/avatar/%s?d=identicon' % (hashlib.md5(str(id)).hexdigest())
+    def get_picture_url(self, entity_id):
+        """
+        Returns Entity picture.
 
-    def getMenu(self, user_id):
+        """
+        return 'http://www.gravatar.com/avatar/%s?d=identicon' % (hashlib.md5(str(entity_id)).hexdigest())
+
+    def get_menu(self):
         """
         Returns user menu.
 
@@ -223,11 +238,11 @@ class Entity():
             AND relationship.bubble_id = bubble.id
             AND relationship.type IN ('viewer', 'editor', 'owner')
             AND bubble_definition.estonian_menu IS NOT NULL
-            AND relationship.related_bubble_id = %(user_id)s
+            AND relationship.related_bubble_id IN (%(user_id)s)
             ORDER BY
             bubble_definition.estonian_menu,
             bubble_definition.estonian_label;
-        """ % {'language': self.language, 'user_id': user_id}
+        """ % {'language': self.language, 'user_id': ','.join(map(str, self.user_id))}
         # logging.info(sql)
 
         menu = {}
@@ -235,21 +250,13 @@ class Entity():
             menu.setdefault(m.menugroup, []).append({'id': m.id, 'title': m.item})
         return menu
 
+    def get_file(self, file_id):
+        """
+        Returns file object. File properties are id, file, filename.
 
-class File():
-    """
-    Returns file object. Properties are id, file, filename
+        """
 
-    """
-    id = None
-    file = None
-    filename = None
-
-    def __init__(self, id=None, only_public=True):
-        if not id:
-            return
-
-        publicsql = 'AND property_definition.public = 1' if only_public == True else ''
+        publicsql = 'AND property_definition.public = 1' if self.only_public == True else ''
         sql = """
             SELECT
             file.id,
@@ -264,25 +271,15 @@ class File():
             AND file.id = %(file_id)s
             %(public)s
             LIMIT 1
-            """ % {'file_id': id, 'public': publicsql}
+            """ % {'file_id': file_id, 'public': publicsql}
         # logging.info(sql)
 
-        db = connection()
-        file = db.get(sql)
-
-        if not file:
-            return
-
-        for k, v in file.items():
-            setattr(self, k, v)
-
-    def __getitem__(self, key):
-        return getattr(self, key)
+        return self.db.get(sql)
 
 
 class User():
     """
-    If session is given returns user.
+    If session is given returns user object. User properties are id, name, email, picture, language.
 
     """
     id          = None
