@@ -9,3 +9,6 @@ search_noresult,"Didn't found enything. Try again."
 search_result,"Found"
 search_result_count1,"Found just one"
 search_result_count2,"Found %s"
+
+boolean_true,"Yes"
+boolean_false,"No"

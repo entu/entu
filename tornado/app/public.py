@@ -34,16 +34,18 @@ class PublicSearchHandler(myRequestHandler):
         locale = self.get_user_locale()
         items = []
         if len(search) > 1:
-            for item in db.Entity(only_public=True).get(search=search, entity_definition=[1, 7, 8, 38]):
-                name = ', '.join([x['value'] for x in item.setdefault('properties', {}).setdefault('title', {}).setdefault('values', {}).values()])
-                number = ', '.join([x['value'] for x in item.setdefault('properties', {}).setdefault('registry_number', {}).setdefault('values', {}).values()])
-                items.append({
-                    'url': '/public/%s/%s' % (item.setdefault('id', ''), toURL(name)),
-                    'number': number,
-                    'name': name,
-                    'date': item.setdefault('created', '').strftime('%d.%m.%Y'),
-                    'file': len(item.setdefault('properties', {}).setdefault('public_files', {}).setdefault('values', {}).values()),
-                })
+            entities = db.Entity(user_locale=self.get_user_locale()).get(search=search, entity_definition=[1, 7, 8, 38])
+            if entities:
+                for item in entities:
+                    name = ', '.join([x['value'] for x in item.get('properties', {}).get('title', {}).get('values', {}).values()])
+                    number = ', '.join([x['value'] for x in item.get('properties', {}).get('registry_number', {}).get('values', {}).values()])
+                    items.append({
+                        'url': '/public/entity-%s/%s' % (item.get('id', ''), toURL(name)),
+                        'number': number,
+                        'name': name,
+                        'date': item.get('created', '').strftime('%d.%m.%Y'),
+                        'file': len(item.get('properties', {}).get('public_files', {}).get('values', {}).values()),
+                    })
 
         if len(search) < 2:
             itemcount =locale.translate('search_term_to_short') % search
@@ -74,26 +76,31 @@ class PublicEntityHandler(myRequestHandler):
     Show public entity.
 
     """
-    def get(self, id=None, url=None):
-        item = db.Entity(only_public=True).get(entity_id=id, limit=1)
+    def get(self, entity_id=None, url=None):
+        try:
+            entity_id = int(entity_id.split('/')[0])
+        except:
+            return self.missing()
+
+        item = db.Entity(user_locale=self.get_user_locale()).get(entity_id=entity_id, limit=1)
         if not item:
-            self.redirect('/public')
+            return self.missing()
 
         item = item[0]
-        item_name = ', '.join([x['value'] for x in item.setdefault('properties', {}).setdefault('title', {}).setdefault('values', {}).values()])
+        item_name = ', '.join([x['value'] for x in item.get('properties', {}).get('title', {}).get('values', {}).values()])
 
         props = []
-        for p in item.setdefault('properties', {}).values():
-            if p.setdefault('dataproperty', '') == 'title':
+        for p in item.get('properties', {}).values():
+            if p.get('dataproperty', '') == 'title':
                 continue
-            if p.setdefault('datatype', '') == 'blobstore':
-                value = '<br />'.join(['<a href="/public/file/%s/%s" title="%s">%s</a>' % (x['file_id'], toURL(x['value']), x['filesize'], x['value']) for x in p.setdefault('values', {}).values() if x['value']])
+            if p.get('datatype', '') == 'blobstore':
+                value = '<br />'.join(['<a href="/public/file-%s/%s" title="%s">%s</a>' % (x['file_id'], toURL(x['value']), x['filesize'], x['value']) for x in p.get('values', {}).values() if x['value']])
             else:
-                value = '<br />'.join([x['value'] for x in p.setdefault('values', {}).values() if x['value']])
+                value = '<br />'.join([x['value'] for x in p.get('values', {}).values() if x['value']])
 
             props.append({
-                'ordinal' : p.setdefault('ordinal', 0),
-                'label' : p.setdefault('label', ''),
+                'ordinal' : p.get('ordinal', 0),
+                'label' : p.get('label', ''),
                 'value': value
             })
 
@@ -110,8 +117,13 @@ class PublicFileHandler(myRequestHandler):
     Download public file.
 
     """
-    def get(self, id=None, url=None):
-        file = db.Entity(only_public=True).get(id)
+    def get(self, file_id=None, url=None):
+        try:
+            file_id = int(file_id.split('/')[0])
+        except:
+            return self.missing()
+
+        file = db.Entity(user_locale=self.get_user_locale()).get_file(file_id)
         if not file:
             return self.missing()
 
@@ -129,8 +141,6 @@ handlers = [
     (r'/public', PublicHandler),
     (r'/public/search', PublicSearchHandler),
     (r'/public/search/(.*)', PublicSearchHandler),
-    (r'/public/file/([0-9]+)', PublicFileHandler),
-    (r'/public/file/([0-9]+)/(.*)', PublicFileHandler),
-    (r'/public/([0-9]+)', PublicEntityHandler),
-    (r'/public/([0-9]+)/(.*)', PublicEntityHandler),
+    (r'/public/file-(.*)', PublicFileHandler),
+    (r'/public/entity-(.*)', PublicEntityHandler),
 ]

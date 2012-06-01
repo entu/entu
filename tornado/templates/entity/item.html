@@ -1,0 +1,80 @@
+{% autoescape None %}
+
+<img src="{{ item_picture }}" class="1thumbnail" style="float:right; height:120px; width:120px; margin-bottom:20px;" />
+<h3 style="margin-right:140px;">{{ properties[0]['value'] }}</h3>
+<div style="margin-right:140px;">
+    <table class="table table-condensed">
+        <tbody>
+            {% for i in properties[1:] %}
+            <tr>
+                <th style="text-align:right; white-space:nowrap;">
+                    <h6>{{ i['label'] }}</h6>
+                </th>
+                <td style="width:100%;">
+                    {% if 'url' in i %}
+                    <a hrfef="{{ i['value'] }}">{{ i['value'] }}</a>
+                    {% else %}
+                    {{ i['value'] }}
+                    {% end %}
+                </td>
+            </tr>
+            {% end %}
+        </tbody>
+    </table>
+</div>
+
+<!--ul class="nav nav-tabs" id="myTab" style="clear:both;">
+    <li class="active"><a href="#home">Home</a></li>
+    <li><a href="#profile">Alamullid</a></li>
+    <li><a href="#messages">Messages</a></li>
+    <li><a href="#settings">Settings</a></li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane active" id="home">...</div>
+    <div class="tab-pane" id="profile">...</div>
+    <div class="tab-pane" id="messages">...</div>
+    <div class="tab-pane" id="settings">...</div>
+</div-->
+
+{% for k, v in relatives.iteritems() %}
+    <table class="table table-condensed table-bordered" style="clear:both; margin-top:20px;">
+        <thead class="toggle-table">
+            <tr>
+                <th colspan="3">
+                    <h6>{{ k }}<span style="float:right; font-weight:normal;">{{ len(v) }}</span></h6>
+                </th>
+            </tr>
+        </thead>
+        <tbody style="display:none;">
+            {% for i in v %}
+            <tr>
+                <td style="">
+                        {{ i.get('id', '') }}
+                </td>
+                <td style="">
+                    {% for x in i.get('properties', {}).get('registry_number', {}).get('values', {}).values() %}
+                        {{ x['value'] }}
+                    {% end %}
+                </td>
+                <td style="">
+                    {% for x in i.get('properties', {}).get('title', {}).get('values', {}).values() %}
+                        {{ x['value'] }}
+                    {% end %}
+                </td>
+            </tr>
+            {% end %}
+        </tbody>
+    </table>
+{% end%}
+
+<script>
+    $(document).ready(function(){
+
+        $('.toggle-table').click(function() {
+            $(this).parent().children('tbody').toggle();
+
+        });
+
+    });
+</script>

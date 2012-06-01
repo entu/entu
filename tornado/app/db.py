@@ -1,4 +1,5 @@
 from tornado import database
+from tornado import locale
 from tornado.options import options
 
 import logging
@@ -28,19 +29,17 @@ def formatDatetime(date, format='%(day)d.%(month)d.%(year)d %(hour)d:%(minute)d'
 
 class Entity():
     """
-    Entity class. user_id can be single ID or list of IDs.
+    Entity class. user_id can be single ID or list of IDs. If user_id is not set all Entity class methods will return only public stuff.
     """
-    def __init__(self, only_public=True, user_id=None, language='estonian'):
+    def __init__(self, user_locale, user_id=None):
         self.db             = connection()
 
-        self.only_public    = only_public
-        self.language       = language
         self.user_id        = user_id
+        self.user_locale    = user_locale
 
         if self.user_id:
             if type(self.user_id) is not list:
                 self.user_id = [self.user_id]
-
 
     def get(self, ids_only=False, entity_id=None, search=None, entity_definition=None, limit=None):
         """
@@ -59,7 +58,8 @@ class Entity():
         Get list of Entity IDs. entity_id, entity_definition and user_id can be single ID or list of IDs.
 
         """
-        sql = 'SELECT STRAIGHT_JOIN DISTINCT bubble.id AS id FROM property_definition, property, bubble, relationship WHERE property.property_definition_id = property_definition.id AND bubble.id = property.bubble_id AND relationship.bubble_id = bubble.id'
+        sql = 'SELECT DISTINCT bubble.id AS id FROM property_definition, property, bubble, relationship WHERE property.property_definition_id = property_definition.id AND bubble.id = property.bubble_id AND relationship.bubble_id = bubble.id'
+
         if entity_id:
             if type(entity_id) is not list:
                 entity_id = [entity_id]
@@ -69,15 +69,16 @@ class Entity():
             for s in search.split(' '):
                 sql += ' AND value_string LIKE \'%%%%%s%%%%\'' % s
 
-        if self.only_public == True:
-            sql += ' AND property_definition.public = 1 AND bubble.public = 1'
-
         if entity_definition:
             if type(entity_definition) is not list:
                 entity_definition = [entity_definition]
             sql += ' AND bubble.bubble_definition_id IN (%s)' % ','.join(map(str, entity_definition))
 
+        if self.user_id:
             sql += ' AND relationship.related_bubble_id IN (%s) AND relationship.type IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
+        else:
+            sql += ' AND bubble.public = 1 AND property_definition.public = 1'
+
 
         sql += ' ORDER BY bubble.id'
 
@@ -92,21 +93,21 @@ class Entity():
             return []
         return [x.id for x in items]
 
-    def __get_properties(self, entity_id):
+    def __get_properties(self, entity_id=None):
         """
         Get Entity properties. entity_id can be single ID or list of IDs.
 
         """
         if not entity_id:
-            return []
+            return
 
         if type(entity_id) is not list:
             entity_id = [entity_id]
 
-        if self.only_public == True:
-            public = 'AND property_definition.public = 1 AND bubble.public = 1'
-        else:
+        if self.user_id:
             public = ''
+        else:
+            public = 'AND property_definition.public = 1 AND bubble.public = 1'
 
         sql = """
             SELECT
@@ -155,7 +156,7 @@ class Entity():
             AND (property.language = '%(language)s' OR property.language IS NULL)
             %(public)s
             AND bubble.id IN (%(idlist)s)
-        """ % {'language': self.language, 'public': public, 'idlist': ','.join(map(str, entity_id))}
+        """ % {'language': self.user_locale.code, 'public': public, 'idlist': ','.join(map(str, entity_id))}
         # logging.info(sql)
 
         items = {}
@@ -201,7 +202,7 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['file_id'] = blobstore.id
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['filesize'] = blobstore.filesize
             elif row.property_datatype in ['boolean']:
-                value = row.value_boolean
+                value = self.user_locale.translate('boolean_true') if row.value_boolean == 1 else self.user_locale.translate('boolean_false')
             elif row.property_datatype in ['counter']:
                 value = row.value_reference
             else:
@@ -212,12 +213,48 @@ class Entity():
 
         return items.values()
 
+    def get_relatives(self, entity_id=None, relation_type=None, limit=None):
+        """
+        Get Entity relatives.
+
+        """
+        if not entity_id:
+            return
+
+        if type(entity_id) is not list:
+            entity_id = [entity_id]
+
+        sql = 'SELECT DISTINCT relationship.type, relationship.related_bubble_id AS id FROM bubble, relationship, relationship AS rights WHERE relationship.related_bubble_id = bubble.id AND rights.bubble_id = relationship.related_bubble_id AND relationship.bubble_id IN (%s)' % ','.join(map(str, entity_id))
+
+        if self.user_id:
+            sql += ' AND rights.related_bubble_id IN (%s) AND rights.type IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
+        else:
+            sql += ' AND bubble.public = 1'
+
+        if relation_type:
+            if type(relation_type) is not list:
+                relation_type = [relation_type]
+            sql += ' AND relationship.type IN (%s)' % ','.join(['\'%s\'' % x for x in relation_type])
+
+        sql += ' ORDER BY bubble.id'
+
+        if limit:
+            sql += ' LIMIT %d' % limit
+
+        sql += ';'
+        # logging.info(sql)
+
+        items = {}
+        for item in self.db.query(sql):
+            items.setdefault(item.type, []).append(self.__get_properties(item.id)[0])
+        return items
+
     def get_picture_url(self, entity_id):
         """
         Returns Entity picture.
 
         """
-        return 'http://www.gravatar.com/avatar/%s?d=identicon' % (hashlib.md5(str(entity_id)).hexdigest())
+        return 'http://www.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
 
     def get_menu(self):
         """
@@ -242,7 +279,7 @@ class Entity():
             ORDER BY
             bubble_definition.estonian_menu,
             bubble_definition.estonian_label;
-        """ % {'language': self.language, 'user_id': ','.join(map(str, self.user_id))}
+        """ % {'language': self.user_locale.code, 'user_id': ','.join(map(str, self.user_id))}
         # logging.info(sql)
 
         menu = {}
@@ -256,7 +293,11 @@ class Entity():
 
         """
 
-        publicsql = 'AND property_definition.public = 1' if self.only_public == True else ''
+        if self.user_id:
+            public = ''
+        else:
+            public = 'AND property_definition.public = 1'
+
         sql = """
             SELECT
             file.id,
@@ -271,7 +312,7 @@ class Entity():
             AND file.id = %(file_id)s
             %(public)s
             LIMIT 1
-            """ % {'file_id': file_id, 'public': publicsql}
+            """ % {'file_id': file_id, 'public': public}
         # logging.info(sql)
 
         return self.db.get(sql)

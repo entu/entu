@@ -7,19 +7,17 @@
     $(document).ready(function(){
         old_search = $('#searchbox').val();
 
+        if(window.location.hash) {
+            open_item(window.location.hash.substring(1));
+        };
+
         items = [];
         get_list();
 
-        $('#searchbox').keydown(function(e) {
-            if(e.keyCode == 13) {
+        $('#searchbox').keyup(function(e) {
+            if(old_search != $('#searchbox').val()) {
+                old_search = $('#searchbox').val();
                 get_list();
-            } else {
-                setTimeout(function() {
-                    if(old_search != $('#searchbox').val()) {
-                        old_search = $('#searchbox').val();
-                        get_list();
-                    };
-                }, 3000);
             };
         });
 
@@ -57,7 +55,21 @@
                     };
                 };
             });
-        }
+        };
+
+        function open_item(id) {
+            $('#content').html('');
+            $.get('/entity-'+id, function(html) {
+                $('#content').html(html);
+            });
+        };
+
+        $('#list_items a').live('click', function() {
+            var item = $(this);
+            open_item(item.attr('href').substring(1));
+            $('#list_items a.active').removeClass('active');
+            item.addClass('active');
+        });
 
     });
 </script>

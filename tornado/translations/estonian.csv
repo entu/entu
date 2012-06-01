@@ -9,3 +9,6 @@ search_noresult,"Ei leidnud midagi. Proovi uuesti."
 search_result,"Leiti"
 search_result_count1,"Leiti üks"
 search_result_count2,"Leiti %s"
+
+boolean_true,"Jah"
+boolean_false,"Ei"

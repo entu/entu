@@ -7,7 +7,7 @@ function getEntityInfo(bubbletype, id, div, listtype) {
     if (entity_json) {
         makeEntityInfo(bubbletype, entity_json, div, listtype)
     } else {
-        $.post('/item-'+id+'/listinfo', function(entity_json) {
+        $.post('/entity-'+id+'/listinfo', function(entity_json) {
             makeEntityInfo(bubbletype, entity_json, div, listtype);
             //$.jStorage.set('BubbleInfo_' + entity_json.key, entity_json);
             //$.jStorage.setTTL('BubbleInfo_' + entity_json.key, 300000)
