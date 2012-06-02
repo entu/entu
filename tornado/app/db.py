@@ -58,12 +58,12 @@ class Entity():
         Get list of Entity IDs. entity_id, entity_definition and user_id can be single ID or list of IDs.
 
         """
-        sql = 'SELECT DISTINCT bubble.id AS id FROM property_definition, property, bubble, relationship WHERE property.property_definition_id = property_definition.id AND bubble.id = property.bubble_id AND relationship.bubble_id = bubble.id'
+        sql = 'SELECT DISTINCT entity.id AS id FROM property_definition, property, entity, relationship WHERE property.property_definition_id = property_definition.id AND entity.id = property.entity_id AND relationship.entity_id = entity.id'
 
         if entity_id:
             if type(entity_id) is not list:
                 entity_id = [entity_id]
-            sql += ' AND bubble.id IN (%s)' % ','.join(map(str, entity_id))
+            sql += ' AND entity.id IN (%s)' % ','.join(map(str, entity_id))
 
         if search:
             for s in search.split(' '):
@@ -72,15 +72,15 @@ class Entity():
         if entity_definition:
             if type(entity_definition) is not list:
                 entity_definition = [entity_definition]
-            sql += ' AND bubble.bubble_definition_id IN (%s)' % ','.join(map(str, entity_definition))
+            sql += ' AND entity.entity_definition_id IN (%s)' % ','.join(map(str, entity_definition))
 
         if self.user_id:
-            sql += ' AND relationship.related_bubble_id IN (%s) AND relationship.type IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
+            sql += ' AND relationship.related_entity_id IN (%s) AND relationship.type IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
         else:
-            sql += ' AND bubble.public = 1 AND property_definition.public = 1'
+            sql += ' AND entity.public = 1 AND property_definition.public = 1'
 
 
-        sql += ' ORDER BY bubble.id'
+        sql += ' ORDER BY entity.id'
 
         if limit:
             sql += ' LIMIT %d' % limit
@@ -107,22 +107,22 @@ class Entity():
         if self.user_id:
             public = ''
         else:
-            public = 'AND property_definition.public = 1 AND bubble.public = 1'
+            public = 'AND property_definition.public = 1 AND entity.public = 1'
 
         sql = """
             SELECT
-            bubble_definition.id AS entity_definition_id,
-            bubble.id AS entity_id,
+            entity_definition.id AS entity_definition_id,
+            entity.id AS entity_id,
             property_definition.id AS property_definition_id,
             property.id AS property_id,
 
-            bubble.created AS entity_created,
+            entity.created AS entity_created,
 
-            bubble_definition.%(language)s_label AS entity_label,
-            bubble_definition.%(language)s_label_plural AS entity_label_plural,
-            bubble_definition.%(language)s_description AS entity_description,
-            bubble_definition.%(language)s_displayname AS entity_displayname,
-            bubble_definition.%(language)s_displayinfo AS entity_displayinfo,
+            entity_definition.%(language)s_label AS entity_label,
+            entity_definition.%(language)s_label_plural AS entity_label_plural,
+            entity_definition.%(language)s_description AS entity_description,
+            entity_definition.%(language)s_displayname AS entity_displayname,
+            entity_definition.%(language)s_displayinfo AS entity_displayinfo,
 
             property_definition.%(language)s_fieldset AS property_fieldset,
             property_definition.%(language)s_label AS property_label,
@@ -144,18 +144,18 @@ class Entity():
             property_definition.ordinal AS property_ordinal
 
             FROM
-            bubble,
-            bubble_definition,
+            entity,
+            entity_definition,
             property,
             property_definition
 
-            WHERE property.bubble_id = bubble.id
-            AND bubble_definition.id = bubble.bubble_definition_id
+            WHERE property.entity_id = entity.id
+            AND entity_definition.id = entity.entity_definition_id
             AND property_definition.id = property.property_definition_id
-            AND bubble_definition.id = property_definition.bubble_definition_id
+            AND entity_definition.id = property_definition.entity_definition_id
             AND (property.language = '%(language)s' OR property.language IS NULL)
             %(public)s
-            AND bubble.id IN (%(idlist)s)
+            AND entity.id IN (%(idlist)s)
         """ % {'language': self.user_locale.code, 'public': public, 'idlist': ','.join(map(str, entity_id))}
         # logging.info(sql)
 
@@ -224,19 +224,19 @@ class Entity():
         if type(entity_id) is not list:
             entity_id = [entity_id]
 
-        sql = 'SELECT DISTINCT relationship.type, relationship.related_bubble_id AS id FROM bubble, relationship, relationship AS rights WHERE relationship.related_bubble_id = bubble.id AND rights.bubble_id = relationship.related_bubble_id AND relationship.bubble_id IN (%s)' % ','.join(map(str, entity_id))
+        sql = 'SELECT DISTINCT relationship.type, relationship.related_entity_id AS id FROM entity, relationship, relationship AS rights WHERE relationship.related_entity_id = entity.id AND rights.entity_id = relationship.related_entity_id AND relationship.entity_id IN (%s)' % ','.join(map(str, entity_id))
 
         if self.user_id:
-            sql += ' AND rights.related_bubble_id IN (%s) AND rights.type IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
+            sql += ' AND rights.related_entity_id IN (%s) AND rights.type IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
         else:
-            sql += ' AND bubble.public = 1'
+            sql += ' AND entity.public = 1'
 
         if relation_type:
             if type(relation_type) is not list:
                 relation_type = [relation_type]
             sql += ' AND relationship.type IN (%s)' % ','.join(['\'%s\'' % x for x in relation_type])
 
-        sql += ' ORDER BY bubble.id'
+        sql += ' ORDER BY entity.id'
 
         if limit:
             sql += ' LIMIT %d' % limit
@@ -264,21 +264,21 @@ class Entity():
 
         sql = """
             SELECT DISTINCT
-            bubble_definition.id,
-            bubble_definition.%(language)s_menu AS menugroup,
-            bubble_definition.%(language)s_label AS item
+            entity_definition.id,
+            entity_definition.%(language)s_menu AS menugroup,
+            entity_definition.%(language)s_label AS item
             FROM
-            bubble_definition,
-            bubble,
+            entity_definition,
+            entity,
             relationship
-            WHERE bubble.bubble_definition_id = bubble_definition.id
-            AND relationship.bubble_id = bubble.id
+            WHERE entity.entity_definition_id = entity_definition.id
+            AND relationship.entity_id = entity.id
             AND relationship.type IN ('viewer', 'editor', 'owner')
-            AND bubble_definition.estonian_menu IS NOT NULL
-            AND relationship.related_bubble_id IN (%(user_id)s)
+            AND entity_definition.estonian_menu IS NOT NULL
+            AND relationship.related_entity_id IN (%(user_id)s)
             ORDER BY
-            bubble_definition.estonian_menu,
-            bubble_definition.estonian_label;
+            entity_definition.estonian_menu,
+            entity_definition.estonian_label;
         """ % {'language': self.user_locale.code, 'user_id': ','.join(map(str, self.user_id))}
         # logging.info(sql)
 
@@ -336,7 +336,7 @@ class User():
         db = connection()
         user = db.get("""
             SELECT
-            property.bubble_id AS id,
+            property.entity_id AS id,
             user.name,
             user.language,
             user.email,
