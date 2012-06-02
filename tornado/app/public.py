@@ -34,7 +34,8 @@ class PublicSearchHandler(myRequestHandler):
         locale = self.get_user_locale()
         items = []
         if len(search) > 1:
-            entities = db.Entity(user_locale=self.get_user_locale()).get(search=search, entity_definition=[1, 7, 8, 38])
+            #entities = db.Entity(user_locale=self.get_user_locale()).get(search=search, entity_definition=[1, 7, 8, 38])
+            entities = db.Entity(user_locale=self.get_user_locale()).get(search=search)
             if entities:
                 for item in entities:
                     name = ', '.join([x['value'] for x in item.get('properties', {}).get('title', {}).get('values', {}).values()])
@@ -93,7 +94,7 @@ class PublicEntityHandler(myRequestHandler):
         for p in item.get('properties', {}).values():
             if p.get('dataproperty', '') == 'title':
                 continue
-            if p.get('datatype', '') == 'blobstore':
+            if p.get('datatype', '') == 'file':
                 value = '<br />'.join(['<a href="/public/file-%s/%s" title="%s">%s</a>' % (x['file_id'], toURL(x['value']), x['filesize'], x['value']) for x in p.get('values', {}).values() if x['value']])
             else:
                 value = '<br />'.join([x['value'] for x in p.get('values', {}).values() if x['value']])

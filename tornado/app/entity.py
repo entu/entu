@@ -29,7 +29,7 @@ class ShowGroup(myRequestHandler):
 
         """
         search = self.get_argument('search', None, True)
-        self.write({'items': db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(ids_only=True, search=search, entity_definition=entity_definition_id)})
+        self.write({'items': db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(ids_only=True, search=search, entity_definition=entity_definition_id, limit=5000)})
 
 
 class ShowListinfo(myRequestHandler):
@@ -71,7 +71,7 @@ class ShowEntity(myRequestHandler):
 
         props = []
         for p in item.get('properties', {}).values():
-            if p.get('datatype', '') == 'blobstore':
+            if p.get('datatype', '') == 'file':
                 value = '<br />'.join(['<a href="/public/file-%s/%s" title="%s">%s</a>' % (x['file_id'], toURL(x['value']), x['filesize'], x['value']) for x in p.get('values', {}).values() if x['value']])
             else:
                 value = '<br />'.join(['%s' % x['value'] for x in p.get('values', {}).values() if x['value']])

@@ -182,9 +182,9 @@ class Entity():
             items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['ordinal'] = row.property_ordinal
 
             #Value
-            if row.property_datatype in ['string', 'dictionary', 'dictionary_string', 'select', 'dictionary_select']:
+            if row.property_datatype in ['string', 'select']:
                 value = row.value_string
-            elif row.property_datatype in ['text', 'dictionary_text']:
+            elif row.property_datatype == 'text':
                 value = row.value_text
             elif row.property_datatype == 'integer':
                 value = row.value_integer
@@ -196,7 +196,7 @@ class Entity():
                 value = formatDatetime(row.value_datetime)
             elif row.property_datatype in ['reference']:
                 value = row.value_reference
-            elif row.property_datatype in ['blobstore']:
+            elif row.property_datatype == 'file':
                 blobstore = self.db.get('SELECT id, filename, filesize FROM file WHERE id=%s', row.value_file)
                 value = blobstore.filename
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['file_id'] = blobstore.id
@@ -315,8 +315,12 @@ class Entity():
             """ % {'file_id': file_id, 'public': public}
         # logging.info(sql)
 
-        return self.db.get(sql)
+        result = self.db.get(sql)
 
+        if not result.file:
+            return
+
+        return result
 
 class User():
     """
