@@ -91,13 +91,3 @@ def toURL(s):
     s = re.sub(r'[^-a-zA-Z0-9]', '', s)
     s = s.replace('--', '-').replace('--', '-').replace('--', '-')
     return s
-
-
-def FindTags(s, beginning, end):
-    """
-    Finds and returns list of tags from string.
-
-    """
-    if not s:
-        return []
-    return re.compile('%s(.*?)%s' % (beginning, end), re.DOTALL).findall(s)

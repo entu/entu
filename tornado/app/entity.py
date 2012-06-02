@@ -29,7 +29,7 @@ class ShowGroup(myRequestHandler):
 
         """
         search = self.get_argument('search', None, True)
-        self.write({'items': db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(ids_only=True, search=search, entity_definition=entity_definition_id, limit=5000)})
+        self.write({'items': db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(ids_only=True, search=search, entity_definition=entity_definition_id, limit=1001)})
 
 
 class ShowListinfo(myRequestHandler):
@@ -46,7 +46,8 @@ class ShowListinfo(myRequestHandler):
         name = ', '.join([x['value'] for x in sorted(item.get('properties', {}).values(), key=itemgetter('ordinal'))[0].get('values', {}).values()])
         self.write({
             'id': item['id'],
-            'title': name,
+            'title': item['displayname'],
+            'info': item['displayinfo'],
             'image': entity.get_picture_url(item['id']),
         })
 

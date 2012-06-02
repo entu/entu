@@ -4,6 +4,7 @@ from tornado.options import options
 
 import logging
 import hashlib
+import re
 
 
 def connection():
@@ -19,14 +20,6 @@ def connection():
     )
 
 
-def formatDatetime(date, format='%(day)d.%(month)d.%(year)d %(hour)d:%(minute)d'):
-    """
-    Formats and returns date as string. Format tags are %(day)d, %(month)d, %(year)d, %(hour)d and %(minute)d.
-
-    """
-    return format % {'year': date.year, 'month': date.month, 'day': date.day, 'hour': date.hour, 'minute': date.minute}
-
-
 class Entity():
     """
     Entity class. user_id can be single ID or list of IDs. If user_id is not set all Entity class methods will return only public stuff.
@@ -36,6 +29,7 @@ class Entity():
 
         self.user_id        = user_id
         self.user_locale    = user_locale
+        self.language       = user_locale.code
 
         if self.user_id:
             if type(self.user_id) is not list:
@@ -156,7 +150,7 @@ class Entity():
             AND (property.language = '%(language)s' OR property.language IS NULL)
             %(public)s
             AND entity.id IN (%(idlist)s)
-        """ % {'language': self.user_locale.code, 'public': public, 'idlist': ','.join(map(str, entity_id))}
+        """ % {'language': self.language, 'public': public, 'idlist': ','.join(map(str, entity_id))}
         # logging.info(sql)
 
         items = {}
@@ -169,8 +163,7 @@ class Entity():
             items.setdefault('item_%s' % row.entity_id, {})['label'] = row.entity_label
             items.setdefault('item_%s' % row.entity_id, {})['description'] = row.entity_description
             items.setdefault('item_%s' % row.entity_id, {})['created'] = row.entity_created
-            items.setdefault('item_%s' % row.entity_id, {})['displayname'] = row.entity_displayname
-            items.setdefault('item_%s' % row.entity_id, {})['displayinfo'] = row.entity_displayinfo
+            items.setdefault('item_%s' % row.entity_id, {})['entity_definition_id'] = row.entity_definition_id
 
             #Property
             items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['id'] = row.property_id
@@ -211,7 +204,36 @@ class Entity():
             items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['value'] = value
             items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['id'] = row.property_id
 
+        for key, value in items.iteritems():
+            items[key] = dict(items[key].items() + self.__get_displayfields(value).items())
+
+            logging.info(items[key])
         return items.values()
+
+    def __get_displayfields(self, entity_dict):
+        """
+        Returns Entity displayname, displayinfo, displaytable fields.
+
+        """
+        sql = """
+            SELECT
+            %(language)s_displayname AS displayname,
+            %(language)s_displayinfo AS displayinfo,
+            %(language)s_displaytable AS displaytable
+            FROM entity_definition
+            WHERE id = %(id)s
+            LIMIT 1
+        """ % {'language': self.language, 'id': entity_dict.get('entity_definition_id', '0') }
+        # logging.info(sql)
+
+        edef = self.db.get(sql)
+        result = {}
+        for i in edef.keys():
+            result[i] = edef[i]
+            for data_property in findTags(edef[i], '@', '@'):
+                result[i] = result[i].replace('@%s@' % data_property, ', '.join([x['value'] for x in entity_dict.get('properties', {}).get(data_property, {}).get('values', {}).values()]))
+
+        return result
 
     def get_relatives(self, entity_id=None, relation_type=None, limit=None):
         """
@@ -256,37 +278,6 @@ class Entity():
         """
         return 'http://www.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
 
-    def get_menu(self):
-        """
-        Returns user menu.
-
-        """
-
-        sql = """
-            SELECT DISTINCT
-            entity_definition.id,
-            entity_definition.%(language)s_menu AS menugroup,
-            entity_definition.%(language)s_label AS item
-            FROM
-            entity_definition,
-            entity,
-            relationship
-            WHERE entity.entity_definition_id = entity_definition.id
-            AND relationship.entity_id = entity.id
-            AND relationship.type IN ('viewer', 'editor', 'owner')
-            AND entity_definition.estonian_menu IS NOT NULL
-            AND relationship.related_entity_id IN (%(user_id)s)
-            ORDER BY
-            entity_definition.estonian_menu,
-            entity_definition.estonian_label;
-        """ % {'language': self.user_locale.code, 'user_id': ','.join(map(str, self.user_id))}
-        # logging.info(sql)
-
-        menu = {}
-        for m in self.db.query(sql):
-            menu.setdefault(m.menugroup, []).append({'id': m.id, 'title': m.item})
-        return menu
-
     def get_file(self, file_id):
         """
         Returns file object. File properties are id, file, filename.
@@ -321,6 +312,37 @@ class Entity():
             return
 
         return result
+
+    def get_menu(self):
+        """
+        Returns user menu.
+
+        """
+
+        sql = """
+            SELECT DISTINCT
+            entity_definition.id,
+            entity_definition.%(language)s_menu AS menugroup,
+            entity_definition.%(language)s_label AS item
+            FROM
+            entity_definition,
+            entity,
+            relationship
+            WHERE entity.entity_definition_id = entity_definition.id
+            AND relationship.entity_id = entity.id
+            AND relationship.type IN ('viewer', 'editor', 'owner')
+            AND entity_definition.estonian_menu IS NOT NULL
+            AND relationship.related_entity_id IN (%(user_id)s)
+            ORDER BY
+            entity_definition.estonian_menu,
+            entity_definition.estonian_label;
+        """ % {'language': self.language, 'user_id': ','.join(map(str, self.user_id))}
+        # logging.info(sql)
+
+        menu = {}
+        for m in self.db.query(sql):
+            menu.setdefault(m.menugroup, []).append({'id': m.id, 'title': m.item})
+        return menu
 
 class User():
     """
@@ -398,3 +420,21 @@ class User():
                 language
             )
             db.execute('UPDATE user_profile SET user_id = %s WHERE id = %s;', user_id, profile.id)
+
+
+def formatDatetime(date, format='%(day)d.%(month)d.%(year)d %(hour)d:%(minute)d'):
+    """
+    Formats and returns date as string. Format tags are %(day)d, %(month)d, %(year)d, %(hour)d and %(minute)d.
+
+    """
+    return format % {'year': date.year, 'month': date.month, 'day': date.day, 'hour': date.hour, 'minute': date.minute}
+
+
+def findTags(s, beginning, end):
+    """
+    Finds and returns list of tags from string.
+
+    """
+    if not s:
+        return []
+    return re.compile('%s(.*?)%s' % (beginning, end), re.DOTALL).findall(s)
