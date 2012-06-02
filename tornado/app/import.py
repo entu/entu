@@ -19,7 +19,8 @@ class GAEsql(myRequestHandler):
         if self.get_argument('secret', None) != secret or not sql:
             return self.forbidden()
 
-        db.connection().execute(sql.replace('%%', '%%%%'))
+        sql = sql.replace('%', '%%')
+        db.connection().execute(sql)
 
         self.write('OK')
 
