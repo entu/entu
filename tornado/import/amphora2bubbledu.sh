@@ -25,7 +25,7 @@ DOC_PATH=`echo ${1%/}`
 
 FOLDERS_LIST=~/folders.lst
 FOLDERS_MYSQL=~/folders.sql
-FILE_UPLOAD=~/files.lst
+FILE_COPY=~/copy_files.sh
 FILES_SQL=~/files.sql
 
 BD_FOLDER='agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY2qTUAgw'
@@ -135,11 +135,25 @@ else
             echo "DELETE FROM property WHERE bubble_id = (SELECT id FROM bubble WHERE gae_key = '${DOCUMENT_KEY}');"
             echo "INSERT INTO property SET property_definition_id = (SELECT id FROM property_definition WHERE gae_key = '${PD_FILE}'), bubble_id = (SELECT id FROM bubble WHERE gae_key = '${DOCUMENT_KEY}'), value_file = (SELECT id FROM file WHERE gae_key = '${FILE_KEY}');"
 
-            # Prepare for file upload
-            echo "${FILE_KEY}    `dirname "${fn}"`/${file_orig_guid}" >> $FILE_UPLOAD
-
         done >> $FILES_SQL
     echo "Parsed"
+fi
+
+
+echo === Listing files ===
+
+if [ -f $FILE_COPY ]; then
+    echo "Already listed"
+else
+    find "${DOC_PATH}" -type f -name '*.xml' |
+        while read fn
+        do
+            dname="`dirname "${fn}"`"
+            fname=`grep file_orig_guid "${fn}" | sed -e 's/<[a-zA-Z\/][^>]*>//g' | sed 's/^ *//;s/ *$//' | tr -d '[ \r]'`
+            echo "cp \"${dname}/${fname}\" ./filestore/"
+
+        done >> $FILE_COPY
+    echo "Listed"
 fi
 
 exit 0
