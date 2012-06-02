@@ -1,11 +1,11 @@
 {% autoescape None %}
 
 <img src="{{ item_picture }}" class="1thumbnail" style="float:right; height:120px; width:120px; margin-bottom:20px;" />
-<h3 style="margin-right:140px;">{{ properties[0]['value'] }}</h3>
+<h3 style="margin-right:140px;">{{ item_name }}</h3>
 <div style="margin-right:140px;">
     <table class="table table-condensed">
         <tbody>
-            {% for i in properties[1:] %}
+            {% for i in properties %}
             <tr>
                 <th style="text-align:right; white-space:nowrap;">
                     <h6>{{ i['label'] }}</h6>
@@ -37,35 +37,44 @@
     <div class="tab-pane" id="settings">...</div>
 </div-->
 
-{% for k, v in relatives.iteritems() %}
+{% for t, d in relatives.iteritems() %}
+{% for k, v in d.iteritems() %}
     <table class="table table-condensed table-bordered" style="clear:both; margin-top:20px;">
         <thead class="toggle-table">
             <tr>
-                <th colspan="3">
+                <th {% if v[0].get('displaytable', None) %}colspan="{{ len(v[0].get('displaytable', '')) }}"{% end %}>
                     <h6>{{ k }}<span style="float:right; font-weight:normal;">{{ len(v) }}</span></h6>
                 </th>
             </tr>
         </thead>
-        <tbody style="display:none;">
+        <tbody style="1display:none;">
+            {% if v[0].get('displaytable', None) %}
+            <tr>
+                {% for l in v[0].get('displaytable_labels', '') %}
+                <td style="min-width:100px;">
+                    <h6>{{ l }}</h6>
+                </td>
+                {% end %}
+            </tr>
+            {% end %}
             {% for i in v %}
             <tr>
-                <td style="">
-                        {{ i.get('id', '') }}
-                </td>
-                <td style="">
-                    {% for x in i.get('properties', {}).get('registry_number', {}).get('values', {}).values() %}
-                        {{ x['value'] }}
+                {% if i.get('displaytable', None) %}
+                    {% for x in i.get('displaytable', '') %}
+                    <td style="min-width:100px;">
+                        {{ x }}
+                    </td>
                     {% end %}
-                </td>
+                {% else %}
                 <td style="">
-                    {% for x in i.get('properties', {}).get('title', {}).get('values', {}).values() %}
-                        {{ x['value'] }}
-                    {% end %}
+                    {{ i.get('displayinfo', '') }}
                 </td>
+                {% end %}
             </tr>
             {% end %}
         </tbody>
     </table>
+{% end%}
 {% end%}
 
 <script>

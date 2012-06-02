@@ -161,6 +161,7 @@ class Entity():
             #Entity
             items.setdefault('item_%s' % row.entity_id, {})['id'] = row.entity_id
             items.setdefault('item_%s' % row.entity_id, {})['label'] = row.entity_label
+            items.setdefault('item_%s' % row.entity_id, {})['label_plural'] = row.entity_label_plural
             items.setdefault('item_%s' % row.entity_id, {})['description'] = row.entity_description
             items.setdefault('item_%s' % row.entity_id, {})['created'] = row.entity_created
             items.setdefault('item_%s' % row.entity_id, {})['entity_definition_id'] = row.entity_definition_id
@@ -206,8 +207,8 @@ class Entity():
 
         for key, value in items.iteritems():
             items[key] = dict(items[key].items() + self.__get_displayfields(value).items())
+            items[key]['displaypicture'] = self.__get_picture_url(value['id'])
 
-            logging.info(items[key])
         return items.values()
 
     def __get_displayfields(self, entity_dict):
@@ -219,6 +220,7 @@ class Entity():
             SELECT
             %(language)s_displayname AS displayname,
             %(language)s_displayinfo AS displayinfo,
+            %(language)s_displaytable AS displaytable,
             %(language)s_displaytable AS displaytable
             FROM entity_definition
             WHERE id = %(id)s
@@ -228,12 +230,26 @@ class Entity():
 
         edef = self.db.get(sql)
         result = {}
-        for i in edef.keys():
-            result[i] = edef[i]
-            for data_property in findTags(edef[i], '@', '@'):
-                result[i] = result[i].replace('@%s@' % data_property, ', '.join([x['value'] for x in entity_dict.get('properties', {}).get(data_property, {}).get('values', {}).values()]))
+        for key, value in edef.iteritems():
+            result[key] = value if value else ''
+            for data_property in findTags(value, '@', '@'):
+                result[key] = result[key].replace('@%s@' % data_property, ', '.join(['%s' % x['value'] for x in entity_dict.get('properties', {}).get(data_property, {}).get('values', {}).values()]))
 
+        result['displaytable_labels'] = edef.displaytable if edef.displaytable else ''
+        for data_property in findTags(edef.displaytable, '@', '@'):
+            result['displaytable_labels'] = result['displaytable_labels'].replace('@%s@' % data_property, entity_dict.get('properties', {}).get(data_property, {}).get('label', ''))
+        result['displaytable'] = result['displaytable'].split('|') if result['displaytable'] else None
+        result['displaytable_labels'] = result['displaytable_labels'].split('|') if result['displaytable_labels'] else None
+
+        # logging.info(result.get('displaytable_labels'))
         return result
+
+    def __get_picture_url(self, entity_id):
+        """
+        Returns Entity picture.
+
+        """
+        return 'http://www.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
 
     def get_relatives(self, entity_id=None, relation_type=None, limit=None):
         """
@@ -268,15 +284,12 @@ class Entity():
 
         items = {}
         for item in self.db.query(sql):
-            items.setdefault(item.type, []).append(self.__get_properties(item.id)[0])
+            ent = self.__get_properties(item.id)
+            if not ent:
+                continue
+            ent = ent[0]
+            items.setdefault(item.type, {}).setdefault('%s' % ent.get('label_plural', ''), []).append(ent)
         return items
-
-    def get_picture_url(self, entity_id):
-        """
-        Returns Entity picture.
-
-        """
-        return 'http://www.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
 
     def get_file(self, file_id):
         """
@@ -308,6 +321,8 @@ class Entity():
 
         result = self.db.get(sql)
 
+        if not result:
+            return
         if not result.file:
             return
 

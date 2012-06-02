@@ -38,12 +38,11 @@ class PublicSearchHandler(myRequestHandler):
             entities = db.Entity(user_locale=self.get_user_locale()).get(search=search)
             if entities:
                 for item in entities:
-                    name = ', '.join([x['value'] for x in item.get('properties', {}).get('title', {}).get('values', {}).values()])
                     number = ', '.join([x['value'] for x in item.get('properties', {}).get('registry_number', {}).get('values', {}).values()])
                     items.append({
-                        'url': '/public/entity-%s/%s' % (item.get('id', ''), toURL(name)),
+                        'url': '/public/entity-%s/%s' % (item.get('id', ''), toURL(item.get('displayname', ''))),
                         'number': number,
-                        'name': name,
+                        'name': item.get('displayname', ''),
                         'date': item.get('created', '').strftime('%d.%m.%Y'),
                         'file': len(item.get('properties', {}).get('public_files', {}).get('values', {}).values()),
                     })
@@ -88,12 +87,10 @@ class PublicEntityHandler(myRequestHandler):
             return self.missing()
 
         item = item[0]
-        item_name = ', '.join([x['value'] for x in item.get('properties', {}).get('title', {}).get('values', {}).values()])
+        item_name = item.get('displayname', '')
 
         props = []
         for p in item.get('properties', {}).values():
-            if p.get('dataproperty', '') == 'title':
-                continue
             if p.get('datatype', '') == 'file':
                 value = '<br />'.join(['<a href="/public/file-%s/%s" title="%s">%s</a>' % (x['file_id'], toURL(x['value']), x['filesize'], x['value']) for x in p.get('values', {}).values() if x['value']])
             else:

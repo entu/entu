@@ -48,7 +48,7 @@ class ShowListinfo(myRequestHandler):
             'id': item['id'],
             'title': item['displayname'],
             'info': item['displayinfo'],
-            'image': entity.get_picture_url(item['id']),
+            'image': item['displaypicture'],
         })
 
 
@@ -65,8 +65,6 @@ class ShowEntity(myRequestHandler):
             return
 
         item = item[0]
-        item_name = ', '.join([x['value'] for x in item.get('properties', {}).get('title', {}).get('values', {}).values()])
-        item_picture = entity.get_picture_url(entity_id=item['id'])
 
         relatives = entity.get_relatives(entity_id=item['id'], relation_type='subbubble')
 
@@ -83,9 +81,11 @@ class ShowEntity(myRequestHandler):
                 'value': value
             })
 
+        # logging.info(relatives)
+
         self.render('entity/item.html',
-            item_name = item_name,
-            item_picture = item_picture,
+            item_name = item['displayname'],
+            item_picture = item['displaypicture'],
             properties = sorted(props, key=itemgetter('ordinal')),
             relatives = relatives,
         )
