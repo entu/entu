@@ -16,10 +16,12 @@ class ShowGroup(myRequestHandler):
         Show entities page with menu.
 
         """
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
         self.render('entity/start.html',
-            page_title = self.locale.translate('search_results'),
-            menu = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get_menu(),
-            show_list = True if entity_definition_id else False
+            page_title = entity.get_entity_definition(entity_definition_id=entity_definition_id).label_plural if entity_definition_id else 'a',
+            menu = entity.get_menu(),
+            show_list = True if entity_definition_id else False,
+            entity_definition = entity_definition_id,
         )
 
     @web.authenticated
@@ -43,7 +45,6 @@ class ShowListinfo(myRequestHandler):
         """
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
         item = entity.get(entity_id=entity_id, limit=1)[0]
-        name = ', '.join([x['value'] for x in sorted(item.get('properties', {}).values(), key=itemgetter('ordinal'))[0].get('values', {}).values()])
         self.write({
             'id': item['id'],
             'title': item['displayname'],
@@ -66,7 +67,7 @@ class ShowEntity(myRequestHandler):
 
         item = item[0]
 
-        relatives = entity.get_relatives(entity_id=item['id'], relation_type='subbubble')
+        relatives = entity.get_relatives(entity_id=item['id'], relation_type='child')
 
         props = []
         for p in item.get('properties', {}).values():
@@ -84,6 +85,7 @@ class ShowEntity(myRequestHandler):
         # logging.info(relatives)
 
         self.render('entity/item.html',
+            page_title = item['displayname'],
             item_name = item['displayname'],
             item_picture = item['displaypicture'],
             properties = sorted(props, key=itemgetter('ordinal')),

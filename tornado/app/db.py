@@ -105,44 +105,38 @@ class Entity():
 
         sql = """
             SELECT
-            entity_definition.id AS entity_definition_id,
-            entity.id AS entity_id,
-            property_definition.id AS property_definition_id,
-            property.id AS property_id,
-
-            entity.created AS entity_created,
-
-            entity_definition.%(language)s_label AS entity_label,
-            entity_definition.%(language)s_label_plural AS entity_label_plural,
-            entity_definition.%(language)s_description AS entity_description,
-            entity_definition.%(language)s_displayname AS entity_displayname,
-            entity_definition.%(language)s_displayinfo AS entity_displayinfo,
-
-            property_definition.%(language)s_fieldset AS property_fieldset,
-            property_definition.%(language)s_label AS property_label,
-            property_definition.%(language)s_label_plural AS property_label_plural,
-            property_definition.%(language)s_description AS property_description,
-
-            property.id AS property_id,
-            property.value_string AS value_string,
-            property.value_text AS value_text,
-            property.value_integer AS value_integer,
-            property.value_decimal AS value_decimal,
-            property.value_boolean AS value_boolean,
-            property.value_datetime AS value_datetime,
-            property.value_reference AS value_reference,
-            property.value_file AS value_file,
-            property_definition.datatype AS property_datatype,
-            property_definition.dataproperty AS property_dataproperty,
-            property_definition.multiplicity AS property_multiplicity,
-            property_definition.ordinal AS property_ordinal
-
+                entity_definition.id                            AS entity_definition_id,
+                entity.id                                       AS entity_id,
+                entity_definition.%(language)s_label            AS entity_label,
+                entity_definition.%(language)s_label_plural     AS entity_label_plural,
+                entity_definition.%(language)s_description      AS entity_description,
+                entity.created                                  AS entity_created,
+                entity_definition.%(language)s_displayname      AS entity_displayname,
+                entity_definition.%(language)s_displayinfo      AS entity_displayinfo,
+                entity_definition.%(language)s_displaytable     AS entity_displaytable,
+                property_definition.%(language)s_fieldset       AS property_fieldset,
+                property_definition.%(language)s_label          AS property_label,
+                property_definition.%(language)s_label_plural   AS property_label_plural,
+                property_definition.%(language)s_description    AS property_description,
+                property_definition.datatype                    AS property_datatype,
+                property_definition.dataproperty                AS property_dataproperty,
+                property_definition.multilingual                AS property_multilingual,
+                property_definition.multiplicity                AS property_multiplicity,
+                property_definition.ordinal                     AS property_ordinal,
+                property.id                                     AS value_id,
+                property.value_string                           AS value_string,
+                property.value_text                             AS value_text,
+                property.value_integer                          AS value_integer,
+                property.value_decimal                          AS value_decimal,
+                property.value_boolean                          AS value_boolean,
+                property.value_datetime                         AS value_datetime,
+                property.value_reference                        AS value_reference,
+                property.value_file                             AS value_file
             FROM
-            entity,
-            entity_definition,
-            property,
-            property_definition
-
+                entity,
+                entity_definition,
+                property,
+                property_definition
             WHERE property.entity_id = entity.id
             AND entity_definition.id = entity.entity_definition_id
             AND property_definition.id = property.property_definition_id
@@ -150,6 +144,9 @@ class Entity():
             AND (property.language = '%(language)s' OR property.language IS NULL)
             %(public)s
             AND entity.id IN (%(idlist)s)
+            ORDER BY
+                entity_definition.id,
+                entity.id
         """ % {'language': self.language, 'public': public, 'idlist': ','.join(map(str, entity_id))}
         # logging.info(sql)
 
@@ -164,14 +161,17 @@ class Entity():
             items.setdefault('item_%s' % row.entity_id, {})['label_plural'] = row.entity_label_plural
             items.setdefault('item_%s' % row.entity_id, {})['description'] = row.entity_description
             items.setdefault('item_%s' % row.entity_id, {})['created'] = row.entity_created
-            items.setdefault('item_%s' % row.entity_id, {})['entity_definition_id'] = row.entity_definition_id
+            items.setdefault('item_%s' % row.entity_id, {})['displayname'] = row.entity_displayname
+            items.setdefault('item_%s' % row.entity_id, {})['displayinfo'] = row.entity_displayinfo
+            items.setdefault('item_%s' % row.entity_id, {})['displaytable'] = row.entity_displaytable
 
             #Property
-            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['id'] = row.property_id
             items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['label'] = row.property_label
+            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['label_plural'] = row.property_label_plural
             items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['description'] = row.property_description
             items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['datatype'] = row.property_datatype
             items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['dataproperty'] = row.property_dataproperty
+            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multilingual'] = row.property_multilingual
             items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multiplicity'] = row.property_multiplicity
             items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['ordinal'] = row.property_ordinal
 
@@ -188,22 +188,22 @@ class Entity():
                 value = formatDatetime(row.value_datetime, '%(day)d.%(month)d.%(year)d')
             elif row.property_datatype == 'datetime':
                 value = formatDatetime(row.value_datetime)
-            elif row.property_datatype in ['reference']:
+            elif row.property_datatype == 'reference':
                 value = row.value_reference
             elif row.property_datatype == 'file':
                 blobstore = self.db.get('SELECT id, filename, filesize FROM file WHERE id=%s', row.value_file)
                 value = blobstore.filename
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['file_id'] = blobstore.id
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['filesize'] = blobstore.filesize
-            elif row.property_datatype in ['boolean']:
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['file_id'] = blobstore.id
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id , {})['filesize'] = blobstore.filesize
+            elif row.property_datatype == 'boolean':
                 value = self.user_locale.translate('boolean_true') if row.value_boolean == 1 else self.user_locale.translate('boolean_false')
-            elif row.property_datatype in ['counter']:
+            elif row.property_datatype == 'counter':
                 value = row.value_reference
             else:
                 value = 'X'
 
-            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['value'] = value
-            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.property_id, {})['id'] = row.property_id
+            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['id'] = row.value_id
+            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['value'] = value
 
         for key, value in items.iteritems():
             items[key] = dict(items[key].items() + self.__get_displayfields(value).items())
@@ -216,28 +216,16 @@ class Entity():
         Returns Entity displayname, displayinfo, displaytable fields.
 
         """
-        sql = """
-            SELECT
-            %(language)s_displayname AS displayname,
-            %(language)s_displayinfo AS displayinfo,
-            %(language)s_displaytable AS displaytable,
-            %(language)s_displaytable AS displaytable
-            FROM entity_definition
-            WHERE id = %(id)s
-            LIMIT 1
-        """ % {'language': self.language, 'id': entity_dict.get('entity_definition_id', '0') }
-        # logging.info(sql)
-
-        edef = self.db.get(sql)
         result = {}
-        for key, value in edef.iteritems():
-            result[key] = value if value else ''
-            for data_property in findTags(value, '@', '@'):
-                result[key] = result[key].replace('@%s@' % data_property, ', '.join(['%s' % x['value'] for x in entity_dict.get('properties', {}).get(data_property, {}).get('values', {}).values()]))
+        for displayfield in ['displayname', 'displayinfo', 'displaytable']:
+            result[displayfield] = entity_dict[displayfield] if entity_dict[displayfield] else ''
+            for data_property in findTags(entity_dict[displayfield], '@', '@'):
+                result[displayfield] = result[displayfield].replace('@%s@' % data_property, ', '.join(['%s' % x['value'] for x in entity_dict.get('properties', {}).get(data_property, {}).get('values', {}).values()]))
 
-        result['displaytable_labels'] = edef.displaytable if edef.displaytable else ''
-        for data_property in findTags(edef.displaytable, '@', '@'):
+        result['displaytable_labels'] = entity_dict['displaytable'] if entity_dict['displaytable'] else ''
+        for data_property in findTags(entity_dict['displaytable'], '@', '@'):
             result['displaytable_labels'] = result['displaytable_labels'].replace('@%s@' % data_property, entity_dict.get('properties', {}).get(data_property, {}).get('label', ''))
+
         result['displaytable'] = result['displaytable'].split('|') if result['displaytable'] else None
         result['displaytable_labels'] = result['displaytable_labels'].split('|') if result['displaytable_labels'] else None
 
@@ -327,6 +315,27 @@ class Entity():
             return
 
         return result
+
+    def get_entity_definition(self, entity_definition_id):
+        """
+        Returns entity_definition.
+
+        """
+        sql = """
+            SELECT
+            id,
+            %(language)s_label AS label,
+            %(language)s_label_plural AS label_plural,
+            %(language)s_description AS description,
+            %(language)s_menu AS menugroup
+            FROM
+            entity_definition
+            WHERE id = %(id)s
+            LIMIT 1
+        """  % {'language': self.language, 'id': entity_definition_id}
+        logging.info(sql)
+
+        return self.db.get(sql)
 
     def get_menu(self):
         """
