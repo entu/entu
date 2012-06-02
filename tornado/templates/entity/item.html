@@ -62,12 +62,12 @@
                 {% if i.get('displaytable', None) %}
                     {% for x in i.get('displaytable', '') %}
                     <td style="min-width:100px;">
-                        {{ x }}
+                        <a href="#{{ i.get('id', '') }}" class="open_child" style="display:block;">{{ x }}</a>
                     </td>
                     {% end %}
                 {% else %}
                 <td style="">
-                    {{ i.get('displayinfo', '') }}
+                    <a href="#{{ i.get('id', '') }}" class="open_child" style="display:block;">{{ i.get('displayname', '') }}</a>
                 </td>
                 {% end %}
             </tr>
@@ -80,9 +80,12 @@
 <script>
     $(document).ready(function(){
 
+        entity_id = window.location.hash.substring(1);
+
+        document.title = '{{ page_title }}';
+
         $('.toggle-table').click(function() {
             $(this).parent().children('tbody').toggle();
-
         });
 
     });

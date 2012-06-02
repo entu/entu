@@ -2,20 +2,20 @@ function removeBubbleInfo(key) {
     //$.jStorage.deleteKey('BubbleInfo_' + key);
 };
 
-function getEntityInfo(bubbletype, id, div, listtype) {
+function getEntityInfo(bubbletype, id, div) {
     entity_json = '';// $.jStorage.get('BubbleInfo_' + key);
     if (entity_json) {
-        makeEntityInfo(bubbletype, entity_json, div, listtype)
+        makeEntityInfo(bubbletype, entity_json, div)
     } else {
         $.post('/entity-'+id+'/listinfo', function(entity_json) {
-            makeEntityInfo(bubbletype, entity_json, div, listtype);
+            makeEntityInfo(bubbletype, entity_json, div);
             //$.jStorage.set('BubbleInfo_' + entity_json.key, entity_json);
             //$.jStorage.setTTL('BubbleInfo_' + entity_json.key, 300000)
         }, 'json');
     }
 };
 
-function makeEntityInfo(bubbletype, entity_json, div, listtype) {
+function makeEntityInfo(bubbletype, entity_json, div) {
     if(entity_json.image) {
         image = '<img src="'+entity_json.image+'" />';
     } else {
@@ -31,22 +31,11 @@ function makeEntityInfo(bubbletype, entity_json, div, listtype) {
     } else {
         count = '';
     };
-    if(listtype == 'searchlist') {
-        $(div).html(count+image+entity_json.title+info);
-        $(div).attr('href', '#'+entity_json.id);
-        $(div).removeClass('empty_item');
-        if('#'+entity_json.id == window.location.hash) {
-            $(div).addClass('active');
-        };
-    };
-    if(listtype == 'accordion') {
-        $(div).html(entity_json.title+info);
-        if (entity_json.type == bubbletype) {
-            $(div).attr('href', '#'+entity_json.id);
-            $(div).addClass('open_subbubble');
-        } else {
-            $(div).attr('href', '/bubble/'+entity_json.type+'#'+entity_json.id);
-        };
+
+    $(div).html(count+image+entity_json.title+info);
+    $(div).removeClass('empty_item');
+    if('#'+entity_json.id == window.location.hash) {
+        $(div).addClass('active');
     };
 };
 

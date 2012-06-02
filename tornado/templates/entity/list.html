@@ -5,15 +5,27 @@
 </div>
 <script>
     $(document).ready(function(){
-        old_search = $('#searchbox').val();
-
         if(window.location.hash) {
             open_item(window.location.hash.substring(1));
+        };
+
+        $(window).bind('hashchange', function() {
+            open_item(window.location.hash.substring(1))
+        });
+
+        function open_item(id) {
+            $('#content').html('');
+            $('#list_items a.active').removeClass('active');
+            $('#list_items a[href$="#'+id+'"]').addClass('active');
+            $.get('/entity-'+id, function(html) {
+                $('#content').html(html);
+            });
         };
 
         items = [];
         get_list();
 
+        old_search = $('#searchbox').val();
         $('#searchbox').keyup(function(e) {
             if(old_search != $('#searchbox').val()) {
                 old_search = $('#searchbox').val();
@@ -57,19 +69,6 @@
             });
         };
 
-        function open_item(id) {
-            $('#content').html('');
-            $.get('/entity-'+id, function(html) {
-                $('#content').html(html);
-            });
-        };
-
-        $('#list_items a').live('click', function() {
-            var item = $(this);
-            open_item(item.attr('href').substring(1));
-            $('#list_items a.active').removeClass('active');
-            item.addClass('active');
-        });
 
     });
 </script>
