@@ -1,14 +1,19 @@
-help,"Help"
-menu_login,"Login"
-menu_exit,"Logout"
+help,Help
+menu_login,Login
+menu_exit,Logout
 
-search_button,"Search"
-search_placeholder,"Search something..."
-search_term_to_short,"Searching term '%s' is to short. Try to double it."
-search_noresult,"Didn't found enything. Try again."
-search_result,"Found"
-search_result_count1,"Found just one"
-search_result_count2,"Found %s"
+search_button,Search
+search_placeholder,Search something...
+search_term_to_short,Searching term '%s' is to short. Try to double it.
+search_noresult,Didn't found enything. Try again.
+search_result,Found
+search_result_count1,Found just one
+search_result_count2,Found %s
 
-boolean_true,"Yes"
-boolean_false,"No"
+boolean_true,Yes
+boolean_false,No
+
+counter_generate_value,Generate number
+
+public,Public
+public_description,Make this document accessible in public view

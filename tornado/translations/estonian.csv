@@ -1,14 +1,19 @@
-help,"Abi"
-menu_login,"Sisene"
-menu_exit,"Välju"
+help,Abi
+menu_login,Sisene
+menu_exit,Välju
 
-search_button,"Otsi"
-search_placeholder,"Pime kana leiab tera..."
-search_term_to_short,"Otsisõna '%s' on liiga lühike. Proovi 2x pikemat."
-search_noresult,"Ei leidnud midagi. Proovi uuesti."
-search_result,"Leiti"
-search_result_count1,"Leiti üks"
-search_result_count2,"Leiti %s"
+search_button,Otsi
+search_placeholder,Pime kana leiab tera...
+search_term_to_short,Otsisõna '%s' on liiga lühike. Proovi 2x pikemat.
+search_noresult,Ei leidnud midagi. Proovi uuesti.
+search_result,Leiti
+search_result_count1,Leiti üks
+search_result_count2,Leiti %s
 
-boolean_true,"Jah"
-boolean_false,"Ei"
+boolean_true,Jah
+boolean_false,Ei
+
+counter_generate_value,Genereeri number
+
+public,Avalik
+public_description,Tee see dokument nähtavaks avalikus vaates

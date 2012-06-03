@@ -1,6 +1,18 @@
 {% extends 'index.html' %}
 
+
+{% block toolbar %}
+<ul class="nav" style="margin:0px;">
+    {% if show_list %}
+    <li id="list_search"><input type="search" id="searchbox" class="search-query" placeholder="{{ _('search_placeholder') }}" /><span></span></li>
+    {% end %}
+</ul>
+<ul id="toolbar" class="nav">
+</ul>
+{% end %}
+
+
 {% block content %}
-    <div id="content">
-    </div>
+<div id="content">
+</div>
 {% end %}

@@ -1,0 +1,80 @@
+<table class="table table-condensed">
+    <tbody>
+        {% for p in entity.get('properties', []) %}
+        <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
+            <th style="text-align:right; white-space:nowrap; vertical-align:middle;">
+                <h6>{%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}</h6>
+            </th>
+            <td style="width:100%; padding-bottom:0px; vertical-align:middle;">
+                {% if p['datatype'] in ['string', 'datetime', 'date'] %}
+                    {% for v in p['values'] %}
+                        <input type="text" class="dtype-{{ p['datatype'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" value="{{ v['value'] }}" style="width:98%;margin-bottom:4px;" />
+                    {% end %}
+                {% elif p['datatype'] == 'text' %}
+                    {% for v in p['values'] %}
+                        <textarea class="dtype-{{ p['datatype'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" style="width:98%;margin-bottom:4px;">{{ v['value'] }}</textarea>
+                    {% end %}
+                {% elif p['datatype'] == 'file' %}
+                    {% for v in p['values'] %}
+                        {% if v['id'] == 'new' %}
+                            <span id="blobstore_upload_{{ p['id'] }}"></span>
+                            <img src="/images/spinner_gray_small.gif" style="display:none;" />
+                            <iframe name="iframe_{{ p['id'] }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML, '#blobstore_upload_{{ p['id'] }}');" style="display:none;"></iframe>
+                            <form method="post" action="" target="iframe_{{ p['id'] }}" enctype="multipart/form-data" style="margin:0px; padding:0px;">
+                                <input type="hidden" name="property" value="{{ p['id'] }}" />
+                                <input type="file" name="file" style="border:none; width:80px; margin-bottom:4px;" />
+                            </form>
+                        {% else %}
+                            <a href="/public/file-{{ v['db_value'] }}">{{ v['value'] }}</a><br />
+                        {% end %}
+                    {% end %}
+                {% elif p['datatype'] == 'counter_value' %}
+                    {% for v in p['values'] %}
+                        {% if v['value'] %}
+                            {{ v['value'] }}
+                        {% else %}
+                            <button data-id="{{ v['id'] }}" class="btn btn-warning" style="margin-bottom:4px;">{{ _('counter_generate_value') }}...</button>
+                        {% end %}
+                    {% end %}
+                {% else %}
+                    {{ p['datatype'] }}
+                {% end %}
+            </td>
+        </tr>
+        {% end %}
+        <tr title="{{ _('public_description') }}">
+            <th style="text-align:right; white-space:nowrap; vertical-align:middle;">
+                <h6>{{ _('public') }}</h6>
+            </th>
+            <td style="width:100%; vertical-align:middle;">
+                <input type="checkbox" {% if entity['is_public'] %} checked{% end %} />
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<script>
+    $(document).ready(function(){
+
+        $('#modal-box-label').html('{{ entity['displayname'] }}');
+
+        $('[title]').tooltip({placement: 'bottom'});
+        $('textarea').elastic();
+
+        $('.dtype-datetime').change(function() {
+            $(this).val(format_date($(this).val(), 'dd.MM.yyyy HH:mm'));
+        });
+        $('.dtype-date').change(function() {
+            $(this).val(format_date($(this).val(), 'dd.MM.yyyy'));
+        });
+        function format_date(dinput, format) {
+            var result = ''
+            dvalue = Date.parse(dinput);
+            if(dvalue) {
+                result = dvalue.toString(format);
+            }
+            return result;
+        }
+
+    });
+</script>

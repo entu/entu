@@ -2,6 +2,8 @@ from tornado import database
 from tornado import locale
 from tornado.options import options
 
+from operator import itemgetter
+
 import logging
 import hashlib
 import re
@@ -35,17 +37,43 @@ class Entity():
             if type(self.user_id) is not list:
                 self.user_id = [self.user_id]
 
-    def get(self, ids_only=False, entity_id=None, search=None, entity_definition=None, limit=None):
+    def get(self, ids_only=False, entity_id=None, search=None, entity_definition=None, limit=None, full_definition=False):
         """
-        If ids_only==True, then returns list of Entity IDs. Else returns list of Entities (with properties) as dictionary. entity_id and entity_definition can be single ID or list of IDs.
+        If ids_only = True, then returns list of Entity IDs. Else returns list of Entities (with properties) as dictionary. entity_id and entity_definition can be single ID or list of IDs. If limit = 1 returns Entity (not list). If full_definition = True returns also empty properties.
 
         """
         ids = self.__get_id_list(entity_id=entity_id, search=search, entity_definition=entity_definition, limit=limit)
-
         if ids_only:
             return ids
 
-        return self.__get_properties(entity_id=ids)
+        entities = self.__get_properties(entity_id=ids)
+        if not entities:
+            return
+
+        for entity in entities:
+            if full_definition:
+                for d in self.get_definition(entity_definition_id=entity['definition_id']):
+                    entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['id'] = d.property_id
+                    entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['label'] = d.property_label
+                    entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['label_plural'] = d.property_label_plural
+                    entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['description'] = d.property_description
+                    entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['datatype'] = d.property_datatype
+                    entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['dataproperty'] = d.property_dataproperty
+                    entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['multilingual'] = d.property_multilingual
+                    entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['multiplicity'] = d.property_multiplicity
+                    entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['ordinal'] = d.property_ordinal
+                    if not d.property_multiplicity or d.property_multiplicity > len(entity.get('properties', {}).get('%s' % d.property_dataproperty, {}).get('values', {}).values()):
+                        entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {}).setdefault('values', {})['value_new'] = {'id': 'new', 'ordinal': 'X', 'value': '', 'db_value': ''}
+
+            entity['properties'] = sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal'))
+
+            for p in entity['properties']:
+                p['values'] = sorted(p.get('values', {}).values(), key=itemgetter('ordinal'))
+
+        if limit == 1:
+            return entities[0]
+
+        return entities
 
     def __get_id_list(self, entity_id=None, search=None, entity_definition=None, limit=None):
         """
@@ -101,19 +129,23 @@ class Entity():
         if self.user_id:
             public = ''
         else:
-            public = 'AND property_definition.public = 1 AND entity.public = 1'
+            public = 'AND entity.public = 1 AND property_definition.public = 1'
 
         sql = """
             SELECT
                 entity_definition.id                            AS entity_definition_id,
+                entity.gae_key                                  AS entity_gaekey,
                 entity.id                                       AS entity_id,
                 entity_definition.%(language)s_label            AS entity_label,
                 entity_definition.%(language)s_label_plural     AS entity_label_plural,
                 entity_definition.%(language)s_description      AS entity_description,
                 entity.created                                  AS entity_created,
+                entity.public                                   AS entity_public,
                 entity_definition.%(language)s_displayname      AS entity_displayname,
                 entity_definition.%(language)s_displayinfo      AS entity_displayinfo,
                 entity_definition.%(language)s_displaytable     AS entity_displaytable,
+                property_definition.id                          AS property_id,
+                property_definition.ordinal                     AS property_ordinal,
                 property_definition.%(language)s_fieldset       AS property_fieldset,
                 property_definition.%(language)s_label          AS property_label,
                 property_definition.%(language)s_label_plural   AS property_label_plural,
@@ -122,8 +154,8 @@ class Entity():
                 property_definition.dataproperty                AS property_dataproperty,
                 property_definition.multilingual                AS property_multilingual,
                 property_definition.multiplicity                AS property_multiplicity,
-                property_definition.ordinal                     AS property_ordinal,
                 property.id                                     AS value_id,
+                property.ordinal                                AS value_ordinal,
                 property.value_string                           AS value_string,
                 property.value_text                             AS value_text,
                 property.value_integer                          AS value_integer,
@@ -131,6 +163,7 @@ class Entity():
                 property.value_boolean                          AS value_boolean,
                 property.value_datetime                         AS value_datetime,
                 property.value_reference                        AS value_reference,
+                property.value_counter                          AS value_counter,
                 property.value_file                             AS value_file
             FROM
                 entity,
@@ -152,11 +185,13 @@ class Entity():
 
         items = {}
         for row in self.db.query(sql):
-            if not row.value_string and not row.value_text and not row.value_integer and not row.value_decimal and not row.value_boolean and not row.value_datetime and not row.value_reference and not row.value_file:
+            if not row.value_string and not row.value_text and not row.value_integer and not row.value_decimal and not row.value_boolean and not row.value_datetime and not row.value_reference and not row.value_counter and not row.value_file:
                 continue
 
             #Entity
+            items.setdefault('item_%s' % row.entity_id, {})['definition_id'] = row.entity_definition_id
             items.setdefault('item_%s' % row.entity_id, {})['id'] = row.entity_id
+            items.setdefault('item_%s' % row.entity_id, {})['gae_key'] = row.entity_gaekey
             items.setdefault('item_%s' % row.entity_id, {})['label'] = row.entity_label
             items.setdefault('item_%s' % row.entity_id, {})['label_plural'] = row.entity_label_plural
             items.setdefault('item_%s' % row.entity_id, {})['description'] = row.entity_description
@@ -164,8 +199,11 @@ class Entity():
             items.setdefault('item_%s' % row.entity_id, {})['displayname'] = row.entity_displayname
             items.setdefault('item_%s' % row.entity_id, {})['displayinfo'] = row.entity_displayinfo
             items.setdefault('item_%s' % row.entity_id, {})['displaytable'] = row.entity_displaytable
+            items.setdefault('item_%s' % row.entity_id, {})['file_count'] = 0
+            items.setdefault('item_%s' % row.entity_id, {})['is_public'] = True if row.entity_public == 1 else False
 
             #Property
+            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['id'] = row.property_id
             items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['label'] = row.property_label
             items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['label_plural'] = row.property_label_plural
             items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['description'] = row.property_description
@@ -177,33 +215,49 @@ class Entity():
 
             #Value
             if row.property_datatype in ['string', 'select']:
+                db_value = row.value_string
                 value = row.value_string
             elif row.property_datatype == 'text':
+                db_value = row.value_text
                 value = row.value_text
             elif row.property_datatype == 'integer':
+                db_value = row.value_integer
                 value = row.value_integer
             elif row.property_datatype == 'float':
+                db_value = row.value_decimal
                 value = row.value_decimal
             elif row.property_datatype == 'date':
+                db_value = row.value_datetime
                 value = formatDatetime(row.value_datetime, '%(day)d.%(month)d.%(year)d')
             elif row.property_datatype == 'datetime':
+                db_value = row.value_datetime
                 value = formatDatetime(row.value_datetime)
             elif row.property_datatype == 'reference':
+                db_value = row.value_reference
                 value = row.value_reference
             elif row.property_datatype == 'file':
-                blobstore = self.db.get('SELECT id, filename, filesize FROM file WHERE id=%s', row.value_file)
+                db_value = row.value_file
+                blobstore = self.db.get('SELECT id, filename, filesize FROM file WHERE id=%s LIMIT 1', row.value_file)
                 value = blobstore.filename
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['file_id'] = blobstore.id
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id , {})['filesize'] = blobstore.filesize
+                items.setdefault('item_%s' % row.entity_id, {})['file_count'] += 1
             elif row.property_datatype == 'boolean':
+                db_value = row.value_boolean
                 value = self.user_locale.translate('boolean_true') if row.value_boolean == 1 else self.user_locale.translate('boolean_false')
             elif row.property_datatype == 'counter':
-                value = row.value_reference
+                counter = self.db.get('SELECT %(language)s_label AS label FROM counter WHERE id=%(id)s LIMIT 1' % {'language': self.language, 'id': row.value_counter})
+                db_value = row.value_counter
+                value = counter.label
+            elif row.property_datatype == 'counter_value':
+                db_value = row.value_string
+                value = row.value_string
             else:
+                db_value = ''
                 value = 'X'
 
             items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['id'] = row.value_id
+            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['ordinal'] = row.value_ordinal
             items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['value'] = value
+            items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['db_value'] = db_value
 
         for key, value in items.iteritems():
             items[key] = dict(items[key].items() + self.__get_displayfields(value).items())
@@ -238,6 +292,43 @@ class Entity():
 
         """
         return 'http://www.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
+
+    def get_definition(self, entity_definition_id):
+        """
+        Returns Entity definition.
+
+        """
+        if not entity_definition_id:
+            return
+
+        sql = """
+            SELECT
+                entity_definition.id AS entity_definition_id,
+                entity_definition.%(language)s_label AS entity_label,
+                entity_definition.%(language)s_label_plural AS entity_label_plural,
+                entity_definition.%(language)s_description AS entity_description,
+                entity_definition.%(language)s_displayname AS entity_displayname,
+                entity_definition.%(language)s_displayinfo AS entity_displayinfo,
+                entity_definition.%(language)s_displaytable AS entity_displaytable,
+                property_definition.id AS property_id,
+                property_definition.%(language)s_fieldset AS property_fieldset,
+                property_definition.%(language)s_label AS property_label,
+                property_definition.%(language)s_label_plural AS property_label_plural,
+                property_definition.%(language)s_description AS property_description,
+                property_definition.datatype AS property_datatype,
+                property_definition.dataproperty AS property_dataproperty,
+                property_definition.multilingual AS property_multilingual,
+                property_definition.multiplicity AS property_multiplicity,
+                property_definition.ordinal AS property_ordinal
+            FROM
+                entity_definition,
+                property_definition
+            WHERE entity_definition.id = property_definition.entity_definition_id
+            AND entity_definition.id = %(id)s
+        """ % {'language': self.language, 'id': entity_definition_id}
+        # logging.info(sql)
+
+        return self.db.query(sql)
 
     def get_relatives(self, entity_id=None, relation_type=None, limit=None):
         """
@@ -333,9 +424,52 @@ class Entity():
             WHERE id = %(id)s
             LIMIT 1
         """  % {'language': self.language, 'id': entity_definition_id}
-        logging.info(sql)
+        # logging.info(sql)
 
         return self.db.get(sql)
+
+    def get_allowed_childs(self, entity_id):
+        """
+        Returns allowed child definitions.
+
+        """
+        sql = """
+            SELECT
+            entity_definition.id,
+            entity_definition.%(language)s_label AS label,
+            entity_definition.%(language)s_label_plural AS label_plural,
+            entity_definition.%(language)s_description AS description,
+            entity_definition.%(language)s_menu AS menugroup
+            FROM
+            entity_definition,
+            relationship
+            WHERE relationship.related_entity_definition_id = entity_definition.id
+            AND relationship.type = 'allowed_child'
+            AND relationship.entity_id = %(id)s
+        """  % {'language': self.language, 'id': entity_id}
+        # logging.info(sql)
+
+        result = self.db.query(sql)
+        if result:
+            return result
+
+        sql = """
+            SELECT
+            entity_definition.id,
+            entity_definition.%(language)s_label AS label,
+            entity_definition.%(language)s_label_plural AS label_plural,
+            entity_definition.%(language)s_description AS description,
+            entity_definition.%(language)s_menu AS menugroup
+            FROM
+            entity_definition,
+            relationship
+            WHERE relationship.related_entity_definition_id = entity_definition.id
+            AND relationship.type='allowed_child'
+            AND relationship.entity_definition_id = (SELECT entity_definition_id FROM entity WHERE id = %(id)s)
+        """  % {'language': self.language, 'id': entity_id}
+        # logging.info(sql)
+
+        return self.db.query(sql)
 
     def get_menu(self):
         """
@@ -446,9 +580,9 @@ class User():
             db.execute('UPDATE user_profile SET user_id = %s WHERE id = %s;', user_id, profile.id)
 
 
-def formatDatetime(date, format='%(day)d.%(month)d.%(year)d %(hour)d:%(minute)d'):
+def formatDatetime(date, format='%(day)02d.%(month)02d.%(year)d %(hour)02d:%(minute)02d'):
     """
-    Formats and returns date as string. Format tags are %(day)d, %(month)d, %(year)d, %(hour)d and %(minute)d.
+    Formats and returns date as string. Format tags are %(day)02d, %(month)02d, %(year)d, %(hour)02d and %(minute)02d.
 
     """
     return format % {'year': date.year, 'month': date.month, 'day': date.day, 'hour': date.hour, 'minute': date.minute}

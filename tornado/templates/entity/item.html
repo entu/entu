@@ -1,20 +1,20 @@
 {% autoescape None %}
 
-<img src="{{ item_picture }}" class="1thumbnail" style="float:right; height:120px; width:120px; margin-bottom:20px;" />
-<h3 style="margin-right:140px;">{{ item_name }}</h3>
+<img src="{{ entity['displaypicture'] }}" id="entity_picture" class="" style="float:right; height:120px; width:120px; margin-bottom:20px;" />
+<h3 style="margin-right:140px;">{{ entity['displayname'] }}</h3>
 <div style="margin-right:140px;">
     <table class="table table-condensed">
         <tbody>
-            {% for i in properties %}
+            {% for p in entity['properties'] %}
             <tr>
                 <th style="text-align:right; white-space:nowrap;">
-                    <h6>{{ i['label'] }}</h6>
+                    <h6>{{ p['label'] }}</h6>
                 </th>
                 <td style="width:100%;">
-                    {% if 'url' in i %}
-                    <a hrfef="{{ i['value'] }}">{{ i['value'] }}</a>
+                    {% if p['datatype'] == 'file' %}
+                        {{ '<br />'.join(['<a href="/public/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
                     {% else %}
-                    {{ i['value'] }}
+                        {{ '<br />'.join([v['value'] for v in p['values']]) }}
                     {% end %}
                 </td>
             </tr>
@@ -22,6 +22,22 @@
         </tbody>
     </table>
 </div>
+
+<ul id="toolbar_template" style="display:none;">
+    {% if allowed_childs %}
+    <li class="dropdown toolbar-item">
+        <a href="#" class="dropdown-toggle header-menu-item" data-toggle="dropdown" data-icon="+"></a>
+        <ul class="dropdown-menu toolbar-item-add">
+            {% for c in allowed_childs %}
+            <li><a href="javascript:void(0);" data-id="{{ c.id }}">{{ c.label }}</a></li>
+            {% end %}
+        </ul>
+    </li>
+    {% end %}
+    <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-edit" data-icon="E"></a></li>
+    <!--li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-rights" data-icon="L"></a></li-->
+</ul>
+
 
 <!--ul class="nav nav-tabs" id="myTab" style="clear:both;">
     <li class="active"><a href="#home">Home</a></li>
@@ -80,12 +96,24 @@
 <script>
     $(document).ready(function(){
 
-        entity_id = window.location.hash.substring(1);
-
         document.title = '{{ page_title }}';
 
         $('.toggle-table').click(function() {
             $(this).parent().children('tbody').toggle();
+        });
+
+        $('#entity_picture').dblclick(function() {
+            window.open('https://appengine.google.com/datastore/edit?app_id=s~bubbledu&key={{ entity['gae_key'] }}');
+        });
+
+        $('#toolbar').html($('#toolbar_template').html());
+        $('#toolbar_template').html('')
+
+        $('#toolbar-item-edit').click(function() {
+            $.get('/entity-{{ entity['id'] }}/edit', function(html) {
+                $('#modal-box-content').html(html);
+                $('#modal-box').modal('show');
+            });
         });
 
     });

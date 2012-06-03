@@ -1,6 +1,5 @@
 from tornado import auth, web
 
-from operator import itemgetter
 import logging
 
 import db
@@ -44,7 +43,7 @@ class ShowListinfo(myRequestHandler):
 
         """
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
-        item = entity.get(entity_id=entity_id, limit=1)[0]
+        item = entity.get(entity_id=entity_id, limit=1)
         self.write({
             'id': item['id'],
             'title': item['displayname'],
@@ -62,34 +61,35 @@ class ShowEntity(myRequestHandler):
         """
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
         item = entity.get(entity_id=entity_id, limit=1)
-        if not item:
-            return
 
-        item = item[0]
+        if not item:
+            return self.missing()
 
         relatives = entity.get_relatives(entity_id=item['id'], relation_type='child')
-
-        props = []
-        for p in item.get('properties', {}).values():
-            if p.get('datatype', '') == 'file':
-                value = '<br />'.join(['<a href="/public/file-%s/%s" title="%s">%s</a>' % (x['file_id'], toURL(x['value']), x['filesize'], x['value']) for x in p.get('values', {}).values() if x['value']])
-            else:
-                value = '<br />'.join(['%s' % x['value'] for x in p.get('values', {}).values() if x['value']])
-
-            props.append({
-                'ordinal' : p.get('ordinal', 0),
-                'label' : p.get('label', ''),
-                'value': value
-            })
-
-        # logging.info(relatives)
+        allowed_childs = entity.get_allowed_childs(entity_id=item['id'])
 
         self.render('entity/item.html',
             page_title = item['displayname'],
-            item_name = item['displayname'],
-            item_picture = item['displaypicture'],
-            properties = sorted(props, key=itemgetter('ordinal')),
+            entity = item,
             relatives = relatives,
+            allowed_childs = allowed_childs,
+        )
+
+
+class ShowEntityEdit(myRequestHandler):
+    @web.authenticated
+    def get(self, entity_id=None, url=None):
+        """
+        Shows Entitiy info.
+
+        """
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
+        item = entity.get(entity_id=entity_id, limit=1, full_definition=True)
+        if not item:
+            return
+
+        self.render('entity/edit.html',
+            entity = item,
         )
 
 
@@ -97,5 +97,6 @@ handlers = [
     (r'/', ShowGroup),
     (r'/group-(.*)', ShowGroup),
     (r'/entity-(.*)/listinfo', ShowListinfo),
+    (r'/entity-(.*)/edit', ShowEntityEdit),
     (r'/entity-(.*)', ShowEntity),
 ]
