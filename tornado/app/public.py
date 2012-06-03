@@ -38,13 +38,11 @@ class PublicSearchHandler(myRequestHandler):
             entities = db.Entity(user_locale=self.get_user_locale()).get(search=search)
             if entities:
                 for item in entities:
-                    number = ', '.join([x['value'] for x in item.get('properties', {}).get('registry_number', {}).get('values', {}).values()])
                     items.append({
                         'url': '/public/entity-%s/%s' % (item.get('id', ''), toURL(item.get('displayname', ''))),
-                        'number': number,
                         'name': item.get('displayname', ''),
                         'date': item.get('created', '').strftime('%d.%m.%Y'),
-                        'file': len(item.get('properties', {}).get('public_files', {}).get('values', {}).values()),
+                        'file': item.get('file_count', 0),
                     })
 
         if len(search) < 2:
@@ -58,7 +56,7 @@ class PublicSearchHandler(myRequestHandler):
 
         self.render('public/list.html',
             page_title = self.locale.translate('search_results'),
-            items = sorted(items, key=itemgetter('name')) ,
+            entities = sorted(items, key=itemgetter('name')) ,
             itemcount = itemcount,
             search = urllib.unquote_plus(search)
         )
@@ -86,26 +84,9 @@ class PublicEntityHandler(myRequestHandler):
         if not item:
             return self.missing()
 
-        item = item[0]
-        item_name = item.get('displayname', '')
-
-        props = []
-        for p in item.get('properties', {}).values():
-            if p.get('datatype', '') == 'file':
-                value = '<br />'.join(['<a href="/public/file-%s/%s" title="%s">%s</a>' % (x['file_id'], toURL(x['value']), x['filesize'], x['value']) for x in p.get('values', {}).values() if x['value']])
-            else:
-                value = '<br />'.join([x['value'] for x in p.get('values', {}).values() if x['value']])
-
-            props.append({
-                'ordinal' : p.get('ordinal', 0),
-                'label' : p.get('label', ''),
-                'value': value
-            })
-
         self.render('public/item.html',
-            page_title = item_name,
-            item_name = item_name,
-            properties = sorted(props, key=itemgetter('ordinal')),
+            page_title = item['displayname'],
+            entity = item,
             search = ''
         )
 
