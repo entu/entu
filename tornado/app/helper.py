@@ -25,7 +25,7 @@ class myRequestHandler(RequestHandler):
 
         kwargs['app_title'] = self.settings['app_title']
         kwargs['app_logo_big'] = self.settings['app_logo_big']
-        kwargs['page_title'] = '%s - %s' % (self.settings['app_title'], kwargs['page_title']) if kwargs['page_title'] else self.settings['app_title']
+        kwargs['page_title'] = '%s - %s' % (self.settings['app_title'], kwargs['page_title']) if kwargs.get('page_title', None) else self.settings['app_title']
 
         RequestHandler.render(self, template_name, **kwargs)
 
