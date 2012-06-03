@@ -33,7 +33,7 @@ PD_FOLDER_IS_PUBLIC='agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY2qTUAgw_agpzfmJ1YmJsZWR1cg8
 PD_FOLDER_NAME='agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY2qTUAgw_agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYmO7TAgw'
 BD_DOCUMENT='agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYxNXRAgw'
 PD_FILE='agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYxNXRAgw_agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYsbTUAgw'
-# PD_DOC_CREATED='agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYxNXRAgw_agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUY_5TUAgw'
+PD_DOC_CREATED='agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYxNXRAgw_agpzfmJ1YmJsZWR1cg8LEgZCdWJibGUYk7vSAgw'
 
 ROOT_B_KEY="amphora_ROOT_"
 
@@ -118,10 +118,10 @@ else
             echo "-- ${fn}"
             dname="`dirname "${fn}" | rev | cut -d'/' -f2- | rev`"
 
-            file_orig_name=`grep file_orig_name "${fn}" | sed -e 's/<[a-zA-Z\/][^>]*>//g' | sed 's/^ *//;s/ *$//' | tr -d '[ \r]'`
+            file_orig_name=`grep file_orig_name "${fn}" | sed -e 's/<[a-zA-Z\/][^>]*>//g' | sed 's/^ *//;s/ *$//' | tr -d '[ \r]' | sed -e "s/'/\\\'/g"`
             file_orig_guid=`grep file_orig_guid "${fn}" | sed -e 's/<[a-zA-Z\/][^>]*>//g' | sed 's/^ *//;s/ *$//' | tr -d '[ \r]'`
             document_date=`grep document_date "${fn}" | sed -e 's/<[a-zA-Z\/][^>]*>//g' | sed 's/^ *//;s/ *$//' | tr -d '[ \r]'`
-            author=`grep author "${fn}" | sed -e 's/<[a-zA-Z\/][^>]*>//g' | sed 's/^ *//;s/ *$//' | tr -d '[ \r]'`
+            author=`grep author "${fn}" | sed -e 's/<[a-zA-Z\/][^>]*>//g' | sed 's/^ *//;s/ *$//' | tr -d '[ \r]' | sed -e "s/'/\\\'/g"`
 
             FILE_KEY=`echo ${file_orig_guid} | md5 | cut -d" " -f1`
             DIRECTORY_KEY=`echo ${dname} | md5 | cut -d" " -f1`
@@ -149,16 +149,11 @@ else
                 property_definition_id = (SELECT id FROM property_definition WHERE gae_key = '${PD_FILE}'),
                 entity_id = (SELECT id FROM entity WHERE gae_key = '${ROOT_B_KEY}${FILE_KEY}'),
                 value_file = (SELECT id FROM file WHERE gae_key = '${ROOT_B_KEY}${FILE_KEY}');"
-            # Add creation date property to document
+            # Add document_created_on property to document
             echo "INSERT INTO property SET
-                property_definition_id = (SELECT id FROM property_definition WHERE gae_key = '${PD_FILE}'),
+                property_definition_id = (SELECT id FROM property_definition WHERE gae_key = '${PD_DOC_CREATED}'),
                 entity_id = (SELECT id FROM entity WHERE gae_key = '${ROOT_B_KEY}${FILE_KEY}'),
-                value_file = (SELECT id FROM file WHERE gae_key = '${ROOT_B_KEY}${FILE_KEY}');"
-            # Add author property to document
-            echo "INSERT INTO property SET
-                property_definition_id = (SELECT id FROM property_definition WHERE gae_key = '${PD_FILE}'),
-                entity_id = (SELECT id FROM entity WHERE gae_key = '${ROOT_B_KEY}${FILE_KEY}'),
-                value_file = (SELECT id FROM file WHERE gae_key = '${ROOT_B_KEY}${FILE_KEY}');"
+                value_datetime = STR_TO_DATE('${document_date}','%d.%m.%Y %H:%i:%s');"
 
         done >> $FILES_SQL
     echo "Parsed"
