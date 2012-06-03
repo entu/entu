@@ -14,14 +14,17 @@ class GAEsql(myRequestHandler):
         secret = self.settings['gae_secret']
         sql = self.get_argument('sql', None)
 
-        logging.info('DESCRIPTION: %s' % self.get_argument('description', ''))
-
         if self.get_argument('secret', None) != secret or not sql:
             return self.forbidden()
 
         sql = sql.replace('%', '%%')
-        db.connection().execute(sql)
 
+        try:
+            db.connection().execute(sql)
+        except Exception, e:
+            logging.error('%s' % e)
+            logging.error('%s' % self.get_argument('sql', ''))
+            logging.error('%s' % self.get_argument('description', ''))
         self.write('OK')
 
 
