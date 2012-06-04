@@ -1,5 +1,5 @@
 application: bubbledu
-version: 2012-05-24
+version: 2012-06-04
 runtime: python
 api_version: 1
 
@@ -82,11 +82,11 @@ handlers:
 - url: /application(.*)
   script: controllers/application.py
 
-- url: /public(.*)
-  script: controllers/public.py
+# - url: /public(.*)
+#   script: controllers/public.py
 
-- url: /ical(.*)
-  script: controllers/ical.py
+# - url: /ical(.*)
+#   script: controllers/ical.py
 
 
 
@@ -100,60 +100,63 @@ handlers:
 
 
 #protected controllers
-- url: /
-  script: controllers/dashboard.py
-  login: required
+# - url: /
+#   script: controllers/dashboard.py
+#   login: required
 
-- url: /dashboard(.*)
-  script: controllers/dashboard.py
-  login: required
+# - url: /dashboard(.*)
+#   script: controllers/dashboard.py
+#   login: required
 
-- url: /bubble(.*)
-  script: controllers/bubble.py
-  login: required
+# - url: /bubble(.*)
+#   script: controllers/bubble.py
+#   login: required
 
-- url: /action(.*)
-  script: controllers/action.py
-  login: required
+# - url: /action(.*)
+#   script: controllers/action.py
+#   login: required
 
-- url: /preferences(.*)
-  script: controllers/preferences.py
-  login: required
+# - url: /preferences(.*)
+#   script: controllers/preferences.py
+#   login: required
 
-- url: /spam(.*)
-  script: controllers/spam.py
-  login: required
+# - url: /spam(.*)
+#   script: controllers/spam.py
+#   login: required
 
-- url: /gapps(.*)
-  script: controllers/googleapps.py
-  login: required
+# - url: /gapps(.*)
+#   script: controllers/googleapps.py
+#   login: required
 
-- url: /update(.*)
-  script: controllers/update.py
-  login: admin
+# - url: /update(.*)
+#   script: controllers/update.py
+#   login: admin
 
-- url: /feedback(.*)
-  script: controllers/feedback.py
-  login: required
+# - url: /feedback(.*)
+#   script: controllers/feedback.py
+#   login: required
 
 
 #admin only controllers
-- url: /bulka
-  script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
-  login: admin
+# - url: /bulka
+#   script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
+#   login: admin
 
-- url: /taskqueue(.*)
-  script: controllers/taskqueue.py
-  login: admin
+# - url: /taskqueue(.*)
+#   script: controllers/taskqueue.py
+#   login: admin
 
-- url: /zimport(.*)
-  script: controllers/zimport.py
-  login: admin
+# - url: /zimport(.*)
+#   script: controllers/zimport.py
+#   login: admin
 
-- url: /backup(.*)
-  script: controllers/backup.py
-  login: admin
+# - url: /backup(.*)
+#   script: controllers/backup.py
+#   login: admin
 
-- url: /questionary(.*)
-  script: controllers/questionary.py
-  login: admin
+# - url: /questionary(.*)
+#   script: controllers/questionary.py
+#   login: admin
+
+- url: /(.*)
+  script: controllers/redirect.py
