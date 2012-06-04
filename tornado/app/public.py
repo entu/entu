@@ -34,7 +34,7 @@ class PublicSearchHandler(myRequestHandler):
         locale = self.get_user_locale()
         items = []
         if len(search) > 1:
-            #entities = db.Entity(user_locale=self.get_user_locale()).get(search=search, entity_definition=[1, 7, 8, 38])
+            #entities = db.Entity(user_locale=self.get_user_locale()).get(search=search, entity_definition_id=[1, 7, 8, 38])
             entities = db.Entity(user_locale=self.get_user_locale()).get(search=search)
             if entities:
                 for item in entities:

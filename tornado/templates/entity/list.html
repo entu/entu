@@ -61,14 +61,35 @@
                 if (items.indexOf(id) != -1) {
                     position = listitem.position();
                     if ((position.top - $(document).height()) < 100) {
-                        getEntityInfo('', id, '#listitem_'+id, 'searchlist');
+                        $.post('/entity-'+id+'/listinfo', function(entity_json) {
+                            if(entity_json.image) {
+                                image = '<img src="'+entity_json.image+'" />';
+                            } else {
+                                image = '';
+                            };
+                            if(entity_json.info) {
+                                info = '<span>'+entity_json.info+'</span>';
+                            } else {
+                                info = '';
+                            };
+                            if(entity_json.count) {
+                                count = '<div>'+entity_json.count+'</div>';
+                            } else {
+                                count = '';
+                            };
+
+                            $('#listitem_'+id).html(count+image+entity_json.title+info);
+                            $('#listitem_'+id).removeClass('empty_item');
+                            if('#'+entity_json.id == window.location.hash) {
+                                $('#listitem_'+id).addClass('active');
+                            };
+                        }, 'json');
                         var idx = items.indexOf(id);
                         if(idx != -1) items.splice(idx, 1);
                     };
                 };
             });
         };
-
 
     });
 </script>

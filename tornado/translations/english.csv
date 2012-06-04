@@ -17,3 +17,5 @@ counter_generate_value,Generate number
 
 public,Public
 public_description,Make this document accessible in public view
+
+new_entity_label,New "%s"

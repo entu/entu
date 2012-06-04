@@ -37,22 +37,35 @@ class Entity():
             if type(self.user_id) is not list:
                 self.user_id = [self.user_id]
 
-    def get(self, ids_only=False, entity_id=None, search=None, entity_definition=None, limit=None, full_definition=False):
+    def get(self, ids_only=False, entity_id=None, search=None, entity_definition_id=None, limit=None, full_definition=False):
         """
         If ids_only = True, then returns list of Entity IDs. Else returns list of Entities (with properties) as dictionary. entity_id and entity_definition can be single ID or list of IDs. If limit = 1 returns Entity (not list). If full_definition = True returns also empty properties.
 
         """
-        ids = self.__get_id_list(entity_id=entity_id, search=search, entity_definition=entity_definition, limit=limit)
-        if ids_only:
+        ids = self.__get_id_list(entity_id=entity_id, search=search, entity_definition_id=entity_definition_id, limit=limit)
+        if ids_only == True:
             return ids
 
         entities = self.__get_properties(entity_id=ids)
-        if not entities:
+        if not entities and full_definition == False and entity_definition_id == None:
             return
+
+        if not entities:
+            if type(entity_definition_id) is not list:
+                entity_definition_id = [entity_definition_id]
+
+            entities = []
+            for e in entity_definition_id:
+                entities.append({
+                    'definition_id': entity_definition_id,
+                })
+
 
         for entity in entities:
             if full_definition:
                 for d in self.get_definition(entity_definition_id=entity['definition_id']):
+                    if not entity.get('id', None):
+                        entity['displayname'] = self.user_locale.translate('new_entity_label') % d.entity_label
                     entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['id'] = d.property_id
                     entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['label'] = d.property_label
                     entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['label_plural'] = d.property_label_plural
@@ -64,6 +77,11 @@ class Entity():
                     entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['ordinal'] = d.property_ordinal
                     if not d.property_multiplicity or d.property_multiplicity > len(entity.get('properties', {}).get('%s' % d.property_dataproperty, {}).get('values', {}).values()):
                         entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {}).setdefault('values', {})['value_new'] = {'id': 'new', 'ordinal': 'X', 'value': '', 'db_value': ''}
+                    if d.property_classifier_id:
+                        for c in self.get(entity_definition_id=23):
+                            if c.get('id', None):
+                                entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {}).setdefault('select', []).append({'id': c.get('id', ''), 'label': c.get('displayname', '')})
+
 
             entity['properties'] = sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal'))
 
@@ -75,26 +93,26 @@ class Entity():
 
         return entities
 
-    def __get_id_list(self, entity_id=None, search=None, entity_definition=None, limit=None):
+    def __get_id_list(self, entity_id=None, search=None, entity_definition_id=None, limit=None):
         """
-        Get list of Entity IDs. entity_id, entity_definition and user_id can be single ID or list of IDs.
+        Get list of Entity IDs. entity_id, entity_definition_id and user_id can be single ID or list of IDs.
 
         """
         sql = 'SELECT DISTINCT entity.id AS id FROM property_definition, property, entity, relationship WHERE property.property_definition_id = property_definition.id AND entity.id = property.entity_id AND relationship.entity_id = entity.id'
 
-        if entity_id:
+        if entity_id != None:
             if type(entity_id) is not list:
                 entity_id = [entity_id]
             sql += ' AND entity.id IN (%s)' % ','.join(map(str, entity_id))
 
-        if search:
+        if search != None:
             for s in search.split(' '):
                 sql += ' AND value_string LIKE \'%%%%%s%%%%\'' % s
 
-        if entity_definition:
-            if type(entity_definition) is not list:
-                entity_definition = [entity_definition]
-            sql += ' AND entity.entity_definition_id IN (%s)' % ','.join(map(str, entity_definition))
+        if entity_definition_id != None:
+            if type(entity_definition_id) is not list:
+                entity_definition_id = [entity_definition_id]
+            sql += ' AND entity.entity_definition_id IN (%s)' % ','.join(map(str, entity_definition_id))
 
         if self.user_id:
             sql += ' AND relationship.related_entity_id IN (%s) AND relationship.type IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
@@ -104,7 +122,7 @@ class Entity():
 
         sql += ' ORDER BY entity.id'
 
-        if limit:
+        if limit != None:
             sql += ' LIMIT %d' % limit
 
         sql += ';'
@@ -301,6 +319,9 @@ class Entity():
         if not entity_definition_id:
             return
 
+        if type(entity_definition_id) is not list:
+            entity_definition_id = [entity_definition_id]
+
         sql = """
             SELECT
                 entity_definition.id AS entity_definition_id,
@@ -319,13 +340,14 @@ class Entity():
                 property_definition.dataproperty AS property_dataproperty,
                 property_definition.multilingual AS property_multilingual,
                 property_definition.multiplicity AS property_multiplicity,
-                property_definition.ordinal AS property_ordinal
+                property_definition.ordinal AS property_ordinal,
+                property_definition.classifying_entity_definition_id AS property_classifier_id
             FROM
                 entity_definition,
                 property_definition
             WHERE entity_definition.id = property_definition.entity_definition_id
-            AND entity_definition.id = %(id)s
-        """ % {'language': self.language, 'id': entity_definition_id}
+            AND entity_definition.id IN (%(id)s)
+        """ % {'language': self.language, 'id': ','.join(map(str, entity_definition_id))}
         # logging.info(sql)
 
         return self.db.query(sql)

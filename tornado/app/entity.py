@@ -30,7 +30,7 @@ class ShowGroup(myRequestHandler):
 
         """
         search = self.get_argument('search', None, True)
-        self.write({'items': db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(ids_only=True, search=search, entity_definition=entity_definition_id, limit=1001)})
+        self.write({'items': db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(ids_only=True, search=search, entity_definition_id=entity_definition_id, limit=1001)})
 
 
 class ShowListinfo(myRequestHandler):
@@ -78,7 +78,7 @@ class ShowEntity(myRequestHandler):
 
 class ShowEntityEdit(myRequestHandler):
     @web.authenticated
-    def get(self, entity_id=None, url=None):
+    def get(self, entity_id=None):
         """
         Shows Entitiy info.
 
@@ -93,10 +93,28 @@ class ShowEntityEdit(myRequestHandler):
         )
 
 
+class ShowEntityAdd(myRequestHandler):
+    @web.authenticated
+    def get(self, entity_id=None, entity_definition_id=None):
+        """
+        Shows Entitiy info.
+
+        """
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
+        item = entity.get(entity_id=0, entity_definition_id=entity_definition_id, limit=1, full_definition=True)
+        if not item:
+            return
+
+        self.render('entity/edit.html',
+            entity = item,
+        )
+
+
 handlers = [
     (r'/', ShowGroup),
     (r'/group-(.*)', ShowGroup),
     (r'/entity-(.*)/listinfo', ShowListinfo),
     (r'/entity-(.*)/edit', ShowEntityEdit),
+    (r'/entity-(.*)/add/(.*)', ShowEntityAdd),
     (r'/entity-(.*)', ShowEntity),
 ]

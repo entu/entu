@@ -14,7 +14,7 @@
                     {% if p['datatype'] == 'file' %}
                         {{ '<br />'.join(['<a href="/public/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
                     {% else %}
-                        {{ '<br />'.join([v['value'] for v in p['values']]) }}
+                        {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
                     {% end %}
                 </td>
             </tr>
@@ -108,6 +108,13 @@
 
         $('#toolbar').html($('#toolbar_template').html());
         $('#toolbar_template').html('')
+
+        $('.toolbar-item-add a').click(function() {
+            $.get('/entity-{{ entity['id'] }}/add/'+$(this).data('id'), function(html) {
+                $('#modal-box-content').html(html);
+                $('#modal-box').modal('show');
+            });
+        });
 
         $('#toolbar-item-edit').click(function() {
             $.get('/entity-{{ entity['id'] }}/edit', function(html) {
