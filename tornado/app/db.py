@@ -779,9 +779,10 @@ class Entity():
 
         menu = {}
         for m in self.db.query(sql):
-            menu.setdefault(m.menugroup, []).append({'id': m.id, 'title': m.item})
+            menu.setdefault(m.menugroup, {})['label'] = m.menugroup
+            menu.setdefault(m.menugroup, {}).setdefault('items', []).append({'id': m.id, 'title': m.item})
 
-        return menu
+        return sorted(menu.values(), key=itemgetter('label'))
 
 class User():
     """

@@ -92,10 +92,10 @@
     <div class="container-fluid">
       <div id="menu">
           <div id="menu_accordion" class="accordion">
-          {% for menugroup, menuitems in menu.iteritems() %}
-            <h3><a href="#">{{ menugroup }}</a></h3>
+          {% for m in menu %}
+            <h3><a href="#">{{ m['label'] }}</a></h3>
             <div>
-            {% for i in menuitems %}
+            {% for i in m['items'] %}
               <a href="/group-{{ i['id'] }}">{{ i['title'] }}</a>
             {% end %}
             </div>
