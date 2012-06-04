@@ -135,7 +135,7 @@ class Entity():
 
         return entity_id
 
-    def set_property(self, entity_id, property_definition_id, value, property_id=None):
+    def set_property(self, entity_id, property_definition_id, value, property_id=None, uploaded_file=None):
         """
         Saves property value. Creates new one if property_id = None.  Returns property ID.
 
@@ -143,10 +143,8 @@ class Entity():
         if not entity_id or not property_definition_id:
             return
 
-        definition = self.db.get('SELECT * FROM property_definition WHERE id = %s LIMIT 1;', property_definition_id)
-        if definition.datatype in ['string', 'select']:
-            field = 'value_string'
-        elif definition.datatype == 'text':
+        definition = self.db.get('SELECT datatype FROM property_definition WHERE id = %s LIMIT 1;', property_definition_id)
+        if definition.datatype == 'text':
             field = 'value_text'
         elif definition.datatype == 'integer':
             field = 'value_integer'
@@ -156,18 +154,20 @@ class Entity():
             field = 'value_datetime'
         elif definition.datatype == 'datetime':
             field = 'value_datetime'
-        elif definition.datatype == 'reference':
-            field = 'value_reference'
         elif definition.datatype == 'file':
+            value = 0
+            if uploaded_file:
+                logging.info(str(uploaded_file))
+                value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], uploaded_file['body'], ','.join(map(str, self.user_id)))
             field = 'value_file'
         elif definition.datatype == 'boolean':
             field = 'value_boolean'
+            value = 1 if value.lower() == 'true' else 0
         elif definition.datatype == 'counter':
             field = 'value_counter'
-        elif definition.datatype == 'counter_value':
-            field = 'value_string'
         else:
             field = 'value_string'
+            value = value[:500]
 
         if property_id:
             self.db.execute('UPDATE property SET %s = %%s, changed = NOW(), changed_by = %%s WHERE id = %%s;' % field,
@@ -185,7 +185,7 @@ class Entity():
 
         return property_id
 
-    def set_counter(self, entity_id, parent_entity_id, entity_definition_id):
+    def set_counter(self, entity_id):
         #Counters
         sql ="""
             INSERT INTO property (
@@ -209,7 +209,7 @@ class Entity():
                     AND entity.entity_definition_id = property_definition.entity_definition_id
                     AND entity.id = property.entity_id
                     AND property_definition.dataproperty='series'
-                    AND entity.id = %s
+                    AND entity.id = (SELECT entity_id FROM relationship WHERE related_entity_id = %s AND type='child' LIMIT 1)
                     LIMIT 1
                 ),
                 (
@@ -223,7 +223,7 @@ class Entity():
                     AND entity.entity_definition_id = property_definition.entity_definition_id
                     AND entity.id = property.entity_id
                     AND property_definition.dataproperty='prefix'
-                    AND entity.id = %s
+                    AND entity.id = (SELECT entity_id FROM relationship WHERE related_entity_id = %s AND type='child' LIMIT 1)
                     LIMIT 1
                 ),
                 counter.value+counter.increment) AS value,
@@ -239,16 +239,38 @@ class Entity():
             AND relationship.property_definition_id = property_definition.id
             AND property_definition2.id = relationship.related_property_definition_id
             AND counter.id = property.value_counter
-            AND property.entity_id = %s
+            AND property.entity_id = (SELECT entity_id FROM relationship WHERE related_entity_id = %s AND type='child' LIMIT 1)
             AND property_definition.datatype= 'counter'
             AND property_definition2.datatype = 'counter_value'
             AND relationship.type = 'target_property'
-            AND property_definition2.entity_definition_id = %s;
+            AND property_definition2.entity_definition_id = (SELECT entity_definition_id FROM entity WHERE id = %s LIMIT 1);
+            UPDATE
+            counter,
+            (
+                SELECT
+                    counter.id
+                FROM
+                    property,
+                    property_definition,
+                    relationship,
+                    property_definition AS property_definition2,
+                    counter
+                WHERE property_definition.id = property.property_definition_id
+                AND relationship.property_definition_id = property_definition.id
+                AND property_definition2.id = relationship.related_property_definition_id
+                AND counter.id = property.value_counter
+                AND property.entity_id = (SELECT entity_id FROM relationship WHERE related_entity_id = %s AND type='child' LIMIT 1)
+                AND property_definition.datatype= 'counter'
+                AND property_definition2.datatype = 'counter_value'
+                AND relationship.type = 'target_property'
+                AND property_definition2.entity_definition_id = (SELECT entity_definition_id FROM entity WHERE id = %s LIMIT 1)
+                ) X
+            SET counter.value = counter.value + counter.increment
+            WHERE counter.id = X.id;
         """
-        logging.info(sql)
-        self.db.execute(sql, entity_id, parent_entity_id, parent_entity_id, ','.join(map(str, self.user_id)), parent_entity_id, entity_definition_id)
-
-
+        # logging.info(sql)
+        property_id = self.db.execute_lastrowid(sql, entity_id, entity_id, entity_id, ','.join(map(str, self.user_id)), entity_id, entity_id, entity_id, entity_id)
+        return self.db.get('SELECT value_string FROM property WHERE id=%s', property_id).value_string
 
 
     def get(self, ids_only=False, entity_id=None, search=None, entity_definition_id=None, limit=None, full_definition=False):
@@ -418,6 +440,7 @@ class Entity():
                 entity_definition.id,
                 entity.created DESC
         """ % {'language': self.language, 'public': public, 'idlist': ','.join(map(str, entity_id))}
+        # logging.info(sql)
 
         items = {}
         for row in self.db.query(sql):
@@ -464,7 +487,7 @@ class Entity():
                 value = row.value_decimal
             elif row.property_datatype == 'date':
                 db_value = row.value_datetime
-                value = formatDatetime(row.value_datetime, '%(day)d.%(month)d.%(year)d')
+                value = formatDatetime(row.value_datetime, '%(day)02d.%(month)02d.%(year)d')
             elif row.property_datatype == 'datetime':
                 db_value = row.value_datetime
                 value = formatDatetime(row.value_datetime)
@@ -757,6 +780,7 @@ class Entity():
         menu = {}
         for m in self.db.query(sql):
             menu.setdefault(m.menugroup, []).append({'id': m.id, 'title': m.item})
+
         return menu
 
 class User():

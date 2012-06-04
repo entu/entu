@@ -155,22 +155,23 @@ class SaveEntity(myRequestHandler):
         property_definition_id  = self.get_argument('property_id', default=None, strip=True)
         property_id             = self.get_argument('value_id', default=None, strip=True)
         value                   = self.get_argument('value', default=None, strip=True)
-        is_counter              = self.get_argument('counter', default=None, strip=True)
-
-        if is_counter:
-            pass
+        is_counter              = self.get_argument('counter', default='false', strip=True)
+        uploaded_file           = self.request.files.get('file', [])[0] if self.request.files.get('file', None) else None
 
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
         if not entity_id and parent_entity_id and entity_definition_id:
             entity_id = entity.create(entity_definition_id=entity_definition_id, parent_entity_id=parent_entity_id)
 
-        value_id = entity.set_property(entity_id=entity_id, property_definition_id=property_definition_id, value=value, property_id=property_id)
+        if is_counter.lower() == 'true':
+            value = entity.set_counter(entity_id=entity_id)
+        else:
+            value_id = entity.set_property(entity_id=entity_id, property_definition_id=property_definition_id, value=value, property_id=property_id, uploaded_file=uploaded_file)
 
         self.write({
             'entity_id': entity_id,
             'property_id': property_definition_id,
             'value_id': property_id,
-            'value': value
+            'value': uploaded_file['filename'] if uploaded_file else value
         })
 
 

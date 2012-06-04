@@ -2,17 +2,17 @@
     <tbody>
         {% for p in entity.get('properties', []) %}
         <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
-            <th style="text-align:right; white-space:nowrap; vertical-align:middle;">
+            <th style="min-width:200px; text-align:right; vertical-align:middle;">
                 <h6>{%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}</h6>
             </th>
-            <td style="width:100%; padding-bottom:0px; vertical-align:middle;">
+            <td style="padding-bottom:0px; vertical-align:middle;">
                 {% if p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal'] %}
                     {% if p.get('select', None) %}
                         {% for v in p['values'] %}
                             <select class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" style="width:100%; margin-bottom:4px;">
                                 <option value=""></option>
                                 {% for s in p.get('select','') %}
-                                <option value="{{ s['id'] }}" {% if s['id'] == v['db_value'] %} selected{% end %}>{{ s['label'] }}</option>
+                                <option value="{{ s['label'] }}" {% if s['label'] == v['value'] %} selected{% end %}>{{ s['label'] }}</option>
                                 {% end %}
                             </select>
                         {% end %}
@@ -35,9 +35,12 @@
                             <span id="blobstore_upload_{{ p['id'] }}"></span>
                             <img src="{{ static_url('images/spinner_white.gif') }}" style="display:none;" />
                             <iframe name="iframe_{{ p['id'] }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML, '#blobstore_upload_{{ p['id'] }}');" style="display:none;"></iframe>
-                            <form method="post" action="" target="iframe_{{ p['id'] }}" enctype="multipart/form-data" style="margin:0px; padding:0px;">
-                                <input type="hidden" name="property" value="{{ p['id'] }}" />
-                                <input type="file" name="file" style="border:none; width:80px; margin-bottom:4px;" />
+                            <form method="post" action="/entity/save" target="iframe_{{ p['id'] }}" enctype="multipart/form-data" style="margin:0px; padding:0px;">
+                                <input type="hidden" name="entity_id" value="{{ entity.get('id', '') }}" />
+                                <input type="hidden" name="parent_entity_id" value="{{ parent_entity_id }}" />
+                                <input type="hidden" name="entity_definition_id" value="{{ entity_definition_id }}" />
+                                <input type="hidden" name="property_id" value="{{ p['id'] }}" />
+                                <input type="file" name="file" class="dtype-{{ p['datatype'] }}" style="border:none; width:80px; margin-bottom:4px;" />
                             </form>
                         {% else %}
                             <a href="/entity/file-{{ v['db_value'] }}">{{ v['value'] }}</a><br />
@@ -48,7 +51,7 @@
                         {% if v['value'] %}
                             {{ v['value'] }}
                         {% else %}
-                            <button data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" class="autosave btn btn-warning" style="margin-bottom:4px;">{{ _('counter_generate_value') }}...</button>
+                            <button data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" class="counter btn btn-warning" style="margin-bottom:4px;">{{ _('counter_generate_value') }}...</button>
                         {% end %}
                     {% end %}
                 {% else %}
@@ -68,19 +71,23 @@
     </tbody>
 </table>
 
+<div id="database" data-entity_id="{{ entity.get('id', '') }}" style="display:hidden;"></div>
+
 <script>
+
+
     function showDocument(json_string, div){
-        $(div).append(json_string+'<div />');
+        newvalue = jQuery.parseJSON(json_string.replace('<pre style="word-wrap: break-word; white-space: pre-wrap;">','').replace('</pre>',''))
+        $('#database').data('entity_id', newvalue.entity_id);
+        $(div).append(newvalue.value+'<br />');
         $(div).parent().children('img').hide();
-        $(div).parent().children('form').children('.dtype_blobstore').val('');
+        $(div).parent().children('form').children('.dtype-file').val('');
         $(div).parent().children('form').show();
     };
 
     $(document).ready(function(){
 
-        entity_id = '{{ entity.get('id', '') }}';
-        parent_entity_id = '{{ parent_entity_id }}';
-        entity_definition_id = '{{ entity_definition_id }}';
+        document.body.style.cursor = 'default';
 
         $('#modal-box-label').html('{{ entity.get('displayname', '') }}');
 
@@ -113,6 +120,22 @@
             inputbox.unbind('keypress');
         });
 
+        $('.counter').click(function() {
+            var inputbox = $(this);
+            $.post('/entity/save', {
+                counter: 'true',
+                entity_id: $('#database').data('entity_id'),
+                parent_entity_id: '{{ parent_entity_id }}',
+                entity_definition_id: '{{ entity_definition_id }}',
+                property_id: inputbox.data('property'),
+            },
+            function(newvalue) {
+                //alert(JSON.stringify(newvalue));
+                $('#database').data('entity_id', newvalue.entity_id);
+                inputbox.parent().html(newvalue.value);
+            }, 'json');
+        });
+
         $('.autosave').change(function() {
             var inputbox = $(this);
             if (inputbox.attr('type') == 'checkbox') {
@@ -122,19 +145,26 @@
             }
             if (value != inputbox.data('value')) {
                 $.post('/entity/save', {
-                    entity_id: entity_id,
-                    parent_entity_id: parent_entity_id,
-                    entity_definition_id: entity_definition_id,
+                    entity_id: $('#database').data('entity_id'),
+                    parent_entity_id: '{{ parent_entity_id }}',
+                    entity_definition_id: '{{ entity_definition_id }}',
                     property_id: inputbox.data('property'),
                     value_id: inputbox.data('id'),
                     value: value
                 },
                 function(newvalue) {
                     //alert(JSON.stringify(newvalue));
-                    entity_id = newvalue.entity_id;
+                    $('#database').data('entity_id', newvalue.entity_id);
                     inputbox.data('id', newvalue.value_id);
                 }, 'json');
             }
+        });
+
+        $('.dtype-file').change(function() {
+            $(this).parent().hide();
+            $(this).parent().parent().children('img').show()
+            $(this).parent().submit();
+
         });
 
     });

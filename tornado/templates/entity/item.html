@@ -111,15 +111,17 @@
 
         $('.toolbar-item-add a').click(function() {
             $.get('/entity-{{ entity['id'] }}/add/'+$(this).data('id'), function(html) {
-                $('#modal-box-content').html(html);
+                document.body.style.cursor = 'wait';
                 $('#modal-box').modal('show');
+                $('#modal-box-content').html(html);
             });
         });
 
         $('#toolbar-item-edit').click(function() {
             $.get('/entity-{{ entity['id'] }}/edit', function(html) {
-                $('#modal-box-content').html(html);
+                document.body.style.cursor = 'wait';
                 $('#modal-box').modal('show');
+                $('#modal-box-content').html(html);
             });
         });
 
