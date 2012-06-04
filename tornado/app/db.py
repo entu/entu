@@ -37,6 +37,220 @@ class Entity():
             if type(self.user_id) is not list:
                 self.user_id = [self.user_id]
 
+    def create(self, entity_definition_id, parent_entity_id):
+        """
+        Creates new Entity and returns its ID.
+
+        """
+        if not entity_definition_id or not parent_entity_id:
+            return
+
+        # Create entity
+        sql = """
+            INSERT INTO entity SET
+                entity_definition_id = %s,
+                created_by = %s,
+                created = NOW();
+        """
+        # logging.info(sql)
+        entity_id = self.db.execute_lastrowid(sql, entity_definition_id, ','.join(map(str, self.user_id)))
+
+        # Insert child relationship
+        sql = """
+            INSERT INTO relationship SET
+                type = 'child',
+                entity_id = %s,
+                related_entity_id = %s,
+                created_by = %s,
+                created = NOW();
+        """
+        # logging.info(sql)
+        self.db.execute(sql, parent_entity_id, entity_id, ','.join(map(str, self.user_id)))
+
+        # Copy user rights
+        sql = """
+            INSERT INTO relationship (
+                type,
+                entity_id,
+                related_entity_id,
+                created_by,
+                created
+            ) SELECT /* SQL_NO_CACHE */
+                type,
+                %s,
+                related_entity_id,
+                %s,
+                NOW()
+            FROM relationship
+            WHERE type IN ('viewer', 'editor', 'owner')
+            AND entity_id = %s;
+        """
+        # logging.info(sql)
+        self.db.execute(sql, entity_id, ','.join(map(str, self.user_id)), parent_entity_id)
+
+        # Propagate properties
+        sql = """
+            INSERT INTO property (
+                entity_id,
+                property_definition_id,
+                language,
+                value_string,
+                value_text,
+                value_integer,
+                value_decimal,
+                value_boolean,
+                value_datetime,
+                value_reference,
+                value_file,
+                value_counter,
+                created_by,
+                created
+            ) SELECT /* SQL_NO_CACHE */
+                %s,
+                relationship.related_property_definition_id,
+                property.language,
+                property.value_string,
+                property.value_text,
+                property.value_integer,
+                property.value_decimal,
+                property.value_boolean,
+                property.value_datetime,
+                property.value_reference,
+                property.value_file,
+                property.value_counter,
+                %s,
+                NOW()
+            FROM
+                relationship,
+                property_definition,
+                property
+            WHERE property_definition.id = relationship.property_definition_id
+            AND property.property_definition_id = property_definition.id
+            #AND property_definition.entity_definition_id = %s
+            AND property.entity_id = %s
+            AND type = 'propagated_property';
+        """
+        # logging.info(sql)
+        self.db.execute(sql, entity_id, ','.join(map(str, self.user_id)), entity_definition_id, parent_entity_id)
+
+        return entity_id
+
+    def set_property(self, entity_id, property_definition_id, value, property_id=None):
+        """
+        Saves property value. Creates new one if property_id = None.  Returns property ID.
+
+        """
+        if not entity_id or not property_definition_id:
+            return
+
+        definition = self.db.get('SELECT * FROM property_definition WHERE id = %s LIMIT 1;', property_definition_id)
+        if definition.datatype in ['string', 'select']:
+            field = 'value_string'
+        elif definition.datatype == 'text':
+            field = 'value_text'
+        elif definition.datatype == 'integer':
+            field = 'value_integer'
+        elif definition.datatype == 'float':
+            field = 'value_decimal'
+        elif definition.datatype == 'date':
+            field = 'value_datetime'
+        elif definition.datatype == 'datetime':
+            field = 'value_datetime'
+        elif definition.datatype == 'reference':
+            field = 'value_reference'
+        elif definition.datatype == 'file':
+            field = 'value_file'
+        elif definition.datatype == 'boolean':
+            field = 'value_boolean'
+        elif definition.datatype == 'counter':
+            field = 'value_counter'
+        elif definition.datatype == 'counter_value':
+            field = 'value_string'
+        else:
+            field = 'value_string'
+
+        if property_id:
+            self.db.execute('UPDATE property SET %s = %%s, changed = NOW(), changed_by = %%s WHERE id = %%s;' % field,
+                value,
+                ','.join(map(str, self.user_id)),
+                property_id,
+            )
+        else:
+            property_id = self.db.execute_lastrowid('INSERT INTO property SET entity_id = %%s, property_definition_id = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
+                entity_id,
+                property_definition_id,
+                value,
+                ','.join(map(str, self.user_id))
+            )
+
+        return property_id
+
+    def set_counter(self, entity_id, parent_entity_id, entity_definition_id):
+        #Counters
+        sql ="""
+            INSERT INTO property (
+                entity_id,
+                property_definition_id,
+                value_string,
+                created_by,
+                created
+            ) SELECT /* SQL_NO_CACHE */
+                %s,
+                property_definition2.id,
+                CONCAT(
+                (
+                    SELECT
+                        value_string
+                    FROM
+                        property,
+                        property_definition,
+                        entity
+                    WHERE property_definition.id = property.property_definition_id
+                    AND entity.entity_definition_id = property_definition.entity_definition_id
+                    AND entity.id = property.entity_id
+                    AND property_definition.dataproperty='series'
+                    AND entity.id = %s
+                    LIMIT 1
+                ),
+                (
+                    SELECT
+                        value_string
+                    FROM
+                        property,
+                        property_definition,
+                        entity
+                    WHERE property_definition.id = property.property_definition_id
+                    AND entity.entity_definition_id = property_definition.entity_definition_id
+                    AND entity.id = property.entity_id
+                    AND property_definition.dataproperty='prefix'
+                    AND entity.id = %s
+                    LIMIT 1
+                ),
+                counter.value+counter.increment) AS value,
+                %s,
+                NOW()
+            FROM
+                property,
+                property_definition,
+                relationship,
+                property_definition AS property_definition2,
+                counter
+            WHERE property_definition.id = property.property_definition_id
+            AND relationship.property_definition_id = property_definition.id
+            AND property_definition2.id = relationship.related_property_definition_id
+            AND counter.id = property.value_counter
+            AND property.entity_id = %s
+            AND property_definition.datatype= 'counter'
+            AND property_definition2.datatype = 'counter_value'
+            AND relationship.type = 'target_property'
+            AND property_definition2.entity_definition_id = %s;
+        """
+        logging.info(sql)
+        self.db.execute(sql, entity_id, parent_entity_id, parent_entity_id, ','.join(map(str, self.user_id)), parent_entity_id, entity_definition_id)
+
+
+
+
     def get(self, ids_only=False, entity_id=None, search=None, entity_definition_id=None, limit=None, full_definition=False):
         """
         If ids_only = True, then returns list of Entity IDs. Else returns list of Entities (with properties) as dictionary. entity_id and entity_definition can be single ID or list of IDs. If limit = 1 returns Entity (not list). If full_definition = True returns also empty properties.
@@ -76,9 +290,14 @@ class Entity():
                     entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['multiplicity'] = d.property_multiplicity
                     entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['ordinal'] = d.property_ordinal
                     if not d.property_multiplicity or d.property_multiplicity > len(entity.get('properties', {}).get('%s' % d.property_dataproperty, {}).get('values', {}).values()):
-                        entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {}).setdefault('values', {})['value_new'] = {'id': 'new', 'ordinal': 'X', 'value': '', 'db_value': ''}
+                        entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {}).setdefault('values', {})['value_new'] = {'id': '', 'ordinal': 'X', 'value': '', 'db_value': ''}
+                    if not d.property_multiplicity or d.property_multiplicity > len(entity.get('properties', {}).get('%s' % d.property_dataproperty, {}).get('values', {}).values()):
+                        entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['can_add_new'] = True
+                    else:
+                        entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['can_add_new'] = False
+
                     if d.property_classifier_id:
-                        for c in self.get(entity_definition_id=23):
+                        for c in self.get(entity_definition_id=d.property_classifier_id):
                             if c.get('id', None):
                                 entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {}).setdefault('select', []).append({'id': c.get('id', ''), 'label': c.get('displayname', '')})
 
@@ -120,7 +339,7 @@ class Entity():
             sql += ' AND entity.public = 1 AND property_definition.public = 1'
 
 
-        sql += ' ORDER BY entity.id'
+        sql += ' ORDER BY entity.created DESC'
 
         if limit != None:
             sql += ' LIMIT %d' % limit
@@ -173,7 +392,7 @@ class Entity():
                 property_definition.multilingual                AS property_multilingual,
                 property_definition.multiplicity                AS property_multiplicity,
                 property.id                                     AS value_id,
-                property.ordinal                                AS value_ordinal,
+                property.id                                     AS value_ordinal,
                 property.value_string                           AS value_string,
                 property.value_text                             AS value_text,
                 property.value_integer                          AS value_integer,
@@ -197,9 +416,8 @@ class Entity():
             AND entity.id IN (%(idlist)s)
             ORDER BY
                 entity_definition.id,
-                entity.id
+                entity.created DESC
         """ % {'language': self.language, 'public': public, 'idlist': ','.join(map(str, entity_id))}
-        # logging.info(sql)
 
         items = {}
         for row in self.db.query(sql):
@@ -309,7 +527,24 @@ class Entity():
         Returns Entity picture.
 
         """
-        return 'http://www.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
+        sql = """
+            SELECT
+                file.id
+            FROM
+                property,
+                property_definition,
+                file
+            WHERE property_definition.id=property.property_definition_id
+            AND file.id = property.value_file
+            AND property_definition.dataproperty='photo'
+            AND property.entity_id=%s
+            LIMIT 1;
+        """
+        f = self.db.get(sql, entity_id)
+        if not f:
+            return 'http://www.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
+
+        return '/entity/file-%s' % f.id
 
     def get_definition(self, entity_definition_id):
         """

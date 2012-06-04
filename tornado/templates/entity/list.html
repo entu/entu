@@ -6,14 +6,15 @@
 <script>
     $(document).ready(function(){
         if(window.location.hash) {
-            open_item(window.location.hash.substring(1));
+            open_item();
         };
 
         $(window).bind('hashchange', function() {
-            open_item(window.location.hash.substring(1))
+            open_item()
         });
 
         function open_item(id) {
+            var id = window.location.hash.substring(1);
             $('#content').html('');
             $('#list_items a.active').removeClass('active');
             $('#list_items a[href$="#'+id+'"]').addClass('active');
@@ -91,6 +92,9 @@
             });
         };
 
+        $('#modal-box').on('hide', function () {
+            open_item();
+        })
     });
 </script>
 {% end %}

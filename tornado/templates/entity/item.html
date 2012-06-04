@@ -1,6 +1,6 @@
 {% autoescape None %}
 
-<img src="{{ entity['displaypicture'] }}" id="entity_picture" class="" style="float:right; height:120px; width:120px; margin-bottom:20px;" />
+<img src="{{ entity['displaypicture'] }}" id="entity_picture" class="" width="120" style="float:right; margin-bottom:20px;" />
 <h3 style="margin-right:140px;">{{ entity['displayname'] }}</h3>
 <div style="margin-right:140px;">
     <table class="table table-condensed">
@@ -12,7 +12,7 @@
                 </th>
                 <td style="width:100%;">
                     {% if p['datatype'] == 'file' %}
-                        {{ '<br />'.join(['<a href="/public/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
+                        {{ '<br />'.join(['<a href="/entity/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
                     {% else %}
                         {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
                     {% end %}
