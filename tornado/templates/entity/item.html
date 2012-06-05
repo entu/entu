@@ -1,14 +1,5 @@
 {% autoescape None %}
 
-{% if parents %}
-<ul class="breadcrumb">
-    {% for p in parents %}
-    <li><a href="#{{ p['id'] }}">{{ p['label'] }}</a> <span class="divider">/</span></li>
-    {% end %}
-</ul>
-{% end %}
-
-
 <img src="{{ entity['displaypicture'] }}" id="entity_picture" class="" width="120" style="float:right; margin-bottom:20px;" />
 <h3 style="margin-right:140px;">{{ entity['displayname'] }}</h3>
 <div style="margin-right:140px;">
