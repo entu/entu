@@ -31,7 +31,7 @@ class ShowGroup(myRequestHandler):
 
         """
         search = self.get_argument('search', None, True)
-        self.write({'items': db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(ids_only=True, search=search, entity_definition_id=entity_definition_id, limit=1001)})
+        self.write({'items': db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(ids_only=True, search=search, entity_definition_id=entity_definition_id, limit=101)})
 
 
 class ShowListinfo(myRequestHandler):
@@ -156,6 +156,7 @@ class SaveEntity(myRequestHandler):
         property_id             = self.get_argument('value_id', default=None, strip=True)
         value                   = self.get_argument('value', default=None, strip=True)
         is_counter              = self.get_argument('counter', default='false', strip=True)
+        is_public               = self.get_argument('is_public', default='false', strip=True)
         uploaded_file           = self.request.files.get('file', [])[0] if self.request.files.get('file', None) else None
 
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
@@ -164,6 +165,9 @@ class SaveEntity(myRequestHandler):
 
         if is_counter.lower() == 'true':
             value = entity.set_counter(entity_id=entity_id)
+        elif is_public.lower() == 'true':
+            value = True if value.lower() == 'true' else False
+            value = entity.set_public(entity_id=entity_id, is_public=value)
         else:
             value_id = entity.set_property(entity_id=entity_id, property_definition_id=property_definition_id, value=value, property_id=property_id, uploaded_file=uploaded_file)
 

@@ -184,8 +184,24 @@ class Entity():
 
         return property_id
 
+    def set_public(self, entity_id, is_public=False):
+        if not entity_id:
+            return
+
+        if is_public==True:
+            self.db.execute('UPDATE entity SET public = 1 WHERE id = %s', entity_id)
+        else:
+            self.db.execute('UPDATE entity SET public = 0 WHERE id = %s', entity_id)
+
+
     def set_counter(self, entity_id):
-        #Counters
+        """
+        Sets counter property.
+
+        """
+        if not entity_id:
+            return
+
         sql ="""
             INSERT INTO property (
                 entity_id,
@@ -242,7 +258,8 @@ class Entity():
             AND property_definition.datatype= 'counter'
             AND property_definition2.datatype = 'counter_value'
             AND relationship.type = 'target_property'
-            AND property_definition2.entity_definition_id = (SELECT entity_definition_id FROM entity WHERE id = %(entity_id)s LIMIT 1);
+            AND property_definition2.entity_definition_id = (SELECT entity_definition_id FROM entity WHERE id = %(entity_id)s LIMIT 1)
+            AND counter.type = 'increment';
             UPDATE
             counter,
             (
@@ -263,11 +280,16 @@ class Entity():
                 AND property_definition2.datatype = 'counter_value'
                 AND relationship.type = 'target_property'
                 AND property_definition2.entity_definition_id = (SELECT entity_definition_id FROM entity WHERE id = %(entity_id)s LIMIT 1)
+                AND counter.type = 'increment'
                 ) X
-            SET counter.value = counter.value + counter.increment
+            SET
+                counter.value = counter.value + counter.increment,
+                counter.changed_by = '%(user_id)s',
+                counter.changed = NOW()
             WHERE counter.id = X.id;
         """ % {'entity_id': entity_id, 'user_id': ','.join(map(str, self.user_id))}
-        logging.info(sql)
+        # logging.info(sql)
+
         property_id = self.db.execute_lastrowid(sql)
         return self.db.get('SELECT value_string FROM property WHERE id=%s', property_id).value_string
 
@@ -454,7 +476,7 @@ class Entity():
             items.setdefault('item_%s' % row.entity_id, {})['label'] = row.entity_label
             items.setdefault('item_%s' % row.entity_id, {})['label_plural'] = row.entity_label_plural
             items.setdefault('item_%s' % row.entity_id, {})['description'] = row.entity_description
-            items.setdefault('item_%s' % row.entity_id, {})['created'] = row.entity_created
+            items.setdefault('item_%s' % row.entity_id, {})['created'] = formatDatetime(row.entity_created, '%(day)02d.%(month)02d.%(year)d') if row.entity_created else ''
             items.setdefault('item_%s' % row.entity_id, {})['displayname'] = row.entity_displayname
             items.setdefault('item_%s' % row.entity_id, {})['displayinfo'] = row.entity_displayinfo
             items.setdefault('item_%s' % row.entity_id, {})['displaytable'] = row.entity_displaytable

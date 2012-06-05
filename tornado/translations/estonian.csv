@@ -18,4 +18,6 @@ counter_generate_value,Genereeri number
 public,Avalik
 public_description,Tee see dokument nähtavaks avalikus vaates
 
+created,Loodud
+
 new_entity_label,Uus "%s"

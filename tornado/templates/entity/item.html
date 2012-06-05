@@ -19,6 +19,22 @@
                 </td>
             </tr>
             {% end %}
+            <tr>
+                <th style="text-align:right; white-space:nowrap; vertical-align:middle;">
+                    <h6>{{ _('public') }}</h6>
+                </th>
+                <td style="width:100%; vertical-align:middle;">
+                    {% if entity.get('is_public', False) %}<b>{{ _('boolean_true') }}</b>{% else %}{{ _('boolean_false') }}{% end %}
+                </td>
+            </tr>
+            <tr>
+                <th style="text-align:right; white-space:nowrap; vertical-align:middle;">
+                    <h6>{{ _('created') }}</h6>
+                </th>
+                <td style="width:100%; vertical-align:middle;">
+                    {{ entity.get('created', '') }}
+                </td>
+            </tr>
         </tbody>
     </table>
 </div>
@@ -58,7 +74,7 @@
     <table class="table table-condensed table-bordered" style="clear:both; margin-top:20px;">
         <thead class="toggle-table">
             <tr>
-                <th {% if v[0].get('displaytable', None) %}colspan="{{ len(v[0].get('displaytable', '')) }}"{% end %}>
+                <th {% if v[0].get('displaytable', None) %}colspan="{{ len(v[0].get('displaytable', ''))+1 }}"{% end %}>
                     <h6>{{ k }}<span style="float:right; font-weight:normal;">{{ len(v) }}</span></h6>
                 </th>
             </tr>
@@ -71,6 +87,9 @@
                     <h6>{{ l }}</h6>
                 </td>
                 {% end %}
+                <th>
+                    <h6>{{ _('created') }}</h6>
+                </th>
             </tr>
             {% end %}
             {% for i in v %}
@@ -81,6 +100,9 @@
                         <a href="#{{ i.get('id', '') }}" class="open_child" style="display:block;">{% if x %}{{ x }}{% else %}&nbsp;{% end %}</a>
                     </td>
                     {% end %}
+                    <td style="text-align:center; width:70px; white-space:nowrap; vertical-align:middle;">
+                        {{ i.get('created', '') }}
+                    </td>
                 {% else %}
                 <td style="">
                     <a href="#{{ i.get('id', '') }}" class="open_child" style="display:block;">{{ i.get('displayname', '') }}</a>

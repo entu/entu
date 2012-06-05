@@ -55,7 +55,7 @@
                         {% end %}
                     {% end %}
                 {% else %}
-                    {{ p['datatype'] }}
+                    {{ ', '.join([v['value'] for v in p['values'] if v['value']]) }}
                 {% end %}
             </td>
         </tr>
@@ -65,7 +65,7 @@
                 <h6>{{ _('public') }}</h6>
             </th>
             <td style="width:100%; vertical-align:middle;">
-                <input type="checkbox" {% if entity.get('is_public', False) %} checked{% end %} />
+                <input type="checkbox" class="is_public" {% if entity.get('is_public', False) %} checked{% end %} />
             </td>
         </tr>
     </tbody>
@@ -158,6 +158,22 @@
                     inputbox.data('id', newvalue.value_id);
                 }, 'json');
             }
+        });
+
+        $('.is_public').change(function() {
+            var inputbox = $(this);
+            value = inputbox.is(':checked');
+            $.post('/entity/save', {
+                entity_id: $('#database').data('entity_id'),
+                parent_entity_id: '{{ parent_entity_id }}',
+                entity_definition_id: '{{ entity_definition_id }}',
+                is_public: 'true',
+                value: value
+            },
+            function(newvalue) {
+                //alert(JSON.stringify(newvalue));
+                $('#database').data('entity_id', newvalue.entity_id);
+            }, 'json');
         });
 
         $('.dtype-file').change(function() {
