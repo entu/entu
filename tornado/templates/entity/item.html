@@ -1,5 +1,14 @@
 {% autoescape None %}
 
+{% if parents %}
+<ul class="breadcrumb">
+    {% for p in parents %}
+    <li><a href="#{{ p['id'] }}">{{ p['label'] }}</a> <span class="divider">/</span></li>
+    {% end %}
+</ul>
+{% end %}
+
+
 <img src="{{ entity['displaypicture'] }}" id="entity_picture" class="" width="120" style="float:right; margin-bottom:20px;" />
 <h3 style="margin-right:140px;">{{ entity['displayname'] }}</h3>
 <div style="margin-right:140px;">
@@ -69,8 +78,7 @@
     <div class="tab-pane" id="settings">...</div>
 </div-->
 
-{% for t, d in relatives.iteritems() %}
-{% for k, v in d.iteritems() %}
+{% for k, v in relatives.iteritems() %}
     <table class="table table-condensed table-bordered" style="clear:both; margin-top:20px;">
         <thead class="toggle-table">
             <tr>
@@ -112,7 +120,6 @@
             {% end %}
         </tbody>
     </table>
-{% end%}
 {% end%}
 
 <script>

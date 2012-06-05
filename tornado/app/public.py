@@ -34,14 +34,13 @@ class PublicSearchHandler(myRequestHandler):
         locale = self.get_user_locale()
         items = []
         if len(search) > 1:
-            #entities = db.Entity(user_locale=self.get_user_locale()).get(search=search, entity_definition_id=[1, 7, 8, 38])
-            entities = db.Entity(user_locale=self.get_user_locale()).get(search=search)
+            entities = db.Entity(user_locale=self.get_user_locale()).get(search=search, entity_definition_id=[1, 7, 8, 38])
             if entities:
                 for item in entities:
                     items.append({
                         'url': '/public/entity-%s/%s' % (item.get('id', ''), toURL(item.get('displayname', ''))),
                         'name': item.get('displayname', ''),
-                        'date': item.get('created', '').strftime('%d.%m.%Y'),
+                        'date': item.get('created'),
                         'file': item.get('file_count', 0),
                     })
 
