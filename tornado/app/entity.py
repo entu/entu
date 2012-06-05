@@ -31,7 +31,7 @@ class ShowGroup(myRequestHandler):
 
         """
         search = self.get_argument('search', None, True)
-        self.write({'items': db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(ids_only=True, search=search, entity_definition_id=entity_definition_id, limit=101)})
+        self.write({'items': db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(ids_only=True, search=search, entity_definition_id=entity_definition_id, limit=303)})
 
 
 class ShowListinfo(myRequestHandler):

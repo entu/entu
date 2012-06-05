@@ -105,7 +105,7 @@
                     </td>
                 {% else %}
                 <td style="">
-                    <a href="#{{ i.get('id', '') }}" class="open_child" style="display:block;">{{ i.get('displayname', '') }}</a>
+                    <a href="#{{ i.get('id', '') }}" class="open_child" style="display:block;">{% if i.get('displayname', '') %}{{ i.get('displayname', '') }}{% else %}&nbsp;{% end %}</a>
                 </td>
                 {% end %}
             </tr>
