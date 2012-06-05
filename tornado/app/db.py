@@ -482,6 +482,7 @@ class Entity():
             items.setdefault('item_%s' % row.entity_id, {})['displaytable'] = row.entity_displaytable
             items.setdefault('item_%s' % row.entity_id, {})['file_count'] = 0
             items.setdefault('item_%s' % row.entity_id, {})['is_public'] = True if row.entity_public == 1 else False
+            items.setdefault('item_%s' % row.entity_id, {})['ordinal'] = row.entity_created
 
             #Property
             items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['id'] = row.property_id
@@ -633,7 +634,7 @@ class Entity():
 
         return self.db.query(sql)
 
-    def get_relatives(self, entity_id=None, relation_type=None, limit=None):
+    def get_relatives(self, entity_id=None, relation_type=None, reverse_relation=False, limit=None):
         """
         Get Entity relatives.
 
@@ -644,7 +645,10 @@ class Entity():
         if type(entity_id) is not list:
             entity_id = [entity_id]
 
-        sql = 'SELECT DISTINCT relationship.type, relationship.related_entity_id AS id FROM entity, relationship, relationship AS rights WHERE relationship.related_entity_id = entity.id AND rights.entity_id = relationship.related_entity_id AND relationship.entity_id IN (%s)' % ','.join(map(str, entity_id))
+        if reverse_relation == True:
+            sql = 'SELECT DISTINCT relationship.type, relationship.entity_id AS id FROM entity, relationship, relationship AS rights WHERE relationship.related_entity_id = entity.id AND rights.entity_id = relationship.related_entity_id AND relationship.related_entity_id IN (%s)' % ','.join(map(str, entity_id))
+        else:
+            sql = 'SELECT DISTINCT relationship.type, relationship.related_entity_id AS id FROM entity, relationship, relationship AS rights WHERE relationship.related_entity_id = entity.id AND rights.entity_id = relationship.related_entity_id AND relationship.entity_id IN (%s)' % ','.join(map(str, entity_id))
 
         if self.user_id:
             sql += ' AND rights.related_entity_id IN (%s) AND rights.type IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
@@ -669,8 +673,11 @@ class Entity():
             ent = self.__get_properties(item.id)
             if not ent:
                 continue
-            ent = ent[0]
-            items.setdefault(item.type, {}).setdefault('%s' % ent.get('label_plural', ''), []).append(ent)
+            items.setdefault('%s' % ent[0].get('label_plural', ''), []).append(ent[0])
+
+        for k, v in items.iteritems():
+            items[k] = sorted(v, key=itemgetter('ordinal'), reverse=True)
+
         return items
 
     def get_file(self, file_id):
