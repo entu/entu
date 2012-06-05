@@ -78,7 +78,7 @@
                 {% if i.get('displaytable', None) %}
                     {% for x in i.get('displaytable', '') %}
                     <td style="min-width:100px;">
-                        <a href="#{{ i.get('id', '') }}" class="open_child" style="display:block;">{{ x }}</a>
+                        <a href="#{{ i.get('id', '') }}" class="open_child" style="display:block;">{% if x %}{{ x }}{% else %}&nbsp;{% end %}</a>
                     </td>
                     {% end %}
                 {% else %}
