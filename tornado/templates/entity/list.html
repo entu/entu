@@ -21,6 +21,7 @@
             $.get('/entity-'+id, function(html) {
                 $('#content').html(html);
             });
+            _gaq.push(['_trackPageview', '/entity-'+id]);
         };
 
         items = [];
