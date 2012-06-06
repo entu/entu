@@ -36,7 +36,7 @@
                             <img src="{{ static_url('images/spinner_white.gif') }}" style="display:none;" />
                             <iframe name="iframe_{{ p['id'] }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML, '#blobstore_upload_{{ p['id'] }}');" style="display:none;"></iframe>
                             <form method="post" action="/entity/save" target="iframe_{{ p['id'] }}" enctype="multipart/form-data" style="margin:0px; padding:0px;">
-                                <input type="hidden" name="entity_id" value="{{ entity.get('id', '') }}" />
+                                <input type="hidden" id="file_entity_id" name="entity_id" value="{{ entity.get('id', '') }}" />
                                 <input type="hidden" name="parent_entity_id" value="{{ parent_entity_id }}" />
                                 <input type="hidden" name="entity_definition_id" value="{{ entity_definition_id }}" />
                                 <input type="hidden" name="property_id" value="{{ p['id'] }}" />
@@ -79,6 +79,7 @@
     function showDocument(json_string, div){
         newvalue = jQuery.parseJSON(json_string.replace('<pre style="word-wrap: break-word; white-space: pre-wrap;">','').replace('</pre>',''))
         $('#database').data('entity_id', newvalue.entity_id);
+        $('#file_entity_id').val(newvalue.entity_id);
         $(div).append(newvalue.value+'<br />');
         $(div).parent().children('img').hide();
         $(div).parent().children('form').children('.dtype-file').val('');
@@ -132,6 +133,7 @@
             function(newvalue) {
                 //alert(JSON.stringify(newvalue));
                 $('#database').data('entity_id', newvalue.entity_id);
+                $('#file_entity_id').val(newvalue.entity_id);
                 inputbox.parent().html(newvalue.value);
             }, 'json');
         });
@@ -155,6 +157,7 @@
                 function(newvalue) {
                     //alert(JSON.stringify(newvalue));
                     $('#database').data('entity_id', newvalue.entity_id);
+                    $('#file_entity_id').val(newvalue.entity_id);
                     inputbox.data('id', newvalue.value_id);
                 }, 'json');
             }
@@ -173,6 +176,7 @@
             function(newvalue) {
                 //alert(JSON.stringify(newvalue));
                 $('#database').data('entity_id', newvalue.entity_id);
+                $('#file_entity_id').val(newvalue.entity_id);
             }, 'json');
         });
 
