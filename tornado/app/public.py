@@ -17,7 +17,6 @@ class PublicHandler(myRequestHandler):
     """
     def get(self):
         self.render('public/start.html',
-            page_title = self.locale.translate('search_results'),
             search = ''
         )
 
@@ -54,7 +53,6 @@ class PublicSearchHandler(myRequestHandler):
             itemcount =locale.translate('search_result_count2') % len(items)
 
         self.render('public/list.html',
-            page_title = self.locale.translate('search_results'),
             entities = sorted(items, key=itemgetter('name')) ,
             itemcount = itemcount,
             search = urllib.unquote_plus(search)
