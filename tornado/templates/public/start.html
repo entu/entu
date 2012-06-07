@@ -1,22 +1,23 @@
 {% extends '../main/index.html' %}
 
 {% block logo_url %}/public{% end %}
+
 {% block right_toolbar %}
     <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-help" data-icon="?"></a></li>
 {% end %}
 
 {% block content %}
-        <div class="container" style="margin-top:70px;">
+    <div class="container" style="margin-top:70px;">
 
-            {% block public_content %}
-                <img src="{{ app_logo_big }}" alt="logo" style="margin:100px auto 50px auto; display:block;" />
-                {% include 'search.html' %}
-            {% end %}
+        {% block public_content %}
+            <img src="{{ app_logo_big }}" alt="logo" style="margin:100px auto 50px auto; display:block;" />
+            {% include 'search.html' %}
+        {% end %}
 
-            <footer>
-                <p style="font-size:11px; color:gray;">Copyright ©2012 - Made by Argo Roots</p>
-            </footer>
-        </div>
+        <footer>
+            <p style="font-size:11px; color:gray;">Copyright ©2012 - Made by Argo Roots</p>
+        </footer>
+    </div>
     <script>
         $(document).ready(function(){
 
