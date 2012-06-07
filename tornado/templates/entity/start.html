@@ -1,18 +1,55 @@
-{% extends 'index.html' %}
+{% extends '../main/index.html' %}
 
+{% block logo_url %}/{% end %}
+{% block fluid %}-fluid{% end %}
 
-{% block toolbar %}
-<ul class="nav" style="margin:0px;">
+{% block left_toolbar %}
     {% if show_list %}
-    <li id="list_search"><input type="search" id="searchbox" class="search-query" placeholder="{{ _('search_placeholder') }}" /><span></span></li>
+        <li id="list_search"><input type="search" id="searchbox" class="search-query" placeholder="{{ _('search_placeholder') }}" /><span></span></li>
     {% end %}
-</ul>
-<ul id="toolbar" class="nav">
-</ul>
+    <ul id="toolbar" class="nav">
+    </ul>
 {% end %}
 
+{% block right_toolbar %}
+    <li class="toolbar-item"><a href="" style="padding:5px 5px 5px 10px;">{{ current_user.name }}<img src="{{ current_user.picture }}" style="margin-left:10px; height:40px; width:40px;" /></a></li>
+    <li class="toolbar-item"><a href="/exit" data-icon="Q" style="width:30px;"></a></li>
+{% end %}
 
 {% block content %}
-<div id="content">
-</div>
+    <div class="container-fluid">
+        <div id="menu">
+            <div id="menu_accordion" class="accordion">
+                {% for m in menu %}
+                    <h3><a href="#">{{ m['label'] }}</a></h3>
+                    <div>
+                        {% for i in m['items'] %}
+                            <a href="/group-{{ i['id'] }}">{{ i['title'] }}</a>
+                        {% end %}
+                    </div>
+                {% end %}
+            </div>
+        </div>
+        {% include 'list.html'%}
+        <div id="content">
+        </div>
+        </div>
+
+    <script>
+        $(document).ready(function(){
+
+            $(".accordion").accordion({
+                fillSpace: true,
+                navigation: true,
+            });
+            $("#menu").find("a[href='"+window.location.pathname+"']").each(function(){
+                $(this).addClass("active")
+            })
+
+            $(window).resize(function(){
+                $('#menu_accordion').accordion('resize');
+            });
+
+        });
+    </script>
 {% end %}

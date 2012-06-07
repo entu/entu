@@ -51,9 +51,9 @@
     </li>
     {% end %}
     <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-edit" data-icon="E"></a></li>
-    <!--li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-rights" data-icon="L"></a></li-->
+    {% if rating_scale %}<li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-rate" data-icon="R"></a></li>{% end %}
+    <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-rights" data-icon="L"></a></li>
 </ul>
-
 
 <!--ul class="nav nav-tabs" id="myTab" style="clear:both;">
     <li class="active"><a href="#home">Home</a></li>
