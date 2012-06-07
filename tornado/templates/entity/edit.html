@@ -55,7 +55,7 @@
                         {% end %}
                     {% end %}
                 {% else %}
-                    {{ ', '.join([v['value'] for v in p['values'] if v['value']]) }}
+                    {{ ', '.join(['%s' % v['value'] for v in p['values'] if v['value']]) }}
                 {% end %}
             </td>
         </tr>
