@@ -294,9 +294,9 @@ class Entity():
         return self.db.get('SELECT value_string FROM property WHERE id=%s', property_id).value_string
 
 
-    def get(self, ids_only=False, entity_id=None, search=None, entity_definition_id=None, limit=None, full_definition=False, public=False):
+    def get(self, ids_only=False, entity_id=None, search=None, entity_definition_id=None, dataproperty=None, limit=None, full_definition=False, public=False):
         """
-        If ids_only = True, then returns list of Entity IDs. Else returns list of Entities (with properties) as dictionary. entity_id and entity_definition can be single ID or list of IDs. If limit = 1 returns Entity (not list). If full_definition = True returns also empty properties.
+        If ids_only = True, then returns list of Entity IDs. Else returns list of Entities (with properties) as dictionary. entity_id, entity_definition and dataproperty can be single value or list of values. If limit = 1 returns Entity (not list). If full_definition = True returns also empty properties.
 
         """
         if public == True:
@@ -306,7 +306,7 @@ class Entity():
         if ids_only == True:
             return ids
 
-        entities = self.__get_properties(entity_id=ids)
+        entities = self.__get_properties(entity_id=ids, dataproperty=dataproperty)
         if not entities and full_definition == False and entity_definition_id == None:
             return
 
@@ -398,7 +398,7 @@ class Entity():
             return []
         return [x.id for x in items]
 
-    def __get_properties(self, entity_id=None):
+    def __get_properties(self, entity_id=None, dataproperty=None):
         """
         Get Entity properties. entity_id can be single ID or list of IDs.
 
@@ -413,6 +413,12 @@ class Entity():
             public = ''
         else:
             public = 'AND entity.public = 1 AND property_definition.public = 1'
+
+        datapropertysql = ''
+        if dataproperty:
+            if type(dataproperty) is not list:
+                dataproperty = [dataproperty]
+                datapropertysql = 'AND property_definition.dataproperty IN (%s)' % ','.join(['\'%s\'' % x for x in dataproperty])
 
         sql = """
             SELECT
@@ -459,12 +465,13 @@ class Entity():
             AND property_definition.id = property.property_definition_id
             AND entity_definition.id = property_definition.entity_definition_id
             AND (property.language = '%(language)s' OR property.language IS NULL)
-            %(public)s
             AND entity.id IN (%(idlist)s)
+            %(public)s
+            %(datapropertysql)s
             ORDER BY
                 entity_definition.id,
                 entity.created DESC
-        """ % {'language': self.language, 'public': public, 'idlist': ','.join(map(str, entity_id))}
+        """ % {'language': self.language, 'public': public, 'idlist': ','.join(map(str, entity_id)), 'datapropertysql': datapropertysql}
         # logging.info(sql)
 
         items = {}
@@ -673,7 +680,10 @@ class Entity():
             ent = self.__get_properties(item.id)
             if not ent:
                 continue
-            items.setdefault('%s' % ent[0].get('label_plural', ''), []).append(ent[0])
+            ent = ent[0]
+            items.setdefault('%s' % ent.get('label_plural', ''), []).append(ent)
+            # if item.grade_entity_id:
+
 
         for k, v in items.iteritems():
             items[k] = sorted(v, key=itemgetter('ordinal'), reverse=True)
@@ -836,7 +846,8 @@ class User():
             user.name,
             user.language,
             user.email,
-            user.picture
+            user.picture,
+            user_profile.provider
             FROM
             property_definition,
             property,
