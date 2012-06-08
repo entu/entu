@@ -21,6 +21,7 @@ controllers = [
     'entity',
     'public',
     'import',
+    'application',
 ]
 
 
