@@ -365,6 +365,8 @@ class Entity():
             entity['properties'] = sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal'))
 
             for p in entity['properties']:
+                if p.get('select', None):
+                    p['select'] = sorted(p.get('select', []), key=itemgetter('label'))
                 p['values'] = sorted(p.get('values', {}).values(), key=itemgetter('ordinal'))
 
         if limit == 1:
