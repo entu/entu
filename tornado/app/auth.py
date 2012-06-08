@@ -158,7 +158,7 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 'picture':  'https://apis.live.net/v5.0/%s/picture' % user.setdefault('id', ''),
             })
 
-        self.finish()
+        self.redirect('/')
 
 
 class AuthMobileID(myRequestHandler, auth.OpenIdMixin):
@@ -181,7 +181,7 @@ class AuthMobileID(myRequestHandler, auth.OpenIdMixin):
             raise web.HTTPError(500, 'MobileID auth failed')
 
         LoginUser(self, {'id': self.get_argument('openid.identity', None)})
-        self.finish()
+        self.redirect('/')
 
 
 class AuthIDcard(myRequestHandler, auth.OpenIdMixin):
@@ -203,7 +203,7 @@ class AuthIDcard(myRequestHandler, auth.OpenIdMixin):
             raise web.HTTPError(500, 'IDcard auth failed')
 
         LoginUser(self, {'id': self.get_argument('openid.identity', None)})
-        self.finish()
+        self.redirect('/')
 
 
 class AuthTwitter(myRequestHandler, auth.TwitterMixin):
@@ -228,7 +228,7 @@ class AuthTwitter(myRequestHandler, auth.TwitterMixin):
             'name':     user.setdefault('name'),
             'picture':  user.setdefault('profile_image_url'),
         })
-        self.finish()
+        self.redirect('/')
 
 
 def LoginUser(rh, user):
@@ -250,7 +250,6 @@ def LoginUser(rh, user):
     )
 
     rh.set_secure_cookie('session', str(session_key))
-    rh.redirect('/')
 
 
 class Exit(myRequestHandler):
