@@ -202,6 +202,20 @@ class Entity():
         if not entity_id:
             return
 
+        #Vastuskirja hack
+        if self.db.get('SELECT entity_definition_id FROM entity WHERE id = %s', entity_id).entity_definition_id == 38:
+            parent = self.get_relatives(entity_id=entity_id, relation_type='child', reverse_relation=True, limit=1).values()[0][0]
+            childs = self.get_relatives(entity_id=parent.get('id',None), relation_type='child').values()
+            if childs:
+                childs_count = len([y.get('id', 0) for y in childs[0] if y.get('properties', {}).get('registry_number', {}).get('values', None)])+1
+            else:
+                childs_count = 1
+            parent_number = ''.join(['%s' % x['value'] for x in parent.get('properties', {}).get('registry_number', {}).get('values', {}).values() if x['value']])
+            counter_value = '%s-%s' % (parent_number, childs_count)
+            self.set_property(entity_id=entity_id, property_definition_id=287, value=counter_value)
+            return counter_value
+
+
         sql ="""
             INSERT INTO property (
                 entity_id,
