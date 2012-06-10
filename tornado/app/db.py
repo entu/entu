@@ -51,7 +51,7 @@ class Entity():
                 created_by = %s,
                 created = NOW();
         """
-        # logging.info(sql)
+        # logging.debug(sql)
         entity_id = self.db.execute_lastrowid(sql, entity_definition_id, ','.join(map(str, self.user_id)))
 
         if not parent_entity_id:
@@ -60,34 +60,37 @@ class Entity():
         # Insert child relationship
         sql = """
             INSERT INTO relationship SET
-                type = 'child',
+                relationship_definition_id = (SELECT id FROM relationship_definition WHERE type = 'child' LIMIT 1),
                 entity_id = %s,
                 related_entity_id = %s,
                 created_by = %s,
                 created = NOW();
         """
-        # logging.info(sql)
+        # logging.debug(sql)
         self.db.execute(sql, parent_entity_id, entity_id, ','.join(map(str, self.user_id)))
 
         # Copy user rights
         sql = """
             INSERT INTO relationship (
-                type,
+                relationship_definition_id,
                 entity_id,
                 related_entity_id,
                 created_by,
                 created
             ) SELECT /* SQL_NO_CACHE */
-                type,
+                relationship.relationship_definition_id,
                 %s,
-                related_entity_id,
+                relationship.related_entity_id,
                 %s,
                 NOW()
-            FROM relationship
-            WHERE type IN ('viewer', 'editor', 'owner')
-            AND entity_id = %s;
+            FROM
+                relationship,
+                relationship_definition
+            WHERE relationship_definition.id = relationship.relationship_definition_id
+            AND relationship_definition.type IN ('viewer', 'editor', 'owner')
+            AND relationship.entity_id = %s;
         """
-        # logging.info(sql)
+        # logging.debug(sql)
         self.db.execute(sql, entity_id, ','.join(map(str, self.user_id)), parent_entity_id)
 
         # Propagate properties
@@ -132,7 +135,7 @@ class Entity():
             AND property.entity_id = %s
             AND type = 'propagated_property';
         """
-        # logging.info(sql)
+        # logging.debug(sql)
         self.db.execute(sql, entity_id, ','.join(map(str, self.user_id)), entity_definition_id, parent_entity_id)
 
         return entity_id
@@ -240,7 +243,7 @@ class Entity():
                     AND entity.entity_definition_id = property_definition.entity_definition_id
                     AND entity.id = property.entity_id
                     AND property_definition.dataproperty='series'
-                    AND entity.id = (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND type='child' LIMIT 1)
+                    AND entity.id = (SELECT entity_id FROM relationship, relationship_definition WHERE relationship_definition.id = relationship.relationship_definition_id AND related_entity_id = %(entity_id)s AND relationship_definition.type = 'child' LIMIT 1)
                     LIMIT 1
                 ), ''),
                 IFNULL((
@@ -254,7 +257,7 @@ class Entity():
                     AND entity.entity_definition_id = property_definition.entity_definition_id
                     AND entity.id = property.entity_id
                     AND property_definition.dataproperty='prefix'
-                    AND entity.id = (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND type='child' LIMIT 1)
+                    AND entity.id = (SELECT entity_id FROM relationship, relationship_definition WHERE relationship_definition.id = relationship.relationship_definition_id AND related_entity_id = %(entity_id)s AND relationship_definition.type = 'child' LIMIT 1)
                     LIMIT 1
                 ), ''),
                 counter.value+counter.increment) AS value,
@@ -270,10 +273,10 @@ class Entity():
             AND relationship.property_definition_id = property_definition.id
             AND property_definition2.id = relationship.related_property_definition_id
             AND counter.id = property.value_counter
-            AND property.entity_id = (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND type='child' LIMIT 1)
+            AND property.entity_id = (SELECT entity_id FROM relationship, relationship_definition WHERE relationship_definition.id = relationship.relationship_definition_id AND related_entity_id = %(entity_id)s AND relationship_definition.type = 'child' LIMIT 1)
             AND property_definition.datatype= 'counter'
             AND property_definition2.datatype = 'counter_value'
-            AND relationship.type = 'target_property'
+            AND relationship.relationship_definition_id = (SELECT id FROM relationship_definition WHERE type = 'target_property' LIMIT 1)
             AND property_definition2.entity_definition_id = (SELECT entity_definition_id FROM entity WHERE id = %(entity_id)s LIMIT 1)
             AND counter.type = 'increment';
             UPDATE
@@ -291,10 +294,10 @@ class Entity():
                 AND relationship.property_definition_id = property_definition.id
                 AND property_definition2.id = relationship.related_property_definition_id
                 AND counter.id = property.value_counter
-                AND property.entity_id = (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND type='child' LIMIT 1)
+                AND property.entity_id = (SELECT entity_id FROM relationship, relationship_definition WHERE relationship_definition.id = relationship.relationship_definition_id AND related_entity_id = %(entity_id)s AND relationship_definition.type = 'child' LIMIT 1)
                 AND property_definition.datatype= 'counter'
                 AND property_definition2.datatype = 'counter_value'
-                AND relationship.type = 'target_property'
+                AND relationship.relationship_definition_id = (SELECT id FROM relationship_definition WHERE type = 'target_property' LIMIT 1)
                 AND property_definition2.entity_definition_id = (SELECT entity_definition_id FROM entity WHERE id = %(entity_id)s LIMIT 1)
                 AND counter.type = 'increment'
                 ) X
@@ -304,10 +307,39 @@ class Entity():
                 counter.changed = NOW()
             WHERE counter.id = X.id;
         """ % {'entity_id': entity_id, 'user_id': ','.join(map(str, self.user_id))}
-        # logging.info(sql)
+        logging.debug(sql)
 
         property_id = self.db.execute_lastrowid(sql)
         return self.db.get('SELECT value_string FROM property WHERE id=%s', property_id).value_string
+
+    def set_rights(self, entity_id, user_id, right):
+        """
+        Add rights to entity. entity_id, user_id, right can be single value or list of values
+
+        """
+
+        if type(entity_id) is not list:
+            entity_id = [entity_id]
+
+        if type(user_id) is not list:
+            user_id = [user_id]
+
+        if type(right) is not list:
+            right = [right]
+
+        for e in entity_id:
+            for u in user_id:
+                for r in right:
+                    sql = """
+                        INSERT INTO relationship SET
+                            relationship_definition_id = (SELECT id FROM relationship_definition WHERE type = %s LIMIT 1),
+                            entity_id = %s,
+                            related_entity_id = %s,
+                            created_by = %s,
+                            created = NOW();
+                    """
+                    # logging.debug(sql)
+                    self.db.execute(sql, r, e, u, ','.join(map(str, self.user_id)))
 
 
     def get(self, ids_only=False, entity_id=None, search=None, entity_definition_id=None, dataproperty=None, limit=None, full_definition=False, public=False):
@@ -381,7 +413,20 @@ class Entity():
         Get list of Entity IDs. entity_id, entity_definition_id and user_id can be single ID or list of IDs.
 
         """
-        sql = 'SELECT DISTINCT entity.id AS id FROM property_definition, property, entity, relationship WHERE property.property_definition_id = property_definition.id AND entity.id = property.entity_id AND relationship.entity_id = entity.id'
+        sql = """
+            SELECT DISTINCT
+                entity.id AS id
+            FROM
+                property_definition,
+                property,
+                entity,
+                relationship,
+                relationship_definition
+            WHERE property.property_definition_id = property_definition.id
+            AND entity.id = property.entity_id
+            AND relationship.entity_id = entity.id
+            AND relationship_definition.id = relationship.relationship_definition_id
+        """
 
         if entity_id != None:
             if type(entity_id) is not list:
@@ -398,7 +443,7 @@ class Entity():
             sql += ' AND entity.entity_definition_id IN (%s)' % ','.join(map(str, entity_definition_id))
 
         if self.user_id:
-            sql += ' AND relationship.related_entity_id IN (%s) AND relationship.type IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
+            sql += ' AND relationship.related_entity_id IN (%s) AND relationship_definition.type IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
         else:
             sql += ' AND entity.public = 1 AND property_definition.public = 1'
 
@@ -409,7 +454,7 @@ class Entity():
             sql += ' LIMIT %d' % limit
 
         sql += ';'
-        # logging.info(sql)
+        # logging.debug(sql)
 
         items = self.db.query(sql)
         if not items:
@@ -490,7 +535,7 @@ class Entity():
                 entity_definition.id,
                 entity.created DESC
         """ % {'language': self.language, 'public': public, 'idlist': ','.join(map(str, entity_id)), 'datapropertysql': datapropertysql}
-        # logging.info(sql)
+        # logging.debug(sql)
 
         items = {}
         for row in self.db.query(sql):
@@ -591,7 +636,7 @@ class Entity():
         result['displaytable'] = result['displaytable'].split('|') if result['displaytable'] else None
         result['displaytable_labels'] = result['displaytable_labels'].split('|') if result['displaytable_labels'] else None
 
-        # logging.info(result.get('displaytable_labels'))
+        # logging.debug(result.get('displaytable_labels'))
         return result
 
     def __get_picture_url(self, entity_id):
@@ -655,7 +700,7 @@ class Entity():
             WHERE entity_definition.id = property_definition.entity_definition_id
             AND entity_definition.id IN (%(id)s)
         """ % {'language': self.language, 'id': ','.join(map(str, entity_definition_id))}
-        # logging.info(sql)
+        # logging.debug(sql)
 
         return self.db.query(sql)
 
@@ -671,19 +716,49 @@ class Entity():
             entity_id = [entity_id]
 
         if reverse_relation == True:
-            sql = 'SELECT DISTINCT relationship.type, relationship.entity_id AS id FROM entity, relationship, relationship AS rights WHERE relationship.related_entity_id = entity.id AND rights.entity_id = relationship.related_entity_id AND relationship.related_entity_id IN (%s)' % ','.join(map(str, entity_id))
+            sql = """
+                SELECT DISTINCT
+                    relationship_definition.type,
+                    relationship.entity_id AS id
+                FROM
+                    entity,
+                    relationship,
+                    relationship_definition,
+                    relationship AS rights,
+                    relationship_definition AS rights_definition
+                WHERE relationship.related_entity_id = entity.id
+                AND relationship_definition.id = relationship.relationship_definition_id
+                AND rights.entity_id = relationship.related_entity_id
+                AND rights_definition.id = rights.relationship_definition_id
+                AND relationship.related_entity_id IN (%s)
+            """ % ','.join(map(str, entity_id))
         else:
-            sql = 'SELECT DISTINCT relationship.type, relationship.related_entity_id AS id FROM entity, relationship, relationship AS rights WHERE relationship.related_entity_id = entity.id AND rights.entity_id = relationship.related_entity_id AND relationship.entity_id IN (%s)' % ','.join(map(str, entity_id))
+            sql = """
+                SELECT DISTINCT
+                    relationship_definition.type,
+                    relationship.related_entity_id AS id
+                FROM
+                    entity,
+                    relationship,
+                    relationship_definition,
+                    relationship AS rights,
+                    relationship_definition AS rights_definition
+                WHERE relationship.related_entity_id = entity.id
+                AND relationship_definition.id = relationship.relationship_definition_id
+                AND rights.entity_id = relationship.related_entity_id
+                AND rights_definition.id = rights.relationship_definition_id
+                AND relationship.entity_id IN (%s)
+            """ % ','.join(map(str, entity_id))
 
         if self.user_id:
-            sql += ' AND rights.related_entity_id IN (%s) AND rights.type IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
+            sql += ' AND rights.related_entity_id IN (%s) AND rights_definition.type IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
         else:
             sql += ' AND entity.public = 1'
 
         if relation_type:
             if type(relation_type) is not list:
                 relation_type = [relation_type]
-            sql += ' AND relationship.type IN (%s)' % ','.join(['\'%s\'' % x for x in relation_type])
+            sql += ' AND relationship_definition.type IN (%s)' % ','.join(['\'%s\'' % x for x in relation_type])
 
         sql += ' ORDER BY entity.id DESC'
 
@@ -691,7 +766,7 @@ class Entity():
             sql += ' LIMIT %d' % limit
 
         sql += ';'
-        # logging.info(sql)
+        # logging.debug(sql)
 
         items = {}
         for item in self.db.query(sql):
@@ -721,20 +796,20 @@ class Entity():
 
         sql = """
             SELECT
-            file.id,
-            file.file,
-            file.filename
+                file.id,
+                file.file,
+                file.filename
             FROM
-            file,
-            property,
-            property_definition
+                file,
+                property,
+                property_definition
             WHERE property.value_file = file.id
             AND property_definition.id = property.property_definition_id
             AND file.id = %(file_id)s
             %(public)s
             LIMIT 1
             """ % {'file_id': file_id, 'public': public}
-        # logging.info(sql)
+        # logging.debug(sql)
 
         result = self.db.get(sql)
 
@@ -752,17 +827,17 @@ class Entity():
         """
         sql = """
             SELECT
-            id,
-            %(language)s_label AS label,
-            %(language)s_label_plural AS label_plural,
-            %(language)s_description AS description,
-            %(language)s_menu AS menugroup
+                id,
+                %(language)s_label AS label,
+                %(language)s_label_plural AS label_plural,
+                %(language)s_description AS description,
+                %(language)s_menu AS menugroup
             FROM
-            entity_definition
+                entity_definition
             WHERE id = %(id)s
             LIMIT 1
         """  % {'language': self.language, 'id': entity_definition_id}
-        # logging.info(sql)
+        # logging.debug(sql)
 
         return self.db.get(sql)
 
@@ -773,19 +848,21 @@ class Entity():
         """
         sql = """
             SELECT
-            entity_definition.id,
-            entity_definition.%(language)s_label AS label,
-            entity_definition.%(language)s_label_plural AS label_plural,
-            entity_definition.%(language)s_description AS description,
-            entity_definition.%(language)s_menu AS menugroup
+                entity_definition.id,
+                entity_definition.%(language)s_label AS label,
+                entity_definition.%(language)s_label_plural AS label_plural,
+                entity_definition.%(language)s_description AS description,
+                entity_definition.%(language)s_menu AS menugroup
             FROM
-            entity_definition,
-            relationship
+                entity_definition,
+                relationship,
+                relationship_definition
             WHERE relationship.related_entity_definition_id = entity_definition.id
-            AND relationship.type = 'allowed_child'
+            AND relationship_definition.id = relationship.relationship_definition_id
+            AND relationship_definition.type = 'allowed_child'
             AND relationship.entity_id = %(id)s
         """  % {'language': self.language, 'id': entity_id}
-        # logging.info(sql)
+        # logging.debug(sql)
 
         result = self.db.query(sql)
         if result:
@@ -793,19 +870,21 @@ class Entity():
 
         sql = """
             SELECT
-            entity_definition.id,
-            entity_definition.%(language)s_label AS label,
-            entity_definition.%(language)s_label_plural AS label_plural,
-            entity_definition.%(language)s_description AS description,
-            entity_definition.%(language)s_menu AS menugroup
+                entity_definition.id,
+                entity_definition.%(language)s_label AS label,
+                entity_definition.%(language)s_label_plural AS label_plural,
+                entity_definition.%(language)s_description AS description,
+                entity_definition.%(language)s_menu AS menugroup
             FROM
-            entity_definition,
-            relationship
+                entity_definition,
+                relationship,
+                relationship_definition
             WHERE relationship.related_entity_definition_id = entity_definition.id
-            AND relationship.type='allowed_child'
+            AND relationship_definition.id = relationship.relationship_definition_id
+            AND relationship_definition.type = 'allowed_child'
             AND relationship.entity_definition_id = (SELECT entity_definition_id FROM entity WHERE id = %(id)s)
         """  % {'language': self.language, 'id': entity_id}
-        # logging.info(sql)
+        # logging.debug(sql)
 
         return self.db.query(sql)
 
@@ -817,23 +896,25 @@ class Entity():
 
         sql = """
             SELECT DISTINCT
-            entity_definition.id,
-            entity_definition.%(language)s_menu AS menugroup,
-            entity_definition.%(language)s_label AS item
+                entity_definition.id,
+                entity_definition.%(language)s_menu AS menugroup,
+                entity_definition.%(language)s_label AS item
             FROM
-            entity_definition,
-            entity,
-            relationship
+                entity_definition,
+                entity,
+                relationship,
+                relationship_definition
             WHERE entity.entity_definition_id = entity_definition.id
             AND relationship.entity_id = entity.id
-            AND relationship.type IN ('viewer', 'editor', 'owner')
+            AND relationship_definition.id = relationship.relationship_definition_id
+            AND relationship_definition.type IN ('viewer', 'editor', 'owner')
             AND entity_definition.estonian_menu IS NOT NULL
             AND relationship.related_entity_id IN (%(user_id)s)
             ORDER BY
             entity_definition.estonian_menu,
             entity_definition.estonian_label;
         """ % {'language': self.language, 'user_id': ','.join(map(str, self.user_id))}
-        # logging.info(sql)
+        # logging.debug(sql)
 
         menu = {}
         for m in self.db.query(sql):
@@ -860,17 +941,17 @@ class User():
         db = connection()
         user = db.get("""
             SELECT
-            property.entity_id AS id,
-            user.name,
-            user.language,
-            user.email,
-            user.picture,
-            user_profile.provider
+                property.entity_id AS id,
+                user.name,
+                user.language,
+                user.email,
+                user.picture,
+                user_profile.provider
             FROM
-            property_definition,
-            property,
-            user,
-            user_profile
+                property_definition,
+                property,
+                user,
+                user_profile
             WHERE property.property_definition_id = property_definition.id
             AND user.email = property.value_string
             AND user_profile.user_id = user.id
