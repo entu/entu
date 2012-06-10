@@ -33,16 +33,15 @@ class Entity():
         self.user_locale    = user_locale
         self.language       = user_locale.code
 
-        if self.user_id:
-            if type(self.user_id) is not list:
-                self.user_id = [self.user_id]
+        if type(self.user_id) is not list:
+            self.user_id = [self.user_id]
 
-    def create(self, entity_definition_id, parent_entity_id):
+    def create(self, entity_definition_id, parent_entity_id=None):
         """
         Creates new Entity and returns its ID.
 
         """
-        if not entity_definition_id or not parent_entity_id:
+        if not entity_definition_id:
             return
 
         # Create entity
@@ -54,6 +53,9 @@ class Entity():
         """
         # logging.info(sql)
         entity_id = self.db.execute_lastrowid(sql, entity_definition_id, ','.join(map(str, self.user_id)))
+
+        if not parent_entity_id:
+            return entity_id
 
         # Insert child relationship
         sql = """
@@ -100,7 +102,7 @@ class Entity():
                 value_decimal,
                 value_boolean,
                 value_datetime,
-                value_reference,
+                value_entity,
                 value_file,
                 value_counter,
                 created_by,
@@ -115,7 +117,7 @@ class Entity():
                 property.value_decimal,
                 property.value_boolean,
                 property.value_datetime,
-                property.value_reference,
+                property.value_entity,
                 property.value_file,
                 property.value_counter,
                 %s,
@@ -468,7 +470,7 @@ class Entity():
                 property.value_decimal                          AS value_decimal,
                 property.value_boolean                          AS value_boolean,
                 property.value_datetime                         AS value_datetime,
-                property.value_reference                        AS value_reference,
+                property.value_entity                           AS value_entity,
                 property.value_counter                          AS value_counter,
                 property.value_file                             AS value_file
             FROM
@@ -539,8 +541,8 @@ class Entity():
                 db_value = row.value_datetime
                 value = formatDatetime(row.value_datetime)
             elif row.property_datatype == 'reference':
-                db_value = row.value_reference
-                value = row.value_reference
+                db_value = row.value_entity
+                value = row.value_entity
             elif row.property_datatype == 'file':
                 db_value = row.value_file
                 blobstore = self.db.get('SELECT id, filename, filesize FROM file WHERE id=%s LIMIT 1', row.value_file)

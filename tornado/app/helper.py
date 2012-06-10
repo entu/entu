@@ -159,3 +159,7 @@ def toURL(s):
     s = re.sub(r'[^-a-zA-Z0-9]', '', s)
     s = s.replace('--', '-').replace('--', '-').replace('--', '-')
     return s
+
+def checkEmail(email):
+    if re.match('[^@]+@[^@]+\.[^@]+', email):
+        return True
