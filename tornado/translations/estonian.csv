@@ -28,10 +28,25 @@ application_signup_info,"Sisseastumisavalduse esitamiseks on sul vaja sisse logi
 application_signup_email_head,Mul pole kontot ega parooli. Soovin luua konto...
 application_signup_email,E-post
 application_signup_email_submit,Saada kutse meilile
+application_signup_email_error,Sisestage e-posti aadress!
+application_signup_email_success,Kutse saadeti sulle meilile!
+application_signup_email_subject,Sisseastuja konto
+application_signup_email_message,"Tere tulemast Eesti Kunstiakadeemiasse!
+
+Meil on hea meel, et oled otsustanud asuda õppima meie akadeemiasse.
+
+Sinu konto Eesti Kunstiakadeemia sisseastumisavalduse esitamiseks on loodud.
+Konto parool on: %s
+
+Sisseastumisavalduse saad täita aadressil http://entu.artun.ee/application
+
+Täname!"
+
 
 application_signup_password_head,Mul on sisseastuja parool. Sisenen sellega...
 application_signup_password,Parool
 application_signup_password_submit,Sisene
+application_signup_password_error,Vale parool!
 
 application_signup_account_head,Mul on @artun.ee konto. Sisenen sellega...
 

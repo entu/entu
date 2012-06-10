@@ -9,13 +9,14 @@
             <li><a href="?language=estonian">Eesti</a></li>
             <li><a href="?language=english">English</a></li>
         </ul>
-        <li class="toolbar-item"><a href="/exit" data-icon="Q"></a></li>
+        {% if current_user %}
+            <li class="toolbar-item"><a href="/exit" data-icon="Q"></a></li>
+        {% end %}
     </li>
 {% end %}
 
 {% block content %}
     <div class="container" style="margin-top:70px;">
-
         <img src="{{ app_logo_big }}" alt="logo" style="margin:30px auto 0px auto; display:block;" />
         <h1 style="text-align:center; margin-bottom:30px;">{{ _('application') }}</h1>
         {% block sub_content %}

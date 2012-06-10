@@ -262,6 +262,8 @@ class Exit(myRequestHandler):
         if self.current_user:
             if self.current_user.provider == 'google':
                 redirect_url = 'https://www.google.com/accounts/logout'
+            if self.current_user.provider == 'application':
+                redirect_url = '/application'
 
         self.clear_cookie('session')
         self.redirect(redirect_url)

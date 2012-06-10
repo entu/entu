@@ -16,6 +16,18 @@
             </div>
             <div id="collapse-email" class="accordion-body collapse in">
                 <div class="accordion-inner">
+                    {% if message == 'email_error' %}
+                        <div class="alert alert-error">
+                            <button class="close" data-dismiss="alert">×</button>
+                            {{ _('application_signup_email_error') }}
+                        </div>
+                    {% end %}
+                    {% if message == 'email_success' %}
+                        <div class="alert alert-info">
+                            <button class="close" data-dismiss="alert">×</button>
+                            {{ _('application_signup_email_success') }}
+                        </div>
+                    {% end %}
                     <form class="form-horizontal" action="/application" method="POST" style="text-align:center; margin-top:18px;">
                         <div class="input-append">
                             <input type="text" id="input-email" name="email" class="span3" placeholder="{{ _('application_signup_email') }}" /><button class="btn btn-warning"  type="submit">{{ _('application_signup_email_submit') }}</button>
@@ -33,6 +45,12 @@
             </div>
             <div id="collapse-password" class="accordion-body collapse">
                 <div class="accordion-inner">
+                    {% if message == 'password_error' %}
+                        <div class="alert alert-error">
+                            <button class="close" data-dismiss="alert">×</button>
+                            {{ _('application_signup_password_error') }}
+                        </div>
+                    {% end %}
                     <form class="form-horizontal" action="/application/form" method="POST" style="text-align:center; margin-top:18px;">
                         <div class="input-append">
                             <input type="password" id="input-password" name="password" class="span3" placeholder="{{ _('application_signup_password') }}" /><button class="btn btn-success"  type="submit">{{ _('application_signup_password_submit') }}</button>
@@ -57,7 +75,13 @@
     <script>
         $(document).ready(function(){
 
+        {% if message == 'password_error' %}
+            $('#collapse-email').collapse('hide')
+            $('#collapse-password').collapse('show')
+            $('#input-password').focus()
+        {% else %}
             $('#input-email').focus()
+        {% end %}
 
             $('#collapse-email').on('show', function () {
                 $('#input-email').focus()
