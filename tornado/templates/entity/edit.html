@@ -1,6 +1,8 @@
+{% from operator import itemgetter %}
+
 <table class="table table-condensed">
     <tbody>
-        {% for p in entity.get('properties', []) %}
+        {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
         <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
             <th style="min-width:200px; text-align:right; vertical-align:middle;">
                 <h6>{%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}</h6>

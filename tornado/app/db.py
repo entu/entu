@@ -32,9 +32,12 @@ class Entity():
         self.user_id        = user_id
         self.user_locale    = user_locale
         self.language       = user_locale.code
+        self.created_by   = ''
 
-        if type(self.user_id) is not list:
-            self.user_id = [self.user_id]
+        if user_id:
+            if type(self.user_id) is not list:
+                self.user_id = [self.user_id]
+            self.created_by = ','.join(map(str, self.user_id))
 
     def create(self, entity_definition_id, parent_entity_id=None):
         """
@@ -52,7 +55,7 @@ class Entity():
                 created = NOW();
         """
         # logging.debug(sql)
-        entity_id = self.db.execute_lastrowid(sql, entity_definition_id, ','.join(map(str, self.user_id)))
+        entity_id = self.db.execute_lastrowid(sql, entity_definition_id, self.created_by)
 
         if not parent_entity_id:
             return entity_id
@@ -67,7 +70,7 @@ class Entity():
                 created = NOW();
         """
         # logging.debug(sql)
-        self.db.execute(sql, parent_entity_id, entity_id, ','.join(map(str, self.user_id)))
+        self.db.execute(sql, parent_entity_id, entity_id, self.created_by)
 
         # Copy user rights
         sql = """
@@ -91,7 +94,7 @@ class Entity():
             AND relationship.entity_id = %s;
         """
         # logging.debug(sql)
-        self.db.execute(sql, entity_id, ','.join(map(str, self.user_id)), parent_entity_id)
+        self.db.execute(sql, entity_id, self.created_by, parent_entity_id)
 
         # Propagate properties
         sql = """
@@ -128,15 +131,17 @@ class Entity():
             FROM
                 relationship,
                 property_definition,
-                property
+                property,
+                relationship_definition
             WHERE property_definition.id = relationship.property_definition_id
             AND property.property_definition_id = property_definition.id
-            #AND property_definition.entity_definition_id = %s
+            AND relationship_definition.id = relationship.relationship_definition_id
+            AND property_definition.entity_definition_id = %s
             AND property.entity_id = %s
-            AND type = 'propagated_property';
+            AND relationship_definition.type = 'propagated_property';
         """
         # logging.debug(sql)
-        self.db.execute(sql, entity_id, ','.join(map(str, self.user_id)), entity_definition_id, parent_entity_id)
+        self.db.execute(sql, entity_id, self.created_by, entity_definition_id, parent_entity_id)
 
         return entity_id
 
@@ -162,7 +167,7 @@ class Entity():
         elif definition.datatype == 'file':
             value = 0
             if uploaded_file:
-                value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], uploaded_file['body'], ','.join(map(str, self.user_id)))
+                value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], uploaded_file['body'], self.created_by)
             field = 'value_file'
         elif definition.datatype == 'boolean':
             field = 'value_boolean'
@@ -176,7 +181,7 @@ class Entity():
         if property_id:
             self.db.execute('UPDATE property SET %s = %%s, changed = NOW(), changed_by = %%s WHERE id = %%s;' % field,
                 value,
-                ','.join(map(str, self.user_id)),
+                self.created_by,
                 property_id,
             )
         else:
@@ -184,7 +189,7 @@ class Entity():
                 entity_id,
                 property_definition_id,
                 value,
-                ','.join(map(str, self.user_id))
+                self.created_by
             )
 
         return property_id
@@ -312,9 +317,9 @@ class Entity():
         property_id = self.db.execute_lastrowid(sql)
         return self.db.get('SELECT value_string FROM property WHERE id=%s', property_id).value_string
 
-    def set_rights(self, entity_id, user_id, right):
+    def set_relations(self, entity_id, user_id, relation):
         """
-        Add rights to entity. entity_id, user_id, right can be single value or list of values
+        Add relations to entity. entity_id, user_id, relation can be single value or list of values
 
         """
 
@@ -324,12 +329,12 @@ class Entity():
         if type(user_id) is not list:
             user_id = [user_id]
 
-        if type(right) is not list:
-            right = [right]
+        if type(relation) is not list:
+            relation = [relation]
 
         for e in entity_id:
             for u in user_id:
-                for r in right:
+                for r in relation:
                     sql = """
                         INSERT INTO relationship SET
                             relationship_definition_id = (SELECT id FROM relationship_definition WHERE type = %s LIMIT 1),
@@ -339,15 +344,15 @@ class Entity():
                             created = NOW();
                     """
                     # logging.debug(sql)
-                    self.db.execute(sql, r, e, u, ','.join(map(str, self.user_id)))
+                    self.db.execute(sql, r, e, u, self.created_by)
 
 
-    def get(self, ids_only=False, entity_id=None, search=None, entity_definition_id=None, dataproperty=None, limit=None, full_definition=False, public=False):
+    def get(self, ids_only=False, entity_id=None, search=None, entity_definition_id=None, dataproperty=None, limit=None, full_definition=False, only_public=False):
         """
         If ids_only = True, then returns list of Entity IDs. Else returns list of Entities (with properties) as dictionary. entity_id, entity_definition and dataproperty can be single value or list of values. If limit = 1 returns Entity (not list). If full_definition = True returns also empty properties.
 
         """
-        if public == True:
+        if only_public == True:
             self.user_id = None
 
         ids = self.__get_id_list(entity_id=entity_id, search=search, entity_definition_id=entity_definition_id, limit=limit)
@@ -391,17 +396,17 @@ class Entity():
                         entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['can_add_new'] = False
 
                     if d.property_classifier_id:
-                        for c in self.get(entity_definition_id=d.property_classifier_id, public=True):
+                        for c in self.get(entity_definition_id=d.property_classifier_id, only_public=True):
                             if c.get('id', None):
                                 entity.setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {}).setdefault('select', []).append({'id': c.get('id', ''), 'label': c.get('displayname', '')})
 
 
-            entity['properties'] = sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal'))
+            # entity['properties'] = sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal'))
 
-            for p in entity['properties']:
-                if p.get('select', None):
-                    p['select'] = sorted(p.get('select', []), key=itemgetter('label'))
-                p['values'] = sorted(p.get('values', {}).values(), key=itemgetter('ordinal'))
+            for key, value in entity['properties'].iteritems():
+                if value.get('select', None):
+                    entity['properties'][key]['select'] = sorted(value['select'], key=itemgetter('label'))
+                entity['properties'][key]['values'] = sorted(value.get('values', {}).values(), key=itemgetter('ordinal'))
 
         if limit == 1:
             return entities[0]
@@ -454,7 +459,7 @@ class Entity():
             sql += ' LIMIT %d' % limit
 
         sql += ';'
-        # logging.debug(sql)
+        logging.debug(sql)
 
         items = self.db.query(sql)
         if not items:
@@ -636,7 +641,6 @@ class Entity():
         result['displaytable'] = result['displaytable'].split('|') if result['displaytable'] else None
         result['displaytable_labels'] = result['displaytable_labels'].split('|') if result['displaytable_labels'] else None
 
-        # logging.debug(result.get('displaytable_labels'))
         return result
 
     def __get_picture_url(self, entity_id):

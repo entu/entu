@@ -4,12 +4,13 @@
 {% include 'start.html' %}
 
 {% block public_content %}
+    {% from operator import itemgetter %}
     {% include 'search.html' %}
 
     <h3>{{ entity['displayname'] }}</h3>
     <table class="table">
         <tbody>
-            {% for p in entity['properties'] %}
+            {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
             <tr>
                 <th style="text-align:right; white-space:nowrap;">
                     <h6>{{ p['label'] }}</h6>

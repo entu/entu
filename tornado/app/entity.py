@@ -66,14 +66,23 @@ class ShowEntity(myRequestHandler):
         if not item:
             return self.missing()
 
-        relatives = entity.get_relatives(entity_id=item['id'], relation_type='child')
+        relatives = entity.get_relatives(entity_id=item['id'], relation_type=['child','leecher'])
         allowed_childs = entity.get_allowed_childs(entity_id=item['id'])
+        leechers = entity.get_relatives(entity_id=item['id'], relation_type='leecher')
+
+        rating_scale = None
+        # rating_scale_list = [x.get('values', []) for x in item.get('properties', []) if x.get('dataproperty', '') == 'rating_scale']
+        # if rating_scale_list:
+        #     rating_scale = rating_scale_list[0][0]
+
 
         self.render('entity/item.html',
             page_title = item['displayname'],
             entity = item,
             relatives = relatives,
             allowed_childs = allowed_childs,
+            leechers = leechers,
+            rating_scale = rating_scale,
         )
 
 

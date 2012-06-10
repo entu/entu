@@ -1,11 +1,12 @@
 {% autoescape None %}
+{% from operator import itemgetter %}
 
 <img src="{{ entity['displaypicture'] }}" id="entity_picture" class="" width="120" style="float:right; margin-bottom:20px;" />
 <h3 style="margin-right:140px;">{{ entity['displayname'] }}</h3>
 <div style="margin-right:140px;">
     <table class="table table-condensed">
         <tbody>
-            {% for p in entity['properties'] %}
+            {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
             <tr>
                 <th style="text-align:right; white-space:nowrap;">
                     <h6>{{ p['label'] }}</h6>
@@ -52,7 +53,7 @@
     {% end %}
     <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-edit" data-icon="E"></a></li>
     {% if rating_scale %}<li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-rate" data-icon="R"></a></li>{% end %}
-    <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-rights" data-icon="L"></a></li>
+    <!--li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-rights" data-icon="L"></a></li-->
 </ul>
 
 <!--ul class="nav nav-tabs" id="myTab" style="clear:both;">
