@@ -18,7 +18,7 @@ class ShowGroup(myRequestHandler):
         """
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
         self.render('entity/start.html',
-            page_title = entity.get_entity_definition(entity_definition_id=entity_definition_id).label_plural if entity_definition_id else '',
+            page_title = entity.get_entity_definition(entity_definition_id=entity_definition_id)[0].label_plural if entity_definition_id else '',
             menu = entity.get_menu(),
             show_list = True if entity_definition_id else False,
             entity_definition = entity_definition_id,
@@ -178,7 +178,7 @@ class SaveEntity(myRequestHandler):
             value = True if value.lower() == 'true' else False
             value = entity.set_public(entity_id=entity_id, is_public=value)
         else:
-            value_id = entity.set_property(entity_id=entity_id, property_definition_id=property_definition_id, value=value, property_id=property_id, uploaded_file=uploaded_file)
+            property_id = entity.set_property(entity_id=entity_id, property_definition_id=property_definition_id, value=value, property_id=property_id, uploaded_file=uploaded_file)
 
         self.write({
             'entity_id': entity_id,

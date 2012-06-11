@@ -33,7 +33,7 @@ class PublicSearchHandler(myRequestHandler):
         locale = self.get_user_locale()
         items = []
         if len(search) > 1:
-            entities = db.Entity(user_locale=self.get_user_locale()).get(search=search, entity_definition_id=[1, 7, 8, 38])
+            entities = db.Entity(user_locale=self.get_user_locale()).get(search=search, entity_definition_id=[1, 7, 8, 38], only_public=True)
             if entities:
                 for item in entities:
                     items.append({
@@ -77,7 +77,7 @@ class PublicEntityHandler(myRequestHandler):
         except:
             return self.missing()
 
-        item = db.Entity(user_locale=self.get_user_locale()).get(entity_id=entity_id, limit=1)
+        item = db.Entity(user_locale=self.get_user_locale()).get(entity_id=entity_id, limit=1, only_public=True)
         if not item:
             return self.missing()
 

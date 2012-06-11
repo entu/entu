@@ -50,3 +50,7 @@ application_signup_password_error,Vale parool!
 
 application_signup_account_head,Mul on @artun.ee konto. Sisenen sellega...
 
+application_subscribe,Kandideerin
+application_subscribe_max_reached,Lubatud on valida maksimaalselt neli eriala!
+application_submit,Esita avaldus
+
