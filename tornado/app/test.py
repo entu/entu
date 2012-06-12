@@ -15,11 +15,11 @@ class ShowTest(myRequestHandler):
     @web.authenticated
     def get(self, test_id=None):
         test_id = test_id.strip('-')
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=39076)
 
         test_ids = entity.get_relatives(ids_only=True, entity_id=39076, entity_definition_id=60, relation_type='leecher', reverse_relation=True)
         if not test_ids:
-            return self.redirect('/')
+            return self.redirect('/oldauth')
 
         if not test_id:
             test_id = test_ids[0]
@@ -45,27 +45,28 @@ class ShowTest(myRequestHandler):
         test_questions = entity.get_relatives(entity_id=test_id, relation_type='child')
 
         questions = {}
-        for q in test_questions.values()[0]:
-            group = ''.join([x['value'] for x in q.get('properties', {}).get('group', []).get('values', []) if x['value']])
+        if test_questions.values():
+            for q in test_questions.values()[0]:
+                group = ''.join([x['value'] for x in q.get('properties', {}).get('group', []).get('values', []) if x['value']])
 
-            prop = db_con.get(
-                """
-                    SELECT
-                        property.value_string AS value
-                    FROM
-                        relationship,
-                        property
-                    WHERE property.relationship_id = relationship.id
-                    AND relationship.relationship_definition_id = 10
-                    AND relationship.entity_id = %s
-                    AND relationship.related_entity_id = %s
-                    AND relationship.deleted IS NULL
-                    AND property.deleted IS NULL
-                    LIMIT 1;
-                """,
-                q.get('id'),
-                39076
-            )
+                prop = db_con.get(
+                    """
+                        SELECT
+                            property.value_string AS value
+                        FROM
+                            relationship,
+                            property
+                        WHERE property.relationship_id = relationship.id
+                        AND relationship.relationship_definition_id = 10
+                        AND relationship.entity_id = %s
+                        AND relationship.related_entity_id = %s
+                        AND relationship.deleted IS NULL
+                        AND property.deleted IS NULL
+                        LIMIT 1;
+                    """,
+                    q.get('id'),
+                    39076
+                )
 
             questions.setdefault(group, []).append({
                 'id': q['id'],
@@ -95,7 +96,7 @@ class Answer(myRequestHandler):
 
         db_con = db.connection()
 
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=39076)
         if value:
             entity.set_relations(entity_id=entity_id, related_entity_id=39076, relationship_type='rating', update=True)
             ratings = entity.get_relatives(relationship_ids_only=True, entity_id=entity_id, related_entity_id=39076, relation_type='rating')
@@ -115,7 +116,7 @@ class SubmitTest(myRequestHandler):
     @web.authenticated
     def get(self, test_id=None):
         test_id = test_id.strip('-')
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=39076)
 
         if not test_id:
             return self.redirect('/test')

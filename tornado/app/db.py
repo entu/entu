@@ -90,7 +90,7 @@ class Entity():
                 relationship,
                 relationship_definition
             WHERE relationship_definition.id = relationship.relationship_definition_id
-            AND relationship_definition.type IN ('viewer', 'editor', 'owner')
+            AND relationship_definition.type IN ('leecher', 'viewer', 'editor', 'owner')
             AND relationship.entity_id = %s;
         """
         # logging.debug(sql)
@@ -451,7 +451,7 @@ class Entity():
             sql += ' AND entity.entity_definition_id IN (%s)' % ','.join(map(str, entity_definition_id))
 
         if self.user_id and only_public == False:
-            sql += ' AND relationship.related_entity_id IN (%s) AND relationship_definition.type IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
+            sql += ' AND relationship.related_entity_id IN (%s) AND relationship_definition.type IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
         else:
             sql += ' AND entity.public = 1 AND property_definition.public = 1'
 
@@ -790,7 +790,7 @@ class Entity():
                     relationship_definition AS rights_definition
                 WHERE relationship.entity_id = entity.id
                 AND relationship_definition.id = relationship.relationship_definition_id
-                AND rights.entity_id = relationship.related_entity_id
+                AND rights.entity_id = entity.id
                 AND rights_definition.id = rights.relationship_definition_id
                 AND relationship.deleted IS NULL
             """
@@ -812,7 +812,7 @@ class Entity():
                     relationship_definition AS rights_definition
                 WHERE relationship.related_entity_id = entity.id
                 AND relationship_definition.id = relationship.relationship_definition_id
-                AND rights.entity_id = relationship.related_entity_id
+                AND rights.entity_id = entity.id
                 AND rights_definition.id = rights.relationship_definition_id
                 AND relationship.deleted IS NULL
             """
@@ -822,7 +822,7 @@ class Entity():
                 sql += ' AND relationship.related_entity_id IN (%s)' % ','.join(map(str, related_entity_id))
 
         if self.user_id and only_public == False:
-            sql += ' AND rights.related_entity_id IN (%s) AND rights_definition.type IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
+            sql += ' AND rights.related_entity_id IN (%s) AND rights_definition.type IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
         else:
             sql += ' AND entity.public = 1'
 
@@ -990,7 +990,7 @@ class Entity():
             WHERE entity.entity_definition_id = entity_definition.id
             AND relationship.entity_id = entity.id
             AND relationship_definition.id = relationship.relationship_definition_id
-            AND relationship_definition.type IN ('viewer', 'editor', 'owner')
+            AND relationship_definition.type IN ('leecher', 'viewer', 'editor', 'owner')
             AND entity_definition.estonian_menu IS NOT NULL
             AND relationship.related_entity_id IN (%(user_id)s)
             ORDER BY
