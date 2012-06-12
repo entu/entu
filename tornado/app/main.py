@@ -23,6 +23,7 @@ controllers = [
     'import',
     'application',
     'test',
+    'oldauth',
 ]
 
 
