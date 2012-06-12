@@ -9,10 +9,10 @@
             <li><a href="?language=estonian">Eesti</a></li>
             <li><a href="?language=english">English</a></li>
         </ul>
-        {% if current_user %}
-            <li class="toolbar-item"><a href="/exit" data-icon="Q"></a></li>
-        {% end %}
     </li>
+    {% if current_user %}
+        <li class="toolbar-item"><a href="/exit" data-icon="Q"></a></li>
+    {% end %}
 {% end %}
 
 {% block content %}

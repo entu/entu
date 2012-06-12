@@ -145,13 +145,19 @@ class Entity():
 
         return entity_id
 
-    def set_property(self, entity_id, property_definition_id, value, property_id=None, uploaded_file=None):
+    def set_property(self, entity_id=None, relationship_id=None, property_definition_id=None, value=None, property_id=None, uploaded_file=None):
         """
         Saves property value. Creates new one if property_id = None. Returns property ID.
 
         """
-        if not entity_id or not property_definition_id:
+        if not entity_id and not relationship_id:
             return
+
+        if not property_definition_id:
+            return
+
+        if relationship_id:
+            logging.debug(relationship_id)
 
         definition = self.db.get('SELECT datatype FROM property_definition WHERE id = %s LIMIT 1;', property_definition_id)
         if definition.datatype == 'text':
@@ -186,12 +192,20 @@ class Entity():
                 property_id,
             )
         else:
-            property_id = self.db.execute_lastrowid('INSERT INTO property SET entity_id = %%s, property_definition_id = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
-                entity_id,
-                property_definition_id,
-                value,
-                self.created_by
-            )
+            if entity_id:
+                property_id = self.db.execute_lastrowid('INSERT INTO property SET entity_id = %%s, property_definition_id = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
+                    entity_id,
+                    property_definition_id,
+                    value,
+                    self.created_by
+                )
+            if relationship_id:
+                property_id = self.db.execute_lastrowid('INSERT INTO property SET relationship_id = %%s, property_definition_id = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
+                    relationship_id,
+                    property_definition_id,
+                    value,
+                    self.created_by
+                )
 
         return property_id
 
@@ -319,7 +333,7 @@ class Entity():
         property_id = self.db.execute_lastrowid(sql)
         return self.db.get('SELECT value_string FROM property WHERE id=%s', property_id).value_string
 
-    def set_relations(self, entity_id, related_entity_id, relationship_type, delete=False):
+    def set_relations(self, entity_id, related_entity_id, relationship_type, delete=False, update=False):
         """
         Add or removes Entity relations. entity_id, related_entity_id, relationship_type can be single value or list of values.
 
@@ -346,6 +360,32 @@ class Entity():
                             AND entity_id = %s
                             AND related_entity_id = %s;
                         """ % (self.created_by, t, e, r)
+                        # logging.debug(sql)
+                        self.db.execute(sql)
+                    elif update == True:
+                        sql = """
+                            UPDATE relationship SET
+                                deleted_by = NULL,
+                                deleted = NULL,
+                                changed_by = '%s',
+                                changed = NOW()
+                            WHERE relationship_definition_id = (SELECT id FROM relationship_definition WHERE type = '%s' LIMIT 1)
+                            AND entity_id = %s
+                            AND related_entity_id = %s;
+                        """ % (self.created_by, t, e, r)
+                        # logging.debug(sql)
+                        old = self.db.execute_rowcount(sql)
+                        if not old:
+                            sql = """
+                                INSERT INTO relationship SET
+                                    relationship_definition_id = (SELECT id FROM relationship_definition WHERE type = '%s' LIMIT 1),
+                                    entity_id = %s,
+                                    related_entity_id = %s,
+                                    created_by = '%s',
+                                    created = NOW();
+                            """ % (t, e, r, self.created_by)
+                            # logging.debug(sql)
+                            self.db.execute(sql)
                     else:
                         sql = """
                             INSERT INTO relationship SET
@@ -355,9 +395,8 @@ class Entity():
                                 created_by = '%s',
                                 created = NOW();
                         """ % (t, e, r, self.created_by)
-
-                    # logging.debug(sql)
-                    self.db.execute(sql)
+                        # logging.debug(sql)
+                        self.db.execute(sql)
 
     def get(self, ids_only=False, entity_id=None, search=None, entity_definition_id=None, dataproperty=None, limit=None, full_definition=False, only_public=False):
         """
@@ -716,7 +755,7 @@ class Entity():
 
         return self.db.query(sql)
 
-    def get_relatives(self, ids_only=False, entity_id=None, related_entity_id=None, relation_type=None, reverse_relation=False, entity_definition_id=None, full_definition=False, limit=None, only_public=False):
+    def get_relatives(self, ids_only=False, relationship_ids_only=False, entity_id=None, related_entity_id=None, relation_type=None, reverse_relation=False, entity_definition_id=None, full_definition=False, limit=None, only_public=False):
         """
         Get Entity relatives.
 
@@ -740,6 +779,7 @@ class Entity():
         if reverse_relation == True:
             sql = """
                 SELECT DISTINCT
+                    relationship.id AS relationship_id,
                     relationship_definition.type,
                     relationship.entity_id AS id
                 FROM
@@ -761,6 +801,7 @@ class Entity():
         else:
             sql = """
                 SELECT DISTINCT
+                    relationship.id AS relationship_id,
                     relationship_definition.type,
                     relationship.related_entity_id AS id
                 FROM
@@ -799,11 +840,17 @@ class Entity():
         sql += ';'
         # logging.debug(sql)
 
-        items = {}
-        for item in self.db.query(sql):
-            if ids_only == True:
-                items.setdefault('%s' % ent.get('label_plural', ''), []).append(item.id)
-            else:
+        if ids_only == True:
+            items = []
+            for item in self.db.query(sql):
+                items.append(item.id)
+        elif relationship_ids_only == True:
+            items = []
+            for item in self.db.query(sql):
+                items.append(item.relationship_id)
+        else:
+            items = {}
+            for item in self.db.query(sql):
                 ent = self.__get_properties(entity_id=item.id, full_definition=full_definition, entity_definition_id=entity_definition_id, only_public=only_public)
                 if not ent:
                     continue

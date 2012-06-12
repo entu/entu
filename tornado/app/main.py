@@ -22,6 +22,7 @@ controllers = [
     'public',
     'import',
     'application',
+    'test',
 ]
 
 

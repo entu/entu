@@ -22,6 +22,9 @@ created,Loodud
 
 new_entity_label,Uus "%s"
 
+test,Küsimustik
+test_submit,Saada vastused
+
 application,Sisseastumisavaldus
 application_signup_info,"Sisseastumisavalduse esitamiseks on sul vaja sisse logida. Kui sul on olemas @artun.ee konto, sisene kindlasti sellega. Kui sul seda ei ole, saad sa luua sisseastuja konto. Konto parool saadetakse sulle meilitsi. Kui oled parooli unustanud, siis kasuta uue konto loomise vormi ja sulle saadetakse uus parool."
 
