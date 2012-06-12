@@ -15,11 +15,13 @@ class ShowTest(myRequestHandler):
     @web.authenticated
     def get(self, test_id=None):
         test_id = test_id.strip('-')
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=39076)
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
 
-        test_ids = entity.get_relatives(ids_only=True, entity_id=39076, entity_definition_id=60, relation_type='leecher', reverse_relation=True)
+        test_ids = entity.get_relatives(ids_only=True, related_entity_id=self.current_user.id, entity_definition_id=60, relation_type='leecher', reverse_relation=True)
         if not test_ids:
             return self.redirect('/oldauth')
+
+        test_ids = sorted(test_ids)
 
         if not test_id:
             test_id = test_ids[0]
@@ -65,15 +67,15 @@ class ShowTest(myRequestHandler):
                         LIMIT 1;
                     """,
                     q.get('id'),
-                    39076
+                    self.current_user.id
                 )
 
-            questions.setdefault(group, []).append({
-                'id': q['id'],
-                'label': ''.join([x['value'] for x in q.get('properties', {}).get('question', []).get('values', []) if x['value']]),
-                'type': ''.join([x['value'] for x in q.get('properties', {}).get('type', []).get('values', []) if x['value']]),
-                'value': prop.value if prop else ''
-            })
+                questions.setdefault(group, []).append({
+                    'id': q['id'],
+                    'label': ''.join([x['value'] for x in q.get('properties', {}).get('question', []).get('values', []) if x['value']]),
+                    'type': ''.join([x['value'] for x in q.get('properties', {}).get('type', []).get('values', []) if x['value']]),
+                    'value': prop.value if prop else ''
+                })
 
         self.render('test/start.html',
             page_title = test.get('displayname', ''),
@@ -96,10 +98,10 @@ class Answer(myRequestHandler):
 
         db_con = db.connection()
 
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=39076)
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
         if value:
-            entity.set_relations(entity_id=entity_id, related_entity_id=39076, relationship_type='rating', update=True)
-            ratings = entity.get_relatives(relationship_ids_only=True, entity_id=entity_id, related_entity_id=39076, relation_type='rating')
+            entity.set_relations(entity_id=entity_id, related_entity_id=self.current_user.id, relationship_type='rating', update=True)
+            ratings = entity.get_relatives(relationship_ids_only=True, entity_id=entity_id, related_entity_id=self.current_user.id, relation_type='rating', reverse_relation=True)
 
             if ratings:
                 prop = db_con.get('SELECT id FROM property WHERE property_definition_id = 513 AND relationship_id = %s AND deleted IS NULL LIMIT 1;', ratings[0])
@@ -109,19 +111,19 @@ class Answer(myRequestHandler):
                     property_id = None
                 entity.set_property(property_id=property_id, relationship_id=ratings[0], property_definition_id=513, value=value)
         else:
-            entity.set_relations(entity_id=entity_id, related_entity_id=39076, relationship_type='rating', delete=True)
+            entity.set_relations(entity_id=entity_id, related_entity_id=self.current_user.id, relationship_type='rating', delete=True)
 
 
 class SubmitTest(myRequestHandler):
     @web.authenticated
     def get(self, test_id=None):
         test_id = test_id.strip('-')
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=39076)
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
 
         if not test_id:
             return self.redirect('/test')
 
-        test_ids = entity.get_relatives(ids_only=True, entity_id=39076, entity_definition_id=60, relation_type='leecher', reverse_relation=True)
+        test_ids = entity.get_relatives(ids_only=True, related_entity_id=self.current_user.id, entity_definition_id=60, relation_type='leecher', reverse_relation=True)
         if not test_ids:
             return self.redirect('/')
 
@@ -152,13 +154,13 @@ class SubmitTest(myRequestHandler):
                     LIMIT 1;
                 """,
                 q,
-                39076
+                self.current_user.id
             )
             if not prop:
                 unanswered = True
 
         if unanswered == False:
-            entity.set_relations(entity_id=test_id, related_entity_id=39076, relationship_type='leecher', delete=True)
+            entity.set_relations(entity_id=test_id, related_entity_id=self.current_user.id, relationship_type='leecher', delete=True)
             self.redirect('/test')
 
         self.redirect('/test-%s' % test_id)

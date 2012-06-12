@@ -156,9 +156,6 @@ class Entity():
         if not property_definition_id:
             return
 
-        if relationship_id:
-            logging.debug(relationship_id)
-
         definition = self.db.get('SELECT datatype FROM property_definition WHERE id = %s LIMIT 1;', property_definition_id)
         if definition.datatype == 'text':
             field = 'value_text'
@@ -794,10 +791,6 @@ class Entity():
                 AND rights_definition.id = rights.relationship_definition_id
                 AND relationship.deleted IS NULL
             """
-            if entity_id:
-                sql += ' AND relationship.related_entity_id IN (%s)' % ','.join(map(str, entity_id))
-            if related_entity_id:
-                sql += ' AND relationship.entity_id IN (%s)' % ','.join(map(str, related_entity_id))
         else:
             sql = """
                 SELECT DISTINCT
@@ -816,10 +809,11 @@ class Entity():
                 AND rights_definition.id = rights.relationship_definition_id
                 AND relationship.deleted IS NULL
             """
-            if entity_id:
-                sql += ' AND relationship.entity_id IN (%s)' % ','.join(map(str, entity_id))
-            if related_entity_id:
-                sql += ' AND relationship.related_entity_id IN (%s)' % ','.join(map(str, related_entity_id))
+        if entity_id:
+            sql += ' AND relationship.entity_id IN (%s)' % ','.join(map(str, entity_id))
+
+        if related_entity_id:
+            sql += ' AND relationship.related_entity_id IN (%s)' % ','.join(map(str, related_entity_id))
 
         if self.user_id and only_public == False:
             sql += ' AND rights.related_entity_id IN (%s) AND rights_definition.type IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
@@ -920,7 +914,7 @@ class Entity():
                 entity_definition
             WHERE id IN (%(ids)s);
         """  % {'language': self.language, 'ids': ','.join(map(str, entity_definition_id))}
-        logging.debug(sql)
+        # logging.debug(sql)
 
         return self.db.query(sql)
 
