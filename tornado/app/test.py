@@ -29,7 +29,7 @@ class ShowTest(myRequestHandler):
         test_id = int(test_id)
 
         if test_id not in test_ids:
-            self.redirect('/test')
+            return self.redirect('/test')
 
         db_con = db.connection()
 
@@ -130,7 +130,7 @@ class SubmitTest(myRequestHandler):
         test_id = int(test_id)
 
         if test_id not in test_ids:
-            self.redirect('/test')
+            return self.redirect('/test')
 
         db_con = db.connection()
 
@@ -161,7 +161,7 @@ class SubmitTest(myRequestHandler):
 
         if unanswered == False:
             entity.set_relations(entity_id=test_id, related_entity_id=self.current_user.id, relationship_type='leecher', delete=True)
-            self.redirect('/test')
+            return self.redirect('/test')
 
         self.redirect('/test-%s' % test_id)
 
