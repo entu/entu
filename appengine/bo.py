@@ -319,8 +319,8 @@ def SendMail(to, subject, message=' ', reply_to=None, html=True, attachments=Non
     return True
 
 
-def AddTask(url, params, queue='default'):
-    taskqueue.Task(url=url, params=params).add(queue_name=queue)
+def AddTask(url, params, queue='default', method='POST'):
+    taskqueue.Task(url=url, params=params, method=method).add(queue_name=queue)
 
 
 def StrToList(string):
