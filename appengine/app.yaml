@@ -1,5 +1,5 @@
 application: bubbledu
-version: 2012-06-04
+version: 2012-06-06
 runtime: python
 api_version: 1
 
@@ -142,9 +142,9 @@ handlers:
 #   script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
 #   login: admin
 
-# - url: /taskqueue(.*)
-#   script: controllers/taskqueue.py
-#   login: admin
+- url: /taskqueue(.*)
+  script: controllers/taskqueue.py
+  login: admin
 
 # - url: /zimport(.*)
 #   script: controllers/zimport.py

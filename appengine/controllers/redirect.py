@@ -1,15 +1,19 @@
 from bo import *
 
 
-class RedirectToARX(boRequestHandler):
+class RedirectToEntu(boRequestHandler):
     def get(self, url):
-        self.redirect('http://eka.arx.ee/static/error/offline.html')
+        self.redirect('http://entu.artun.ee')
+class RedirectToEntuPublic(boRequestHandler):
+    def get(self, url):
+        self.redirect('http://entu.artun.ee/public')
 
 
 def main():
     Route([
-             ('/(.*)', RedirectToARX),
-            ])
+        ('/public(.*)', RedirectToEntuPublic),
+        ('/(.*)', RedirectToEntu),
+    ])
 
 
 if __name__ == '__main__':
