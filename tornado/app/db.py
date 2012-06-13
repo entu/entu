@@ -626,8 +626,8 @@ class Entity():
 
                 items = {}
                 for e in entity_definition_id:
-                    items.setdefault('item_%s' % entity_definition_id, {})['definition_id'] = entity_definition_id
-                    items.setdefault('item_%s' % entity_definition_id, {})['ordinal'] = 'X'
+                    items.setdefault('item_%s' % e, {})['definition_id'] = e
+                    items.setdefault('item_%s' % e, {})['ordinal'] = 'X'
 
         for key, value in items.iteritems():
             if value.get('id', None):

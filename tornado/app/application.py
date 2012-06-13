@@ -93,11 +93,11 @@ class ShowApplication(myRequestHandler):
                 continue
 
 
-            parent1 = entity.get_relatives(entity_id=s.get('id'), relation_type='child', reverse_relation=True, only_public=True).values()
+            parent1 = entity.get_relatives(related_entity_id=s.get('id'), relation_type='child', reverse_relation=True, only_public=True).values()
             if not parent1:
                 continue
             parent1 = parent1[0][0]
-            parent2 = entity.get_relatives(entity_id=parent1.get('id'), relation_type='child', reverse_relation=True, only_public=True).values()
+            parent2 = entity.get_relatives(related_entity_id=parent1.get('id'), relation_type='child', reverse_relation=True, only_public=True).values()
             if not parent2:
                 continue
             parent2 = parent2[0][0]
@@ -108,7 +108,7 @@ class ShowApplication(myRequestHandler):
                 'label': s.get('displayname'),
                 'info': s.get('displayinfo'),
                 'url': ''.join([x['value'] for x in s.get('properties', {}).get('url', {}).get('values', []) if x['value']]),
-                'subscribed': True if entity.get_relatives(entity_id=user.id, related_entity_id=s.get('id'), relation_type='leecher', reverse_relation=True) else False
+                'subscribed': True if entity.get_relatives(entity_id=s.get('id'), related_entity_id=user.id, relation_type='leecher', reverse_relation=True) else False
             })
 
         properties = {}
@@ -136,9 +136,7 @@ class ShowApplication(myRequestHandler):
 
         self.render('application/form.html',
             page_title = self.get_user_locale().translate('application'),
-            entity_id = applicant.get('id', ''),
             properties = properties,
-            entity_definition_id = 10,
             submissions = submissions,
             childs = childs,
         )
@@ -187,11 +185,10 @@ class SaveApplication(myRequestHandler):
             return
 
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=user.id)
-        applicant = entity.get(entity_id=user.id, limit=1, full_definition=True)
+        applicant = entity.get(entity_id=user.id, limit=1)
         if not applicant:
             return
 
-        entity_definition_id    = self.get_argument('entity_definition_id', default=None, strip=True)
         property_definition_id  = self.get_argument('property_id', default=None, strip=True)
         property_id             = self.get_argument('value_id', default=None, strip=True)
         value                   = self.get_argument('value', default=None, strip=True)
@@ -200,7 +197,47 @@ class SaveApplication(myRequestHandler):
         property_id = entity.set_property(entity_id=user.id, property_definition_id=property_definition_id, value=value, property_id=property_id, uploaded_file=uploaded_file)
 
         self.write({
-            'entity_id': user.id,
+            'property_id': property_definition_id,
+            'value_id': property_id,
+            'value': uploaded_file['filename'] if uploaded_file else value
+        })
+
+
+class SaveApplicationChild(myRequestHandler):
+    def post(self):
+        """
+        Saves applicant info.
+
+        """
+        user = self.current_user
+        if not user:
+            logging.debug('no user')
+            return
+
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=user.id)
+        applicant = entity.get(entity_id=user.id, limit=1)
+        if not applicant:
+            logging.debug('no applicant')
+            return
+
+        entity_id               = self.get_argument('entity_id', default=None, strip=True)
+        entity_definition_id    = self.get_argument('entity_definition_id', default=None, strip=True)
+        property_definition_id  = self.get_argument('property_id', default=None, strip=True)
+        property_id             = self.get_argument('value_id', default=None, strip=True)
+        value                   = self.get_argument('value', default=None, strip=True)
+        uploaded_file           = self.request.files.get('file', [])[0] if self.request.files.get('file', None) else None
+
+        if not entity_definition_id:
+            logging.debug('no entity_definition_id')
+            return
+
+        if not entity_id:
+            entity_id = entity.create(entity_definition_id=entity_definition_id, parent_entity_id=user.id)
+
+        property_id = entity.set_property(entity_id=entity_id, property_definition_id=property_definition_id, value=value, property_id=property_id, uploaded_file=uploaded_file)
+
+        self.write({
+            'entity_id': entity_id,
             'property_id': property_definition_id,
             'value_id': property_id,
             'value': uploaded_file['filename'] if uploaded_file else value
@@ -239,5 +276,6 @@ handlers = [
     ('/application', ShowSignin),
     ('/application/form', ShowApplication),
     ('/application/save', SaveApplication),
+    ('/application/save/child', SaveApplicationChild),
     ('/application/subscribe', Subscribe),
 ]
