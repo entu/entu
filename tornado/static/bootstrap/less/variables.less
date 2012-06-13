@@ -128,8 +128,8 @@
 
 // Sprite icons path
 // -------------------------
-@iconSpritePath:          "/assets/bootstrap/glyphicons-halflings.png";
-@iconWhiteSpritePath:     "/assets/bootstrap/glyphicons-halflings-white.png";
+@iconSpritePath:          "/static/bootstrap/glyphicons-halflings.png";
+@iconWhiteSpritePath:     "/static/bootstrap/glyphicons-halflings-white.png";
 
 
 // Input placeholder text color
@@ -144,9 +144,10 @@
 
 // Navbar
 // -------------------------
-@navbarHeight:                    40px;
-@navbarBackground:                #68217a;
-@navbarBackgroundHighlight:       lighten(@navbarBackground, 15%);
+@navbarHeight:                    50px;
+//@navbarBackground:                #68217a;
+@navbarBackground:                darken(@navbarBackgroundHighlight, 15%);
+@navbarBackgroundHighlight:       #eeeeee;
 
 @navbarText:                      @grayLight;
 @navbarLinkColor:                 @grayLight;

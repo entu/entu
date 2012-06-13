@@ -6,19 +6,26 @@ from operator import itemgetter
 import urllib
 import magic
 
+import db
 from helper import *
-from db import *
 
 
 class PublicHandler(myRequestHandler):
+    """
+    Show public startpage.
+
+    """
     def get(self):
         self.render('public/start.html',
-            page_title = self.locale.translate('search_results'),
             search = ''
         )
 
 
 class PublicSearchHandler(myRequestHandler):
+    """
+    Show public search results.
+
+    """
     def get(self, search=None):
         if not search:
             self.redirect('/public')
@@ -26,16 +33,15 @@ class PublicSearchHandler(myRequestHandler):
         locale = self.get_user_locale()
         items = []
         if len(search) > 1:
-            for item in myDb().getBubbleList(search=search, only_public=True, bubble_definition=[1, 7, 8, 38]):
-                name = ', '.join([x['value'] for x in item.setdefault('properties', {}).setdefault('title', {}).setdefault('values', {}).values()])
-                number = ', '.join([x['value'] for x in item.setdefault('properties', {}).setdefault('registry_number', {}).setdefault('values', {}).values()])
-                items.append({
-                    'url': '/public/%s/%s' % (item.setdefault('id', ''), toURL(name)),
-                    'number': number,
-                    'name': name,
-                    'date': item.setdefault('created', '').strftime('%d.%m.%Y'),
-                    'file': len(item.setdefault('properties', {}).setdefault('public_files', {}).setdefault('values', {}).values()),
-                })
+            entities = db.Entity(user_locale=self.get_user_locale()).get(search=search, entity_definition_id=[1, 7, 8, 38], only_public=True)
+            if entities:
+                for item in entities:
+                    items.append({
+                        'url': '/public/entity-%s/%s' % (item.get('id', ''), toURL(item.get('displayname', ''))),
+                        'name': item.get('displayname', ''),
+                        'date': item.get('created'),
+                        'file': item.get('file_count', 0),
+                    })
 
         if len(search) < 2:
             itemcount =locale.translate('search_term_to_short') % search
@@ -47,8 +53,7 @@ class PublicSearchHandler(myRequestHandler):
             itemcount =locale.translate('search_result_count2') % len(items)
 
         self.render('public/list.html',
-            page_title = self.locale.translate('search_results'),
-            items = sorted(items, key=itemgetter('name')) ,
+            entities = sorted(items, key=itemgetter('name')) ,
             itemcount = itemcount,
             search = urllib.unquote_plus(search)
         )
@@ -58,44 +63,43 @@ class PublicSearchHandler(myRequestHandler):
         search_get = self.get_argument('search', None)
         if not search_get:
             self.redirect('/public')
-        self.redirect('/public/search/%s' % urllib.quote_plus(search_get))
+        self.redirect('/public/search/%s' % urllib.quote_plus(search_get.encode('utf-8')))
 
 
-class PublicItemHandler(myRequestHandler):
-    def get(self, id=None, url=None):
-        item = myDb().getBubbleList(id=id, only_public=True, limit=1)
+class PublicEntityHandler(myRequestHandler):
+    """
+    Show public entity.
+
+    """
+    def get(self, entity_id=None, url=None):
+        try:
+            entity_id = int(entity_id.split('/')[0])
+        except:
+            return self.missing()
+
+        item = db.Entity(user_locale=self.get_user_locale()).get(entity_id=entity_id, limit=1, only_public=True)
         if not item:
-            self.redirect('/public')
-
-        item = item[0]
-        item_name = ', '.join([x['value'] for x in item.setdefault('properties', {}).setdefault('title', {}).setdefault('values', {}).values()])
-
-        props = []
-        for p in item.setdefault('properties', {}).values():
-            if p.setdefault('dataproperty', '') == 'title':
-                continue
-            if p.setdefault('datatype', '') == 'blobstore':
-                value = '<br />'.join(['<a href="/public/file/%s/%s" title="%s">%s</a>' % (x['file_id'], toURL(x['value']), x['filesize'], x['value']) for x in p.setdefault('values', {}).values() if x['value']])
-            else:
-                value = '<br />'.join([x['value'] for x in p.setdefault('values', {}).values() if x['value']])
-
-            props.append({
-                'ordinal' : p.setdefault('ordinal', 0),
-                'label' : p.setdefault('label', ''),
-                'value': value
-            })
+            return self.missing()
 
         self.render('public/item.html',
-            page_title = item_name,
-            item_name = item_name,
-            properties = sorted(props, key=itemgetter('ordinal')),
+            page_title = item['displayname'],
+            entity = item,
             search = ''
         )
 
 
 class PublicFileHandler(myRequestHandler):
-    def get(self, id=None, url=None):
-        file = myDb().getFile(id, True)
+    """
+    Download public file.
+
+    """
+    def get(self, file_id=None, url=None):
+        try:
+            file_id = int(file_id.split('/')[0])
+        except:
+            return self.missing()
+
+        file = db.Entity(user_locale=self.get_user_locale()).get_file(file_id)
         if not file:
             return self.missing()
 
@@ -113,8 +117,6 @@ handlers = [
     (r'/public', PublicHandler),
     (r'/public/search', PublicSearchHandler),
     (r'/public/search/(.*)', PublicSearchHandler),
-    (r'/public/file/([0-9]+)', PublicFileHandler),
-    (r'/public/file/([0-9]+)/(.*)', PublicFileHandler),
-    (r'/public/([0-9]+)', PublicItemHandler),
-    (r'/public/([0-9]+)/(.*)', PublicItemHandler),
+    (r'/public/file-(.*)', PublicFileHandler),
+    (r'/public/entity-(.*)', PublicEntityHandler),
 ]

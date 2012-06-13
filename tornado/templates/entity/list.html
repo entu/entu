@@ -1,0 +1,101 @@
+{% if show_list %}
+<div id="list">
+    <div id="list_items"></div>
+    <img src="{{ static_url('images/spinner_white.gif') }}" class="spinner" />
+</div>
+<script>
+    $(document).ready(function(){
+        if(window.location.hash) {
+            open_item();
+        };
+
+        $(window).bind('hashchange', function() {
+            open_item()
+        });
+
+        function open_item(id) {
+            var id = window.location.hash.substring(1);
+            $('#content').html('');
+            $('#list_items a.active').removeClass('active');
+            $('#list_items a[href$="#'+id+'"]').addClass('active');
+            $.get('/entity-'+id, function(html) {
+                $('#content').html(html);
+            });
+            _gaq.push(['_trackPageview', '/entity-'+id]);
+        };
+
+        items = [];
+        get_list();
+
+        old_search = $('#searchbox').val();
+        $('#searchbox').keyup(function(e) {
+            if(old_search != $('#searchbox').val()) {
+                old_search = $('#searchbox').val();
+                get_list();
+            };
+        });
+
+        $('#list').scroll(function() {
+            append_list();
+        });
+
+        function get_list() {
+            items = [];
+            $('#list .spinner').show();
+            $('#list_items').html('');
+            $.post(window.location.pathname, {'search': $('#searchbox').val()}, function(list) {
+                items = list.items;
+                for (i in list.items) {
+                    var id = list.items[i];
+                    $('#list_items').append('<a id="listitem_'+id+'" class="empty_item" href="#'+id+'" data-item="'+id+'"></a>');
+                };
+                $('#list_search span').html('{{ _('search_result') }} '+list.items.length);
+                $('#list .spinner').hide();
+
+                append_list();
+            }, 'json');
+        }
+
+        function append_list() {
+            $('.empty_item').each(function() {
+                var listitem = $(this);
+                var id = listitem.data('item');
+                if (items.indexOf(id) != -1) {
+                    position = listitem.position();
+                    if ((position.top - $(document).height()) < 100) {
+                        $.post('/entity-'+id+'/listinfo', function(entity_json) {
+                            if(entity_json.image) {
+                                image = '<img src="'+entity_json.image+'" />';
+                            } else {
+                                image = '';
+                            };
+                            if(entity_json.info) {
+                                info = '<span>'+entity_json.info+'</span>';
+                            } else {
+                                info = '';
+                            };
+                            if(entity_json.count) {
+                                count = '<div>'+entity_json.count+'</div>';
+                            } else {
+                                count = '';
+                            };
+
+                            $('#listitem_'+id).html(count+image+entity_json.title+info);
+                            $('#listitem_'+id).removeClass('empty_item');
+                            if('#'+entity_json.id == window.location.hash) {
+                                $('#listitem_'+id).addClass('active');
+                            };
+                        }, 'json');
+                        var idx = items.indexOf(id);
+                        if(idx != -1) items.splice(idx, 1);
+                    };
+                };
+            });
+        };
+
+        $('#modal-box').on('hide', function () {
+            open_item();
+        })
+    });
+</script>
+{% end %}

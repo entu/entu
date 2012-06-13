@@ -11,16 +11,18 @@ import urlparse
 import logging
 import json
 
+import db
 from helper import *
-from db import *
 
 
 class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
+    """
+    Google, Facebook and MSLive authentication.
+
+    """
     @web.asynchronous
     def get(self, provider):
-        # self.require_setting('google_client_key', 'Google OAuth2')
-        # self.require_setting('google_client_secret', 'Google OAuth2')
-
+        set_redirect(self)
         self.oauth2_provider = None
 
         if provider == 'facebook' and 'facebook_api_key' in self.settings and 'facebook_secret' in self.settings:
@@ -87,7 +89,7 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
 
         if self.get_argument('error', None):
             logging.error('%s oauth error: %s' % (provider, self.get_argument('error', None)))
-            return self.redirect('/')
+            return self.redirect(get_redirect(self))
 
         httpclient.AsyncHTTPClient().fetch(self.oauth2_provider['token_url'],
             method = 'POST',
@@ -104,20 +106,18 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
 
     @web.asynchronous
     def _got_token(self, response):
-        # self.write(response.body)
-        # self.finish()
         access_token = response.body
         try:
             access_token = json.loads(access_token)
             if 'error' in access_token:
                 logging.error('%s oauth error: %s' % (provider, access_token['error']))
-                return self.redirect('/')
+                return self.redirect(get_redirect(self))
             access_token = access_token['access_token']
         except:
             access_token = urlparse.parse_qs(access_token)
             if 'error' in access_token:
                 logging.error('%s oauth error: %s' % (provider, access_token['error']))
-                return self.redirect('/')
+                return self.redirect(get_redirect(self))
             access_token = access_token['access_token'][0]
 
         httpclient.AsyncHTTPClient().fetch(self.oauth2_provider['info_url'] %  {'token': access_token },
@@ -126,13 +126,11 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
 
     @web.asynchronous
     def _got_user(self, response):
-        # self.write(response.body)
-        # self.finish()
         try:
             user = json.loads(response.body)
             if 'error' in user:
                 logging.error('%s oauth error: %s' % (provider, user['error']))
-                return self.redirect('/')
+                return self.redirect(get_redirect(self))
         except:
             return
 
@@ -161,12 +159,17 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 'picture':  'https://apis.live.net/v5.0/%s/picture' % user.setdefault('id', ''),
             })
 
-        self.finish()
+        self.redirect(get_redirect(self))
 
 
 class AuthMobileID(myRequestHandler, auth.OpenIdMixin):
+    """
+    Estonian Mobile ID authentication.
+
+    """
     @web.asynchronous
     def get(self):
+        set_redirect(self)
         self._OPENID_ENDPOINT = 'https://openid.ee/server/xrds/mid'
 
         if not self.get_argument('openid.mode', None):
@@ -180,12 +183,17 @@ class AuthMobileID(myRequestHandler, auth.OpenIdMixin):
             raise web.HTTPError(500, 'MobileID auth failed')
 
         LoginUser(self, {'id': self.get_argument('openid.identity', None)})
-        self.finish()
+        self.redirect(get_redirect(self))
 
 
 class AuthIDcard(myRequestHandler, auth.OpenIdMixin):
+    """
+    Estonian ID card authentication.
+
+    """
     @web.asynchronous
     def get(self):
+        set_redirect(self)
         self._OPENID_ENDPOINT = 'https://openid.ee/server/eid'
 
         if not self.get_argument('openid.mode', None):
@@ -198,12 +206,17 @@ class AuthIDcard(myRequestHandler, auth.OpenIdMixin):
             raise web.HTTPError(500, 'IDcard auth failed')
 
         LoginUser(self, {'id': self.get_argument('openid.identity', None)})
-        self.finish()
+        self.redirect(get_redirect(self))
 
 
 class AuthTwitter(myRequestHandler, auth.TwitterMixin):
+    """
+    Twitter authentication.
+
+    """
     @web.asynchronous
     def get(self):
+        set_redirect(self)
         if not self.get_argument('oauth_token', None):
             return self.authenticate_redirect()
         self.get_authenticated_user(self.async_callback(self._got_user))
@@ -219,46 +232,62 @@ class AuthTwitter(myRequestHandler, auth.TwitterMixin):
             'name':     user.setdefault('name'),
             'picture':  user.setdefault('profile_image_url'),
         })
-        self.finish()
+        self.redirect(get_redirect(self))
 
 
 def LoginUser(rh, user):
-    # return rh.write(user)
+    """
+    Starts session. Creates new user.
 
+    """
     session_key = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest()
     user_key = hashlib.md5(rh.request.remote_ip + rh.request.headers.get('User-Agent', None)).hexdigest()
 
-    profile_id = myDb().db.execute_lastrowid('INSERT INTO user_profile SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, session = %s, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, changed = NOW();',
-            user['provider'],
-            user['id'],
-            user['email'],
-            user['name'],
-            user['picture'],
-            session_key+user_key,
-            user['email'],
-            user['name'],
-            user['picture'],
-            session_key+user_key
-        )
-    profile = myDb().db.get('SELECT id, user_id FROM user_profile WHERE id = %s', profile_id)
-
-    if not profile.user_id:
-        user_id = myDb().db.execute_lastrowid('INSERT INTO user SET email = %s, name = %s, picture = %s, language = %s, created = NOW();',
-            user['email'],
-            user['name'],
-            user['picture'],
-            rh.settings['default_language']
-        )
-        myDb().db.execute('UPDATE user_profile SET user_id = %s WHERE id = %s;', user_id, profile.id)
+    db.User().create(
+        provider    = user['provider'],
+        id          = user['id'],
+        email       = user['email'],
+        name        = user['name'],
+        picture     = user['picture'],
+        language    = rh.settings['default_language'],
+        session     = session_key+user_key
+    )
 
     rh.set_secure_cookie('session', str(session_key))
-    rh.redirect('/')
 
+
+def set_redirect(rh):
+    """
+    Saves requested URL to cookie, then (after authentication) we know where to go.
+
+    """
+    rh.set_secure_cookie('auth_redirect', rh.get_argument('next', default='/', strip=True), 1)
+
+def get_redirect(rh):
+    """
+    Returns requested URL (or / if not set) from cookie.
+
+    """
+    next = rh.get_secure_cookie('auth_redirect')
+    if next:
+        return next
+    return '/'
 
 class Exit(myRequestHandler):
+    """
+    Log out.
+
+    """
     def get(self):
+        redirect_url = '/'
+        if self.current_user:
+            if self.current_user.provider == 'google':
+                redirect_url = 'https://www.google.com/accounts/logout'
+            if self.current_user.provider == 'application':
+                redirect_url = '/application'
+
         self.clear_cookie('session')
-        self.redirect('/public')
+        self.redirect(redirect_url)
 
 
 handlers = [
