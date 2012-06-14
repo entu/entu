@@ -45,7 +45,7 @@ class ShowSignin(myRequestHandler):
         entity = db.Entity(user_locale=self.get_user_locale())
         entity_id = entity.create(entity_definition_id=applicant_definition)
 
-        entity.set_relations(entity_id=entity_id, user_id=entity_id, relation='owner')
+        entity.set_relations(entity_id=entity_id, related_entity_id=entity_id, relationship_type='owner')
 
         password = ''.join(random.choice(string.ascii_letters) for x in range(2))
         password += str(entity_id)
@@ -82,6 +82,8 @@ class ShowApplication(myRequestHandler):
             if not start_datetime:
                 continue
             start_datetime = start_datetime[0]
+            if not start_datetime['db_value']:
+                continue
             if start_datetime['db_value'] > datetime.now():
                 continue
 
@@ -89,6 +91,8 @@ class ShowApplication(myRequestHandler):
             if not end_datetime:
                 continue
             end_datetime = end_datetime[0]
+            if not end_datetime['db_value']:
+                continue
             if end_datetime['db_value'] < datetime.now():
                 continue
 
