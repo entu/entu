@@ -45,7 +45,7 @@ class ShowSignin(myRequestHandler):
         entity = db.Entity(user_locale=self.get_user_locale())
         entity_id = entity.create(entity_definition_id=applicant_definition)
 
-        entity.set_relations(entity_id=entity_id, related_entity_id=entity_id, relationship_type='owner')
+        entity.set_relations(entity_id=entity_id, related_entity_id=entity_id, relationship_type='viewer')
 
         password = ''.join(random.choice(string.ascii_letters) for x in range(2))
         password += str(entity_id)
