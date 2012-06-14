@@ -1,19 +1,19 @@
 application: bubbledu
-version: 2012-06-06
+version: 2012-06-14
 runtime: python
 api_version: 1
 
 
 
-error_handlers:
-- error_code: over_quota
-  file: errors/quota.html
+# error_handlers:
+# - error_code: over_quota
+#   file: errors/quota.html
 
-- error_code: dos_api_denial
-  file: errors/dos.html
+# - error_code: dos_api_denial
+#   file: errors/dos.html
 
-- error_code: timeout
-  file: errors/timeout.html
+# - error_code: timeout
+#   file: errors/timeout.html
 
 #- file: errors/default.html
 
@@ -28,59 +28,59 @@ error_handlers:
 handlers:
 
 #static files
-- url: /images
-  static_dir: static/images
-  expiration: "1d"
+# - url: /images
+#   static_dir: static/images
+#   expiration: "1d"
 
-- url: /robots.txt
-  static_files: static/robots.txt
-  upload: static/robots.txt
-  expiration: "90d"
+# - url: /robots.txt
+#   static_files: static/robots.txt
+#   upload: static/robots.txt
+#   expiration: "90d"
 
-- url: /favicon.ico
-  static_files: static/images/favicon.png
-  upload: static/images/favicon.png
-  expiration: "90d"
-
-
-- url: /assets/screen.css
-  static_files: static/screen.css
-  upload: static/screen.css
-
-- url: /assets/print.css
-  static_files: static/print.css
-  upload: static/print.css
-
-- url: /assets/plugins.min.js
-  static_files: static/plugins.min.js
-  upload: static/plugins.min.js
+# - url: /favicon.ico
+#   static_files: static/images/favicon.png
+#   upload: static/images/favicon.png
+#   expiration: "90d"
 
 
-- url: /assets/bootstrap.css
-  static_files: static/bootstrap/bootstrap.css
-  upload: static/bootstrap/bootstrap.css
+# - url: /assets/screen.css
+#   static_files: static/screen.css
+#   upload: static/screen.css
 
-- url: /assets/responsive.css
-  static_files: static/bootstrap/responsive.css
-  upload: static/bootstrap/responsive.css
+# - url: /assets/print.css
+#   static_files: static/print.css
+#   upload: static/print.css
 
-- url: /assets/bootstrap.min.js
-  static_files: static/bootstrap/bootstrap.min.js
-  upload: static/bootstrap/bootstrap.min.js
+# - url: /assets/plugins.min.js
+#   static_files: static/plugins.min.js
+#   upload: static/plugins.min.js
 
-- url: /assets/glyphicons-halflings.png
-  static_files: static/bootstrap/img/glyphicons-halflings.png
-  upload: static/bootstrap/img/glyphicons-halflings.png
 
-- url: /assets/glyphicons-halflings-white.png
-  static_files: static/bootstrap/img/glyphicons-halflings-white.png
-  upload: static/bootstrap/img/glyphicons-halflings-white.png
+# - url: /assets/bootstrap.css
+#   static_files: static/bootstrap/bootstrap.css
+#   upload: static/bootstrap/bootstrap.css
+
+# - url: /assets/responsive.css
+#   static_files: static/bootstrap/responsive.css
+#   upload: static/bootstrap/responsive.css
+
+# - url: /assets/bootstrap.min.js
+#   static_files: static/bootstrap/bootstrap.min.js
+#   upload: static/bootstrap/bootstrap.min.js
+
+# - url: /assets/glyphicons-halflings.png
+#   static_files: static/bootstrap/img/glyphicons-halflings.png
+#   upload: static/bootstrap/img/glyphicons-halflings.png
+
+# - url: /assets/glyphicons-halflings-white.png
+#   static_files: static/bootstrap/img/glyphicons-halflings-white.png
+#   upload: static/bootstrap/img/glyphicons-halflings-white.png
 
 
 
 #public controllers
-- url: /application(.*)
-  script: controllers/application.py
+# - url: /application(.*)
+#   script: controllers/application.py
 
 # - url: /public(.*)
 #   script: controllers/public.py
@@ -91,12 +91,12 @@ handlers:
 
 
 #Old systems login/logout
-- url: /oldauth
-  script: controllers/oldauth.py
-  login: required
+# - url: /oldauth
+#   script: controllers/oldauth.py
+#   login: required
 
-- url: /oldauth_exit
-  script: controllers/oldauth.py
+# - url: /oldauth_exit
+#   script: controllers/oldauth.py
 
 
 #protected controllers
@@ -142,9 +142,9 @@ handlers:
 #   script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
 #   login: admin
 
-- url: /taskqueue(.*)
-  script: controllers/taskqueue.py
-  login: admin
+# - url: /taskqueue(.*)
+#   script: controllers/taskqueue.py
+#   login: admin
 
 # - url: /zimport(.*)
 #   script: controllers/zimport.py
