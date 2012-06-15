@@ -68,9 +68,10 @@ class ShowEntity(myRequestHandler):
 
         relatives = entity.get_relatives(entity_id=item['id'], relation_type=['child','leecher'])
         allowed_childs = entity.get_allowed_childs(entity_id=item['id'])
-        leechers = entity.get_relatives(entity_id=item['id'], relation_type='leecher')
-        can_edit = entity.get_relatives(ids_only=True, entity_id=item['id'], related_entity_id=self.current_user.id, relation_type=['viewer', 'editor', 'owner'])
-        can_add = entity.get_relatives(ids_only=True, entity_id=item['id'], related_entity_id=self.current_user.id, relation_type=['viewer', 'editor', 'owner'])
+        leecher_in = entity.get_relatives(related_entity_id=item['id'], relation_type='leecher', reverse_relation=True)
+
+        can_edit = False if self.current_user.provider == 'application' else True #entity.get_relatives(ids_only=True, entity_id=item['id'], related_entity_id=self.current_user.id, relation_type=['viewer', 'editor', 'owner'])
+        can_add = False if self.current_user.provider == 'application' else True #entity.get_relatives(ids_only=True, entity_id=item['id'], related_entity_id=self.current_user.id, relation_type=['viewer', 'editor', 'owner'])
 
         rating_scale = None
         # rating_scale_list = [x.get('values', []) for x in item.get('properties', []) if x.get('dataproperty', '') == 'rating_scale']
@@ -81,9 +82,8 @@ class ShowEntity(myRequestHandler):
         self.render('entity/item.html',
             page_title = item['displayname'],
             entity = item,
-            relatives = relatives,
+            relatives = dict(leecher_in.items() + relatives.items()),
             allowed_childs = allowed_childs,
-            leechers = leechers,
             rating_scale = rating_scale,
             can_edit = can_edit,
             can_add = can_add,
