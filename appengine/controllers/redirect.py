@@ -3,17 +3,17 @@ from bo import *
 
 class RedirectToEntu(boRequestHandler):
     def get(self, url):
-        self.redirect('http://entu.artun.ee')
+        self.redirect('http://eka.entu.ee')
 
 
 class RedirectToEntuPublic(boRequestHandler):
     def get(self, url):
-        self.redirect('http://entu.artun.ee/public')
+        self.redirect('http://eka.entu.ee/public')
 
 
 class RedirectToEntuApplication(boRequestHandler):
     def get(self, url):
-        self.redirect('http://entu.artun.ee/application')
+        self.redirect('http://eka.entu.ee/application')
 
 
 def main():
