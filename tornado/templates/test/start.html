@@ -43,7 +43,7 @@
                     {% if q['type'] == 'text' %}
                     <td colspan="3" style="width:100%; vertical-align:middle;">
                         {{ q['label'] }}
-                        <textarea class="text" data-id="{{ q['id'] }}" style="width:99%;">{{ q['value'] }}</textarea>
+                        <textarea class="text" data-id="{{ q['id'] }}" style="width:99%;">{% if q['value'] %}{{ q['value'] }}{% else %}...{% end %}</textarea>
                     </td>
                     {% end %}
 
