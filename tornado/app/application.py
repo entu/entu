@@ -16,11 +16,11 @@ class ShowSignin(myRequestHandler):
         Shows application signup/signin page.
 
         """
-        if self.current_user:
-            self.clear_cookie('session')
-            return self.redirect('/application')
+        # if self.current_user:
+        #     self.clear_cookie('session')
+        #     return self.redirect('/application')
 
-        self.render('application/signin.html',
+        self.render('application/error.html',
             page_title = self.get_user_locale().translate('application'),
             message = '',
         )
@@ -278,8 +278,8 @@ class Subscribe(myRequestHandler):
 
 handlers = [
     ('/application', ShowSignin),
-    ('/application/form', ShowApplication),
-    ('/application/save', SaveApplication),
-    ('/application/save/child', SaveApplicationChild),
-    ('/application/subscribe', Subscribe),
+    # ('/application/form', ShowApplication),
+    # ('/application/save', SaveApplication),
+    # ('/application/save/child', SaveApplicationChild),
+    # ('/application/subscribe', Subscribe),
 ]
