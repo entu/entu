@@ -3,6 +3,7 @@ from tornado import locale
 from tornado.options import options
 
 from operator import itemgetter
+from datetime import datetime
 
 import logging
 import hashlib
@@ -227,7 +228,7 @@ class Entity():
 
         #Vastuskirja hack
         if self.db.get('SELECT entity_definition_id FROM entity WHERE id = %s', entity_id).entity_definition_id == 38:
-            parent = self.get_relatives(entity_id=entity_id, relation_type='child', reverse_relation=True, limit=1).values()[0][0]
+            parent = self.get_relatives(related_entity_id=entity_id, relation_type='child', reverse_relation=True, limit=1).values()[0][0]
             childs = self.get_relatives(entity_id=parent.get('id',None), relation_type='child').values()
             if childs:
                 childs_count = len([y.get('id', 0) for y in childs[0] if y.get('properties', {}).get('registry_number', {}).get('values', None)])+1
@@ -555,7 +556,7 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {})['displaytable'] = row.entity_displaytable
                 items.setdefault('item_%s' % row.entity_id, {})['file_count'] = 0
                 items.setdefault('item_%s' % row.entity_id, {})['is_public'] = True if row.entity_public == 1 else False
-                items.setdefault('item_%s' % row.entity_id, {})['ordinal'] = row.entity_created
+                items.setdefault('item_%s' % row.entity_id, {})['ordinal'] = row.entity_created if row.entity_created else datetime.now()
 
                 #Property
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['id'] = row.property_id
@@ -832,7 +833,7 @@ class Entity():
             sql += ' LIMIT %d' % limit
 
         sql += ';'
-        # logging.debug(sql)
+        logging.debug(sql)
 
         if ids_only == True:
             items = []
@@ -984,7 +985,7 @@ class Entity():
             WHERE entity.entity_definition_id = entity_definition.id
             AND relationship.entity_id = entity.id
             AND relationship_definition.id = relationship.relationship_definition_id
-            AND relationship_definition.type IN ('leecher', 'viewer', 'editor', 'owner')
+            AND relationship_definition.type IN ('viewer', 'editor', 'owner')
             AND entity_definition.estonian_menu IS NOT NULL
             AND relationship.related_entity_id IN (%(user_id)s)
             ORDER BY
