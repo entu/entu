@@ -43,7 +43,7 @@
 <ul id="toolbar_template" style="display:none;">
     {% if can_add and allowed_childs %}
         <li class="dropdown toolbar-item">
-            <a href="#" class="dropdown-toggle header-menu-item" data-toggle="dropdown" data-icon="+"></a>
+            <a href="#" class="dropdown-toggle header-menu-item" data-toggle="dropdown"><i class="icon-plus"></i></a>
             <ul class="dropdown-menu toolbar-item-add">
                 {% for c in allowed_childs %}
                 <li><a href="javascript:void(0);" data-id="{{ c.id }}">{{ c.label }}</a></li>
@@ -52,12 +52,12 @@
         </li>
     {% end %}
     {% if can_edit %}
-        <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-edit" data-icon="E"></a></li>
+        <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-edit"><i class="icon-pencil"></i></a></li>
     {% end %}
     {% if can_edit and rating_scale %}
-        <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-rate" data-icon="R"></a></li>
+        <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-rate"></a></li>
     {% end %}
-    <!--li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-rights" data-icon="L"></a></li-->
+    <!--li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-rights"></a></li-->
 </ul>
 
 <!--ul class="nav nav-tabs" id="myTab" style="clear:both;">
