@@ -596,7 +596,7 @@ class Entity():
                 elif row.property_datatype == 'file':
                     db_value = row.value_file
                     blobstore = self.db.get('SELECT id, filename, filesize FROM file WHERE id=%s LIMIT 1', row.value_file)
-                    value = blobstore.filename
+                    value = blobstore.filename if blobstore else ''
                     items.setdefault('item_%s' % row.entity_id, {})['file_count'] += 1
                 elif row.property_datatype == 'boolean':
                     db_value = row.value_boolean
