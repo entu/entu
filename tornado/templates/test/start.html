@@ -4,7 +4,7 @@
 
 {% block right_toolbar %}
     {% if current_user %}
-        <li class="toolbar-item"><a href="/exit" data-icon="Q"></a></li>
+        <li class="toolbar-item"><a href="/exit" style="width:30px;"><i class="icon-off"></i></a></li>
     {% end %}
 {% end %}
 
@@ -33,17 +33,17 @@
                     <td style="width:100%; vertical-align:middle;">
                         {{ q['label'] }}
                     </td>
-                    <td id="unlike-{{ q['id'] }}" class="unlike" data-id="{{ q['id'] }}" style="font-weight:bold; font-size:26px; padding-top:0px; color:{% if q['value'] == 'unlike' %}#F13300{% else %}#E8E8E8{% end %}; vertical-align:middle; cursor:pointer;">
-                        &#8211;
+                    <td id="unlike-{{ q['id'] }}" class="unlike" data-id="{{ q['id'] }}" style="font-weight:bold; font-size:26px; color:{% if q['value'] == 'unlike' %}#F13300{% else %}#E8E8E8{% end %}; vertical-align:middle; cursor:pointer;">
+                        <i class="icon-thumbs-down"></i>
                     </td>
-                    <td id="like-{{ q['id'] }}" class="like" data-id="{{ q['id'] }}" style="font-weight:bold; font-size:26px; padding-top:0px; padding-left:0px; color:{% if q['value'] == 'like' %}#1CB500{% else %}#E8E8E8{% end %}; border-left:none; vertical-align:middle; cursor:pointer;">
-                        +
+                    <td id="like-{{ q['id'] }}" class="like" data-id="{{ q['id'] }}" style="font-weight:bold; font-size:26px; padding-left:0px; color:{% if q['value'] == 'like' %}#1CB500{% else %}#E8E8E8{% end %}; border-left:none; vertical-align:middle; cursor:pointer;">
+                        <i class="icon-thumbs-up"></i>
                     </td>
                     {% end %}
                     {% if q['type'] == 'text' %}
                     <td colspan="3" style="width:100%; vertical-align:middle;">
                         {{ q['label'] }}
-                        <textarea class="text" data-id="{{ q['id'] }}" style="width:99%;">{% if q['value'] %}{{ q['value'] }}{% else %}...{% end %}</textarea>
+                        <textarea class="text" data-id="{{ q['id'] }}" style="width:99%;"></textarea>
                     </td>
                     {% end %}
 
