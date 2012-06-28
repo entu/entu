@@ -1,6 +1,15 @@
 {% autoescape None %}
 {% from operator import itemgetter %}
 
+{% for parent in parents.values() %}
+<ul class="breadcrumb" style="text-align:center;">
+  <li style="float:left;"><i class="divider icon-arrow-up" style="padding-left:0px;"></i></li>
+  <li>{{ parent[0].get('label', '') }}  </li>
+  <li><a href="#{{ parent[0].get('id', '') }}">{{ parent[0].get('displayname', '') }}</a></li>
+  <li style="float:right;"><i class="divider icon-arrow-up" style="padding-right:0px;"></i></li>
+</ul>
+{% end %}
+
 <img src="{{ entity['displaypicture'] }}" id="entity_picture" class="" width="120" style="float:right; margin-bottom:20px;" />
 <h3 style="margin-right:140px;">{{ entity['displayname'] }}</h3>
 <div style="margin-right:140px;">
@@ -11,7 +20,7 @@
                 <th style="text-align:right; white-space:nowrap;">
                     <h6>{{ p['label'] }}</h6>
                 </th>
-                <td style="width:100%;">
+                <td style="width:100%;{%if not p['public'] %} color:gray;{% end %}">
                     {% if p['datatype'] == 'file' %}
                         {{ '<br />'.join(['<a href="/entity/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
                     {% else %}
@@ -43,7 +52,7 @@
 <ul id="toolbar_template" style="display:none;">
     {% if can_add and allowed_childs %}
         <li class="dropdown toolbar-item">
-            <a href="#" class="dropdown-toggle header-menu-item" data-toggle="dropdown"><i class="icon-plus"></i></a>
+            <a href="#" class="dropdown-toggle header-menu-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="icon-plus"></i></a>
             <ul class="dropdown-menu toolbar-item-add">
                 {% for c in allowed_childs %}
                 <li><a href="javascript:void(0);" data-id="{{ c.id }}">{{ c.label }}</a></li>
@@ -52,12 +61,12 @@
         </li>
     {% end %}
     {% if can_edit %}
-        <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-edit"><i class="icon-pencil"></i></a></li>
+        <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-edit" title="{{ _('menu_edit') }}"><i class="icon-pencil"></i></a></li>
+        <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-relate" title="{{ _('menu_relate') }}"><i class="icon-sitemap"></i></a></li>
     {% end %}
-    {% if can_edit and rating_scale %}
-        <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-rate"></a></li>
+    {% if is_owner %}
+        <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-rights" title="{{ _('menu_rights') }}"><i class="icon-lock"></i></a></li>
     {% end %}
-    <!--li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-rights"></a></li-->
 </ul>
 
 <!--ul class="nav nav-tabs" id="myTab" style="clear:both;">
@@ -144,6 +153,14 @@
 
         $('#toolbar-item-edit').click(function() {
             $.get('/entity-{{ entity['id'] }}/edit', function(html) {
+                document.body.style.cursor = 'wait';
+                $('#modal-box').modal('show');
+                $('#modal-box-content').html(html);
+            });
+        });
+
+        $('#toolbar-item-relate').click(function() {
+            $.get('/entity-{{ entity['id'] }}/relate', function(html) {
                 document.body.style.cursor = 'wait';
                 $('#modal-box').modal('show');
                 $('#modal-box-content').html(html);
