@@ -5,7 +5,7 @@
         {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
         <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
             <th style="min-width:200px; text-align:right; vertical-align:middle;">
-                <h6{%if p['public'], False) %} style="color:black;"{% end %}>{%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}</h6>
+                <h6{%if p['public'] %} style="color:black;"{% end %}>{%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}</h6>
             </th>
             <td style="padding-bottom:0px; vertical-align:middle;">
                 {% if p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal'] %}
