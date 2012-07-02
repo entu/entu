@@ -17,7 +17,6 @@ class PublicHandler(myRequestHandler):
     """
     def get(self):
         self.render('public/start.html',
-            page_title = self.locale.translate('search_results'),
             search = ''
         )
 
@@ -34,14 +33,13 @@ class PublicSearchHandler(myRequestHandler):
         locale = self.get_user_locale()
         items = []
         if len(search) > 1:
-            #entities = db.Entity(user_locale=self.get_user_locale()).get(search=search, entity_definition_id=[1, 7, 8, 38])
-            entities = db.Entity(user_locale=self.get_user_locale()).get(search=search)
+            entities = db.Entity(user_locale=self.get_user_locale()).get(search=search, entity_definition_id=[1, 7, 8, 38], only_public=True)
             if entities:
                 for item in entities:
                     items.append({
                         'url': '/public/entity-%s/%s' % (item.get('id', ''), toURL(item.get('displayname', ''))),
                         'name': item.get('displayname', ''),
-                        'date': item.get('created', '').strftime('%d.%m.%Y'),
+                        'date': item.get('created'),
                         'file': item.get('file_count', 0),
                     })
 
@@ -55,7 +53,6 @@ class PublicSearchHandler(myRequestHandler):
             itemcount =locale.translate('search_result_count2') % len(items)
 
         self.render('public/list.html',
-            page_title = self.locale.translate('search_results'),
             entities = sorted(items, key=itemgetter('name')) ,
             itemcount = itemcount,
             search = urllib.unquote_plus(search)
@@ -80,7 +77,7 @@ class PublicEntityHandler(myRequestHandler):
         except:
             return self.missing()
 
-        item = db.Entity(user_locale=self.get_user_locale()).get(entity_id=entity_id, limit=1)
+        item = db.Entity(user_locale=self.get_user_locale()).get(entity_id=entity_id, limit=1, only_public=True)
         if not item:
             return self.missing()
 

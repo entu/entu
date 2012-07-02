@@ -1,6 +1,11 @@
 help,Help
+menu_add,Add new
+menu_edit,Edit
+menu_relate,Join relative
+menu_rights,Rights
 menu_login,Login
 menu_exit,Logout
+menu_help,Help
 
 search_button,Search
 search_placeholder,Search something...
@@ -17,5 +22,7 @@ counter_generate_value,Generate number
 
 public,Public
 public_description,Make this document accessible in public view
+
+created,Created
 
 new_entity_label,New "%s"

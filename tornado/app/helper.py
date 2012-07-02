@@ -3,9 +3,15 @@
 from tornado.web import RequestHandler
 from tornado import locale
 
+from tornadomail.message import EmailMessage, EmailMultiAlternatives
+from tornadomail.backends.smtp import EmailBackend
+
 import hashlib
 import re
 import string
+import base64
+import logging
+
 
 import db
 
@@ -77,6 +83,67 @@ class myRequestHandler(RequestHandler):
         else:
             return locale.get(self.settings['default_language'])
 
+    def mail_send(self, to, cc=None, bcc=None, subject='', message='', attachments=None):
+        """
+        Sends email using GMail account. email_address and gmail_password application settings are required.
+
+        """
+        self.require_setting('email_address', 'email sending')
+
+        def _finish(num):
+            logging.debug('_finish %s' % num)
+
+        if type(to) is not list:
+            to = [to]
+
+        message = EmailMessage(
+            subject = subject,
+            body = message,
+            from_email = self.settings['email_address'],
+            to = to,
+            cc = cc,
+            bcc = bcc,
+            connection = self.__mail_connection
+        )
+
+        # message.attach(
+        #     filename = '',
+        #     content = ''
+        # )
+
+        message.send(callback=_finish)
+
+    @property
+    def __mail_connection(self):
+        self.require_setting('email_smtp_server', 'email sending')
+        self.require_setting('email_smtp_port', 'email sending')
+        self.require_setting('email_address', 'email sending')
+        self.require_setting('email_secret', 'email sending')
+
+        return EmailBackend(
+            self.settings['email_smtp_server'],
+            int(self.settings['email_smtp_port']),
+            self.settings['email_address'],
+            swapCrypt(self.settings['email_secret']),
+            True
+        )
+
+
+def swapCrypt(s, encrypt=False):
+    """
+    This function will encrypt/decrypt a string.
+
+    """
+    if not encrypt:
+        s = base64.b64decode(s)
+    list1 = list(s)
+    for k in range(0, len(list1), 2):
+        if len(list1) > k + 1:
+            list1[k], list1[k+1] = list1[k+1], list1[k]
+    if not encrypt:
+        return ''.join(list1)
+    return base64.b64encode(''.join(list1))
+
 
 def toURL(s):
     """
@@ -92,3 +159,7 @@ def toURL(s):
     s = re.sub(r'[^-a-zA-Z0-9]', '', s)
     s = s.replace('--', '-').replace('--', '-').replace('--', '-')
     return s
+
+def checkEmail(email):
+    if re.match('[^@]+@[^@]+\.[^@]+', email):
+        return True

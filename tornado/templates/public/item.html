@@ -1,28 +1,29 @@
-{% extends 'index.html' %}
+{% extends '../main/index.html' %}
 {% autoescape None %}
 
-{% block content %}
+{% include 'start.html' %}
 
-{% include 'search.html' %}
+{% block public_content %}
+    {% from operator import itemgetter %}
+    {% include 'search.html' %}
 
-<h3>{{ entity['displayname'] }}</h3>
-<table class="table">
-    <tbody>
-        {% for p in entity['properties'] %}
-        <tr>
-            <th style="text-align:right; white-space:nowrap;">
-                <h6>{{ p['label'] }}</h6>
-            </th>
-            <td style="width:100%;">
-                {% if p['datatype'] == 'file' %}
-                    {{ '<br />'.join(['<a href="/public/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
-                {% else %}
-                    {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
-                {% end %}
-            </td>
-        </tr>
-        {% end %}
-    </tbody>
-</table>
-
+    <h3>{{ entity['displayname'] }}</h3>
+    <table class="table">
+        <tbody>
+            {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
+            <tr>
+                <th style="text-align:right; white-space:nowrap;">
+                    <h6>{{ p['label'] }}</h6>
+                </th>
+                <td style="width:100%;">
+                    {% if p['datatype'] == 'file' %}
+                        {{ '<br />'.join(['<a href="/public/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
+                    {% else %}
+                        {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
+                    {% end %}
+                </td>
+            </tr>
+            {% end %}
+        </tbody>
+    </table>
 {% end %}
