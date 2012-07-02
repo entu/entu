@@ -79,8 +79,6 @@
                                         <img src="{{ static_url('images/spinner_white.gif') }}" style="display:none;" />
                                         <iframe name="iframe_{{ p['id'] }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML, '#blobstore_upload_{{ p['id'] }}');" style="display:none;"></iframe>
                                         <form method="post" action="/entity/save" target="iframe_{{ p['id'] }}" enctype="multipart/form-data" style="margin:0px; padding:0px;">
-                                            <input type="hidden" id="file_entity_id" name="entity_id" value="{{ entity_id }}" />
-                                            <input type="hidden" name="entity_definition_id" value="{{ entity_definition_id }}" />
                                             <input type="hidden" name="property_id" value="{{ p['id'] }}" />
                                             <input type="file" name="file" class="dtype-{{ p['datatype'] }}" style="border:none; width:80px; margin-bottom:4px;" />
                                         </form>

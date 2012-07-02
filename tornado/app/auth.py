@@ -235,6 +235,23 @@ class AuthTwitter(myRequestHandler, auth.TwitterMixin):
         self.redirect(get_redirect(self))
 
 
+class Exit(myRequestHandler):
+    """
+    Log out.
+
+    """
+    def get(self):
+        redirect_url = '/'
+        if self.current_user:
+            if self.current_user.provider == 'google':
+                redirect_url = 'https://www.google.com/accounts/logout'
+            if self.current_user.provider == 'application':
+                redirect_url = '/application'
+
+        self.clear_cookie('session')
+        self.redirect(redirect_url)
+
+
 def LoginUser(rh, user):
     """
     Starts session. Creates new user.
@@ -255,7 +272,6 @@ def LoginUser(rh, user):
 
     rh.set_secure_cookie('session', str(session_key))
 
-
 def set_redirect(rh):
     """
     Saves requested URL to cookie, then (after authentication) we know where to go.
@@ -272,23 +288,6 @@ def get_redirect(rh):
     if next:
         return next
     return '/'
-
-class Exit(myRequestHandler):
-    """
-    Log out.
-
-    """
-    def get(self):
-        redirect_url = '/'
-        if self.current_user:
-            if self.current_user.provider == 'google':
-                redirect_url = 'https://www.google.com/accounts/logout'
-            if self.current_user.provider == 'application':
-                redirect_url = '/application'
-
-        self.clear_cookie('session')
-        self.redirect(redirect_url)
-
 
 handlers = [
     ('/auth/mobileid', AuthMobileID),

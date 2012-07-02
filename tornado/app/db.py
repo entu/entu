@@ -3,6 +3,7 @@ from tornado import locale
 from tornado.options import options
 
 from operator import itemgetter
+from datetime import datetime
 
 import logging
 import hashlib
@@ -227,7 +228,7 @@ class Entity():
 
         #Vastuskirja hack
         if self.db.get('SELECT entity_definition_id FROM entity WHERE id = %s', entity_id).entity_definition_id == 38:
-            parent = self.get_relatives(entity_id=entity_id, relation_type='child', reverse_relation=True, limit=1).values()[0][0]
+            parent = self.get_relatives(related_entity_id=entity_id, relation_type='child', reverse_relation=True, limit=1).values()[0][0]
             childs = self.get_relatives(entity_id=parent.get('id',None), relation_type='child').values()
             if childs:
                 childs_count = len([y.get('id', 0) for y in childs[0] if y.get('properties', {}).get('registry_number', {}).get('values', None)])+1
@@ -555,7 +556,7 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {})['displaytable'] = row.entity_displaytable
                 items.setdefault('item_%s' % row.entity_id, {})['file_count'] = 0
                 items.setdefault('item_%s' % row.entity_id, {})['is_public'] = True if row.entity_public == 1 else False
-                items.setdefault('item_%s' % row.entity_id, {})['ordinal'] = row.entity_created
+                items.setdefault('item_%s' % row.entity_id, {})['ordinal'] = row.entity_created if row.entity_created else datetime.now()
 
                 #Property
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['id'] = row.property_id
@@ -568,7 +569,7 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multilingual'] = row.property_multilingual
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multiplicity'] = row.property_multiplicity
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['ordinal'] = row.property_ordinal
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['public'] = True if row.property_public else False
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['public'] = True if row.property_public == 1 else False
 
                 #Value
                 if row.property_datatype in ['string', 'select']:
@@ -595,7 +596,7 @@ class Entity():
                 elif row.property_datatype == 'file':
                     db_value = row.value_file
                     blobstore = self.db.get('SELECT id, filename, filesize FROM file WHERE id=%s LIMIT 1', row.value_file)
-                    value = blobstore.filename
+                    value = blobstore.filename if blobstore else ''
                     items.setdefault('item_%s' % row.entity_id, {})['file_count'] += 1
                 elif row.property_datatype == 'boolean':
                     db_value = row.value_boolean
@@ -648,6 +649,7 @@ class Entity():
                     items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['multilingual'] = d.property_multilingual
                     items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['multiplicity'] = d.property_multiplicity
                     items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['ordinal'] = d.property_ordinal
+                    items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['public'] = d.property_public
                     if not d.property_multiplicity or d.property_multiplicity > len(value.get('properties', {}).get('%s' % d.property_dataproperty, {}).get('values', {}).values()):
                         items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {}).setdefault('values', {})['value_new'] = {'id': '', 'ordinal': 'X', 'value': '', 'db_value': ''}
                     if not d.property_multiplicity or d.property_multiplicity > len(value.get('properties', {}).get('%s' % d.property_dataproperty, {}).get('values', {}).values()):
@@ -741,6 +743,7 @@ class Entity():
                 property_definition.multilingual AS property_multilingual,
                 property_definition.multiplicity AS property_multiplicity,
                 property_definition.ordinal AS property_ordinal,
+                property_definition.public AS property_public,
                 property_definition.classifying_entity_definition_id AS property_classifier_id
             FROM
                 entity_definition,
@@ -924,7 +927,7 @@ class Entity():
 
         """
         sql = """
-            SELECT
+            SELECT DISTINCT
                 entity_definition.id,
                 entity_definition.%(language)s_label AS label,
                 entity_definition.%(language)s_label_plural AS label_plural,
@@ -946,7 +949,7 @@ class Entity():
             return result
 
         sql = """
-            SELECT
+            SELECT DISTINCT
                 entity_definition.id,
                 entity_definition.%(language)s_label AS label,
                 entity_definition.%(language)s_label_plural AS label_plural,
@@ -984,7 +987,7 @@ class Entity():
             WHERE entity.entity_definition_id = entity_definition.id
             AND relationship.entity_id = entity.id
             AND relationship_definition.id = relationship.relationship_definition_id
-            AND relationship_definition.type IN ('leecher', 'viewer', 'editor', 'owner')
+            AND relationship_definition.type IN ('viewer', 'editor', 'owner')
             AND entity_definition.estonian_menu IS NOT NULL
             AND relationship.related_entity_id IN (%(user_id)s)
             ORDER BY

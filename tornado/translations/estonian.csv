@@ -1,6 +1,11 @@
 help,Abi
+menu_add,Lisa
+menu_edit,Muuda
+menu_relate,Seo teisega
+menu_rights,Õigused
 menu_login,Sisene
 menu_exit,Välju
+menu_help,Abiinfo
 
 search_button,Otsi
 search_placeholder,Pime kana leiab tera...
