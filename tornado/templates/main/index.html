@@ -17,21 +17,11 @@
         <link href="{{ static_url('bootstrap/bootstrap.css') }}" rel="stylesheet" />
         <link href="{{ static_url('bootstrap/responsive.css') }}" rel="stylesheet" />
         <link href="{{ static_url('css/screen.css') }}" rel="stylesheet" />
+        <link href="{{ static_url('css/print.css') }}" rel="stylesheet" media="print" />
 
         <!--[if lt IE 9]>
         <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
         <![endif]-->
-
-        <!--[if !IE]> -->
-        <link href="//get.pictos.cc/fonts/261/7" rel="stylesheet" type="text/css" />
-        <style type="text/css">
-            [data-icon]:before {
-                font-family: 'Pictos Custom';
-                content: attr(data-icon);
-                -webkit-font-smoothing: antialiased;
-            }
-        </style>
-        <!-- <![endif]-->
 
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
         <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
@@ -40,8 +30,10 @@
         <script src="{{ static_url('javascript/date-et-EE.js') }}"></script>
         <script type="text/javascript">
             var _gaq = _gaq || [];
-            _gaq.push(['_setAccount', 'UA-260765-22']);
+            _gaq.push(['_setAccount', 'UA-260765-24']);
+            _gaq.push(['_setDomainName', 'entu.ee']);
             _gaq.push(['_trackPageview']);
+
             (function() {
                 var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
                 ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';

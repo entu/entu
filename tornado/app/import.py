@@ -1,4 +1,4 @@
-from tornado import web
+from tornado import auth, web
 from tornado import httpclient
 
 import logging
@@ -54,8 +54,110 @@ class AmphoraFiles(myRequestHandler):
         pass
 
 
+class ExportApplicants(myRequestHandler):
+    @web.authenticated
+    def get(self):
+        if self.current_user.email != 'argo.roots@artun.ee':
+            return
+
+        limit = 1000
+
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
+        applicants = entity.get(entity_definition_id=10, full_definition=True, limit=limit)
+
+        self.add_header('Content-Type', 'text/csv; charset=utf-8')
+
+        self.write('"ID",')
+        props = applicants[0].get('properties', {}).values()
+        for p in sorted(props, key=itemgetter('ordinal')):
+            self.write('"%s",' % p.get('label', ''))
+        self.write('\n')
+
+        for applicant in applicants:
+            self.write('"%s",' % applicant.get('id',''))
+            props = applicant.get('properties', {}).values()
+            for p in sorted(props, key=itemgetter('ordinal')):
+                if p.get('datatype', '') == 'file':
+                    self.write('"%s",' % ' '.join(['http://entu.artun.ee/entity/file-%s' % v['db_value'] for v in p['values'] if v['value']]))
+                else:
+                    self.write('"%s",' % getValue(p))
+            self.write('\n')
+
+
+class ExportApplicantsSubscriptions(myRequestHandler):
+    @web.authenticated
+    def get(self):
+        if self.current_user.email != 'argo.roots@artun.ee':
+            return
+
+        limit = 1000
+
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
+        applicants = entity.get(entity_definition_id=10, full_definition=True, limit=limit)
+
+        self.add_header('Content-Type', 'text/csv; charset=utf-8')
+
+        for applicant in applicants:
+            sub = entity.get_relatives(related_entity_id=applicant['id'], relation_type='leecher', entity_definition_id=20, reverse_relation=True, full_definition=True)
+            if sub:
+                sub = sub.values()[0]
+                for s in sub:
+                    self.write('"%s",' % applicant.get('id',''))
+                    self.write('"%s",' % getValue(applicant.get('properties', {}).get('user', {}) ))
+                    self.write('"%s",' % getValue(applicant.get('properties', {}).get('forename', {}) ))
+                    self.write('"%s",' % getValue(applicant.get('properties', {}).get('surname', {}) ))
+                    self.write('"%s",' % s.get('displayname', ''))
+                    self.write('\n')
+
+
+class ExportApplicantsChilds(myRequestHandler):
+    @web.authenticated
+    def get(self, entity_definition_id):
+        if self.current_user.email != 'argo.roots@artun.ee':
+            return
+
+        limit = 1000
+
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
+        applicants = entity.get(entity_definition_id=10, full_definition=True, limit=limit)
+
+        self.add_header('Content-Type', 'text/csv; charset=utf-8')
+
+        self.write('"ID","Email","Eesnimi","Perenimi"')
+        self.write('\n')
+        for applicant in applicants:
+            edu = entity.get_relatives(entity_id=applicant['id'], relation_type='child', entity_definition_id=entity_definition_id, full_definition=True)
+            if edu:
+                edu = edu.values()[0]
+                for e in edu:
+                    self.write('"%s",' % applicant.get('id',''))
+                    self.write('"%s",' % getValue(applicant.get('properties', {}).get('user', {}) ))
+                    self.write('"%s",' % getValue(applicant.get('properties', {}).get('forename', {}) ))
+                    self.write('"%s",' % getValue(applicant.get('properties', {}).get('surname', {}) ))
+
+                    props = e.get('properties', {}).values()
+                    for p in sorted(props, key=itemgetter('ordinal')):
+                        if p.get('datatype', '') == 'file':
+                            self.write('"%s",' % ' '.join(['http://entu.artun.ee/entity/file-%s' % v['db_value'] for v in p['values'] if v['value']]))
+                        else:
+                            self.write('"%s",' % getValue(p))
+
+                    self.write('\n')
+
+
+
+def getValue(p):
+    logging.debug(p)
+    if not p:
+        return ''
+    return ', '.join(['%s' % v['value'] for v in p['values'] if v['value']]).replace('"', '""')
+
+
 handlers = [
-    (r'/import/gae', GAEsql),
-    (r'/import/gae_files', GAEFiles),
-    (r'/import/amphora_files', GAEFiles),
+    ('/import/gae', GAEsql),
+    ('/import/gae_files', GAEFiles),
+    ('/import/amphora_files', GAEFiles),
+    ('/import/export', ExportApplicants),
+    ('/import/export/subs', ExportApplicantsSubscriptions),
+    (r'/import/export/(.*)', ExportApplicantsChilds),
 ]

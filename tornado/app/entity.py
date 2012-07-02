@@ -45,6 +45,9 @@ class ShowListinfo(myRequestHandler):
         """
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
         item = entity.get(entity_id=entity_id, limit=1)
+        if not item:
+            return self.missing()
+
         self.write({
             'id': item['id'],
             'title': item['displayname'],
@@ -67,8 +70,12 @@ class ShowEntity(myRequestHandler):
             return self.missing()
 
         relatives = entity.get_relatives(entity_id=item['id'], relation_type=['child','leecher'])
+        parents = entity.get_relatives(related_entity_id=item['id'], relation_type='child', reverse_relation=True)
         allowed_childs = entity.get_allowed_childs(entity_id=item['id'])
-        leechers = entity.get_relatives(entity_id=item['id'], relation_type='leecher')
+        leecher_in = entity.get_relatives(related_entity_id=item['id'], relation_type='leecher', reverse_relation=True)
+
+        can_edit = False if self.current_user.provider == 'application' else True #entity.get_relatives(ids_only=True, entity_id=item['id'], related_entity_id=self.current_user.id, relation_type=['viewer', 'editor', 'owner'])
+        can_add = False if self.current_user.provider == 'application' else True #entity.get_relatives(ids_only=True, entity_id=item['id'], related_entity_id=self.current_user.id, relation_type=['viewer', 'editor', 'owner'])
 
         rating_scale = None
         # rating_scale_list = [x.get('values', []) for x in item.get('properties', []) if x.get('dataproperty', '') == 'rating_scale']
@@ -79,10 +86,13 @@ class ShowEntity(myRequestHandler):
         self.render('entity/item.html',
             page_title = item['displayname'],
             entity = item,
-            relatives = relatives,
+            relatives = dict(leecher_in.items() + relatives.items()),
+            parents = parents,
             allowed_childs = allowed_childs,
-            leechers = leechers,
             rating_scale = rating_scale,
+            can_edit = can_edit,
+            can_add = can_add,
+            is_owner = True,
         )
 
 
@@ -117,7 +127,7 @@ class ShowEntityEdit(myRequestHandler):
     @web.authenticated
     def get(self, entity_id=None):
         """
-        Shows Entitiy info.
+        Shows Entitiy edit form.
 
         """
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
@@ -136,7 +146,7 @@ class ShowEntityAdd(myRequestHandler):
     @web.authenticated
     def get(self, entity_id=None, entity_definition_id=None):
         """
-        Shows Entitiy info.
+        Shows Entitiy adding form.
 
         """
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
@@ -148,6 +158,25 @@ class ShowEntityAdd(myRequestHandler):
             entity = item,
             parent_entity_id = entity_id,
             entity_definition_id = entity_definition_id,
+        )
+
+
+class ShowEntityRelate(myRequestHandler):
+    @web.authenticated
+    def get(self, entity_id=None):
+        """
+        Shows Entitiy relate form.
+
+        """
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
+        item = entity.get(entity_id=entity_id, limit=1, full_definition=True)
+        if not item:
+            return
+
+        self.render('entity/edit.html',
+            entity = item,
+            parent_entity_id = '',
+            entity_definition_id = '',
         )
 
 
@@ -195,6 +224,7 @@ handlers = [
     (r'/entity/file-(.*)', DownloadFile),
     (r'/entity-(.*)/listinfo', ShowListinfo),
     (r'/entity-(.*)/edit', ShowEntityEdit),
+    (r'/entity-(.*)/relate', ShowEntityRelate),
     (r'/entity-(.*)/add/(.*)', ShowEntityAdd),
     (r'/entity-(.*)', ShowEntity),
 ]
