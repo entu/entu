@@ -1,8 +1,8 @@
-{% if show_list %}
 <div id="list">
     <div id="list_items"></div>
     <img src="{{ static_url('images/spinner_white.gif') }}" class="spinner" />
 </div>
+
 <script>
     $(document).ready(function(){
         if(window.location.hash) {
@@ -98,4 +98,3 @@
         })
     });
 </script>
-{% end %}

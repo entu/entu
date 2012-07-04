@@ -218,8 +218,8 @@ class SaveEntity(myRequestHandler):
 
 
 handlers = [
-    (r'/', ShowGroup),
-    (r'/group-(.*)', ShowGroup),
+    (r'/entity', ShowGroup),
+    (r'/entitygroup-(.*)', ShowGroup),
     (r'/entity/save', SaveEntity),
     (r'/entity/file-(.*)', DownloadFile),
     (r'/entity-(.*)/listinfo', ShowListinfo),
