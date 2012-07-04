@@ -1,6 +1,6 @@
 {% extends '../main/index.html' %}
 
-{% block logo_url %}/{% end %}
+{% block logo_url %}/entity{% end %}
 {% block fluid %}-fluid{% end %}
 
 {% block left_toolbar %}
@@ -24,16 +24,21 @@
                     <h3><a href="#">{{ m['label'] }}</a></h3>
                     <div>
                         {% for i in m['items'] %}
-                            <a href="/group-{{ i['id'] }}">{{ i['title'] }}</a>
+                            <a href="/entitygroup-{{ i['id'] }}">{{ i['title'] }}</a>
                         {% end %}
                     </div>
                 {% end %}
             </div>
         </div>
-        {% include 'list.html'%}
-        <div id="content">
-        </div>
-        </div>
+        {% if show_list %}
+            {% include 'list.html'%}
+            <div id="content">
+            </div>
+        {% else %}
+            <div id="content-wide">
+            </div>
+        {% end %}
+    </div>
 
     <script>
         $(document).ready(function(){
