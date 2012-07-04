@@ -3,6 +3,9 @@
 {% block logo_url %}/public{% end %}
 
 {% block right_toolbar %}
+    {% for p in paths %}
+        <li class="toolbar-item{% if path == p.path %} toolbar-item-active{% end %}"><a href="/public-{{ p.path }}{% if search %}/search/{{ search }}{% end %}">{{ p.label }}</a></li>
+    {% end %}
     <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-help" title="{{ _('menu_help') }}"><i class="icon-question-sign"></i></a></li>
 {% end %}
 

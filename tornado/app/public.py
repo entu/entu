@@ -1,6 +1,5 @@
-from tornado.web import RequestHandler
 from tornado.options import options
-from tornado import locale
+from tornado import web
 
 from operator import itemgetter
 import urllib
@@ -15,9 +14,21 @@ class PublicHandler(myRequestHandler):
     Show public startpage.
 
     """
-    def get(self):
+    @web.removeslash
+    def get(self, path=None):
+        path = path.strip('/').strip('-')
+        if not path:
+            db_connection = db.connection()
+            path = db_connection.get('SELECT public_path FROM entity_definition WHERE public_path IS NOT NULL ORDER BY public_path LIMIT 1;')
+            if path:
+                return self.redirect('/public-%s' % path.public_path)
+            else:
+                return self.missing()
+
         self.render('public/start.html',
-            search = ''
+            paths = get_paths(self.get_user_locale()),
+            path = path,
+            search = '',
         )
 
 
@@ -26,18 +37,25 @@ class PublicSearchHandler(myRequestHandler):
     Show public search results.
 
     """
-    def get(self, search=None):
-        if not search:
+    def get(self, path=None, search=None):
+        if not path:
             self.redirect('/public')
+
+        search = search.strip('/').strip('-')
+        if not search:
+            self.redirect('/public-%s' % path)
 
         locale = self.get_user_locale()
         items = []
         if len(search) > 1:
-            entities = db.Entity(user_locale=self.get_user_locale()).get(search=search, entity_definition_id=[1, 7, 8, 38], only_public=True)
+            db_connection = db.connection()
+            entity_definitions = [x.id for x in db_connection.query('SELECT id FROM entity_definition WHERE public_path = %s;', path)]
+
+            entities = db.Entity(user_locale=self.get_user_locale()).get(search=search, entity_definition_id=entity_definitions, only_public=True)
             if entities:
                 for item in entities:
                     items.append({
-                        'url': '/public/entity-%s/%s' % (item.get('id', ''), toURL(item.get('displayname', ''))),
+                        'url': '/public-%s/entity-%s/%s' % (path, item.get('id', ''), toURL(item.get('displayname', ''))),
                         'name': item.get('displayname', ''),
                         'date': item.get('created'),
                         'file': item.get('file_count', 0),
@@ -55,15 +73,17 @@ class PublicSearchHandler(myRequestHandler):
         self.render('public/list.html',
             entities = sorted(items, key=itemgetter('name')) ,
             itemcount = itemcount,
+            paths = get_paths(self.get_user_locale()),
+            path = path,
             search = urllib.unquote_plus(search)
         )
 
 
-    def post(self):
+    def post(self, path=None, search=None   ):
         search_get = self.get_argument('search', None)
-        if not search_get:
+        if not path or not search_get:
             self.redirect('/public')
-        self.redirect('/public/search/%s' % urllib.quote_plus(search_get.encode('utf-8')))
+        self.redirect('/public-%s/search/%s' % (path, urllib.quote_plus(search_get.encode('utf-8'))))
 
 
 class PublicEntityHandler(myRequestHandler):
@@ -71,7 +91,7 @@ class PublicEntityHandler(myRequestHandler):
     Show public entity.
 
     """
-    def get(self, entity_id=None, url=None):
+    def get(self, path=None, entity_id=None, url=None):
         try:
             entity_id = int(entity_id.split('/')[0])
         except:
@@ -84,6 +104,8 @@ class PublicEntityHandler(myRequestHandler):
         self.render('public/item.html',
             page_title = item['displayname'],
             entity = item,
+            paths = get_paths(self.get_user_locale()),
+            path = path,
             search = ''
         )
 
@@ -113,10 +135,14 @@ class PublicFileHandler(myRequestHandler):
         self.write(file.file)
 
 
+def get_paths(user_locale):
+    db_connection = db.connection()
+    return db_connection.query('SELECT DISTINCT public_path AS path, %s_public AS label FROM entity_definition WHERE public_path IS NOT NULL ORDER BY public_path;' % user_locale.code)
+
+
 handlers = [
-    (r'/public', PublicHandler),
-    (r'/public/search', PublicSearchHandler),
-    (r'/public/search/(.*)', PublicSearchHandler),
+    (r'/public-(.*)/search(.*)', PublicSearchHandler),
+    (r'/public-(.*)/entity-(.*)', PublicEntityHandler),
     (r'/public/file-(.*)', PublicFileHandler),
-    (r'/public/entity-(.*)', PublicEntityHandler),
+    (r'/public(.*)', PublicHandler),
 ]
