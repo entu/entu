@@ -17,7 +17,7 @@
         <tbody>
             {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
             <tr>
-                <th style="text-align:right; white-space:nowrap;">
+                <th style="text-align:right; min-width:200px;">
                     <h6>{{ p['label'] }}</h6>
                 </th>
                 <td style="width:100%;{%if not p['public'] %} color:gray;{% end %}">
