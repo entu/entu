@@ -32,6 +32,7 @@ class myRequestHandler(RequestHandler):
         kwargs['app_title'] = self.settings['app_title']
         kwargs['app_logo_big'] = self.settings['app_logo_big']
         kwargs['page_title'] = '%s - %s' % (self.settings['app_title'], kwargs['page_title']) if kwargs.get('page_title', None) else self.settings['app_title']
+        kwargs['google_analytics_code'] = self.settings['google_analytics_code'] if 'google_analytics_code' in self.settings else None
 
         RequestHandler.render(self, template_name, **kwargs)
 
