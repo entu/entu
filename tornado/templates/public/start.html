@@ -2,6 +2,10 @@
 
 {% block logo_url %}/public{% end %}
 
+{% block style %}
+    .brand {padding-left:0px !important;}
+{% end %}
+
 {% block right_toolbar %}
     {% for p in paths %}
         <li class="toolbar-item{% if path == p.path %} toolbar-item-active{% end %}"><a href="/public-{{ p.path }}{% if search %}/search/{{ search }}{% end %}">{{ p.label }}</a></li>
@@ -17,9 +21,9 @@
             {% include 'search.html' %}
         {% end %}
 
-        <footer>
+        <!--footer>
             <p style="font-size:11px; color:gray;">Copyright ©2012 - Made by Argo Roots</p>
-        </footer>
+        </footer-->
     </div>
     <script>
         $(document).ready(function(){

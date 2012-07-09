@@ -1,6 +1,101 @@
-<form class="form-horizontal" action="/public-{{ path }}/search" method="POST" style="text-align:center;">
+{% from operator import itemgetter %}
+
+<form id="simple-search" class="form-horizontal" action="/public-{{ path }}/search" method="POST" style="text-align:center;">
     <div class="input-append">
-        <input type="text" name="search" class="span4" placeholder="{{ _('search_placeholder') }}" value="{{ search }}" /><button class="btn"  type="submit">{{ _('search_button') }}</button>
+        <input type="text" name="search" class="span4" placeholder="{{ _('search_placeholder') }}" value="" /><button class="btn btn-success" type="submit">{{ _('search_button') }}</button>
     </div>
+    <button id="advanced-search-btn" class="btn btn-small" type="reset">{{ _('search_advanced') }}</button>
     <div class="row"></div>
 </form>
+
+<div id="advanced-search" class="row" style="display:none;">
+    <div class="accordion span8 offset2" id="accordion2">
+        {% for entity in entity_definitions %}
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapse-{{ entity['definition_id'] }}">
+                        <h4>{{ entity['displayname'] }}</h4>
+                    </a>
+                </div>
+                <div id="collapse-{{ entity['definition_id'] }}" class="accordion-body collapse">
+                    <div class="accordion-inner" style="padding:0px;">
+                        <form class="form-horizontal" action="/public-{{ path }}/search2" method="GET">
+                            <input type="hidden" name="ed" value="{{ entity['definition_id'] }}" />
+                            <table class="table table-condensed" style="border:none; margin:0px;">
+                                <tbody>
+                                    {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
+                                    {% if p['public'] and p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal', 'boolean', 'counter_value'] %}
+                                    <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
+                                        <th style="min-width:250px; text-align:right; vertical-align:middle;">
+                                            <h6{%if p['public'] %} style="color:black;"{% end %}>{%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}</h6>
+                                        </th>
+                                        <td style="padding-bottom:0px; vertical-align:middle;">
+                                            {% if p['datatype'] in ['counter_value', 'string', 'integer', 'decimal'] %}
+                                                {% if p.get('select', None) %}
+                                                    {% for v in p['values'] %}
+                                                        <select name="t{{ p['id'] }}" style="width:100%; margin-bottom:4px;">
+                                                            <option value=""></option>
+                                                            {% for s in p.get('select','') %}
+                                                            <option value="{{ s['label'] }}" {% if s['label'] == v['value'] %} selected{% end %}>{{ s['label'] }}</option>
+                                                            {% end %}
+                                                        </select>
+                                                    {% end %}
+                                                {% else %}
+                                                    {% for v in p['values'] %}
+                                                        <input type="text" name="t{{ p['id'] }}" value="{{ v['value'] }}" style="width:98%; margin-bottom:4px;" />
+                                                    {% end %}
+                                                {% end %}
+                                            {% elif p['datatype'] in ['datetime', 'date'] %}
+                                                {% for v in p['values'] %}
+                                                    <input type="text" name="s{{ p['id'] }}" value="{{ v['value'] }}" class="dtype-{{ p['datatype'] }}" style="width:45%; margin-bottom:4px;margin-right:8px;" /> -
+                                                    <input type="text" name="e{{ p['id'] }}" value="{{ v['value'] }}" class="dtype-{{ p['datatype'] }}" style="width:45%; margin-bottom:4px; float:right;" />
+                                                {% end %}
+                                            {% elif p['datatype'] == 'boolean' %}
+                                                {% for v in p['values'] %}
+                                                    <input type="checkbox" name="c{{ p['id'] }}" {% if v.get('db_value', 0) == 1 %} checked{% end %} style="margin-bottom:4px;" />
+                                                {% end %}
+                                            {% else %}
+                                                {{ p['datatype'] }}
+                                            {% end %}
+                                        </td>
+                                    </tr>
+                                    {% end %}
+                                    {% end %}
+                                </tbody>
+                            </table>
+                            <button class="btn btn-success" type="submit" style="float:right; margin:10px;">{{ _('search_button') }}</button>
+
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% end %}
+    </div>
+</div>
+
+<script>
+    $(document).ready(function(){
+
+        $('#advanced-search-btn').click(function() {
+            $('#simple-search').hide('show');
+            $('#advanced-search').show('show');
+        });
+
+        $('.dtype-datetime').change(function() {
+            $(this).val(format_date($(this).val(), 'yyyy-MM-dd HH:mm'));
+        });
+        $('.dtype-date').change(function() {
+            $(this).val(format_date($(this).val(), 'yyyy-MM-dd'));
+        });
+        function format_date(dinput, format) {
+            var result = ''
+            dvalue = Date.parse(dinput);
+            if(dvalue) {
+                result = dvalue.toString(format);
+            }
+            return result;
+        }
+
+    });
+</script>

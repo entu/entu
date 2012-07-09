@@ -8,6 +8,7 @@ menu_exit,Välju
 menu_help,Abiinfo
 
 search_button,Otsi
+search_advanced,Laiendatud otsing
 search_placeholder,Pime kana leiab tera...
 search_term_to_short,Otsisõna '%s' on liiga lühike. Proovi 2x pikemat.
 search_noresult,Ei leidnud midagi. Proovi uuesti.
@@ -24,8 +25,6 @@ public,Avalik
 public_description,Tee see dokument nähtavaks avalikus vaates
 
 created,Loodud
-
-new_entity_label,Uus "%s"
 
 test,Küsimustik
 test_submit,Saada vastused

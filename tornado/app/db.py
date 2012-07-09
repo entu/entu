@@ -638,7 +638,7 @@ class Entity():
             if full_definition:
                 for d in self.get_definition(entity_definition_id=value['definition_id']):
                     if not value.get('id', None):
-                        items[key]['displayname'] = self.user_locale.translate('new_entity_label') % d.entity_label
+                        items[key]['displayname'] = d.entity_label
                     items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['id'] = d.property_id
                     items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['fieldset'] = d.property_fieldset
                     items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['label'] = d.property_label

@@ -8,6 +8,7 @@ menu_exit,Logout
 menu_help,Help
 
 search_button,Search
+search_advanced,Advanced search
 search_placeholder,Search something...
 search_term_to_short,Searching term '%s' is to short. Try to double it.
 search_noresult,Didn't found enything. Try again.
@@ -24,5 +25,3 @@ public,Public
 public_description,Make this document accessible in public view
 
 created,Created
-
-new_entity_label,New "%s"

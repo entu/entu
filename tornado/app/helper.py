@@ -161,6 +161,19 @@ def toURL(s):
     s = s.replace('--', '-').replace('--', '-').replace('--', '-')
     return s
 
+
 def checkEmail(email):
     if re.match('[^@]+@[^@]+\.[^@]+', email):
         return True
+
+
+def ListMatch(l1 = None, l2 = None):
+    # ListMatch(['a', 'b', 'c', 'd'], ['b', 'e', 'a']) = ['a', 'b']
+    if not l1 or not l2:
+        return []
+    if type(l1) is not list:
+        l1 = [l1]
+    if type(l2) is not list:
+        l2 = [l2]
+    l = set(l1)
+    return list(l.intersection(l2))
