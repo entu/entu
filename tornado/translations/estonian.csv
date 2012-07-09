@@ -1,8 +1,11 @@
 help,Abi
+close,Sulge
+
 menu_add,Lisa
 menu_edit,Muuda
 menu_relate,Seo teisega
 menu_rights,Õigused
+menu_share,Jaga
 menu_login,Sisene
 menu_exit,Välju
 menu_help,Abiinfo
@@ -25,6 +28,11 @@ public,Avalik
 public_description,Tee see dokument nähtavaks avalikus vaates
 
 created,Loodud
+
+share_by_email,Saada epostiga
+share_to,Kellele (email)
+share_message,Sõnum
+share_send,Saada
 
 test,Küsimustik
 test_submit,Saada vastused

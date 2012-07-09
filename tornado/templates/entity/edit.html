@@ -1,77 +1,86 @@
 {% from operator import itemgetter %}
 
-<table class="table table-condensed">
-    <tbody>
-        {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
-        <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
-            <th style="min-width:200px; text-align:right; vertical-align:middle;">
-                <h6{%if p['public'] %} style="color:black;"{% end %}>{%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}</h6>
-            </th>
-            <td style="padding-bottom:0px; vertical-align:middle;">
-                {% if p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal'] %}
-                    {% if p.get('select', None) %}
+<div class="modal-header" style="border:none;">
+    <a class="close" data-dismiss="modal">×</a>
+    <h3>{{ entity.get('displayname', '') }}</h3>
+</div>
+<div class="modal-body" style="padding:0px;">
+    <table class="table table-condensed" style="margin:0px;">
+        <tbody>
+            {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
+            <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
+                <th style="min-width:200px; text-align:right; vertical-align:middle;">
+                    <h6{%if p['public'] %} style="color:black;"{% end %}>{%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}</h6>
+                </th>
+                <td style="padding-bottom:0px; vertical-align:middle;">
+                    {% if p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal'] %}
+                        {% if p.get('select', None) %}
+                            {% for v in p['values'] %}
+                                <select class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" style="width:100%; margin-bottom:4px;">
+                                    <option value=""></option>
+                                    {% for s in p.get('select','') %}
+                                    <option value="{{ s['label'] }}" {% if s['label'] == v['value'] %} selected{% end %}>{{ s['label'] }}</option>
+                                    {% end %}
+                                </select>
+                            {% end %}
+                        {% else %}
+                            {% for v in p['values'] %}
+                                <input type="text" class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" data-value="{{ v['value'] }}" value="{{ v['value'] }}" style="width:98%; margin-bottom:4px;" />
+                            {% end %}
+                        {% end %}
+                    {% elif p['datatype'] == 'text' %}
                         {% for v in p['values'] %}
-                            <select class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" style="width:100%; margin-bottom:4px;">
-                                <option value=""></option>
-                                {% for s in p.get('select','') %}
-                                <option value="{{ s['label'] }}" {% if s['label'] == v['value'] %} selected{% end %}>{{ s['label'] }}</option>
-                                {% end %}
-                            </select>
+                            <textarea class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" data-value="{{ v['value'] }}" style="width:98%; margin-bottom:4px;">{{ v['value'] }}</textarea>
+                        {% end %}
+                    {% elif p['datatype'] == 'boolean' %}
+                        {% for v in p['values'] %}
+                            <input type="checkbox" class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" {% if v.get('db_value', 0) == 1 %} checked{% end %} style="margin-bottom:4px;" />
+                        {% end %}
+                    {% elif p['datatype'] == 'file' %}
+                        {% for v in p['values'] %}
+                            {% if not v['id'] %}
+                                <span id="blobstore_upload_{{ p['id'] }}"></span>
+                                <img src="{{ static_url('images/spinner_white.gif') }}" style="display:none;" />
+                                <iframe name="iframe_{{ p['id'] }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML, '#blobstore_upload_{{ p['id'] }}');" style="display:none;"></iframe>
+                                <form method="post" action="/entity/save" target="iframe_{{ p['id'] }}" enctype="multipart/form-data" style="margin:0px; padding:0px;">
+                                    <input type="hidden" class="file_entity_id" name="entity_id" value="{{ entity.get('id', '') }}" />
+                                    <input type="hidden" name="parent_entity_id" value="{{ parent_entity_id }}" />
+                                    <input type="hidden" name="entity_definition_id" value="{{ entity_definition_id }}" />
+                                    <input type="hidden" name="property_id" value="{{ p['id'] }}" />
+                                    <input type="file" name="file" class="dtype-{{ p['datatype'] }}" style="border:none; width:80px; margin-bottom:4px;" />
+                                </form>
+                            {% else %}
+                                <a href="/entity/file-{{ v['db_value'] }}">{{ v['value'] }}</a><br />
+                            {% end %}
+                        {% end %}
+                    {% elif p['datatype'] == 'counter_value' %}
+                        {% for v in p['values'] %}
+                            {% if v['value'] %}
+                                {{ v['value'] }}
+                            {% else %}
+                                <button data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" class="counter btn btn-warning" style="margin-bottom:4px;">{{ _('counter_generate_value') }}...</button>
+                            {% end %}
                         {% end %}
                     {% else %}
-                        {% for v in p['values'] %}
-                            <input type="text" class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" data-value="{{ v['value'] }}" value="{{ v['value'] }}" style="width:98%; margin-bottom:4px;" />
-                        {% end %}
+                        {{ ', '.join(['%s' % v['value'] for v in p['values'] if v['value']]) }}
                     {% end %}
-                {% elif p['datatype'] == 'text' %}
-                    {% for v in p['values'] %}
-                        <textarea class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" data-value="{{ v['value'] }}" style="width:98%; margin-bottom:4px;">{{ v['value'] }}</textarea>
-                    {% end %}
-                {% elif p['datatype'] == 'boolean' %}
-                    {% for v in p['values'] %}
-                        <input type="checkbox" class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" {% if v.get('db_value', 0) == 1 %} checked{% end %} style="margin-bottom:4px;" />
-                    {% end %}
-                {% elif p['datatype'] == 'file' %}
-                    {% for v in p['values'] %}
-                        {% if not v['id'] %}
-                            <span id="blobstore_upload_{{ p['id'] }}"></span>
-                            <img src="{{ static_url('images/spinner_white.gif') }}" style="display:none;" />
-                            <iframe name="iframe_{{ p['id'] }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML, '#blobstore_upload_{{ p['id'] }}');" style="display:none;"></iframe>
-                            <form method="post" action="/entity/save" target="iframe_{{ p['id'] }}" enctype="multipart/form-data" style="margin:0px; padding:0px;">
-                                <input type="hidden" class="file_entity_id" name="entity_id" value="{{ entity.get('id', '') }}" />
-                                <input type="hidden" name="parent_entity_id" value="{{ parent_entity_id }}" />
-                                <input type="hidden" name="entity_definition_id" value="{{ entity_definition_id }}" />
-                                <input type="hidden" name="property_id" value="{{ p['id'] }}" />
-                                <input type="file" name="file" class="dtype-{{ p['datatype'] }}" style="border:none; width:80px; margin-bottom:4px;" />
-                            </form>
-                        {% else %}
-                            <a href="/entity/file-{{ v['db_value'] }}">{{ v['value'] }}</a><br />
-                        {% end %}
-                    {% end %}
-                {% elif p['datatype'] == 'counter_value' %}
-                    {% for v in p['values'] %}
-                        {% if v['value'] %}
-                            {{ v['value'] }}
-                        {% else %}
-                            <button data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" class="counter btn btn-warning" style="margin-bottom:4px;">{{ _('counter_generate_value') }}...</button>
-                        {% end %}
-                    {% end %}
-                {% else %}
-                    {{ ', '.join(['%s' % v['value'] for v in p['values'] if v['value']]) }}
-                {% end %}
-            </td>
-        </tr>
-        {% end %}
-        <tr title="{{ _('public_description') }}">
-            <th style="text-align:right; white-space:nowrap; vertical-align:middle;">
-                <h6>{{ _('public') }}</h6>
-            </th>
-            <td style="width:100%; vertical-align:middle;">
-                <input type="checkbox" class="is_public" {% if entity.get('is_public', False) %} checked{% end %} />
-            </td>
-        </tr>
-    </tbody>
-</table>
+                </td>
+            </tr>
+            {% end %}
+            <tr title="{{ _('public_description') }}">
+                <th style="text-align:right; white-space:nowrap; vertical-align:middle;">
+                    <h6>{{ _('public') }}</h6>
+                </th>
+                <td style="width:100%; vertical-align:middle;">
+                    <input type="checkbox" class="is_public" {% if entity.get('is_public', False) %} checked{% end %} />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">{{ _('close') }}</a>
+</div>
 
 <div id="database" data-entity_id="{{ entity.get('id', '') }}" style="display:hidden;"></div>
 
@@ -91,8 +100,6 @@
     $(document).ready(function(){
 
         document.body.style.cursor = 'default';
-
-        $('#modal-box-label').html('{{ entity.get('displayname', '') }}');
 
         $('[title]').tooltip({placement: 'bottom'});
         $('textarea').elastic();

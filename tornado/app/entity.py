@@ -216,6 +216,37 @@ class SaveEntity(myRequestHandler):
             'value': uploaded_file['filename'] if uploaded_file else value
         })
 
+class ShareByEmail(myRequestHandler):
+    @web.authenticated
+    def get(self,  entity_id=None):
+        """
+        Shows Entitiy share by email form.
+
+        """
+        self.render('entity/email.html',
+            entity_id = entity_id
+        )
+
+    @web.authenticated
+    def post(self,  entity_id=None):
+        if not self.get_argument('to', None):
+            return self.missing()
+
+        to = self.get_argument('to', None)
+        message = self.get_argument('message', '')
+
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
+        item = entity.get(entity_id=entity_id, limit=1)
+        if not item:
+            return self.missing()
+
+        url = 'http://%s/entitygroup-%s#%s' % (self.request.headers.get('Host'), item['definition_id'], item['id'])
+
+        self.mail_send(
+            to = to,
+            subject = item['displayname'],
+            message = '%s\n\n%s\n\n%s\n%s' % (message, url, self.current_user.name, self.current_user.email)
+        )
 
 handlers = [
     (r'/entity', ShowGroup),
@@ -226,5 +257,6 @@ handlers = [
     (r'/entity-(.*)/edit', ShowEntityEdit),
     (r'/entity-(.*)/relate', ShowEntityRelate),
     (r'/entity-(.*)/add/(.*)', ShowEntityAdd),
+    (r'/entity-(.*)/share', ShareByEmail),
     (r'/entity-(.*)', ShowEntity),
 ]

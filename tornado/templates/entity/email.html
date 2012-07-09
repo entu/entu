@@ -1,0 +1,49 @@
+{% from operator import itemgetter %}
+
+<div class="modal-header" style="border:none;">
+    <a class="close" data-dismiss="modal">×</a>
+    <h3>{{ _('share_by_email') }}</h3>
+</div>
+<div class="modal-body" style="padding:0px;">
+    <table class="table table-condensed" style="margin:0px;">
+        <tbody>
+            <tr>
+                <th style="min-width:150px; text-align:right; vertical-align:middle;">
+                    <h6>{{ _('share_to') }}</h6>
+                </th>
+                <td style="width:100%; padding-bottom:0px; vertical-align:middle;">
+                    <input type="text" id="email-to" style="width:98%; margin-bottom:4px;" />
+                </td>
+            </tr>
+            <tr>
+                <th style="min-width:150px; text-align:right; vertical-align:middle;">
+                    <h6>{{ _('share_message') }}</h6>
+                </th>
+                <td style="width:100%; padding-bottom:0px; vertical-align:middle;">
+                    <textarea id="email-message" style="width:98%; margin-bottom:4px;"></textarea>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">{{ _('close') }}</a>
+    <button id="send-email" class="btn btn-primary">{{ _('share_send') }}</button>
+</div>
+
+<script>
+
+    $(document).ready(function(){
+
+        $('textarea').elastic();
+
+        document.body.style.cursor = 'default';
+
+        $('#send-email').click(function() {
+            $.post('/entity-{{ entity_id }}/share', { to: $('#email-to').val(), message: $('#email-message').val() }, function(newvalue) {
+                $('#modal-box').modal('hide')
+            });
+        });
+
+    });
+</script>

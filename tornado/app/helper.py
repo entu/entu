@@ -95,7 +95,7 @@ class myRequestHandler(RequestHandler):
             logging.debug('_finish %s' % num)
 
         if type(to) is not list:
-            to = [to]
+            to = StrToList(to)
 
         message = EmailMessage(
             subject = subject,
@@ -165,6 +165,12 @@ def toURL(s):
 def checkEmail(email):
     if re.match('[^@]+@[^@]+\.[^@]+', email):
         return True
+
+
+def StrToList(string):
+    if not string:
+        return []
+    return [x.strip() for x in string.strip().replace('\n', ' ').replace(',', ' ').replace(';', ' ').split(' ') if len(x.strip()) > 0]
 
 
 def ListMatch(l1 = None, l2 = None):

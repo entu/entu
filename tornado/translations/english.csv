@@ -1,8 +1,11 @@
 help,Help
+close,Close
+
 menu_add,Add new
 menu_edit,Edit
 menu_relate,Join relative
 menu_rights,Rights
+menu_share,Share
 menu_login,Login
 menu_exit,Logout
 menu_help,Help
@@ -25,3 +28,8 @@ public,Public
 public_description,Make this document accessible in public view
 
 created,Created
+
+share_by_email,Share by email
+share_to,To (email)
+share_message,Message
+share_send,Send
