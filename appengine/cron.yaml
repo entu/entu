@@ -1,5 +1,0 @@
-cron:
-#- description: Do stuff
-#  url: /some/controller
-#  schedule: every 1 minutes
-#  target: some-version-number
