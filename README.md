@@ -17,6 +17,8 @@ Futuristic Data Management System with emphasis on educational institutions
 * Show all entities in search (not first 303)
 * Replace [Tornado mail](https://github.com/equeny/tornadomail) with better email library
 * Custom Entity add (and other) actions
+* Favorite entities
+* Recently viewed/changed entities
 * Separate login page
 * Customizable table fields by user (visibility, sort)
 * ...
