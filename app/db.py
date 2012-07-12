@@ -709,7 +709,7 @@ class Entity():
         """
         f = self.db.get(sql, entity_id)
         if not f:
-            return 'http://www.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
+            return 'https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
 
         return '/entity/file-%s' % f.id
 

@@ -27,9 +27,11 @@ class myRequestHandler(RequestHandler):
 
         """
         self.require_setting('app_title', 'this application')
+        self.require_setting('app_organisation', 'this application')
         self.require_setting('app_logo_big', 'this application')
 
         kwargs['app_title'] = self.settings['app_title']
+        kwargs['app_organisation'] = self.settings['app_organisation']
         kwargs['app_logo_big'] = self.settings['app_logo_big']
         kwargs['page_title'] = '%s - %s' % (self.settings['app_title'], kwargs['page_title']) if kwargs.get('page_title', None) else self.settings['app_title']
         kwargs['google_analytics_code'] = self.settings['google_analytics_code'] if 'google_analytics_code' in self.settings else None

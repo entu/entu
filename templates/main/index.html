@@ -24,11 +24,11 @@
         </style>
 
         <!--[if lt IE 9]>
-        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <script src="https://html5shim.googlecode.com/svn/trunk/html5.js"></script>
         <![endif]-->
 
-        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
-        <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
         <script src="{{ static_url('bootstrap/bootstrap.min.js') }}"></script>
         <script src="{{ static_url('javascript/jquery.elastic.source.js') }}"></script>
         <script src="{{ static_url('javascript/date-et-EE.js') }}"></script>
@@ -41,7 +41,7 @@
 
                 (function() {
                     var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-                    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'https://www') + '.google-analytics.com/ga.js';
                     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
                 })();
             </script>
@@ -52,7 +52,7 @@
             <div class="navbar-inner">
                 <div class="container{% block fluid %}{% end %}">
                     <a class="brand" href="{% block logo_url %}{% end %}
-">{{ app_title }}</a>
+">{{ app_title }} <span>{{ app_organisation }}</span></a>
                     <ul class="nav pull-right">
                         {% block right_toolbar %}{% end %}
                     </ul>
