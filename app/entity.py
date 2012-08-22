@@ -262,7 +262,11 @@ class ShowEntityJavascript(myRequestHandler):
             return
 
         js_property = '\n'.join([x.get('value', '') for x in item.get('properties', {}).get(dataproperty, {}).get('values') if x.get('value', '')])
-        self.write('<script>%s</script>' % js_property)
+
+        self.render('entity/javascript.html',
+            javascript = js_property,
+            entity = item,
+        )
 
 
 handlers = [
