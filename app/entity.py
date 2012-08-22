@@ -248,6 +248,23 @@ class ShareByEmail(myRequestHandler):
             message = '%s\n\n%s\n\n%s\n%s' % (message, url, self.current_user.name, self.current_user.email)
         )
 
+
+class ShowEntityJavascript(myRequestHandler):
+    @web.authenticated
+    def get(self, entity_id, dataproperty):
+        """
+        Returns executable javascript
+        """
+
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
+        item = entity.get(entity_id=entity_id, limit=1, full_definition=False)
+        if not item:
+            return
+
+        js_property = '\n'.join([x.get('value', '') for x in item.get('properties', {}).get(dataproperty, {}).get('values') if x.get('value', '')])
+        self.write('<script>%s</script>' % js_property)
+
+
 handlers = [
     (r'/entity', ShowGroup),
     (r'/entitygroup-(.*)', ShowGroup),
@@ -258,5 +275,6 @@ handlers = [
     (r'/entity-(.*)/relate', ShowEntityRelate),
     (r'/entity-(.*)/add/(.*)', ShowEntityAdd),
     (r'/entity-(.*)/share', ShareByEmail),
+    (r'/entity-(.*)/jsproperty-(.*)', ShowEntityJavascript),
     (r'/entity-(.*)', ShowEntity),
 ]

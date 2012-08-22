@@ -28,7 +28,7 @@
                                 <input type="text" class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" data-value="{{ v['value'] }}" value="{{ v['value'] }}" style="width:98%; margin-bottom:4px;" />
                             {% end %}
                         {% end %}
-                    {% elif p['datatype'] == 'text' %}
+                    {% elif p['datatype'] in ['text', 'javascript'] %}
                         {% for v in p['values'] %}
                             <textarea class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" data-value="{{ v['value'] }}" style="width:98%; margin-bottom:4px;">{{ v['value'] }}</textarea>
                         {% end %}

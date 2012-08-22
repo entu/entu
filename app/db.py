@@ -158,7 +158,7 @@ class Entity():
             return
 
         definition = self.db.get('SELECT datatype FROM property_definition WHERE id = %s LIMIT 1;', property_definition_id)
-        if definition.datatype == 'text':
+        if definition.datatype in ['text', 'javascript']:
             field = 'value_text'
         elif definition.datatype == 'integer':
             field = 'value_integer'
@@ -575,7 +575,7 @@ class Entity():
                 if row.property_datatype in ['string', 'select']:
                     db_value = row.value_string if row.value_string else ''
                     value = row.value_string if row.value_string else ''
-                elif row.property_datatype == 'text':
+                elif row.property_datatype in ['text', 'javascript']:
                     db_value = row.value_text if row.value_text else ''
                     value = row.value_text if row.value_text else ''
                 elif row.property_datatype == 'integer':

@@ -23,6 +23,8 @@
                 <td style="width:100%;{%if not p['public'] %} color:gray;{% end %}">
                     {% if p['datatype'] == 'file' %}
                         {{ '<br />'.join(['<a href="/entity/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
+                    {% elif p['datatype'] == 'javascript' %}
+                        <a href="javascript:void(0);" id="entity-run-javascript" data-property="{{ p['dataproperty'] }}" title="Run user script!">Run</a>
                     {% else %}
                         {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
                     {% end %}
@@ -170,6 +172,14 @@
 
         $('#toolbar-item-relate').click(function() {
             $.get('/entity-{{ entity['id'] }}/relate', function(html) {
+                document.body.style.cursor = 'wait';
+                $('#modal-box').modal('show');
+                $('#modal-box').html(html);
+            });
+        });
+
+        $('#entity-run-javascript').click(function() {
+            $.get('/entity-{{ entity['id'] }}/jsproperty-'+$(this).data('property'), function(html) {
                 document.body.style.cursor = 'wait';
                 $('#modal-box').modal('show');
                 $('#modal-box').html(html);
