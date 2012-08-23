@@ -254,11 +254,12 @@ class ShareByEmail(myRequestHandler):
         )
 
 
-class ShowEntityJavascript(myRequestHandler):
+class ShowEntityHTML(myRequestHandler):
     @web.authenticated
     def get(self, entity_id, dataproperty):
         """
-        Returns executable javascript
+        Shows HTML property in modal box
+
         """
 
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
@@ -266,10 +267,10 @@ class ShowEntityJavascript(myRequestHandler):
         if not item:
             return
 
-        js_property = '\n'.join([x.get('value', '') for x in item.get('properties', {}).get(dataproperty, {}).get('values') if x.get('value', '')])
+        html = '\n'.join([x.get('value', '') for x in item.get('properties', {}).get(dataproperty, {}).get('values') if x.get('value', '')])
 
-        self.render('entity/javascript.html',
-            javascript = js_property,
+        self.render('entity/html_property.html',
+            html = html,
             entity = item,
         )
 
@@ -284,6 +285,6 @@ handlers = [
     (r'/entity-(.*)/relate', ShowEntityRelate),
     (r'/entity-(.*)/add/(.*)', ShowEntityAdd),
     (r'/entity-(.*)/share', ShareByEmail),
-    (r'/entity-(.*)/jsproperty-(.*)', ShowEntityJavascript),
+    (r'/entity-(.*)/html-(.*)', ShowEntityHTML),
     (r'/entity-(.*)', ShowEntity),
 ]
