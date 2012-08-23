@@ -53,6 +53,12 @@
 
 <ul id="toolbar_template" style="display:none;">
     {% if can_add and allowed_childs %}
+        <!--li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-add-default" title="{{ _('menu_add') }}"><i class="icon-edit"></i></a></li-->
+    {% end %}
+    {% if can_edit %}
+        <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-edit" title="{{ _('menu_edit') }}"><i class="icon-pencil"></i></a></li>
+    {% end %}
+    {% if can_add and allowed_childs %}
         <li class="dropdown toolbar-item">
             <a href="#" class="dropdown-toggle header-menu-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="icon-plus"></i></a>
             <ul class="dropdown-menu toolbar-item-add">
@@ -63,8 +69,7 @@
         </li>
     {% end %}
     {% if can_edit %}
-        <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-edit" title="{{ _('menu_edit') }}"><i class="icon-pencil"></i></a></li>
-        <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-link" title="{{ _('menu_relate') }}"><i class="icon-link"></i></a></li>
+        <!--li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-link" title="{{ _('menu_relate') }}"><i class="icon-link"></i></a></li-->
     {% end %}
     {% if is_owner %}
         <!--li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-rights" title="{{ _('menu_rights') }}"><i class="icon-lock"></i></a></li-->
@@ -151,6 +156,9 @@
                 document.body.style.cursor = 'wait';
                 $('#modal-box').modal('show');
                 $('#modal-box').html(html);
+                setTimeout(function () {
+                    $(':text:input:first').focus();
+                }, 400);
             });
         });
 

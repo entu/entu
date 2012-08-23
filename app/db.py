@@ -158,6 +158,10 @@ class Entity():
             return
 
         definition = self.db.get('SELECT datatype FROM property_definition WHERE id = %s LIMIT 1;', property_definition_id)
+
+        if not definition:
+            return
+
         if definition.datatype in ['text', 'javascript']:
             field = 'value_text'
         elif definition.datatype == 'integer':
@@ -912,7 +916,8 @@ class Entity():
                 %(language)s_label_plural AS label_plural,
                 %(language)s_description AS description,
                 %(language)s_menu AS menugroup,
-                ordinal
+                ordinal,
+                actions_add
             FROM
                 entity_definition
             WHERE id IN (%(ids)s);

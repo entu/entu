@@ -1,31 +1,54 @@
 {% from operator import itemgetter %}
 
-<div class="modal-header" style="border:none;">
+<div class="modal-header">
     <a class="close" data-dismiss="modal">×</a>
     <h3>{{ entity.get('displayname', '') }}</h3>
 </div>
-<div class="modal-body" style="padding:0px;">
-    <table class="table table-condensed" style="margin:0px;">
-        <tbody>
-            {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
-            <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
-                <th style="min-width:200px; text-align:right; vertical-align:middle;">
-                    <h6{%if p['public'] %} style="color:black;"{% end %}>{%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}</h6>
-                </th>
-                <td style="padding-bottom:0px; vertical-align:middle;">
-                    {% if p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal'] %}
-                        {% if p.get('select', None) %}
-                            {% for v in p['values'] %}
-                                <select class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" style="width:100%; margin-bottom:4px;">
-                                    <option value=""></option>
-                                    {% for s in p.get('select','') %}
-                                    <option value="{{ s['label'] }}" {% if s['label'] == v['value'] %} selected{% end %}>{{ s['label'] }}</option>
-                                    {% end %}
-                                </select>
+<div class="modal-body">
+    {% if actions %}
+        <ul class="nav nav-tabs">
+            {% for idx, action in enumerate(actions) %}
+                <li{% if idx == 0 %} class="active"{% end %}><a href="#{{ action }}" data-toggle="tab">{{ _('action_add_%s' % action) }}</a></li>
+            {% end %}
+            <li><a href="#home" data-toggle="tab">{{ _('action_add_default') }}</a></li>
+        </ul>
+    {% end %}
+    <div class="tab-content">
+        {% for idx, action in enumerate(actions) %}
+            <div id="{{ action }}" class="tab-pane{% if idx == 0 %} active{% end %}" >
+                {% if action == 'ester' %}{% include '../action/ester.html' %}{% end %}
+            </div>
+        {% end %}
+        <table id="home" class="table table-condensed{% if actions %} tab-pane{% end %}" style="margin:0px; border-top:none;">
+            <tbody>
+                {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
+                <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
+                    <th style="min-width:200px; text-align:right; vertical-align:middle;">
+                        <h6{%if p['public'] %} style="color:black;"{% end %}>{%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}</h6>
+                    </th>
+                    <td style="padding-bottom:0px; vertical-align:middle;">
+                        {% if p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal'] %}
+                            {% if p.get('select', None) %}
+                                {% for v in p['values'] %}
+                                    <select class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" style="width:100%; margin-bottom:4px;">
+                                        <option value=""></option>
+                                        {% for s in p.get('select','') %}
+                                        <option value="{{ s['label'] }}" {% if s['label'] == v['value'] %} selected{% end %}>{{ s['label'] }}</option>
+                                        {% end %}
+                                    </select>
+                                {% end %}
+                            {% else %}
+                                {% for v in p['values'] %}
+                                    <input type="text" class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" data-value="{{ v['value'] }}" value="{{ v['value'] }}" style="width:98%; margin-bottom:4px;" />
+                                {% end %}
                             {% end %}
-                        {% else %}
+                        {% elif p['datatype'] == 'text' %}
                             {% for v in p['values'] %}
-                                <input type="text" class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" data-value="{{ v['value'] }}" value="{{ v['value'] }}" style="width:98%; margin-bottom:4px;" />
+                                <textarea class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" data-value="{{ v['value'] }}" style="width:98%; margin-bottom:4px;">{{ v['value'] }}</textarea>
+                            {% end %}
+                        {% elif p['datatype'] == 'boolean' %}
+                            {% for v in p['values'] %}
+                                <input type="checkbox" class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" {% if v.get('db_value', 0) == 1 %} checked{% end %} style="margin-bottom:4px;" />
                             {% end %}
                         {% end %}
                     {% elif p['datatype'] in ['text', 'javascript'] %}
@@ -52,31 +75,31 @@
                             {% else %}
                                 <a href="/entity/file-{{ v['db_value'] }}">{{ v['value'] }}</a><br />
                             {% end %}
-                        {% end %}
-                    {% elif p['datatype'] == 'counter_value' %}
-                        {% for v in p['values'] %}
-                            {% if v['value'] %}
-                                {{ v['value'] }}
-                            {% else %}
-                                <button data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" class="counter btn btn-warning" style="margin-bottom:4px;">{{ _('counter_generate_value') }}...</button>
+                        {% elif p['datatype'] == 'counter_value' %}
+                            {% for v in p['values'] %}
+                                {% if v['value'] %}
+                                    {{ v['value'] }}
+                                {% else %}
+                                    <button data-property="{{ p['id'] }}" data-id="{{ v['id'] }}" class="counter btn btn-warning" style="margin-bottom:4px;">{{ _('counter_generate_value') }}...</button>
+                                {% end %}
                             {% end %}
+                        {% else %}
+                            {{ ', '.join(['%s' % v['value'] for v in p['values'] if v['value']]) }}
                         {% end %}
-                    {% else %}
-                        {{ ', '.join(['%s' % v['value'] for v in p['values'] if v['value']]) }}
-                    {% end %}
-                </td>
-            </tr>
-            {% end %}
-            <tr title="{{ _('public_description') }}">
-                <th style="text-align:right; white-space:nowrap; vertical-align:middle;">
-                    <h6>{{ _('public') }}</h6>
-                </th>
-                <td style="width:100%; vertical-align:middle;">
-                    <input type="checkbox" class="is_public" {% if entity.get('is_public', False) %} checked{% end %} />
-                </td>
-            </tr>
-        </tbody>
-    </table>
+                    </td>
+                </tr>
+                {% end %}
+                <tr title="{{ _('public_description') }}">
+                    <th style="text-align:right; white-space:nowrap; vertical-align:middle;">
+                        <h6>{{ _('public') }}</h6>
+                    </th>
+                    <td style="width:100%; vertical-align:middle;">
+                        <input type="checkbox" class="is_public" {% if entity.get('is_public', False) %} checked{% end %} />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 <div class="modal-footer">
     <a href="#" class="btn" data-dismiss="modal">{{ _('close') }}</a>

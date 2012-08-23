@@ -29,6 +29,7 @@ controllers = [
     'application',
     'test',
     'oldauth',
+    'action.ester',
 ]
 
 class MainPage(tornado.web.RequestHandler):

@@ -139,6 +139,7 @@ class ShowEntityEdit(myRequestHandler):
             entity = item,
             parent_entity_id = '',
             entity_definition_id = '',
+            actions = [],
         )
 
 
@@ -154,10 +155,14 @@ class ShowEntityAdd(myRequestHandler):
         if not item:
             return
 
+        entity_definition = entity.get_entity_definition(entity_definition_id=entity_definition_id)
+        actions = StrToList(entity_definition[0].get('actions_add'))
+
         self.render('entity/edit.html',
             entity = item,
             parent_entity_id = entity_id,
             entity_definition_id = entity_definition_id,
+            actions = actions,
         )
 
 
@@ -187,15 +192,15 @@ class SaveEntity(myRequestHandler):
         Saves Entitiy info.
 
         """
-        entity_id               = self.get_argument('entity_id', default=None, strip=True)
-        parent_entity_id        = self.get_argument('parent_entity_id', default=None, strip=True)
-        entity_definition_id    = self.get_argument('entity_definition_id', default=None, strip=True)
-        property_definition_id  = self.get_argument('property_id', default=None, strip=True)
-        property_id             = self.get_argument('value_id', default=None, strip=True)
-        value                   = self.get_argument('value', default=None, strip=True)
-        is_counter              = self.get_argument('counter', default='false', strip=True)
-        is_public               = self.get_argument('is_public', default='false', strip=True)
-        uploaded_file           = self.request.files.get('file', [])[0] if self.request.files.get('file', None) else None
+        entity_id              = self.get_argument('entity_id', default=None, strip=True)
+        parent_entity_id       = self.get_argument('parent_entity_id', default=None, strip=True)
+        entity_definition_id   = self.get_argument('entity_definition_id', default=None, strip=True)
+        property_definition_id = self.get_argument('property_id', default=None, strip=True)
+        property_id            = self.get_argument('value_id', default=None, strip=True)
+        value                  = self.get_argument('value', default=None, strip=True)
+        is_counter             = self.get_argument('counter', default='false', strip=True)
+        is_public              = self.get_argument('is_public', default='false', strip=True)
+        uploaded_file          = self.request.files.get('file', [])[0] if self.request.files.get('file', None) else None
 
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
         if not entity_id and parent_entity_id and entity_definition_id:

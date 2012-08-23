@@ -5,6 +5,7 @@ Futuristic Data Management System with emphasis on educational institutions
 * [MySQL](http://www.mysql.com/)
 * [Python](http://www.python.org/), python-mysqldb, python-magic and python-suds
 * [Tornado](http://www.tornadoweb.org) and [Tornado mail](https://github.com/equeny/tornadomail)
+* [Beautiful Soup](http://www.crummy.com/software/BeautifulSoup)
 
 ## Used libraries/add-ons
 * [Bootstrap](http://twitter.github.com/bootstrap/) and [Font Awesome](http://fortawesome.github.com/Font-Awesome/)
