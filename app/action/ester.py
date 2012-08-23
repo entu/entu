@@ -120,6 +120,9 @@ class EsterImport(myRequestHandler):
         marc = response.body.split('<pre>')[1].split('</pre>')[0].strip()
         # item = ParseMARC(HTMLParser().unescape((marc))
         item = ParseMARC(marc)
+        if not item:
+            return
+
         item['ester_id'] = ester_id
 
         db_connection = db.connection()

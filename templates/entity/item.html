@@ -24,7 +24,7 @@
                     {% if p['datatype'] == 'file' %}
                         {{ '<br />'.join(['<a href="/entity/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
                     {% elif p['datatype'] == 'javascript' %}
-                        <a href="javascript:void(0);" id="entity-run-javascript" data-property="{{ p['dataproperty'] }}" title="Run user script!">Run</a>
+                        <a href="javascript:void(0);" id="entity-run-javascript" class="btn btn-mini btn-info" data-property="{{ p['dataproperty'] }}">{{ _('run_javascript') }}</a>
                     {% else %}
                         {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
                     {% end %}

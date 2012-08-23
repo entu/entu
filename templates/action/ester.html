@@ -8,6 +8,20 @@
 </table>
 
 <script>
+
+    function importItem(ester_id, parent_entity_id, entity_definition_id) {
+        $('#modal-box').modal('hide');
+        $('#modal-box').html('');
+        $.post('/action/ester/import', {
+            ester_id: ester_id,
+            parent_entity_id: parent_entity_id,
+            entity_definition_id: entity_definition_id,
+        },
+        function(new_id) {
+            window.location = '/entitygroup-{{ entity_definition_id }}#'+new_id;
+        });
+    };
+
     $(document).ready(function(){
 
         $('#search-text').focus();
@@ -28,24 +42,11 @@
             function(list) {
                 for (i in list.items) {
                     var item = list.items[i];
-                    $('#search-results').append('<tr><td style="width:100%;"><b>'+item.title[0]+'</b><br />'+item.publishing_date[0]+'<br /><i>'+item.isbn[0]+'</i></td><td><button class="add-button btn btn-success" data-id="'+item.id+'">{{ _('action_add_ester_add') }}</button></td></tr>');
+                    $('#search-results').append('<tr><td style="width:100%;"><b>'+item.title[0]+'</b><br />'+item.publishing_date[0]+'<br /><i>'+item.isbn[0]+'</i></td><td><a href="javascript:importItem(\''+item.id+'\', {{ parent_entity_id }}, {{ entity_definition_id }});" class="add-button btn btn-success">{{ _('action_add_ester_add') }}</a></td></tr>');
                 };
                 $('#search-results').show();
                 $('#search-spinner').hide();
             }, 'json');
-        });
-
-        $('.add-button').live('click', function() {
-            $('#modal-box').modal('hide');
-            $('#modal-box').html('');
-            $.post('/action/ester/import', {
-                ester_id: $(this).data('id'),
-                parent_entity_id: '{{ parent_entity_id }}',
-                entity_definition_id: '{{ entity_definition_id }}',
-            },
-            function(new_id) {
-                window.location = '/entitygroup-{{ entity_definition_id }}#'+new_id;
-            });
         });
 
     });
