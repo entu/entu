@@ -35,7 +35,7 @@ share_to,Kellele (email)
 share_message,Sõnum
 share_send,Saada
 
-action_add_default,Lisa uus
+action_add_default,Käsitsi
 action_add_ester,Impordi Estrist
 action_add_ester_search_placeholder,Pealkiri või ISBN
 action_add_ester_add,Lisa
