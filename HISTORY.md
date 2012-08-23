@@ -1,3 +1,7 @@
+## 2012-08-23
+* JavaScript property
+* [Ester](http://www.elnet.ee/ester/) import action
+
 ## 2012-07-12
 * Use HTTPS
 * Show organisation name in header
