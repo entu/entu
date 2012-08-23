@@ -162,7 +162,7 @@ class Entity():
         if not definition:
             return
 
-        if definition.datatype in ['text', 'javascript']:
+        if definition.datatype in ['text', 'html']:
             field = 'value_text'
         elif definition.datatype == 'integer':
             field = 'value_integer'
@@ -579,7 +579,7 @@ class Entity():
                 if row.property_datatype in ['string', 'select']:
                     db_value = row.value_string if row.value_string else ''
                     value = row.value_string if row.value_string else ''
-                elif row.property_datatype in ['text', 'javascript']:
+                elif row.property_datatype in ['text', 'html']:
                     db_value = row.value_text if row.value_text else ''
                     value = row.value_text if row.value_text else ''
                 elif row.property_datatype == 'integer':

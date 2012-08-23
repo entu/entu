@@ -23,7 +23,7 @@ search_result_count2,Found %s
 boolean_true,Yes
 boolean_false,No
 
-run_javascript,Run JS
+show_html_property,Open
 
 counter_generate_value,Generate number
 
