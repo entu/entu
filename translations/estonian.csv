@@ -23,8 +23,6 @@ search_result_count2,Leiti %s
 boolean_true,Jah
 boolean_false,Ei
 
-show_html_property,Ava
-
 counter_generate_value,Genereeri number
 
 public,Avalik

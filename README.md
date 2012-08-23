@@ -3,7 +3,7 @@ Futuristic Data Management System with emphasis on educational institutions
 
 ## Dependencies
 * [MySQL](http://www.mysql.com/)
-* [Python](http://www.python.org/), python-mysqldb, python-magic and python-suds
+* [Python](http://www.python.org/), python-mysqldb, python-magic, python-suds and [ython-markdown2](https://github.com/trentm/python-markdown2)
 * [Tornado](http://www.tornadoweb.org) and [Tornado mail](https://github.com/equeny/tornadomail)
 * [Beautiful Soup](http://www.crummy.com/software/BeautifulSoup)
 

@@ -1,5 +1,6 @@
 {% autoescape None %}
 {% from operator import itemgetter %}
+{% import markdown2 %}
 
 {% for parent in parents.values() %}
 <ul class="breadcrumb" style="text-align:center;">
@@ -24,7 +25,9 @@
                     {% if p['datatype'] == 'file' %}
                         {{ '<br />'.join(['<a href="/entity/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
                     {% elif p['datatype'] == 'html' %}
-                        <a href="javascript:void(0);" id="show-html-property" class="btn btn-mini btn-info" data-property="{{ p['dataproperty'] }}">{{ _('show_html_property') }}</a>
+                        <div class="html-property" data-property="{{ p['dataproperty'] }}" style="display:block; width:100%;"><img src="{{ static_url('images/spinner_white.gif') }}" id="search-spinner" /></div>
+                    {% elif p['datatype'] == 'text' %}
+                        {{ markdown2.markdown('\n'.join(['%s' % v['value'] for v in p['values']])) }}
                     {% else %}
                         {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
                     {% end %}
@@ -186,11 +189,10 @@
             });
         });
 
-        $('#show-html-property').click(function() {
+        $('.html-property').each(function() {
+            div = $(this);
             $.get('/entity-{{ entity['id'] }}/html-'+$(this).data('property'), function(html) {
-                document.body.style.cursor = 'wait';
-                $('#modal-box').modal('show');
-                $('#modal-box').html(html);
+                div.html(html);
             });
         });
 
