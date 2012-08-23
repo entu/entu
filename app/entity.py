@@ -254,7 +254,7 @@ class ShareByEmail(myRequestHandler):
         )
 
 
-class ShowEntityHTML(myRequestHandler):
+class ShowHTMLproperty(myRequestHandler):
     @web.authenticated
     def get(self, entity_id, dataproperty):
         """
@@ -267,12 +267,7 @@ class ShowEntityHTML(myRequestHandler):
         if not item:
             return
 
-        html = '\n'.join([x.get('value', '') for x in item.get('properties', {}).get(dataproperty, {}).get('values') if x.get('value', '')])
-
-        self.render('entity/html_property.html',
-            html = html,
-            entity = item,
-        )
+        self.write('\n'.join([x.get('value', '') for x in item.get('properties', {}).get(dataproperty, {}).get('values') if x.get('value', '')]))
 
 
 handlers = [
@@ -285,6 +280,6 @@ handlers = [
     (r'/entity-(.*)/relate', ShowEntityRelate),
     (r'/entity-(.*)/add/(.*)', ShowEntityAdd),
     (r'/entity-(.*)/share', ShareByEmail),
-    (r'/entity-(.*)/html-(.*)', ShowEntityHTML),
+    (r'/entity-(.*)/html-(.*)', ShowHTMLproperty),
     (r'/entity-(.*)', ShowEntity),
 ]
