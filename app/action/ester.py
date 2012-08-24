@@ -80,12 +80,15 @@ class EsterSearch(myRequestHandler):
         else:
             for i in soup.find_all('table', class_='browseList'):
                 cells = i.find_all('td')
-                id = cells[0].input['value'].strip()
+                ester_id = cells[0].input['value'].strip()
                 title = cells[1].span.a.contents[0].strip()
                 isbn = cells[1].find(text='ISBN/ISSN').next.strip(':&nbsp;\n ').strip()
                 year = cells[4].contents[0].strip().strip('c')
+                entity = GetExistingID(ester_id)
                 items.append({
-                    'id': id,
+                    'id': ester_id,
+                    'entity_id': entity.get('entity_id'),
+                    'entity_definition_id': entity.get('entity_definition_id'),
                     'isbn': [isbn],
                     'title': [title],
                     'publishing_date': [year],
@@ -98,7 +101,12 @@ class EsterSearch(myRequestHandler):
         marc = response.body.split('<pre>')[1].split('</pre>')[0].strip()
         # item = ParseMARC(HTMLParser().unescape((marc))
         item = ParseMARC(marc)
-        item['id'] = response.effective_url.split('/marc~')[1]
+        ester_id = response.effective_url.split('/marc~')[1]
+        entity = GetExistingID(ester_id)
+
+        item['id'] = ester_id
+        item['entity_id'] = entity.get('entity_id'),
+        item['entity_definition_id'] = entity.get('entity_definition_id'),
 
         self.write({'items': [item]})
         self.finish()
@@ -114,6 +122,10 @@ class EsterImport(myRequestHandler):
         entity_definition_id = self.get_argument('entity_definition_id', default=None, strip=True)
         if not ester_id or not parent_entity_id or not entity_definition_id:
             return
+
+        entity = GetExistingID(ester_id)
+        if entity.get('entity_id'):
+            return self.write(str(entity.get('entity_id')))
 
         response = httpclient.HTTPClient().fetch('http://tallinn.ester.ee/search~S1?/.'+ester_id+'/.'+ester_id+'/1,1,1,B/marc~'+ester_id)
 
@@ -145,6 +157,15 @@ class EsterImport(myRequestHandler):
                 entity.set_property(entity_id=entity_id, property_definition_id=property_definition.id, value=value)
 
         self.write(str(entity_id))
+
+
+def GetExistingID(ester_id):
+    db_connection = db.connection()
+    entity = db_connection.get('SELECT property.entity_id, entity.entity_definition_id FROM property, entity, property_definition WHERE entity.id = property.entity_id AND property_definition.id = property.property_definition_id AND property_definition.dataproperty = \'ester_id\' AND property.value_string = %s AND property.deleted IS NULL LIMIT 1', ester_id)
+    if not entity:
+        return {}
+
+    return entity
 
 
 def ParseMARC(data):

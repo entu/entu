@@ -191,7 +191,7 @@
 
         $('.html-property').each(function() {
             div = $(this);
-            $.get('/entity-{{ entity['id'] }}/html-'+$(this).data('property'), function(html) {
+            $.get('/entity-{{ entity['id'] }}/html-'+div.data('property'), function(html) {
                 div.html(html);
             });
         });
