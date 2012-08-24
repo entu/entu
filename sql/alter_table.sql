@@ -1,14 +1,49 @@
 /* 2012-08-19 12:59   Add javascript datatype to property definition */
 ALTER TABLE `property_definition` CHANGE `datatype` `datatype` ENUM('boolean','counter','counter_value','decimal','date','datetime','file','integer','reference','string','text','javascript')  NOT NULL  DEFAULT 'string';
 
-/* 2012-08-19 13:15  Set up models for TFTAK */
-INSERT INTO `entity_definition` (`id`, `keyname`, `gae_key`, `created`, `created_by`, `changed`, `changed_by`, `deleted`, `deleted_by`, `ordinal`, `public_path`, `estonian_label`, `estonian_label_plural`, `estonian_description`, `estonian_menu`, `estonian_public`, `estonian_displayname`, `estonian_displayinfo`, `estonian_displaytable`, `estonian_sort`, `english_label`, `english_label_plural`, `english_description`, `english_menu`, `english_public`, `english_displayname`, `english_displayinfo`, `english_displaytable`, `english_sort`) VALUES (NULL, 'model', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', 'Mudel', 'Mudelid', NULL, 'Mudelid', NULL, '@name@', NULL, '@name@', '@name@', 'Model', 'Models', NULL, 'Models', NULL, '@name@', NULL, '@name@', '@name@');
+/* 2012-08-24 keyname relations for definitios instead of id */
 
-INSERT INTO `property_definition` (`id`, `keyname`, `entity_definition_keyname`, `gae_key`, `created`, `created_by`, `changed`, `changed_by`, `deleted`, `deleted_by`, `entity_definition_id`, `dataproperty`, `datatype`, `defaultvalue`, `estonian_fieldset`, `estonian_label`, `estonian_label_plural`, `estonian_description`, `estonian_formatstring`, `english_fieldset`, `english_label`, `english_label_plural`, `english_description`, `english_formatstring`, `visible`, `ordinal`, `multilingual`, `multiplicity`, `readonly`, `createonly`, `public`, `mandatory`, `search`, `propagates`, `autocomplete`, `classifying_entity_definition_id`) VALUES (NULL, 'model_name', 'model', NULL, NULL, NULL, NULL, NULL, NULL, NULL, (SELECT id from entity_definition where keyname='model'), 'name', 'string', NULL, NULL, 'Nimi', 'Nimed', NULL, NULL, NULL, 'Name', 'Names', NULL, NULL, '1', '1', '1', '1', '0', '0', '0', '0', '1', '0', '0', NULL);
+ALTER TABLE `entity` ADD `entity_definition_keyname` VARCHAR(100)  NOT NULL  DEFAULT ''  AFTER `deleted_by`;
+ALTER TABLE `entity_definition` ADD `keyname` VARCHAR(100)  NOT NULL  DEFAULT ''  AFTER `id`;
 
-INSERT INTO `property_definition` (`id`, `keyname`, `entity_definition_keyname`, `gae_key`, `created`, `created_by`, `changed`, `changed_by`, `deleted`, `deleted_by`, `entity_definition_id`, `dataproperty`, `datatype`, `defaultvalue`, `estonian_fieldset`, `estonian_label`, `estonian_label_plural`, `estonian_description`, `estonian_formatstring`, `english_fieldset`, `english_label`, `english_label_plural`, `english_description`, `english_formatstring`, `visible`, `ordinal`, `multilingual`, `multiplicity`, `readonly`, `createonly`, `public`, `mandatory`, `search`, `propagates`, `autocomplete`, `classifying_entity_definition_id`) VALUES (NULL, 'model_javascript', 'model', NULL, NULL, NULL, NULL, NULL, NULL, NULL, (SELECT id from entity_definition where keyname='model'), 'javascript', 'javascript', NULL, NULL, 'Javascript', 'Javascriptid', NULL, NULL, NULL, 'Javascript', 'Javascripts', NULL, NULL, '1', '2', '0', NULL, '0', '0', '0', '0', '1', '0', '0', NULL);
+UPDATE entity e
+LEFT JOIN entity_definition ed ON ed.id = e.entity_definition_id
+SET e.entity_definition_keyname = ed.keyname
+WHERE IFNULL(e. entity_definition_keyname, '') = '';
 
-INSERT INTO `property_definition` (`id`, `keyname`, `entity_definition_keyname`, `gae_key`, `created`, `created_by`, `changed`, `changed_by`, `deleted`, `deleted_by`, `entity_definition_id`, `dataproperty`, `datatype`, `defaultvalue`, `estonian_fieldset`, `estonian_label`, `estonian_label_plural`, `estonian_description`, `estonian_formatstring`, `english_fieldset`, `english_label`, `english_label_plural`, `english_description`, `english_formatstring`, `visible`, `ordinal`, `multilingual`, `multiplicity`, `readonly`, `createonly`, `public`, `mandatory`, `search`, `propagates`, `autocomplete`, `classifying_entity_definition_id`) VALUES (NULL, 'model_properties', 'model', NULL, NULL, NULL, NULL, NULL, NULL, NULL, (SELECT id from entity_definition where keyname='model'), 'properties', 'text', NULL, NULL, 'Parameetrid', 'Parameetrid', NULL, NULL, NULL, 'Properties', 'Properties', NULL, NULL, '1', '3', '0', '1', '0', '0', '0', '0', '1', '0', '0', NULL);
+ALTER TABLE `property` ADD `property_definition_keyname` VARCHAR(100)  NOT NULL  DEFAULT ''  AFTER `deleted_by`;
+ALTER TABLE `property_definition` ADD `keyname` VARCHAR(100)  NOT NULL  DEFAULT ''  AFTER `id`;
 
-INSERT INTO `relationship` (`relationship_definition_key`, `relationship_definition_id`, `entity_definition_id`, `related_entity_definition_id`)
-                    VALUES ('models_in_department', (SELECT id from relationship_definition where keyname='allowed_child'), (SELECT id from entity_definition where keyname='department'), (SELECT id from entity_definition where keyname='model'));
+UPDATE property p
+LEFT JOIN property_definition pd ON pd.id = p.property_definition_id
+SET p.property_definition_keyname = pd.keyname
+WHERE IFNULL(p.property_definition_keyname, '') = '';
+
+ALTER TABLE `property_definition` ADD `entity_definition_keyname` VARCHAR(100)  NOT NULL  DEFAULT ''  AFTER `keyname`;
+
+UPDATE property_definition pd
+LEFT JOIN entity_definition ed ON ed.id = pd.entity_definition_id
+SET pd.entity_definition_keyname = ed.keyname
+WHERE IFNULL(pd.entity_definition_keyname, '') = '';
+
+ALTER TABLE `relationship` ADD `related_entity_definition_keyname` VARCHAR(100)  NOT NULL  DEFAULT ''  AFTER `deleted_by`;
+ALTER TABLE `relationship` ADD `entity_definition_keyname` VARCHAR(100)  NOT NULL  DEFAULT ''  AFTER `deleted_by`;
+ALTER TABLE `relationship` ADD `related_property_definition_keyname` VARCHAR(100)  NOT NULL  DEFAULT ''  AFTER `deleted_by`;
+ALTER TABLE `relationship` ADD `property_definition_keyname` VARCHAR(100)  NOT NULL  DEFAULT ''  AFTER `deleted_by`;
+
+
+UPDATE relationship r
+LEFT JOIN entity_definition ed ON ed.id = r.entity_definition_id
+SET r.entity_definition_keyname = ed.keyname;
+
+UPDATE relationship r
+LEFT JOIN entity_definition ed ON ed.id = r.related_entity_definition_id
+SET r.related_entity_definition_keyname = ed.keyname;
+
+UPDATE relationship r
+LEFT JOIN property_definition pd ON pd.id = r.property_definition_id
+SET r.property_definition_keyname = pd.keyname;
+
+UPDATE relationship r
+LEFT JOIN property_definition pd ON pd.id = r.related_property_definition_id
+SET r.related_property_definition_keyname = pd.keyname;
