@@ -1,3 +1,7 @@
+## 2012-08-28
+* JavaScript property changed to HTML property
+* Text properties can use [markdown](http://daringfireball.net/projects/markdown/) formatting
+
 ## 2012-08-23
 * JavaScript property
 * [Ester](http://www.elnet.ee/ester/) import action

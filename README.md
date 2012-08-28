@@ -21,5 +21,9 @@ Futuristic Data Management System with emphasis on educational institutions
 * Favorite entities
 * Recently viewed/changed entities
 * Separate login page
+* Invite person to become user
 * Customizable table fields by user (visibility, sort)
+* Find duplicate Entities and propose merger
+* Option to ask permission (send message to owner) to Entity if access denied
+* Relation definition based Entity.displaytable
 * ...
