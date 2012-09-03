@@ -1,6 +1,6 @@
 ## About
-Futuristic Data Management System with emphasis on educational institutions
 ![Screenshot](https://raw.github.com/argoroots/Entu/master/static/images/screenshot.png "Screenshot")
+_Futuristic Data Management System with emphasis on educational institutions_
 
 ## Dependencies
 * [MySQL](http://www.mysql.com/)
