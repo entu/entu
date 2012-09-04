@@ -18,11 +18,11 @@ _Futuristic Data Management System with emphasis on educational institutions_
     * multiplicity
     * visibility in public search
     * ...
-* Addition to stored properties, there are calculated properties what calculate/show Entity (or related Entities) properties
-* One property can store one or multiple values
-* Entities can be related (child, seeder, leecher, …) with each other
+* In addition to stored properties, there are calculated properties to calculate/show Entity's (or related Entity's) properties
+* Property can store one or multiple values
+* Entities can be related with each other by system relations (child, seeder, leecher) or by custom ones 
 * User authentication is delegated to Google, Facebook, Twitter, MS Live or other providers
-* Users have diferent rights (viewer, editor, owner) for Entities
+* Users have explicit rights (viewer, editor, owner) for every Entity - there are no roles
 
 
 ## Screenshot
