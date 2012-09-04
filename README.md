@@ -1,24 +1,65 @@
-## About
-![Screenshot](https://raw.github.com/argoroots/Entu/master/static/images/screenshot.png "Screenshot")
+# Entu
 _Futuristic Data Management System with emphasis on educational institutions_
 
+
+## Key features
+* It stores data in Entities (objects) and Entities have (text, numeric, date, file, …) properties
+* Entities are fully customizable
+    * what properties to show as name, description, etc
+    * what properties to show in relation table
+    * what properties to use for search and sort
+    * allowed child Entities
+    * what kind of custom actions it supports
+    * ...
+* Properties are fully customizable
+    * label
+    * description
+    * data type
+    * multiplicity
+    * visibility in public search
+    * ...
+* Addition to stored properties, there are calculated properties what calculate/show Entity (or related Entities) properties
+* One property can store one or multiple values
+* Entities can be related (child, seeder, leecher, …) with each other
+* User authentication is delegated to Google, Facebook, Twitter, MS Live or other providers
+* Users have diferent rights (viewer, editor, owner) for Entities
+
+
+## Screenshot
+
+![Screenshot](https://raw.github.com/argoroots/Entu/master/static/images/screenshot.png "Screenshot")
+
+
 ## Dependencies
+
 * [MySQL](http://www.mysql.com/)
-* [Python](http://www.python.org/), python-mysqldb, python-magic, python-suds and [ython-markdown2](https://github.com/trentm/python-markdown2)
-* [Tornado](http://www.tornadoweb.org) and [Tornado mail](https://github.com/equeny/tornadomail)
-* [Beautiful Soup](http://www.crummy.com/software/BeautifulSoup)
+* [Python](http://www.python.org/)
+    * [Tornado](http://www.tornadoweb.org)
+    * [python-mysqldb](http://mysql-python.sourceforge.net)
+    * [python-magic](https://github.com/ahupp/python-magic)
+    * [python-suds](https://fedorahosted.org/suds/)
+    * [python-markdown2](https://github.com/trentm/python-markdown2)
+    * [tornadomail](https://github.com/equeny/tornadomail)
+    * [xmltodict](https://github.com/martinblech/xmltodict)
+    * [Beautiful Soup](http://www.crummy.com/software/BeautifulSoup)
+
 
 ## Used libraries/add-ons
-* [Bootstrap](http://twitter.github.com/bootstrap/) and [Font Awesome](http://fortawesome.github.com/Font-Awesome/)
-* [jQuery](http://jquery.com/), [jQuery UI](http://jqueryui.com/), [Elastic](http://unwrongest.com/projects/elastic/) and [Datejs](http://www.datejs.com/)
+
+* [Bootstrap](http://twitter.github.com/bootstrap/) + [Font Awesome](http://fortawesome.github.com/Font-Awesome/)
+* [jQuery](http://jquery.com/) + [jQuery UI](http://jqueryui.com/)
+* [Elastic](http://unwrongest.com/projects/elastic/)
+* [Datejs](http://www.datejs.com/)
+
 
 ## ToDo
-* Sort by Entity.sort
+
+* Calculation (formula) fields
+* Sort search results by Entity.sort
 * Show Entity.displaycount
-* Move definition tables IDs to Keys
 * Show all entities in search (not first 303)
-* Replace [Tornado mail](https://github.com/equeny/tornadomail) with better email library
-* Custom Entity add (and other) actions
+* Replace [tornadomail](https://github.com/equeny/tornadomail) with better email library
+* Custom Entity actions
 * Favorite entities
 * Recently viewed/changed entities
 * Separate login page
