@@ -1,8 +1,10 @@
 # Entu
+
 _Futuristic Data Management System with emphasis on educational institutions_
 
 
 ## Key features
+
 * It stores data in Entities (objects) and Entities have (text, numeric, date, file, …) properties
 * Entities are fully customizable
     * what properties to show as name, description, etc
@@ -20,7 +22,7 @@ _Futuristic Data Management System with emphasis on educational institutions_
     * ...
 * In addition to stored properties, there are calculated properties to calculate/show Entity's (or related Entity's) properties
 * Property can store one or multiple values
-* Entities can be related with each other by system relations (child, seeder, leecher) or by custom ones 
+* Entities can be related with each other by system relations (child, seeder, leecher) or by custom ones
 * User authentication is delegated to Google, Facebook, Twitter, MS Live or other providers
 * Users have explicit rights (viewer, editor, owner) for every Entity - there are no roles
 
