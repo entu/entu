@@ -24,7 +24,7 @@
                     <h3><a href="#">{{ m['label'] }}</a></h3>
                     <div>
                         {% for i in m['items'] %}
-                            <a href="/entitygroup-{{ i['id'] }}">{{ i['title'] }}</a>
+                            <a href="/entity/{{ i['keyname'] }}">{{ i['title'] }}</a>
                         {% end %}
                     </div>
                 {% end %}
