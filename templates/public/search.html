@@ -13,14 +13,14 @@
         {% for entity in entity_definitions %}
             <div class="accordion-group">
                 <div class="accordion-heading">
-                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapse-{{ entity['definition_id'] }}">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapse-{{ entity['definition_keyname'] }}">
                         <h4>{{ entity['displayname'] }}</h4>
                     </a>
                 </div>
-                <div id="collapse-{{ entity['definition_id'] }}" class="accordion-body collapse">
+                <div id="collapse-{{ entity['definition_keyname'] }}" class="accordion-body collapse">
                     <div class="accordion-inner" style="padding:0px;">
                         <form class="form-horizontal" action="/public-{{ path }}/search2" method="GET">
-                            <input type="hidden" name="ed" value="{{ entity['definition_id'] }}" />
+                            <input type="hidden" name="ed" value="{{ entity['definition_keyname'] }}" />
                             <table class="table table-condensed" style="border:none; margin:0px;">
                                 <tbody>
                                     {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}

@@ -53,7 +53,7 @@ class PublicSearchHandler(myRequestHandler):
             db_connection = db.connection()
             entity_definitions = [x.id for x in db_connection.query('SELECT id FROM entity_definition WHERE public_path = %s;', path)]
 
-            entities = db.Entity(user_locale=self.get_user_locale()).get(search=search, entity_definition_id=entity_definitions, only_public=True)
+            entities = db.Entity(user_locale=self.get_user_locale()).get(search=search, entity_definition_keyname=entity_definitions, only_public=True)
             if entities:
                 for item in entities:
                     items.append({
@@ -100,10 +100,10 @@ class PublicAdvancedSearchHandler(myRequestHandler):
         if not self.get_argument('ed', None):
             self.redirect('/public-%s' % path)
 
-        entity_definition_id = int(self.get_argument('ed'))
+        entity_definition_keyname = int(self.get_argument('ed'))
 
         entity = db.Entity(user_locale=self.get_user_locale())
-        entity_definition = entity.get(entity_id=0, entity_definition_id=entity_definition_id, full_definition=True, limit=1, only_public=True)
+        entity_definition = entity.get(entity_id=0, entity_definition_keyname=entity_definition_keyname, full_definition=True, limit=1, only_public=True)
 
         db_connection = db.connection()
         entity_ids = None
@@ -129,7 +129,7 @@ class PublicAdvancedSearchHandler(myRequestHandler):
                     sql += ' AND value_datetime <= \'%s\'' % self.get_argument('e%s' % p['id']).replace('\'', '\\\'')
 
             if sql:
-                sql = 'SELECT DISTINCT entity.id FROM property, entity WHERE entity.id = property.entity_id AND entity.entity_definition_id = %s AND property.property_definition_id = %s AND entity.public = 1 %s' % (entity_definition_id, p['id'], sql)
+                sql = 'SELECT DISTINCT entity.id FROM property, entity WHERE entity.id = property.entity_id AND entity.entity_definition_keyname = %s AND property.property_definition_id = %s AND entity.public = 1 %s' % (entity_definition_keyname, p['id'], sql)
                 ids = [x.id for x in db_connection.query(sql)]
                 if entity_ids == None:
                     entity_ids = ids
@@ -140,7 +140,7 @@ class PublicAdvancedSearchHandler(myRequestHandler):
         if entity_ids:
             entity_definitions = [x.id for x in db_connection.query('SELECT id FROM entity_definition WHERE public_path = %s;', path)]
 
-            entities = db.Entity(user_locale=self.get_user_locale()).get(entity_id=entity_ids, entity_definition_id=entity_definitions, only_public=True)
+            entities = db.Entity(user_locale=self.get_user_locale()).get(entity_id=entity_ids, entity_definition_keyname=entity_definitions, only_public=True)
             if entities:
                 for item in entities:
                     items.append({
@@ -224,8 +224,8 @@ def get_definitions(user_locale, path):
     db_connection = db.connection()
     entity_definitions = []
     entity = db.Entity(user_locale=user_locale)
-    for entity_definition_id in [x.id for x in db_connection.query('SELECT id FROM entity_definition WHERE public_path = %s;', path)]:
-        entity_definitions.append(entity.get(entity_id=0, entity_definition_id=entity_definition_id, full_definition=True, limit=1, only_public=True))
+    for entity_definition_keyname in [x.keyname for x in db_connection.query('SELECT keyname FROM entity_definition WHERE public_path = %s;', path)]:
+        entity_definitions.append(entity.get(entity_id=0, entity_definition_keyname=entity_definition_keyname, full_definition=True, limit=1, only_public=True))
     return entity_definitions
 
 

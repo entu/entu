@@ -9,23 +9,23 @@
 
 <script>
 
-    function importItem(ester_id, parent_entity_id, entity_definition_id) {
+    function importItem(ester_id, parent_entity_id, entity_definition_keyname) {
         $('#modal-box').modal('hide');
         $('#modal-box').html('');
         $.post('/action/ester/import', {
             ester_id: ester_id,
             parent_entity_id: parent_entity_id,
-            entity_definition_id: entity_definition_id,
+            entity_definition_keyname: entity_definition_keyname,
         },
         function(new_id) {
-            window.location = '/entitygroup-{{ entity_definition_id }}#'+new_id;
+            window.location = '/entitygroup-{{ entity_definition_keyname }}#'+new_id;
         });
     };
 
-    function openItem(entity_definition_id, entity_id) {
+    function openItem(entity_definition_keyname, entity_id) {
         $('#modal-box').modal('hide');
         $('#modal-box').html('');
-        window.location = '/entitygroup-'+entity_definition_id+'#'+entity_id;
+        window.location = '/entitygroup-'+entity_definition_keyname+'#'+entity_id;
     };
 
     $(document).ready(function(){
@@ -46,14 +46,14 @@
                 query: $('#search-text').val()
             },
             function(list) {
-                for (i in list.items) {
+        		for (i in list.items) {
                     var item = list.items[i];
                     var tr = '<tr>';
                     tr += '<td style="width:100%;"><b>'+item.title[0]+'</b><br />'+item.publishing_date[0]+'<br /><i>'+item.isbn[0]+'</i></td>';
                     if(item.entity_id) {
-                        tr += '<td><a href="javascript:openItem('+item.entity_definition_id+','+item.entity_id+');" class="btn btn-info">{{ _('action_add_ester_open') }}</a></td>';
+                        tr += '<td><a href="javascript:openItem(\''+item.entity_definition_keyname+'\','+item.entity_id+');" class="btn btn-info">{{ _('action_add_ester_open') }}</a></td>';
                     } else {
-                        tr += '<td><a href="javascript:importItem(\''+item.id+'\',{{ parent_entity_id }},{{ entity_definition_id }});" class="btn btn-success">{{ _('action_add_ester_add') }}</a></td>';
+                        tr += '<td><a href="javascript:importItem(\''+item.id+'\',{{ parent_entity_id }},\'{{ entity_definition_keyname }}\');" class="btn btn-success">{{ _('action_add_ester_add') }}</a></td>';
                     }
                     tr += '</tr>';
                     $('#search-results').append(tr);

@@ -40,23 +40,23 @@ class Entity():
                 self.user_id = [self.user_id]
             self.created_by = ','.join(map(str, self.user_id))
 
-    def create(self, entity_definition_id, parent_entity_id=None):
+    def create(self, entity_definition_keyname, parent_entity_id=None):
         """
         Creates new Entity and returns its ID.
 
         """
-        if not entity_definition_id:
+        if not entity_definition_keyname:
             return
 
         # Create entity
         sql = """
             INSERT INTO entity SET
-                entity_definition_id = %s,
+                entity_definition_keyname = %s,
                 created_by = %s,
                 created = NOW();
         """
         # logging.debug(sql)
-        entity_id = self.db.execute_lastrowid(sql, entity_definition_id, self.created_by)
+        entity_id = self.db.execute_lastrowid(sql, entity_definition_keyname, self.created_by)
 
         if not parent_entity_id:
             return entity_id
@@ -64,7 +64,7 @@ class Entity():
         # Insert child relationship
         sql = """
             INSERT INTO relationship SET
-                relationship_definition_id = (SELECT id FROM relationship_definition WHERE type = 'child' LIMIT 1),
+                relationship_definition_keyname = 'child',
                 entity_id = %s,
                 related_entity_id = %s,
                 created_by = %s,
@@ -76,23 +76,21 @@ class Entity():
         # Copy user rights
         sql = """
             INSERT INTO relationship (
-                relationship_definition_id,
+                relationship_definition_keyname,
                 entity_id,
                 related_entity_id,
                 created_by,
                 created
             ) SELECT /* SQL_NO_CACHE */
-                relationship.relationship_definition_id,
+                relationship_definition_keyname,
                 %s,
-                relationship.related_entity_id,
+                related_entity_id,
                 %s,
                 NOW()
             FROM
-                relationship,
-                relationship_definition
-            WHERE relationship_definition.id = relationship.relationship_definition_id
-            AND relationship_definition.type IN ('leecher', 'viewer', 'editor', 'owner')
-            AND relationship.entity_id = %s;
+                relationship
+            WHERE relationship_definition_keyname IN ('leecher', 'viewer', 'editor', 'owner')
+            AND entity_id = %s;
         """
         # logging.debug(sql)
         self.db.execute(sql, entity_id, self.created_by, parent_entity_id)
@@ -101,7 +99,7 @@ class Entity():
         sql = """
             INSERT INTO property (
                 entity_id,
-                property_definition_id,
+                property_definition_keyname,
                 language,
                 value_string,
                 value_text,
@@ -116,7 +114,7 @@ class Entity():
                 created
             ) SELECT /* SQL_NO_CACHE */
                 %s,
-                relationship.related_property_definition_id,
+                relationship.related_property_definition_keyname,
                 property.language,
                 property.value_string,
                 property.value_text,
@@ -132,21 +130,19 @@ class Entity():
             FROM
                 relationship,
                 property_definition,
-                property,
-                relationship_definition
-            WHERE property_definition.id = relationship.property_definition_id
-            AND property.property_definition_id = property_definition.id
-            AND relationship_definition.id = relationship.relationship_definition_id
-            AND property_definition.entity_definition_id = %s
+                property
+            WHERE property_definition.keyname = relationship.property_definition_keyname
+            AND property.property_definition_keyname = property_definition.keyname
+            AND property_definition.entity_definition_keyname = %s
             AND property.entity_id = %s
-            AND relationship_definition.type = 'propagated_property';
+            AND relationship.relationship_definition_keyname = 'propagated_property';
         """
         # logging.debug(sql)
-        self.db.execute(sql, entity_id, self.created_by, entity_definition_id, parent_entity_id)
+        self.db.execute(sql, entity_id, self.created_by, entity_definition_keyname, parent_entity_id)
 
         return entity_id
 
-    def set_property(self, entity_id=None, relationship_id=None, property_definition_id=None, value=None, property_id=None, uploaded_file=None):
+    def set_property(self, entity_id=None, relationship_id=None, property_definition_keyname=None, value=None, property_id=None, uploaded_file=None):
         """
         Saves property value. Creates new one if property_id = None. Returns property ID.
 
@@ -154,10 +150,10 @@ class Entity():
         if not entity_id and not relationship_id:
             return
 
-        if not property_definition_id:
+        if not property_definition_keyname:
             return
 
-        definition = self.db.get('SELECT datatype FROM property_definition WHERE id = %s LIMIT 1;', property_definition_id)
+        definition = self.db.get('SELECT datatype FROM property_definition WHERE keyname = %s LIMIT 1;', property_definition_keyname)
 
         if not definition:
             return
@@ -166,7 +162,7 @@ class Entity():
             field = 'value_text'
         elif definition.datatype == 'integer':
             field = 'value_integer'
-        elif definition.datatype == 'float':
+        elif definition.datatype == 'decimal':
             field = 'value_decimal'
         elif definition.datatype == 'date':
             field = 'value_datetime'
@@ -195,16 +191,16 @@ class Entity():
             )
         else:
             if entity_id:
-                property_id = self.db.execute_lastrowid('INSERT INTO property SET entity_id = %%s, property_definition_id = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
+                property_id = self.db.execute_lastrowid('INSERT INTO property SET entity_id = %%s, property_definition_keyname = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
                     entity_id,
-                    property_definition_id,
+                    property_definition_keyname,
                     value,
                     self.created_by
                 )
             if relationship_id:
-                property_id = self.db.execute_lastrowid('INSERT INTO property SET relationship_id = %%s, property_definition_id = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
+                property_id = self.db.execute_lastrowid('INSERT INTO property SET relationship_id = %%s, property_definition_keyname = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
                     relationship_id,
-                    property_definition_id,
+                    property_definition_keyname,
                     value,
                     self.created_by
                 )
@@ -231,29 +227,29 @@ class Entity():
             return
 
         #Vastuskirja hack
-        if self.db.get('SELECT entity_definition_id FROM entity WHERE id = %s', entity_id).entity_definition_id == 38:
-            parent = self.get_relatives(related_entity_id=entity_id, relation_type='child', reverse_relation=True, limit=1).values()[0][0]
-            childs = self.get_relatives(entity_id=parent.get('id',None), relation_type='child').values()
+        if self.db.get('SELECT entity_definition_keyname FROM entity WHERE id = %s', entity_id).entity_definition_keyname == 'replay':
+            parent = self.get_relatives(related_entity_id=entity_id, relationship_definition_keyname='child', reverse_relation=True, limit=1).values()[0][0]
+            childs = self.get_relatives(entity_id=parent.get('id',None), relationship_definition_keyname='child').values()
             if childs:
                 childs_count = len([y.get('id', 0) for y in childs[0] if y.get('properties', {}).get('registry_number', {}).get('values', None)])+1
             else:
                 childs_count = 1
             parent_number = ''.join(['%s' % x['value'] for x in parent.get('properties', {}).get('registry_number', {}).get('values', []) if x['value']])
             counter_value = '%s-%s' % (parent_number, childs_count)
-            self.set_property(entity_id=entity_id, property_definition_id=287, value=counter_value)
+            self.set_property(entity_id=entity_id, property_definition_keyname=287, value=counter_value)
             return counter_value
 
 
         sql ="""
             INSERT INTO property (
                 entity_id,
-                property_definition_id,
+                property_definition_keyname,
                 value_string,
                 created_by,
                 created
             ) SELECT /* SQL_NO_CACHE */
                 %(entity_id)s,
-                property_definition2.id,
+                property_definition2.keyname,
                 CONCAT(
                 IFNULL((
                     SELECT
@@ -262,11 +258,11 @@ class Entity():
                         property,
                         property_definition,
                         entity
-                    WHERE property_definition.id = property.property_definition_id
-                    AND entity.entity_definition_id = property_definition.entity_definition_id
+                    WHERE property_definition.keyname = property.property_definition_keyname
+                    AND entity.entity_definition_keyname = property_definition.entity_definition_keyname
                     AND entity.id = property.entity_id
                     AND property_definition.dataproperty='series'
-                    AND entity.id = (SELECT entity_id FROM relationship, relationship_definition WHERE relationship_definition.id = relationship.relationship_definition_id AND related_entity_id = %(entity_id)s AND relationship_definition.type = 'child' LIMIT 1)
+                    AND entity.id = (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child' LIMIT 1)
                     LIMIT 1
                 ), ''),
                 IFNULL((
@@ -276,11 +272,11 @@ class Entity():
                         property,
                         property_definition,
                         entity
-                    WHERE property_definition.id = property.property_definition_id
-                    AND entity.entity_definition_id = property_definition.entity_definition_id
+                    WHERE property_definition.keyname = property.property_definition_keyname
+                    AND entity.entity_definition_keyname = property_definition.entity_definition_keyname
                     AND entity.id = property.entity_id
                     AND property_definition.dataproperty='prefix'
-                    AND entity.id = (SELECT entity_id FROM relationship, relationship_definition WHERE relationship_definition.id = relationship.relationship_definition_id AND related_entity_id = %(entity_id)s AND relationship_definition.type = 'child' LIMIT 1)
+                    AND entity.id = (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child' LIMIT 1)
                     LIMIT 1
                 ), ''),
                 counter.value+counter.increment) AS value,
@@ -292,15 +288,15 @@ class Entity():
                 relationship,
                 property_definition AS property_definition2,
                 counter
-            WHERE property_definition.id = property.property_definition_id
-            AND relationship.property_definition_id = property_definition.id
-            AND property_definition2.id = relationship.related_property_definition_id
+            WHERE property_definition.keyname = property.property_definition_keyname
+            AND relationship.property_definition_keyname = property_definition.keyname
+            AND property_definition2.keyname = relationship.related_property_definition_keyname
             AND counter.id = property.value_counter
-            AND property.entity_id = (SELECT entity_id FROM relationship, relationship_definition WHERE relationship_definition.id = relationship.relationship_definition_id AND related_entity_id = %(entity_id)s AND relationship_definition.type = 'child' LIMIT 1)
+            AND property.entity_id = (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child' LIMIT 1)
             AND property_definition.datatype= 'counter'
-            AND property_definition2.datatype = 'counter_value'
-            AND relationship.relationship_definition_id = (SELECT id FROM relationship_definition WHERE type = 'target_property' LIMIT 1)
-            AND property_definition2.entity_definition_id = (SELECT entity_definition_id FROM entity WHERE id = %(entity_id)s LIMIT 1)
+            AND property_definition2.datatype = 'counter-value'
+            AND relationship.relationship_definition_keyname = 'target-property'
+            AND property_definition2.entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %(entity_id)s LIMIT 1)
             AND counter.type = 'increment';
             UPDATE
             counter,
@@ -313,15 +309,15 @@ class Entity():
                     relationship,
                     property_definition AS property_definition2,
                     counter
-                WHERE property_definition.id = property.property_definition_id
-                AND relationship.property_definition_id = property_definition.id
-                AND property_definition2.id = relationship.related_property_definition_id
+                WHERE property_definition.keyname = property.property_definition_keyname
+                AND relationship.property_definition_keyname = property_definition.keyname
+                AND property_definition2.keyname = relationship.related_property_definition_keyname
                 AND counter.id = property.value_counter
-                AND property.entity_id = (SELECT entity_id FROM relationship, relationship_definition WHERE relationship_definition.id = relationship.relationship_definition_id AND related_entity_id = %(entity_id)s AND relationship_definition.type = 'child' LIMIT 1)
+                AND property.entity_id = (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child' LIMIT 1)
                 AND property_definition.datatype= 'counter'
-                AND property_definition2.datatype = 'counter_value'
-                AND relationship.relationship_definition_id = (SELECT id FROM relationship_definition WHERE type = 'target_property' LIMIT 1)
-                AND property_definition2.entity_definition_id = (SELECT entity_definition_id FROM entity WHERE id = %(entity_id)s LIMIT 1)
+                AND property_definition2.datatype = 'counter-value'
+                AND relationship.relationship_definition_keyname = 'target-property'
+                AND property_definition2.entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %(entity_id)s LIMIT 1)
                 AND counter.type = 'increment'
                 ) X
             SET
@@ -333,11 +329,12 @@ class Entity():
         # logging.debug(sql)
 
         property_id = self.db.execute_lastrowid(sql)
-        return self.db.get('SELECT value_string FROM property WHERE id=%s', property_id).value_string
+        logging.warning(str(property_id))
+        return self.db.get('SELECT value_string FROM property WHERE id = %s', property_id).value_string
 
-    def set_relations(self, entity_id, related_entity_id, relationship_type, delete=False, update=False):
+    def set_relations(self, entity_id, related_entity_id, relationship_definition_keyname, delete=False, update=False):
         """
-        Add or removes Entity relations. entity_id, related_entity_id, relationship_type can be single value or list of values.
+        Add or removes Entity relations. entity_id, related_entity_id, relationship_definition_keyname can be single value or list of values.
 
         """
 
@@ -347,18 +344,18 @@ class Entity():
         if type(related_entity_id) is not list:
             related_entity_id = [related_entity_id]
 
-        if type(relationship_type) is not list:
-            relationship_type = [relationship_type]
+        if type(relationship_definition_keyname) is not list:
+            relationship_definition_keyname = [relationship_definition_keyname]
 
         for e in entity_id:
             for r in related_entity_id:
-                for t in relationship_type:
+                for t in relationship_definition_keyname:
                     if delete == True:
                         sql = """
                             UPDATE relationship SET
                                 deleted_by = '%s',
                                 deleted = NOW()
-                            WHERE relationship_definition_id = (SELECT id FROM relationship_definition WHERE type = '%s' LIMIT 1)
+                            WHERE relationship_definition_keyname = '%s'
                             AND entity_id = %s
                             AND related_entity_id = %s;
                         """ % (self.created_by, t, e, r)
@@ -371,7 +368,7 @@ class Entity():
                                 deleted = NULL,
                                 changed_by = '%s',
                                 changed = NOW()
-                            WHERE relationship_definition_id = (SELECT id FROM relationship_definition WHERE type = '%s' LIMIT 1)
+                            WHERE relationship_definition_keyname = '%s'
                             AND entity_id = %s
                             AND related_entity_id = %s;
                         """ % (self.created_by, t, e, r)
@@ -380,7 +377,7 @@ class Entity():
                         if not old:
                             sql = """
                                 INSERT INTO relationship SET
-                                    relationship_definition_id = (SELECT id FROM relationship_definition WHERE type = '%s' LIMIT 1),
+                                    relationship_definition_keyname = '%s',
                                     entity_id = %s,
                                     related_entity_id = %s,
                                     created_by = '%s',
@@ -391,7 +388,7 @@ class Entity():
                     else:
                         sql = """
                             INSERT INTO relationship SET
-                                relationship_definition_id = (SELECT id FROM relationship_definition WHERE type = '%s' LIMIT 1),
+                                relationship_definition_keyname = '%s',
                                 entity_id = %s,
                                 related_entity_id = %s,
                                 created_by = '%s',
@@ -400,17 +397,17 @@ class Entity():
                         # logging.debug(sql)
                         self.db.execute(sql)
 
-    def get(self, ids_only=False, entity_id=None, search=None, entity_definition_id=None, dataproperty=None, limit=None, full_definition=False, only_public=False):
+    def get(self, ids_only=False, entity_id=None, search=None, entity_definition_keyname=None, dataproperty=None, limit=None, full_definition=False, only_public=False):
         """
         If ids_only = True, then returns list of Entity IDs. Else returns list of Entities (with properties) as dictionary. entity_id, entity_definition and dataproperty can be single value or list of values. If limit = 1 returns Entity (not list). If full_definition = True returns also empty properties.
 
         """
-        ids = self.__get_id_list(entity_id=entity_id, search=search, entity_definition_id=entity_definition_id, limit=limit, only_public=only_public)
+        ids = self.__get_id_list(entity_id=entity_id, search=search, entity_definition_keyname=entity_definition_keyname, limit=limit, only_public=only_public)
         if ids_only == True:
             return ids
 
-        entities = self.__get_properties(entity_id=ids, entity_definition_id=entity_definition_id, dataproperty=dataproperty, full_definition=full_definition, only_public=only_public)
-        if not entities and full_definition == False and entity_definition_id == None:
+        entities = self.__get_properties(entity_id=ids, entity_definition_keyname=entity_definition_keyname, dataproperty=dataproperty, full_definition=full_definition, only_public=only_public)
+        if not entities and full_definition == False and entity_definition_keyname == None:
             return
 
         if limit == 1:
@@ -418,9 +415,9 @@ class Entity():
 
         return entities
 
-    def __get_id_list(self, entity_id=None, search=None, entity_definition_id=None, limit=None, only_public=False):
+    def __get_id_list(self, entity_id=None, search=None, entity_definition_keyname=None, limit=None, only_public=False):
         """
-        Get list of Entity IDs. entity_id, entity_definition_id and user_id can be single ID or list of IDs.
+        Get list of Entity IDs. entity_id, entity_definition_keyname and user_id can be single ID or list of IDs.
 
         """
         sql = """
@@ -430,12 +427,10 @@ class Entity():
                 property_definition,
                 property,
                 entity,
-                relationship,
-                relationship_definition
-            WHERE property.property_definition_id = property_definition.id
+                relationship
+            WHERE property.property_definition_keyname = property_definition.keyname
             AND entity.id = property.entity_id
             AND relationship.entity_id = entity.id
-            AND relationship_definition.id = relationship.relationship_definition_id
         """
 
         if entity_id != None:
@@ -447,13 +442,13 @@ class Entity():
             for s in search.split(' '):
                 sql += ' AND value_string LIKE \'%%%%%s%%%%\'' % s
 
-        if entity_definition_id != None:
-            if type(entity_definition_id) is not list:
-                entity_definition_id = [entity_definition_id]
-            sql += ' AND entity.entity_definition_id IN (%s)' % ','.join(map(str, entity_definition_id))
+        if entity_definition_keyname != None:
+            if type(entity_definition_keyname) is not list:
+                entity_definition_keyname = [entity_definition_keyname]
+            sql += ' AND entity.entity_definition_keyname IN (%s)' % ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])
 
         if self.user_id and only_public == False:
-            sql += ' AND relationship.related_entity_id IN (%s) AND relationship_definition.type IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
+            sql += ' AND relationship.related_entity_id IN (%s) AND relationship.relationship_definition_keyname IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
         else:
             sql += ' AND entity.public = 1 AND property_definition.public = 1'
 
@@ -470,7 +465,7 @@ class Entity():
             return []
         return [x.id for x in items]
 
-    def __get_properties(self, entity_id=None, entity_definition_id=None, dataproperty=None, full_definition=False, only_public=False):
+    def __get_properties(self, entity_id=None, entity_definition_keyname=None, dataproperty=None, full_definition=False, only_public=False):
         """
         Get Entity properties. entity_id can be single ID or list of IDs.
 
@@ -493,7 +488,7 @@ class Entity():
 
             sql = """
                 SELECT
-                    entity_definition.id                            AS entity_definition_id,
+                    entity_definition.keyname                       AS entity_definition_keyname,
                     entity.gae_key                                  AS entity_gaekey,
                     entity.id                                       AS entity_id,
                     entity_definition.%(language)s_label            AS entity_label,
@@ -504,7 +499,7 @@ class Entity():
                     entity_definition.%(language)s_displayname      AS entity_displayname,
                     entity_definition.%(language)s_displayinfo      AS entity_displayinfo,
                     entity_definition.%(language)s_displaytable     AS entity_displaytable,
-                    property_definition.id                          AS property_id,
+                    property_definition.keyname                     AS property_keyname,
                     property_definition.ordinal                     AS property_ordinal,
                     property_definition.%(language)s_fieldset       AS property_fieldset,
                     property_definition.%(language)s_label          AS property_label,
@@ -532,15 +527,15 @@ class Entity():
                     property,
                     property_definition
                 WHERE property.entity_id = entity.id
-                AND entity_definition.id = entity.entity_definition_id
-                AND property_definition.id = property.property_definition_id
-                AND entity_definition.id = property_definition.entity_definition_id
+                AND entity_definition.keyname = entity.entity_definition_keyname
+                AND property_definition.keyname = property.property_definition_keyname
+                AND entity_definition.keyname = property_definition.entity_definition_keyname
                 AND (property.language = '%(language)s' OR property.language IS NULL)
                 AND entity.id IN (%(idlist)s)
                 %(public)s
                 %(datapropertysql)s
                 ORDER BY
-                    entity_definition.id,
+                    entity_definition.keyname,
                     entity.created DESC
             """ % {'language': self.language, 'public': public, 'idlist': ','.join(map(str, entity_id)), 'datapropertysql': datapropertysql}
             # logging.debug(sql)
@@ -548,7 +543,7 @@ class Entity():
             items = {}
             for row in self.db.query(sql):
                 #Entity
-                items.setdefault('item_%s' % row.entity_id, {})['definition_id'] = row.entity_definition_id
+                items.setdefault('item_%s' % row.entity_id, {})['definition_keyname'] = row.entity_definition_keyname
                 items.setdefault('item_%s' % row.entity_id, {})['id'] = row.entity_id
                 items.setdefault('item_%s' % row.entity_id, {})['gae_key'] = row.entity_gaekey
                 items.setdefault('item_%s' % row.entity_id, {})['label'] = row.entity_label
@@ -563,7 +558,7 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {})['ordinal'] = row.entity_created if row.entity_created else datetime.now()
 
                 #Property
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['id'] = row.property_id
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['keyname'] = row.property_keyname
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['fieldset'] = row.property_fieldset
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['label'] = row.property_label
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['label_plural'] = row.property_label_plural
@@ -585,7 +580,7 @@ class Entity():
                 elif row.property_datatype == 'integer':
                     db_value = row.value_integer
                     value = row.value_integer
-                elif row.property_datatype == 'float':
+                elif row.property_datatype == 'decimal':
                     db_value = row.value_decimal
                     value = row.value_decimal
                 elif row.property_datatype == 'date':
@@ -609,7 +604,7 @@ class Entity():
                     counter = self.db.get('SELECT %(language)s_label AS label FROM counter WHERE id=%(id)s LIMIT 1' % {'language': self.language, 'id': row.value_counter})
                     db_value = row.value_counter
                     value = counter.label
-                elif row.property_datatype == 'counter_value':
+                elif row.property_datatype == 'counter-value':
                     db_value = row.value_string
                     value = row.value_string
                 else:
@@ -625,13 +620,13 @@ class Entity():
             if not full_definition:
                 return []
 
-            if entity_definition_id:
-                if type(entity_definition_id) is not list:
-                    entity_definition_id = [entity_definition_id]
+            if entity_definition_keyname:
+                if type(entity_definition_keyname) is not list:
+                    entity_definition_keyname = [entity_definition_keyname]
 
                 items = {}
-                for e in entity_definition_id:
-                    items.setdefault('item_%s' % e, {})['definition_id'] = e
+                for e in entity_definition_keyname:
+                    items.setdefault('item_%s' % e, {})['definition_keyname'] = e
                     items.setdefault('item_%s' % e, {})['ordinal'] = 'X'
 
         for key, value in items.iteritems():
@@ -640,10 +635,10 @@ class Entity():
                 items[key]['displaypicture'] = self.__get_picture_url(value['id'])
 
             if full_definition:
-                for d in self.get_definition(entity_definition_id=value['definition_id']):
+                for d in self.get_definition(entity_definition_keyname=value['definition_keyname']):
                     if not value.get('id', None):
                         items[key]['displayname'] = d.entity_label
-                    items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['id'] = d.property_id
+                    items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['keyname'] = d.property_keyname
                     items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['fieldset'] = d.property_fieldset
                     items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['label'] = d.property_label
                     items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['label_plural'] = d.property_label_plural
@@ -662,7 +657,7 @@ class Entity():
                         items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['can_add_new'] = False
 
                     if d.property_classifier_id:
-                        for c in self.get(entity_definition_id=d.property_classifier_id, only_public=True):
+                        for c in self.get(entity_definition_keyname=d.property_classifier_id, only_public=True):
                             if c.get('id', None):
                                 items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {}).setdefault('select', []).append({'id': c.get('id', ''), 'label': c.get('displayname', '')})
 
@@ -705,7 +700,7 @@ class Entity():
                 property,
                 property_definition,
                 file
-            WHERE property_definition.id=property.property_definition_id
+            WHERE property_definition.keyname=property.property_definition_keyname
             AND file.id = property.value_file
             AND property_definition.dataproperty='photo'
             AND property.entity_id=%s
@@ -717,27 +712,27 @@ class Entity():
 
         return '/entity/file-%s' % f.id
 
-    def get_definition(self, entity_definition_id):
+    def get_definition(self, entity_definition_keyname):
         """
         Returns Entity definition.
 
         """
-        if not entity_definition_id:
+        if not entity_definition_keyname:
             return
 
-        if type(entity_definition_id) is not list:
-            entity_definition_id = [entity_definition_id]
+        if type(entity_definition_keyname) is not list:
+            entity_definition_keyname = [entity_definition_keyname]
 
         sql = """
             SELECT
-                entity_definition.id AS entity_definition_id,
+                entity_definition.keyname AS entity_definition_keyname,
                 entity_definition.%(language)s_label AS entity_label,
                 entity_definition.%(language)s_label_plural AS entity_label_plural,
                 entity_definition.%(language)s_description AS entity_description,
                 entity_definition.%(language)s_displayname AS entity_displayname,
                 entity_definition.%(language)s_displayinfo AS entity_displayinfo,
                 entity_definition.%(language)s_displaytable AS entity_displaytable,
-                property_definition.id AS property_id,
+                property_definition.keyname AS property_keyname,
                 property_definition.%(language)s_fieldset AS property_fieldset,
                 property_definition.%(language)s_label AS property_label,
                 property_definition.%(language)s_label_plural AS property_label_plural,
@@ -748,18 +743,18 @@ class Entity():
                 property_definition.multiplicity AS property_multiplicity,
                 property_definition.ordinal AS property_ordinal,
                 property_definition.public AS property_public,
-                property_definition.classifying_entity_definition_id AS property_classifier_id
+                property_definition.classifying_entity_definition_keyname AS property_classifier_id
             FROM
                 entity_definition,
                 property_definition
-            WHERE entity_definition.id = property_definition.entity_definition_id
-            AND entity_definition.id IN (%(id)s)
-        """ % {'language': self.language, 'id': ','.join(map(str, entity_definition_id))}
+            WHERE entity_definition.keyname = property_definition.entity_definition_keyname
+            AND entity_definition.keyname IN (%(keyname)s)
+        """ % {'language': self.language, 'keyname': ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])}
         # logging.debug(sql)
 
         return self.db.query(sql)
 
-    def get_relatives(self, ids_only=False, relationship_ids_only=False, entity_id=None, related_entity_id=None, relation_type=None, reverse_relation=False, entity_definition_id=None, full_definition=False, limit=None, only_public=False):
+    def get_relatives(self, ids_only=False, relationship_ids_only=False, entity_id=None, related_entity_id=None, relationship_definition_keyname=None, reverse_relation=False, entity_definition_keyname=None, full_definition=False, limit=None, only_public=False):
         """
         Get Entity relatives.
 
@@ -772,48 +767,40 @@ class Entity():
             if type(related_entity_id) is not list:
                 related_entity_id = [related_entity_id]
 
-        if relation_type:
-            if type(relation_type) is not list:
-                relation_type = [relation_type]
+        if relationship_definition_keyname:
+            if type(relationship_definition_keyname) is not list:
+                relationship_definition_keyname = [relationship_definition_keyname]
 
-        if entity_definition_id:
-            if type(entity_definition_id) is not list:
-                entity_definition_id = [entity_definition_id]
+        if entity_definition_keyname:
+            if type(entity_definition_keyname) is not list:
+                entity_definition_keyname = [entity_definition_keyname]
 
         if reverse_relation == True:
             sql = """
                 SELECT DISTINCT
                     relationship.id AS relationship_id,
-                    relationship_definition.type,
+                    relationship.relationship_definition_keyname,
                     relationship.entity_id AS id
                 FROM
                     entity,
                     relationship,
-                    relationship_definition,
-                    relationship AS rights,
-                    relationship_definition AS rights_definition
+                    relationship AS rights
                 WHERE relationship.entity_id = entity.id
-                AND relationship_definition.id = relationship.relationship_definition_id
                 AND rights.entity_id = entity.id
-                AND rights_definition.id = rights.relationship_definition_id
                 AND relationship.deleted IS NULL
             """
         else:
             sql = """
                 SELECT DISTINCT
                     relationship.id AS relationship_id,
-                    relationship_definition.type,
+                    relationship.relationship_definition_keyname,
                     relationship.related_entity_id AS id
                 FROM
                     entity,
                     relationship,
-                    relationship_definition,
-                    relationship AS rights,
-                    relationship_definition AS rights_definition
+                    relationship AS rights
                 WHERE relationship.related_entity_id = entity.id
-                AND relationship_definition.id = relationship.relationship_definition_id
                 AND rights.entity_id = entity.id
-                AND rights_definition.id = rights.relationship_definition_id
                 AND relationship.deleted IS NULL
             """
         if entity_id:
@@ -823,15 +810,15 @@ class Entity():
             sql += ' AND relationship.related_entity_id IN (%s)' % ','.join(map(str, related_entity_id))
 
         if self.user_id and only_public == False:
-            sql += ' AND rights.related_entity_id IN (%s) AND rights_definition.type IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
+            sql += ' AND rights.related_entity_id IN (%s) AND rights.relationship_definition_keyname IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
         else:
             sql += ' AND entity.public = 1'
 
-        if relation_type:
-            sql += ' AND relationship_definition.type IN (%s)' % ','.join(['\'%s\'' % x for x in relation_type])
+        if relationship_definition_keyname:
+            sql += ' AND relationship.relationship_definition_keyname IN (%s)' % ','.join(['\'%s\'' % x for x in relationship_definition_keyname])
 
-        if entity_definition_id:
-            sql += ' AND entity.entity_definition_id IN (%s)' % ','.join(map(str, entity_definition_id))
+        if entity_definition_keyname:
+            sql += ' AND entity.entity_definition_keyname IN (%s)' % ','.join(map(str, entity_definition_keyname))
 
         sql += ' ORDER BY entity.id DESC'
 
@@ -852,7 +839,7 @@ class Entity():
         else:
             items = {}
             for item in self.db.query(sql):
-                ent = self.__get_properties(entity_id=item.id, full_definition=full_definition, entity_definition_id=entity_definition_id, only_public=only_public)
+                ent = self.__get_properties(entity_id=item.id, full_definition=full_definition, entity_definition_keyname=entity_definition_keyname, only_public=only_public)
                 if not ent:
                     continue
                 ent = ent[0]
@@ -884,7 +871,7 @@ class Entity():
                 property,
                 property_definition
             WHERE property.value_file = file.id
-            AND property_definition.id = property.property_definition_id
+            AND property_definition.keyname = property.property_definition_keyname
             AND file.id = %(file_id)s
             %(public)s
             LIMIT 1
@@ -900,18 +887,18 @@ class Entity():
 
         return result
 
-    def get_entity_definition(self, entity_definition_id):
+    def get_entity_definition(self, entity_definition_keyname):
         """
         Returns entity_definition.
 
         """
-        if entity_definition_id:
-            if type(entity_definition_id) is not list:
-                entity_definition_id = [entity_definition_id]
+        if entity_definition_keyname:
+            if type(entity_definition_keyname) is not list:
+                entity_definition_keyname = [entity_definition_keyname]
 
         sql = """
             SELECT
-                id,
+                keyname,
                 %(language)s_label AS label,
                 %(language)s_label_plural AS label_plural,
                 %(language)s_description AS description,
@@ -920,8 +907,8 @@ class Entity():
                 actions_add
             FROM
                 entity_definition
-            WHERE id IN (%(ids)s);
-        """  % {'language': self.language, 'ids': ','.join(map(str, entity_definition_id))}
+            WHERE keyname IN (%(ids)s);
+        """  % {'language': self.language, 'ids': ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])}
         # logging.debug(sql)
 
         return self.db.query(sql)
@@ -933,18 +920,16 @@ class Entity():
         """
         sql = """
             SELECT DISTINCT
-                entity_definition.id,
+                entity_definition.keyname,
                 entity_definition.%(language)s_label AS label,
                 entity_definition.%(language)s_label_plural AS label_plural,
                 entity_definition.%(language)s_description AS description,
                 entity_definition.%(language)s_menu AS menugroup
             FROM
                 entity_definition,
-                relationship,
-                relationship_definition
-            WHERE relationship.related_entity_definition_id = entity_definition.id
-            AND relationship_definition.id = relationship.relationship_definition_id
-            AND relationship_definition.type = 'allowed_child'
+                relationship
+            WHERE relationship.related_entity_definition_keyname = entity_definition.keyname
+            AND relationship.relationship_definition_keyname = 'allowed-child'
             AND relationship.entity_id = %(id)s
         """  % {'language': self.language, 'id': entity_id}
         # logging.debug(sql)
@@ -955,19 +940,17 @@ class Entity():
 
         sql = """
             SELECT DISTINCT
-                entity_definition.id,
+                entity_definition.keyname,
                 entity_definition.%(language)s_label AS label,
                 entity_definition.%(language)s_label_plural AS label_plural,
                 entity_definition.%(language)s_description AS description,
                 entity_definition.%(language)s_menu AS menugroup
             FROM
                 entity_definition,
-                relationship,
-                relationship_definition
-            WHERE relationship.related_entity_definition_id = entity_definition.id
-            AND relationship_definition.id = relationship.relationship_definition_id
-            AND relationship_definition.type = 'allowed_child'
-            AND relationship.entity_definition_id = (SELECT entity_definition_id FROM entity WHERE id = %(id)s)
+                relationship
+            WHERE relationship.related_entity_definition_keyname = entity_definition.keyname
+            AND relationship.relationship_definition_keyname = 'allowed-child'
+            AND relationship.entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %(id)s)
         """  % {'language': self.language, 'id': entity_id}
         # logging.debug(sql)
 
@@ -981,18 +964,16 @@ class Entity():
 
         sql = """
             SELECT DISTINCT
-                entity_definition.id,
+                entity_definition.keyname,
                 entity_definition.%(language)s_menu AS menugroup,
                 entity_definition.%(language)s_label AS item
             FROM
                 entity_definition,
                 entity,
-                relationship,
-                relationship_definition
-            WHERE entity.entity_definition_id = entity_definition.id
+                relationship
+            WHERE entity.entity_definition_keyname = entity_definition.keyname
             AND relationship.entity_id = entity.id
-            AND relationship_definition.id = relationship.relationship_definition_id
-            AND relationship_definition.type IN ('viewer', 'editor', 'owner')
+            AND relationship.relationship_definition_keyname IN ('viewer', 'editor', 'owner')
             AND entity_definition.estonian_menu IS NOT NULL
             AND relationship.related_entity_id IN (%(user_id)s)
             ORDER BY
@@ -1004,7 +985,7 @@ class Entity():
         menu = {}
         for m in self.db.query(sql):
             menu.setdefault(m.menugroup, {})['label'] = m.menugroup
-            menu.setdefault(m.menugroup, {}).setdefault('items', []).append({'id': m.id, 'title': m.item})
+            menu.setdefault(m.menugroup, {}).setdefault('items', []).append({'keyname': m.keyname, 'title': m.item})
 
         return sorted(menu.values(), key=itemgetter('label'))
 
@@ -1038,7 +1019,7 @@ class User():
                 property,
                 user,
                 user_profile
-            WHERE property.property_definition_id = property_definition.id
+            WHERE property.property_definition_keyname = property_definition.keyname
             AND user.email = property.value_string
             AND user_profile.user_id = user.id
             AND property_definition.dataproperty = 'user'

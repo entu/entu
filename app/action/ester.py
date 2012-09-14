@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from tornado import auth
 from tornado import web
 from tornado import httpclient
@@ -16,23 +18,24 @@ MARCMAP = {
     '020':  'isbn',
     '022':  'issn',
     '041':  'language',
-    '041h': 'original_language',
+    '041h': 'original-language',
     '072':  'udc',
     '080':  'udc',
+    '100':  'author',
     '245':  'title',
     '245b': 'subtitle',
     '245p': 'subtitle',
     '245n': 'number',
     '250':  'edition',
-    '260':  'publishing_place',
+    '260':  'publishing-place',
     '260b': 'publisher',
-    '260c': 'publishing_date',
+    '260c': 'publishing-date',
     '300':  'pages',
     '300c': 'dimensions',
     '440':  'series',
     '440p': 'series',
-    '440n': 'series_number',
-    '440v': 'series_number',
+    '440n': 'series-number',
+    '440v': 'series-number',
     '500':  'notes',
     '501':  'notes',
     '502':  'notes',
@@ -43,6 +46,16 @@ MARCMAP = {
     '530':  'notes',
     '650':  'tag',
     '655':  'tag',
+}
+
+AUTHORMAP = {
+    u'fotograaf':        'photographer',
+    u'illustreerija':    'ilustrator',
+    u'järelsõna autor':  'epilogue-author',
+    u'koostaja':         'compiler',
+    u'kujundaja':        'designer',
+    u'toimetaja':        'editor',
+    u'tõlkija':          'translator',
 }
 
 class EsterSearch(myRequestHandler):
@@ -88,7 +101,7 @@ class EsterSearch(myRequestHandler):
                 items.append({
                     'id': ester_id,
                     'entity_id': entity.get('entity_id'),
-                    'entity_definition_id': entity.get('entity_definition_id'),
+                    'entity_definition_keyname': entity.get('entity_definition_keyname'),
                     'isbn': [isbn],
                     'title': [title],
                     'publishing_date': [year],
@@ -104,9 +117,15 @@ class EsterSearch(myRequestHandler):
         ester_id = response.effective_url.split('/marc~')[1]
         entity = GetExistingID(ester_id)
 
-        item['id'] = ester_id
-        item['entity_id'] = entity.get('entity_id'),
-        item['entity_definition_id'] = entity.get('entity_definition_id'),
+        items = []
+        items.append({
+            'id': ester_id,
+            'entity_id': entity.get('entity_id'),
+            'entity_definition_keyname': entity.get('entity_definition_keyname'),
+            'isbn': item.get('isbn', []),
+            'title': ['%s / %s' % (item.get('title', [''])[0], item.get('author', [''])[0])],
+            'publishing_date': item.get('publishing_date', []),
+        })
 
         self.write({'items': [item]})
         self.finish()
@@ -117,10 +136,10 @@ class EsterImport(myRequestHandler):
     """
     @web.authenticated
     def post(self):
-        ester_id             = self.get_argument('ester_id', default=None, strip=True)
-        parent_entity_id     = self.get_argument('parent_entity_id', default=None, strip=True)
-        entity_definition_id = self.get_argument('entity_definition_id', default=None, strip=True)
-        if not ester_id or not parent_entity_id or not entity_definition_id:
+        ester_id                  = self.get_argument('ester_id', default=None, strip=True)
+        parent_entity_id          = self.get_argument('parent_entity_id', default=None, strip=True)
+        entity_definition_keyname = self.get_argument('entity_definition_keyname', default=None, strip=True)
+        if not ester_id or not parent_entity_id or not entity_definition_keyname:
             return
 
         entity = GetExistingID(ester_id)
@@ -142,10 +161,12 @@ class EsterImport(myRequestHandler):
         logging.debug(str(item))
 
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
-        entity_id = entity.create(entity_definition_id=entity_definition_id, parent_entity_id=parent_entity_id)
+        entity_id = entity.create(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
 
         for field, values in item.iteritems():
-            sql = 'SELECT id FROM property_definition WHERE dataproperty = \'%s\' AND entity_definition_id = %s LIMIT 1;' % (field, entity_definition_id)
+            sql = 'SELECT keyname FROM property_definition WHERE dataproperty = \'%s\' AND entity_definition_keyname = \'%s\' LIMIT 1;' % (field, entity_definition_keyname)
+            logging.debug(sql)
+
             property_definition = db_connection.get(sql)
             if not property_definition:
                 logging.warning('%s: %s' % (field, values))
@@ -154,14 +175,25 @@ class EsterImport(myRequestHandler):
             if type(values) is not list:
                 values = [values]
             for value in values:
-                entity.set_property(entity_id=entity_id, property_definition_id=property_definition.id, value=value)
+                entity.set_property(entity_id=entity_id, property_definition_keyname=property_definition.keyname, value=value)
 
         self.write(str(entity_id))
 
 
+class EsterTest(myRequestHandler):
+    """
+    """
+    @web.authenticated
+    def get(self, ester_id):
+        response = httpclient.HTTPClient().fetch('http://tallinn.ester.ee/search~S1?/.'+ester_id+'/.'+ester_id+'/1,1,1,B/marc~'+ester_id)
+
+        marc = response.body.split('<pre>')[1].split('</pre>')[0].strip()
+        self.write(ParseMARC(marc))
+
+
 def GetExistingID(ester_id):
     db_connection = db.connection()
-    entity = db_connection.get('SELECT property.entity_id, entity.entity_definition_id FROM property, entity, property_definition WHERE entity.id = property.entity_id AND property_definition.id = property.property_definition_id AND property_definition.dataproperty = \'ester_id\' AND property.value_string = %s AND property.deleted IS NULL LIMIT 1', ester_id)
+    entity = db_connection.get('SELECT property.entity_id, entity.entity_definition_keyname FROM property, entity, property_definition WHERE entity.id = property.entity_id AND property_definition.keyname = property.property_definition_keyname AND property_definition.dataproperty = \'ester-id\' AND property.value_string = %s AND property.deleted IS NULL LIMIT 1', ester_id)
     if not entity:
         return {}
 
@@ -183,17 +215,18 @@ def ParseMARC(data):
         key = row[:3]
         values = row[7:].split('|')
 
-        if key in ['100', '700']:
+        if key in ['700']:
             if values[0]:
                 tag = 'author'
                 tag_value = CleanData(values[0])
-                tag_note = None
                 for v in values[1:]:
                     if v:
-                        if v[0] == 'd':
-                            tag_note = CleanData(v[1:])
-                        if key == '700' and v[0] == 'e':
+                        if v[0] == 'e':
                             tag = CleanData(v[1:])
+                            if tag in AUTHORMAP:
+                                tag = AUTHORMAP[tag]
+                            else:
+                                tag = toURL(tag)
                 if tag not in result:
                     result[tag] = []
                 result[tag].append(tag_value)
@@ -279,4 +312,5 @@ def GetType(record):
 handlers = [
     ('/action/ester/search', EsterSearch),
     ('/action/ester/import', EsterImport),
+    ('/action/ester/test/(.*)', EsterTest),
 ]
