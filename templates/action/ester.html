@@ -18,14 +18,14 @@
             entity_definition_keyname: entity_definition_keyname,
         },
         function(new_id) {
-            window.location = '/entitygroup-{{ entity_definition_keyname }}#'+new_id;
+            window.location = '/entity/{{ entity_definition_keyname }}#'+new_id;
         });
     };
 
     function openItem(entity_definition_keyname, entity_id) {
         $('#modal-box').modal('hide');
         $('#modal-box').html('');
-        window.location = '/entitygroup-'+entity_definition_keyname+'#'+entity_id;
+        window.location = '/entity/'+entity_definition_keyname+'#'+entity_id;
     };
 
     $(document).ready(function(){

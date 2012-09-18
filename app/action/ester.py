@@ -15,8 +15,8 @@ from helper import *
 
 #http://www.loc.gov/marc/bibliographic/
 MARCMAP = {
-    '020':  'isbn',
-    '022':  'issn',
+    '020':  'isn',
+    '022':  'isn',
     '041':  'language',
     '041h': 'original-language',
     '072':  'udc',
@@ -50,7 +50,7 @@ MARCMAP = {
 
 AUTHORMAP = {
     u'fotograaf':        'photographer',
-    u'illustreerija':    'ilustrator',
+    u'illustreerija':    'illustrator',
     u'järelsõna autor':  'epilogue-author',
     u'koostaja':         'compiler',
     u'kujundaja':        'designer',
