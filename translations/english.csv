@@ -40,3 +40,9 @@ action_add_ester,Import from Ester
 action_add_ester_search_placeholder,Title or ISBN
 action_add_ester_add,Add
 action_add_ester_open,Open
+
+action_add_csv,From CSV file
+action_add_csv_file,CSV file
+action_add_csv_delimiter,Delimiter
+action_add_csv_first_row,First row
+action_add_csv_do_import,Import %s rows

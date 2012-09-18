@@ -41,6 +41,12 @@ action_add_ester_search_placeholder,Pealkiri või ISBN
 action_add_ester_add,Lisa
 action_add_ester_open,Ava
 
+action_add_csv,CSV failist
+action_add_csv_file,CSV fail
+action_add_csv_delimiter,Väljade eraldaja
+action_add_csv_first_row,Alusta reast
+action_add_csv_do_import,Impordi %s rida
+
 
 
 test,Küsimustik

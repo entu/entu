@@ -17,6 +17,7 @@
         {% for idx, action in enumerate(actions) %}
             <div id="{{ action }}" class="tab-pane{% if idx == 0 %} active{% end %}" >
                 {% if action == 'ester' %}{% include '../action/ester.html' %}{% end %}
+                {% if action == 'csv' %}{% include '../action/csv.html' %}{% end %}
             </div>
         {% end %}
         <table id="home" class="table table-condensed{% if actions %} tab-pane{% end %}" style="margin:0px; border-top:none;">
@@ -24,7 +25,7 @@
                 {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
                 <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
                     <th style="min-width:200px; text-align:right; vertical-align:middle;">
-                        p['datatype']<h6{%if p['public'] %} style="color:black;"{% end %}>{%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}</h6>
+                        <h6{%if p['public'] %} style="color:black;"{% end %}>{%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}</h6>
                     </th>
                     <td style="padding-bottom:0px; vertical-align:middle;">
                         {% if p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal'] %}

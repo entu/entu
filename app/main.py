@@ -29,6 +29,7 @@ controllers = [
     'application',
     'test',
     'action.ester',
+    'action.csv_import',
 ]
 
 

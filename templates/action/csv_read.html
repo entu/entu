@@ -1,0 +1,111 @@
+{% from operator import itemgetter %}
+
+<form id="csv-form" method="post" action="/action/csv/import" style="margin:0px; padding:0px;">
+    <input type="hidden" name="file_id" value="{{ file_id }}" />
+    <input type="hidden" name="parent_entity_id" value="{{ parent_entity_id }}" />
+    <input type="hidden" name="entity_definition_keyname" value="{{ entity_definition_keyname }}" />
+    <table class="table table-condensed">
+        <tbody>
+            <tr>
+                <th style="min-width:200px; text-align:right; vertical-align:middle;">
+                    <h6>{{ _('action_add_csv_file') }}</h6>
+                </th>
+                <td style="width:100%; vertical-align:middle;">
+                    {{ file_name }}
+                </td>
+            <tr>
+            <tr>
+                <th style="min-width:200px; text-align:right; vertical-align:middle;">
+                    <h6>{{ _('action_add_csv_delimiter') }}</h6>
+                </th>
+                <td style="width:100%; padding-bottom:0px; vertical-align:middle;">
+                    <input type="text" id="delimiter" name="delimiter" maxlength="1" style="width:20px; margin-bottom:4px; text-align:center;" value="{{ delimiter }}" />
+                </td>
+            <tr>
+            <tr>
+                <th style="min-width:200px; text-align:right; vertical-align:middle;">
+                    <h6>{{ _('action_add_csv_first_row') }}</h6>
+                </th>
+                <td style="width:100%; padding-bottom:0px; vertical-align:middle;">
+                    <input type="text" id="first_row" name="first_row" maxlength="2" style="width:20px; margin-bottom:4px; text-align:center;" value="{{ first_row }}" />
+                </td>
+            <tr>
+            {% for p in sorted(properties, key=itemgetter('ordinal')) %}
+            <tr>
+                <th style="min-width:200px; text-align:right; vertical-align:middle;">
+                    <h6>{{ p.get('label') }}</h6>
+                </th>
+                <td style="width:100%; padding-bottom:0px; vertical-align:middle;">
+                    <select class="csv-field" name="{{ 'field_%s' % p.get('dataproperty') }}" style="margin-bottom:4px;">
+                        <option></option>
+                        {% for idx, h in enumerate(csv_headers) %}
+                            <option value="{{ idx }}" {% if p.get('label') == h %} selected{% end %}>{{ h }}</option>
+                        {% end %}
+                    </select>
+                </td>
+            <tr>
+            {% end %}
+            <tr>
+                <th style="min-width:200px; text-align:right; vertical-align:middle;">
+
+                </th>
+                <td style="width:100%; vertical-align:middle;">
+                    <a id="csv-submit" class="btn btn-success disabled" href="javascript:void(0);">{{ _('action_add_csv_do_import') % row_count }}</a>
+                    <img id="csv-spinner" src="{{ static_url('images/spinner_white.gif') }}" style="display:none;" />
+                </td>
+            <tr>
+        </tbody>
+    </table>
+</form>
+
+<script>
+    $(document).ready(function(){
+
+        $('#first_row').change(function() {
+            if ($(this).val() < 1) {
+                $(this).val(1);
+            }
+            if ($(this).val() > {{ row_count }}) {
+                $(this).val({{ row_count }});
+            }
+            $('#csv-submit').html('{{ _('action_add_csv_do_import') % '@@' }}'.replace('@@', {{ row_count }}-$(this).val()+1))
+        });
+
+        $('#delimiter').change(function() {
+            delimiter = $(this).val();
+            if(delimiter) {
+                $.post('/action/csv/read', {
+                    file_id: {{ file_id }},
+                    delimiter: delimiter,
+                    first_row: $('#first_row').val(),
+                    entity_definition_keyname: '{{ entity_definition_keyname }}',
+                    parent_entity_id: {{ parent_entity_id }}
+                }, function(data) {
+                    $('#csv-form').replaceWith(data);
+                });
+            };
+        });
+
+        $('.csv-field').change(function() {
+            $('#csv-submit').addClass('disabled');
+            $('.csv-field').each(function() {
+                if($(this).val()) {
+                    $('#csv-submit').removeClass('disabled');
+                }
+            });
+        });
+
+        $('#csv-submit').click(function() {
+            if(!$(this).hasClass('disabled')) {
+                $('#csv-submit').hide();
+                $('#csv-spinner').show()
+                $.post('/action/csv/import', $('#csv-form').serialize(), function(data) {
+                    $('#modal-box').modal('hide');
+                    $('#modal-box').html('');
+                });
+            }
+        });
+
+    });
+</script>
+

@@ -1,0 +1,40 @@
+<form id="csv-form" method="post" action="/action/csv/upload" target="csv-iframe" enctype="multipart/form-data" style="margin:0px; padding:0px;">
+    <table class="1table 1table-condensed">
+        <tbody>
+            <tr>
+                <th style="min-width:200px; text-align:right; vertical-align:middle;">
+                    <h6>{{ _('action_add_csv_file') }}</h6>
+                </th>
+                <td style="width:100%; padding-bottom:0px; vertical-align:middle;">
+                    <img id="csv-spinner" src="{{ static_url('images/spinner_white.gif') }}" style="display:none;" />
+                    <input type="file" name="file" id="csv-file" style="border:none; width:80px; margin-bottom:4px;" />
+                </td>
+            <tr>
+        </tbody>
+    </table>
+    <iframe name="csv-iframe" height="0" width="0" frameborder="0" scrolling="no" onLoad="showCSV(this.contentWindow.document.body.innerHTML);" style="display:none;"></iframe>
+</form>
+
+<script>
+    function showCSV(file_id){
+        if(file_id) {
+            $.post('/action/csv/read', {
+                file_id: file_id,
+                entity_definition_keyname: '{{ entity_definition_keyname }}',
+                parent_entity_id: {{ parent_entity_id }}
+            }, function(data) {
+                $('#csv-form').replaceWith(data);
+            });
+        };
+    };
+
+    $(document).ready(function(){
+
+        $('#csv-file').change(function() {
+            $('#csv-file').hide();
+            $('#csv-spinner').show()
+            $('#csv-form').submit();
+        });
+
+    });
+</script>
