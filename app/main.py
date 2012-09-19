@@ -25,9 +25,7 @@ controllers = [
     'auth',
     'entity',
     'public',
-    'import',
-    'application',
-    'test',
+    'status',
     'action.ester',
     'action.csv_import',
 ]
