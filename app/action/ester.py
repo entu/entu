@@ -122,12 +122,12 @@ class EsterSearch(myRequestHandler):
             'id': ester_id,
             'entity_id': entity.get('entity_id'),
             'entity_definition_keyname': entity.get('entity_definition_keyname'),
-            'isbn': item.get('isbn', []),
+            'isbn': item.get('isn', []),
             'title': ['%s / %s' % (item.get('title', [''])[0], item.get('author', [''])[0])],
-            'publishing_date': item.get('publishing_date', []),
+            'publishing_date': item.get('publishing-date', []),
         })
 
-        self.write({'items': [item]})
+        self.write({'items': items})
         self.finish()
 
 
@@ -154,7 +154,7 @@ class EsterImport(myRequestHandler):
         if not item:
             return
 
-        item['ester_id'] = ester_id
+        item['ester-id'] = ester_id
 
         db_connection = db.connection()
 
@@ -251,7 +251,7 @@ def CleanData(value, tag=None):
     value = value.decode('utf-8').strip(' /,;:')
     if value[0:1] == '[' and value[-1] == ']':
         value = value[1:][:-1]
-    if tag == 'publishing_date' and not value[0:1].isdigit():
+    if tag == 'publishing-date' and not value[0:1].isdigit():
         value = value[1:]
     return value
 

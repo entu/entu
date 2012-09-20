@@ -1,4 +1,3 @@
-from tornado.options import options
 from tornado import web
 
 from operator import itemgetter
