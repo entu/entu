@@ -1,3 +1,9 @@
+## 2012-09-25
+* CSV import action
+* New /status page to show app status
+* Replaced ID fields with KEYNAMEs in definition tables
+* Code cleanup and other fixes
+
 ## 2012-08-28
 * JavaScript property changed to HTML property
 * Text properties can use [markdown](http://daringfireball.net/projects/markdown/) formatting
