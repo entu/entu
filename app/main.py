@@ -14,7 +14,7 @@ import logging
 # Command line options
 define('debug',          help = 'run on debug mode',        type = str, default='False')
 define('port',           help = 'run on the given port',    type = int, default=8000)
-define('mysql_host',     help = 'mysql database host',      type = str)
+define('mysql_host',     help = 'mysql database host',      type = str, default='localhost')
 define('mysql_database', help = 'mysql database name',      type = str)
 define('mysql_user',     help = 'mysql database user',      type = str)
 define('mysql_password', help = 'mysql database password',  type = str)

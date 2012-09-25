@@ -489,7 +489,6 @@ class Entity():
             sql = """
                 SELECT
                     entity_definition.keyname                       AS entity_definition_keyname,
-                    entity.gae_key                                  AS entity_gaekey,
                     entity.id                                       AS entity_id,
                     entity_definition.%(language)s_label            AS entity_label,
                     entity_definition.%(language)s_label_plural     AS entity_label_plural,
@@ -545,7 +544,6 @@ class Entity():
                 #Entity
                 items.setdefault('item_%s' % row.entity_id, {})['definition_keyname'] = row.entity_definition_keyname
                 items.setdefault('item_%s' % row.entity_id, {})['id'] = row.entity_id
-                items.setdefault('item_%s' % row.entity_id, {})['gae_key'] = row.entity_gaekey
                 items.setdefault('item_%s' % row.entity_id, {})['label'] = row.entity_label
                 items.setdefault('item_%s' % row.entity_id, {})['label_plural'] = row.entity_label_plural
                 items.setdefault('item_%s' % row.entity_id, {})['description'] = row.entity_description

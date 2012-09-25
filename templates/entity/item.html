@@ -147,10 +147,6 @@
             $(this).parent().children('tbody').toggle();
         });
 
-        $('#entity_picture').dblclick(function() {
-            window.open('https://appengine.google.com/datastore/edit?app_id=s~bubbledu&key={{ entity['gae_key'] }}');
-        });
-
         $('#toolbar').html($('#toolbar_template').html());
         $('#toolbar_template').html('')
 
