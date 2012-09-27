@@ -164,7 +164,10 @@ class Entity():
             field = 'value_integer'
         elif definition.datatype == 'decimal':
             field = 'value_decimal'
-            value = toDecimal(value)
+            value = value.replace(',', '.')
+            value = re.sub(r'[^\.0-9:]', '', value)
+            if not value:
+                value = 0.0
         elif definition.datatype == 'date':
             field = 'value_datetime'
         elif definition.datatype == 'datetime':
