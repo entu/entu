@@ -33,7 +33,7 @@
                                             {% if p['datatype'] in ['counter_value', 'string', 'integer', 'decimal'] %}
                                                 {% if p.get('select', None) %}
                                                     {% for v in p['values'] %}
-                                                        <select name="t{{ p['id'] }}" style="width:100%; margin-bottom:4px;">
+                                                        <select name="t{{ p['keyname'] }}" style="width:100%; margin-bottom:4px;">
                                                             <option value=""></option>
                                                             {% for s in p.get('select','') %}
                                                             <option value="{{ s['label'] }}" {% if s['label'] == v['value'] %} selected{% end %}>{{ s['label'] }}</option>
@@ -42,17 +42,17 @@
                                                     {% end %}
                                                 {% else %}
                                                     {% for v in p['values'] %}
-                                                        <input type="text" name="t{{ p['id'] }}" value="{{ v['value'] }}" style="width:98%; margin-bottom:4px;" />
+                                                        <input type="text" name="t{{ p['keyname'] }}" value="{{ v['value'] }}" style="width:98%; margin-bottom:4px;" />
                                                     {% end %}
                                                 {% end %}
                                             {% elif p['datatype'] in ['datetime', 'date'] %}
                                                 {% for v in p['values'] %}
-                                                    <input type="text" name="s{{ p['id'] }}" value="{{ v['value'] }}" class="dtype-{{ p['datatype'] }}" style="width:45%; margin-bottom:4px;margin-right:8px;" /> -
-                                                    <input type="text" name="e{{ p['id'] }}" value="{{ v['value'] }}" class="dtype-{{ p['datatype'] }}" style="width:45%; margin-bottom:4px; float:right;" />
+                                                    <input type="text" name="s{{ p['keyname'] }}" value="{{ v['value'] }}" class="dtype-{{ p['datatype'] }}" style="width:45%; margin-bottom:4px;margin-right:8px;" /> -
+                                                    <input type="text" name="e{{ p['keyname'] }}" value="{{ v['value'] }}" class="dtype-{{ p['datatype'] }}" style="width:45%; margin-bottom:4px; float:right;" />
                                                 {% end %}
                                             {% elif p['datatype'] == 'boolean' %}
                                                 {% for v in p['values'] %}
-                                                    <input type="checkbox" name="c{{ p['id'] }}" {% if v.get('db_value', 0) == 1 %} checked{% end %} style="margin-bottom:4px;" />
+                                                    <input type="checkbox" name="c{{ p['keyname'] }}" {% if v.get('db_value', 0) == 1 %} checked{% end %} style="margin-bottom:4px;" />
                                                 {% end %}
                                             {% else %}
                                                 {{ p['datatype'] }}

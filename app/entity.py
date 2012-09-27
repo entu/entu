@@ -18,8 +18,13 @@ class ShowGroup(myRequestHandler):
         """
         entity_definition_keyname = entity_definition_keyname.strip('/')
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
+
+        entity_definition = None
+        if entity_definition_keyname:
+            entity_definition = entity.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
+
         self.render('entity/start.html',
-            page_title = entity.get_entity_definition(entity_definition_keyname=entity_definition_keyname)[0].label_plural if entity_definition_keyname else '',
+            page_title = entity_definition[0].label_plural if entity_definition else '',
             menu = entity.get_menu(),
             show_list = True if entity_definition_keyname else False,
             entity_definition = entity_definition_keyname,

@@ -164,6 +164,21 @@ def toURL(s):
     return s
 
 
+def toDecimal(s=None):
+    if not s:
+        return 0.0
+    if type(s) is float:
+        return s
+    if type(s) is int:
+        return float(s)
+    result = s.replace(',', '.')
+    result = re.sub(r'[^\.0-9: ]', '', result)
+    if not result:
+        return 0.0
+    result = float(result)
+    return result
+
+
 def checkEmail(email):
     if re.match('[^@]+@[^@]+\.[^@]+', email):
         return True

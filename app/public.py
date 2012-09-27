@@ -50,7 +50,7 @@ class PublicSearchHandler(myRequestHandler):
         items = []
         if len(search) > 1:
             db_connection = db.connection()
-            entity_definitions = [x.id for x in db_connection.query('SELECT id FROM entity_definition WHERE public_path = %s;', path)]
+            entity_definitions = [x.keyname for x in db_connection.query('SELECT keyname FROM entity_definition WHERE public_path = %s;', path)]
 
             entities = db.Entity(user_locale=self.get_user_locale()).get(search=search, entity_definition_keyname=entity_definitions, only_public=True)
             if entities:
@@ -99,7 +99,7 @@ class PublicAdvancedSearchHandler(myRequestHandler):
         if not self.get_argument('ed', None):
             self.redirect('/public-%s' % path)
 
-        entity_definition_keyname = int(self.get_argument('ed'))
+        entity_definition_keyname = self.get_argument('ed')
 
         entity = db.Entity(user_locale=self.get_user_locale())
         entity_definition = entity.get(entity_id=0, entity_definition_keyname=entity_definition_keyname, full_definition=True, limit=1, only_public=True)
@@ -114,21 +114,22 @@ class PublicAdvancedSearchHandler(myRequestHandler):
             sql = ''
 
             if p['datatype'] in ['string', 'counter_value']:
-                if self.get_argument('t%s' % p['id'], None):
-                    sql += ' AND value_string LIKE \'%%%%%s%%%%\'' % self.get_argument('t%s' % p['id']).replace('\'', '\\\'')
+                if self.get_argument('t%s' % p['keyname'], None):
+                    sql += ' AND value_string LIKE \'%%%%%s%%%%\'' % self.get_argument('t%s' % p['keyname']).replace('\'', '\\\'')
 
             if p['datatype'] in ['integer', 'decimal']:
-                if self.get_argument('t%s' % p['id'], None):
-                    sql += ' AND value_decimal = %s' % self.get_argument('t%s' % p['id']).replace('\'', '\\\'')
+                if self.get_argument('t%s' % p['keyname'], None):
+                    sql += ' AND value_decimal = %s' % self.get_argument('t%s' % p['keyname']).replace('\'', '\\\'')
 
             elif p['datatype'] in ['datetime', 'date']:
-                if self.get_argument('s%s' % p['id'], None):
-                    sql += ' AND value_datetime >= \'%s\'' % self.get_argument('s%s' % p['id']).replace('\'', '\\\'')
-                if self.get_argument('e%s' % p['id'], None):
-                    sql += ' AND value_datetime <= \'%s\'' % self.get_argument('e%s' % p['id']).replace('\'', '\\\'')
+                if self.get_argument('s%s' % p['keyname'], None):
+                    sql += ' AND value_datetime >= \'%s\'' % self.get_argument('s%s' % p['keyname']).replace('\'', '\\\'')
+                if self.get_argument('e%s' % p['keyname'], None):
+                    sql += ' AND value_datetime <= \'%s\'' % self.get_argument('e%s' % p['keyname']).replace('\'', '\\\'')
 
             if sql:
-                sql = 'SELECT DISTINCT entity.id FROM property, entity WHERE entity.id = property.entity_id AND entity.entity_definition_keyname = %s AND property.property_definition_id = %s AND entity.public = 1 %s' % (entity_definition_keyname, p['id'], sql)
+                sql = 'SELECT DISTINCT entity.id FROM property, entity WHERE entity.id = property.entity_id AND entity.entity_definition_keyname = \'%s\' AND property.property_definition_keyname = \'%s\' AND entity.public = 1 %s' % (entity_definition_keyname, p['keyname'], sql)
+                logging.debug(sql)
                 ids = [x.id for x in db_connection.query(sql)]
                 if entity_ids == None:
                     entity_ids = ids
@@ -137,7 +138,7 @@ class PublicAdvancedSearchHandler(myRequestHandler):
         locale = self.get_user_locale()
         items = []
         if entity_ids:
-            entity_definitions = [x.id for x in db_connection.query('SELECT id FROM entity_definition WHERE public_path = %s;', path)]
+            entity_definitions = [x.keyname for x in db_connection.query('SELECT keyname FROM entity_definition WHERE public_path = %s;', path)]
 
             entities = db.Entity(user_locale=self.get_user_locale()).get(entity_id=entity_ids, entity_definition_keyname=entity_definitions, only_public=True)
             if entities:

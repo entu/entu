@@ -41,6 +41,14 @@ class MainPage(tornado.web.RequestHandler):
         self.redirect(self.settings['default_path'])
 
 
+class PageNotFound(tornado.web.RequestHandler):
+    """
+    """
+    def get(self, page=None):
+        self.set_status(404)
+        self.write('Page not found!')
+
+
 class myApplication(tornado.web.Application):
     """
     Main Application handler. Imports controllers, settings, translations.
@@ -54,6 +62,8 @@ class myApplication(tornado.web.Application):
 
             for h in c.handlers:
                 logging.info('%s.py -> %s' % (controller, h[0]))
+        handlers.append((r'(.*)', PageNotFound))
+
 
         settings = {
             'template_path':    path.join(path.dirname(__file__), '..', 'templates'),

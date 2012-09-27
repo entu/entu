@@ -164,6 +164,7 @@ class Entity():
             field = 'value_integer'
         elif definition.datatype == 'decimal':
             field = 'value_decimal'
+            value = toDecimal(value)
         elif definition.datatype == 'date':
             field = 'value_datetime'
         elif definition.datatype == 'datetime':
