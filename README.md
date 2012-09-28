@@ -57,7 +57,6 @@ _Futuristic Data Management System with emphasis on educational institutions_
 ## ToDo
 
 * Calculation (formula) fields
-* Sort search results by Entity.sort
 * Show Entity.displaycount
 * Show all entities in search (not first 303)
 * Replace [tornadomail](https://github.com/equeny/tornadomail) with better email library

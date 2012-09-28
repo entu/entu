@@ -1,3 +1,6 @@
+## 2012-09-28
+* Sorting
+
 ## 2012-09-25
 * CSV import action
 * New /status page to show app status
