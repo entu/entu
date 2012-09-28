@@ -456,7 +456,7 @@ class Entity():
         else:
             sql += ' AND entity.public = 1 AND property_definition.public = 1'
 
-        sql += ' ORDER BY entity.created DESC'
+        sql += ' ORDER BY entity.sort, entity.created DESC'
 
         if limit != None:
             sql += ' LIMIT %d' % limit
@@ -502,6 +502,8 @@ class Entity():
                     entity_definition.%(language)s_displayname      AS entity_displayname,
                     entity_definition.%(language)s_displayinfo      AS entity_displayinfo,
                     entity_definition.%(language)s_displaytable     AS entity_displaytable,
+                    entity_definition.%(language)s_sort             AS entity_sort,
+                    entity.sort                                     AS entity_sort_value,
                     property_definition.keyname                     AS property_keyname,
                     property_definition.ordinal                     AS property_ordinal,
                     property_definition.%(language)s_fieldset       AS property_fieldset,
@@ -551,6 +553,8 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {})['label'] = row.entity_label
                 items.setdefault('item_%s' % row.entity_id, {})['label_plural'] = row.entity_label_plural
                 items.setdefault('item_%s' % row.entity_id, {})['description'] = row.entity_description
+                items.setdefault('item_%s' % row.entity_id, {})['sort'] = row.entity_sort
+                items.setdefault('item_%s' % row.entity_id, {})['sort_value'] = row.entity_sort_value
                 items.setdefault('item_%s' % row.entity_id, {})['created'] = formatDatetime(row.entity_created, '%(day)02d.%(month)02d.%(year)d') if row.entity_created else ''
                 items.setdefault('item_%s' % row.entity_id, {})['displayname'] = row.entity_displayname
                 items.setdefault('item_%s' % row.entity_id, {})['displayinfo'] = row.entity_displayinfo
@@ -676,7 +680,7 @@ class Entity():
 
         """
         result = {}
-        for displayfield in ['displayname', 'displayinfo', 'displaytable']:
+        for displayfield in ['displayname', 'displayinfo', 'displaytable', 'sort']:
             result[displayfield] = entity_dict.get(displayfield, '') if entity_dict.get(displayfield, '') else ''
             for data_property in findTags(entity_dict.get(displayfield, ''), '@', '@'):
                 result[displayfield] = result[displayfield].replace('@%s@' % data_property, ', '.join(['%s' % x['value'] for x in entity_dict.get('properties', {}).get(data_property, {}).get('values', {}).values()]))
@@ -687,6 +691,9 @@ class Entity():
 
         result['displaytable'] = result['displaytable'].split('|') if result['displaytable'] else None
         result['displaytable_labels'] = result['displaytable_labels'].split('|') if result['displaytable_labels'] else None
+
+        if entity_dict.get('id', None) and entity_dict.get('sort_value', None) != result['sort']:
+            self.db.execute('UPDATE entity SET sort = %s WHERE id = %s', result['sort'], entity_dict.get('id'))
 
         return result
 
