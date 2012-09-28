@@ -693,7 +693,7 @@ class Entity():
         result['displaytable_labels'] = result['displaytable_labels'].split('|') if result['displaytable_labels'] else None
 
         if entity_dict.get('id', None) and entity_dict.get('sort_value', None) != result['sort']:
-            self.db.execute('UPDATE entity SET sort = %s WHERE id = %s', result['sort'], entity_dict.get('id'))
+            self.db.execute('UPDATE entity SET sort = LEFT(%s, 100) WHERE id = %s', result['sort'], entity_dict.get('id'))
 
         return result
 
@@ -829,7 +829,7 @@ class Entity():
         if entity_definition_keyname:
             sql += ' AND entity.entity_definition_keyname IN (%s)' % ','.join(map(str, entity_definition_keyname))
 
-        sql += ' ORDER BY entity.id DESC'
+        sql += ' ORDER BY entity.sort, entity.created DESC'
 
         if limit:
             sql += ' LIMIT %d' % limit
@@ -853,9 +853,6 @@ class Entity():
                     continue
                 ent = ent[0]
                 items.setdefault('%s' % ent.get('label_plural', ''), []).append(ent)
-
-                for k, v in items.iteritems():
-                    items[k] = sorted(v, key=itemgetter('ordinal'), reverse=True)
 
         return items
 
