@@ -114,11 +114,15 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 return self.redirect(get_redirect(self))
             access_token = access_token['access_token']
         except:
-            access_token = urlparse.parse_qs(access_token)
-            if 'error' in access_token:
-                logging.error('%s oauth error: %s' % (provider, access_token['error']))
+            try:
+                access_token = urlparse.parse_qs(access_token)
+                if 'error' in access_token:
+                    logging.error('%s oauth error: %s' % (provider, access_token['error']))
+                    return self.redirect(get_redirect(self))
+                access_token = access_token['access_token'][0]
+            except:
+                logging.error('%s oauth error' % provider)
                 return self.redirect(get_redirect(self))
-            access_token = access_token['access_token'][0]
 
         httpclient.AsyncHTTPClient().fetch(self.oauth2_provider['info_url'] %  {'token': access_token },
             callback = self._got_user
