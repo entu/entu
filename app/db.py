@@ -333,7 +333,7 @@ class Entity():
         # logging.debug(sql)
 
         property_id = self.db.execute_lastrowid(sql)
-        logging.warning(str(property_id))
+        # logging.warning(str(property_id))
         return self.db.get('SELECT value_string FROM property WHERE id = %s', property_id).value_string
 
     def set_relations(self, entity_id, related_entity_id, relationship_definition_keyname, delete=False, update=False):
@@ -668,8 +668,6 @@ class Entity():
                                 items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {}).setdefault('select', []).append({'id': c.get('id', ''), 'label': c.get('displayname', '')})
 
             for p_key, p_value in value.get('properties', {}).iteritems():
-                if p_value.get('select', None):
-                    items[key]['properties'][p_key]['select'] = sorted(p_value['select'], key=itemgetter('label'))
                 items[key]['properties'][p_key]['values'] = sorted(p_value.get('values', {}).values(), key=itemgetter('ordinal'))
 
         return items.values()

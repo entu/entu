@@ -64,7 +64,6 @@ class myApplication(tornado.web.Application):
                 logging.info('%s.py -> %s' % (controller, h[0]))
         handlers.append((r'(.*)', PageNotFound))
 
-
         settings = {
             'template_path':    path.join(path.dirname(__file__), '..', 'templates'),
             'static_path':      path.join(path.dirname(__file__), '..', 'static'),

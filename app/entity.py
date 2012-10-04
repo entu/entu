@@ -70,6 +70,10 @@ class ShowEntity(myRequestHandler):
         Shows Entitiy info.
 
         """
+
+        if not entity_id:
+            return self.missing()
+
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
         item = entity.get(entity_id=entity_id, limit=1)
 
