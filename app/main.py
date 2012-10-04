@@ -61,7 +61,7 @@ class myApplication(tornado.web.Application):
             handlers.extend(c.handlers)
 
             for h in c.handlers:
-                logging.info('%s.py -> %s' % (controller, h[0]))
+                logging.warning('%s.py -> %s' % (controller, h[0]))
         handlers.append((r'(.*)', PageNotFound))
 
         settings = {
@@ -85,6 +85,7 @@ class myApplication(tornado.web.Application):
 
 
 if __name__ == '__main__':
+    tornado.options.enable_pretty_logging()
     tornado.locale.load_translations(path.join(path.dirname(__file__), '..', 'translations'))
     tornado.options.parse_command_line()
     tornado.httpserver.HTTPServer(myApplication(), xheaders=True).listen(options.port)
