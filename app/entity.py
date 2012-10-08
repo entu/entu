@@ -256,7 +256,7 @@ class ShareByEmail(myRequestHandler):
         if not item:
             return self.missing()
 
-        url = 'http://%s/entitygroup-%s#%s' % (self.request.headers.get('Host'), item['definition_id'], item['id'])
+        url = 'https://%s/entity/%s#%s' % (self.request.headers.get('Host'), item['definition_keyname'], item['id'])
 
         self.mail_send(
             to = to,
