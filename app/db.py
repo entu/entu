@@ -164,10 +164,9 @@ class Entity():
             field = 'value_integer'
         elif definition.datatype == 'decimal':
             field = 'value_decimal'
-            value = value.replace(',', '.')
-            value = re.sub(r'[^\.0-9:]', '', value)
-            if not value:
-                value = 0.0
+            if value:
+                value = value.replace(',', '.')
+                value = re.sub(r'[^\.0-9:]', '', value)
         elif definition.datatype == 'date':
             field = 'value_datetime'
         elif definition.datatype == 'datetime':
@@ -187,29 +186,28 @@ class Entity():
             if value:
                 value = value[:500]
 
-        if property_id:
-            self.db.execute('UPDATE property SET %s = %%s, changed = NOW(), changed_by = %%s WHERE id = %%s;' % field,
-                value,
-                self.created_by,
-                property_id,
-            )
-        else:
+        self.db.execute('UPDATE property SET deleted = NOW(), deleted_by = %s WHERE id = %s;',
+            self.created_by,
+            property_id,
+        )
+
+        if value:
             if entity_id:
-                property_id = self.db.execute_lastrowid('INSERT INTO property SET entity_id = %%s, property_definition_keyname = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
+                new_property_id = self.db.execute_lastrowid('INSERT INTO property SET entity_id = %%s, property_definition_keyname = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
                     entity_id,
                     property_definition_keyname,
                     value,
                     self.created_by
                 )
             if relationship_id:
-                property_id = self.db.execute_lastrowid('INSERT INTO property SET relationship_id = %%s, property_definition_keyname = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
+                new_property_id = self.db.execute_lastrowid('INSERT INTO property SET relationship_id = %%s, property_definition_keyname = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
                     relationship_id,
                     property_definition_keyname,
                     value,
                     self.created_by
                 )
 
-        return property_id
+        return new_property_id
 
     def set_public(self, entity_id, is_public=False):
         """
@@ -537,6 +535,7 @@ class Entity():
                 AND entity_definition.keyname = property_definition.entity_definition_keyname
                 AND (property.language = '%(language)s' OR property.language IS NULL)
                 AND entity.id IN (%(idlist)s)
+                AND property.deleted IS NULL
                 %(public)s
                 %(datapropertysql)s
                 ORDER BY
@@ -907,6 +906,7 @@ class Entity():
                 %(language)s_label_plural AS label_plural,
                 %(language)s_description AS description,
                 %(language)s_menu AS menugroup,
+                entity_definition.open_after_add,
                 ordinal,
                 actions_add
             FROM

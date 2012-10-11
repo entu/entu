@@ -61,7 +61,7 @@ class myApplication(tornado.web.Application):
             handlers.extend(c.handlers)
 
             for h in c.handlers:
-                logging.warning('%s.py -> %s' % (controller, h[0]))
+                logging.info('%s.py -> %s' % (controller, h[0]))
         handlers.append((r'(.*)', PageNotFound))
 
         settings = {

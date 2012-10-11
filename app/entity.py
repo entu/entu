@@ -151,6 +151,7 @@ class ShowEntityEdit(myRequestHandler):
             parent_entity_id = '',
             entity_definition_keyname = '',
             actions = [],
+            open_after_add = False,
         )
 
 
@@ -174,6 +175,7 @@ class ShowEntityAdd(myRequestHandler):
             parent_entity_id = entity_id,
             entity_definition_keyname = entity_definition_keyname,
             actions = actions,
+            open_after_add = True if entity_definition[0].get('open_after_add', 0) == 1 else False,
         )
 
 
