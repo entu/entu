@@ -11,7 +11,10 @@
 </ul>
 {% end %}
 
-<img src="{{ entity['displaypicture'] }}" id="entity_picture" class="" width="120" style="float:right; margin-bottom:20px;" />
+<div style="float:right; margin-bottom:20px; text-align:center;">
+    <img src="{{ entity['displaypicture'] }}" id="entity_picture" class="" width="120" />
+</div>
+<h6>{{ entity['label'] }}</h6>
 <h3 style="margin-right:140px;">{{ entity['displayname'] }}</h3>
 <div style="margin-right:140px;">
     <table class="table table-condensed">
@@ -55,21 +58,27 @@
 </div>
 
 <ul id="toolbar_template" style="display:none;">
+    {% if can_add and allowed_childs or add_definitions %}
+        <li class="dropdown toolbar-item">
+            <a href="#" class="dropdown-toggle header-menu-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="icon-plus"></i></a>
+            <ul class="dropdown-menu toolbar-item-add">
+                {% for c in add_definitions %}
+                <li><a href="javascript:void(0);" data-entity_id="{{ c.related_entity_id }}" data-definition_keyname="{{ c.keyname }}">{{ c.label }}</a></li>
+                {% end %}
+                {% if can_add and allowed_childs and add_definitions %}
+                <li><hr style="padding:0px; margin:3px 0px;" /></li>
+                {% end %}
+                {% for c in allowed_childs %}
+                <li><a href="javascript:void(0);" data-entity_id="{{ entity['id'] }}" data-definition_keyname="{{ c.keyname }}">{{ c.label }}</a></li>
+                {% end %}
+            </ul>
+        </li>
+    {% end %}
     {% if can_add and allowed_childs %}
         <!--li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-add-default" title="{{ _('menu_add') }}"><i class="icon-edit"></i></a></li-->
     {% end %}
     {% if can_edit %}
         <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-edit" title="{{ _('menu_edit') }}"><i class="icon-pencil"></i></a></li>
-    {% end %}
-    {% if can_add and allowed_childs %}
-        <li class="dropdown toolbar-item">
-            <a href="#" class="dropdown-toggle header-menu-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="icon-plus"></i></a>
-            <ul class="dropdown-menu toolbar-item-add">
-                {% for c in allowed_childs %}
-                <li><a href="javascript:void(0);" data-id="{{ c.keyname }}">{{ c.label }}</a></li>
-                {% end %}
-            </ul>
-        </li>
     {% end %}
     {% if can_edit %}
         <!--li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-link" title="{{ _('menu_relate') }}"><i class="icon-link"></i></a></li-->
@@ -151,7 +160,7 @@
         $('#toolbar_template').html('')
 
         $('.toolbar-item-add a').click(function() {
-            $.get('/entity-{{ entity['id'] }}/add/'+$(this).data('id'), function(html) {
+            $.get('/entity-'+$(this).data('entity_id')+'/add/'+$(this).data('definition_keyname'), function(html) {
                 document.body.style.cursor = 'wait';
                 $('#modal-box').modal('show');
                 $('#modal-box').html(html);

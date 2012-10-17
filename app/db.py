@@ -229,16 +229,16 @@ class Entity():
             return
 
         #Vastuskirja hack
-        if self.db.get('SELECT entity_definition_keyname FROM entity WHERE id = %s', entity_id).entity_definition_keyname == 'replay':
+        if self.db.get('SELECT entity_definition_keyname FROM entity WHERE id = %s', entity_id).entity_definition_keyname == 'reply':
             parent = self.get_relatives(related_entity_id=entity_id, relationship_definition_keyname='child', reverse_relation=True, limit=1).values()[0][0]
             childs = self.get_relatives(entity_id=parent.get('id',None), relationship_definition_keyname='child').values()
             if childs:
-                childs_count = len([y.get('id', 0) for y in childs[0] if y.get('properties', {}).get('registry_number', {}).get('values', None)])+1
+                childs_count = len([y.get('id', 0) for y in childs[0] if y.get('properties', {}).get('registry-number', {}).get('values', None)])+1
             else:
                 childs_count = 1
-            parent_number = ''.join(['%s' % x['value'] for x in parent.get('properties', {}).get('registry_number', {}).get('values', []) if x['value']])
+            parent_number = ''.join(['%s' % x['value'] for x in parent.get('properties', {}).get('registry-number', {}).get('values', []) if x['value']])
             counter_value = '%s-%s' % (parent_number, childs_count)
-            self.set_property(entity_id=entity_id, property_definition_keyname=287, value=counter_value)
+            self.set_property(entity_id=entity_id, property_definition_keyname='reply-registry-number', value=counter_value)
             return counter_value
 
 
@@ -956,6 +956,35 @@ class Entity():
             AND relationship.relationship_definition_keyname = 'allowed-child'
             AND relationship.entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %(id)s)
         """  % {'language': self.language, 'id': entity_id}
+        # logging.debug(sql)
+
+        return self.db.query(sql)
+
+    def get_definitions_with_default_parent(self, entity_definition_keyname):
+        """
+        Returns allowed entity definitions what have default parent.
+
+        """
+
+        if entity_definition_keyname:
+            if type(entity_definition_keyname) is not list:
+                entity_definition_keyname = [entity_definition_keyname]
+
+        sql = """
+            SELECT DISTINCT
+                entity_definition.keyname,
+                entity_definition.%(language)s_label AS label,
+                entity_definition.%(language)s_label_plural AS label_plural,
+                entity_definition.%(language)s_description AS description,
+                entity_definition.%(language)s_menu AS menugroup,
+                relationship.related_entity_id
+            FROM
+                entity_definition,
+                relationship
+            WHERE relationship.entity_definition_keyname = entity_definition.keyname
+            AND relationship.relationship_definition_keyname = 'default-parent'
+            AND entity_definition.keyname IN (%(ids)s)
+        """  % {'language': self.language, 'ids': ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])}
         # logging.debug(sql)
 
         return self.db.query(sql)

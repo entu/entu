@@ -23,11 +23,14 @@ class ShowGroup(myRequestHandler):
         if entity_definition_keyname:
             entity_definition = entity.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
 
+
+
         self.render('entity/start.html',
             page_title = entity_definition[0].label_plural if entity_definition else '',
             menu = entity.get_menu(),
             show_list = True if entity_definition_keyname else False,
             entity_definition = entity_definition_keyname,
+            add_definitions = entity.get_definitions_with_default_parent(entity_definition_keyname) if entity_definition_keyname else None,
         )
 
     @web.authenticated
@@ -104,6 +107,7 @@ class ShowEntity(myRequestHandler):
             can_edit = can_edit,
             can_add = can_add,
             is_owner = True,
+            add_definitions = entity.get_definitions_with_default_parent(item.get('definition_keyname')) if item.get('definition_keyname') else None,
         )
 
 
