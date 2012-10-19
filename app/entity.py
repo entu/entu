@@ -83,10 +83,9 @@ class ShowEntity(myRequestHandler):
         if not item:
             return self.missing()
 
-        relatives = entity.get_relatives(entity_id=item['id'], relationship_definition_keyname=['child','leecher'])
+        relatives = entity.get_relatives(entity_id=item['id'], relationship_definition_keyname=['child'])
         parents = entity.get_relatives(related_entity_id=item['id'], relationship_definition_keyname='child', reverse_relation=True)
         allowed_childs = entity.get_allowed_childs(entity_id=item['id'])
-        leecher_in = entity.get_relatives(related_entity_id=item['id'], relationship_definition_keyname='leecher', reverse_relation=True)
 
         can_edit = False if self.current_user.provider == 'application' else True #entity.get_relatives(ids_only=True, entity_id=item['id'], related_entity_id=self.current_user.id, relationship_definition_keyname=['viewer', 'editor', 'owner'])
         can_add = False if self.current_user.provider == 'application' else True #entity.get_relatives(ids_only=True, entity_id=item['id'], related_entity_id=self.current_user.id, relationship_definition_keyname=['viewer', 'editor', 'owner'])
@@ -100,8 +99,8 @@ class ShowEntity(myRequestHandler):
         self.render('entity/item.html',
             page_title = item['displayname'],
             entity = item,
-            relatives = dict(leecher_in.items() + relatives.items()),
-            parents = parents,
+            relatives = relatives,
+            parents = parents.values() if parents else [],
             allowed_childs = allowed_childs,
             rating_scale = rating_scale,
             can_edit = can_edit,

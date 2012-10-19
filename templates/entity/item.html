@@ -2,13 +2,23 @@
 {% from operator import itemgetter %}
 {% import markdown2 %}
 
-{% for parent in parents.values() %}
-<ul class="breadcrumb" style="text-align:center;">
-  <li style="float:left;"><i class="divider icon-arrow-up" style="padding-left:0px;"></i></li>
-  <li>{{ parent[0].get('label', '') }}  </li>
-  <li><a href="#{{ parent[0].get('id', '') }}">{{ parent[0].get('displayname', '') }}</a></li>
-  <li style="float:right;"><i class="divider icon-arrow-up" style="padding-right:0px;"></i></li>
-</ul>
+{% if parents %}
+    <table class="table table-condensed">
+        <tbody>
+            <tr>
+    {% for parent in parents[0] %}
+                <td style="width:{{ int(100/len(parents[0])) }}%; padding:0px; border:none;">
+                    <ul class="breadcrumb" style="text-align:center; margin:0px 1px;">
+                        <li style="float:left;"><i class="divider icon-arrow-up" style="padding-left:0px;"></i></li>
+                        <li><h6>{{ parent.get('label', '') }}</h6>  </li>
+                        <li><a href="#{{ parent.get('id', '') }}">{{ parent.get('displayname', '') }}</a></li>
+                        <li style="float:right;"><i class="divider icon-arrow-up" style="padding-right:0px;"></i></li>
+                    </ul>
+                </td>
+    {% end %}
+            </tr>
+        </tbody>
+    </table>
 {% end %}
 
 <div style="float:right; margin-bottom:20px; text-align:center;">
