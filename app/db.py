@@ -73,6 +73,27 @@ class Entity():
         # logging.debug(sql)
         self.db.execute(sql, parent_entity_id, entity_id, self.created_by)
 
+        # Insert child relationship from default parent
+        sql = """
+            INSERT INTO relationship (
+                relationship_definition_keyname,
+                entity_id,
+                related_entity_id,
+                created_by,
+                created
+            ) SELECT
+                'child',
+                related_entity_id,
+                %s,
+                %s,
+                NOW()
+            FROM relationship
+            WHERE relationship_definition_keyname = 'default-parent'
+            AND entity_definition_keyname = 'invoice';
+        """
+        # logging.debug(sql)
+        self.db.execute(sql, entity_id, self.created_by)
+
         # Copy user rights
         sql = """
             INSERT INTO relationship (
@@ -850,7 +871,6 @@ class Entity():
                     continue
                 ent = ent[0]
                 items.setdefault('%s' % ent.get('label_plural', ''), []).append(ent)
-
         return items
 
     def get_file(self, file_id):
