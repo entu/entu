@@ -232,7 +232,7 @@
             if (confirm('{{ _('confirm_file_delete') }}'.replace('%s','\n'+link.prev().html()))) {
                 $.post('/entity/delete-file', {
                     property_id: $(this).data('property_id'),
-                    entity_id: {{ entity.get('id', '') }},
+                    entity_id: '{{ entity.get('id', '') }}',
                 },
                 function(newvalue) {
                     link.parent().remove();
