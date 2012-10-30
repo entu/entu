@@ -65,7 +65,7 @@
                                         <input type="file" name="file" class="dtype-{{ p['datatype'] }}" style="border:none; width:80px; margin-bottom:4px;" />
                                     </form>
                                 {% else %}
-                                    <a href="/entity/file-{{ v['db_value'] }}">{{ v['value'] }}</a><br />
+                                    <div class="delete-file-row"><a href="/entity/file-{{ v['db_value'] }}">{{ v['value'] }}</a> <a href="javascript:void(0);" data-property_id="{{ v['id'] }}" class="delete-file" style="float:right; display:none;"><i class="icon-trash" style="color:red;"></i></a></div>
                                 {% end %}
                             {% end %}
                         {% elif p['datatype'] == 'counter-value' %}
@@ -215,8 +215,31 @@
             $(this).parent().hide();
             $(this).parent().parent().children('img').show()
             $(this).parent().submit();
-
         });
+
+        $('.delete-file-row').hover(
+            function() {
+                $(this).children('.delete-file').show();
+            },
+            function() {
+                $('.delete-file').hide();
+            }
+        );
+
+        $('.delete-file').click(function() {
+
+            link = $(this);
+            if (confirm('{{ _('confirm_file_delete') }}'.replace('%s','\n'+link.prev().html()))) {
+                $.post('/entity/delete-file', {
+                    property_id: $(this).data('property_id'),
+                    entity_id: {{ entity.get('id', '') }},
+                },
+                function(newvalue) {
+                    link.parent().remove();
+                }, 'json');
+            };
+        });
+
 
     });
 </script>
