@@ -150,10 +150,13 @@ class Entity():
         if not entity_id and not relationship_id:
             return
 
-        if not property_definition_keyname:
+        # property_definition_keyname is preferred because it could change for existing property
+        if property_definition_keyname:
+            definition = self.db.get('SELECT datatype FROM property_definition WHERE keyname = %s LIMIT 1;', property_definition_keyname)
+        elif property_id:
+            definition = self.db.get('SELECT pd.datatype FROM property p LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname WHERE p.id = %s;', property_id)
+        else:
             return
-
-        definition = self.db.get('SELECT datatype FROM property_definition WHERE keyname = %s LIMIT 1;', property_definition_keyname)
 
         if not definition:
             return
@@ -172,8 +175,8 @@ class Entity():
         elif definition.datatype == 'datetime':
             field = 'value_datetime'
         elif definition.datatype == 'file':
-            value = 0
-            if uploaded_file:
+            if value:
+                uploaded_file = value
                 value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], uploaded_file['body'], self.created_by)
             field = 'value_file'
         elif definition.datatype == 'boolean':
@@ -190,6 +193,8 @@ class Entity():
             self.created_by,
             property_id,
         )
+
+        new_property_id = None
 
         if value:
             if entity_id:
