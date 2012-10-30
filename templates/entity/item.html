@@ -6,16 +6,18 @@
     <table class="table table-condensed">
         <tbody>
             <tr>
-    {% for parent in parents[0] %}
-                <td style="width:{{ int(100/len(parents[0])) }}%; padding:0px; border:none;">
-                    <ul class="breadcrumb" style="text-align:center; margin:0px 1px;">
-                        <li style="float:left;"><i class="divider icon-arrow-up" style="padding-left:0px;"></i></li>
-                        <li><h6>{{ parent.get('label', '') }}</h6>  </li>
-                        <li><a href="#{{ parent.get('id', '') }}">{{ parent.get('displayname', '') }}</a></li>
-                        <li style="float:right;"><i class="divider icon-arrow-up" style="padding-right:0px;"></i></li>
-                    </ul>
-                </td>
-    {% end %}
+                {% for parentgroup in parents %}
+                    {% for parent in parentgroup %}
+                        <td style="padding:0px; border:none;">
+                            <ul class="breadcrumb" style="text-align:center; margin:0px 1px;">
+                                <li style="float:left;"><i class="divider icon-arrow-up" style="padding-left:0px;"></i></li>
+                                <li><h6>{{ parent.get('label', '') }}</h6>  </li>
+                                <li><a href="#{{ parent.get('id', '') }}">{{ parent.get('displayname', '') }}</a></li>
+                                <li style="float:right;"><i class="divider icon-arrow-up" style="padding-right:0px;"></i></li>
+                            </ul>
+                        </td>
+                    {% end %}
+                {% end %}
             </tr>
         </tbody>
     </table>
