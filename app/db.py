@@ -91,10 +91,16 @@ class Entity():
                 %s,
                 %s,
                 NOW()
+<<<<<<< HEAD
             FROM relationship AS r
             WHERE r.relationship_definition_keyname = 'default-parent'
             AND r.deleted IS NULL
             AND r.entity_definition_keyname = %s;
+=======
+            FROM relationship
+            WHERE relationship_definition_keyname = 'default-parent'
+            AND entity_definition_keyname = %s;
+>>>>>>> Create entyty with default parent bug fixed
         """
         # logging.debug(sql)
         self.db.execute(sql, entity_id, self.created_by, entity_definition_keyname)
