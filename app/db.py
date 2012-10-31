@@ -613,7 +613,7 @@ class Entity():
                     value = row.value_integer
                 elif row.property_datatype == 'decimal':
                     db_value = row.value_decimal
-                    value = row.value_decimal
+                    value = '%.2f' % row.value_decimal
                 elif row.property_datatype == 'date':
                     db_value = row.value_datetime
                     value = formatDatetime(row.value_datetime, '%(day)02d.%(month)02d.%(year)d')
