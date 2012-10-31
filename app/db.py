@@ -89,10 +89,10 @@ class Entity():
                 NOW()
             FROM relationship
             WHERE relationship_definition_keyname = 'default-parent'
-            AND entity_definition_keyname = 'invoice';
+            AND entity_definition_keyname = %s;
         """
         # logging.debug(sql)
-        self.db.execute(sql, entity_id, self.created_by)
+        self.db.execute(sql, entity_id, self.created_by, entity_definition_keyname)
 
         # Copy user rights
         sql = """
