@@ -949,22 +949,23 @@ class Entity():
         """
         sql = """
             SELECT DISTINCT
-                entity_definition.keyname,
-                entity_definition.%(language)s_label AS label,
-                entity_definition.%(language)s_label_plural AS label_plural,
-                entity_definition.%(language)s_description AS description,
-                entity_definition.%(language)s_menu AS menugroup
+                ed.keyname,
+                ed.%(language)s_label AS label,
+                ed.%(language)s_label_plural AS label_plural,
+                ed.%(language)s_description AS description,
+                ed.%(language)s_menu AS menugroup
             FROM
-                entity_definition,
-                relationship
-            WHERE relationship.related_entity_definition_keyname = entity_definition.keyname
-            AND relationship.relationship_definition_keyname = 'allowed-child'
-            AND relationship.entity_id = %(id)s
-        """  % {'language': self.language, 'id': entity_id}
+                relationship r
+                LEFT JOIN entity_definition ed ON r.related_entity_definition_keyname = ed.keyname
+            WHERE r.relationship_definition_keyname = 'allowed-child'
+            AND r.entity_id = %(id)s
+            ORDER BY ed.keyname        """  % {'language': self.language, 'id': entity_id}
         # logging.debug(sql)
 
         result = self.db.query(sql)
         if result:
+            if not result[0].keyname:
+                return []
             return result
 
         sql = """
