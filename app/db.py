@@ -248,7 +248,7 @@ class Entity():
     def set_counter(self, entity_id):
         """
         Sets counter property.
-
+        Counter mechanics is real hack. It will soon be obsoleted by formula field.
         """
         if not entity_id:
             return
@@ -288,7 +288,7 @@ class Entity():
                     WHERE property_definition.keyname = property.property_definition_keyname
                     AND entity.entity_definition_keyname = property_definition.entity_definition_keyname
                     AND entity.id = property.entity_id
-                    AND property_definition.dataproperty='series'
+                    AND property_definition.dataproperty = 'series'
                     AND entity.id = (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child' LIMIT 1)
                     LIMIT 1
                 ), ''),
@@ -361,7 +361,7 @@ class Entity():
 
     def set_relations(self, entity_id, related_entity_id, relationship_definition_keyname, delete=False, update=False):
         """
-        Add or removes Entity relations. entity_id, related_entity_id, relationship_definition_keyname can be single value or list of values.
+        Adds or removes Entity relations. entity_id, related_entity_id, relationship_definition_keyname can be single value or list of values.
 
         """
 
@@ -426,7 +426,9 @@ class Entity():
 
     def get(self, ids_only=False, entity_id=None, search=None, entity_definition_keyname=None, dataproperty=None, limit=None, full_definition=False, only_public=False):
         """
-        If ids_only = True, then returns list of Entity IDs. Else returns list of Entities (with properties) as dictionary. entity_id, entity_definition and dataproperty can be single value or list of values. If limit = 1 returns Entity (not list). If full_definition = True returns also empty properties.
+        If ids_only = True, then returns list of Entity IDs. Else returns list of Entities (with properties) as dictionary. entity_id, entity_definition and dataproperty can be single value or list of values.
+        If limit = 1, then returns Entity (not list).
+        If full_definition = True ,then returns also empty properties.
 
         """
         ids = self.__get_id_list(entity_id=entity_id, search=search, entity_definition_keyname=entity_definition_keyname, limit=limit, only_public=only_public)
@@ -495,7 +497,7 @@ class Entity():
     def __get_properties(self, entity_id=None, entity_definition_keyname=None, dataproperty=None, full_definition=False, only_public=False):
         """
         Get Entity properties. entity_id can be single ID or list of IDs.
-
+        * full_definition - All metadata for entity and properties is fetched, if True
         """
         items = None
         if entity_id:
@@ -788,7 +790,16 @@ class Entity():
     def get_relatives(self, ids_only=False, relationship_ids_only=False, entity_id=None, related_entity_id=None, relationship_definition_keyname=None, reverse_relation=False, entity_definition_keyname=None, full_definition=False, limit=None, only_public=False):
         """
         Get Entity relatives.
-
+        * ids_only, relationship_ids_only - return only respective id's if True; return full info by default (False, False).
+          (True, True) is interpreted as (True, False)
+        * entity_id - find only relations for these entities
+        * related_entity_id - find only relations for these related entities
+        * relationship_definition_keyname - find only relations with these relationship types
+        * reverse_relation - obsolete. Just give related_entity_id instead of entity_id
+        * entity_definition_keyname - find only relations with entities of these entity types
+        * full_definition - parameter gets forwarded to Entity.__get_properties
+        * limit - MySQL-specific limit
+        * only_public - if True then only public entities are fetched, othervise user rights are checked. Also gets forwarded to Entity.__get_properties
         """
         if entity_id:
             if type(entity_id) is not list:
@@ -834,6 +845,7 @@ class Entity():
                 AND rights.entity_id = entity.id
                 AND relationship.deleted IS NULL
             """
+
         if entity_id:
             sql += ' AND relationship.entity_id IN (%s)' % ','.join(map(str, entity_id))
 

@@ -245,6 +245,11 @@ class DeleteFile(myRequestHandler):
         """
         Delete file.
 
+        Mandatory arguments:
+        - property_id
+        - entity_id
+
+        Find entity by id and change file property (by id) to None.
         """
         property_id = self.get_argument('property_id', None, True)
         entity_id = self.get_argument('entity_id', None, True)
@@ -255,7 +260,6 @@ class DeleteFile(myRequestHandler):
             return self.missing()
 
         entity.set_property(entity_id=entity_id, property_id=property_id)
-
 
 
 class ShareByEmail(myRequestHandler):
