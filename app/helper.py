@@ -70,7 +70,7 @@ class myRequestHandler(RequestHandler):
             return
 
         if not user.picture:
-            user.picture = 'http://www.gravatar.com/avatar/%s?d=monsterid' % (hashlib.md5(user.email).hexdigest())
+            user.picture = 'https://secure.gravatar.com/avatar/%s?d=wavatar&s=100' % (hashlib.md5(user.email).hexdigest())
             user['picture'] = user.picture
 
         return user
