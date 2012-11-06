@@ -81,7 +81,7 @@ class Entity():
                 related_entity_id,
                 created_by,
                 created
-            ) SELECT
+            ) SELECT /* SQL_NO_CACHE */
                 'child',
                 related_entity_id,
                 %s,
@@ -212,6 +212,7 @@ class Entity():
             property_id,
         )
 
+        new_property_id = None
         if value:
             if entity_id:
                 new_property_id = self.db.execute_lastrowid('INSERT INTO property SET entity_id = %%s, property_definition_keyname = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
@@ -507,7 +508,7 @@ class Entity():
             if dataproperty:
                 if type(dataproperty) is not list:
                     dataproperty = [dataproperty]
-                    datapropertysql = 'AND property_definition.dataproperty IN (%s)' % ','.join(['\'%s\'' % x for x in dataproperty])
+                datapropertysql = 'AND property_definition.dataproperty IN (%s)' % ','.join(['\'%s\'' % x for x in dataproperty])
 
             sql = """
                 SELECT
