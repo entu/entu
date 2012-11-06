@@ -136,7 +136,6 @@ class DownloadFile(myRequestHandler):
         self.write(file.file)
 
 
-
 class ShowEntityEdit(myRequestHandler):
     @web.authenticated
     def get(self, entity_id=None):
@@ -228,7 +227,9 @@ class SaveEntity(myRequestHandler):
             value = True if value.lower() == 'true' else False
             value = entity.set_public(entity_id=entity_id, is_public=value)
         else:
-            property_id = entity.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value=value, property_id=property_id, uploaded_file=uploaded_file)
+            if uploaded_file:
+                value = uploaded_file
+            property_id = entity.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value=value, property_id=property_id)
 
         self.write({
             'entity_id': entity_id,
@@ -236,6 +237,26 @@ class SaveEntity(myRequestHandler):
             'value_id': property_id,
             'value': uploaded_file['filename'] if uploaded_file else value
         })
+
+
+class DeleteFile(myRequestHandler):
+    @web.authenticated
+    def post(self, file_id=None):
+        """
+        Delete file.
+
+        """
+        property_id = self.get_argument('property_id', None, True)
+        entity_id = self.get_argument('entity_id', None, True)
+
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
+        item = entity.get(entity_id=entity_id, limit=1)
+        if not item:
+            return self.missing()
+
+        entity.set_property(entity_id=entity_id, property_id=property_id)
+
+
 
 class ShareByEmail(myRequestHandler):
     @web.authenticated
@@ -289,6 +310,7 @@ class ShowHTMLproperty(myRequestHandler):
 handlers = [
     (r'/entity/save', SaveEntity),
     (r'/entity/file-(.*)', DownloadFile),
+    (r'/entity/delete-file', DeleteFile),
     (r'/entity-(.*)/listinfo', ShowListinfo),
     (r'/entity-(.*)/edit', ShowEntityEdit),
     (r'/entity-(.*)/relate', ShowEntityRelate),

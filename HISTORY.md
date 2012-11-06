@@ -1,3 +1,11 @@
+## 2012-10-30
+* Delete files from file properties
+
+## 2012-10-17
+* Changelog - All property changes are logged
+* Option to open entiy after add (or stay on parent entity)
+* Option to show add button in Entity list view (if default parent is set)
+
 ## 2012-10-08
 * Bugfixes
 

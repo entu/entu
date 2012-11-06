@@ -23,6 +23,8 @@ search_result_count2,Found %s
 boolean_true,Yes
 boolean_false,No
 
+confirm_file_delete,You are deleting file: %s
+
 counter_generate_value,Generate number
 
 public,Public

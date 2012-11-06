@@ -171,10 +171,13 @@ class Entity():
         if not entity_id and not relationship_id:
             return
 
-        if not property_definition_keyname:
+        # property_definition_keyname is preferred because it could change for existing property
+        if property_definition_keyname:
+            definition = self.db.get('SELECT datatype FROM property_definition WHERE keyname = %s LIMIT 1;', property_definition_keyname)
+        elif property_id:
+            definition = self.db.get('SELECT pd.datatype FROM property p LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname WHERE p.id = %s;', property_id)
+        else:
             return
-
-        definition = self.db.get('SELECT datatype FROM property_definition WHERE keyname = %s LIMIT 1;', property_definition_keyname)
 
         if not definition:
             return
@@ -193,8 +196,8 @@ class Entity():
         elif definition.datatype == 'datetime':
             field = 'value_datetime'
         elif definition.datatype == 'file':
-            value = 0
-            if uploaded_file:
+            if value:
+                uploaded_file = value
                 value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], uploaded_file['body'], self.created_by)
             field = 'value_file'
         elif definition.datatype == 'boolean':
@@ -945,22 +948,23 @@ class Entity():
         """
         sql = """
             SELECT DISTINCT
-                entity_definition.keyname,
-                entity_definition.%(language)s_label AS label,
-                entity_definition.%(language)s_label_plural AS label_plural,
-                entity_definition.%(language)s_description AS description,
-                entity_definition.%(language)s_menu AS menugroup
+                ed.keyname,
+                ed.%(language)s_label AS label,
+                ed.%(language)s_label_plural AS label_plural,
+                ed.%(language)s_description AS description,
+                ed.%(language)s_menu AS menugroup
             FROM
-                entity_definition,
-                relationship
-            WHERE relationship.related_entity_definition_keyname = entity_definition.keyname
-            AND relationship.relationship_definition_keyname = 'allowed-child'
-            AND relationship.entity_id = %(id)s
-        """  % {'language': self.language, 'id': entity_id}
+                relationship r
+                LEFT JOIN entity_definition ed ON r.related_entity_definition_keyname = ed.keyname
+            WHERE r.relationship_definition_keyname = 'allowed-child'
+            AND r.entity_id = %(id)s
+            ORDER BY ed.keyname        """  % {'language': self.language, 'id': entity_id}
         # logging.debug(sql)
 
         result = self.db.query(sql)
         if result:
+            if not result[0].keyname:
+                return []
             return result
 
         sql = """
