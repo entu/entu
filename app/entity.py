@@ -262,6 +262,29 @@ class DeleteFile(myRequestHandler):
         entity.set_property(entity_id=entity_id, property_id=property_id)
 
 
+class DeleteEntity(myRequestHandler):
+    @web.authenticated
+    def post(self, id=None):
+        """
+        Delete whole entity.
+        Also recursively delete its childs
+
+        Mandatory arguments:
+        - entity_id
+
+        1. Find childs by parent entity id and call DeleteEntity on them
+        2. Mark entity's deleted property to current time and deleted_by to current user's id.
+        """
+        entity_id = self.get_argument('entity_id', None, True)
+        user_id = self.current_user.id
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=user_id)
+        item = entity.get(entity_id=entity_id, limit=1)
+        if not item:
+            return self.missing()
+
+        entity.delete_recursively(entity_id, user_id)
+
+
 class ShareByEmail(myRequestHandler):
     @web.authenticated
     def get(self,  entity_id=None):
@@ -315,6 +338,7 @@ handlers = [
     (r'/entity/save', SaveEntity),
     (r'/entity/file-(.*)', DownloadFile),
     (r'/entity/delete-file', DeleteFile),
+    (r'/entity/delete-entity', DeleteEntity),
     (r'/entity-(.*)/listinfo', ShowListinfo),
     (r'/entity-(.*)/edit', ShowEntityEdit),
     (r'/entity-(.*)/relate', ShowEntityRelate),
