@@ -1097,7 +1097,7 @@ class Entity():
         for child_id in self.get_relatives(ids_only=True, entity_id=entity_id, relationship_definition_keyname='child'):
             self.delete_recursively(child_id, self.user_id)
 
-        self.db.execute('UPDATE entity SET deleted = NOW(), deleted_by = %s WHERE id = %s;', self.user_id, entity_id)
+        self.db.execute('UPDATE entity SET deleted = NOW(), deleted_by = %s WHERE id = %s;', self.created_by, entity_id)
 
 
 
