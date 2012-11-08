@@ -113,7 +113,13 @@ class Entity():
                 relationship AS r
             WHERE r.relationship_definition_keyname IN ('leecher', 'viewer', 'editor', 'owner')
             AND r.deleted IS NULL
-            AND r.entity_id = %s;
+            AND r.entity_id IN (
+                SELECT DISTINCT entity_id
+                FROM relationship
+                WHERE deleted IS NULL
+                AND related_entity_id = %s
+                AND relationship_definition_keyname = 'child'
+            );
         """
         # logging.debug(sql)
         self.db.execute(sql, entity_id, self.created_by, parent_entity_id)
@@ -753,7 +759,7 @@ class Entity():
             WHERE property_definition.keyname=property.property_definition_keyname
             AND f.id = property.value_file
             AND property_definition.dataproperty='photo'
-            AND property.entity_id=%s
+            AND property.entity_id = %s
             AND property.deleted IS NULL
             LIMIT 1;
         """
@@ -1075,8 +1081,8 @@ class Entity():
             AND entity.deleted IS NULL
             AND relationship.deleted IS NULL
             ORDER BY
-            entity_definition.estonian_menu,
-            entity_definition.estonian_label;
+                entity_definition.estonian_menu,
+                entity_definition.estonian_label;
         """ % {'language': self.language, 'user_id': ','.join(map(str, self.user_id))}
         # logging.debug(sql)
 
@@ -1087,11 +1093,11 @@ class Entity():
 
         return sorted(menu.values(), key=itemgetter('label'))
 
-    def delete_recursively(self, entity_id, user_id):
+    def delete(self, entity_id):
         for child_id in self.get_relatives(ids_only=True, entity_id=entity_id, relationship_definition_keyname='child'):
-            self.delete_recursively(child_id, user_id)
+            self.delete_recursively(child_id, self.user_id)
 
-        self.db.execute('UPDATE entity SET deleted = NOW(), deleted_by = %s WHERE id = %s;', user_id, entity_id)
+        self.db.execute('UPDATE entity SET deleted = NOW(), deleted_by = %s WHERE id = %s;', self.user_id, entity_id)
 
 
 

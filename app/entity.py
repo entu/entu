@@ -250,6 +250,7 @@ class DeleteFile(myRequestHandler):
         - entity_id
 
         Find entity by id and change file property (by id) to None.
+
         """
         property_id = self.get_argument('property_id', None, True)
         entity_id = self.get_argument('entity_id', None, True)
@@ -274,15 +275,16 @@ class DeleteEntity(myRequestHandler):
 
         1. Find childs by parent entity id and call DeleteEntity on them
         2. Mark entity's deleted property to current time and deleted_by to current user's id.
+
         """
         entity_id = self.get_argument('entity_id', None, True)
-        user_id = self.current_user.id
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=user_id)
+
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
         item = entity.get(entity_id=entity_id, limit=1)
         if not item:
             return self.missing()
 
-        entity.delete_recursively(entity_id, user_id)
+        entity.delete(entity_id)
 
 
 class ShareByEmail(myRequestHandler):
