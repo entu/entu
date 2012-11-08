@@ -1,5 +1,9 @@
+## 2012-11-08
+* Mark Entities as deleted
+* Bugfixes
+
 ## 2012-10-30
-* Delete files from file properties
+* Mark files (from file properties) as deleted
 
 ## 2012-10-17
 * Changelog - All property changes are logged
