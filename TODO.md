@@ -1,7 +1,6 @@
 ## ToDo
 
 * Calculation (formula) fields
-* Upload multiple files
 * Separate login page
 * Show Entity.displaycount
 * Show all entities in search (not first 303)
