@@ -1,3 +1,6 @@
+## 2012-11-09
+* Multiple file upload
+
 ## 2012-11-08
 * Mark Entities as deleted
 * Bugfixes
