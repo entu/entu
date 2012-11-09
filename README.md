@@ -1,6 +1,6 @@
 # Entu
 
-_Futuristic Data Management System with emphasis on educational institutions_
+_Futuristic Data Management System_
 
 
 ## Key features
@@ -52,21 +52,3 @@ _Futuristic Data Management System with emphasis on educational institutions_
 * [jQuery](http://jquery.com/) + [jQuery UI](http://jqueryui.com/)
 * [Elastic](http://unwrongest.com/projects/elastic/)
 * [Datejs](http://www.datejs.com/)
-
-
-## ToDo
-
-* Calculation (formula) fields
-* Show Entity.displaycount
-* Show all entities in search (not first 303)
-* Replace [tornadomail](https://github.com/equeny/tornadomail) with better email library
-* Custom Entity actions
-* Favorite entities
-* Recently viewed/changed entities
-* Separate login page
-* Invite person to become user
-* Customizable table fields by user (visibility, sort)
-* Find duplicate Entities and propose merger
-* Option to ask permission (send message to owner) to Entity if access denied
-* Relation definition based Entity.displaytable
-* ...
