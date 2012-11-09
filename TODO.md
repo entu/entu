@@ -1,6 +1,6 @@
 ## ToDo
 
-* Calculation (formula) fields
+1. Calculation (formula) fields
 * Separate login page
 * Show Entity.displaycount
 * Show all entities in search (not first 303)
