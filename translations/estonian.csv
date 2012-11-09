@@ -24,8 +24,8 @@ boolean_true,Jah
 boolean_false,Ei
 
 entity_delete,Kustuta
-confirm_entity_delete,%s ja selle alamad kustutatakse.
-confirm_file_delete,Kustutada fail: %s
+confirm_entity_delete,'%s' ja kõik selle alamosad kustutatakse.
+confirm_file_delete,Fail '%s' kustutatakse.
 
 counter_generate_value,Genereeri number
 

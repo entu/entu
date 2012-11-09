@@ -23,9 +23,9 @@ search_result_count2,Found %s
 boolean_true,Yes
 boolean_false,No
 
-entity_delete,Delete entity
-confirm_entity_delete,You are deleting entity %s and its childs
-confirm_file_delete,You are deleting file: %s
+entity_delete,Delete
+confirm_entity_delete,'%s' and all its childs will be deleted.
+confirm_file_delete,File '%s' will be deleted
 
 counter_generate_value,Generate number
 
