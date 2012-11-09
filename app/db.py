@@ -122,7 +122,7 @@ class Entity():
             );
         """
         # logging.debug(sql)
-        self.db.execute(sql, entity_id, self.created_by, parent_entity_id)
+        self.db.execute(sql, entity_id, self.created_by, entity_id)
 
         # Propagate properties
         sql = """

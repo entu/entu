@@ -215,7 +215,7 @@ class SaveEntity(myRequestHandler):
         value                       = self.get_argument('value', default=None, strip=True)
         is_counter                  = self.get_argument('counter', default='false', strip=True)
         is_public                   = self.get_argument('is_public', default='false', strip=True)
-        uploaded_file               = self.request.files.get('file', [])[0] if self.request.files.get('file', None) else None
+        uploaded_file               = self.request.files.get('file', []) if self.request.files.get('file', None) else None
 
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
         if not entity_id and parent_entity_id and entity_definition_keyname:
@@ -229,13 +229,17 @@ class SaveEntity(myRequestHandler):
         else:
             if uploaded_file:
                 value = uploaded_file
-            property_id = entity.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value=value, property_id=property_id)
+
+            if type(value) is not list:
+                value = [value]
+            for v in value:
+                new_property_id = entity.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value=v, property_id=property_id)
 
         self.write({
             'entity_id': entity_id,
             'property_definition_keyname': property_definition_keyname,
-            'value_id': property_id,
-            'value': uploaded_file['filename'] if uploaded_file else value
+            'value_id': new_property_id,
+            'value': ', '.join([x['filename'] for x in uploaded_file]) if uploaded_file else value
         })
 
 

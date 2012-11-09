@@ -62,7 +62,7 @@
                                         <input type="hidden" name="parent_entity_id" value="{{ parent_entity_id }}" />
                                         <input type="hidden" name="entity_definition_keyname" value="{{ entity_definition_keyname }}" />
                                         <input type="hidden" name="property_definition_keyname" value="{{ p['keyname'] }}" />
-                                        <input type="file" name="file" class="dtype-{{ p['datatype'] }}" style="border:none; width:80px; margin-bottom:4px;" />
+                                        <input type="file" name="file" class="dtype-{{ p['datatype'] }}" style="border:none; width:100%; margin-bottom:4px;" multiple />
                                     </form>
                                 {% else %}
                                     <div class="delete-file-row"><a href="/entity/file-{{ v['db_value'] }}">{{ v['value'] }}</a> <a href="javascript:void(0);" data-property_id="{{ v['id'] }}" class="delete-file" style="float:right; display:none;"><i class="icon-trash" style="color:red;"></i></a></div>
