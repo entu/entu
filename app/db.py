@@ -673,6 +673,9 @@ class Entity():
                 elif row.property_datatype == 'counter-value':
                     db_value = row.value_string
                     value = row.value_string
+                elif row.property_datatype == 'dynamic':
+                    db_value = row.value_string
+                    value = self.parse_formula(row.entity_id, row.value_string)
                 else:
                     db_value = ''
                     value = 'X'
@@ -754,6 +757,9 @@ class Entity():
             self.db.execute('UPDATE entity SET sort = LEFT(%s, 100) WHERE id = %s', result['sort'], entity_dict.get('id'))
 
         return result
+
+    def parse_formula(self, entity_id, formula):
+        return 'MATH(%s)' % formula
 
     def __get_picture_url(self, entity_id):
         """
