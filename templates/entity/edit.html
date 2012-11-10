@@ -28,7 +28,7 @@
                         <h6{%if p['public'] %} style="color:black;"{% end %}>{%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}</h6>
                     </th>
                     <td style="padding-bottom:0px; vertical-align:middle;">
-                        {% if p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal'] %}
+                        {% if p['datatype'] in ['string', 'dynamic', 'datetime', 'date', 'integer', 'decimal'] %}
                             {% if p.get('select', None) %}
                                 {% for v in p['values'] %}
                                     <select class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" style="width:100%; margin-bottom:4px;">
