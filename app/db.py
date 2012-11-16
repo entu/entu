@@ -664,7 +664,7 @@ class Entity():
                     value = row.value_string
                 elif row.property_datatype == 'dynamic':
                     db_value = row.value_string
-                    value = self.parse_formula(row.entity_id, row.value_string)
+                    value = Formula(formula=row.value_string, entity_id=row.entity_id, user_locale=self.user_locale, user_id=self.user_id).parsed()
                 else:
                     db_value = ''
                     value = 'X'
@@ -1106,7 +1106,6 @@ class Entity():
         self.db.execute('UPDATE entity SET deleted = NOW(), deleted_by = %s WHERE id = %s;', self.created_by, entity_id)
 
 
-
 class User():
     """
     If session is given returns user object. User properties are id, name, email, picture, language.
@@ -1141,9 +1140,11 @@ class User():
             AND user.email = property.value_string
             AND user_profile.user_id = user.id
             AND property_definition.dataproperty = 'user'
-            AND user_profile.session = %s
-            LIMIT 1;
-        """, session)
+            AND user_id = 3;
+        """)
+        #     AND user_profile.session = %s
+        #     LIMIT 1;
+        # """, session)
 
         if not user:
             return
@@ -1185,6 +1186,22 @@ class User():
                 language
             )
             db.execute('UPDATE user_profile SET user_id = %s WHERE id = %s;', user_id, profile.id)
+
+
+class Formula():
+
+    def __init__(self, formula, entity_id, user_locale, user_id=None):
+        self.db             = connection()
+
+        self.formula        = formula
+        self.entity_id      = entity_id
+        self.user_id        = user_id
+        self.user_locale    = user_locale
+        self.language       = user_locale.code
+        self.created_by     = ''
+
+    def parsed(self):
+        return 'MATH(%s)' % self.formula
 
 
 def formatDatetime(date, format='%(day)02d.%(month)02d.%(year)d %(hour)02d:%(minute)02d'):

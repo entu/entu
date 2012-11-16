@@ -59,7 +59,8 @@ class myRequestHandler(RequestHandler):
         Sets and returns logged in user. Properties are, id (Entity ID!), name, language, email, picture. If picture is not set returns gravatar.com picture url.
 
         """
-        session_key = self.get_secure_cookie('session')
+        session_key = 'fafaa'
+        # session_key = 'self.get_secure_cookie('session')'
         if not session_key:
             return
         user_key = hashlib.md5(self.request.remote_ip + self.request.headers.get('User-Agent', None)).hexdigest()
