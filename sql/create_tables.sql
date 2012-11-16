@@ -300,3 +300,18 @@ CREATE TABLE `property` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
 
+CREATE TABLE `dag_entity` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `entity_id` int(11) unsigned DEFAULT NULL,
+  `related_entity_id` int(11) unsigned DEFAULT NULL,
+  `created` datetime DEFAULT NULL,
+  `created_by` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `deleted` datetime DEFAULT NULL,
+  `deleted_by` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ed_fk_e` (`entity_id`),
+  KEY `ed_fk_re` (`related_entity_id`),
+  CONSTRAINT `ed_fk_e` FOREIGN KEY (`entity_id`) REFERENCES `entity` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `ed_fk_re` FOREIGN KEY (`related_entity_id`) REFERENCES `entity` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
+
