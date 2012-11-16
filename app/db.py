@@ -91,16 +91,10 @@ class Entity():
                 %s,
                 %s,
                 NOW()
-<<<<<<< HEAD
             FROM relationship AS r
             WHERE r.relationship_definition_keyname = 'default-parent'
             AND r.deleted IS NULL
             AND r.entity_definition_keyname = %s;
-=======
-            FROM relationship
-            WHERE relationship_definition_keyname = 'default-parent'
-            AND entity_definition_keyname = %s;
->>>>>>> Create entyty with default parent bug fixed
         """
         # logging.debug(sql)
         self.db.execute(sql, entity_id, self.created_by, entity_definition_keyname)
@@ -675,7 +669,7 @@ class Entity():
                     value = row.value_string
                 elif row.property_datatype == 'dynamic':
                     db_value = row.value_string
-                    value = self.parse_formula(row.entity_id, row.value_string)
+                    value = Formula(formula=row.value_string, entity_id=row.entity_id, user_locale=self.user_locale, user_id=self.user_id).parsed()
                 else:
                     db_value = ''
                     value = 'X'
@@ -1113,7 +1107,6 @@ class Entity():
         self.db.execute('UPDATE entity SET deleted = NOW(), deleted_by = %s WHERE id = %s;', self.created_by, entity_id)
 
 
-
 class User():
     """
     If session is given returns user object. User properties are id, name, email, picture, language.
@@ -1193,6 +1186,22 @@ class User():
         request_handler.set_secure_cookie('session', session_key)
 
         return session_key
+
+
+class Formula():
+
+    def __init__(self, formula, entity_id, user_locale, user_id=None):
+        self.db             = connection()
+
+        self.formula        = formula
+        self.entity_id      = entity_id
+        self.user_id        = user_id
+        self.user_locale    = user_locale
+        self.language       = user_locale.code
+        self.created_by     = ''
+
+    def parsed(self):
+        return 'MATH(%s)' % self.formula
 
 
 def formatDatetime(date, format='%(day)02d.%(month)02d.%(year)d %(hour)02d:%(minute)02d'):
