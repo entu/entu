@@ -1140,11 +1140,9 @@ class User():
             AND user.email = property.value_string
             AND user_profile.user_id = user.id
             AND property_definition.dataproperty = 'user'
-            AND user_id = 3;
-        """)
-        #     AND user_profile.session = %s
-        #     LIMIT 1;
-        # """, session)
+            AND user_profile.session = %s
+            LIMIT 1;
+        """, session)
 
         if not user:
             return
