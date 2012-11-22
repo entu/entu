@@ -104,22 +104,17 @@ class Entity():
                 created_by,
                 created
             ) SELECT /* SQL_NO_CACHE */
-                r.relationship_definition_keyname,
+                rr.relationship_definition_keyname,
                 %s,
-                r.related_entity_id,
+                rr.related_entity_id,
                 %s,
                 NOW()
-            FROM
-                relationship AS r
-            WHERE r.relationship_definition_keyname IN ('leecher', 'viewer', 'editor', 'owner')
-            AND r.deleted IS NULL
-            AND r.entity_id IN (
-                SELECT DISTINCT entity_id
-                FROM relationship
-                WHERE deleted IS NULL
-                AND related_entity_id = %s
-                AND relationship_definition_keyname = 'child'
-            );
+            FROM      relationship r
+            LEFT JOIN relationship rr ON rr.entity_id = r.entity_id
+            WHERE     r.deleted IS NULL
+            AND       r.related_entity_id = %s
+            AND       r.relationship_definition_keyname = 'child'
+            AND       rr.relationship_definition_keyname IN ('leecher', 'viewer', 'editor', 'owner' );
         """
         # logging.debug(sql)
         self.db.execute(sql, entity_id, self.created_by, entity_id)
