@@ -1,7 +1,8 @@
 from tornado import auth, web
-
+from StringIO import StringIO
 import logging
 import magic
+import zipfile
 
 import db
 from helper import *
@@ -112,28 +113,40 @@ class ShowEntity(myRequestHandler):
 
 class DownloadFile(myRequestHandler):
     @web.authenticated
-    def get(self, file_id=None, url=None):
+    def get(self, file_ids=None, url=None):
         """
         Download file.
 
         """
-        try:
-            file_id = int(file_id.split('/')[0])
-        except:
+        file_ids = file_ids.split('/')[0]
+        files = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get_file(file_ids)
+
+        if not files:
+            return self.missing()
+        if len(files) < 1:
             return self.missing()
 
-        file = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get_file(file_id)
-        if not file:
-            return self.missing()
-
-        ms = magic.open(magic.MAGIC_MIME)
-        ms.load()
-        mime = ms.buffer(file.file)
-        ms.close()
+        if len(files) > 1:
+            f = StringIO()
+            zf = zipfile.ZipFile(f, 'w', zipfile.ZIP_DEFLATED)
+            for file in files:
+                zf.writestr(file.filename, file.file)
+            zf.close()
+            mime = 'application/octet-stream'
+            filename = '%s.zip' % file_ids
+            outfile = f.getvalue()
+        else:
+            file = files[0]
+            ms = magic.open(magic.MAGIC_MIME)
+            ms.load()
+            mime = ms.buffer(file.file)
+            ms.close()
+            filename = file.filename
+            outfile = file.file
 
         self.add_header('Content-Type', mime)
-        self.add_header('Content-Disposition', 'attachment; filename="%s"' % file.filename)
-        self.write(file.file)
+        self.add_header('Content-Disposition', 'attachment; filename="%s"' % filename)
+        self.write(outfile)
 
 
 class ShowEntityEdit(myRequestHandler):
