@@ -1213,14 +1213,6 @@ class Formula():
         self.language       = user_locale.code
         self.created_by     = ''
 
-    # mdbg() is for regex debugging
-    # re.sub(r"([^{]*){([^{}]*)}|(.*?)$", self.mdbg, self.formula)
-    def mdbg(self, matchobj):
-        for m in matchobj.groups():
-            if m:
-                logging.debug(m)
-
-
     def evaluate(self):
         if not self.formula:
             return ''
@@ -1230,7 +1222,7 @@ class Formula():
             if m[0]:
                 self.value.append(m[0])
             if m[1]:
-                self.value.append('<i>%s</i>' % ','.join(map(str, FExpression(m[1], self.entity_id).value)))
+                self.value.append('%s' % ','.join(map(str, FExpression(m[1], self.entity_id).value)))
             if m[2]:
                 self.value.append(m[2])
 
@@ -1248,6 +1240,8 @@ class FExpression():
         if not self.parcheck():
             self.value = "ERROR"
             return self.value
+
+        re.sub(r"(.*?)([A-Z]+)\(([^\)]*)\)", mdbg, self.xpr)
 
         for m in re.findall(r"(.*?)([A-Z]+)\(([^\)]*)\)",self.xpr):
             self.value.append('%s%s' % (m[0], self.evalfunc(m[1], m[2])))
@@ -1272,61 +1266,116 @@ class FExpression():
         FFunc = {
             'SUM' : self.FE_sum,
             'COUNT' : self.FE_count,
+            'AVERAGE' : self.FE_average,
         }
         # logging.debug(FFunc[fname](self.fetch_path_from_db(path)))
         return FFunc[fname](self.fetch_path_from_db(path))
 
     def FE_sum(self, items):
-        return fsum(items)
+        return 30.3
+
+    def FE_average(self, items):
+        return 30.3
+        # math.fsum(items)
 
     def FE_count(self, items):
         return len(items)
 
     def fetch_path_from_db(self, path):
         tokens = re.split('\.', path)
+        logging.debug(tokens)
 
-        if len(tokens) != 4:
+        if len(tokens) < 2:
             return []
 
         if tokens[0] == 'self':
             tokens[0] = self.entity_id
+
+        if len(tokens) == 2:
+            if tokens[1] == '':
+                tokens[1] = 'id'
+
+            sql = 'SELECT ifnull(p.value_decimal, ifnull(p.value_string, ifnull(p.value_text, ifnull(p.value_integer, ifnull(p.value_datetime, ifnull(p.value_boolean, p.value_file)))))) as value'
+            if tokens[1] == 'id':
+                sql = 'SELECT e.id as value'
+
+            sql += """
+                FROM entity e
+            """
+
+            if tokens[1] != 'id':
+                sql += """
+                    LEFT JOIN property p ON p.entity_id = e.id
+                    LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+                """
+
+            sql += """
+                WHERE e.id = %(entity_id)s
+                AND e.deleted IS NULL
+            """  % {'entity_id': self.entity_id}
+
+            if tokens[1] != 'id':
+                sql += """
+                    AND p.deleted IS NULL
+                    AND pd.dataproperty = '%(pdk)s'
+                """ % {'pdk': tokens[1]}
+
+            logging.debug(sql)
+
+            return self.db.query(sql)
+
+
+        if len(tokens) != 4:
+            return []
+
         if tokens[3] == '':
             tokens[3] = 'id'
 
-        # logging.debug(tokens)
-
-        sql = 'SELECT ifnull(value_decimal, ifnull(value_string, ifnull(value_text, ifnull(value_integer, ifnull(value_datetime, ifnull(value_boolean, value_file)))))) as value'
+        sql = 'SELECT ifnull(p.value_decimal, ifnull(p.value_string, ifnull(p.value_text, ifnull(p.value_integer, ifnull(p.value_datetime, ifnull(p.value_boolean, p.value_file)))))) as value'
         if tokens[3] == 'id':
             sql = 'SELECT re.id as value'
 
+        _entity = 'entity'
+        _related_entity = 'related_entity'
+        if tokens[1][:1] == '-':
+            _entity = 'related_entity'
+            _related_entity = 'entity'
+            tokens[1] = tokens[1][1:]
+
         sql += """
             FROM entity e
-            LEFT JOIN relationship r ON r.entity_id = e.id
-            LEFT JOIN entity re ON re.id = r.related_entity_id
-        """
+            LEFT JOIN relationship r ON r.%(entity)s_id = e.id
+            LEFT JOIN entity re ON re.id = r.%(related_entity)s_id
+        """ % {'entity': _entity, 'related_entity': _related_entity}
 
         if tokens[3] != 'id':
-            sql += 'LEFT JOIN property p ON p.entity_id = re.id'
+            sql += """
+                LEFT JOIN property p ON p.entity_id = re.id
+                LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+            """
 
         sql += """
             WHERE e.id = %(entity_id)s
             AND r.relationship_definition_keyname = '%(rdk)s'
-            AND re.entity_definition_keyname = '%(edk)s'
             AND re.deleted IS NULL
             AND e.deleted IS NULL
             AND r.deleted IS NULL
-        """  % {'entity_id': self.entity_id, 'rdk': tokens[1], 'edk': tokens[2]}
+        """  % {'entity_id': self.entity_id, 'rdk': tokens[1]}
+
+        if tokens[2] != '*':
+            sql += """
+                AND re.entity_definition_keyname = '%(edk)s'
+            """  % {'edk': tokens[2]}
 
         if tokens[3] != 'id':
             sql += """
                 AND p.deleted IS NULL
-                AND p.property_definition_keyname = '%(edk)s-%(pdk)s'
-            """ % {'edk': tokens[2], 'pdk': tokens[3]}
+                AND pd.dataproperty = '%(pdk)s'
+            """ % {'pdk': tokens[3]}
 
         # logging.debug(sql)
 
         return self.db.query(sql)
-
 
     def parcheck(self):
         return True
@@ -1351,6 +1400,7 @@ class FExpression():
         else:
             return False
 
+
 class Stack:
     def __init__(self):
         self.items = []
@@ -1364,6 +1414,13 @@ class Stack:
         return self.items[len(self.items)-1]
     def size(self):
         return len(self.items)
+
+
+def mdbg(matchobj):
+    # mdbg() is for regex match object debugging.
+    #   i.e: re.sub(r"([^{]*){([^{}]*)}|(.*?)$", mdbg, self.formula)
+    for m in matchobj.groups():
+        logging.debug(m)
 
 
 def formatDatetime(date, format='%(day)02d.%(month)02d.%(year)d %(hour)02d:%(minute)02d'):
