@@ -40,7 +40,7 @@
                                 {% end %}
                             {% else %}
                                 {% for v in p['values'] %}
-                                    <input type="text" class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['value'] }}" value="{{ v['value'] }}" style="width:98%; margin-bottom:4px;" />
+                                    <input type="text" class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" value="{{ v['db_value'] }}" style="width:98%; margin-bottom:4px;" />
                                 {% end %}
                             {% end %}
                         {% elif p['datatype'] in ['text', 'html'] %}
