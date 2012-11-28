@@ -8,6 +8,7 @@ from datetime import datetime
 import logging
 import hashlib
 import re
+import math
 
 
 def connection():
@@ -184,14 +185,19 @@ class Entity():
 
         # property_definition_keyname is preferred because it could change for existing property
         if property_definition_keyname:
-            definition = self.db.get('SELECT datatype FROM property_definition WHERE keyname = %s LIMIT 1;', property_definition_keyname)
+            definition = self.db.get('SELECT datatype, formula FROM property_definition WHERE keyname = %s LIMIT 1;', property_definition_keyname)
         elif property_id:
-            definition = self.db.get('SELECT pd.datatype FROM property p LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname WHERE p.id = %s;', property_id)
+            definition = self.db.get('SELECT pd.datatype, pd.formula FROM property p LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname WHERE p.id = %s;', property_id)
         else:
             return
 
         if not definition:
             return
+
+        if definition.formula == 1:
+            value_formula = value
+            evaluated = Formula(formula=value, entity_id=entity_id, user_locale=self.user_locale, user_id=self.user_id).evaluate()
+            value = ''.join(evaluated)
 
         if definition.datatype in ['text', 'html']:
             field = 'value_text'
@@ -235,6 +241,11 @@ class Entity():
                     value,
                     self.created_by
                 )
+
+                if definition.formula == 1:
+                    self.db.execute('UPDATE property SET value_formula = %%s WHERE id = %s;' % new_property_id, value_formula)
+
+            # Obsolete. We dont have relationship properties any more.
             if relationship_id:
                 new_property_id = self.db.execute_lastrowid('INSERT INTO property SET relationship_id = %%s, property_definition_keyname = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
                     relationship_id,
@@ -553,6 +564,8 @@ class Entity():
                     entity.sort                                     AS entity_sort_value,
                     property_definition.keyname                     AS property_keyname,
                     property_definition.ordinal                     AS property_ordinal,
+                    property_definition.formula                     AS property_formula,
+                    property_definition.executable                  AS property_executable,
                     property_definition.%(language)s_fieldset       AS property_fieldset,
                     property_definition.%(language)s_label          AS property_label,
                     property_definition.%(language)s_label_plural   AS property_label_plural,
@@ -564,6 +577,7 @@ class Entity():
                     property_definition.public                      AS property_public,
                     property.id                                     AS value_id,
                     property.id                                     AS value_ordinal,
+                    property.value_formula                          AS value_formula,
                     property.value_string                           AS value_string,
                     property.value_text                             AS value_text,
                     property.value_integer                          AS value_integer,
@@ -623,6 +637,8 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multilingual'] = row.property_multilingual
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multiplicity'] = row.property_multiplicity
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['ordinal'] = row.property_ordinal
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['formula'] = True if row.property_formula == 1 else False
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['executable'] = True if row.property_executable == 1 else False
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['public'] = True if row.property_public == 1 else False
 
                 #Value
@@ -662,12 +678,14 @@ class Entity():
                 elif row.property_datatype == 'counter-value':
                     db_value = row.value_string
                     value = row.value_string
-                elif row.property_datatype == 'dynamic':
-                    db_value = row.value_string
-                    value = Formula(formula=row.value_string, entity_id=row.entity_id, user_locale=self.user_locale, user_id=self.user_id).parsed()
                 else:
                     db_value = ''
                     value = 'X'
+
+                # Formula
+                if row.property_formula == 1:
+                    # value = '%s (%s)' % (value, row.value_formula)
+                    db_value = row.value_formula
 
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['id'] = row.value_id
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['ordinal'] = row.value_ordinal
@@ -746,9 +764,6 @@ class Entity():
             self.db.execute('UPDATE entity SET sort = LEFT(%s, 100) WHERE id = %s', result['sort'], entity_dict.get('id'))
 
         return result
-
-    def parse_formula(self, entity_id, formula):
-        return 'MATH(%s)' % formula
 
     def __get_picture_url(self, entity_id):
         """
@@ -1189,8 +1204,6 @@ class User():
 class Formula():
 
     def __init__(self, formula, entity_id, user_locale, user_id=None):
-        self.db             = connection()
-
         self.formula        = formula
         self.entity_id      = entity_id
         self.user_id        = user_id
@@ -1198,8 +1211,157 @@ class Formula():
         self.language       = user_locale.code
         self.created_by     = ''
 
-    def parsed(self):
-        return 'MATH(%s)' % self.formula
+    # mdbg() is for regex debugging
+    # re.sub(r"([^{]*){([^{}]*)}|(.*?)$", self.mdbg, self.formula)
+    def mdbg(self, matchobj):
+        for m in matchobj.groups():
+            if m:
+                logging.debug(m)
+
+
+    def evaluate(self):
+        if not self.formula:
+            return ''
+
+        self.value = []
+        for m in re.findall(r"([^{]*){([^{}]*)}|(.*?)$",self.formula):
+            if m[0]:
+                self.value.append(m[0])
+            if m[1]:
+                self.value.append('<i>%s</i>' % ','.join(map(str, FExpression(m[1], self.entity_id).value)))
+            if m[2]:
+                self.value.append(m[2])
+
+        return self.value
+
+
+class FExpression():
+
+    def __init__(self, xpr, entity_id):
+        self.db         = connection()
+        self.entity_id  = entity_id
+        self.xpr        = re.sub(' ', '', xpr)
+        self.value      = []
+
+        if not self.parcheck():
+            self.value = "ERROR"
+            return self.value
+
+        for m in re.findall(r"(.*?)([A-Z]+)\(([^\)]*)\)",self.xpr):
+            self.value.append('%s%s' % (m[0], self.evalfunc(m[1], m[2])))
+            # self.value.append('%s%s' % (m[0], ','.join(self.evalfunc(m[1], m[2]))))
+
+        if self.value == []:
+            _values = []
+            for row in self.fetch_path_from_db(self.xpr):
+                # logging.debug(row.value)
+                _values.append(row.value)
+
+            self.value = [', '.join(_values)]
+            # logging.debug(self.value)
+
+        # logging.debug(self.xpr)
+        # logging.debug(re.findall(r"(.*?)([A-Z]+)\(([^\)]*)\)",self.xpr))
+        # logging.debug(self.value)
+        # self.value = map(eval, self.value)
+        # logging.debug(self.value)
+
+    def evalfunc(self, fname, path):
+        FFunc = {
+            'SUM' : self.FE_sum,
+            'COUNT' : self.FE_count,
+        }
+        # logging.debug(FFunc[fname](self.fetch_path_from_db(path)))
+        return FFunc[fname](self.fetch_path_from_db(path))
+
+    def FE_sum(self, items):
+        return fsum(items)
+
+    def FE_count(self, items):
+        return len(items)
+
+    def fetch_path_from_db(self, path):
+        tokens = re.split('\.', path)
+
+        if len(tokens) != 4:
+            return []
+
+        if tokens[0] == 'self':
+            tokens[0] = self.entity_id
+        if tokens[3] == '':
+            tokens[3] = 'id'
+
+        # logging.debug(tokens)
+
+        sql = 'SELECT ifnull(value_decimal, ifnull(value_string, ifnull(value_text, ifnull(value_integer, ifnull(value_datetime, ifnull(value_boolean, value_file)))))) as value'
+        if tokens[3] == 'id':
+            sql = 'SELECT re.id as value'
+
+        sql += """
+            FROM entity e
+            LEFT JOIN relationship r ON r.entity_id = e.id
+            LEFT JOIN entity re ON re.id = r.related_entity_id
+        """
+
+        if tokens[3] != 'id':
+            sql += 'LEFT JOIN property p ON p.entity_id = re.id'
+
+        sql += """
+            WHERE e.id = %(entity_id)s
+            AND r.relationship_definition_keyname = '%(rdk)s'
+            AND re.entity_definition_keyname = '%(edk)s'
+            AND re.deleted IS NULL
+            AND e.deleted IS NULL
+            AND r.deleted IS NULL
+        """  % {'entity_id': self.entity_id, 'rdk': tokens[1], 'edk': tokens[2]}
+
+        if tokens[3] != 'id':
+            sql += """
+                AND p.deleted IS NULL
+                AND p.property_definition_keyname = '%(edk)s-%(pdk)s'
+            """ % {'edk': tokens[2], 'pdk': tokens[3]}
+
+        # logging.debug(sql)
+
+        return self.db.query(sql)
+
+
+    def parcheck(self):
+        return True
+        s = Stack()
+        balanced = True
+        index = 0
+        parenstr = re.search('([()])', self.xpr).join()
+        while index < len(parenstr) and balanced:
+            symbol = parenstr[index]
+            if symbol == "(":
+                s.push(symbol)
+            else:
+                if s.isEmpty():
+                    balanced = False
+                else:
+                    s.pop()
+
+            index = index + 1
+
+        if balanced and s.isEmpty():
+            return True
+        else:
+            return False
+
+class Stack:
+    def __init__(self):
+        self.items = []
+    def isEmpty(self):
+        return self.items == []
+    def push(self, item):
+        self.items.append(item)
+    def pop(self):
+        return self.items.pop()
+    def peek(self):
+        return self.items[len(self.items)-1]
+    def size(self):
+        return len(self.items)
 
 
 def formatDatetime(date, format='%(day)02d.%(month)02d.%(year)d %(hour)02d:%(minute)02d'):
