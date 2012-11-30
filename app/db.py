@@ -918,6 +918,9 @@ class Entity():
 
         """
 
+        if type(file_id) is not list:
+            file_id = [file_id]
+
         if self.user_id:
             public = ''
         else:
@@ -934,21 +937,14 @@ class Entity():
                 property_definition AS pd
             WHERE p.value_file = f.id
             AND pd.keyname = p.property_definition_keyname
-            AND f.id = %(file_id)s
+            AND f.id IN (%(file_id)s)
             %(public)s
             AND p.deleted IS NULL
-            LIMIT 1
-            """ % {'file_id': file_id, 'public': public}
+            """ % {'file_id': ','.join(map(str, file_id)), 'public': public}
         # logging.debug(sql)
 
-        result = self.db.get(sql)
+        return self.db.query(sql)
 
-        if not result:
-            return
-        if not result.file:
-            return
-
-        return result
 
     def get_entity_definition(self, entity_definition_keyname):
         """
