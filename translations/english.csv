@@ -27,6 +27,8 @@ entity_delete,Delete
 confirm_entity_delete,'%s' and all its childs will be deleted.
 confirm_file_delete,File '%s' will be deleted
 
+download_all_as_zip,Download all files
+
 counter_generate_value,Generate number
 
 public,Public
