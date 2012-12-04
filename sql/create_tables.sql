@@ -311,11 +311,15 @@ CREATE TABLE `dag_formula` (
   `property_id` int(11) unsigned DEFAULT NULL,
   `related_property_id` int(11) unsigned DEFAULT NULL,
   `entity_id` int(11) unsigned DEFAULT NULL,
-  `relationship_definition_keyname` varchar(25) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT '',
-  `reversed_relationship_definition_keyname` varchar(25) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT '',
+  `relationship_definition_keyname` varchar(25) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+  `reversed_relationship_definition_keyname` varchar(25) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
   `entity_definition_keyname` varchar(25) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+<<<<<<< HEAD
   `property_definition_keyname` varchar(50) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
 >>>>>>> CREATE TABLE `dag_formula`
+=======
+  `dataproperty` varchar(24) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+>>>>>>> FIX: add dag_formula create table to previous commit
   `created` datetime DEFAULT NULL,
   `created_by` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
   `deleted` datetime DEFAULT NULL,
@@ -335,13 +339,17 @@ CREATE TABLE `dag_formula` (
   KEY `fd_fk_rdk` (`relationship_definition_keyname`),
   KEY `fd_fk_rrdk` (`reversed_relationship_definition_keyname`),
   KEY `fd_fk_edk` (`entity_definition_keyname`),
-  KEY `fd_fk_pdk` (`property_definition_keyname`),
-  CONSTRAINT `fd_fk_pdk` FOREIGN KEY (`property_definition_keyname`) REFERENCES `property_definition` (`keyname`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fd_fk_edk` FOREIGN KEY (`entity_definition_keyname`) REFERENCES `entity_definition` (`keyname`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fd_fk_rrdk` FOREIGN KEY (`reversed_relationship_definition_keyname`) REFERENCES `relationship_definition` (`keyname`) ON DELETE CASCADE ON UPDATE CASCADE,
+  KEY `dataproperty` (`dataproperty`),
   CONSTRAINT `fd_fk_e` FOREIGN KEY (`entity_id`) REFERENCES `entity` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fd_fk_edk` FOREIGN KEY (`entity_definition_keyname`) REFERENCES `entity_definition` (`keyname`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fd_fk_p` FOREIGN KEY (`property_id`) REFERENCES `property` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fd_fk_rdk` FOREIGN KEY (`relationship_definition_keyname`) REFERENCES `relationship_definition` (`keyname`) ON DELETE CASCADE ON UPDATE CASCADE,
+<<<<<<< HEAD
   CONSTRAINT `fd_fk_rp` FOREIGN KEY (`related_property_id`) REFERENCES `property` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 >>>>>>> CREATE TABLE `dag_formula`
+=======
+  CONSTRAINT `fd_fk_rp` FOREIGN KEY (`related_property_id`) REFERENCES `property` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fd_fk_rrdk` FOREIGN KEY (`reversed_relationship_definition_keyname`) REFERENCES `relationship_definition` (`keyname`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
+>>>>>>> FIX: add dag_formula create table to previous commit
