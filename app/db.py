@@ -34,12 +34,15 @@ class Entity():
         self.user_id        = user_id
         self.user_locale    = user_locale
         self.language       = user_locale.code
-        self.created_by   = ''
+        self.created_by     = ''
 
         if user_id:
             if type(self.user_id) is not list:
                 self.user_id = [self.user_id]
             self.created_by = ','.join(map(str, self.user_id))
+
+        # logging.debug({'user':self.user_id, 'created':self.created_by})
+
 
     def create(self, entity_definition_keyname, parent_entity_id=None):
         """
@@ -175,29 +178,24 @@ class Entity():
 
         return entity_id
 
-    def set_property(self, entity_id=None, relationship_id=None, property_definition_keyname=None, value=None, property_id=None, uploaded_file=None):
+    def set_property(self, entity_id=None, relationship_id=None, property_definition_keyname=None, value=None, old_property_id=None, uploaded_file=None):
         """
-        Saves property value. Creates new one if property_id = None. Returns property ID.
+        Saves property value. Creates new one if old_property_id = None. Returns new_property_id.
 
         """
-        if not entity_id and not relationship_id:
+        if not entity_id:
             return
 
         # property_definition_keyname is preferred because it could change for existing property
         if property_definition_keyname:
             definition = self.db.get('SELECT datatype, formula FROM property_definition WHERE keyname = %s LIMIT 1;', property_definition_keyname)
-        elif property_id:
-            definition = self.db.get('SELECT pd.datatype, pd.formula FROM property p LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname WHERE p.id = %s;', property_id)
+        elif old_property_id:
+            definition = self.db.get('SELECT pd.datatype, pd.formula FROM property p LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname WHERE p.id = %s;', old_property_id)
         else:
             return
 
         if not definition:
             return
-
-        if definition.formula == 1:
-            value_formula = value
-            evaluated = Formula(formula=value, entity_id=entity_id, user_locale=self.user_locale, user_id=self.user_id).evaluate()
-            value = ''.join(evaluated)
 
         if definition.datatype in ['text', 'html']:
             field = 'value_text'
@@ -227,34 +225,34 @@ class Entity():
             if value:
                 value = value[:500]
 
-        self.db.execute('UPDATE property SET deleted = NOW(), deleted_by = %s WHERE id = %s;',
-            self.created_by,
-            property_id,
-        )
+        if old_property_id:
+            self.db.execute('UPDATE property SET deleted = NOW(), deleted_by = %s WHERE id = %s;',
+                self.created_by,
+                old_property_id,
+            )
 
         new_property_id = None
         if value:
-            if entity_id:
-                new_property_id = self.db.execute_lastrowid('INSERT INTO property SET entity_id = %%s, property_definition_keyname = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
-                    entity_id,
-                    property_definition_keyname,
-                    value,
-                    self.created_by
-                )
+            if definition.formula == 1:
+                formula = Formula(formula=value, entity_id=entity_id, user_locale=self.user_locale, created_by=self.created_by)
+                value = ''.join(formula.evaluate())
 
-                if definition.formula == 1:
-                    self.db.execute('UPDATE property SET value_formula = %%s WHERE id = %s;' % new_property_id, value_formula)
+            new_property_id = self.db.execute_lastrowid('INSERT INTO property SET entity_id = %%s, property_definition_keyname = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
+                entity_id,
+                property_definition_keyname,
+                value,
+                self.created_by
+            )
 
-            # Obsolete. We dont have relationship properties any more.
-            if relationship_id:
-                new_property_id = self.db.execute_lastrowid('INSERT INTO property SET relationship_id = %%s, property_definition_keyname = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
-                    relationship_id,
-                    property_definition_keyname,
-                    value,
-                    self.created_by
-                )
+            # self.update_depending_formulas()
+
+            if definition.formula == 1:
+                formula.save_property(new_property_id, old_property_id)
 
         return new_property_id
+
+    def update_depending_formulas(self):
+        return None
 
     def set_public(self, entity_id, is_public=False):
         """
@@ -1203,37 +1201,50 @@ class User():
 
 class Formula():
 
-    def __init__(self, formula, entity_id, user_locale, user_id=None):
+    def __init__(self, formula, entity_id, user_locale, created_by=None):
+        self.db             = connection()
         self.formula        = formula
         self.entity_id      = entity_id
-        self.user_id        = user_id
+        self.value          = []
+        self.dependencies   = []
         self.user_locale    = user_locale
         self.language       = user_locale.code
-        self.created_by     = ''
+        self.created_by     = created_by
 
     def evaluate(self):
         if not self.formula:
             return ''
 
-        self.value = []
         for m in re.findall(r"([^{]*){([^{}]*)}|(.*?)$",self.formula):
             if m[0]:
                 self.value.append(m[0])
             if m[1]:
-                self.value.append('%s' % ','.join(map(str, FExpression(m[1], self.entity_id).value)))
+                self.value.append('%s' % ','.join(map(str, FExpression(self, m[1]).value)))
             if m[2]:
                 self.value.append(m[2])
 
         return self.value
 
+    def save_property(self, new_property_id, old_property_id):
+
+        if old_property_id:
+            # logging.debug(old_property_id)
+            self.db.execute('UPDATE dag_formula SET deleted = now(), deleted_by = %s WHERE property_id = %s;', self.created_by, old_property_id)
+        self.db.execute('UPDATE property SET value_formula = %s WHERE id = %s;', self.formula, new_property_id)
+
+        # logging.debug(self.dependencies) # Create formula DAG dependencies
+        for dependency in self.dependencies:
+            # logging.debug(dependency)
+            self.db.execute('INSERT INTO dag_formula SET created = now(), created_by = %s, property_id = %s, related_property_id = %s, entity_id = %s, dataproperty = %s, relationship_definition_keyname = %s, reversed_relationship_definition_keyname = %s, entity_definition_keyname = %s;', self.created_by, new_property_id, dependency.get('related_property_id',None), dependency.get('entity_id',None), dependency.get('dataproperty',None), dependency.get('relationship_definition_keyname',None), dependency.get('reversed_relationship_definition_keyname',None), dependency.get('entity_definition_keyname',None))
+
 
 class FExpression():
 
-    def __init__(self, xpr, entity_id):
-        self.db         = connection()
-        self.entity_id  = entity_id
-        self.xpr        = re.sub(' ', '', xpr)
-        self.value      = []
+    def __init__(self, formula, xpr):
+        self.db             = connection()
+        self.formula        = formula
+        self.xpr            = re.sub(' ', '', xpr)
+        self.value          = []
 
         if not self.parcheck():
             self.value = "ERROR"
@@ -1251,7 +1262,7 @@ class FExpression():
                 # logging.debug(row.value)
                 _values.append(row.value)
 
-            self.value = [', '.join(_values)]
+            self.value = [', '.join(map(str,_values))]
             # logging.debug(self.value)
 
         # logging.debug(self.xpr)
@@ -1281,14 +1292,15 @@ class FExpression():
 
     def fetch_path_from_db(self, path):
         tokens = re.split('\.', path)
-        logging.debug(tokens)
+        # logging.debug(tokens)
 
         if len(tokens) < 2:
             return []
 
         if tokens[0] == 'self':
-            tokens[0] = self.entity_id
+            tokens[0] = self.formula.entity_id
 
+        # Entity id:{self.id} is called {self.name}; and id:{6.id} description is {6.description}
         if len(tokens) == 2:
             if tokens[1] == '':
                 tokens[1] = 'id'
@@ -1310,7 +1322,7 @@ class FExpression():
             sql += """
                 WHERE e.id = %(entity_id)s
                 AND e.deleted IS NULL
-            """  % {'entity_id': self.entity_id}
+            """  % {'entity_id': tokens[0]}
 
             if tokens[1] != 'id':
                 sql += """
@@ -1318,9 +1330,34 @@ class FExpression():
                     AND pd.dataproperty = '%(pdk)s'
                 """ % {'pdk': tokens[1]}
 
-            logging.debug(sql)
+            # logging.debug(sql)
 
-            return self.db.query(sql)
+            result = self.db.query(sql)
+
+            # Prepare formula dependencies
+            # Entity {self.id} is called {self.name}, but {12.id} is called {12.name}
+            if tokens[1] == 'id':
+                self.formula.dependencies.append({
+                    # 'related_property_id': None,
+                    'entity_id': tokens[0],
+                    # 'dataproperty': None,
+                    # 'relationship_definition_keyname': None,
+                    # 'reversed_relationship_definition_keyname': None,
+                    # 'entity_definition_keyname': None,
+                    # 'property_definition_keyname': None,
+                    })
+            else:
+                self.formula.dependencies.append({
+                    # 'related_property_id': None,
+                    'entity_id': tokens[0],
+                    'dataproperty': tokens[1],
+                    # 'relationship_definition_keyname': None,
+                    # 'reversed_relationship_definition_keyname': None,
+                    # 'entity_definition_keyname': None,
+                    # 'property_definition_keyname': None,
+                    })
+
+            return result
 
 
         if len(tokens) != 4:
@@ -1358,7 +1395,7 @@ class FExpression():
             AND re.deleted IS NULL
             AND e.deleted IS NULL
             AND r.deleted IS NULL
-        """  % {'entity_id': self.entity_id, 'rdk': tokens[1]}
+        """  % {'entity_id': self.formula.entity_id, 'rdk': tokens[1]}
 
         if tokens[2] != '*':
             sql += """
@@ -1371,7 +1408,33 @@ class FExpression():
                 AND pd.dataproperty = '%(pdk)s'
             """ % {'pdk': tokens[3]}
 
-        # logging.debug(sql)
+        logging.debug(sql)
+
+        # Prepare formula dependencies
+        # There are {COUNT(self.child.folder.id)} folders called {self.child.folder.name}
+        dependency = {'entity_id': tokens[0]}
+
+        if tokens[1][:1] == '-':
+            dependency['reversed_relationship_definition_keyname'] = tokens[1]
+        else:
+            dependency['relationship_definition_keyname'] = tokens[1]
+
+        if tokens[2] != '*':
+            dependency['entity_definition_keyname'] = tokens[2]
+
+        if tokens[3] != 'id':
+            dependency['dataproperty'] = tokens[3]
+
+
+        self.formula.dependencies.append(dependency)
+
+                # 'related_property_id': None,
+                # 'entity_id': tokens[2],
+                # 'dataproperty': tokens[3],
+                # 'relationship_definition_keyname': None,
+                # 'reversed_relationship_definition_keyname': None,
+                # 'entity_definition_keyname': None,
+                # 'property_definition_keyname': None,
 
         return self.db.query(sql)
 
@@ -1416,7 +1479,7 @@ class Stack:
 
 def mdbg(matchobj):
     # mdbg() is for regex match object debugging.
-    #   i.e: re.sub(r"([^{]*){([^{}]*)}|(.*?)$", mdbg, self.formula)
+    #   i.e: re.sub(r"([^{]*){([^{}]*)}|(.*?)$", mdbg, self.formula)(ha()a)
     for m in matchobj.groups():
         logging.debug(m)
 
