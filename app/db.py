@@ -248,11 +248,16 @@ class Entity():
 
             if definition.formula == 1:
                 formula.save_property(new_property_id, old_property_id)
+                if not formula.verify_dag(property_id_in=new_property_id):
+                    self.db.execute_lastrowid('UPDATE property SET %s = %%s WHERE id = %%s;' % field,
+                        'E: Formula has recursive dependency.',
+                        new_property_id
+                    )
 
         return new_property_id
 
     def update_depending_formulas(self):
-        return None
+        return True
 
     def set_public(self, entity_id, is_public=False):
         """
@@ -1210,6 +1215,8 @@ class Formula():
         self.user_locale    = user_locale
         self.language       = user_locale.code
         self.created_by     = created_by
+        self.dag_failed     = False
+        self.formula_property_id = None
 
     def evaluate(self):
         if not self.formula:
@@ -1228,15 +1235,51 @@ class Formula():
     def save_property(self, new_property_id, old_property_id):
 
         if old_property_id:
-            # logging.debug(old_property_id)
+            logging.debug('Delete dag_formula.property_id=%s' % old_property_id)
             self.db.execute('UPDATE dag_formula SET deleted = now(), deleted_by = %s WHERE property_id = %s;', self.created_by, old_property_id)
         self.db.execute('UPDATE property SET value_formula = %s WHERE id = %s;', self.formula, new_property_id)
 
-        # logging.debug(self.dependencies) # Create formula DAG dependencies
+        logging.debug(self.dependencies) # Create formula DAG dependencies
         for dependency in self.dependencies:
             # logging.debug(dependency)
             self.db.execute('INSERT INTO dag_formula SET created = now(), created_by = %s, property_id = %s, related_property_id = %s, entity_id = %s, dataproperty = %s, relationship_definition_keyname = %s, reversed_relationship_definition_keyname = %s, entity_definition_keyname = %s;', self.created_by, new_property_id, dependency.get('related_property_id',None), dependency.get('entity_id',None), dependency.get('dataproperty',None), dependency.get('relationship_definition_keyname',None), dependency.get('reversed_relationship_definition_keyname',None), dependency.get('entity_definition_keyname',None))
 
+    def verify_dag(self, property_id_in):
+        if not self.formula_property_id:
+            self.formula_property_id = property_id_in
+            self.dag_stack = Stack()
+        else:
+            self.dag_stack.push(property_id_in)
+
+        logging.debug(self.dag_stack.items)
+        sql = """
+
+            SELECT df.property_id AS property_id
+            FROM dag_formula AS df
+            LEFT JOIN property AS p ON p.entity_id = df.entity_id
+            LEFT JOIN property_definition AS pd ON (pd.keyname = p.property_definition_keyname)
+            WHERE df.deleted IS NULL
+            AND  df.related_property_id IS NULL
+            AND  df.relationship_definition_keyname IS NULL
+            AND  df.reversed_relationship_definition_keyname IS NULL
+            AND  df.entity_definition_keyname IS NULL
+            AND pd.dataproperty = df.dataproperty
+            AND p.id = %s """ % property_id_in
+
+        logging.debug(sql)
+        for row in self.db.query(sql):
+            property_id = row.property_id
+            if property_id in self.dag_stack.items:
+                continue
+
+            if self.formula_property_id == property_id:
+                self.dag_failed = True
+                return False
+
+            logging.debug(property_id)
+            self.verify_dag(property_id)
+
+        return not self.dag_failed
 
 class FExpression():
 
@@ -1245,6 +1288,8 @@ class FExpression():
         self.formula        = formula
         self.xpr            = re.sub(' ', '', xpr)
         self.value          = []
+
+        logging.debug(self.xpr)
 
         if not self.parcheck():
             self.value = "ERROR"
@@ -1265,7 +1310,6 @@ class FExpression():
             self.value = [', '.join(map(str,_values))]
             # logging.debug(self.value)
 
-        # logging.debug(self.xpr)
         # logging.debug(re.findall(r"(.*?)([A-Z]+)\(([^\)]*)\)",self.xpr))
         # logging.debug(self.value)
         # self.value = map(eval, self.value)
@@ -1274,6 +1318,8 @@ class FExpression():
     def evalfunc(self, fname, path):
         FFunc = {
             'SUM' : self.FE_sum,
+            'MIN' : self.FE_min,
+            'MAX' : self.FE_max,
             'COUNT' : self.FE_count,
             'AVERAGE' : self.FE_average,
         }
@@ -1281,6 +1327,12 @@ class FExpression():
         return FFunc[fname](self.fetch_path_from_db(path))
 
     def FE_sum(self, items):
+        return 30.3
+
+    def FE_min(self, items):
+        return 30.3
+
+    def FE_max(self, items):
         return 30.3
 
     def FE_average(self, items):
@@ -1291,6 +1343,9 @@ class FExpression():
         return len(items)
 
     def fetch_path_from_db(self, path):
+        """
+        https://github.com/argoroots/Entu/blob/master/docs/Formula.md
+        """
         tokens = re.split('\.', path)
         # logging.debug(tokens)
 
@@ -1299,6 +1354,9 @@ class FExpression():
 
         if tokens[0] == 'self':
             tokens[0] = self.formula.entity_id
+
+        # Prepare formula dependencies
+        dependency = {'entity_id': tokens[0]}
 
         # Entity id:{self.id} is called {self.name}; and id:{6.id} description is {6.description}
         if len(tokens) == 2:
@@ -1336,27 +1394,10 @@ class FExpression():
 
             # Prepare formula dependencies
             # Entity {self.id} is called {self.name}, but {12.id} is called {12.name}
-            if tokens[1] == 'id':
-                self.formula.dependencies.append({
-                    # 'related_property_id': None,
-                    'entity_id': tokens[0],
-                    # 'dataproperty': None,
-                    # 'relationship_definition_keyname': None,
-                    # 'reversed_relationship_definition_keyname': None,
-                    # 'entity_definition_keyname': None,
-                    # 'property_definition_keyname': None,
-                    })
-            else:
-                self.formula.dependencies.append({
-                    # 'related_property_id': None,
-                    'entity_id': tokens[0],
-                    'dataproperty': tokens[1],
-                    # 'relationship_definition_keyname': None,
-                    # 'reversed_relationship_definition_keyname': None,
-                    # 'entity_definition_keyname': None,
-                    # 'property_definition_keyname': None,
-                    })
+            if tokens[1] != 'id':
+                dependency['dataproperty'] = tokens[1]
 
+            self.formula.dependencies.append(dependency)
             return result
 
 
@@ -1408,11 +1449,10 @@ class FExpression():
                 AND pd.dataproperty = '%(pdk)s'
             """ % {'pdk': tokens[3]}
 
-        logging.debug(sql)
+        # logging.debug(sql)
 
         # Prepare formula dependencies
         # There are {COUNT(self.child.folder.id)} folders called {self.child.folder.name}
-        dependency = {'entity_id': tokens[0]}
 
         if tokens[1][:1] == '-':
             dependency['reversed_relationship_definition_keyname'] = tokens[1]
@@ -1425,16 +1465,7 @@ class FExpression():
         if tokens[3] != 'id':
             dependency['dataproperty'] = tokens[3]
 
-
         self.formula.dependencies.append(dependency)
-
-                # 'related_property_id': None,
-                # 'entity_id': tokens[2],
-                # 'dataproperty': tokens[3],
-                # 'relationship_definition_keyname': None,
-                # 'reversed_relationship_definition_keyname': None,
-                # 'entity_definition_keyname': None,
-                # 'property_definition_keyname': None,
 
         return self.db.query(sql)
 
