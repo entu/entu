@@ -11,20 +11,19 @@ from helper import *
 class ShowGroup(myRequestHandler):
     """
     """
+    @web.removeslash
     @web.authenticated
     def get(self, entity_definition_keyname=None):
         """
         Show entities page with menu.
 
         """
-        entity_definition_keyname = entity_definition_keyname.strip('/')
+        entity_definition_keyname = entity_definition_keyname.strip('/').split('/')[0]
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
 
         entity_definition = None
         if entity_definition_keyname:
             entity_definition = entity.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
-
-
 
         self.render('entity/start.html',
             page_title = entity_definition[0].label_plural if entity_definition else '',
@@ -40,7 +39,7 @@ class ShowGroup(myRequestHandler):
         Returns searched Entitiy IDs as JSON.
 
         """
-        entity_definition_keyname = entity_definition_keyname.strip('/')
+        entity_definition_keyname = entity_definition_keyname.strip('/').split('/')[0]
         search = self.get_argument('search', None, True)
         self.write({'items': db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(ids_only=True, search=search, entity_definition_keyname=entity_definition_keyname, limit=303)})
 
@@ -329,7 +328,7 @@ class ShareByEmail(myRequestHandler):
         if not item:
             return self.missing()
 
-        url = 'https://%s/entity/%s#%s' % (self.request.headers.get('Host'), item['definition_keyname'], item['id'])
+        url = 'https://%s/entity/%s/%s' % (self.request.headers.get('Host'), item['definition_keyname'], item['id'])
 
         self.mail_send(
             to = to,
