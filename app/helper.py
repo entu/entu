@@ -73,6 +73,8 @@ class myRequestHandler(RequestHandler):
             user.picture = 'https://secure.gravatar.com/avatar/%s?d=wavatar&s=100' % (hashlib.md5(user.email).hexdigest())
             user['picture'] = user.picture
 
+        user['session'] = session_key
+
         return user
 
     def get_user_locale(self):

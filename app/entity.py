@@ -212,6 +212,7 @@ class SaveEntity(myRequestHandler):
         entity_definition_keyname   = self.get_argument('entity_definition_keyname', default=None, strip=True)
         property_definition_keyname = self.get_argument('property_definition_keyname', default=None, strip=True)
         property_id                 = self.get_argument('value_id', default=None, strip=True)
+        new_property_id             = property_id
         value                       = self.get_argument('value', default=None, strip=True)
         is_counter                  = self.get_argument('counter', default='false', strip=True)
         is_public                   = self.get_argument('is_public', default='false', strip=True)
