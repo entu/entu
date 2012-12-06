@@ -23,9 +23,13 @@ search_result_count2,Leiti %s
 boolean_true,Jah
 boolean_false,Ei
 
-confirm_file_delete,Kustutada fail: %s
+entity_delete,Kustuta
+confirm_entity_delete,'%s' ja kõik selle alamosad kustutatakse.
+confirm_file_delete,Fail '%s' kustutatakse.
 
 counter_generate_value,Genereeri number
+
+download_all_as_zip,Lae alla kõik failid
 
 public,Avalik
 public_description,Tee see dokument nähtavaks avalikus vaates

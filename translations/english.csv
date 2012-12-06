@@ -14,7 +14,7 @@ search,Search
 search_button,Search
 search_advanced,Advanced search
 search_placeholder,Search something...
-search_term_to_short,Searching term '%s' is to short. Try to double it.
+search_term_to_short,Searching term '%s' is too short. Try to double it.
 search_noresult,Didn't found enything. Try again.
 search_result,Found
 search_result_count1,Found just one
@@ -23,7 +23,11 @@ search_result_count2,Found %s
 boolean_true,Yes
 boolean_false,No
 
-confirm_file_delete,You are deleting file: %s
+entity_delete,Delete
+confirm_entity_delete,'%s' and all its childs will be deleted.
+confirm_file_delete,File '%s' will be deleted
+
+download_all_as_zip,Download all files
 
 counter_generate_value,Generate number
 

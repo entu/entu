@@ -1,7 +1,8 @@
 from tornado import auth, web
-
+from StringIO import StringIO
 import logging
 import magic
+import zipfile
 
 import db
 from helper import *
@@ -10,20 +11,19 @@ from helper import *
 class ShowGroup(myRequestHandler):
     """
     """
+    @web.removeslash
     @web.authenticated
     def get(self, entity_definition_keyname=None):
         """
         Show entities page with menu.
 
         """
-        entity_definition_keyname = entity_definition_keyname.strip('/')
+        entity_definition_keyname = entity_definition_keyname.strip('/').split('/')[0]
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
 
         entity_definition = None
         if entity_definition_keyname:
             entity_definition = entity.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
-
-
 
         self.render('entity/start.html',
             page_title = entity_definition[0].label_plural if entity_definition else '',
@@ -39,7 +39,7 @@ class ShowGroup(myRequestHandler):
         Returns searched Entitiy IDs as JSON.
 
         """
-        entity_definition_keyname = entity_definition_keyname.strip('/')
+        entity_definition_keyname = entity_definition_keyname.strip('/').split('/')[0]
         search = self.get_argument('search', None, True)
         self.write({'items': db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(ids_only=True, search=search, entity_definition_keyname=entity_definition_keyname, limit=303)})
 
@@ -112,28 +112,40 @@ class ShowEntity(myRequestHandler):
 
 class DownloadFile(myRequestHandler):
     @web.authenticated
-    def get(self, file_id=None, url=None):
+    def get(self, file_ids=None, url=None):
         """
         Download file.
 
         """
-        try:
-            file_id = int(file_id.split('/')[0])
-        except:
+        file_ids = file_ids.split('/')[0]
+        files = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get_file(file_ids)
+
+        if not files:
+            return self.missing()
+        if len(files) < 1:
             return self.missing()
 
-        file = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get_file(file_id)
-        if not file:
-            return self.missing()
-
-        ms = magic.open(magic.MAGIC_MIME)
-        ms.load()
-        mime = ms.buffer(file.file)
-        ms.close()
+        if len(files) > 1:
+            f = StringIO()
+            zf = zipfile.ZipFile(f, 'w', zipfile.ZIP_DEFLATED)
+            for file in files:
+                zf.writestr(file.filename, file.file)
+            zf.close()
+            mime = 'application/octet-stream'
+            filename = '%s.zip' % file_ids
+            outfile = f.getvalue()
+        else:
+            file = files[0]
+            ms = magic.open(magic.MAGIC_MIME)
+            ms.load()
+            mime = ms.buffer(file.file)
+            ms.close()
+            filename = file.filename
+            outfile = file.file
 
         self.add_header('Content-Type', mime)
-        self.add_header('Content-Disposition', 'attachment; filename="%s"' % file.filename)
-        self.write(file.file)
+        self.add_header('Content-Disposition', 'attachment; filename="%s"' % filename)
+        self.write(outfile)
 
 
 class ShowEntityEdit(myRequestHandler):
@@ -212,10 +224,11 @@ class SaveEntity(myRequestHandler):
         entity_definition_keyname   = self.get_argument('entity_definition_keyname', default=None, strip=True)
         property_definition_keyname = self.get_argument('property_definition_keyname', default=None, strip=True)
         property_id                 = self.get_argument('value_id', default=None, strip=True)
+        new_property_id             = property_id
         value                       = self.get_argument('value', default=None, strip=True)
         is_counter                  = self.get_argument('counter', default='false', strip=True)
         is_public                   = self.get_argument('is_public', default='false', strip=True)
-        uploaded_file               = self.request.files.get('file', [])[0] if self.request.files.get('file', None) else None
+        uploaded_file               = self.request.files.get('file', []) if self.request.files.get('file', None) else None
 
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
         if not entity_id and parent_entity_id and entity_definition_keyname:
@@ -229,13 +242,17 @@ class SaveEntity(myRequestHandler):
         else:
             if uploaded_file:
                 value = uploaded_file
-            property_id = entity.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value=value, property_id=property_id)
+
+            if type(value) is not list:
+                value = [value]
+            for v in value:
+                new_property_id = entity.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value=v, property_id=property_id)
 
         self.write({
             'entity_id': entity_id,
             'property_definition_keyname': property_definition_keyname,
-            'value_id': property_id,
-            'value': uploaded_file['filename'] if uploaded_file else value
+            'value_id': new_property_id,
+            'value': ', '.join([x['filename'] for x in uploaded_file]) if uploaded_file else value
         })
 
 
@@ -244,6 +261,12 @@ class DeleteFile(myRequestHandler):
     def post(self, file_id=None):
         """
         Delete file.
+
+        Mandatory arguments:
+        - property_id
+        - entity_id
+
+        Find entity by id and change file property (by id) to None.
 
         """
         property_id = self.get_argument('property_id', None, True)
@@ -256,6 +279,29 @@ class DeleteFile(myRequestHandler):
 
         entity.set_property(entity_id=entity_id, property_id=property_id)
 
+
+class DeleteEntity(myRequestHandler):
+    @web.authenticated
+    def post(self, id=None):
+        """
+        Delete whole entity.
+        Also recursively delete its childs
+
+        Mandatory arguments:
+        - entity_id
+
+        1. Find childs by parent entity id and call DeleteEntity on them
+        2. Mark entity's deleted property to current time and deleted_by to current user's id.
+
+        """
+        entity_id = self.get_argument('entity_id', None, True)
+
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
+        item = entity.get(entity_id=entity_id, limit=1)
+        if not item:
+            return self.missing()
+
+        entity.delete(entity_id)
 
 
 class ShareByEmail(myRequestHandler):
@@ -282,7 +328,7 @@ class ShareByEmail(myRequestHandler):
         if not item:
             return self.missing()
 
-        url = 'https://%s/entity/%s#%s' % (self.request.headers.get('Host'), item['definition_keyname'], item['id'])
+        url = 'https://%s/entity/%s/%s' % (self.request.headers.get('Host'), item['definition_keyname'], item['id'])
 
         self.mail_send(
             to = to,
@@ -311,6 +357,7 @@ handlers = [
     (r'/entity/save', SaveEntity),
     (r'/entity/file-(.*)', DownloadFile),
     (r'/entity/delete-file', DeleteFile),
+    (r'/entity/delete-entity', DeleteEntity),
     (r'/entity-(.*)/listinfo', ShowListinfo),
     (r'/entity-(.*)/edit', ShowEntityEdit),
     (r'/entity-(.*)/relate', ShowEntityRelate),

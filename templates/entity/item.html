@@ -39,6 +39,9 @@
                 <td style="width:100%;{%if not p['public'] %} color:gray;{% end %}">
                     {% if p['datatype'] == 'file' %}
                         {{ '<br />'.join(['<a href="/entity/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
+                        {% if len(p['values']) > 1 %}
+                            <a href="/entity/file-{{ ','.join(['%s' % v['db_value'] for v in p['values']]) }}" style="font-size:11px; font-style:italic; float:right;">{{ _('download_all_as_zip') }}</a>
+                        {% end %}
                     {% elif p['datatype'] == 'html' %}
                         <div class="html-property" data-property="{{ p['dataproperty'] }}" style="display:block; width:100%;"><img src="{{ static_url('images/spinner_white.gif') }}" id="search-spinner" /></div>
                     {% elif p['datatype'] == 'text' %}
@@ -162,7 +165,10 @@
 <script>
     $(document).ready(function(){
 
-        document.title = '{{ page_title }}';
+        document.title = '{{ page_title.replace('\'', '\\\'') }}';
+
+        $('#list_items a.active').removeClass('active');
+        $('#listitem_{{ entity.get('id') }}').addClass('active');
 
         $('.toggle-table').click(function() {
             $(this).parent().children('tbody').toggle();

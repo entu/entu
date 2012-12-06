@@ -62,7 +62,7 @@
                                         <input type="hidden" name="parent_entity_id" value="{{ parent_entity_id }}" />
                                         <input type="hidden" name="entity_definition_keyname" value="{{ entity_definition_keyname }}" />
                                         <input type="hidden" name="property_definition_keyname" value="{{ p['keyname'] }}" />
-                                        <input type="file" name="file" class="dtype-{{ p['datatype'] }}" style="border:none; width:80px; margin-bottom:4px;" />
+                                        <input type="file" name="file" class="dtype-{{ p['datatype'] }}" style="border:none; width:100%; margin-bottom:4px;" multiple />
                                     </form>
                                 {% else %}
                                     <div class="delete-file-row"><a href="/entity/file-{{ v['db_value'] }}">{{ v['value'] }}</a> <a href="javascript:void(0);" data-property_id="{{ v['id'] }}" class="delete-file" style="float:right; display:none;"><i class="icon-trash" style="color:red;"></i></a></div>
@@ -95,6 +95,9 @@
     </div>
 </div>
 <div class="modal-footer">
+    {% if entity.get('id') %}
+    <a id="delete-entity" style="float:left; color:red;" href="javascript:void(0);">{{ _('entity_delete') }}</a>
+    {% end %}
     <a href="#" class="btn" data-dismiss="modal">{{ _('close') }}</a>
 </div>
 
@@ -229,13 +232,27 @@
         $('.delete-file').click(function() {
 
             link = $(this);
-            if (confirm('{{ _('confirm_file_delete') }}'.replace('%s','\n'+link.prev().html()))) {
+            if (confirm('{{ _('confirm_file_delete').replace('\'', '\\\'') }}'.replace('%s',link.prev().html()))) {
                 $.post('/entity/delete-file', {
                     property_id: $(this).data('property_id'),
                     entity_id: '{{ entity.get('id', '') }}',
                 },
                 function(newvalue) {
                     link.parent().remove();
+                }, 'json');
+            };
+        });
+
+        $('#delete-entity').click(function() {
+
+            link = $(this);
+            if (confirm('{{ _('confirm_entity_delete').replace('\'', '\\\'') }}'.replace('%s','{{ entity.get('displayname', '').replace('\'', '\\\'') }}'))) {
+                $.post('/entity/delete-entity', {
+                    entity_id: '{{ entity.get('id', '') }}',
+                },
+                function(newvalue) {
+                    window.location.hash = '';
+                    window.location.reload(true);
                 }, 'json');
             };
         });

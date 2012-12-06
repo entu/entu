@@ -5,6 +5,10 @@ from tornado.options import options
 from operator import itemgetter
 from datetime import datetime
 
+import random
+import string
+import hashlib
+import time
 import logging
 import hashlib
 import re
@@ -83,13 +87,14 @@ class Entity():
                 created
             ) SELECT /* SQL_NO_CACHE */
                 'child',
-                related_entity_id,
+                r.related_entity_id,
                 %s,
                 %s,
                 NOW()
-            FROM relationship
-            WHERE relationship_definition_keyname = 'default-parent'
-            AND entity_definition_keyname = %s;
+            FROM relationship AS r
+            WHERE r.relationship_definition_keyname = 'default-parent'
+            AND r.deleted IS NULL
+            AND r.entity_definition_keyname = %s;
         """
         # logging.debug(sql)
         self.db.execute(sql, entity_id, self.created_by, entity_definition_keyname)
@@ -103,18 +108,20 @@ class Entity():
                 created_by,
                 created
             ) SELECT /* SQL_NO_CACHE */
-                relationship_definition_keyname,
+                rr.relationship_definition_keyname,
                 %s,
-                related_entity_id,
+                rr.related_entity_id,
                 %s,
                 NOW()
-            FROM
-                relationship
-            WHERE relationship_definition_keyname IN ('leecher', 'viewer', 'editor', 'owner')
-            AND entity_id = %s;
+            FROM      relationship r
+            LEFT JOIN relationship rr ON rr.entity_id = r.entity_id
+            WHERE     r.deleted IS NULL
+            AND       r.related_entity_id = %s
+            AND       r.relationship_definition_keyname = 'child'
+            AND       rr.relationship_definition_keyname IN ('leecher', 'viewer', 'editor', 'owner' );
         """
         # logging.debug(sql)
-        self.db.execute(sql, entity_id, self.created_by, parent_entity_id)
+        self.db.execute(sql, entity_id, self.created_by, entity_id)
 
         # Propagate properties
         sql = """
@@ -135,28 +142,31 @@ class Entity():
                 created
             ) SELECT /* SQL_NO_CACHE */
                 %s,
-                relationship.related_property_definition_keyname,
-                property.language,
-                property.value_string,
-                property.value_text,
-                property.value_integer,
-                property.value_decimal,
-                property.value_boolean,
-                property.value_datetime,
-                property.value_entity,
-                property.value_file,
-                property.value_counter,
+                r.related_property_definition_keyname,
+                p.language,
+                p.value_string,
+                p.value_text,
+                p.value_integer,
+                p.value_decimal,
+                p.value_boolean,
+                p.value_datetime,
+                p.value_entity,
+                p.value_file,
+                p.value_counter,
                 %s,
                 NOW()
             FROM
-                relationship,
-                property_definition,
-                property
-            WHERE property_definition.keyname = relationship.property_definition_keyname
-            AND property.property_definition_keyname = property_definition.keyname
-            AND property_definition.entity_definition_keyname = %s
-            AND property.entity_id = %s
-            AND relationship.relationship_definition_keyname = 'propagated_property';
+                relationship AS r,
+                property_definition AS pd,
+                property AS p
+            WHERE pd.keyname = r.property_definition_keyname
+            AND p.property_definition_keyname = pd.keyname
+            AND pd.entity_definition_keyname = %s
+            AND p.entity_id = %s
+            AND r.relationship_definition_keyname = 'propagated_property'
+            AND p.deleted IS NULL
+            AND r.deleted IS NULL
+            ;
         """
         # logging.debug(sql)
         self.db.execute(sql, entity_id, self.created_by, entity_definition_keyname, parent_entity_id)
@@ -248,7 +258,7 @@ class Entity():
     def set_counter(self, entity_id):
         """
         Sets counter property.
-
+        Counter mechanics is real hack. It will soon be obsoleted by formula field.
         """
         if not entity_id:
             return
@@ -288,8 +298,10 @@ class Entity():
                     WHERE property_definition.keyname = property.property_definition_keyname
                     AND entity.entity_definition_keyname = property_definition.entity_definition_keyname
                     AND entity.id = property.entity_id
-                    AND property_definition.dataproperty='series'
+                    AND property_definition.dataproperty = 'series'
                     AND entity.id = (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child' LIMIT 1)
+                    AND entity.deleted IS NULL
+                    AND property.deleted IS NULL
                     LIMIT 1
                 ), ''),
                 IFNULL((
@@ -304,6 +316,8 @@ class Entity():
                     AND entity.id = property.entity_id
                     AND property_definition.dataproperty='prefix'
                     AND entity.id = (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child' LIMIT 1)
+                    AND entity.deleted IS NULL
+                    AND property.deleted IS NULL
                     LIMIT 1
                 ), ''),
                 counter.value+counter.increment) AS value,
@@ -324,6 +338,8 @@ class Entity():
             AND property_definition2.datatype = 'counter-value'
             AND relationship.relationship_definition_keyname = 'target-property'
             AND property_definition2.entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %(entity_id)s LIMIT 1)
+            AND relationship.deleted IS NULL
+            AND property.deleted IS NULL
             AND counter.type = 'increment';
             UPDATE
             counter,
@@ -346,6 +362,8 @@ class Entity():
                 AND relationship.relationship_definition_keyname = 'target-property'
                 AND property_definition2.entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %(entity_id)s LIMIT 1)
                 AND counter.type = 'increment'
+                AND relationship.deleted IS NULL
+                AND property.deleted IS NULL
                 ) X
             SET
                 counter.value = counter.value + counter.increment,
@@ -361,7 +379,7 @@ class Entity():
 
     def set_relations(self, entity_id, related_entity_id, relationship_definition_keyname, delete=False, update=False):
         """
-        Add or removes Entity relations. entity_id, related_entity_id, relationship_definition_keyname can be single value or list of values.
+        Adds or removes Entity relations. entity_id, related_entity_id, relationship_definition_keyname can be single value or list of values.
 
         """
 
@@ -426,7 +444,9 @@ class Entity():
 
     def get(self, ids_only=False, entity_id=None, search=None, entity_definition_keyname=None, dataproperty=None, limit=None, full_definition=False, only_public=False):
         """
-        If ids_only = True, then returns list of Entity IDs. Else returns list of Entities (with properties) as dictionary. entity_id, entity_definition and dataproperty can be single value or list of values. If limit = 1 returns Entity (not list). If full_definition = True returns also empty properties.
+        If ids_only = True, then returns list of Entity IDs. Else returns list of Entities (with properties) as dictionary. entity_id, entity_definition and dataproperty can be single value or list of values.
+        If limit = 1, then returns Entity (not list).
+        If full_definition = True ,then returns also empty properties.
 
         """
         ids = self.__get_id_list(entity_id=entity_id, search=search, entity_definition_keyname=entity_definition_keyname, limit=limit, only_public=only_public)
@@ -458,6 +478,9 @@ class Entity():
             WHERE property.property_definition_keyname = property_definition.keyname
             AND entity.id = property.entity_id
             AND relationship.entity_id = entity.id
+            AND entity.deleted IS NULL
+            AND property.deleted IS NULL
+            AND relationship.deleted IS NULL
         """
 
         if entity_id != None:
@@ -495,7 +518,7 @@ class Entity():
     def __get_properties(self, entity_id=None, entity_definition_keyname=None, dataproperty=None, full_definition=False, only_public=False):
         """
         Get Entity properties. entity_id can be single ID or list of IDs.
-
+        * full_definition - All metadata for entity and properties is fetched, if True
         """
         items = None
         if entity_id:
@@ -560,6 +583,7 @@ class Entity():
                 AND entity_definition.keyname = property_definition.entity_definition_keyname
                 AND (property.language = '%(language)s' OR property.language IS NULL)
                 AND entity.id IN (%(idlist)s)
+                AND entity.deleted IS NULL
                 AND property.deleted IS NULL
                 %(public)s
                 %(datapropertysql)s
@@ -726,15 +750,16 @@ class Entity():
         """
         sql = """
             SELECT
-                file.id
+                f.id
             FROM
                 property,
                 property_definition,
-                file
+                file f
             WHERE property_definition.keyname=property.property_definition_keyname
-            AND file.id = property.value_file
+            AND f.id = property.value_file
             AND property_definition.dataproperty='photo'
-            AND property.entity_id=%s
+            AND property.entity_id = %s
+            AND property.deleted IS NULL
             LIMIT 1;
         """
         f = self.db.get(sql, entity_id)
@@ -788,7 +813,16 @@ class Entity():
     def get_relatives(self, ids_only=False, relationship_ids_only=False, entity_id=None, related_entity_id=None, relationship_definition_keyname=None, reverse_relation=False, entity_definition_keyname=None, full_definition=False, limit=None, only_public=False):
         """
         Get Entity relatives.
-
+        * ids_only, relationship_ids_only - return only respective id's if True; return full info by default (False, False).
+          (True, True) is interpreted as (True, False)
+        * entity_id - find only relations for these entities
+        * related_entity_id - find only relations for these related entities
+        * relationship_definition_keyname - find only relations with these relationship types
+        * reverse_relation - obsolete. Just give related_entity_id instead of entity_id
+        * entity_definition_keyname - find only relations with entities of these entity types
+        * full_definition - parameter gets forwarded to Entity.__get_properties
+        * limit - MySQL-specific limit
+        * only_public - if True then only public entities are fetched, othervise user rights are checked. Also gets forwarded to Entity.__get_properties
         """
         if entity_id:
             if type(entity_id) is not list:
@@ -809,49 +843,54 @@ class Entity():
         if reverse_relation == True:
             sql = """
                 SELECT DISTINCT
-                    relationship.id AS relationship_id,
-                    relationship.relationship_definition_keyname,
-                    relationship.entity_id AS id
+                    r.id AS relationship_id,
+                    r.relationship_definition_keyname,
+                    r.entity_id AS id
                 FROM
-                    entity,
-                    relationship,
+                    entity AS e,
+                    relationship AS r,
                     relationship AS rights
-                WHERE relationship.entity_id = entity.id
-                AND rights.entity_id = entity.id
-                AND relationship.deleted IS NULL
+                WHERE r.entity_id = e.id
+                AND rights.entity_id = e.id
+                AND r.deleted IS NULL
+                AND rights.deleted IS NULL
+                AND e.deleted IS NULL
             """
         else:
             sql = """
                 SELECT DISTINCT
-                    relationship.id AS relationship_id,
-                    relationship.relationship_definition_keyname,
-                    relationship.related_entity_id AS id
+                    r.id AS relationship_id,
+                    r.relationship_definition_keyname,
+                    r.related_entity_id AS id
                 FROM
-                    entity,
-                    relationship,
+                    entity AS e,
+                    relationship AS r,
                     relationship AS rights
-                WHERE relationship.related_entity_id = entity.id
-                AND rights.entity_id = entity.id
-                AND relationship.deleted IS NULL
+                WHERE r.related_entity_id = e.id
+                AND rights.entity_id = e.id
+                AND r.deleted IS NULL
+                AND rights.deleted IS NULL
+                AND e.deleted IS NULL
             """
+
         if entity_id:
-            sql += ' AND relationship.entity_id IN (%s)' % ','.join(map(str, entity_id))
+            sql += ' AND r.entity_id IN (%s)' % ','.join(map(str, entity_id))
 
         if related_entity_id:
-            sql += ' AND relationship.related_entity_id IN (%s)' % ','.join(map(str, related_entity_id))
+            sql += ' AND r.related_entity_id IN (%s)' % ','.join(map(str, related_entity_id))
 
         if self.user_id and only_public == False:
             sql += ' AND rights.related_entity_id IN (%s) AND rights.relationship_definition_keyname IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
         else:
-            sql += ' AND entity.public = 1'
+            sql += ' AND e.public = 1'
 
         if relationship_definition_keyname:
-            sql += ' AND relationship.relationship_definition_keyname IN (%s)' % ','.join(['\'%s\'' % x for x in relationship_definition_keyname])
+            sql += ' AND r.relationship_definition_keyname IN (%s)' % ','.join(['\'%s\'' % x for x in relationship_definition_keyname])
 
         if entity_definition_keyname:
-            sql += ' AND entity.entity_definition_keyname IN (%s)' % ','.join(map(str, entity_definition_keyname))
+            sql += ' AND e.entity_definition_keyname IN (%s)' % ','.join(map(str, entity_definition_keyname))
 
-        sql += ' ORDER BY entity.sort, entity.created DESC'
+        sql += ' ORDER BY e.sort, e.created DESC'
 
         if limit:
             sql += ' LIMIT %d' % limit
@@ -883,6 +922,9 @@ class Entity():
 
         """
 
+        if type(file_id) is not list:
+            file_id = [file_id]
+
         if self.user_id:
             public = ''
         else:
@@ -890,29 +932,23 @@ class Entity():
 
         sql = """
             SELECT
-                file.id,
-                file.file,
-                file.filename
+                f.id,
+                f.file,
+                f.filename
             FROM
-                file,
-                property,
-                property_definition
-            WHERE property.value_file = file.id
-            AND property_definition.keyname = property.property_definition_keyname
-            AND file.id = %(file_id)s
+                file AS f,
+                property AS p,
+                property_definition AS pd
+            WHERE p.value_file = f.id
+            AND pd.keyname = p.property_definition_keyname
+            AND f.id IN (%(file_id)s)
             %(public)s
-            LIMIT 1
-            """ % {'file_id': file_id, 'public': public}
+            AND p.deleted IS NULL
+            """ % {'file_id': ','.join(map(str, file_id)), 'public': public}
         # logging.debug(sql)
 
-        result = self.db.get(sql)
+        return self.db.query(sql)
 
-        if not result:
-            return
-        if not result.file:
-            return
-
-        return result
 
     def get_entity_definition(self, entity_definition_keyname):
         """
@@ -958,6 +994,7 @@ class Entity():
                 LEFT JOIN entity_definition ed ON r.related_entity_definition_keyname = ed.keyname
             WHERE r.relationship_definition_keyname = 'allowed-child'
             AND r.entity_id = %(id)s
+            AND r.deleted IS NULL
             ORDER BY ed.keyname        """  % {'language': self.language, 'id': entity_id}
         # logging.debug(sql)
 
@@ -980,6 +1017,7 @@ class Entity():
             WHERE relationship.related_entity_definition_keyname = entity_definition.keyname
             AND relationship.relationship_definition_keyname = 'allowed-child'
             AND relationship.entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %(id)s)
+            AND relationship.deleted IS NULL
         """  % {'language': self.language, 'id': entity_id}
         # logging.debug(sql)
 
@@ -1009,6 +1047,7 @@ class Entity():
             WHERE relationship.entity_definition_keyname = entity_definition.keyname
             AND relationship.relationship_definition_keyname = 'default-parent'
             AND entity_definition.keyname IN (%(ids)s)
+            AND relationship.deleted IS NULL
         """  % {'language': self.language, 'ids': ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])}
         # logging.debug(sql)
 
@@ -1034,9 +1073,11 @@ class Entity():
             AND relationship.relationship_definition_keyname IN ('viewer', 'editor', 'owner')
             AND entity_definition.estonian_menu IS NOT NULL
             AND relationship.related_entity_id IN (%(user_id)s)
+            AND entity.deleted IS NULL
+            AND relationship.deleted IS NULL
             ORDER BY
-            entity_definition.estonian_menu,
-            entity_definition.estonian_label;
+                entity_definition.estonian_menu,
+                entity_definition.estonian_label;
         """ % {'language': self.language, 'user_id': ','.join(map(str, self.user_id))}
         # logging.debug(sql)
 
@@ -1046,6 +1087,13 @@ class Entity():
             menu.setdefault(m.menugroup, {}).setdefault('items', []).append({'keyname': m.keyname, 'title': m.item})
 
         return sorted(menu.values(), key=itemgetter('label'))
+
+    def delete(self, entity_id):
+        for child_id in self.get_relatives(ids_only=True, entity_id=entity_id, relationship_definition_keyname='child'):
+            self.delete(child_id)
+
+        self.db.execute('UPDATE entity SET deleted = NOW(), deleted_by = %s WHERE id = %s;', self.created_by, entity_id)
+
 
 
 class User():
@@ -1071,17 +1119,19 @@ class User():
                 user.language,
                 user.email,
                 user.picture,
-                user_profile.provider
+                user.provider
             FROM
                 property_definition,
                 property,
-                user,
-                user_profile
+                entity,
+                user
             WHERE property.property_definition_keyname = property_definition.keyname
+            AND entity.id = property.entity_id
+            AND property.deleted IS NULL
+            AND entity.deleted IS NULL
             AND user.email = property.value_string
-            AND user_profile.user_id = user.id
             AND property_definition.dataproperty = 'user'
-            AND user_profile.session = %s
+            AND user.session = %s
             LIMIT 1;
         """, session)
 
@@ -1097,34 +1147,34 @@ class User():
     def __getitem__(self, key):
         return getattr(self, key)
 
-    def create(self, provider='', id='', email='', name='', picture='', language='', session=''):
+    def login(self, request_handler, session_key=None, provider=None, provider_id=None, email=None, name=None, picture=None):
         """
-        Creates new (or updates old) user.
+        Starts session. Creates new (or updates old) user.
 
         """
+        if not session_key:
+            session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
+        user_key = hashlib.md5(request_handler.request.remote_ip + request_handler.request.headers.get('User-Agent', None)).hexdigest()
+
+
         db = connection()
-        profile_id = db.execute_lastrowid('INSERT INTO user_profile SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, session = %s, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, changed = NOW();',
+        profile_id = db.execute_lastrowid('INSERT INTO user SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, session = %s, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, changed = NOW();',
                 provider,
-                id,
+                provider_id,
                 email,
                 name,
                 picture,
-                session,
+                request_handler.settings['default_language'],
+                session_key+user_key,
                 email,
                 name,
                 picture,
-                session
+                session_key+user_key
             )
-        profile = db.get('SELECT id, user_id FROM user_profile WHERE id = %s', profile_id)
 
-        if not profile.user_id:
-            user_id = db.execute_lastrowid('INSERT INTO user SET email = %s, name = %s, picture = %s, language = %s, created = NOW();',
-                email,
-                name,
-                picture,
-                language
-            )
-            db.execute('UPDATE user_profile SET user_id = %s WHERE id = %s;', user_id, profile.id)
+        request_handler.set_secure_cookie('session', session_key)
+
+        return session_key
 
 
 def formatDatetime(date, format='%(day)02d.%(month)02d.%(year)d %(hour)02d:%(minute)02d'):
