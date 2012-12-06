@@ -959,7 +959,7 @@ class Entity():
                 property AS p,
                 property_definition AS pd
             WHERE p.value_file = f.id
-            AND property_definition.keyname = property.property_definition_keyname
+            AND pd.keyname = p.property_definition_keyname
             AND f.id = %(file_id)s
             %(public)s
             AND p.deleted IS NULL
