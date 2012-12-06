@@ -958,7 +958,7 @@ class Entity():
                 file AS f,
                 property AS p,
                 property_definition AS pd
-            WHERE property.value_file = f.id
+            WHERE p.value_file = f.id
             AND property_definition.keyname = property.property_definition_keyname
             AND f.id = %(file_id)s
             %(public)s
