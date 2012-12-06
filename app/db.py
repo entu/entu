@@ -243,8 +243,6 @@ class Entity():
                 self.created_by
             )
 
-            # self.update_depending_formulas()
-
             if definition.formula == 1:
                 formula.save_property(new_property_id, old_property_id)
                 if not formula.verify_dag(property_id_in=new_property_id):
@@ -252,11 +250,10 @@ class Entity():
                         'E: Formula has recursive dependency.',
                         new_property_id
                     )
+                else:
+                    formula.update_depending_formulas()
 
         return new_property_id
-
-    def update_depending_formulas(self):
-        return True
 
     def set_public(self, entity_id, is_public=False):
         """
@@ -1207,7 +1204,9 @@ class User():
 
 
 class Formula():
-
+    """
+    entity_id is accessed from FExpression.fetch_path_from_db() method
+    """
     def __init__(self, formula, entity_id, user_locale, created_by=None):
         self.db             = connection()
         self.formula        = formula
@@ -1282,6 +1281,17 @@ class Formula():
             self.verify_dag(property_id)
 
         return not self.dag_failed
+
+    def update_depending_formulas(self):
+        for property_id in self.dag_stack.items:
+            [db_property] = self.db.query('SELECT * FROM property WHERE id = %s', property_id)
+            logging.debug(db_property)
+            formula = Formula(formula=db_property.value_formula, entity_id=db_property.entity_id, user_locale=self.user_locale, created_by=self.created_by)
+            value = ''.join(formula.evaluate())
+            self.db.execute('UPDATE property SET value_string = %s WHERE id = %s', value, property_id)
+            logging.debug(value)
+        return True
+
 
 class FExpression():
 
