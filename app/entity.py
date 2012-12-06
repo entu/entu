@@ -264,7 +264,7 @@ class DeleteFile(myRequestHandler):
         if not item:
             return self.missing()
 
-        entity.set_property(entity_id=entity_id, property_id=property_id)
+        entity.set_property(entity_id=entity_id, old_property_id=property_id)
 
 
 class DeleteEntity(myRequestHandler):
