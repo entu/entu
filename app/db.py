@@ -1223,11 +1223,11 @@ class Formula():
 
         for m in re.findall(r"([^{]*){([^{}]*)}|(.*?)$",self.formula):
             if m[0]:
-                self.value.append(m[0])
+                self.value.append(m[0].encode('utf8'))
             if m[1]:
-                self.value.append('%s' % ','.join(map(str, FExpression(self, m[1]).value)))
+                self.value.append('%s'.encode('utf8') % ','.join(map(str, FExpression(self, m[1]).value)))
             if m[2]:
-                self.value.append(m[2])
+                self.value.append(m[2].encode('utf8'))
 
         return self.value
 
