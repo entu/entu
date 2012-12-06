@@ -167,6 +167,7 @@
 
         document.title = '{{ page_title.replace('\'', '\\\'') }}';
 
+        $('#list_items a.active').removeClass('active');
         $('#listitem_{{ entity.get('id') }}').addClass('active');
 
         $('.toggle-table').click(function() {
