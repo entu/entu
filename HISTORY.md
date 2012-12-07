@@ -1,3 +1,6 @@
+## 2012-11-22
+* Bugfixes
+
 ## 2012-11-09
 * Multiple file upload
 

@@ -5,6 +5,10 @@ from tornado.options import options
 from operator import itemgetter
 from datetime import datetime
 
+import random
+import string
+import hashlib
+import time
 import logging
 import hashlib
 import re
@@ -108,22 +112,17 @@ class Entity():
                 created_by,
                 created
             ) SELECT /* SQL_NO_CACHE */
-                r.relationship_definition_keyname,
+                rr.relationship_definition_keyname,
                 %s,
-                r.related_entity_id,
+                rr.related_entity_id,
                 %s,
                 NOW()
-            FROM
-                relationship AS r
-            WHERE r.relationship_definition_keyname IN ('leecher', 'viewer', 'editor', 'owner')
-            AND r.deleted IS NULL
-            AND r.entity_id IN (
-                SELECT DISTINCT entity_id
-                FROM relationship
-                WHERE deleted IS NULL
-                AND related_entity_id = %s
-                AND relationship_definition_keyname = 'child'
-            );
+            FROM      relationship r
+            LEFT JOIN relationship rr ON rr.entity_id = r.entity_id
+            WHERE     r.deleted IS NULL
+            AND       r.related_entity_id = %s
+            AND       r.relationship_definition_keyname = 'child'
+            AND       rr.relationship_definition_keyname IN ('leecher', 'viewer', 'editor', 'owner' );
         """
         # logging.debug(sql)
         self.db.execute(sql, entity_id, self.created_by, entity_id)
@@ -944,6 +943,9 @@ class Entity():
 
         """
 
+        if type(file_id) is not list:
+            file_id = [file_id]
+
         if self.user_id:
             public = ''
         else:
@@ -960,21 +962,14 @@ class Entity():
                 property_definition AS pd
             WHERE p.value_file = f.id
             AND pd.keyname = p.property_definition_keyname
-            AND f.id = %(file_id)s
+            AND f.id IN (%(file_id)s)
             %(public)s
             AND p.deleted IS NULL
-            LIMIT 1
-            """ % {'file_id': file_id, 'public': public}
+            """ % {'file_id': ','.join(map(str, file_id)), 'public': public}
         # logging.debug(sql)
 
-        result = self.db.get(sql)
+        return self.db.query(sql)
 
-        if not result:
-            return
-        if not result.file:
-            return
-
-        return result
 
     def get_entity_definition(self, entity_definition_keyname):
         """
@@ -1144,18 +1139,19 @@ class User():
                 user.language,
                 user.email,
                 user.picture,
-                user_profile.provider
+                user.provider
             FROM
                 property_definition,
                 property,
-                user,
-                user_profile
+                entity,
+                user
             WHERE property.property_definition_keyname = property_definition.keyname
+            AND entity.id = property.entity_id
             AND property.deleted IS NULL
+            AND entity.deleted IS NULL
             AND user.email = property.value_string
-            AND user_profile.user_id = user.id
             AND property_definition.dataproperty = 'user'
-            AND user_profile.session = %s
+            AND user.session = %s
             LIMIT 1;
         """, session)
 
@@ -1171,34 +1167,34 @@ class User():
     def __getitem__(self, key):
         return getattr(self, key)
 
-    def create(self, provider='', id='', email='', name='', picture='', language='', session=''):
+    def login(self, request_handler, session_key=None, provider=None, provider_id=None, email=None, name=None, picture=None):
         """
-        Creates new (or updates old) user.
+        Starts session. Creates new (or updates old) user.
 
         """
+        if not session_key:
+            session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
+        user_key = hashlib.md5(request_handler.request.remote_ip + request_handler.request.headers.get('User-Agent', None)).hexdigest()
+
+
         db = connection()
-        profile_id = db.execute_lastrowid('INSERT INTO user_profile SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, session = %s, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, changed = NOW();',
+        profile_id = db.execute_lastrowid('INSERT INTO user SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, session = %s, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, changed = NOW();',
                 provider,
-                id,
+                provider_id,
                 email,
                 name,
                 picture,
-                session,
+                request_handler.settings['default_language'],
+                session_key+user_key,
                 email,
                 name,
                 picture,
-                session
+                session_key+user_key
             )
-        profile = db.get('SELECT id, user_id FROM user_profile WHERE id = %s', profile_id)
 
-        if not profile.user_id:
-            user_id = db.execute_lastrowid('INSERT INTO user SET email = %s, name = %s, picture = %s, language = %s, created = NOW();',
-                email,
-                name,
-                picture,
-                language
-            )
-            db.execute('UPDATE user_profile SET user_id = %s WHERE id = %s;', user_id, profile.id)
+        request_handler.set_secure_cookie('session', session_key)
+
+        return session_key
 
 
 class Formula():

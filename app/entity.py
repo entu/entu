@@ -1,7 +1,8 @@
 from tornado import auth, web
-
+from StringIO import StringIO
 import logging
 import magic
+import zipfile
 
 import db
 from helper import *
@@ -10,20 +11,19 @@ from helper import *
 class ShowGroup(myRequestHandler):
     """
     """
+    @web.removeslash
     @web.authenticated
     def get(self, entity_definition_keyname=None):
         """
         Show entities page with menu.
 
         """
-        entity_definition_keyname = entity_definition_keyname.strip('/')
+        entity_definition_keyname = entity_definition_keyname.strip('/').split('/')[0]
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
 
         entity_definition = None
         if entity_definition_keyname:
             entity_definition = entity.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
-
-
 
         self.render('entity/start.html',
             page_title = entity_definition[0].label_plural if entity_definition else '',
@@ -39,7 +39,7 @@ class ShowGroup(myRequestHandler):
         Returns searched Entitiy IDs as JSON.
 
         """
-        entity_definition_keyname = entity_definition_keyname.strip('/')
+        entity_definition_keyname = entity_definition_keyname.strip('/').split('/')[0]
         search = self.get_argument('search', None, True)
         self.write({'items': db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(ids_only=True, search=search, entity_definition_keyname=entity_definition_keyname, limit=303)})
 
@@ -112,28 +112,40 @@ class ShowEntity(myRequestHandler):
 
 class DownloadFile(myRequestHandler):
     @web.authenticated
-    def get(self, file_id=None, url=None):
+    def get(self, file_ids=None, url=None):
         """
         Download file.
 
         """
-        try:
-            file_id = int(file_id.split('/')[0])
-        except:
+        file_ids = file_ids.split('/')[0]
+        files = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get_file(file_ids)
+
+        if not files:
+            return self.missing()
+        if len(files) < 1:
             return self.missing()
 
-        file = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get_file(file_id)
-        if not file:
-            return self.missing()
-
-        ms = magic.open(magic.MAGIC_MIME)
-        ms.load()
-        mime = ms.buffer(file.file)
-        ms.close()
+        if len(files) > 1:
+            f = StringIO()
+            zf = zipfile.ZipFile(f, 'w', zipfile.ZIP_DEFLATED)
+            for file in files:
+                zf.writestr(file.filename, file.file)
+            zf.close()
+            mime = 'application/octet-stream'
+            filename = '%s.zip' % file_ids
+            outfile = f.getvalue()
+        else:
+            file = files[0]
+            ms = magic.open(magic.MAGIC_MIME)
+            ms.load()
+            mime = ms.buffer(file.file)
+            ms.close()
+            filename = file.filename
+            outfile = file.file
 
         self.add_header('Content-Type', mime)
-        self.add_header('Content-Disposition', 'attachment; filename="%s"' % file.filename)
-        self.write(file.file)
+        self.add_header('Content-Disposition', 'attachment; filename="%s"' % filename)
+        self.write(outfile)
 
 
 class ShowEntityEdit(myRequestHandler):
@@ -316,7 +328,7 @@ class ShareByEmail(myRequestHandler):
         if not item:
             return self.missing()
 
-        url = 'https://%s/entity/%s#%s' % (self.request.headers.get('Host'), item['definition_keyname'], item['id'])
+        url = 'https://%s/entity/%s/%s' % (self.request.headers.get('Host'), item['definition_keyname'], item['id'])
 
         self.mail_send(
             to = to,

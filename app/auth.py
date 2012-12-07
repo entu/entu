@@ -4,8 +4,6 @@ from tornado import httpclient
 
 import random
 import string
-import hashlib
-import time
 import urllib
 import urlparse
 import logging
@@ -139,29 +137,32 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
             return
 
         if self.oauth2_provider['provider'] == 'facebook':
-            LoginUser(self, {
-                'provider': self.oauth2_provider['provider'],
-                'id':       user.setdefault('id', None),
-                'email':    user.setdefault('email', None),
-                'name':     user.setdefault('name', None),
-                'picture':  'http://graph.facebook.com/%s/picture?type=large' % user.setdefault('id', ''),
-            })
+            db.User().login(
+                request_handler = self,
+                provider        = self.oauth2_provider['provider'],
+                provider_id     = user.setdefault('id', None),
+                email           = user.setdefault('email', None),
+                name            = user.setdefault('name', None),
+                picture         = 'http://graph.facebook.com/%s/picture?type=large' % user.setdefault('id', '')
+            )
         if self.oauth2_provider['provider'] == 'google':
-            LoginUser(self, {
-                'provider': self.oauth2_provider['provider'],
-                'id':       user.setdefault('id', None),
-                'email':    user.setdefault('email', None),
-                'name':     user.setdefault('name', None),
-                'picture':  user.setdefault('picture', None),
-            })
+            db.User().login(
+                request_handler = self,
+                provider        = self.oauth2_provider['provider'],
+                provider_id     = user.setdefault('id', None),
+                email           = user.setdefault('email', None),
+                name            = user.setdefault('name', None),
+                picture         = user.setdefault('picture', None)
+            )
         if self.oauth2_provider['provider'] == 'live':
-            LoginUser(self, {
-                'provider': self.oauth2_provider['provider'],
-                'id':       user.setdefault('id', None),
-                'email':    user.setdefault('emails', {}).setdefault('preferred', user.setdefault('emails', {}).setdefault('preferred', user.setdefault('personal', {}).setdefault('account', None))),
-                'name':     user.setdefault('name', None),
-                'picture':  'https://apis.live.net/v5.0/%s/picture' % user.setdefault('id', ''),
-            })
+            db.User().login(
+                request_handler = self,
+                provider        = self.oauth2_provider['provider'],
+                provider_id     = user.setdefault('id', None),
+                email           = user.setdefault('emails', {}).setdefault('preferred', user.setdefault('emails', {}).setdefault('preferred', user.setdefault('personal', {}).setdefault('account', None))),
+                name            = user.setdefault('name', None),
+                picture         = 'https://apis.live.net/v5.0/%s/picture' % user.setdefault('id', '')
+            )
 
         self.redirect(get_redirect(self))
 
@@ -186,7 +187,10 @@ class AuthMobileID(myRequestHandler, auth.OpenIdMixin):
         if not user:
             raise web.HTTPError(500, 'MobileID auth failed')
 
-        LoginUser(self, {'id': self.get_argument('openid.identity', None)})
+        db.User().login(
+            request_handler = self,
+            provider_id     = self.get_argument('openid.identity', None)
+        )
         self.redirect(get_redirect(self))
 
 
@@ -209,7 +213,10 @@ class AuthIDcard(myRequestHandler, auth.OpenIdMixin):
         if not user:
             raise web.HTTPError(500, 'IDcard auth failed')
 
-        LoginUser(self, {'id': self.get_argument('openid.identity', None)})
+        db.User().login(
+            request_handler = self,
+            provider_id     = self.get_argument('openid.identity', None)
+        )
         self.redirect(get_redirect(self))
 
 
@@ -229,13 +236,14 @@ class AuthTwitter(myRequestHandler, auth.TwitterMixin):
         if not user:
             raise web.HTTPError(500, 'Twitter auth failed')
 
-        LoginUser(self, {
-            'provider': 'twitter',
-            'id':       '%s' % user.setdefault('id'),
-            'email':    None,
-            'name':     user.setdefault('name'),
-            'picture':  user.setdefault('profile_image_url'),
-        })
+        db.User().login(
+            request_handler = self,
+            provider        = 'twitter',
+            provider_id     = '%s' % user.setdefault('id'),
+            email           = None,
+            name            = user.setdefault('name'),
+            picture         = user.setdefault('profile_image_url')
+        )
         self.redirect(get_redirect(self))
 
 
@@ -256,32 +264,13 @@ class Exit(myRequestHandler):
         self.redirect(redirect_url)
 
 
-def LoginUser(rh, user):
-    """
-    Starts session. Creates new user.
-
-    """
-    session_key = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest()
-    user_key = hashlib.md5(rh.request.remote_ip + rh.request.headers.get('User-Agent', None)).hexdigest()
-
-    db.User().create(
-        provider    = user['provider'],
-        id          = user['id'],
-        email       = user['email'],
-        name        = user['name'],
-        picture     = user['picture'],
-        language    = rh.settings['default_language'],
-        session     = session_key+user_key
-    )
-
-    rh.set_secure_cookie('session', str(session_key))
-
 def set_redirect(rh):
     """
     Saves requested URL to cookie, then (after authentication) we know where to go.
 
     """
     rh.set_secure_cookie('auth_redirect', rh.get_argument('next', default='/', strip=True), 1)
+
 
 def get_redirect(rh):
     """
@@ -292,6 +281,7 @@ def get_redirect(rh):
     if next:
         return next
     return '/'
+
 
 handlers = [
     ('/auth/mobileid', AuthMobileID),

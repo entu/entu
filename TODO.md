@@ -18,4 +18,6 @@
 * Custom labels for displaytabletable
 * Descending sort
 * Download Entity as xml/zip
+* Unique fields
+* Manage rights (sharing view)
 * ...

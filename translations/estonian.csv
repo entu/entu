@@ -29,6 +29,8 @@ confirm_file_delete,Fail '%s' kustutatakse.
 
 counter_generate_value,Genereeri number
 
+download_all_as_zip,Lae alla kõik failid
+
 public,Avalik
 public_description,Tee see dokument nähtavaks avalikus vaates
 
