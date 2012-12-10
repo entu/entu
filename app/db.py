@@ -571,6 +571,7 @@ class Entity():
                     property.value_datetime                         AS value_datetime,
                     property.value_entity                           AS value_entity,
                     property.value_counter                          AS value_counter,
+                    property.value_reference                        AS value_reference,
                     property.value_file                             AS value_file
                 FROM
                     entity,
@@ -644,8 +645,13 @@ class Entity():
                     db_value = row.value_datetime
                     value = formatDatetime(row.value_datetime)
                 elif row.property_datatype == 'reference':
+                    value = ''
+                    if row.value_reference:
+                        reference = self.__get_properties(entity_id=row.value_reference)
+                        if reference:
+                            value = reference[0].get('displayname')
+                    logging.debug(str(reference))
                     db_value = row.value_entity
-                    value = row.value_entity
                 elif row.property_datatype == 'file':
                     db_value = row.value_file
                     blobstore = self.db.get('SELECT id, filename, filesize FROM file WHERE id=%s LIMIT 1', row.value_file)
