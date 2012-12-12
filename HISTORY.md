@@ -1,3 +1,8 @@
+## 2012-12-10
+* Download all files (from file property)
+* Replace entity #id hash with /id url
+* Show reference property values
+
 ## 2012-11-22
 * Bugfixes
 
