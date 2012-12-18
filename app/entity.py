@@ -145,7 +145,7 @@ class DownloadFile(myRequestHandler):
             outfile = file.file
 
         self.add_header('Content-Type', mime)
-        self.add_header('Content-Disposition', 'attachment; filename="%s"' % filename)
+        self.add_header('Content-Disposition', 'inline; filename="%s"' % filename)
         self.write(outfile)
 
 
@@ -377,7 +377,7 @@ class DownloadEntity(myRequestHandler):
         zf.close()
 
         self.add_header('Content-Type', 'application/octet-stream')
-        self.add_header('Content-Disposition', 'attachment; filename="%s.zip"' % item.get('displayname'))
+        self.add_header('Content-Disposition', 'inline; filename="%s.zip"' % item.get('displayname'))
         self.write(f.getvalue())
 
 

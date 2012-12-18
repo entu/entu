@@ -212,7 +212,7 @@ class PublicFileHandler(myRequestHandler):
         ms.close()
 
         self.add_header('Content-Type', mime)
-        self.add_header('Content-Disposition', 'attachment; filename="%s"' % file.filename)
+        self.add_header('Content-Disposition', 'inline; filename="%s"' % file.filename)
         self.write(file.file)
 
 
