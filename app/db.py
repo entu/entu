@@ -242,6 +242,11 @@ class Entity():
                     self.created_by
                 )
 
+        self.db.execute('UPDATE entity SET changed = NOW(), changed_by = %s WHERE id = %s;',
+            self.created_by,
+            entity_id,
+        )
+
         return new_property_id
 
     def set_public(self, entity_id, is_public=False):
@@ -544,6 +549,7 @@ class Entity():
                     entity_definition.%(language)s_label_plural     AS entity_label_plural,
                     entity_definition.%(language)s_description      AS entity_description,
                     entity.created                                  AS entity_created,
+                    entity.changed                                  AS entity_changed,
                     entity.public                                   AS entity_public,
                     entity_definition.%(language)s_displayname      AS entity_displayname,
                     entity_definition.%(language)s_displayinfo      AS entity_displayinfo,
@@ -604,7 +610,8 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {})['description'] = row.entity_description
                 items.setdefault('item_%s' % row.entity_id, {})['sort'] = row.entity_sort
                 items.setdefault('item_%s' % row.entity_id, {})['sort_value'] = row.entity_sort_value
-                items.setdefault('item_%s' % row.entity_id, {})['created'] = formatDatetime(row.entity_created, '%(day)02d.%(month)02d.%(year)d') if row.entity_created else ''
+                items.setdefault('item_%s' % row.entity_id, {})['created'] = row.entity_created
+                items.setdefault('item_%s' % row.entity_id, {})['changed'] = row.entity_changed
                 items.setdefault('item_%s' % row.entity_id, {})['displayname'] = row.entity_displayname
                 items.setdefault('item_%s' % row.entity_id, {})['displayinfo'] = row.entity_displayinfo
                 items.setdefault('item_%s' % row.entity_id, {})['displaytable'] = row.entity_displaytable
@@ -939,6 +946,7 @@ class Entity():
         sql = """
             SELECT
                 f.id,
+                f.created,
                 f.file,
                 f.filename
             FROM

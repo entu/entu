@@ -1,9 +1,11 @@
 from tornado import auth, web
 from StringIO import StringIO
+from operator import itemgetter
 import logging
 import magic
 import zipfile
 import yaml
+import time
 
 import db
 from helper import *
@@ -373,7 +375,10 @@ class DownloadEntity(myRequestHandler):
         zf = zipfile.ZipFile(f, 'w', zipfile.ZIP_DEFLATED)
         for file in files:
             filename = '%s/%s' % (file.get('path').strip('/'), file.get('name'))
-            zf.writestr(filename, file.get('file'))
+            info = zipfile.ZipInfo(filename, date_time=file.get('date'))
+            info.compress_type=zipfile.ZIP_DEFLATED
+            info.create_system=0
+            zf.writestr(info, file.get('file'))
         zf.close()
 
         self.add_header('Content-Type', 'application/octet-stream')
@@ -398,22 +403,33 @@ class DownloadEntity(myRequestHandler):
         result = []
         path = '%s/%s #%s - %s' % (path, item.get('label').replace('/', '_'), item.get('id'), item.get('displayname').replace('/', '_'))
 
+        itemyaml = {}
+        itemyaml['created'] = str(item.get('created'))
+        itemyaml['changed'] = str(item.get('changed')) if item.get('changed') else str(item.get('created'))
+        for p in sorted(item.get('properties', {}).values(), key=itemgetter('ordinal')):
+            for v in sorted(p.get('values', []), key=itemgetter('ordinal')):
+                if v.get('value'):
+                    itemyaml.setdefault('properties', {}).setdefault(p.get('dataproperty','').lower(), []).append(u'%s' % v.get('value'))
+
+            if len(itemyaml.get('properties', {}).get(p.get('dataproperty','').lower(), [])) == 1:
+                itemyaml['properties'][p.get('dataproperty','').lower()] = itemyaml.get('properties', {}).get(p.get('dataproperty','').lower(), [])[0]
+
+
+            if p.get('datatype') == 'file':
+                for f in entity.get_file([x.get('db_value') for x in p.get('values', []) if x.get('db_value')]):
+                    result.append({
+                        'path': '%s/%s' % (path, p.get('label_plural', p.get('label', p.get('keyname',''))).replace('/', '_')),
+                        'name': f.filename,
+                        'date': f.get('created').timetuple() if f.get('created') else time.localtime(time.time()),
+                        'file': f.file
+                    })
+
         result.append({
             'path': path,
             'name': 'entity.yaml',
-            'file': yaml.safe_dump(item, default_flow_style=False, allow_unicode=True)
+            'date': item.get('changed').timetuple() if item.get('changed') else time.localtime(time.time()),
+            'file': yaml.safe_dump(itemyaml, default_flow_style=False, allow_unicode=True)
         })
-
-        for p in item.get('properties', {}).values():
-            if p.get('datatype') != 'file':
-                continue
-
-            for f in entity.get_file([x.get('db_value') for x in p.get('values', []) if x.get('db_value')]):
-                result.append({
-                    'path': '%s/%s' % (path, p.get('label_plural', p.get('label', p.get('keyname',''))).replace('/', '_')),
-                    'name': f.filename,
-                    'file': f.file
-                })
 
         for definition, relatives in entity.get_relatives(entity_id=entity_id, relationship_definition_keyname='child').iteritems():
             for r in relatives:
@@ -422,10 +438,6 @@ class DownloadEntity(myRequestHandler):
                     result = result + relatives_result
 
         return result
-
-        # files = entity.get_file(file_ids)
-
-
 
 
 handlers = [
