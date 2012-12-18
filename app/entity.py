@@ -3,6 +3,7 @@ from StringIO import StringIO
 import logging
 import magic
 import zipfile
+import yaml
 
 import db
 from helper import *
@@ -353,6 +354,80 @@ class ShowHTMLproperty(myRequestHandler):
         self.write('\n'.join([x.get('value', '') for x in item.get('properties', {}).get(dataproperty, {}).get('values') if x.get('value', '')]))
 
 
+class DownloadEntity(myRequestHandler):
+    @web.authenticated
+    def get(self, entity_id):
+        """
+        Download Entity as ZIP file
+
+        """
+
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
+        item = entity.get(entity_id=entity_id, limit=1, full_definition=False)
+        if not item:
+            return
+
+        files = self.__get_files(entity_id)
+
+        f = StringIO()
+        zf = zipfile.ZipFile(f, 'w', zipfile.ZIP_DEFLATED)
+        for file in files:
+            filename = '%s/%s' % (file.get('path').strip('/'), file.get('name'))
+            zf.writestr(filename, file.get('file'))
+        zf.close()
+
+        self.add_header('Content-Type', 'application/octet-stream')
+        self.add_header('Content-Disposition', 'attachment; filename="%s.zip"' % item.get('displayname'))
+        self.write(f.getvalue())
+
+
+        self.write(str(files))
+
+
+    def __get_files(self, entity_id, path = ''):
+        """
+        Return Entity properties as YAML file and all files (from file properties)
+
+        """
+
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
+        item = entity.get(entity_id=entity_id, limit=1, full_definition=False)
+        if not item:
+            return
+
+        result = []
+        path = '%s/%s #%s - %s' % (path, item.get('label').replace('/', '_'), item.get('id'), item.get('displayname').replace('/', '_'))
+
+        result.append({
+            'path': path,
+            'name': 'entity.yaml',
+            'file': yaml.safe_dump(item, default_flow_style=False, allow_unicode=True)
+        })
+
+        for p in item.get('properties', {}).values():
+            if p.get('datatype') != 'file':
+                continue
+
+            for f in entity.get_file([x.get('db_value') for x in p.get('values', []) if x.get('db_value')]):
+                result.append({
+                    'path': '%s/%s' % (path, p.get('label_plural', p.get('label', p.get('keyname',''))).replace('/', '_')),
+                    'name': f.filename,
+                    'file': f.file
+                })
+
+        for definition, relatives in entity.get_relatives(entity_id=entity_id, relationship_definition_keyname='child').iteritems():
+            for r in relatives:
+                relatives_result = self.__get_files(r.get('id'), path)
+                if relatives_result:
+                    result = result + relatives_result
+
+        return result
+
+        # files = entity.get_file(file_ids)
+
+
+
+
 handlers = [
     (r'/entity/save', SaveEntity),
     (r'/entity/file-(.*)', DownloadFile),
@@ -364,6 +439,7 @@ handlers = [
     (r'/entity-(.*)/add/(.*)', ShowEntityAdd),
     (r'/entity-(.*)/share', ShareByEmail),
     (r'/entity-(.*)/html-(.*)', ShowHTMLproperty),
+    (r'/entity-(.*)/download', DownloadEntity),
     (r'/entity-(.*)', ShowEntity),
     (r'/entity(.*)', ShowGroup),
 ]
