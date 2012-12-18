@@ -44,6 +44,7 @@ _Futuristic Data Management System_
     * [tornadomail](https://github.com/equeny/tornadomail)
     * [xmltodict](https://github.com/martinblech/xmltodict)
     * [Beautiful Soup](http://www.crummy.com/software/BeautifulSoup)
+    * [PyYAML](http://pyyaml.org)
 
 
 ## Used libraries/add-ons
