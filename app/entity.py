@@ -1,4 +1,4 @@
-from tornado import auth, web
+from tornado import auth, web, httpclient
 from StringIO import StringIO
 from operator import itemgetter
 import logging
@@ -232,6 +232,8 @@ class SaveEntity(myRequestHandler):
         is_counter                  = self.get_argument('counter', default='false', strip=True)
         is_public                   = self.get_argument('is_public', default='false', strip=True)
         uploaded_file               = self.request.files.get('file', []) if self.request.files.get('file', None) else None
+        dropbox_file                = self.get_argument('dropbox_file', default=None, strip=True)
+        dropbox_name                = self.get_argument('dropbox_name', default=None, strip=True)
 
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
         if not entity_id and parent_entity_id and entity_definition_keyname:
@@ -243,6 +245,14 @@ class SaveEntity(myRequestHandler):
             value = True if value.lower() == 'true' else False
             value = entity.set_public(entity_id=entity_id, is_public=value)
         else:
+            if dropbox_file and dropbox_name:
+                response = httpclient.HTTPClient().fetch(dropbox_file, method = 'GET', request_timeout = 600)
+                if response:
+                    uploaded_file = [{
+                        'filename': dropbox_name,
+                        'body' : response.body
+                    }]
+
             if uploaded_file:
                 value = uploaded_file
 

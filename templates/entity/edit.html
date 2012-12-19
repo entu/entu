@@ -62,7 +62,10 @@
                                         <input type="hidden" name="parent_entity_id" value="{{ parent_entity_id }}" />
                                         <input type="hidden" name="entity_definition_keyname" value="{{ entity_definition_keyname }}" />
                                         <input type="hidden" name="property_definition_keyname" value="{{ p['keyname'] }}" />
-                                        <input type="file" name="file" class="dtype-{{ p['datatype'] }}" style="border:none; width:100%; margin-bottom:4px;" multiple />
+                                        <input type="hidden" name="dropbox_file" id="dropbox-file" />
+                                        <input type="hidden" name="dropbox_name" id="dropbox-name" />
+                                        <a id="dropbox-open" class="btn btn-mini" style="float:right;"><i class="icon-dropbox"></i>Dropbox</a>
+                                        <input type="file" name="file" class="dtype-{{ p['datatype'] }}" style="border:none; margin-bottom:4px;" multiple />
                                     </form>
                                 {% else %}
                                     <div class="delete-file-row"><a href="/entity/file-{{ v['db_value'] }}">{{ v['value'] }}</a> <a href="javascript:void(0);" data-property_id="{{ v['id'] }}" class="delete-file" style="float:right; display:none;"><i class="icon-trash" style="color:red;"></i></a></div>
@@ -220,7 +223,7 @@
 
         $('.dtype-file').change(function() {
             $(this).parent().hide();
-            $(this).parent().parent().children('img').show()
+            $(this).parent().parent().children('img').show();
             $(this).parent().submit();
         });
 
@@ -232,6 +235,20 @@
                 $('.delete-file').hide();
             }
         );
+
+        $('#dropbox-open').click(function() {
+            form = $(this).parent();
+            Dropbox.choose({
+                linkType: 'direct',
+                success: function(files) {
+                    $('#dropbox-file').val(files[0].link);
+                    $('#dropbox-name').val(files[0].name);
+                    form.hide();
+                    form.parent().children('img').show();
+                    form.submit();
+                }
+            });
+        });
 
         $('.delete-file').click(function() {
 
