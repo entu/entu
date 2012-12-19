@@ -58,6 +58,7 @@
                                     <img src="{{ static_url('images/spinner_white.gif') }}" style="display:none;" />
                                     <iframe name="iframe_{{ p['keyname'] }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML, '#blobstore_upload_{{ p['keyname'] }}');" style="display:none;"></iframe>
                                     <form method="post" action="/entity/save" target="iframe_{{ p['keyname'] }}" enctype="multipart/form-data" style="margin:0px; padding:0px;">
+                                        <input type="hidden" name="is_file" value="true" />
                                         <input type="hidden" class="file_entity_id" name="entity_id" value="{{ entity.get('id', '') }}" />
                                         <input type="hidden" name="parent_entity_id" value="{{ parent_entity_id }}" />
                                         <input type="hidden" name="entity_definition_keyname" value="{{ entity_definition_keyname }}" />
@@ -65,7 +66,7 @@
                                         <input type="hidden" name="dropbox_file" id="dropbox-file" />
                                         <input type="hidden" name="dropbox_name" id="dropbox-name" />
                                         <a id="dropbox-open" class="btn btn-mini" style="float:right;"><i class="icon-dropbox"></i>Dropbox</a>
-                                        <input type="file" name="file" class="dtype-{{ p['datatype'] }}" style="border:none; margin-bottom:4px;" multiple />
+                                        <input type="file" name="value" class="dtype-{{ p['datatype'] }}" style="border:none; margin-bottom:4px;" multiple />
                                     </form>
                                 {% else %}
                                     <div class="delete-file-row"><a href="/entity/file-{{ v['db_value'] }}">{{ v['value'] }}</a> <a href="javascript:void(0);" data-property_id="{{ v['id'] }}" class="delete-file" style="float:right; display:none;"><i class="icon-trash" style="color:red;"></i></a></div>
@@ -122,6 +123,8 @@
         $(div).parent().children('img').hide();
         $(div).parent().children('form').children('.dtype-file').val('');
         $(div).parent().children('form').show();
+        $('#dropbox-file').val('');
+        $('#dropbox-name').val('');
     };
 
     $(document).ready(function(){
