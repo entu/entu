@@ -132,13 +132,16 @@ class DownloadFile(myRequestHandler):
             f = StringIO()
             zf = zipfile.ZipFile(f, 'w', zipfile.ZIP_DEFLATED)
             for file in files:
-                zf.writestr(file.filename, file.file)
+                if file.file:
+                    zf.writestr(file.filename, file.file)
             zf.close()
             mime = 'application/octet-stream'
             filename = '%s.zip' % file_ids
             outfile = f.getvalue()
         else:
             file = files[0]
+            if not file.file:
+                return self.missing()
             ms = magic.open(magic.MAGIC_MIME)
             ms.load()
             mime = ms.buffer(file.file)
@@ -216,57 +219,73 @@ class ShowEntityRelate(myRequestHandler):
 
 
 class SaveEntity(myRequestHandler):
+    entity                      = None
+    entity_id                   = None
+    new_property_id             = None
+    property_definition_keyname = None
+    is_file                     = False
+    value                       = None
+
     @web.authenticated
+    @web.asynchronous
     def post(self):
         """
         Saves Entitiy info.
 
         """
-        entity_id                   = self.get_argument('entity_id', default=None, strip=True)
-        parent_entity_id            = self.get_argument('parent_entity_id', default=None, strip=True)
-        entity_definition_keyname   = self.get_argument('entity_definition_keyname', default=None, strip=True)
-        property_definition_keyname = self.get_argument('property_definition_keyname', default=None, strip=True)
-        property_id                 = self.get_argument('value_id', default=None, strip=True)
-        new_property_id             = property_id
-        value                       = self.get_argument('value', default=None, strip=True)
-        is_counter                  = self.get_argument('counter', default='false', strip=True)
-        is_public                   = self.get_argument('is_public', default='false', strip=True)
-        uploaded_file               = self.request.files.get('file', []) if self.request.files.get('file', None) else None
-        dropbox_file                = self.get_argument('dropbox_file', default=None, strip=True)
-        dropbox_name                = self.get_argument('dropbox_name', default=None, strip=True)
+        if self.get_argument('is_file', default='false', strip=True).lower() == 'true':
+            self.is_file                    = True
+            self.value                      = self.request.files.get('value', []) if self.request.files.get('value', None) else None
+        else:
+            self.is_file                    = False
+            self.value                      = self.get_argument('value', default=None, strip=True)
+        self.entity_id                      = self.get_argument('entity_id', default=None, strip=True)
+        self.new_property_id                = self.get_argument('value_id', default=None, strip=True)
+        self.property_definition_keyname    = self.get_argument('property_definition_keyname', default=None, strip=True)
+        parent_entity_id                    = self.get_argument('parent_entity_id', default=None, strip=True)
+        entity_definition_keyname           = self.get_argument('entity_definition_keyname', default=None, strip=True)
+        property_id                         = self.get_argument('value_id', default=None, strip=True)
+        is_counter                          = self.get_argument('counter', default='false', strip=True)
+        is_public                           = self.get_argument('is_public', default='false', strip=True)
+        dropbox_file                        = self.get_argument('dropbox_file', default=None, strip=True)
+        dropbox_name                        = self.get_argument('dropbox_name', default=None, strip=True)
 
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
-        if not entity_id and parent_entity_id and entity_definition_keyname:
-            entity_id = entity.create(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
+        self.entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
+        if not self.entity_id and parent_entity_id and entity_definition_keyname:
+            self.entity_id = self.entity.create(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
 
         if is_counter.lower() == 'true':
-            value = entity.set_counter(entity_id=entity_id)
+            self.value = self.entity.set_counter(entity_id=self.entity_id)
         elif is_public.lower() == 'true':
-            value = True if value.lower() == 'true' else False
-            value = entity.set_public(entity_id=entity_id, is_public=value)
+            self.value = True if self.value.lower() == 'true' else False
+            self.value = self.entity.set_public(entity_id=self.entity_id, is_public=self.value)
+        elif dropbox_file and dropbox_name:
+            self.value = [{'filename': dropbox_name, 'body': None}]
+            httpclient.AsyncHTTPClient().fetch(dropbox_file, method = 'GET', request_timeout = 3600, callback=self._got_dropbox_file)
+            return
         else:
-            if dropbox_file and dropbox_name:
-                response = httpclient.HTTPClient().fetch(dropbox_file, method = 'GET', request_timeout = 600)
-                if response:
-                    uploaded_file = [{
-                        'filename': dropbox_name,
-                        'body' : response.body
-                    }]
+            if type(self.value) is not list:
+                self.value = [self.value]
+            for v in self.value:
+                self.new_property_id = self.entity.set_property(entity_id=self.entity_id, property_definition_keyname=self.property_definition_keyname, value=v, property_id=property_id)
 
-            if uploaded_file:
-                value = uploaded_file
+        self._printout()
 
-            if type(value) is not list:
-                value = [value]
-            for v in value:
-                new_property_id = entity.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value=v, property_id=property_id)
+    @web.asynchronous
+    def _got_dropbox_file(self, response):
+        self.value[0]['body'] = response.body
+        self.new_property_id = self.entity.set_property(entity_id=self.entity_id, property_definition_keyname=self.property_definition_keyname, value=self.value[0])
+        self._printout()
 
+    @web.asynchronous
+    def _printout(self):
         self.write({
-            'entity_id': entity_id,
-            'property_definition_keyname': property_definition_keyname,
-            'value_id': new_property_id,
-            'value': ', '.join([x['filename'] for x in uploaded_file]) if uploaded_file else value
+            'entity_id': self.entity_id,
+            'property_definition_keyname': self.property_definition_keyname,
+            'value_id': self.new_property_id,
+            'value': ', '.join([x['filename'] for x in self.value]) if self.is_file else self.value
         })
+        self.finish()
 
 
 class DeleteFile(myRequestHandler):

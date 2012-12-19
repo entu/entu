@@ -208,7 +208,7 @@ class Entity():
         elif definition.datatype == 'file':
             if value:
                 uploaded_file = value
-                value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], uploaded_file['body'], self.created_by)
+                value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, filesize = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], len(uploaded_file['body']), uploaded_file['body'], self.created_by)
             field = 'value_file'
         elif definition.datatype == 'boolean':
             field = 'value_boolean'
