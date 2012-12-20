@@ -196,23 +196,41 @@ class Entity():
         if not definition:
             return
 
+        if old_property_id:
+            self.db.execute('UPDATE property SET deleted = NOW(), deleted_by = %s WHERE id = %s;', self.created_by, old_property_id )
+            if definition.formula == 1:
+                Formula(user_locale=self.user_locale, created_by=self.created_by, entity_id=entity_id, property_id=old_property_id).delete()
+
+
+        # If no value, then property is deleted, return
+        if not value:
+            return
+
+        new_property_id = self.db.execute_lastrowid('INSERT INTO property SET entity_id = %s, property_definition_keyname = %s, created = NOW(), created_by = %s;',
+            entity_id,
+            property_definition_keyname,
+            self.created_by
+        )
+
+        if definition.formula == 1:
+            formula = Formula(user_locale=self.user_locale, created_by=self.created_by, entity_id=entity_id, property_id=new_property_id, formula=value)
+            value = ''.join(formula.evaluate())
+
         if definition.datatype in ['text', 'html']:
             field = 'value_text'
         elif definition.datatype == 'integer':
             field = 'value_integer'
         elif definition.datatype == 'decimal':
             field = 'value_decimal'
-            if value:
-                value = value.replace(',', '.')
-                value = re.sub(r'[^\.0-9:]', '', value)
+            value = value.replace(',', '.')
+            value = re.sub(r'[^\.0-9:]', '', value)
         elif definition.datatype == 'date':
             field = 'value_datetime'
         elif definition.datatype == 'datetime':
             field = 'value_datetime'
         elif definition.datatype == 'file':
-            if value:
-                uploaded_file = value
-                value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], uploaded_file['body'], self.created_by)
+            uploaded_file = value
+            value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], uploaded_file['body'], self.created_by)
             field = 'value_file'
         elif definition.datatype == 'boolean':
             field = 'value_boolean'
@@ -221,37 +239,16 @@ class Entity():
             field = 'value_counter'
         else:
             field = 'value_string'
-            if value:
-                value = value[:500]
+            value = value[:500]
 
-        if old_property_id:
-            self.db.execute('UPDATE property SET deleted = NOW(), deleted_by = %s WHERE id = %s;',
-                self.created_by,
-                old_property_id,
-            )
+        logging.debug('UPDATE property SET %s = %s WHERE id = %s;' % (field, value, new_property_id) )
 
-        new_property_id = None
-        if value:
-            if definition.formula == 1:
-                formula = Formula(formula=value, entity_id=entity_id, user_locale=self.user_locale, created_by=self.created_by)
-                value = ''.join(formula.evaluate())
+        self.db.execute('UPDATE property SET %s = %%s WHERE id = %%s;' % field, value, new_property_id )
 
-            new_property_id = self.db.execute_lastrowid('INSERT INTO property SET entity_id = %%s, property_definition_keyname = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
-                entity_id,
-                property_definition_keyname,
-                value,
-                self.created_by
-            )
-
-            if definition.formula == 1:
-                formula.save_property(new_property_id, old_property_id)
-                if not formula.verify_dag(property_id_in=new_property_id):
-                    self.db.execute_lastrowid('UPDATE property SET %s = %%s WHERE id = %%s;' % field,
-                        'E: Formula has recursive dependency.',
-                        new_property_id
-                    )
-                else:
-                    formula.update_depending_formulas()
+        if definition.formula == 1:
+            formula.save_property(new_property_id=new_property_id, old_property_id=old_property_id)
+        else:
+            Formula(user_locale=self.user_locale, created_by=self.created_by, entity_id=entity_id, property_id=new_property_id).update_depending_formulas()
 
         return new_property_id
 
@@ -666,7 +663,7 @@ class Entity():
                         reference = self.__get_properties(entity_id=row.value_reference)
                         if reference:
                             value = reference[0].get('displayname')
-                    logging.debug(str(reference))
+                    # logging.debug(str(reference))
                     db_value = row.value_entity
                 elif row.property_datatype == 'file':
                     db_value = row.value_file
@@ -976,7 +973,6 @@ class Entity():
 
         return self.db.query(sql)
 
-
     def get_entity_definition(self, entity_definition_keyname):
         """
         Returns entity_definition.
@@ -1207,21 +1203,37 @@ class Formula():
     """
     entity_id is accessed from FExpression.fetch_path_from_db() method
     """
-    def __init__(self, formula, entity_id, user_locale, created_by=None):
-        self.db             = connection()
-        self.formula        = formula
-        self.entity_id      = entity_id
-        self.value          = []
-        self.dependencies   = []
-        self.user_locale    = user_locale
-        self.language       = user_locale.code
-        self.created_by     = created_by
-        self.dag_failed     = False
-        self.formula_property_id = None
+    def __init__(self, user_locale, created_by, property_id, formula=None, entity_id=None):
+        self.db                     = connection()
+        self.formula                = formula
+        self.entity_id              = entity_id
+        self.value                  = []
+        self.dependencies           = []
+        self.user_locale            = user_locale
+        self.language               = user_locale.code
+        self.created_by             = created_by
+
+        self.dag_stack              = Queue()
+        self.dag_failed             = False
+        self.formula_property_id    = property_id
+
+        # logging.debug('Formula.init')
+        self.create_dag()
+
+    def delete(self):
+        """
+        Mark property's dependencies as deleted and revaluate formulas that were depending on property.
+        Then mark explicit DAG relations as deleted.
+        """
+        self.db.execute('UPDATE dag_formula SET deleted = NOW(), deleted_by = %s WHERE property_id = %s;', self.created_by, self.formula_property_id )
+        self.update_depending_formulas()
+        self.db.execute('UPDATE dag_formula SET deleted = NOW(), deleted_by = %s WHERE related_property_id = %s;', self.created_by, self.formula_property_id )
 
     def evaluate(self):
         if not self.formula:
             return ''
+        if self.dag_failed:
+            return 'E: Formula has recursive dependency.'
 
         for m in re.findall(r"([^{]*){([^{}]*)}|(.*?)$",self.formula):
             if m[0]:
@@ -1236,61 +1248,126 @@ class Formula():
     def save_property(self, new_property_id, old_property_id):
 
         if old_property_id:
-            logging.debug('Delete dag_formula.property_id=%s' % old_property_id)
-            self.db.execute('UPDATE dag_formula SET deleted = now(), deleted_by = %s WHERE property_id = %s;', self.created_by, old_property_id)
+            for row in self.db.query('SELECT property_id FROM dag_formula WHERE related_property_id = %s AND deleted IS NULL', old_property_id):
+                self.db.execute('INSERT INTO dag_formula SET created = NOW(), created_by = %s, property_id = %s, related_property_id = %s;', self.created_by, row.property_id, new_property_id)
+            self.db.execute('UPDATE dag_formula SET deleted = NOW(), deleted_by = %s WHERE related_property_id = %s;', self.created_by, old_property_id)
+
         self.db.execute('UPDATE property SET value_formula = %s WHERE id = %s;', self.formula, new_property_id)
 
-        logging.debug(self.dependencies) # Create formula DAG dependencies
+        # Create formula DAG dependencies
+        # logging.debug(self.dependencies)
         for dependency in self.dependencies:
             # logging.debug(dependency)
-            self.db.execute('INSERT INTO dag_formula SET created = now(), created_by = %s, property_id = %s, related_property_id = %s, entity_id = %s, dataproperty = %s, relationship_definition_keyname = %s, reversed_relationship_definition_keyname = %s, entity_definition_keyname = %s;', self.created_by, new_property_id, dependency.get('related_property_id',None), dependency.get('entity_id',None), dependency.get('dataproperty',None), dependency.get('relationship_definition_keyname',None), dependency.get('reversed_relationship_definition_keyname',None), dependency.get('entity_definition_keyname',None))
+            self.db.execute('INSERT INTO dag_formula SET created = NOW(), created_by = %s, property_id = %s, related_property_id = %s, entity_id = %s, dataproperty = %s, relationship_definition_keyname = %s, reverse_relationship = %s, entity_definition_keyname = %s;', self.created_by, new_property_id, dependency.get('related_property_id',None), dependency.get('entity_id',None), dependency.get('dataproperty',None), dependency.get('relationship_definition_keyname',None), dependency.get('reverse_relationship',None), dependency.get('entity_definition_keyname',None))
 
-    def verify_dag(self, property_id_in):
-        if not self.formula_property_id:
-            self.formula_property_id = property_id_in
-            self.dag_stack = Stack()
-        else:
+    def update_depending_formulas(self):
+        while not self.dag_stack.isEmpty:
+            property_id = self.dag_stack.pop()
+            db_property = self.db.get('SELECT value_formula, entity_id FROM property WHERE id = %s', property_id)
+            # logging.debug(db_property)
+            formula = Formula(user_locale=self.user_locale, created_by=self.created_by, formula=db_property.value_formula, entity_id=db_property.entity_id, property_id=property_id)
+            value = ''.join(formula.evaluate())
+            self.db.execute('UPDATE property SET value_string = %s WHERE id = %s', value, property_id)
+            # logging.debug(value)
+
+        # logging.debug('update_depending_formulas')
+        self.create_dag()
+        return True
+
+    def create_dag(self, property_id_in=None):
+        if property_id_in == None:
+            property_id_in = self.formula_property_id
+        if not property_id_in == self.formula_property_id:
             self.dag_stack.push(property_id_in)
 
-        logging.debug(self.dag_stack.items)
-        sql = """
+        rowset = []
 
-            SELECT df.property_id AS property_id
+        sql = """
+            -- Matches explicit dependencies
+            SELECT df.id, df.property_id
+            FROM dag_formula AS df
+            WHERE  df.deleted IS NULL
+            AND    df.related_property_id = %s """ % property_id_in
+        # logging.debug(sql)
+        for row in self.db.query(sql):
+            if row not in rowset:
+                rowset.append(row)
+        # logging.debug(rowset)
+
+        sql = """
+            -- Matches self.dataproperty and id.dataproperty
+            SELECT df.id, df.property_id
             FROM dag_formula AS df
             LEFT JOIN property AS p ON p.entity_id = df.entity_id
             LEFT JOIN property_definition AS pd ON (pd.keyname = p.property_definition_keyname)
-            WHERE df.deleted IS NULL
-            AND  df.related_property_id IS NULL
-            AND  df.relationship_definition_keyname IS NULL
-            AND  df.reversed_relationship_definition_keyname IS NULL
-            AND  df.entity_definition_keyname IS NULL
-            AND pd.dataproperty = df.dataproperty
-            AND p.id = %s """ % property_id_in
-
-        logging.debug(sql)
+            WHERE  df.deleted IS NULL
+            AND    df.related_property_id IS NULL
+            AND    df.relationship_definition_keyname IS NULL
+            AND    df.reverse_relationship IS NULL
+            AND    df.entity_definition_keyname IS NULL
+            AND    pd.dataproperty = df.dataproperty
+            AND     p.id = %s """ % property_id_in
+        # logging.debug(sql)
         for row in self.db.query(sql):
-            property_id = row.property_id
-            if property_id in self.dag_stack.items:
-                continue
+            if row not in rowset:
+                rowset.append(row)
+        # logging.debug(rowset)
 
-            if self.formula_property_id == property_id:
+        sql = """
+            -- Matches self.rdk.edk.dataproperty, self.rdk.*.dataproperty, id.rdk.edk.dataproperty and id.rdk.*.dataproperty
+            SELECT df.id, df.property_id
+            FROM dag_formula AS df
+            LEFT JOIN relationship AS r ON (r.entity_id = df.entity_id AND r.relationship_definition_keyname = df.relationship_definition_keyname)
+            LEFT JOIN entity AS e ON (e.id = r.related_entity_id AND (e.entity_definition_keyname = df.entity_definition_keyname OR df.entity_definition_keyname IS NULL))
+            LEFT JOIN property AS p ON (p.entity_id = e.id)
+            LEFT JOIN property_definition AS pd ON (pd.keyname = p.property_definition_keyname AND pd.dataproperty = df.dataproperty)
+            WHERE  df.deleted IS NULL
+            AND     r.deleted IS NULL
+            AND    df.related_property_id IS NULL
+            AND    df.reverse_relationship IS NULL
+            AND     p.id = %s """ % property_id_in
+        # logging.debug(sql)
+        # rowset = list(set(rowset + self.db.query(sql)))
+        for row in self.db.query(sql):
+            if row not in rowset:
+                rowset.append(row)
+        # rowset = list(set(rowset + self.db.query(sql)))
+        # logging.debug(rowset)
+
+        sql = """
+            -- Matches self.-rdk.edk.dataproperty, self.-rdk.*.dataproperty, id.-rdk.edk.dataproperty and id.-rdk.*.dataproperty
+            SELECT df.id, df.property_id
+            FROM dag_formula AS df
+            LEFT JOIN relationship AS r ON (r.related_entity_id = df.entity_id AND r.relationship_definition_keyname = df.relationship_definition_keyname)
+            LEFT JOIN entity AS e ON (e.id = r.entity_id AND (e.entity_definition_keyname = df.entity_definition_keyname OR df.entity_definition_keyname IS NULL))
+            LEFT JOIN property AS p ON (p.entity_id = e.id)
+            LEFT JOIN property_definition AS pd ON (pd.keyname = p.property_definition_keyname AND pd.dataproperty = df.dataproperty)
+            WHERE  df.deleted IS NULL
+            AND     r.deleted IS NULL
+            AND    df.related_property_id IS NULL
+            AND    df.reverse_relationship = 1
+            AND     p.id = %s """ % property_id_in
+        # logging.debug(sql)
+        for row in self.db.query(sql):
+            if row not in rowset:
+                rowset.append(row)
+        # logging.debug(rowset)
+
+        for row in rowset:
+            # logging.debug(row)
+            property_id = row.property_id
+
+            if property_id == self.formula_property_id:
                 self.dag_failed = True
                 return False
 
-            logging.debug(property_id)
-            self.verify_dag(property_id)
+            if self.dag_stack.check(property_id):
+                continue
+
+            # logging.debug('create_dag')
+            self.create_dag(property_id)
 
         return not self.dag_failed
-
-    def update_depending_formulas(self):
-        for property_id in self.dag_stack.items:
-            [db_property] = self.db.query('SELECT * FROM property WHERE id = %s', property_id)
-            logging.debug(db_property)
-            formula = Formula(formula=db_property.value_formula, entity_id=db_property.entity_id, user_locale=self.user_locale, created_by=self.created_by)
-            value = ''.join(formula.evaluate())
-            self.db.execute('UPDATE property SET value_string = %s WHERE id = %s', value, property_id)
-            logging.debug(value)
-        return True
 
 
 class FExpression():
@@ -1301,7 +1378,7 @@ class FExpression():
         self.xpr            = re.sub(' ', '', xpr)
         self.value          = []
 
-        logging.debug(self.xpr)
+        # logging.debug(self.xpr)
 
         if not self.parcheck():
             self.value = "ERROR"
@@ -1466,10 +1543,9 @@ class FExpression():
         # Prepare formula dependencies
         # There are {COUNT(self.child.folder.id)} folders called {self.child.folder.name}
 
-        if tokens[1][:1] == '-':
-            dependency['reversed_relationship_definition_keyname'] = tokens[1]
-        else:
-            dependency['relationship_definition_keyname'] = tokens[1]
+        dependency['relationship_definition_keyname'] = tokens[1]
+        if _entity == 'related_entity':
+            dependency['reverse_relationship'] = 1
 
         if tokens[2] != '*':
             dependency['entity_definition_keyname'] = tokens[2]
@@ -1507,23 +1583,48 @@ class FExpression():
 
 class Stack:
     def __init__(self):
-        self.items = []
-    def isEmpty(self):
-        return self.items == []
+        self.stack = []
     def push(self, item):
-        self.items.append(item)
+        self.stack.append(item)
+    def check(self, item):
+        return item in self.stack
     def pop(self):
-        return self.items.pop()
-    def peek(self):
-        return self.items[len(self.items)-1]
+        return self.stack.pop()
+    @property
+    def isEmpty(self):
+        return self.stack == []
+    @property
     def size(self):
-        return len(self.items)
+        return len(self.stack)
+
+
+class Queue:
+    def __init__(self):
+        self.in_stack = []
+        self.out_stack = []
+    def push(self, item):
+        self.in_stack.append(item)
+    def check(self, item):
+        return (item in self.in_stack or item in self.out_stack)
+    def pop(self):
+        if not self.out_stack:
+            self.in_stack.reverse()
+            self.out_stack = self.in_stack
+            self.in_stack = []
+        return self.out_stack.pop()
+    @property
+    def isEmpty(self):
+        return self.in_stack == [] and self.out_stack == []
+    @property
+    def size(self):
+        return len(self.in_stack) + len(self.out_stack)
 
 
 def mdbg(matchobj):
     # mdbg() is for regex match object debugging.
     #   i.e: re.sub(r"([^{]*){([^{}]*)}|(.*?)$", mdbg, self.formula)(ha()a)
     for m in matchobj.groups():
+        None
         logging.debug(m)
 
 
