@@ -5,10 +5,12 @@ menu_add,Lisa
 menu_edit,Muuda
 menu_relate,Seo teisega
 menu_rights,Õigused
-menu_share,Jaga
+menu_share,Jaga meilitsi
 menu_login,Sisene
 menu_exit,Välju
 menu_help,Abiinfo
+menu_download,Lae alla
+
 
 search,Otsi
 search_button,Otsi
