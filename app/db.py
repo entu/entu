@@ -123,6 +123,10 @@ class Entity():
         # logging.debug(sql)
         self.db.execute(sql, entity_id, self.created_by, entity_id)
 
+        # Populate default values
+        for default_value in self.db.query('SELECT keyname, defaultvalue FROM property_definition WHERE entity_definition_keyname = %s AND defaultvalue IS NOT null', entity_definition_keyname):
+            self.set_property(entity_id=entity_id, property_definition_keyname=default_value.keyname, value=default_value.defaultvalue)
+
         # Propagate properties
         sql = """
             INSERT INTO property (
