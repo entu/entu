@@ -267,7 +267,7 @@ class SaveEntity(myRequestHandler):
             if type(self.value) is not list:
                 self.value = [self.value]
             for v in self.value:
-                self.new_property_id = self.entity.set_property(entity_id=self.entity_id, property_definition_keyname=self.property_definition_keyname, value=v, property_id=property_id)
+                self.new_property_id = self.entity.set_property(entity_id=self.entity_id, property_definition_keyname=self.property_definition_keyname, value=v, old_property_id=property_id)
 
         self._printout()
 
