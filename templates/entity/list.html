@@ -18,53 +18,39 @@
 
 
 <script>
-    $(document).ready(function(){
-        open_item();
 
-        $(window).bind('hashchange', function() {
-            open_item()
-        });
-
-        $('.listitem').live('keyup', function(e){
-            if (e.keyCode == 38 && $(this).prev().attr('href')) {
-                window.location = $(this).prev().attr('href');
-                $(this).prev().focus()
+    function open_item(id, skip_push_state) {
+        $('#content').html('');
+        $('#list_items a.active').removeClass('active');
+        if(id) {
+            $('#listitem_'+id).addClass('active');
+            $.get('/entity-'+id, function(html) {
+                $('#content').html(html);
+            });
+            if(!skip_push_state) {
+                window.history.replaceState('entity-'+id, '', '/entity/{{ entity_definition }}/' + id);
             };
-            if (e.keyCode == 40 && $(this).next().attr('href')) {
-                window.location = $(this).next().attr('href');
-                $(this).next().focus()
-            };
-        });
-
-        function open_item() {
+            _gaq.push(['_trackPageview', '/entity-'+id]);
+        } else {
+            $('#toolbar').html($('#list_toolbar_template').html());
             $('#content').html('');
-            $('#list_items a.active').removeClass('active');
-            if(window.location.hash) {
-                id = window.location.hash.substring(1);
-                $('#list_items a[href$="#'+id+'"]').addClass('active');
-                $.get('/entity-'+id, function(html) {
-                    $('#content').html(html);
-                });
-                _gaq.push(['_trackPageview', '/entity-'+id]);
-            } else {
-                $('#toolbar').html($('#list_toolbar_template').html());
-                $('#content').html('');
-            }
+        }
+    };
+
+    $(document).ready(function(){
+        items = [];
+
+        get_list();
+        open_item(window.location.pathname.replace('/entity/{{ entity_definition }}', '').replace('/', ''));
+
+        window.onpopstate = function(e){
+            if(e.state) {
+                open_item(window.location.pathname.replace('/entity/{{ entity_definition }}', '').replace('/', ''), false);
+            };
         };
 
-        items = [];
-        get_list();
-
-        old_search = $('#searchbox').val();
-        $('#searchbox').keyup(function(e) {
-            if(old_search != $('#searchbox').val()) {
-                old_search = $('#searchbox').val();
-                get_list();
-            };
-        });
-
-        $('#list').scroll(function() {
-            append_list();
+        $(window).bind('hashchange', function() {
+            open_item(window.location.hash.substring(1));
         });
 
         function get_list() {
@@ -121,6 +107,29 @@
             });
         };
 
+        old_search = $('#searchbox').val();
+        $('#searchbox').keyup(function(e) {
+            if(old_search != $('#searchbox').val()) {
+                old_search = $('#searchbox').val();
+                get_list();
+            };
+        });
+
+        $('#list').scroll(function() {
+            append_list();
+        });
+
+        $('.listitem').live('keyup', function(e){
+            if (e.keyCode == 38 && $(this).prev().attr('href')) {
+                window.location = $(this).prev().attr('href')
+                $(this).prev().focus()
+            };
+            if (e.keyCode == 40 && $(this).next().attr('href')) {
+                window.location = $(this).next().attr('href')
+                $(this).next().focus()
+            };
+        });
+
         $('.toolbar-item-add a').click(function() {
             $.get('/entity-'+$(this).data('entity_id')+'/add/'+$(this).data('definition_keyname'), function(html) {
                 document.body.style.cursor = 'wait';
@@ -134,9 +143,9 @@
 
         $('#modal-box').on('hide', function () {
             if($('#modal-box').data('open_entity_id')) {
-                window.location = '#' + $('#modal-box').data('open_entity_id');
+                open_item($('#modal-box').data('open_entity_id'), false);
             } else {
-                open_item();
+                open_item(window.location.pathname.replace('/entity/{{ entity_definition }}', '').replace('/', ''), false);
             }
         })
     });

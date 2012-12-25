@@ -201,17 +201,18 @@ class PublicFileHandler(myRequestHandler):
         except:
             return self.missing()
 
-        file = db.Entity(user_locale=self.get_user_locale()).get_file(file_id)
-        if not file:
+        files = db.Entity(user_locale=self.get_user_locale()).get_file(file_id)
+        if not files:
             return self.missing()
 
+        file = files[0]
         ms = magic.open(magic.MAGIC_MIME)
         ms.load()
         mime = ms.buffer(file.file)
         ms.close()
 
         self.add_header('Content-Type', mime)
-        self.add_header('Content-Disposition', 'attachment; filename="%s"' % file.filename)
+        self.add_header('Content-Disposition', 'inline; filename="%s"' % file.filename)
         self.write(file.file)
 
 

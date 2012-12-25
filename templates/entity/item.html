@@ -39,6 +39,9 @@
                 <td style="width:100%;{%if not p['public'] %} color:gray;{% end %}">
                     {% if p['datatype'] == 'file' %}
                         {{ '<br />'.join(['<a href="/entity/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
+                        {% if len(p['values']) > 1 %}
+                            <a href="/entity/file-{{ ','.join(['%s' % v['db_value'] for v in p['values']]) }}" style="font-size:11px; font-style:italic; float:right;">{{ _('download_all_as_zip') }}</a>
+                        {% end %}
                     {% elif p['datatype'] == 'html' %}
                         <div class="html-property" data-property="{{ p['dataproperty'] }}" style="display:block; width:100%;"><img src="{{ static_url('images/spinner_white.gif') }}" id="search-spinner" /></div>
                     {% elif p['datatype'] == 'text' %}
@@ -71,7 +74,7 @@
 
 <ul id="toolbar_template" style="display:none;">
     {% if can_add and allowed_childs or add_definitions %}
-        <li class="dropdown toolbar-item">
+        <li class="toolbar-item dropdown">
             <a href="#" class="dropdown-toggle header-menu-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="icon-plus"></i></a>
             <ul class="dropdown-menu toolbar-item-add">
                 {% for c in add_definitions %}
@@ -98,7 +101,15 @@
     {% if is_owner %}
         <!--li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-rights" title="{{ _('menu_rights') }}"><i class="icon-lock"></i></a></li-->
     {% end %}
-    <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-email" title="{{ _('menu_share') }}"><i class="icon-share"></i></a></li>
+    <!--li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-email" title="{{ _('menu_share') }}"><i class="icon-envelope"></i></a></li>
+    <li class="toolbar-item"><a href="/entity-{{ entity['id'] }}/download" title="{{ _('menu_download') }}"><i class="icon-download-alt"></i></a></li-->
+    <li class="toolbar-item dropdown">
+        <a href="#" class="dropdown-toggle header-menu-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="icon-share"></i></a>
+        <ul class="dropdown-menu toolbar-item-add">
+            <li><a href="javascript:void(0);" id="toolbar-item-email" title="{{ _('menu_share') }}"><i class="icon-envelope" style="margin:-2px 0px; padding:0px; font-size:14px; float:right;"></i>{{ _('menu_share') }}</a></li>
+            <li><a href="/entity-{{ entity['id'] }}/download"><i class="icon-download-alt" style="margin:-2px 0px; padding:0px; font-size:14px; float:right;"></i>{{ _('menu_download') }}</a></li>
+        </ul>
+    </li>
 </ul>
 
 <!--ul class="nav nav-tabs" id="myTab" style="clear:both;">
@@ -163,6 +174,9 @@
     $(document).ready(function(){
 
         document.title = '{{ page_title.replace('\'', '\\\'') }}';
+
+        $('#list_items a.active').removeClass('active');
+        $('#listitem_{{ entity.get('id') }}').addClass('active');
 
         $('.toggle-table').click(function() {
             $(this).parent().children('tbody').toggle();

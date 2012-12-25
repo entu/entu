@@ -21,6 +21,9 @@ class myRequestHandler(RequestHandler):
     Rewriten tornado.web.RequestHandler methods.
 
     """
+
+    session_key = None
+
     def render(self, template_name, **kwargs):
         """
         Includes app title, logo etc to template and renders it.
@@ -59,12 +62,15 @@ class myRequestHandler(RequestHandler):
         Sets and returns logged in user. Properties are, id (Entity ID!), name, language, email, picture. If picture is not set returns gravatar.com picture url.
 
         """
-        session_key = self.get_secure_cookie('session')
-        if not session_key:
+        if not self.session_key:
+            self.session_key = self.get_secure_cookie('session')
+
+        if not self.session_key:
             return
+
         user_key = hashlib.md5(self.request.remote_ip + self.request.headers.get('User-Agent', None)).hexdigest()
 
-        user = db.User(session=session_key+user_key)
+        user = db.User(session=self.session_key+user_key)
 
         if not user.id:
             return
@@ -72,8 +78,6 @@ class myRequestHandler(RequestHandler):
         if not user.picture:
             user.picture = 'https://secure.gravatar.com/avatar/%s?d=wavatar&s=100' % (hashlib.md5(user.email).hexdigest())
             user['picture'] = user.picture
-
-        user['session'] = session_key
 
         return user
 

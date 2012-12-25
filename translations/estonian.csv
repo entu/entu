@@ -5,10 +5,12 @@ menu_add,Lisa
 menu_edit,Muuda
 menu_relate,Seo teisega
 menu_rights,Õigused
-menu_share,Jaga
+menu_share,Jaga meilitsi
 menu_login,Sisene
 menu_exit,Välju
 menu_help,Abiinfo
+menu_download,Lae alla
+
 
 search,Otsi
 search_button,Otsi
@@ -28,6 +30,8 @@ confirm_entity_delete,'%s' ja kõik selle alamosad kustutatakse.
 confirm_file_delete,Fail '%s' kustutatakse.
 
 counter_generate_value,Genereeri number
+
+download_all_as_zip,Lae alla kõik failid
 
 public,Avalik
 public_description,Tee see dokument nähtavaks avalikus vaates
