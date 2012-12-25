@@ -326,3 +326,14 @@ CREATE TABLE `dag_formula` (
   CONSTRAINT `fd_fk_rdk` FOREIGN KEY (`relationship_definition_keyname`) REFERENCES `relationship_definition` (`keyname`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fd_fk_rp` FOREIGN KEY (`related_property_id`) REFERENCES `property` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
+
+
+CREATE TABLE `dag_entity` (
+  `entity_id` int(11) unsigned NOT NULL DEFAULT '0',
+  `related_entity_id` int(11) unsigned NOT NULL DEFAULT '0',
+  `distance` int(10) unsigned NOT NULL DEFAULT '1',
+  PRIMARY KEY (`entity_id`,`related_entity_id`),
+  KEY `de_fk_re` (`related_entity_id`),
+  CONSTRAINT `de_fk_e` FOREIGN KEY (`entity_id`) REFERENCES `entity` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `de_fk_re` FOREIGN KEY (`related_entity_id`) REFERENCES `entity` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;

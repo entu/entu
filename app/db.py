@@ -53,6 +53,7 @@ class Entity():
         Creates new Entity and returns its ID.
 
         """
+        logging.debug('creating %s under entity %s' % (entity_definition_keyname, parent_entity_id))
         if not entity_definition_keyname:
             return
 
@@ -102,6 +103,11 @@ class Entity():
         """
         # logging.debug(sql)
         self.db.execute(sql, entity_id, self.created_by, entity_definition_keyname)
+
+        # Insert or update "contains" information
+        for row in self.db.query("SELECT entity_id FROM relationship r WHERE relationship_definition_keyname = 'child' AND related_entity_id = %s" , entity_id):
+            self.db.execute('INSERT INTO dag_entity SET entity_id = %s, related_entity_id = %s ON DUPLICATE KEY UPDATE distance=1;', row.entity_id, entity_id)
+            self.db.execute('INSERT INTO dag_entity SELECT de.entity_id, %s, de.distance+1 FROM dag_entity AS de WHERE de.related_entity_id = %s ON DUPLICATE KEY UPDATE distance = LEAST(dag_entity.distance, de.distance+1);', entity_id, row.entity_id)
 
         # Copy user rights
         sql = """
@@ -1128,6 +1134,9 @@ class Entity():
             self.delete(child_id)
 
         self.db.execute('UPDATE entity SET deleted = NOW(), deleted_by = %s WHERE id = %s;', self.created_by, entity_id)
+
+        # remove "contains" information
+        self.db.execute('DELETE FROM dag_entity WHERE entity_id = %s OR related_entity_id = %s;', entity_id, entity_id)
 
 
 class User():
