@@ -771,6 +771,7 @@ class Entity():
             result[displayfield] = entity_dict.get(displayfield, '') if entity_dict.get(displayfield, '') else ''
             for data_property in findTags(entity_dict.get(displayfield, ''), '@', '@'):
                 result[displayfield] = result[displayfield].replace('@%s@' % data_property, ', '.join(['%s' % x['value'] for x in entity_dict.get('properties', {}).get(data_property, {}).get('values', {}).values()]))
+                result[displayfield] = result[displayfield].replace('\n', ' ')
 
         result['displaytable_labels'] = entity_dict.get('displaytable', '') if entity_dict.get('displaytable', '') else ''
         for data_property in findTags(entity_dict.get('displaytable', ''), '@', '@'):
