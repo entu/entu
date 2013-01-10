@@ -68,18 +68,26 @@ class myRequestHandler(RequestHandler):
         if not self.session_key:
             return
 
-        user_key = hashlib.md5(self.request.remote_ip + self.request.headers.get('User-Agent', None)).hexdigest()
+        return self.get_user_by_session_key(self.session_key)
 
-        user = db.User(session=self.session_key+user_key)
+    def get_user_by_session_key(self, session_key):
+
+        if not session_key:
+            return None
+
+        user_key = hashlib.md5(self.request.remote_ip + self.request.headers.get('User-Agent', None)).hexdigest()
+        user = db.User(session=session_key+user_key)
 
         if not user.id:
-            return
+            return None
 
         if not user.picture:
             user.picture = 'https://secure.gravatar.com/avatar/%s?d=wavatar&s=100' % (hashlib.md5(user.email).hexdigest())
             user['picture'] = user.picture
+            user['session_key'] = self.session_key
 
         return user
+
 
     def get_user_locale(self):
         """
