@@ -300,3 +300,40 @@ CREATE TABLE `property` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
 
+CREATE TABLE `dag_formula` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `property_id` int(11) unsigned DEFAULT NULL,
+  `related_property_id` int(11) unsigned DEFAULT NULL,
+  `entity_id` int(11) unsigned DEFAULT NULL,
+  `relationship_definition_keyname` varchar(25) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+  `reverse_relationship` tinyint(1) unsigned DEFAULT NULL,
+  `entity_definition_keyname` varchar(25) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+  `dataproperty` varchar(24) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+  `created` datetime DEFAULT NULL,
+  `created_by` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `deleted` datetime DEFAULT NULL,
+  `deleted_by` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fd_fk_p` (`property_id`),
+  KEY `fd_fk_rp` (`related_property_id`),
+  KEY `fd_fk_e` (`entity_id`),
+  KEY `fd_fk_rdk` (`relationship_definition_keyname`),
+  KEY `fd_fk_edk` (`entity_definition_keyname`),
+  KEY `dataproperty` (`dataproperty`),
+  CONSTRAINT `fd_fk_e` FOREIGN KEY (`entity_id`) REFERENCES `entity` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fd_fk_edk` FOREIGN KEY (`entity_definition_keyname`) REFERENCES `entity_definition` (`keyname`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fd_fk_p` FOREIGN KEY (`property_id`) REFERENCES `property` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fd_fk_rdk` FOREIGN KEY (`relationship_definition_keyname`) REFERENCES `relationship_definition` (`keyname`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fd_fk_rp` FOREIGN KEY (`related_property_id`) REFERENCES `property` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
+
+
+CREATE TABLE `dag_entity` (
+  `entity_id` int(11) unsigned NOT NULL DEFAULT '0',
+  `related_entity_id` int(11) unsigned NOT NULL DEFAULT '0',
+  `distance` int(10) unsigned NOT NULL DEFAULT '1',
+  PRIMARY KEY (`entity_id`,`related_entity_id`),
+  KEY `de_fk_re` (`related_entity_id`),
+  CONSTRAINT `de_fk_e` FOREIGN KEY (`entity_id`) REFERENCES `entity` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `de_fk_re` FOREIGN KEY (`related_entity_id`) REFERENCES `entity` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;

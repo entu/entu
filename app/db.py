@@ -12,6 +12,7 @@ import time
 import logging
 import hashlib
 import re
+import math
 
 
 def connection():
@@ -37,18 +38,22 @@ class Entity():
         self.user_id        = user_id
         self.user_locale    = user_locale
         self.language       = user_locale.code
-        self.created_by   = ''
+        self.created_by     = ''
 
         if user_id:
             if type(self.user_id) is not list:
                 self.user_id = [self.user_id]
             self.created_by = ','.join(map(str, self.user_id))
 
+        # logging.debug({'user':self.user_id, 'created':self.created_by})
+
+
     def create(self, entity_definition_keyname, parent_entity_id=None):
         """
         Creates new Entity and returns its ID.
 
         """
+        logging.debug('creating %s under entity %s' % (entity_definition_keyname, parent_entity_id))
         if not entity_definition_keyname:
             return
 
@@ -99,6 +104,11 @@ class Entity():
         # logging.debug(sql)
         self.db.execute(sql, entity_id, self.created_by, entity_definition_keyname)
 
+        # Insert or update "contains" information
+        for row in self.db.query("SELECT entity_id FROM relationship r WHERE relationship_definition_keyname = 'child' AND related_entity_id = %s" , entity_id):
+            self.db.execute('INSERT INTO dag_entity SET entity_id = %s, related_entity_id = %s ON DUPLICATE KEY UPDATE distance=1;', row.entity_id, entity_id)
+            self.db.execute('INSERT INTO dag_entity SELECT de.entity_id, %s, de.distance+1 FROM dag_entity AS de WHERE de.related_entity_id = %s ON DUPLICATE KEY UPDATE distance = LEAST(dag_entity.distance, de.distance+1);', entity_id, row.entity_id)
+
         # Copy user rights
         sql = """
             INSERT INTO relationship (
@@ -122,6 +132,10 @@ class Entity():
         """
         # logging.debug(sql)
         self.db.execute(sql, entity_id, self.created_by, entity_id)
+
+        # Populate default values
+        for default_value in self.db.query('SELECT keyname, defaultvalue FROM property_definition WHERE entity_definition_keyname = %s AND defaultvalue IS NOT null', entity_definition_keyname):
+            self.set_property(entity_id=entity_id, property_definition_keyname=default_value.keyname, value=default_value.defaultvalue)
 
         # Propagate properties
         sql = """
@@ -173,24 +187,44 @@ class Entity():
 
         return entity_id
 
-    def set_property(self, entity_id=None, relationship_id=None, property_definition_keyname=None, value=None, property_id=None, uploaded_file=None):
+    def set_property(self, entity_id=None, relationship_id=None, property_definition_keyname=None, value=None, old_property_id=None, uploaded_file=None):
         """
-        Saves property value. Creates new one if property_id = None. Returns property ID.
+        Saves property value. Creates new one if old_property_id = None. Returns new_property_id.
 
         """
-        if not entity_id and not relationship_id:
+        if not entity_id:
             return
 
         # property_definition_keyname is preferred because it could change for existing property
         if property_definition_keyname:
-            definition = self.db.get('SELECT datatype FROM property_definition WHERE keyname = %s LIMIT 1;', property_definition_keyname)
-        elif property_id:
-            definition = self.db.get('SELECT pd.datatype FROM property p LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname WHERE p.id = %s;', property_id)
+            definition = self.db.get('SELECT datatype, formula FROM property_definition WHERE keyname = %s LIMIT 1;', property_definition_keyname)
+        elif old_property_id:
+            definition = self.db.get('SELECT pd.datatype, pd.formula FROM property p LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname WHERE p.id = %s;', old_property_id)
         else:
             return
 
         if not definition:
             return
+
+        if old_property_id:
+            self.db.execute('UPDATE property SET deleted = NOW(), deleted_by = %s WHERE id = %s;', self.created_by, old_property_id )
+            if definition.formula == 1:
+                Formula(user_locale=self.user_locale, created_by=self.created_by, entity_id=entity_id, property_id=old_property_id).delete()
+
+
+        # If no value, then property is deleted, return
+        if not value:
+            return
+
+        new_property_id = self.db.execute_lastrowid('INSERT INTO property SET entity_id = %s, property_definition_keyname = %s, created = NOW(), created_by = %s;',
+            entity_id,
+            property_definition_keyname,
+            self.created_by
+        )
+
+        if definition.formula == 1:
+            formula = Formula(user_locale=self.user_locale, created_by=self.created_by, entity_id=entity_id, property_id=new_property_id, formula=value)
+            value = ''.join(formula.evaluate())
 
         if definition.datatype in ['text', 'html']:
             field = 'value_text'
@@ -198,17 +232,15 @@ class Entity():
             field = 'value_integer'
         elif definition.datatype == 'decimal':
             field = 'value_decimal'
-            if value:
-                value = value.replace(',', '.')
-                value = re.sub(r'[^\.0-9:]', '', value)
+            value = value.replace(',', '.')
+            value = re.sub(r'[^\.0-9:]', '', value)
         elif definition.datatype == 'date':
             field = 'value_datetime'
         elif definition.datatype == 'datetime':
             field = 'value_datetime'
         elif definition.datatype == 'file':
-            if value:
-                uploaded_file = value
-                value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], uploaded_file['body'], self.created_by)
+            uploaded_file = value
+            value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, filesize = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], len(uploaded_file['body']), uploaded_file['body'], self.created_by)
             field = 'value_file'
         elif definition.datatype == 'boolean':
             field = 'value_boolean'
@@ -217,30 +249,21 @@ class Entity():
             field = 'value_counter'
         else:
             field = 'value_string'
-            if value:
-                value = value[:500]
+            value = value[:500]
 
-        self.db.execute('UPDATE property SET deleted = NOW(), deleted_by = %s WHERE id = %s;',
+        logging.debug('UPDATE property SET %s = %s WHERE id = %s;' % (field, value, new_property_id) )
+
+        self.db.execute('UPDATE property SET %s = %%s WHERE id = %%s;' % field, value, new_property_id )
+
+        if definition.formula == 1:
+            formula.save_property(new_property_id=new_property_id, old_property_id=old_property_id)
+        else:
+            Formula(user_locale=self.user_locale, created_by=self.created_by, entity_id=entity_id, property_id=new_property_id).update_depending_formulas()
+
+        self.db.execute('UPDATE entity SET changed = NOW(), changed_by = %s WHERE id = %s;',
             self.created_by,
-            property_id,
+            entity_id,
         )
-
-        new_property_id = None
-        if value:
-            if entity_id:
-                new_property_id = self.db.execute_lastrowid('INSERT INTO property SET entity_id = %%s, property_definition_keyname = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
-                    entity_id,
-                    property_definition_keyname,
-                    value,
-                    self.created_by
-                )
-            if relationship_id:
-                new_property_id = self.db.execute_lastrowid('INSERT INTO property SET relationship_id = %%s, property_definition_keyname = %%s, %s = %%s, created = NOW(), created_by = %%s;' % field,
-                    relationship_id,
-                    property_definition_keyname,
-                    value,
-                    self.created_by
-                )
 
         return new_property_id
 
@@ -544,6 +567,7 @@ class Entity():
                     entity_definition.%(language)s_label_plural     AS entity_label_plural,
                     entity_definition.%(language)s_description      AS entity_description,
                     entity.created                                  AS entity_created,
+                    entity.changed                                  AS entity_changed,
                     entity.public                                   AS entity_public,
                     entity_definition.%(language)s_displayname      AS entity_displayname,
                     entity_definition.%(language)s_displayinfo      AS entity_displayinfo,
@@ -552,6 +576,8 @@ class Entity():
                     entity.sort                                     AS entity_sort_value,
                     property_definition.keyname                     AS property_keyname,
                     property_definition.ordinal                     AS property_ordinal,
+                    property_definition.formula                     AS property_formula,
+                    property_definition.executable                  AS property_executable,
                     property_definition.%(language)s_fieldset       AS property_fieldset,
                     property_definition.%(language)s_label          AS property_label,
                     property_definition.%(language)s_label_plural   AS property_label_plural,
@@ -563,6 +589,7 @@ class Entity():
                     property_definition.public                      AS property_public,
                     property.id                                     AS value_id,
                     property.id                                     AS value_ordinal,
+                    property.value_formula                          AS value_formula,
                     property.value_string                           AS value_string,
                     property.value_text                             AS value_text,
                     property.value_integer                          AS value_integer,
@@ -604,7 +631,8 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {})['description'] = row.entity_description
                 items.setdefault('item_%s' % row.entity_id, {})['sort'] = row.entity_sort
                 items.setdefault('item_%s' % row.entity_id, {})['sort_value'] = row.entity_sort_value
-                items.setdefault('item_%s' % row.entity_id, {})['created'] = formatDatetime(row.entity_created, '%(day)02d.%(month)02d.%(year)d') if row.entity_created else ''
+                items.setdefault('item_%s' % row.entity_id, {})['created'] = row.entity_created
+                items.setdefault('item_%s' % row.entity_id, {})['changed'] = row.entity_changed
                 items.setdefault('item_%s' % row.entity_id, {})['displayname'] = row.entity_displayname
                 items.setdefault('item_%s' % row.entity_id, {})['displayinfo'] = row.entity_displayinfo
                 items.setdefault('item_%s' % row.entity_id, {})['displaytable'] = row.entity_displaytable
@@ -623,6 +651,8 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multilingual'] = row.property_multilingual
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multiplicity'] = row.property_multiplicity
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['ordinal'] = row.property_ordinal
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['formula'] = True if row.property_formula == 1 else False
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['executable'] = True if row.property_executable == 1 else False
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['public'] = True if row.property_public == 1 else False
 
                 #Value
@@ -650,7 +680,7 @@ class Entity():
                         reference = self.__get_properties(entity_id=row.value_reference)
                         if reference:
                             value = reference[0].get('displayname')
-                    logging.debug(str(reference))
+                    # logging.debug(str(reference))
                     db_value = row.value_entity
                 elif row.property_datatype == 'file':
                     db_value = row.value_file
@@ -670,6 +700,11 @@ class Entity():
                 else:
                     db_value = ''
                     value = 'X'
+
+                # Formula
+                if row.property_formula == 1:
+                    # value = '%s (%s)' % (value, row.value_formula)
+                    db_value = row.value_formula
 
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['id'] = row.value_id
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['ordinal'] = row.value_ordinal
@@ -736,6 +771,7 @@ class Entity():
             result[displayfield] = entity_dict.get(displayfield, '') if entity_dict.get(displayfield, '') else ''
             for data_property in findTags(entity_dict.get(displayfield, ''), '@', '@'):
                 result[displayfield] = result[displayfield].replace('@%s@' % data_property, ', '.join(['%s' % x['value'] for x in entity_dict.get('properties', {}).get(data_property, {}).get('values', {}).values()]))
+                result[displayfield] = result[displayfield].replace('\n', ' ')
 
         result['displaytable_labels'] = entity_dict.get('displaytable', '') if entity_dict.get('displaytable', '') else ''
         for data_property in findTags(entity_dict.get('displaytable', ''), '@', '@'):
@@ -939,6 +975,7 @@ class Entity():
         sql = """
             SELECT
                 f.id,
+                f.created,
                 f.file,
                 f.filename
             FROM
@@ -954,7 +991,6 @@ class Entity():
         # logging.debug(sql)
 
         return self.db.query(sql)
-
 
     def get_entity_definition(self, entity_definition_keyname):
         """
@@ -1100,6 +1136,8 @@ class Entity():
 
         self.db.execute('UPDATE entity SET deleted = NOW(), deleted_by = %s WHERE id = %s;', self.created_by, entity_id)
 
+        # remove "contains" information
+        self.db.execute('DELETE FROM dag_entity WHERE entity_id = %s OR related_entity_id = %s;', entity_id, entity_id)
 
 
 class User():
@@ -1181,6 +1219,435 @@ class User():
         request_handler.set_secure_cookie('session', session_key)
 
         return session_key
+
+
+class Formula():
+    """
+    entity_id is accessed from FExpression.fetch_path_from_db() method
+    """
+    def __init__(self, user_locale, created_by, property_id, formula=None, entity_id=None):
+        self.db                     = connection()
+        self.formula                = formula
+        self.entity_id              = entity_id
+        self.value                  = []
+        self.dependencies           = []
+        self.user_locale            = user_locale
+        self.language               = user_locale.code
+        self.created_by             = created_by
+
+        self.dag_stack              = Queue()
+        self.dag_failed             = False
+        self.formula_property_id    = property_id
+
+        # logging.debug('Formula.init')
+        self.create_dag()
+
+    def delete(self):
+        """
+        Mark property's dependencies as deleted and revaluate formulas that were depending on property.
+        Then mark explicit DAG relations as deleted.
+        """
+        self.db.execute('UPDATE dag_formula SET deleted = NOW(), deleted_by = %s WHERE property_id = %s;', self.created_by, self.formula_property_id )
+        self.update_depending_formulas()
+        self.db.execute('UPDATE dag_formula SET deleted = NOW(), deleted_by = %s WHERE related_property_id = %s;', self.created_by, self.formula_property_id )
+
+    def evaluate(self):
+        if not self.formula:
+            return ''
+        if self.dag_failed:
+            return 'E: Formula has recursive dependency.'
+
+        for m in re.findall(r"([^{]*){([^{}]*)}|(.*?)$",self.formula):
+            if m[0]:
+                self.value.append(m[0].encode('utf8'))
+            if m[1]:
+                self.value.append('%s'.encode('utf8') % ','.join(map(str, FExpression(self, m[1]).value)))
+            if m[2]:
+                self.value.append(m[2].encode('utf8'))
+
+        return self.value
+
+    def save_property(self, new_property_id, old_property_id):
+
+        if old_property_id:
+            for row in self.db.query('SELECT property_id FROM dag_formula WHERE related_property_id = %s AND deleted IS NULL', old_property_id):
+                self.db.execute('INSERT INTO dag_formula SET created = NOW(), created_by = %s, property_id = %s, related_property_id = %s;', self.created_by, row.property_id, new_property_id)
+            self.db.execute('UPDATE dag_formula SET deleted = NOW(), deleted_by = %s WHERE related_property_id = %s;', self.created_by, old_property_id)
+
+        self.db.execute('UPDATE property SET value_formula = %s WHERE id = %s;', self.formula, new_property_id)
+
+        # Create formula DAG dependencies
+        # logging.debug(self.dependencies)
+        for dependency in self.dependencies:
+            # logging.debug(dependency)
+            self.db.execute('INSERT INTO dag_formula SET created = NOW(), created_by = %s, property_id = %s, related_property_id = %s, entity_id = %s, dataproperty = %s, relationship_definition_keyname = %s, reverse_relationship = %s, entity_definition_keyname = %s;', self.created_by, new_property_id, dependency.get('related_property_id',None), dependency.get('entity_id',None), dependency.get('dataproperty',None), dependency.get('relationship_definition_keyname',None), dependency.get('reverse_relationship',None), dependency.get('entity_definition_keyname',None))
+
+    def update_depending_formulas(self):
+        while not self.dag_stack.isEmpty:
+            property_id = self.dag_stack.pop()
+            db_property = self.db.get('SELECT value_formula, entity_id FROM property WHERE id = %s', property_id)
+            # logging.debug(db_property)
+            formula = Formula(user_locale=self.user_locale, created_by=self.created_by, formula=db_property.value_formula, entity_id=db_property.entity_id, property_id=property_id)
+            value = ''.join(formula.evaluate())
+            self.db.execute('UPDATE property SET value_string = %s WHERE id = %s', value, property_id)
+            # logging.debug(value)
+
+        # logging.debug('update_depending_formulas')
+        self.create_dag()
+        return True
+
+    def create_dag(self, property_id_in=None):
+        if property_id_in == None:
+            property_id_in = self.formula_property_id
+        if not property_id_in == self.formula_property_id:
+            self.dag_stack.push(property_id_in)
+
+        rowset = []
+
+        sql = """
+            -- Matches explicit dependencies
+            SELECT df.id, df.property_id
+            FROM dag_formula AS df
+            WHERE  df.deleted IS NULL
+            AND    df.related_property_id = %s """ % property_id_in
+        # logging.debug(sql)
+        for row in self.db.query(sql):
+            if row not in rowset:
+                rowset.append(row)
+        # logging.debug(rowset)
+
+        sql = """
+            -- Matches self.dataproperty and id.dataproperty
+            SELECT df.id, df.property_id
+            FROM dag_formula AS df
+            LEFT JOIN property AS p ON p.entity_id = df.entity_id
+            LEFT JOIN property_definition AS pd ON (pd.keyname = p.property_definition_keyname)
+            WHERE  df.deleted IS NULL
+            AND    df.related_property_id IS NULL
+            AND    df.relationship_definition_keyname IS NULL
+            AND    df.reverse_relationship IS NULL
+            AND    df.entity_definition_keyname IS NULL
+            AND    pd.dataproperty = df.dataproperty
+            AND     p.id = %s """ % property_id_in
+        # logging.debug(sql)
+        for row in self.db.query(sql):
+            if row not in rowset:
+                rowset.append(row)
+        # logging.debug(rowset)
+
+        sql = """
+            -- Matches self.rdk.edk.dataproperty, self.rdk.*.dataproperty, id.rdk.edk.dataproperty and id.rdk.*.dataproperty
+            SELECT df.id, df.property_id
+            FROM dag_formula AS df
+            LEFT JOIN relationship AS r ON (r.entity_id = df.entity_id AND r.relationship_definition_keyname = df.relationship_definition_keyname)
+            LEFT JOIN entity AS e ON (e.id = r.related_entity_id AND (e.entity_definition_keyname = df.entity_definition_keyname OR df.entity_definition_keyname IS NULL))
+            LEFT JOIN property AS p ON (p.entity_id = e.id)
+            LEFT JOIN property_definition AS pd ON (pd.keyname = p.property_definition_keyname AND pd.dataproperty = df.dataproperty)
+            WHERE  df.deleted IS NULL
+            AND     r.deleted IS NULL
+            AND    df.related_property_id IS NULL
+            AND    df.reverse_relationship IS NULL
+            AND     p.id = %s """ % property_id_in
+        # logging.debug(sql)
+        # rowset = list(set(rowset + self.db.query(sql)))
+        for row in self.db.query(sql):
+            if row not in rowset:
+                rowset.append(row)
+        # rowset = list(set(rowset + self.db.query(sql)))
+        # logging.debug(rowset)
+
+        sql = """
+            -- Matches self.-rdk.edk.dataproperty, self.-rdk.*.dataproperty, id.-rdk.edk.dataproperty and id.-rdk.*.dataproperty
+            SELECT df.id, df.property_id
+            FROM dag_formula AS df
+            LEFT JOIN relationship AS r ON (r.related_entity_id = df.entity_id AND r.relationship_definition_keyname = df.relationship_definition_keyname)
+            LEFT JOIN entity AS e ON (e.id = r.entity_id AND (e.entity_definition_keyname = df.entity_definition_keyname OR df.entity_definition_keyname IS NULL))
+            LEFT JOIN property AS p ON (p.entity_id = e.id)
+            LEFT JOIN property_definition AS pd ON (pd.keyname = p.property_definition_keyname AND pd.dataproperty = df.dataproperty)
+            WHERE  df.deleted IS NULL
+            AND     r.deleted IS NULL
+            AND    df.related_property_id IS NULL
+            AND    df.reverse_relationship = 1
+            AND     p.id = %s """ % property_id_in
+        # logging.debug(sql)
+        for row in self.db.query(sql):
+            if row not in rowset:
+                rowset.append(row)
+        # logging.debug(rowset)
+
+        for row in rowset:
+            # logging.debug(row)
+            property_id = row.property_id
+
+            if property_id == self.formula_property_id:
+                self.dag_failed = True
+                return False
+
+            if self.dag_stack.check(property_id):
+                continue
+
+            # logging.debug('create_dag')
+            self.create_dag(property_id)
+
+        return not self.dag_failed
+
+
+class FExpression():
+
+    def __init__(self, formula, xpr):
+        self.db             = connection()
+        self.formula        = formula
+        self.xpr            = re.sub(' ', '', xpr)
+        self.value          = []
+
+        # logging.debug(self.xpr)
+
+        if not self.parcheck():
+            self.value = "ERROR"
+            return self.value
+
+        re.sub(r"(.*?)([A-Z]+)\(([^\)]*)\)", mdbg, self.xpr)
+
+        for m in re.findall(r"(.*?)([A-Z]+)\(([^\)]*)\)",self.xpr):
+            self.value.append('%s%s' % (m[0], self.evalfunc(m[1], m[2])))
+            # self.value.append('%s%s' % (m[0], ','.join(self.evalfunc(m[1], m[2]))))
+
+        if self.value == []:
+            _values = []
+            for row in self.fetch_path_from_db(self.xpr):
+                # logging.debug(row.value)
+                _values.append(row.value)
+
+            self.value = [', '.join(map(str,_values))]
+            # logging.debug(self.value)
+
+        # logging.debug(re.findall(r"(.*?)([A-Z]+)\(([^\)]*)\)",self.xpr))
+        # logging.debug(self.value)
+        # self.value = map(eval, self.value)
+        # logging.debug(self.value)
+
+    def evalfunc(self, fname, path):
+        FFunc = {
+            'SUM' : self.FE_sum,
+            'MIN' : self.FE_min,
+            'MAX' : self.FE_max,
+            'COUNT' : self.FE_count,
+            'AVERAGE' : self.FE_average,
+        }
+        # logging.debug(FFunc[fname](self.fetch_path_from_db(path)))
+        return FFunc[fname](self.fetch_path_from_db(path))
+
+    def FE_sum(self, items):
+        return 30.3
+
+    def FE_min(self, items):
+        return 30.3
+
+    def FE_max(self, items):
+        return 30.3
+
+    def FE_average(self, items):
+        return 30.3
+        # math.fsum(items)
+
+    def FE_count(self, items):
+        return len(items)
+
+    def fetch_path_from_db(self, path):
+        """
+        https://github.com/argoroots/Entu/blob/master/docs/Formula.md
+        """
+        tokens = re.split('\.', path)
+        # logging.debug(tokens)
+
+        if len(tokens) < 2:
+            return []
+
+        if tokens[0] == 'self':
+            tokens[0] = self.formula.entity_id
+
+        # Prepare formula dependencies
+        dependency = {'entity_id': tokens[0]}
+
+        # Entity id:{self.id} is called {self.name}; and id:{6.id} description is {6.description}
+        if len(tokens) == 2:
+            if tokens[1] == '':
+                tokens[1] = 'id'
+
+            sql = 'SELECT ifnull(p.value_decimal, ifnull(p.value_string, ifnull(p.value_text, ifnull(p.value_integer, ifnull(p.value_datetime, ifnull(p.value_boolean, p.value_file)))))) as value'
+            if tokens[1] == 'id':
+                sql = 'SELECT e.id as value'
+
+            sql += """
+                FROM entity e
+            """
+
+            if tokens[1] != 'id':
+                sql += """
+                    LEFT JOIN property p ON p.entity_id = e.id
+                    LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+                """
+
+            sql += """
+                WHERE e.id = %(entity_id)s
+                AND e.deleted IS NULL
+            """  % {'entity_id': tokens[0]}
+
+            if tokens[1] != 'id':
+                sql += """
+                    AND p.deleted IS NULL
+                    AND pd.dataproperty = '%(pdk)s'
+                """ % {'pdk': tokens[1]}
+
+            # logging.debug(sql)
+
+            result = self.db.query(sql)
+
+            # Prepare formula dependencies
+            # Entity {self.id} is called {self.name}, but {12.id} is called {12.name}
+            if tokens[1] != 'id':
+                dependency['dataproperty'] = tokens[1]
+
+            self.formula.dependencies.append(dependency)
+            return result
+
+
+        if len(tokens) != 4:
+            return []
+
+        if tokens[3] == '':
+            tokens[3] = 'id'
+
+        sql = 'SELECT ifnull(p.value_decimal, ifnull(p.value_string, ifnull(p.value_text, ifnull(p.value_integer, ifnull(p.value_datetime, ifnull(p.value_boolean, p.value_file)))))) as value'
+        if tokens[3] == 'id':
+            sql = 'SELECT re.id as value'
+
+        _entity = 'entity'
+        _related_entity = 'related_entity'
+        if tokens[1][:1] == '-':
+            _entity = 'related_entity'
+            _related_entity = 'entity'
+            tokens[1] = tokens[1][1:]
+
+        sql += """
+            FROM entity e
+            LEFT JOIN relationship r ON r.%(entity)s_id = e.id
+            LEFT JOIN entity re ON re.id = r.%(related_entity)s_id
+        """ % {'entity': _entity, 'related_entity': _related_entity}
+
+        if tokens[3] != 'id':
+            sql += """
+                LEFT JOIN property p ON p.entity_id = re.id
+                LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+            """
+
+        sql += """
+            WHERE e.id = %(entity_id)s
+            AND r.relationship_definition_keyname = '%(rdk)s'
+            AND re.deleted IS NULL
+            AND e.deleted IS NULL
+            AND r.deleted IS NULL
+        """  % {'entity_id': self.formula.entity_id, 'rdk': tokens[1]}
+
+        if tokens[2] != '*':
+            sql += """
+                AND re.entity_definition_keyname = '%(edk)s'
+            """  % {'edk': tokens[2]}
+
+        if tokens[3] != 'id':
+            sql += """
+                AND p.deleted IS NULL
+                AND pd.dataproperty = '%(pdk)s'
+            """ % {'pdk': tokens[3]}
+
+        # logging.debug(sql)
+
+        # Prepare formula dependencies
+        # There are {COUNT(self.child.folder.id)} folders called {self.child.folder.name}
+
+        dependency['relationship_definition_keyname'] = tokens[1]
+        if _entity == 'related_entity':
+            dependency['reverse_relationship'] = 1
+
+        if tokens[2] != '*':
+            dependency['entity_definition_keyname'] = tokens[2]
+
+        if tokens[3] != 'id':
+            dependency['dataproperty'] = tokens[3]
+
+        self.formula.dependencies.append(dependency)
+
+        return self.db.query(sql)
+
+    def parcheck(self):
+        return True
+        s = Stack()
+        balanced = True
+        index = 0
+        parenstr = re.search('([()])', self.xpr).join()
+        while index < len(parenstr) and balanced:
+            symbol = parenstr[index]
+            if symbol == "(":
+                s.push(symbol)
+            else:
+                if s.isEmpty():
+                    balanced = False
+                else:
+                    s.pop()
+
+            index = index + 1
+
+        if balanced and s.isEmpty():
+            return True
+        else:
+            return False
+
+
+class Stack:
+    def __init__(self):
+        self.stack = []
+    def push(self, item):
+        self.stack.append(item)
+    def check(self, item):
+        return item in self.stack
+    def pop(self):
+        return self.stack.pop()
+    @property
+    def isEmpty(self):
+        return self.stack == []
+    @property
+    def size(self):
+        return len(self.stack)
+
+
+class Queue:
+    def __init__(self):
+        self.in_stack = []
+        self.out_stack = []
+    def push(self, item):
+        self.in_stack.append(item)
+    def check(self, item):
+        return (item in self.in_stack or item in self.out_stack)
+    def pop(self):
+        if not self.out_stack:
+            self.in_stack.reverse()
+            self.out_stack = self.in_stack
+            self.in_stack = []
+        return self.out_stack.pop()
+    @property
+    def isEmpty(self):
+        return self.in_stack == [] and self.out_stack == []
+    @property
+    def size(self):
+        return len(self.in_stack) + len(self.out_stack)
+
+
+def mdbg(matchobj):
+    # mdbg() is for regex match object debugging.
+    #   i.e: re.sub(r"([^{]*){([^{}]*)}|(.*?)$", mdbg, self.formula)(ha()a)
+    for m in matchobj.groups():
+        None
+        logging.debug(m)
 
 
 def formatDatetime(date, format='%(day)02d.%(month)02d.%(year)d %(hour)02d:%(minute)02d'):

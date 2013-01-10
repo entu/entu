@@ -9,6 +9,7 @@ menu_share,Share
 menu_login,Login
 menu_exit,Logout
 menu_help,Help
+menu_download,Download
 
 search,Search
 search_button,Search

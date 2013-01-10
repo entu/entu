@@ -40,7 +40,7 @@
                                 {% end %}
                             {% else %}
                                 {% for v in p['values'] %}
-                                    <input type="text" class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['value'] }}" value="{{ v['value'] }}" style="width:98%; margin-bottom:4px;" />
+                                    <input type="text" class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" value="{{ v['db_value'] }}" style="width:98%; margin-bottom:4px;" />
                                 {% end %}
                             {% end %}
                         {% elif p['datatype'] in ['text', 'html'] %}
@@ -58,11 +58,15 @@
                                     <img src="{{ static_url('images/spinner_white.gif') }}" style="display:none;" />
                                     <iframe name="iframe_{{ p['keyname'] }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML, '#blobstore_upload_{{ p['keyname'] }}');" style="display:none;"></iframe>
                                     <form method="post" action="/entity/save" target="iframe_{{ p['keyname'] }}" enctype="multipart/form-data" style="margin:0px; padding:0px;">
+                                        <input type="hidden" name="is_file" value="true" />
                                         <input type="hidden" class="file_entity_id" name="entity_id" value="{{ entity.get('id', '') }}" />
                                         <input type="hidden" name="parent_entity_id" value="{{ parent_entity_id }}" />
                                         <input type="hidden" name="entity_definition_keyname" value="{{ entity_definition_keyname }}" />
                                         <input type="hidden" name="property_definition_keyname" value="{{ p['keyname'] }}" />
-                                        <input type="file" name="file" class="dtype-{{ p['datatype'] }}" style="border:none; width:100%; margin-bottom:4px;" multiple />
+                                        <input type="hidden" name="dropbox_file" id="dropbox-file" />
+                                        <input type="hidden" name="dropbox_name" id="dropbox-name" />
+                                        <a id="dropbox-open" class="btn btn-mini" style="float:right;"><i class="icon-dropbox"></i>Dropbox</a>
+                                        <input type="file" name="value" class="dtype-{{ p['datatype'] }}" style="border:none; margin-bottom:4px;" multiple />
                                     </form>
                                 {% else %}
                                     <div class="delete-file-row"><a href="/entity/file-{{ v['db_value'] }}">{{ v['value'] }}</a> <a href="javascript:void(0);" data-property_id="{{ v['id'] }}" class="delete-file" style="float:right; display:none;"><i class="icon-trash" style="color:red;"></i></a></div>
@@ -75,6 +79,10 @@
                                 {% else %}
                                     <button data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" class="counter btn btn-warning" style="margin-bottom:4px;">{{ _('counter_generate_value') }}...</button>
                                 {% end %}
+                            {% end %}
+                        {% elif p['datatype'] == 'dynamic' %}
+                            {% for v in p['values'] %}
+                                <input type="text" class="autosave {% if p['can_add_new'] %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" value="{{ v['db_value'] }}" style="width:98%; margin-bottom:4px;" />
                             {% end %}
                         {% else %}
                             {{ ', '.join(['%s' % v['value'] for v in p['values'] if v['value']]) }}
@@ -115,6 +123,8 @@
         $(div).parent().children('img').hide();
         $(div).parent().children('form').children('.dtype-file').val('');
         $(div).parent().children('form').show();
+        $('#dropbox-file').val('');
+        $('#dropbox-name').val('');
     };
 
     $(document).ready(function(){
@@ -216,7 +226,7 @@
 
         $('.dtype-file').change(function() {
             $(this).parent().hide();
-            $(this).parent().parent().children('img').show()
+            $(this).parent().parent().children('img').show();
             $(this).parent().submit();
         });
 
@@ -228,6 +238,20 @@
                 $('.delete-file').hide();
             }
         );
+
+        $('#dropbox-open').click(function() {
+            form = $(this).parent();
+            Dropbox.choose({
+                linkType: 'direct',
+                success: function(files) {
+                    $('#dropbox-file').val(files[0].link);
+                    $('#dropbox-name').val(files[0].name);
+                    form.hide();
+                    form.parent().children('img').show();
+                    form.submit();
+                }
+            });
+        });
 
         $('.delete-file').click(function() {
 

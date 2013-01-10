@@ -28,6 +28,7 @@ controllers = [
     'status',
     'action.ester',
     'action.csv_import',
+    'api',
 ]
 
 
