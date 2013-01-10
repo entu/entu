@@ -48,7 +48,7 @@ _Futuristic Data Management System_
 
 ## Used libraries/add-ons
 
-* [Bootstrap](http://twitter.github.com/bootstrap/) + [Font Awesome](http://fortawesome.github.com/Font-Awesome/)
+* [Bootstrap](http://twitter.github.com/bootstrap/) + [Font Awesome More](http://gregoryloucas.github.com/Font-Awesome-More/)
 * [jQuery](http://jquery.com/) + [jQuery UI](http://jqueryui.com/)
 * [Elastic](http://unwrongest.com/projects/elastic/)
 * [Datejs](http://www.datejs.com/)
