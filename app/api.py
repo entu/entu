@@ -13,7 +13,7 @@ import random
 import time
 import magic
 
-class Search (myRequestHandler):
+class GetEntityList (myRequestHandler):
     """
     API search for entities based on keywords,entity type and
     dataproperty.
@@ -148,7 +148,7 @@ class Search (myRequestHandler):
             self.write(json.dumps(result))
 
 
-class View (myRequestHandler):
+class GetEntity (myRequestHandler):
     """
     Returns entity by entity_id.
 
@@ -682,14 +682,14 @@ def datetime_to_ISO8601(entity_list):
                                                 datetime_obj.hour,datetime_obj.minute,datetime_obj.second)
 
 handlers = [
-    ('/api/save_entity', SaveEntity),
-    ('/api/view', View),
-    ('/api/search', Search),
-    ('/api/save_property', SaveProperty),
-    ('/api/save_properties',SaveProperties),
-    ('/api/get_entity_properties', GetEntityProperties),
-    ('/api/get_allowed_children',GetAllowedChildren),
+    ('/api/auth',GetSession),
+    ('/api/exit',Logout),
+    ('/api/get_entity', GetEntity),
+    ('/api/get_entity_list', GetEntityList),
     ('/api/get_file',GetFile),
-    ('/api/get_session',GetSession),
-    ('/api/logout',Logout),
+    ('/api/get_entity_properties', GetEntityProperties),
+    ('/api/get_allowed_chils',GetAllowedChildren),
+    # ('/api/save_property', SaveProperty),
+    ('/api/save_properties',SaveProperties),
+    ('/api/save_entity', SaveEntity),
 ]
