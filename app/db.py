@@ -783,7 +783,12 @@ class Entity():
         for displayfield in ['displayname', 'displayinfo', 'displaytable', 'sort']:
             result[displayfield] = entity_dict.get(displayfield, '') if entity_dict.get(displayfield, '') else ''
             for data_property in findTags(entity_dict.get(displayfield, ''), '@', '@'):
-                result[displayfield] = result[displayfield].replace('@%s@' % data_property, ', '.join(['%s' % x['value'] for x in entity_dict.get('properties', {}).get(data_property, {}).get('values', {}).values()]))
+                dataproperty_dict = entity_dict.get('properties', {}).get(data_property, {})
+                # logging.debug(dataproperty_dict)
+                if displayfield == 'sort' and dataproperty_dict.get('datatype') == 'date':
+                    result[displayfield] = result[displayfield].replace('@%s@' % data_property, ', '.join(['%s' % sortableDateTime(x['db_value']) for x in dataproperty_dict.get('values', {}).values()]))
+                else:
+                    result[displayfield] = result[displayfield].replace('@%s@' % data_property, ', '.join(['%s' % x['value'] for x in dataproperty_dict.get('values', {}).values()]))
                 result[displayfield] = result[displayfield].replace('\n', ' ')
 
         result['displaytable_labels'] = entity_dict.get('displaytable', '') if entity_dict.get('displaytable', '') else ''
@@ -1661,6 +1666,12 @@ def mdbg(matchobj):
     for m in matchobj.groups():
         None
         logging.debug(m)
+
+
+def sortableDateTime(date):
+    formatted_date = '%(year)d%(month)02d%(day)02d%(hour)02d%(minute)02d%(second)02d' % {'year': date.year, 'month': date.month, 'day': date.day, 'hour': date.hour, 'minute': date.minute, 'second': date.second}
+    logging.debug(formatted_date)
+    return formatted_date
 
 
 def formatDatetime(date, format='%(day)02d.%(month)02d.%(year)d %(hour)02d:%(minute)02d'):
