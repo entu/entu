@@ -787,6 +787,10 @@ class Entity():
                 # logging.debug(dataproperty_dict)
                 if displayfield == 'sort' and dataproperty_dict.get('datatype') == 'date':
                     result[displayfield] = result[displayfield].replace('@%s@' % data_property, ', '.join(['%s' % sortableDateTime(x['db_value']) for x in dataproperty_dict.get('values', {}).values()]))
+                elif displayfield == 'sort' and dataproperty_dict.get('datatype') == 'integer':
+                    result[displayfield] = result[displayfield].replace('@%s@' % data_property, ', '.join(['%s' % sortableInteger(x['db_value']) for x in dataproperty_dict.get('values', {}).values()]))
+                elif displayfield == 'sort' and dataproperty_dict.get('datatype') == 'decimal':
+                    result[displayfield] = result[displayfield].replace('@%s@' % data_property, ', '.join(['%s' % sortableDecimal(x['db_value']) for x in dataproperty_dict.get('values', {}).values()]))
                 else:
                     result[displayfield] = result[displayfield].replace('@%s@' % data_property, ', '.join(['%s' % x['value'] for x in dataproperty_dict.get('values', {}).values()]))
                 result[displayfield] = result[displayfield].replace('\n', ' ')
@@ -1668,10 +1672,21 @@ def mdbg(matchobj):
         logging.debug(m)
 
 
-def sortableDateTime(date):
-    formatted_date = '%(year)d%(month)02d%(day)02d%(hour)02d%(minute)02d%(second)02d' % {'year': date.year, 'month': date.month, 'day': date.day, 'hour': date.hour, 'minute': date.minute, 'second': date.second}
+def sortableDateTime(s_date):
+    formatted_date = '%(year)d%(month)02d%(day)02d%(hour)02d%(minute)02d%(second)02d' % {'year': s_date.year, 'month': s_date.month, 'day': s_date.day, 'hour': s_date.hour, 'minute': s_date.minute, 'second': s_date.second}
     logging.debug(formatted_date)
     return formatted_date
+
+
+def sortableInteger(s_integer):
+    return sortableDecimal(s_integer)
+
+
+def sortableDecimal(s_decimal):
+    logging.debug(s_decimal)
+    formatted_decimal = '%016.4f' % s_decimal
+    logging.debug(formatted_decimal)
+    return formatted_decimal
 
 
 def formatDatetime(date, format='%(day)02d.%(month)02d.%(year)d %(hour)02d:%(minute)02d'):
