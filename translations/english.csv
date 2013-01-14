@@ -24,6 +24,9 @@ search_result_count2,Found %s
 boolean_true,Yes
 boolean_false,No
 
+add_files_computer,Add from Computer
+add_files_dropbox,Add from Dropbox
+
 entity_delete,Delete
 confirm_entity_delete,'%s' and all its childs will be deleted.
 confirm_file_delete,File '%s' will be deleted
