@@ -251,7 +251,7 @@ class Entity():
             field = 'value_string'
             value = value[:500]
 
-        logging.debug('UPDATE property SET %s = %s WHERE id = %s;' % (field, value, new_property_id) )
+        # logging.debug('UPDATE property SET %s = %s WHERE id = %s;' % (field, value, new_property_id) )
 
         self.db.execute('UPDATE property SET %s = %%s WHERE id = %%s;' % field, value, new_property_id )
 
@@ -537,6 +537,18 @@ class Entity():
         if not items:
             return []
         return [x.id for x in items]
+
+    def formula_properties(self, entity_id):
+        sql = """
+            SELECT *
+            FROM property p
+            WHERE p.entity_id = %s
+            AND p.value_formula is not null
+            AND p.deleted is null
+            ORDER BY p.id
+            ;""" % entity_id
+        # logging.debug(sql)
+        return self.db.query(sql)
 
     def __get_properties(self, entity_id=None, entity_definition_keyname=None, dataproperty=None, full_definition=False, only_public=False):
         """
