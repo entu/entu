@@ -3,18 +3,17 @@
 {% import markdown2 %}
 
 {% if parents %}
-    <table class="table table-condensed">
+    <table class="table table-condensed table-bordered">
         <tbody>
-            <tr>
+            <tr class="breadcrumb">
                 {% for parentgroup in parents %}
                     {% for parent in parentgroup %}
-                        <td style="padding:0px; border:none;">
-                            <ul class="breadcrumb" style="text-align:center; margin:0px 1px;">
-                                <li style="float:left;"><i class="divider icon-arrow-up" style="padding-left:0px;"></i></li>
-                                <li><h6>{{ parent.get('label', '') }}</h6>  </li>
-                                <li><a href="#{{ parent.get('id', '') }}">{{ parent.get('displayname', '') }}</a></li>
-                                <li style="float:right;"><i class="divider icon-arrow-up" style="padding-right:0px;"></i></li>
-                            </ul>
+                        <td style="text-align:center;">
+                            <a class="no-underline" href="#{{ parent.get('id', '') }}" style="display:block; padding:0px 8px;">
+                                <i class="divider icon-arrow-up pull-left" style="padding-left:0px;"></i>
+                                <b>{{ parent.get('label', '') }}:</b> {{ parent.get('displayname', '') }}
+                                <i class="divider icon-arrow-up pull-right" style="padding-right:0px;"></i>
+                            </a>
                         </td>
                     {% end %}
                 {% end %}
@@ -23,18 +22,18 @@
     </table>
 {% end %}
 
-<div style="float:right; margin-bottom:20px; text-align:center;">
-    <img src="{{ entity['displaypicture'] }}" id="entity_picture" class="" width="120" />
+<div class="pull-right" style="margin:0px 0px 20px 0px; text-align:center; text-transform:uppercase; color:#B9B9B9; font-weight:bold;">
+    <img src="{{ entity['displaypicture'] }}" id="entity_picture" class="" width="120" style="padding-bottom:4px; width:120px;" /><br />
+    {{ entity['label'] }}
 </div>
-<h6>{{ entity['label'] }}</h6>
-<h3 style="margin-right:140px;">{{ entity['displayname'] }}</h3>
+<h3 style="margin:0px 140px 8px 0px; line-height:23px;">{{ entity['displayname'] }}</h3>
 <div style="margin-right:140px;">
     <table class="table table-condensed">
         <tbody>
             {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
             <tr>
-                <th style="text-align:right; min-width:200px;">
-                    <h6>{{ p['label'] }}</h6>
+                <th style="text-align:right; min-width:200px;{%if not p['public'] %} color:gray;{% end %}">
+                    {{ p['label'] }}
                 </th>
                 <td style="width:100%;{%if not p['public'] %} color:gray;{% end %}">
                     {% if p['datatype'] == 'file' %}
@@ -45,7 +44,7 @@
                     {% elif p['datatype'] == 'html' %}
                         <div class="html-property" data-property="{{ p['dataproperty'] }}" style="display:block; width:100%;"><img src="{{ static_url('images/spinner_white.gif') }}" id="search-spinner" /></div>
                     {% elif p['datatype'] == 'text' %}
-                        {{ markdown2.markdown('\n'.join(['%s' % v['value'] for v in p['values']])) }}
+                        {{ markdown2.markdown('   \n'.join(['%s' % v['value'].replace('\n', '   \n') for v in p['values']])) }}
                     {% else %}
                         {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
                     {% end %}
@@ -54,7 +53,7 @@
             {% end %}
             <tr>
                 <th style="text-align:right; white-space:nowrap; vertical-align:middle;">
-                    <h6>{{ _('public') }}</h6>
+                    {{ _('public') }}
                 </th>
                 <td style="width:100%; vertical-align:middle;">
                     {% if entity.get('is_public', False) %}<b>{{ _('boolean_true') }}</b>{% else %}{{ _('boolean_false') }}{% end %}
@@ -62,7 +61,7 @@
             </tr>
             <tr>
                 <th style="text-align:right; white-space:nowrap; vertical-align:middle;">
-                    <h6>{{ _('created') }}</h6>
+                    {{ _('created') }}
                 </th>
                 <td style="width:100%; vertical-align:middle;">
                     {{ entity.get('created', '') }}
@@ -131,7 +130,7 @@
         <thead class="toggle-table">
             <tr>
                 <th {% if v[0].get('displaytable', None) %}colspan="{{ len(v[0].get('displaytable', ''))+1 }}"{% end %}>
-                    <h6>{{ k }}<span style="float:right; font-weight:normal;">{{ len(v) }}</span></h6>
+                    {{ k }}<span style="float:right; font-weight:normal;">{{ len(v) }}</span>
                 </th>
             </tr>
         </thead>
@@ -139,12 +138,12 @@
             {% if v[0].get('displaytable', None) %}
             <tr>
                 {% for l in v[0].get('displaytable_labels', '') %}
-                <td style="min-width:100px;">
-                    <h6>{{ l }}</h6>
-                </td>
+                <th style="min-width:100px;">
+                    {{ l }}
+                </th>
                 {% end %}
                 <th>
-                    <h6>{{ _('created') }}</h6>
+                    {{ _('created') }}
                 </th>
             </tr>
             {% end %}

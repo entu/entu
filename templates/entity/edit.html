@@ -20,7 +20,7 @@
                 {% if action == 'csv' %}{% include '../action/csv.html' %}{% end %}
             </div>
         {% end %}
-        <table id="home" class="table atable-condensed table-bordered{% if actions %} tab-pane{% end %} edit-form">
+        <table id="home" class="table table-bordered{% if actions %} tab-pane{% end %} edit-form">
             <tbody>
                 {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
                     {% for idx, v in enumerate(p['values']) %}
