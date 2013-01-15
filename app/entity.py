@@ -6,6 +6,7 @@ import magic
 import zipfile
 import yaml
 import time
+import markdown2
 
 import db
 from helper import *
@@ -28,12 +29,19 @@ class ShowGroup(myRequestHandler):
         if entity_definition_keyname:
             entity_definition = entity.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
 
+        try:
+            f = open('../HISTORY.md', 'r')
+            history = markdown2.markdown('## '.join(f.read().split('## ')[:6]).replace('## ', '#### '))
+        except:
+            history = ''
+
         self.render('entity/start.html',
             page_title = entity_definition[0].label_plural if entity_definition else '',
             menu = entity.get_menu(),
             show_list = True if entity_definition_keyname else False,
             entity_definition = entity_definition_keyname,
             add_definitions = entity.get_definitions_with_default_parent(entity_definition_keyname) if entity_definition_keyname else None,
+            history = history,
         )
 
     @web.authenticated
