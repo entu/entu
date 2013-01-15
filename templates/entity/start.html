@@ -1,3 +1,4 @@
+{% autoescape None %}
 {% extends '../main/index.html' %}
 
 {% block head %}
@@ -40,6 +41,10 @@
             </div>
         {% else %}
             <div id="content-wide">
+                <div class="alert alert-success pull-right span5">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    {{ history }}
+                </div>
             </div>
         {% end %}
     </div>
