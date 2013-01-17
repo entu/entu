@@ -20,14 +20,14 @@
                 {% if action == 'csv' %}{% include '../action/csv.html' %}{% end %}
             </div>
         {% end %}
-        <table id="home" class="table table-bordered{% if actions %} tab-pane{% end %} edit-form">
+        <table id="home" class="edit-form table table-bordered{% if actions %} tab-pane{% end %}">
             <tbody>
                 {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
                     {% for idx, v in enumerate(p['values']) %}
                     <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
                         {% if idx == 0 %}
                         <th style="{%if p['public'] %}color:black;{% end %}" rowspan="{{ len(p['values']) }}">
-                            {%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}
+                            {%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %} {{ p['datatype'] }}
                         </th>
                         {% end %}
                         <td>
@@ -59,13 +59,13 @@
                                         <input type="hidden" name="property_definition_keyname" value="{{ p['keyname'] }}" />
                                         <input type="hidden" name="dropbox_file" id="dropbox-file" />
                                         <input type="hidden" name="dropbox_name" id="dropbox-name" />
-                                        <div style="height:23px;">
+                                        <div class="edit" style="height:23px;">
                                             <input type="file" name="value" class="dtype-{{ p['datatype'] }}" data-form="#upload-form-{{ p['keyname'] }}" title="{{ _('add_files_computer') }}" multiple />
                                             <label class="dropbox-open btn btn-mini pull-right" data-form="#upload-form-{{ p['keyname'] }}">{{ _('add_files_dropbox') }}</label>
                                         <div>
                                     </form>
                                 {% else %}
-                                    <div class="delete-file-row" style="padding:8px;"><a href="/entity/file-{{ v['db_value'] }}">{{ v['value'] }}</a> <a href="javascript:void(0);" data-property_id="{{ v['id'] }}" class="delete-file" style="float:right; display:none;"><i class="icon-trash" style="color:red;"></i></a></div>
+                                    <div class="delete-file-row edit" style="padding:8px;"><a href="/entity/file-{{ v['db_value'] }}">{{ v['value'] }}</a> <a href="javascript:void(0);" data-property_id="{{ v['id'] }}" class="delete-file" style="float:right; display:none;"><i class="icon-trash" style="color:red;"></i></a></div>
                                 {% end %}
                             {% elif p['datatype'] == 'counter-value' %}
                                 {% if v['value'] %}
@@ -73,6 +73,8 @@
                                 {% else %}
                                     <button data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" class="counter btn btn-warning btn-mini" style="margin:8px;">{{ _('counter_generate_value') }}...</button>
                                 {% end %}
+                            {% elif p['datatype'] == 'reference' %}
+                                <input type="hidden" class="autosave reference" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" {% if v['db_value'] %} data-value="{{ v['db_value'] }}"{% end %} value="{{ v['value'] }}" data-reference_definition="{{ p.get('reference_definition') }}" style="width:100%;" />
                             {% elif p['datatype'] == 'dynamic' %}
                                 <input type="text" class="autosave {% if p['can_add_new'] and idx+1 == len(p['values']) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" value="{{ v['db_value'] }}" />
                             {% else %}
@@ -126,6 +128,53 @@
         document.body.style.cursor = 'default';
 
         $('textarea').elastic();
+
+
+        $('.reference').each( function() {
+            var definition = $(this).data('reference_definition');
+            $(this).select2({
+                placeholder: ' ',
+                minimumInputLength: 1,
+                allowClear: true,
+                ajax: {
+                    url: '/entity/search',
+                    dataType: 'json',
+                    quietMillis: 1000,
+                    data: function (term, page) {
+                        return {
+                            q: term,
+                            definition: definition
+                        };
+                    },
+                    results: function (data, page) {
+                        return {results: data.entities};
+                    }
+                },
+                formatResult: formatSelectBoxResult,
+                formatSelection: formatSelectBoxSelection,
+            });
+        });
+        $('.reference[data-value]').each( function() {
+            $(this).select2('data', {id: $(this).data('value'), title: $(this).val()});
+        });
+
+        function formatSelectBoxResult(data) {
+            if(data.image) {
+                image = '<img src="'+data.image+'" />';
+            } else {
+                image = '';
+            };
+            if(data.info) {
+                info = '<span>'+data.info+'</span>';
+            } else {
+                info = '';
+            };
+            return '<div class="entity-list-item">'+image+data.title+info+'</div>';
+        }
+
+        function formatSelectBoxSelection(data) {
+            return data.title;
+        }
 
         $('.dtype-datetime').change(function() {
             $(this).val(format_date($(this).val(), 'yyyy-MM-dd HH:mm'));

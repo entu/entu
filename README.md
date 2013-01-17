@@ -54,3 +54,4 @@ _Futuristic Data Management System_
 * [Elastic](http://unwrongest.com/projects/elastic/)
 * [Datejs](http://www.datejs.com/)
 * [Bootstrap File Input](https://github.com/grevory/bootstrap-file-input)
+* [Select2](http://ivaynberg.github.com/select2)

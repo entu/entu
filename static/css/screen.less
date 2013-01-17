@@ -321,6 +321,8 @@ ul.nav li.dropdown:hover ul.dropdown-menu{
 
 
 table.edit-form {
+    border-radius: 0px !important;
+
     th {
         width: 200px !important;
         vertical-align: middle;
@@ -331,23 +333,63 @@ table.edit-form {
         padding: 0px;
         vertical-align: middle;
 
-        div, input, textarea, select {
-            margin: 0px 2px 1px 0px !important;
+        div.edit, input, textarea, select {
+            margin: 0px 2px 1px 0px;
             padding: 8px;
             width: @modal-width - 235px !important;
             border: none;
+            border-radius: 0px;
             -webkit-box-shadow: none;
             box-shadow: none;
-            border-radius: 0px;
         }
         .new-input {
             border-bottom: solid 1px #dddddd;
         }
+        .select2-choice, select2-container {
+            padding: 5px 8px !important;
+            border: none !important;
+            border-radius: 0px !important;
+            background: none !important;
+
+            div {
+                border: none !important;
+                border-radius: 0px !important;
+                background: none !important;
+            }
+        }
     }
+}
+
+.select2-drop {
+    margin: -37px -2px -20px 0px !important;
+    padding-top: 4px;
+    border-top: 1px solid #aaa !important;
+    border-radius: 0px;
 }
 
 .file-input-name {
     display: none;
+}
+
+.entity-list-item {
+    display: block;
+    margin-left: 21px;
+    padding: 0px;
+
+    img {
+        float: left;
+        margin: 0px 4px 0px -25px;
+        width: 20px;
+        height: 20px;
+    }
+
+    span {
+        display: block;
+        margin: -2px 0px 0px 1px;
+        font-weight: normal;
+        font-style:italic;
+        font-size: 12px;
+    }
 }
 
 .no-underline {
