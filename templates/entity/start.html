@@ -1,7 +1,7 @@
+{% autoescape None %}
 {% extends '../main/index.html' %}
 
 {% block head %}
-<script type="text/javascript" src="https://www.dropbox.com/static/api/1/dropbox.js" id="dropboxjs" data-app-key="h14c0u5pcjcdppt"></script>
 {% end %}
 
 {% block logo_url %}/entity{% end %}
@@ -16,8 +16,8 @@
 {% end %}
 
 {% block right_toolbar %}
-    <li class="toolbar-item"><a href="" style="padding:5px 5px 5px 10px;">{{ current_user.name }}<img src="{{ current_user.picture }}" style="margin-left:10px; height:40px; width:40px;" /></a></li>
-    <li class="toolbar-item"><a href="/exit" style="width:30px;" title="{{ _('menu_exit') }}"><i class="icon-off"></i></a></li>
+    <li class="toolbar-item"><a href="">{{ current_user.name }}<img src="{{ current_user.picture }}" style="margin:-2px -5px 0px 10px; height:40px; width:40px;" /></a></li>
+    <li class="toolbar-item"><a href="/exit" title="{{ _('menu_exit') }}"><i class="icon-off"></i></a></li>
 {% end %}
 
 {% block content %}
@@ -40,6 +40,10 @@
             </div>
         {% else %}
             <div id="content-wide">
+                <div class="alert alert-success pull-right span5">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    {{ history }}
+                </div>
             </div>
         {% end %}
     </div>

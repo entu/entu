@@ -6,6 +6,7 @@ import magic
 import zipfile
 import yaml
 import time
+import markdown2
 
 import db
 from helper import *
@@ -28,12 +29,19 @@ class ShowGroup(myRequestHandler):
         if entity_definition_keyname:
             entity_definition = entity.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
 
+        try:
+            f = open('../HISTORY.md', 'r')
+            history = markdown2.markdown('## '.join(f.read().split('## ')[:4]).replace('## ', '#### '))
+        except:
+            history = ''
+
         self.render('entity/start.html',
             page_title = entity_definition[0].label_plural if entity_definition else '',
             menu = entity.get_menu(),
             show_list = True if entity_definition_keyname else False,
             entity_definition = entity_definition_keyname,
             add_definitions = entity.get_definitions_with_default_parent(entity_definition_keyname) if entity_definition_keyname else None,
+            history = history,
         )
 
     @web.authenticated
@@ -67,6 +75,35 @@ class ShowListinfo(myRequestHandler):
             'info': item['displayinfo'],
             'image': item['displaypicture'],
         })
+
+
+class GetEntities(myRequestHandler):
+    """
+    """
+    @web.authenticated
+    def get(self):
+        """
+        """
+        search = self.get_argument('q', None, True)
+        entity_definition_keyname = self.get_argument('definition', None, True)
+        if not search:
+            return self.missing()
+
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
+
+        result = []
+        for e in entity.get(search=search, entity_definition_keyname=entity_definition_keyname, limit=303):
+            result.append({
+                'id':    e['id'],
+                'title': e['displayname'],
+                'info':  e['displayinfo'],
+                'image': e['displaypicture'],
+            })
+
+        self.write({'entities': result})
+
+
+
 
 
 class ShowEntity(myRequestHandler):
@@ -470,10 +507,11 @@ class DownloadEntity(myRequestHandler):
 
 
 handlers = [
-    (r'/entity/save', SaveEntity),
+    ('/entity/save', SaveEntity),
+    ('/entity/delete-file', DeleteFile),
+    ('/entity/delete-entity', DeleteEntity),
+    ('/entity/search', GetEntities),
     (r'/entity/file-(.*)', DownloadFile),
-    (r'/entity/delete-file', DeleteFile),
-    (r'/entity/delete-entity', DeleteEntity),
     (r'/entity-(.*)/listinfo', ShowListinfo),
     (r'/entity-(.*)/edit', ShowEntityEdit),
     (r'/entity-(.*)/relate', ShowEntityRelate),

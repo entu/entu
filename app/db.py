@@ -238,6 +238,8 @@ class Entity():
             field = 'value_datetime'
         elif definition.datatype == 'datetime':
             field = 'value_datetime'
+        elif definition.datatype == 'reference':
+            field = 'value_reference'
         elif definition.datatype == 'file':
             uploaded_file = value
             value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, filesize = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], len(uploaded_file['body']), uploaded_file['body'], self.created_by)
@@ -692,8 +694,7 @@ class Entity():
                         reference = self.__get_properties(entity_id=row.value_reference)
                         if reference:
                             value = reference[0].get('displayname')
-                    # logging.debug(str(reference))
-                    db_value = row.value_entity
+                    db_value = row.value_reference
                 elif row.property_datatype == 'file':
                     db_value = row.value_file
                     blobstore = self.db.get('SELECT id, filename, filesize FROM file WHERE id=%s LIMIT 1', row.value_file)
@@ -770,6 +771,11 @@ class Entity():
 
             for p_key, p_value in value.get('properties', {}).iteritems():
                 items[key]['properties'][p_key]['values'] = sorted(p_value.get('values', {}).values(), key=itemgetter('ordinal'))
+                if p_value['datatype'] == 'reference':
+                    reference_definition = self.db.get('SELECT classifying_entity_definition_keyname FROM property_definition WHERE keyname = %s LIMIT 1;', p_value['keyname'])
+                    if reference_definition:
+                        if reference_definition.classifying_entity_definition_keyname:
+                            items[key]['properties'][p_key]['reference_definition'] = reference_definition.classifying_entity_definition_keyname
 
         return items.values()
 

@@ -25,6 +25,9 @@ search_result_count2,Leiti %s
 boolean_true,Jah
 boolean_false,Ei
 
+add_files_computer,Lisa arvutist
+add_files_dropbox,Lisa Dropboxist
+
 entity_delete,Kustuta
 confirm_entity_delete,'%s' ja kõik selle alamosad kustutatakse.
 confirm_file_delete,Fail '%s' kustutatakse.
