@@ -27,7 +27,7 @@
                     <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
                         {% if idx == 0 %}
                         <th style="{%if p['public'] %}color:black;{% end %}" rowspan="{{ len(p['values']) }}">
-                            {%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %} {{ p['datatype'] }}
+                            {%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}
                         </th>
                         {% end %}
                         <td>
