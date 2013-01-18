@@ -4,39 +4,39 @@
     <input type="hidden" name="file_id" value="{{ file_id }}" />
     <input type="hidden" name="parent_entity_id" value="{{ parent_entity_id }}" />
     <input type="hidden" name="entity_definition_keyname" value="{{ entity_definition_keyname }}" />
-    <table class="table table-condensed">
+    <table class="edit-form table table-bordered">
         <tbody>
             <tr>
-                <th style="min-width:200px; text-align:right; vertical-align:middle;">
-                    <h6>{{ _('action_add_csv_file') }}</h6>
+                <th>
+                    {{ _('action_add_csv_file') }}
                 </th>
-                <td style="width:100%; vertical-align:middle;">
-                    {{ file_name }}
+                <td>
+                    <span style="padding:8px; font-style:italic; color:gray;">{{ file_name }}</span>
                 </td>
             <tr>
             <tr>
-                <th style="min-width:200px; text-align:right; vertical-align:middle;">
-                    <h6>{{ _('action_add_csv_delimiter') }}</h6>
+                <th>
+                    {{ _('action_add_csv_delimiter') }}
                 </th>
-                <td style="width:100%; padding-bottom:0px; vertical-align:middle;">
-                    <input type="text" id="delimiter" name="delimiter" maxlength="1" style="width:20px; margin-bottom:4px; text-align:center;" value="{{ delimiter }}" />
+                <td>
+                    <input type="text" id="delimiter" name="delimiter" maxlength="1" value="{{ delimiter }}" />
                 </td>
             <tr>
             <tr>
-                <th style="min-width:200px; text-align:right; vertical-align:middle;">
-                    <h6>{{ _('action_add_csv_first_row') }}</h6>
+                <th>
+                    {{ _('action_add_csv_first_row') }}
                 </th>
-                <td style="width:100%; padding-bottom:0px; vertical-align:middle;">
-                    <input type="text" id="first_row" name="first_row" maxlength="2" style="width:20px; margin-bottom:4px; text-align:center;" value="{{ first_row }}" />
+                <td>
+                    <input type="text" id="first_row" name="first_row" maxlength="2" value="{{ first_row }}" />
                 </td>
             <tr>
             {% for p in sorted(properties, key=itemgetter('ordinal')) %}
             <tr>
-                <th style="min-width:200px; text-align:right; vertical-align:middle;">
-                    <h6>{{ p.get('label') }}</h6>
+                <th>
+                    {{ p.get('label') }}
                 </th>
-                <td style="width:100%; padding-bottom:0px; vertical-align:middle;">
-                    <select class="csv-field" name="{{ 'field_%s' % p.get('dataproperty') }}" style="margin-bottom:4px;">
+                <td>
+                    <select class="csv-field" name="{{ 'field_%s' % p.get('dataproperty') }}" style="width:100%;">
                         <option></option>
                         {% for idx, h in enumerate(csv_headers) %}
                             <option value="{{ idx }}" {% if p.get('label') == h %} selected{% end %}>{{ h }}</option>
@@ -46,12 +46,14 @@
             <tr>
             {% end %}
             <tr>
-                <th style="min-width:200px; text-align:right; vertical-align:middle;">
+                <th>
 
                 </th>
-                <td style="width:100%; vertical-align:middle;">
-                    <a id="csv-submit" class="btn btn-success disabled" href="javascript:void(0);">{{ _('action_add_csv_do_import') % row_count }}</a>
-                    <img id="csv-spinner" src="{{ static_url('images/spinner_white.gif') }}" style="display:none;" />
+                <td>
+                    <div class="edit">
+                        <a id="csv-submit" class="btn btn-success disabled" href="javascript:void(0);">{{ _('action_add_csv_do_import') % row_count }}</a>
+                        <img id="csv-spinner" src="{{ static_url('images/spinner_white.gif') }}" style="display:none;" />
+                    </div>
                 </td>
             <tr>
         </tbody>
@@ -60,6 +62,8 @@
 
 <script>
     $(document).ready(function(){
+
+        $('select.csv-field').select2();
 
         $('#first_row').change(function() {
             if ($(this).val() < 1) {
