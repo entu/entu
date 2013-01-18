@@ -601,6 +601,7 @@ class Entity():
                     property_definition.multilingual                AS property_multilingual,
                     property_definition.multiplicity                AS property_multiplicity,
                     property_definition.public                      AS property_public,
+                    property_definition.readonly                    AS property_readonly,
                     property.id                                     AS value_id,
                     property.id                                     AS value_ordinal,
                     property.value_formula                          AS value_formula,
@@ -668,6 +669,7 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['formula'] = True if row.property_formula == 1 else False
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['executable'] = True if row.property_executable == 1 else False
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['public'] = True if row.property_public == 1 else False
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['readonly'] = True if row.property_readonly == 1 else False
 
                 #Value
                 if row.property_datatype in ['string', 'select']:
@@ -757,6 +759,7 @@ class Entity():
                     items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['multiplicity'] = d.property_multiplicity
                     items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['ordinal'] = d.property_ordinal
                     items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['public'] = d.property_public
+                    items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['readonly'] = d.property_readonly
                     if not d.property_multiplicity or d.property_multiplicity > len(value.get('properties', {}).get('%s' % d.property_dataproperty, {}).get('values', {}).values()):
                         items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {}).setdefault('values', {})['value_new'] = {'id': '', 'ordinal': 'X', 'value': '', 'db_value': ''}
                     if not d.property_multiplicity or d.property_multiplicity > len(value.get('properties', {}).get('%s' % d.property_dataproperty, {}).get('values', {}).values()):
@@ -868,6 +871,7 @@ class Entity():
                 property_definition.multiplicity AS property_multiplicity,
                 property_definition.ordinal AS property_ordinal,
                 property_definition.public AS property_public,
+                property_definition.readonly AS property_readonly,
                 property_definition.classifying_entity_definition_keyname AS property_classifier_id
             FROM
                 entity_definition,

@@ -39,38 +39,31 @@
                                         <th class="span3" style="white-space:nowrap; text-align:right; vertical-align:middle;">
                                             {%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}
                                         </th>
+                                        <td class="span5" style="vertical-align:middle; text-align:center;">
                                             {% if p['datatype'] in ['counter_value', 'string', 'integer', 'decimal'] %}
                                                 {% if p.get('select', None) %}
                                                     {% for v in p['values'] %}
-                                                        <td>
-                                                            <select name="t{{ p['keyname'] }}" style="width:99;">
-                                                                <option value=""></option>
-                                                                {% for s in p.get('select','') %}
-                                                                <option value="{{ s['label'] }}" {% if s['label'] == v['value'] %} selected{% end %}>{{ s['label'] }}</option>
-                                                                {% end %}
-                                                            </select>
-                                                        </td>
+                                                        <select name="t{{ p['keyname'] }}" style="width:99;">
+                                                            <option value=""></option>
+                                                            {% for s in p.get('select','') %}
+                                                            <option value="{{ s['label'] }}" {% if s['label'] == v['value'] %} selected{% end %}>{{ s['label'] }}</option>
+                                                            {% end %}
+                                                        </select>
                                                     {% end %}
                                                 {% else %}
                                                     {% for v in p['values'] %}
-                                                        <td>
-                                                            <input type="text" name="t{{ p['keyname'] }}" value="{{ v['value'] }}" style="width:98%;" />
-                                                        </td>
+                                                        <input type="text" name="t{{ p['keyname'] }}" value="{{ v['value'] }}" style="width:98%;" />
                                                     {% end %}
                                                 {% end %}
                                             {% elif p['datatype'] in ['datetime', 'date'] %}
                                                 {% for v in p['values'] %}
-                                                    <td style="vertical-align:middle; text-align:center;">
-                                                        <input class="pull-left dtype-{{ p['datatype'] }}" type="text" name="s{{ p['keyname'] }}" value="{{ v['value'] }}" style="width:43%;" />
-                                                        -
-                                                        <input class="pull-right dtype-{{ p['datatype'] }}" type="text" name="e{{ p['keyname'] }}" value="{{ v['value'] }}" style="width:43%;" />
-                                                    </td>
+                                                    <input class="pull-left dtype-{{ p['datatype'] }}" type="text" name="s{{ p['keyname'] }}" value="{{ v['value'] }}" style="width:43%;" />
+                                                    -
+                                                    <input class="pull-right dtype-{{ p['datatype'] }}" type="text" name="e{{ p['keyname'] }}" value="{{ v['value'] }}" style="width:43%;" />
                                                 {% end %}
                                             {% elif p['datatype'] == 'boolean' %}
                                                 {% for v in p['values'] %}
-                                                    <td>
-                                                        <input type="checkbox" name="c{{ p['keyname'] }}" {% if v.get('db_value', 0) == 1 %} checked{% end %} />
-                                                    </td>
+                                                    <input type="checkbox" name="c{{ p['keyname'] }}" {% if v.get('db_value', 0) == 1 %} checked{% end %} />
                                                 {% end %}
                                             {% else %}
                                                 {{ p['datatype'] }}
