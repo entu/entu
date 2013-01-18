@@ -1,3 +1,11 @@
+## 2013-01-17
+* [Public API](https://github.com/argoroots/Entu/wiki/API)
+* Reference property
+* Formula property
+* Upload files directly from [Dropbox](https://www.dropbox.com)
+* Design improvements
+* Bugfixes
+
 ## 2012-12-10
 * Download all files (from file property)
 * Replace entity #id hash with /id url
