@@ -8,16 +8,15 @@
 
 {% block right_toolbar %}
     {% for p in paths %}
-        <li class="toolbar-item{% if path == p.path %} toolbar-item-active{% end %}"><a href="/public-{{ p.path }}{% if search %}/search/{{ search }}{% end %}">{{ p.label }}</a></li>
+        <li class="toolbar-item{% if path == p.path %} active{% end %}"><a href="/public-{{ p.path }}{% if search %}/search/{{ search }}{% end %}">{{ p.label }}</a></li>
     {% end %}
-    <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-help" title="{{ _('menu_help') }}"><i class="icon-question-sign"></i></a></li>
 {% end %}
 
 {% block content %}
     <div class="container" style="margin-top:70px;">
 
         {% block public_content %}
-            <img src="{{ app_logo_big }}" alt="logo" style="margin:100px auto 50px auto; display:block;" />
+            <img src="{{ app_logo_big }}" alt="logo" style="margin:100px auto 50px auto; display:block; max-height:200px;" />
             {% include 'search.html' %}
         {% end %}
 

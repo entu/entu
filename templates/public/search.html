@@ -1,10 +1,20 @@
 {% from operator import itemgetter %}
 
 <form id="simple-search" class="form-horizontal" action="/public-{{ path }}/search" method="POST" style="text-align:center;">
-    <div class="input-append">
-        <input type="text" name="search" class="span4" placeholder="{{ _('search_placeholder') }}" value="" /><button class="btn btn-success" type="submit">{{ _('search_button') }}</button>
+    <div class="input-append1">
+        <input type="text" name="search" class="span4" placeholder="{{ _('search_placeholder') }}" value="" />
+        <div class="btn-group">
+            <button class="btn" type="submit">{{ _('search_button') }}</button>
+            <button class="btn dropdown-toggle" data-toggle="dropdown">
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a href="javascript:void(0);" id="advanced-search-btn">{{ _('search_advanced') }}</a></li>
+            </ul>
+        </div>
+
+
     </div>
-    <button id="advanced-search-btn" class="btn btn-small" type="reset">{{ _('search_advanced') }}</button>
     <div class="row"></div>
 </form>
 
@@ -14,45 +24,53 @@
             <div class="accordion-group">
                 <div class="accordion-heading">
                     <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapse-{{ entity['definition_keyname'] }}">
-                        <h4>{{ entity['displayname'] }}</h4>
+                        <b>{{ entity['displayname'] }}</b>
                     </a>
                 </div>
                 <div id="collapse-{{ entity['definition_keyname'] }}" class="accordion-body collapse">
                     <div class="accordion-inner" style="padding:0px;">
-                        <form class="form-horizontal" action="/public-{{ path }}/search2" method="GET">
+                        <form class="form-horizontal" action="/public-{{ path }}/search2" method="GET" style="margin:0px; padding:0px;">
                             <input type="hidden" name="ed" value="{{ entity['definition_keyname'] }}" />
-                            <table class="table table-condensed" style="border:none; margin:0px;">
+                            <table class="table atable-condensed" style="border:none; margin:0px;">
                                 <tbody>
                                     {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
                                     {% if p['public'] and p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal', 'boolean', 'counter_value'] %}
                                     <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
-                                        <th style="min-width:250px; text-align:right; vertical-align:middle;">
-                                            <h6{%if p['public'] %} style="color:black;"{% end %}>{%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}</h6>
+                                        <th class="span3" style="white-space:nowrap; text-align:right; vertical-align:middle;">
+                                            {%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}
                                         </th>
-                                        <td style="padding-bottom:0px; vertical-align:middle;">
                                             {% if p['datatype'] in ['counter_value', 'string', 'integer', 'decimal'] %}
                                                 {% if p.get('select', None) %}
                                                     {% for v in p['values'] %}
-                                                        <select name="t{{ p['keyname'] }}" style="width:100%; margin-bottom:4px;">
-                                                            <option value=""></option>
-                                                            {% for s in p.get('select','') %}
-                                                            <option value="{{ s['label'] }}" {% if s['label'] == v['value'] %} selected{% end %}>{{ s['label'] }}</option>
-                                                            {% end %}
-                                                        </select>
+                                                        <td>
+                                                            <select name="t{{ p['keyname'] }}" style="width:99;">
+                                                                <option value=""></option>
+                                                                {% for s in p.get('select','') %}
+                                                                <option value="{{ s['label'] }}" {% if s['label'] == v['value'] %} selected{% end %}>{{ s['label'] }}</option>
+                                                                {% end %}
+                                                            </select>
+                                                        </td>
                                                     {% end %}
                                                 {% else %}
                                                     {% for v in p['values'] %}
-                                                        <input type="text" name="t{{ p['keyname'] }}" value="{{ v['value'] }}" style="width:98%; margin-bottom:4px;" />
+                                                        <td>
+                                                            <input type="text" name="t{{ p['keyname'] }}" value="{{ v['value'] }}" style="width:98%;" />
+                                                        </td>
                                                     {% end %}
                                                 {% end %}
                                             {% elif p['datatype'] in ['datetime', 'date'] %}
                                                 {% for v in p['values'] %}
-                                                    <input type="text" name="s{{ p['keyname'] }}" value="{{ v['value'] }}" class="dtype-{{ p['datatype'] }}" style="width:45%; margin-bottom:4px;margin-right:8px;" /> -
-                                                    <input type="text" name="e{{ p['keyname'] }}" value="{{ v['value'] }}" class="dtype-{{ p['datatype'] }}" style="width:45%; margin-bottom:4px; float:right;" />
+                                                    <td style="vertical-align:middle; text-align:center;">
+                                                        <input class="pull-left dtype-{{ p['datatype'] }}" type="text" name="s{{ p['keyname'] }}" value="{{ v['value'] }}" style="width:43%;" />
+                                                        -
+                                                        <input class="pull-right dtype-{{ p['datatype'] }}" type="text" name="e{{ p['keyname'] }}" value="{{ v['value'] }}" style="width:43%;" />
+                                                    </td>
                                                 {% end %}
                                             {% elif p['datatype'] == 'boolean' %}
                                                 {% for v in p['values'] %}
-                                                    <input type="checkbox" name="c{{ p['keyname'] }}" {% if v.get('db_value', 0) == 1 %} checked{% end %} style="margin-bottom:4px;" />
+                                                    <td>
+                                                        <input type="checkbox" name="c{{ p['keyname'] }}" {% if v.get('db_value', 0) == 1 %} checked{% end %} />
+                                                    </td>
                                                 {% end %}
                                             {% else %}
                                                 {{ p['datatype'] }}
@@ -61,9 +79,13 @@
                                     </tr>
                                     {% end %}
                                     {% end %}
+                                    <tr>
+                                        <td style="vertical-align:middle; text-align:center;" colspan="2">
+                                            <button class="btn btn-success" type="submit" style="width:20%;">{{ _('search_button') }}</button>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
-                            <button class="btn btn-success" type="submit" style="float:right; margin:10px;">{{ _('search_button') }}</button>
 
 
                         </form>

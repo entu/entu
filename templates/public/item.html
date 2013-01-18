@@ -5,13 +5,13 @@
 
 {% block public_content %}
     {% from operator import itemgetter %}
-    <h3>{{ entity['displayname'] }}</h3>
-    <table class="table">
+    <h3 style="margin:0px 0px 8px 0px; line-height:23px;">{{ entity['displayname'] }}</h3>
+    <table class="table table-condensed">
         <tbody>
             {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
             <tr>
-                <th style="text-align:right; white-space:nowrap;">
-                    <h6>{{ p['label'] }}</h6>
+                <th style="text-align:right; min-width:200px;">
+                    {{ p['label'] }}
                 </th>
                 <td style="width:100%;">
                     {% if p['datatype'] == 'file' %}
