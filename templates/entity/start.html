@@ -17,7 +17,7 @@
 
 {% block right_toolbar %}
     <li class="toolbar-item"><a href="">{{ current_user.name }}<img src="{{ current_user.picture }}" style="margin:-2px -5px 0px 10px; height:40px; width:40px;" /></a></li>
-    <li class="toolbar-item"><a href="/exit" title="{{ _('menu_exit') }}"><i class="icon-off"></i></a></li>
+    <li class="toolbar-item"><a id="logout" href="javascript:void(0);" title="{{ _('menu_exit') }}"><i class="icon-off"></i></a></li>
 {% end %}
 
 {% block content %}
@@ -50,6 +50,15 @@
 
     <script>
         $(document).ready(function(){
+
+            $('#logout').click(function(e) {
+                newwindow = window.open('/exit', 'do_entu_logout', 'height=200,width=150');
+                close = setInterval(function() {
+                    newwindow.close();
+                    window.location.href=window.location.href;
+                    clearInterval(close)
+                }, 3000);
+            });
 
             $(".accordion").accordion({
                 fillSpace: true,

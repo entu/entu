@@ -14,15 +14,40 @@ from helper import *
 
 
 class ShowAuthPage(myRequestHandler):
+    """
+    Show Log in page.
+
+    """
     def get(self):
 
         set_redirect(self)
+
+        self.clear_cookie('session')
         self.render('auth/start.html',
             google = True if self.settings['google_client_key'] and self.settings['google_client_secret'] else False,
             facebook = True if self.settings['facebook_api_key'] and self.settings['facebook_secret'] else False,
             twitter = True if self.settings['twitter_consumer_key'] and self.settings['twitter_consumer_secret'] else False,
             live = True if self.settings['live_client_key'] and self.settings['live_client_secret'] else False,
         )
+
+
+class Exit(myRequestHandler):
+    """
+    Log out.
+
+    """
+    def get(self):
+        redirect_url = ''
+        if self.current_user:
+            if self.current_user.provider == 'google':
+                redirect_url = 'https://www.google.com/accounts/logout'
+            elif self.current_user.provider == 'facebook':
+                redirect_url = 'https://www.facebook.com/logout.php?access_token=%s&confirm=1&next=%s://%s%s' % (self.current_user.access_token, self.request.protocol, self.request.host, self.request.uri)
+
+        self.clear_cookie('session')
+        self.redirect(redirect_url)
+
+
 
 class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
     """
@@ -141,6 +166,7 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
     def _got_user(self, response):
         try:
             user = json.loads(response.body)
+            access_token = response.effective_url.split('access_token=')[1]
             if 'error' in user:
                 logging.error('%s oauth error: %s' % (provider, user['error']))
                 return self.redirect(get_redirect(self))
@@ -154,7 +180,8 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 provider_id     = user.setdefault('id', None),
                 email           = user.setdefault('email', None),
                 name            = user.setdefault('name', None),
-                picture         = 'http://graph.facebook.com/%s/picture?type=large' % user.setdefault('id', '')
+                picture         = 'http://graph.facebook.com/%s/picture?type=large' % user.setdefault('id', ''),
+                access_token    = access_token
             )
         if self.oauth2_provider['provider'] == 'google':
             db.User().login(
@@ -163,7 +190,8 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 provider_id     = user.setdefault('id', None),
                 email           = user.setdefault('email', None),
                 name            = user.setdefault('name', None),
-                picture         = user.setdefault('picture', None)
+                picture         = user.setdefault('picture', None),
+                access_token    = access_token
             )
         if self.oauth2_provider['provider'] == 'live':
             db.User().login(
@@ -172,7 +200,8 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 provider_id     = user.setdefault('id', None),
                 email           = user.setdefault('emails', {}).setdefault('preferred', user.setdefault('emails', {}).setdefault('preferred', user.setdefault('personal', {}).setdefault('account', None))),
                 name            = user.setdefault('name', None),
-                picture         = 'https://apis.live.net/v5.0/%s/picture' % user.setdefault('id', '')
+                picture         = 'https://apis.live.net/v5.0/%s/picture' % user.setdefault('id', ''),
+                access_token    = access_token
             )
 
         self.redirect(get_redirect(self))
@@ -258,23 +287,6 @@ class AuthTwitter(myRequestHandler, auth.TwitterMixin):
         self.redirect(get_redirect(self))
 
 
-class Exit(myRequestHandler):
-    """
-    Log out.
-
-    """
-    def get(self):
-        redirect_url = '/'
-        if self.current_user:
-            if self.current_user.provider == 'google':
-                redirect_url = 'https://www.google.com/accounts/logout'
-            if self.current_user.provider == 'application':
-                redirect_url = '/application'
-
-        self.clear_cookie('session')
-        self.redirect(redirect_url)
-
-
 def set_redirect(rh):
     """
     Saves requested URL to cookie, then (after authentication) we know where to go.
@@ -296,10 +308,10 @@ def get_redirect(rh):
 
 
 handlers = [
+    ('/auth', ShowAuthPage),
+    ('/exit', Exit),
     ('/auth/mobileid', AuthMobileID),
     ('/auth/idcard', AuthIDcard),
     ('/auth/twitter', AuthTwitter),
     ('/auth/(.*)', AuthOAuth2),
-    ('/auth', ShowAuthPage),
-    ('/exit', Exit),
 ]

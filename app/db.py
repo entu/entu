@@ -1194,7 +1194,8 @@ class User():
                 user.language,
                 user.email,
                 user.picture,
-                user.provider
+                user.provider,
+                user.access_token
             FROM
                 property_definition,
                 property,
@@ -1222,7 +1223,7 @@ class User():
     def __getitem__(self, key):
         return getattr(self, key)
 
-    def login(self, request_handler, session_key=None, provider=None, provider_id=None, email=None, name=None, picture=None):
+    def login(self, request_handler, session_key=None, provider=None, provider_id=None, email=None, name=None, picture=None, access_token=None):
         """
         Starts session. Creates new (or updates old) user.
 
@@ -1233,7 +1234,7 @@ class User():
 
 
         db = connection()
-        profile_id = db.execute_lastrowid('INSERT INTO user SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, session = %s, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, changed = NOW();',
+        profile_id = db.execute_lastrowid('INSERT INTO user SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, session = %s, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, access_token = %s, changed = NOW();',
                 provider,
                 provider_id,
                 email,
@@ -1244,7 +1245,8 @@ class User():
                 email,
                 name,
                 picture,
-                session_key+user_key
+                session_key+user_key,
+                access_token
             )
 
         request_handler.set_secure_cookie('session', session_key)

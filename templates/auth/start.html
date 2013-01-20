@@ -13,39 +13,47 @@
     <div class="container" style="">
         <div class="well span3 offset4" style="margin-top:150px; text-align:center;">
             <h2>{{ _('log_in') }}</h2>
-            <table class="table table-bordered table-hover" style="width:100%; background-color:white; margin-top:20px;">
+            <table class="table table-bordered table-condensed" style="width:100%; background-color:white; margin-top:20px;">
+                {% if google %}
                 <tr>
-                    <td style="vertical-align:middle; text-align:right;">
-                        <a class="no-underline" {% if google %}href="/auth/google"{% end %} style="display:block;"><i class="icon-google-sign" style="padding-top:5px; font-size:30px; line-height:20px; color:#DC2400;"></i></a>
+                    <td style="vertical-align:middle; width:40%;">
+                        <a class="no-underline" href="/auth/google" style="display:block; text-align:right;"><i class="icon-google-sign" style="padding-top:5px; font-size:30px; line-height:20px; color:#DC2400;"></i></a>
                     </td>
                     <td style="vertical-align:middle; border-left:none;">
-                        <a class="no-underline" {% if google %}href="/auth/google"{% end %} style="display:block;">Google</a>
+                        <a class="no-underline" href="/auth/google" style="display:block; color:black; font-weight:bold;">Google</a>
                     </td>
                 </tr>
+                {% end %}
+                {% if facebook %}
                 <tr>
-                    <td style="vertical-align:middle; text-align:right;">
-                        <a class="no-underline" {% if facebook %}href="/auth/facebook"{% end %} style="display:block;"><i class="icon-facebook-sign" style="padding-top:5px; font-size:30px; line-height:20px; color:#39579A";></i></a>
+                    <td style="vertical-align:middle; width:40%;">
+                        <a class="no-underline" href="/auth/facebook" style="display:block; text-align:right;"><i class="icon-facebook-sign" style="padding-top:5px; font-size:30px; line-height:20px; color:#39579A";></i></a>
                     </td>
                     <td style="vertical-align:middle; border-left:none;">
-                        <a class="no-underline" {% if facebook %}href="/auth/facebook"{% end %} style="display:block;">Facebook</a>
+                        <a class="no-underline" href="/auth/facebook" style="display:block; color:black; font-weight:bold;">Facebook</a>
                     </td>
                 </tr>
+                {% end %}
+                {% if twitter %}
                 <tr>
-                    <td style="vertical-align:middle; text-align:right;">
-                        <a class="no-underline" {% if twitter %}href="/auth/twitter"{% end %} style="display:block;"><i class="icon-twitter-sign" style="padding-top:5px; font-size:30px; line-height:20px; color:#00A7E9;"></i></a>
+                    <td style="vertical-align:middle; width:40%;">
+                        <a class="no-underline" href="/auth/twitter" style="display:block; text-align:right;"><i class="icon-twitter-sign" style="padding-top:5px; font-size:30px; line-height:20px; color:#00A7E9;"></i></a>
                     </td>
                     <td style="vertical-align:middle; border-left:none;">
-                        <a class="no-underline" {% if twitter %}href="/auth/twitter"{% end %} style="display:block;">Twitter</a>
+                        <a class="no-underline" href="/auth/twitter" style="display:block; color:black; font-weight:bold;">Twitter</a>
                     </td>
                 </tr>
+                {% end %}
+                {% if live %}
                 <tr>
-                    <td style="vertical-align:middle; text-align:right;">
-                        <a class="no-underline" {% if live %}href="/auth/live"{% end %} style="display:block;"><i class="icon-windows-8" style="padding-top:5px; font-size:30px; line-height:20px; color:#0070C9;"></i></a>
+                    <td style="vertical-align:middle; width:40%;">
+                        <a class="no-underline" href="/auth/live" style="display:block; text-align:right;"><i class="icon-windows-8" style="padding-top:5px; font-size:30px; line-height:20px; color:#0070C9;"></i></a>
                     </td>
                     <td style="vertical-align:middle; border-left:none;">
-                        <a class="no-underline" {% if live %}href="/auth/live"{% end %} style="display:block;">MS Live</a>
+                        <a class="no-underline" href="/auth/live" style="display:block; color:black; font-weight:bold;">MS Live</a>
                     </td>
                 </tr>
+                {% end %}
             </table>
             <div class="muted" style="text-align:justify;">
                 <small>{{ _('log_in_info') }}</small>
@@ -56,16 +64,15 @@
         $(document).ready(function(){
 
             var images = [
-                'http://www.entu.ee/photos/bg-optimized-1.png',
-                'http://www.entu.ee/photos/bg-optimized-2.png',
-                'http://www.entu.ee/photos/bg-optimized-3.png',
-                'http://www.entu.ee/photos/bg-optimized-4.png',
-                'http://www.entu.ee/photos/bg-optimized-5.png',
-                'http://www.entu.ee/photos/bg-optimized-6.png',
-                'http://www.entu.ee/photos/bg-optimized-7.png',
-                'http://www.entu.ee/photos/bg-optimized-8.png'
+                '{{ static_url('images/bg-optimized-1.png') }}',
+                '{{ static_url('images/bg-optimized-2.png') }}',
+                '{{ static_url('images/bg-optimized-3.png') }}',
+                '{{ static_url('images/bg-optimized-4.png') }}',
+                '{{ static_url('images/bg-optimized-5.png') }}',
+                '{{ static_url('images/bg-optimized-6.png') }}',
+                '{{ static_url('images/bg-optimized-7.png') }}',
+                '{{ static_url('images/bg-optimized-8.png') }}'
             ];
-
 
             $('html').css('background-size', 'cover');
             $('html').css('background-position', 'center top');
@@ -75,7 +82,9 @@
             randomize(images);
             preload(images);
 
-            setInterval(function(){randomize(images)}, 10000);
+            /*setInterval(function() {
+                randomize(images)
+            }, 10000);*/
 
             function randomize(arrayOfImages) {
               $('html').css('background-image', 'url(' + images[Math.floor(Math.random() * images.length)] + ')');
@@ -88,6 +97,12 @@
                   // (new Image()).src = this;
               });
             }
+
+            $('tr').hover(function() {
+                $(this).addClass('success');
+            }, function() {
+                $('tr').removeClass('success');
+            });
 
         });
     </script>
