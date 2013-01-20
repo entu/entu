@@ -913,12 +913,15 @@ class Entity():
             if type(entity_definition_keyname) is not list:
                 entity_definition_keyname = [entity_definition_keyname]
 
+        unionsql = ''
+
         if reverse_relation == True:
             sql = """
                 SELECT DISTINCT
                     r.id AS relationship_id,
-                    r.relationship_definition_keyname,
-                    r.entity_id AS id
+                    r.entity_id AS id,
+                    e.sort,
+                    e.created
                 FROM
                     entity AS e,
                     relationship AS r,
@@ -933,8 +936,9 @@ class Entity():
             sql = """
                 SELECT DISTINCT
                     r.id AS relationship_id,
-                    r.relationship_definition_keyname,
-                    r.related_entity_id AS id
+                    r.related_entity_id AS id,
+                    e.sort,
+                    e.created
                 FROM
                     entity AS e,
                     relationship AS r,
@@ -945,6 +949,23 @@ class Entity():
                 AND rights.deleted IS NULL
                 AND e.deleted IS NULL
             """
+            if not ids_only:
+                unionsql = """
+                    UNION SELECT DISTINCT
+                        NULL AS relationship_id,
+                        up.entity_id AS id,
+                        ue.sort,
+                        ue.created
+                    FROM
+                        property up,
+                        entity ue,
+                        relationship AS urights
+                    WHERE ue.id = up.entity_id
+                    AND urights.entity_id = ue.id
+                    AND up.deleted IS NULL
+                    AND ue.deleted IS NULL
+                    AND urights.deleted IS NULL
+                """
 
         if entity_id:
             sql += ' AND r.entity_id IN (%s)' % ','.join(map(str, entity_id))
@@ -963,7 +984,21 @@ class Entity():
         if entity_definition_keyname:
             sql += ' AND e.entity_definition_keyname IN (%s)' % ','.join(map(str, entity_definition_keyname))
 
-        sql += ' ORDER BY e.sort, e.created DESC'
+        if unionsql:
+            sql += unionsql
+
+            if entity_id:
+                sql += ' AND up.value_reference IN (%s)' % ','.join(map(str, entity_id))
+
+            if self.user_id and only_public == False:
+                sql += ' AND urights.related_entity_id IN (%s) AND urights.relationship_definition_keyname IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
+            else:
+                sql += ' AND ue.public = 1'
+
+            if entity_definition_keyname:
+                sql += ' AND ue.entity_definition_keyname IN (%s)' % ','.join(map(str, entity_definition_keyname))
+
+        sql += ' ORDER BY sort, created DESC'
 
         if limit:
             sql += ' LIMIT %d' % limit
