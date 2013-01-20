@@ -1,3 +1,8 @@
+## 2013-01-21
+* New login page
+* Show Entities where Entity is set in reference property
+* Bugfixes
+
 ## 2013-01-17
 * [Public API](https://github.com/argoroots/Entu/wiki/API)
 * Reference property
