@@ -13,6 +13,17 @@ import db
 from helper import *
 
 
+class ShowAuthPage(myRequestHandler):
+    def get(self):
+
+        set_redirect(self)
+        self.render('auth/start.html',
+            google = True if self.settings['google_client_key'] and self.settings['google_client_secret'] else False,
+            facebook = True if self.settings['facebook_api_key'] and self.settings['facebook_secret'] else False,
+            twitter = True if self.settings['twitter_consumer_key'] and self.settings['twitter_consumer_secret'] else False,
+            live = True if self.settings['live_client_key'] and self.settings['live_client_secret'] else False,
+        )
+
 class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
     """
     Google, Facebook and MSLive authentication.
@@ -269,7 +280,8 @@ def set_redirect(rh):
     Saves requested URL to cookie, then (after authentication) we know where to go.
 
     """
-    rh.set_secure_cookie('auth_redirect', rh.get_argument('next', default='/', strip=True), 1)
+    if rh.get_argument('next', None, strip=True):
+        rh.set_secure_cookie('auth_redirect', rh.get_argument('next', default='/', strip=True), 1)
 
 
 def get_redirect(rh):
@@ -288,5 +300,6 @@ handlers = [
     ('/auth/idcard', AuthIDcard),
     ('/auth/twitter', AuthTwitter),
     ('/auth/(.*)', AuthOAuth2),
+    ('/auth', ShowAuthPage),
     ('/exit', Exit),
 ]

@@ -81,7 +81,7 @@
                                 {% elif p['datatype'] == 'dynamic' %}
                                     <input type="text" class="autosave {% if p['can_add_new'] and idx+1 == len(p['values']) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" value="{{ v['db_value'] }}" />
                                 {% else %}
-                                    <span style="padding:8px;">{{ ', '.join(['%s' % v['value'] for v in p['values'] if v['value']]) }}</span>
+                                    <span style="padding:8px; font-style:italic; color:gray;">{{ ', '.join(['%s' % v['value'] for v in p['values'] if v['value']]) }}</span>
                                 {% end %}
                             {% end %}
                         </td>

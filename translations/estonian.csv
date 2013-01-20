@@ -1,5 +1,8 @@
 help,Abi
 close,Sulge
+log_in,Logi sisse
+log_in_info,entu.ee kasutab autentimiseks vaid ülaltoodud teenusepakkujaid. Teie kasutajanime ega parooli meile ei edastata.
+
 
 menu_add,Lisa
 menu_edit,Muuda
