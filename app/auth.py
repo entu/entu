@@ -42,7 +42,7 @@ class Exit(myRequestHandler):
             if self.current_user.provider == 'google':
                 redirect_url = 'https://www.google.com/accounts/logout'
             elif self.current_user.provider == 'facebook':
-                redirect_url = 'https://www.facebook.com/logout.php?access_token=%s&confirm=1&next=%s://%s%s' % (self.current_user.access_token, self.request.protocol, self.request.host, self.request.uri)
+                redirect_url = 'https://www.facebook.com/logout.php?access_token=%s&confirm=1&next=%s://%s/auth' % (self.current_user.access_token, self.request.protocol, self.request.host)
 
         self.clear_cookie('session')
         self.redirect(redirect_url)
