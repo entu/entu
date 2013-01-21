@@ -1,11 +1,58 @@
--- Create syntax for TABLE 'app_settings'
+# ************************************************************
+# Sequel Pro SQL dump
+# Version 3408
+#
+# http://www.sequelpro.com/
+# http://code.google.com/p/sequel-pro/
+#
+# Host: 127.0.0.1 (MySQL 5.1.66-0+squeeze1)
+# Database: develop-mihkel
+# Generation Time: 2013-01-21 01:10:53 +0000
+# ************************************************************
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+
+# Dump of table app_settings
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `app_settings`;
+
 CREATE TABLE `app_settings` (
   `keyname` varchar(100) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   `value` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   PRIMARY KEY (`keyname`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'counter'
+
+
+# Dump of table app_usage
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `app_usage`;
+
+CREATE TABLE `app_usage` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `date` date DEFAULT NULL,
+  `type` varchar(20) DEFAULT NULL,
+  `amount` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+# Dump of table counter
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `counter`;
+
 CREATE TABLE `counter` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `created` datetime DEFAULT NULL,
@@ -23,18 +70,30 @@ CREATE TABLE `counter` (
   KEY `deleted` (`deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'dag_entity'
+
+
+# Dump of table dag_entity
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `dag_entity`;
+
 CREATE TABLE `dag_entity` (
   `entity_id` int(11) unsigned NOT NULL DEFAULT '0',
   `related_entity_id` int(11) unsigned NOT NULL DEFAULT '0',
   `distance` int(10) unsigned NOT NULL DEFAULT '1',
   PRIMARY KEY (`entity_id`,`related_entity_id`),
-  KEY `ed_fk_re` (`related_entity_id`),
+  KEY `de_fk_re` (`related_entity_id`),
   CONSTRAINT `de_fk_e` FOREIGN KEY (`entity_id`) REFERENCES `entity` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `ed_fk_re` FOREIGN KEY (`related_entity_id`) REFERENCES `entity` (`id`) ON DELETE CASCADE
+  CONSTRAINT `de_fk_re` FOREIGN KEY (`related_entity_id`) REFERENCES `entity` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'dag_formula'
+
+
+# Dump of table dag_formula
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `dag_formula`;
+
 CREATE TABLE `dag_formula` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `property_id` int(11) unsigned DEFAULT NULL,
@@ -60,7 +119,13 @@ CREATE TABLE `dag_formula` (
   CONSTRAINT `fd_fk_rdk` FOREIGN KEY (`relationship_definition_keyname`) REFERENCES `relationship_definition` (`keyname`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'entity'
+
+
+# Dump of table entity
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `entity`;
+
 CREATE TABLE `entity` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `entity_definition_keyname` varchar(25) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
@@ -81,7 +146,13 @@ CREATE TABLE `entity` (
   CONSTRAINT `e_fk_ed` FOREIGN KEY (`entity_definition_keyname`) REFERENCES `entity_definition` (`keyname`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'entity_definition'
+
+
+# Dump of table entity_definition
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `entity_definition`;
+
 CREATE TABLE `entity_definition` (
   `keyname` varchar(25) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT '',
   `created` datetime DEFAULT NULL,
@@ -120,7 +191,13 @@ CREATE TABLE `entity_definition` (
   KEY `deleted` (`deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'file'
+
+
+# Dump of table file
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `file`;
+
 CREATE TABLE `file` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `created` datetime DEFAULT NULL,
@@ -138,7 +215,13 @@ CREATE TABLE `file` (
   KEY `deleted` (`deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'property'
+
+
+# Dump of table property
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `property`;
+
 CREATE TABLE `property` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `property_definition_keyname` varchar(50) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
@@ -184,7 +267,13 @@ CREATE TABLE `property` (
   CONSTRAINT `p_fk_pd` FOREIGN KEY (`property_definition_keyname`) REFERENCES `property_definition` (`keyname`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'property_definition'
+
+
+# Dump of table property_definition
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `property_definition`;
+
 CREATE TABLE `property_definition` (
   `keyname` varchar(50) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT '',
   `entity_definition_keyname` varchar(25) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
@@ -196,7 +285,7 @@ CREATE TABLE `property_definition` (
   `deleted` datetime DEFAULT NULL,
   `deleted_by` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
   `dataproperty` varchar(24) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
-  `datatype` enum('boolean','counter','counter-value','decimal','date','datetime','file','integer','reference','string','text') COLLATE utf8_estonian_ci NOT NULL DEFAULT 'string',
+  `datatype` enum('boolean','counter','counter_value','decimal','date','datetime','file','integer','reference','string','text') COLLATE utf8_estonian_ci NOT NULL DEFAULT 'string',
   `defaultvalue` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   `estonian_fieldset` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   `estonian_label` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
@@ -219,10 +308,10 @@ CREATE TABLE `property_definition` (
   `public` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `mandatory` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `search` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `propagates` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `autocomplete` tinyint(1) unsigned NOT NULL DEFAULT '0',
-  `classifying_entity_definition_keyname` varchar(25) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+  `classifying_entity_definition_keyname` varchar(100) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
   `old_id` varchar(200) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
-  `propagates` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`keyname`),
   UNIQUE KEY `keyname` (`keyname`),
   UNIQUE KEY `old_id` (`old_id`),
@@ -236,7 +325,13 @@ CREATE TABLE `property_definition` (
   CONSTRAINT `pd_fk_rd` FOREIGN KEY (`relationship_definition_keyname`) REFERENCES `relationship_definition` (`keyname`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'relationship'
+
+
+# Dump of table relationship
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `relationship`;
+
 CREATE TABLE `relationship` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `relationship_definition_keyname` varchar(25) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT '',
@@ -256,17 +351,15 @@ CREATE TABLE `relationship` (
   `old_id` varchar(200) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `old_id` (`old_id`),
-  KEY `entity_id` (`entity_id`),
   KEY `related_entity_id` (`related_entity_id`),
   KEY `master_relationship_id` (`master_relationship_id`),
-  KEY `entity_id_2` (`entity_id`,`related_entity_id`),
-  KEY `r_fk_rd` (`relationship_definition_keyname`),
+  KEY `relationship_definition_keyname` (`relationship_definition_keyname`),
+  KEY `entity_id` (`entity_id`,`related_entity_id`),
   KEY `r_fk_pd` (`property_definition_keyname`),
   KEY `r_fk_rpd` (`related_property_definition_keyname`),
   KEY `r_fk_ed` (`entity_definition_keyname`),
   KEY `r_fk_red` (`related_entity_definition_keyname`),
   KEY `deleted` (`deleted`),
-  CONSTRAINT `relationship_ibfk_1` FOREIGN KEY (`entity_id`) REFERENCES `entity` (`id`),
   CONSTRAINT `relationship_ibfk_2` FOREIGN KEY (`related_entity_id`) REFERENCES `entity` (`id`),
   CONSTRAINT `relationship_ibfk_3` FOREIGN KEY (`master_relationship_id`) REFERENCES `relationship` (`id`),
   CONSTRAINT `r_fk_ed` FOREIGN KEY (`entity_definition_keyname`) REFERENCES `entity_definition` (`keyname`) ON UPDATE CASCADE,
@@ -276,7 +369,13 @@ CREATE TABLE `relationship` (
   CONSTRAINT `r_fk_rpd` FOREIGN KEY (`related_property_definition_keyname`) REFERENCES `property_definition` (`keyname`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'relationship_definition'
+
+
+# Dump of table relationship_definition
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `relationship_definition`;
+
 CREATE TABLE `relationship_definition` (
   `keyname` varchar(25) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT '',
   `created` datetime DEFAULT NULL,
@@ -296,7 +395,13 @@ CREATE TABLE `relationship_definition` (
   KEY `deleted` (`deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'tmp_file'
+
+
+# Dump of table tmp_file
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `tmp_file`;
+
 CREATE TABLE `tmp_file` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `created` datetime DEFAULT NULL,
@@ -307,7 +412,13 @@ CREATE TABLE `tmp_file` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'user'
+
+
+# Dump of table user
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `user`;
+
 CREATE TABLE `user` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `created` datetime DEFAULT NULL,
@@ -319,7 +430,88 @@ CREATE TABLE `user` (
   `picture` varchar(200) COLLATE utf8_estonian_ci DEFAULT NULL,
   `language` varchar(10) COLLATE utf8_estonian_ci DEFAULT NULL,
   `session` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `access_token` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `provider` (`provider`,`provider_id`),
   KEY `session` (`session`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
+
+
+
+
+--
+-- Dumping routines (PROCEDURE) for database 'develop-mihkel'
+--
+DELIMITER ;;
+
+# Dump of PROCEDURE FillDagEntity
+# ------------------------------------------------------------
+
+/*!50003 DROP PROCEDURE IF EXISTS `FillDagEntity` */;;
+/*!50003 SET SESSION SQL_MODE=""*/;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`michelek`@`localhost`*/ /*!50003 PROCEDURE `FillDagEntity`()
+BEGIN
+  DECLARE no_more_childs, entity_id, related_entity_id, distance INT DEFAULT 0;
+
+  DECLARE cur_childs CURSOR FOR
+    SELECT de.entity_id, de2.related_entity_id AS related_entity_id, de.distance+de2.distance AS distance
+    FROM dag_entity de
+    LEFT JOIN dag_entity de2 ON de2.entity_id = de.related_entity_id
+    WHERE de2.entity_id IS NOT NULL;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET no_more_childs = 1;
+
+  OPEN cur_childs;
+    FETCH cur_childs INTO entity_id, related_entity_id, distance;
+    WHILE no_more_childs = 0 DO
+      INSERT INTO dag_entity (entity_id, related_entity_id, distance) VALUES (entity_id, related_entity_id, distance)
+      ON DUPLICATE KEY UPDATE dag_entity.distance=least(dag_entity.distance, distance);
+
+      FETCH cur_childs INTO entity_id, related_entity_id, distance;
+    END WHILE;
+
+  CLOSE cur_childs;
+
+END */;;
+
+/*!50003 SET SESSION SQL_MODE=@OLD_SQL_MODE */;;
+# Dump of PROCEDURE GrantRecursiveViewer
+# ------------------------------------------------------------
+
+/*!50003 DROP PROCEDURE IF EXISTS `GrantRecursiveViewer` */;;
+/*!50003 SET SESSION SQL_MODE=""*/;;
+/*!50003 CREATE*/ /*!50020 DEFINER=`michelek`@`localhost`*/ /*!50003 PROCEDURE `GrantRecursiveViewer`(IN rootEntity_in INT(11), IN viewer_in INT(11))
+BEGIN
+  DECLARE no_more_childs, child_id INT DEFAULT 0;
+  DECLARE viewer_rd INT;
+
+  DECLARE cur_childs CURSOR FOR
+    SELECT r.related_entity_id
+    FROM relationship r
+    WHERE r.entity_id = rootEntity_in AND r.relationship_definition_keyname = 'child' AND r.deleted IS NULL;
+
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET no_more_childs = 1;
+
+  -- Grant viewer rights
+  INSERT IGNORE INTO relationship SET created=now(), created_by='GrantRecursiveViewer' ,relationship_definition_keyname = 'viewer', entity_id = rootEntity_in, related_entity_id = viewer_in
+  ON DUPLICATE KEY UPDATE relationship_definition_keyname = 'viewer', entity_id = rootEntity_in, related_entity_id = viewer_in;
+
+  OPEN cur_childs;
+    FETCH cur_childs INTO child_id;
+    WHILE no_more_childs = 0 DO
+      CALL GrantRecursiveViewer(child_id, viewer_in);
+      FETCH cur_childs INTO child_id;
+    END WHILE;
+
+  CLOSE cur_childs;
+
+END */;;
+
+/*!50003 SET SESSION SQL_MODE=@OLD_SQL_MODE */;;
+DELIMITER ;
+
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
