@@ -26,7 +26,7 @@
                     {% for idx, v in enumerate(p['values']) %}
                     <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
                         {% if idx == 0 %}
-                        <th style="{%if p['public'] %}color:black;{% end %}" rowspan="{{ len(p['values']) }}">
+                        <th style="{%if not p['public'] %}color:gray;{% end %}" rowspan="{{ len(p['values']) }}">
                             {%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}
                         </th>
                         {% end %}
