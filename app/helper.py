@@ -214,3 +214,15 @@ def ListMatch(l1 = None, l2 = None):
         l2 = [l2]
     l = set(l1)
     return list(l.intersection(l2))
+
+
+def GetHumanReadableBytes(size, precision = 2):
+    size = int(size)
+
+    suffixes = ['B','KB','MB','GB','TB']
+    suffixIndex = 0
+    while size >= 1000:
+        suffixIndex += 1 #increment the index of the suffix
+        size = size / 1000.0 #apply the division
+
+    return '%.*f%s' % (precision, size, suffixes[suffixIndex])

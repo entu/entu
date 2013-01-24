@@ -658,7 +658,7 @@ class GetSession(myRequestHandler):
     @web.authenticated
     def get(self):
 
-        self.write({'session_key': self.session_key})
+        self.write(str({'session_key': self.session_key}))
 
 
 class Logout(myRequestHandler):

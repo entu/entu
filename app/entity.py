@@ -22,18 +22,26 @@ class ShowGroup(myRequestHandler):
         Show entities page with menu.
 
         """
+        self.require_setting('quota_entities', 'this application')
+        self.require_setting('quota_size_bytes', 'this application')
+
         entity_definition_keyname = entity_definition_keyname.strip('/').split('/')[0]
         entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
-
         entity_definition = None
         if entity_definition_keyname:
             entity_definition = entity.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
+
+        db_connection = db.connection()
+        quota_entities_used = db_connection.get('SELECT COUNT(DISTINCT entity_id) AS entities, COUNT(*) AS properties FROM property WHERE deleted IS NULL;').entities
+        quota_size_used = db_connection.get('SELECT SUM( data_length + index_length ) AS size FROM information_schema.TABLES;').size
 
         try:
             f = open('../HISTORY.md', 'r')
             history = markdown2.markdown('## '.join(f.read().split('## ')[:4]).replace('## ', '#### '))
         except:
             history = ''
+
+
 
         self.render('entity/start.html',
             page_title = entity_definition[0].label_plural if entity_definition else '',
@@ -42,6 +50,12 @@ class ShowGroup(myRequestHandler):
             entity_definition = entity_definition_keyname,
             add_definitions = entity.get_definitions_with_default_parent(entity_definition_keyname) if entity_definition_keyname else None,
             history = history,
+            quota_entities = int(self.settings['quota_entities']),
+            quota_entities_used = int(quota_entities_used),
+            quota_size = int(self.settings['quota_size_bytes']),
+            quota_size_human = GetHumanReadableBytes(self.settings['quota_size_bytes'], 0),
+            quota_size_used = int(quota_size_used),
+            quota_size_used_human = GetHumanReadableBytes(quota_size_used, 0)
         )
 
     @web.authenticated
