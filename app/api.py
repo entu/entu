@@ -15,8 +15,7 @@ import magic
 
 class GetEntityList (myRequestHandler):
     """
-    API search for entities based on keywords,entity type and
-    dataproperty.
+    API search for entities based on keywords,entity type and dataproperty.
 
 
     search?[full_info=$full_info][&search=$search][&entity_definition_keyname=$entity_definition_keyname]
@@ -108,24 +107,26 @@ class GetEntityList (myRequestHandler):
 
     """
     def get(self):
-        full_info = True if self.get_argument('full_info',default=None,strip=True) == 'true' else False
-        keywords = self.get_argument('search',default=None,strip=True)
-        entity_definition = self.get_argument('entity_definition_keyname',default=None,strip=True)
-        dataproperty = self.get_argument('dataproperty',default=None,strip=True)
-        limit = self.get_argument('limit',default=None,strip=True)
-        full_definition = True if self.get_argument('full_definition',default=None,strip=True) == 'true' else False
-        only_public = True if self.get_argument('only_public',default=None,strip=True) == 'true' else False
+        full_info = True if self.get_argument('full_info', default='', strip=True).lower() == 'true' else False
+        keywords = self.get_argument('search', default=None, strip=True)
+        entity_definition = self.get_argument('entity_definition_keyname', default=None, strip=True)
+        dataproperty = self.get_argument('dataproperty', default=None, strip=True)
+        limit = self.get_argument('limit', default=None, strip=True)
+        full_definition = True if self.get_argument('full_definition', default='', strip=True).lower() == 'true' else False
+        only_public = True if self.get_argument('only_public', default='', strip=True).lower() == 'true' else False
 
-        user_id = self.get_user_by_session_key(self.get_argument('session_key',default=None,strip=True))['id']
-
-        if not user_id:
+        user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
+        user_id = None
+        if user:
+            user_id = user.get('id', None)
+            if not user_id:
+                only_public = True
+        else:
             only_public = True
 
-        entity = db.Entity(user_locale=self.get_user_locale(),user_id=user_id)
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=user_id)
 
-        result = entity.get(ids_only=False, search=keywords,
-                            entity_definition_keyname=entity_definition, dataproperty=dataproperty, limit=limit,
-                            full_definition=full_definition, only_public=only_public)
+        result = entity.get(ids_only=False, search=keywords, entity_definition_keyname=entity_definition, dataproperty=dataproperty, limit=limit, full_definition=full_definition, only_public=only_public)
 
         if not result:
             return self.missing()
@@ -196,20 +197,24 @@ class GetEntity (myRequestHandler):
 
     """
     def get(self):
-        entity_id = self.get_argument('entity_id',default=None,strip=True)
+        entity_id = self.get_argument('entity_id', default=None, strip=True)
 
         if not entity_id:
             raise web.HTTPError(400,'Entity ID required.')
 
-        only_public = True if self.get_argument('only_public',default=None,strip=True) == '1' else False
-        full_definition = True if self.get_argument('full_definition',default=None,strip=True) == 'true' else False
+        only_public = True if self.get_argument('only_public', default=None, strip=True) == '1' else False
+        full_definition = True if self.get_argument('full_definition', default=None, strip=True) == 'true' else False
 
-        user_id = self.get_user_by_session_key(self.get_argument('session_key',default=None,strip=True))['id']
-
-        if not user_id:
+        user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
+        user_id = None
+        if user:
+            user_id = user.get('id', None)
+            if not user_id:
+                only_public = True
+        else:
             only_public = True
 
-        entity = db.Entity(user_locale=self.get_user_locale(),user_id=user_id)
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=user_id)
 
         result = entity.get(entity_id=entity_id, limit=1, full_definition=full_definition, only_public=only_public)
 
@@ -253,12 +258,21 @@ class GetEntityProperties(myRequestHandler):
     """
 
     def get(self):
-        entity_definition_keyname = self.get_argument('entity_definition_keyname',default=None,strip=True)
+        entity_definition_keyname = self.get_argument('entity_definition_keyname', default=None, strip=True)
 
         if not entity_definition_keyname:
-            raise web.HTTPError(400,'entity_definition_keyname required.')
+            raise web.HTTPError(400, 'entity_definition_keyname required.')
 
-        entity = db.Entity(user_locale=self.get_user_locale())
+        user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
+        user_id = None
+        if user:
+            user_id = user.get('id', None)
+            if not user_id:
+                only_public = True
+        else:
+            only_public = True
+
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=user_id)
 
         result = entity.get_definition(entity_definition_keyname)
 
@@ -318,12 +332,21 @@ class GetAllowedChildren(myRequestHandler):
 
     """
     def get(self):
-        entity_id = self.get_argument('entity_id',default=None,strip=True)
+        entity_id = self.get_argument('entity_id', default=None, strip=True)
 
         if not entity_id:
             raise web.HTTPError(400,'entity_id required')
 
-        entity = db.Entity(user_locale=self.get_user_locale())
+        user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
+        user_id = None
+        if user:
+            user_id = user.get('id', None)
+            if not user_id:
+                only_public = True
+        else:
+            only_public = True
+
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=user_id)
 
         result = entity.get_allowed_childs(entity_id)
 
@@ -396,13 +419,16 @@ class SaveEntity(myRequestHandler):
         entity_definition_keyname = self.get_argument('entity_definition_keyname', default=None, strip=True)
         public = True if self.get_argument('public', default=None, strip=True) == 'true' else False
 
-        user_id = self.get_user_by_session_key(self.get_argument('session_key',default=None,strip=True))['id']
-
-        if not user_id:
-            raise web.HTTPError(401,"Unauthorized")
+        user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
+        user_id = None
+        if user:
+            if not user.get('id', None):
+                raise web.HTTPError(401, "Unauthorized")
+        else:
+            raise web.HTTPError(401, "Unauthorized")
 
         if entity_definition_keyname != None:
-            entity = db.Entity(user_locale=self.get_user_locale(),user_id=user_id)
+            entity = db.Entity(user_locale=self.get_user_locale(), user_id=user_id)
             entity_id = entity.create(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
             if public:
                 entity.set_public(entity_id,is_public=public)
@@ -541,17 +567,20 @@ class SaveProperty(myRequestHandler):
         entity_id = self.get_argument('entity_id', default=None, strip=True)
         property_definition_keyname = self.get_argument('property_definition_keyname', default=None, strip=True)
 
-        user_id = self.get_user_by_session_key(self.get_argument('session_key',default=None,strip=True))['id']
-
-        if not user_id:
-            raise web.HTTPError(401,"Unauthorized")
+        user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
+        user_id = None
+        if user:
+            if not user.get('id', None):
+                raise web.HTTPError(401, "Unauthorized")
+        else:
+            raise web.HTTPError(401, "Unauthorized")
 
         property_id = self.get_argument('property_id', default=None, strip=True)
         value = self.get_argument('value', default=None, strip=True)
         uploaded_file = self.request.files.get('file', [])[0] if self.request.files.get('file', None) else None
 
         if entity_id and (property_definition_keyname or property_id):
-            entity = db.Entity(user_locale=self.get_user_locale(),user_id=user_id)
+            entity = db.Entity(user_locale=self.get_user_locale(), user_id=user_id)
             property_id = entity.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value=value, property_id=property_id, uploaded_file=uploaded_file)
             if not property_id:
                 return self.missing()
@@ -566,12 +595,16 @@ class SaveProperties(myRequestHandler):
 
     def get(self):
 
-        user_id = self.get_user_by_session_key(self.get_argument('session_key',default=None,strip=True))['id']
+        user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
+        user_id = None
+        if user:
+            if not user.get('id', None):
+                raise web.HTTPError(401, "Unauthorized")
+        else:
+            raise web.HTTPError(401, "Unauthorized")
 
-        if not user_id:
-            raise web.HTTPError(401,"Unauthorized")
 
-        properties = self.get_argument('properties',default=None,strip=True)
+        properties = self.get_argument('properties', default=None, strip=True)
 
         if not properties:
             raise web.HTTPError(400, 'Invalid data passed')
@@ -581,7 +614,7 @@ class SaveProperties(myRequestHandler):
         if not isinstance(properties,list):
             properties = [properties]
 
-        entity = db.Entity(user_locale=self.get_user_locale(),user_id=user_id)
+        entity = db.Entity(user_locale=self.get_user_locale(), user_id=user_id)
         property_id_list = []
 
         for property in properties:
@@ -625,12 +658,12 @@ class GetFile(myRequestHandler):
 
         """
 
-        file_id = self.get_argument('file_id',default=None,strip=True)
+        file_id = self.get_argument('file_id', default=None, strip=True)
 
         if not file_id:
             raise web.HTTPError(400,'file_id required')
 
-        file = db.Entity(user_locale=self.get_user_locale()).get_file(file_id)
+        # file = db.Entity(user_locale=self.get_user_locale()).get_file(file_id)
 
         if not file:
             return self.missing()
@@ -658,7 +691,7 @@ class GetSession(myRequestHandler):
     @web.authenticated
     def get(self):
 
-        self.write(str({'session_key': self.session_key}))
+        self.write(json.dumps({'session_key': self.session_key}))
 
 
 class Logout(myRequestHandler):

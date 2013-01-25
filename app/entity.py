@@ -33,7 +33,8 @@ class ShowGroup(myRequestHandler):
 
         db_connection = db.connection()
         quota_entities_used = db_connection.get('SELECT COUNT(DISTINCT entity_id) AS entities, COUNT(*) AS properties FROM property WHERE deleted IS NULL;').entities
-        quota_size_used = db_connection.get('SELECT SUM( data_length + index_length ) AS size FROM information_schema.TABLES;').size
+        # quota_size_used = db_connection.get('SELECT SUM(data_length + index_length) AS size FROM information_schema.TABLES;').size
+        quota_size_used = db_connection.get('SELECT SUM(file) AS size FROM file;').size
 
         try:
             f = open('../HISTORY.md', 'r')
