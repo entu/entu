@@ -53,7 +53,7 @@
                             <div class="bar bar-success" style="width: {{ round(quota_entities * 100 / quota_entities_used) }}%;"></div>
                             <div class="bar bar-danger" style="width: {{ 100 - round(quota_entities * 100 / quota_entities_used) }}%;"></div>
                             {% else %}
-                            <div class="bar {% if round(quota_entities_used * 100 / quota_entities) > 90 %}bar-warning{% else %} bar-success{% end %}" style="width: {{ round(quota_entities_used * 100 / quota_entities) }}%;"></div>
+                            <div class="bar {% if round(quota_entities_used * 100 / quota_entities) > 80 %}bar-warning{% else %} bar-success{% end %}" style="width: {{ round(quota_entities_used * 100 / quota_entities) }}%;"></div>
                             {% end %}
                         </div>
                         {{ quota_size_used_human }} of {{ quota_size_human }}
@@ -62,7 +62,7 @@
                             <div class="bar bar-success" style="width: {{ round(quota_size * 100 / quota_size_used) }}%;"></div>
                             <div class="bar bar-danger" style="width: {{ 100 - round(quota_size * 100 / quota_size_used) }}%;"></div>
                             {% else %}
-                            <div class="bar {% if round(quota_size_used * 100 / quota_size) > 90 %}bar-warning{% else %} bar-success{% end %}" style="width: {{ round(quota_size_used * 100 / quota_size) }}%;"></div>
+                            <div class="bar {% if round(quota_size_used * 100 / quota_size) > 80 %}bar-warning{% else %} bar-success{% end %}" style="width: {{ round(quota_size_used * 100 / quota_size) }}%;"></div>
                             {% end %}
                         </div>
                     </div>

@@ -1036,7 +1036,7 @@ class Entity():
         if self.user_id:
             public = ''
         else:
-            public = 'AND property_definition.public = 1'
+            public = 'AND pd.public = 1'
 
         sql = """
             SELECT
