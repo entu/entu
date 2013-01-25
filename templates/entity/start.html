@@ -42,12 +42,12 @@
             <div id="content-wide">
                 <div class="pull-right span4">
                     <div class="well alert-success pull-right span4">
-                        <h3 style="margin:0px;">Changes</h3>
+                        <h3 style="margin:0px;">{{ _('version_history') }}</h3>
                         {{ history }}
                     </div>
                     <div class="well alert-success pull-right span4">
-                        <h3 style="margin:0px;">Quota used</h3>
-                        {{ quota_entities_used }} of {{ quota_entities }} entities
+                        <h3 style="margin:0px;">{{ _('quota') }}</h3>
+                        {{ _('quota_entities') % (quota_entities_used, quota_entities) }}
                         <div class="progress">
                             {% if quota_entities_used > quota_entities %}
                             <div class="bar bar-success" style="width: {{ round(quota_entities * 100 / quota_entities_used) }}%;"></div>
@@ -56,7 +56,7 @@
                             <div class="bar {% if round(quota_entities_used * 100 / quota_entities) > 80 %}bar-warning{% else %} bar-success{% end %}" style="width: {{ round(quota_entities_used * 100 / quota_entities) }}%;"></div>
                             {% end %}
                         </div>
-                        {{ quota_size_used_human }} of {{ quota_size_human }}
+                        {{ _('quota_files') % (quota_size_used_human, quota_size_human) }}
                         <div class="progress" style="margin:0px;">
                             {% if quota_size_used > quota_size %}
                             <div class="bar bar-success" style="width: {{ round(quota_size * 100 / quota_size_used) }}%;"></div>

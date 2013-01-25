@@ -14,6 +14,10 @@ menu_exit,Välju
 menu_help,Abiinfo
 menu_download,Lae alla
 
+version_history,Viimased muudatused
+quota,Kasutus ja limiit
+quota_entities,Objekte: %s / %s
+quota_files,Faile: %s / %s
 
 search,Otsi
 search_button,Otsi
@@ -97,4 +101,3 @@ application_signup_account_head,Mul on @artun.ee konto. Sisenen sellega...
 application_subscribe,Kandideerin
 application_subscribe_max_reached,Lubatud on valida maksimaalselt neli eriala!
 application_submit,Esita avaldus
-
