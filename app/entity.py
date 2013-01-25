@@ -34,7 +34,7 @@ class ShowGroup(myRequestHandler):
         db_connection = db.connection()
         quota_entities_used = db_connection.get('SELECT COUNT(DISTINCT entity_id) AS entities, COUNT(*) AS properties FROM property WHERE deleted IS NULL;').entities
         # quota_size_used = db_connection.get('SELECT SUM(data_length + index_length) AS size FROM information_schema.TABLES;').size
-        quota_size_used = db_connection.get('SELECT SUM(file) AS size FROM file;').size
+        quota_size_used = db_connection.get('SELECT SUM(filesize) AS size FROM file;').size
 
         try:
             f = open('../HISTORY.md', 'r')
@@ -54,9 +54,9 @@ class ShowGroup(myRequestHandler):
             quota_entities = int(self.settings['quota_entities']),
             quota_entities_used = int(quota_entities_used),
             quota_size = int(self.settings['quota_size_bytes']),
-            quota_size_human = GetHumanReadableBytes(self.settings['quota_size_bytes'], 0),
-            quota_size_used = int(quota_size_used),
-            quota_size_used_human = GetHumanReadableBytes(quota_size_used, 0)
+            quota_size_human = GetHumanReadableBytes(self.settings['quota_size_bytes'], 1),
+            quota_size_used = int(quota_size_used) if quota_size_used else 0,
+            quota_size_used_human = GetHumanReadableBytes(quota_size_used, 1) if quota_size_used else '0B'
         )
 
     @web.authenticated
