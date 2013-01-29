@@ -493,7 +493,7 @@ class Entity():
 
         """
         sql = """
-            SELECT DISTINCT
+            SELECT
                 entity.id AS id
             FROM
                 property_definition,
@@ -511,30 +511,34 @@ class Entity():
         if entity_id != None:
             if type(entity_id) is not list:
                 entity_id = [entity_id]
-            sql += ' AND entity.id IN (%s)' % ','.join(map(str, entity_id))
+            sql += ' AND entity.id IN (%s)\n' % ','.join(map(str, entity_id))
 
         if search != None:
-            sql += '    AND ('
+            sql += ' AND ('
             sql += ' OR '.join('value_string LIKE \'%%%%%s%%%%\'' % s for s in search.split(' '))
             sql += ')\n'
+            having = ' HAVING count(1) = %s\n' % len(search.split(' '))
 
         if entity_definition_keyname != None:
             if type(entity_definition_keyname) is not list:
                 entity_definition_keyname = [entity_definition_keyname]
-            sql += ' AND entity.entity_definition_keyname IN (%s)' % ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])
+            sql += ' AND entity.entity_definition_keyname IN (%s)\n' % ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])
 
         if self.user_id and only_public == False:
-            sql += ' AND relationship.related_entity_id IN (%s) AND relationship.relationship_definition_keyname IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
+            sql += ' AND relationship.related_entity_id IN (%s) AND relationship.relationship_definition_keyname IN (\'leecher\', \'viewer\', \'editor\', \'owner\')\n' % ','.join(map(str, self.user_id))
         else:
-            sql += ' AND entity.public = 1 AND property_definition.public = 1'
+            sql += ' AND entity.public = 1 AND property_definition.public = 1\n'
 
-        sql += ' ORDER BY entity.sort, entity.created DESC'
+        sql += ' GROUP BY entity.id\n'
+        if search != None:
+            sql += having
+        sql += ' ORDER BY entity.sort, entity.created DESC\n'
 
         if limit != None:
             sql += ' LIMIT %d' % limit
 
-        sql += ';'
-        # logging.debug(sql)
+        sql += ';\n'
+        logging.debug(sql)
 
         items = self.db.query(sql)
         if not items:
