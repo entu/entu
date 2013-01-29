@@ -514,8 +514,9 @@ class Entity():
             sql += ' AND entity.id IN (%s)' % ','.join(map(str, entity_id))
 
         if search != None:
-            for s in search.split(' '):
-                sql += ' AND value_string LIKE \'%%%%%s%%%%\'' % s
+            sql += '    AND ('
+            sql += ' OR '.join('value_string LIKE \'%%%%%s%%%%\'' % s for s in search.split(' '))
+            sql += ')\n'
 
         if entity_definition_keyname != None:
             if type(entity_definition_keyname) is not list:
