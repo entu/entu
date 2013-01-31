@@ -530,8 +530,12 @@ class Entity():
             where_parts.append('e.id IN (%s)' % ','.join(map(str, entity_id)))
 
         if self.user_id and only_public == False:
+<<<<<<< HEAD
             where_parts.append('r.is_deleted = 0')
             join_parts.append('RIGHT JOIN relationship AS r  ON r.entity_id  = e.id')
+=======
+            select_sql += '                         , r.deleted       AS rd\n'
+>>>>>>> and fix no1 for entity.__get_id_list
             where_parts.append('r.related_entity_id IN (%s) AND r.relationship_definition_keyname IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id)))
         else:
             where_parts.append('e.public = 1')
@@ -540,6 +544,7 @@ class Entity():
                 for s in search.split(' '):
                     i += 1
                     where_parts.append('pd%i.public = 1' % i)
+<<<<<<< HEAD
 
         if len(select_parts) > 0:
             sql_parts.append('SELECT DISTINCT %s' % ', '.join(select_parts))
@@ -560,6 +565,69 @@ class Entity():
         sql_parts.append(' ORDER BY e.sort, e.created DESC%s;' % limit)
 
         sql = ''.join(sql_parts)
+=======
+
+        if len(where_parts) > 0:
+            where_sql = '                    WHERE  %s\n' % '\n                      AND '.join(where_parts)
+        if len(having_parts) > 0:
+            having_sql = '                    HAVING %s\n' % '\n                      AND '.join(having_parts)
+
+        sql = """
+            SELECT DISTINCT foo.id
+            FROM   (SELECT e.id            AS id
+                         , e.deleted       AS ed\n"""
+        sql += select_sql
+        sql += "                    FROM   entity e\n"
+        sql += join_sql
+        sql += where_sql
+        sql += "                    GROUP BY e.id\n"
+        sql += having_sql
+        sql += '             ORDER BY e.sort, e.created DESC LIMIT 303) foo;'
+
+        # logging.debug(sql)
+
+        # sql = """
+        #     SELECT DISTINCT
+        #         entity.id AS id
+        #     FROM
+        #         property_definition,
+        #         property,
+        #         entity,
+        #         relationship
+        #     WHERE property.property_definition_keyname = property_definition.keyname
+        #     AND entity.id = property.entity_id
+        #     AND relationship.entity_id = entity.id
+        #     AND entity.deleted IS NULL
+        #     AND property.deleted IS NULL
+        #     AND relationship.deleted IS NULL
+        # """
+
+        # if entity_id != None:
+        #     if type(entity_id) is not list:
+        #         entity_id = [entity_id]
+        #     sql += ' AND entity.id IN (%s)' % ','.join(map(str, entity_id))
+
+        # if search != None:
+        #     for s in search.split(' '):
+        #         sql += ' AND value_string LIKE \'%%%%%s%%%%\'' % s
+
+        # if entity_definition_keyname != None:
+        #     if type(entity_definition_keyname) is not list:
+        #         entity_definition_keyname = [entity_definition_keyname]
+        #     sql += ' AND entity.entity_definition_keyname IN (%s)' % ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])
+
+        # if self.user_id and only_public == False:
+        #     sql += ' AND relationship.related_entity_id IN (%s) AND relationship.relationship_definition_keyname IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
+        # else:
+        #     sql += ' AND entity.public = 1 AND property_definition.public = 1'
+
+        # sql += ' ORDER BY entity.sort, entity.created DESC'
+
+        # if limit != None:
+        #     sql += ' LIMIT %d' % limit
+
+        # sql += ';'
+>>>>>>> and fix no1 for entity.__get_id_list
         # logging.debug(sql)
 
         items = self.db.query(sql)
