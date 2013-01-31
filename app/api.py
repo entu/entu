@@ -118,7 +118,7 @@ class GetEntityList (myRequestHandler):
         user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
         user_id = None
         if user:
-            user_id = user.get('id', None)
+            user_id = user.id
             if not user_id:
                 only_public = True
         else:
@@ -208,7 +208,7 @@ class GetEntity (myRequestHandler):
         user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
         user_id = None
         if user:
-            user_id = user.get('id', None)
+            user_id = user.id
             if not user_id:
                 only_public = True
         else:
@@ -266,7 +266,7 @@ class GetEntityProperties(myRequestHandler):
         user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
         user_id = None
         if user:
-            user_id = user.get('id', None)
+            user_id = user.id
             if not user_id:
                 only_public = True
         else:
@@ -340,7 +340,7 @@ class GetAllowedChildren(myRequestHandler):
         user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
         user_id = None
         if user:
-            user_id = user.get('id', None)
+            user_id = user.id
             if not user_id:
                 only_public = True
         else:
@@ -422,7 +422,7 @@ class SaveEntity(myRequestHandler):
         user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
         user_id = None
         if user:
-            if not user.get('id', None):
+            if not user.id:
                 raise web.HTTPError(401, "Unauthorized")
         else:
             raise web.HTTPError(401, "Unauthorized")
@@ -570,7 +570,7 @@ class SaveProperty(myRequestHandler):
         user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
         user_id = None
         if user:
-            if not user.get('id', None):
+            if not user.id:
                 raise web.HTTPError(401, "Unauthorized")
         else:
             raise web.HTTPError(401, "Unauthorized")
@@ -581,7 +581,7 @@ class SaveProperty(myRequestHandler):
 
         if entity_id and (property_definition_keyname or property_id):
             entity = db.Entity(user_locale=self.get_user_locale(), user_id=user_id)
-            property_id = entity.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value=value, property_id=property_id, uploaded_file=uploaded_file)
+            property_id = entity.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value=value, old_property_id=property_id, uploaded_file=uploaded_file)
             if not property_id:
                 return self.missing()
             self.write({
@@ -598,7 +598,7 @@ class SaveProperties(myRequestHandler):
         user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
         user_id = None
         if user:
-            if not user.get('id', None):
+            if not user.id:
                 raise web.HTTPError(401, "Unauthorized")
         else:
             raise web.HTTPError(401, "Unauthorized")
@@ -626,7 +626,7 @@ class SaveProperties(myRequestHandler):
             uploaded_file = self.request.files.get(uploaded_file_name,None) if uploaded_file_name != None else None
 
             if entity_id and (property_definition_keyname or property_id) and value:
-                property_id_list.append(entity.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value=value, property_id=property_id, uploaded_file=uploaded_file))
+                property_id_list.append(entity.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value=value, old_property_id=property_id, uploaded_file=uploaded_file))
             else:
                 raise web.HTTPError(400, 'entity_id and (property_definition_keyname or property_id) and value required')
 
