@@ -577,10 +577,10 @@ class Entity():
             FROM   (SELECT e.id            AS id
                          , e.deleted       AS ed\n"""
         sql += select_sql
-        sql += "                    FROM   entity e\n"
+        sql += '                    FROM   entity e\n'
         sql += join_sql
         sql += where_sql
-        sql += "                    GROUP BY e.id\n"
+        sql += '                    GROUP BY e.id\n'
         sql += having_sql
         sql += '             ORDER BY e.sort, e.created DESC LIMIT 303) foo;'
 
