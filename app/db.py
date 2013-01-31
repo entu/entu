@@ -499,6 +499,7 @@ class Entity():
         select_sql = ''
         having_sql = ''
         having_parts = []
+        having_parts.append('e.deleted IS NULL')
 
         if search != None:
             i = 0
