@@ -492,6 +492,64 @@ class Entity():
         Get list of Entity IDs. entity_id, entity_definition_keyname and user_id can be single ID or list of IDs.
 
         """
+
+        where_sql = ''
+        where_parts = []
+        join_sql = ''
+        select_sql = ''
+        having_sql = ''
+        having_parts = []
+
+        if search != None:
+            i = 0
+            for s in search.split(' '):
+                i += 1
+                select_sql += '                         , p%i.deleted as p%id\n' % (i, i)
+                join_sql += '                           RIGHT JOIN property AS p%i ON p%i.entity_id = e.id\n' % (i, i)
+                if not self.user_id or only_public == True:
+                    join_sql += '                            LEFT JOIN property_definition AS pd%i ON pd%i.keyname = p%i.property_definition_keyname\n' % (i, i, i)
+
+                where_parts.append('p%i.value_string LIKE \'%%%%%s%%%%\'' % (i, s))
+                having_parts.append('p%i.deleted IS NULL' % i)
+
+        if entity_definition_keyname != None:
+            if type(entity_definition_keyname) is not list:
+                entity_definition_keyname = [entity_definition_keyname]
+            where_parts.append('e.entity_definition_keyname IN (%s)' % ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)]))
+
+        if entity_id != None:
+            if type(entity_id) is not list:
+                entity_id = [entity_id]
+            where_parts.append('e.id IN (%s)' % ','.join(map(str, entity_id)))
+
+        if self.user_id and only_public == False:
+            where_parts.append('r.related_entity_id IN (%s) AND r.relationship_definition_keyname IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id)))
+            join_sql += '                           RIGHT JOIN relationship AS r  ON r.entity_id  = e.id\n'
+        else:
+            where_parts.append('e.public = 1')
+            i = 0
+            for s in search.split(' '):
+                i += 1
+                where_parts.append('pd%i.public = 1' % i)
+
+        where_sql = '                    WHERE  %s\n' % '\n                      AND '.join(where_parts)
+        having_sql = '                    HAVING %s\n' % '\n                      AND '.join(having_parts)
+
+        sql = """
+            SELECT DISTINCT foo.entity_id
+            FROM   (SELECT e.id            AS entity_id
+                         , e.deleted       AS ed
+                         , r.deleted       AS rd\n"""
+        sql += select_sql
+        sql += "                    FROM   entity e\n"
+        sql += join_sql
+        sql += where_sql
+        sql += "                    GROUP BY e.id\n"
+        sql += having_sql
+        sql += '             ORDER BY e.sort, e.created DESC LIMIT 303) foo;'
+
+        logging.debug(sql)
+
         sql = """
             SELECT DISTINCT
                 entity.id AS id
@@ -533,7 +591,7 @@ class Entity():
             sql += ' LIMIT %d' % limit
 
         sql += ';'
-        # logging.debug(sql)
+        logging.debug(sql)
 
         items = self.db.query(sql)
         if not items:
