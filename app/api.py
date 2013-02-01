@@ -131,8 +131,6 @@ class GetEntityList (myRequestHandler):
         if not result:
             return self.missing()
 
-        datetime_to_ISO8601(result)
-
         if not full_info:
             entities = []
             for entity in result:
@@ -143,10 +141,10 @@ class GetEntityList (myRequestHandler):
                 entity_obj['displaypicture'] = entity['displaypicture']
                 entity_obj['displaytable'] = entity['displaytable']
                 entities.append(entity_obj)
-            self.write(json.dumps(entities))
+            self.write(json.dumps(entities, cls=JSONDateFix))
 
         else:
-            self.write(json.dumps(result))
+            self.write(json.dumps(result, cls=JSONDateFix))
 
 
 class GetEntity (myRequestHandler):
@@ -221,11 +219,9 @@ class GetEntity (myRequestHandler):
         if not result:
             return self.missing()
 
-        datetime_to_ISO8601(result)
+        self.write(json.dumps(result, cls=JSONDateFix))
 
-        self.write(json.dumps(result))
-
-class GetEntityProperties(myRequestHandler):
+class GetEntityDefinition(myRequestHandler):
 
     """
     Returns all the properties as templates that an entity with a specified definition_keyname can possess.
@@ -279,7 +275,7 @@ class GetEntityProperties(myRequestHandler):
         if not result:
             return self.missing()
 
-        self.write(json.dumps(result))
+        self.write(json.dumps(result, cls=JSONDateFix))
 
 
 class GetAllowedChildren(myRequestHandler):
@@ -353,7 +349,7 @@ class GetAllowedChildren(myRequestHandler):
         if not result:
             return self.missing()
 
-        self.write(json.dumps(result))
+        self.write(json.dumps(result, cls=JSONDateFix))
 
 
 class SaveEntity(myRequestHandler):
@@ -633,7 +629,7 @@ class SaveProperties(myRequestHandler):
         if not property_id_list:
             return self.missing()
 
-        self.write(json.dumps(property_id_list))
+        self.write(json.dumps(property_id_list, cls=JSONDateFix))
 
 
 class GetFile(myRequestHandler):
@@ -691,7 +687,7 @@ class GetSession(myRequestHandler):
     @web.authenticated
     def get(self):
 
-        self.write(json.dumps({'session_key': self.session_key}))
+        self.write(json.dumps({'session_key': self.session_key}, cls=JSONDateFix))
 
 
 class Logout(myRequestHandler):
@@ -703,24 +699,13 @@ class Logout(myRequestHandler):
         self.redirect('/exit')
 
 
-def datetime_to_ISO8601(entity_list):
-    """
-        Transforms each entity's ordinal field into string format specified by ISO 8601
-    """
-    if type(entity_list) is not list:
-        entity_list = [entity_list]
-    for entity in entity_list:
-           datetime_obj = entity['ordinal']
-           entity['ordinal'] = "%d%d%dT%d%d%d"%(datetime_obj.year,datetime_obj.month,datetime_obj.day,
-                                                datetime_obj.hour,datetime_obj.minute,datetime_obj.second)
-
 handlers = [
     ('/api/auth',GetSession),
     ('/api/exit',Logout),
     ('/api/get_entity', GetEntity),
     ('/api/get_entity_list', GetEntityList),
     ('/api/get_file',GetFile),
-    ('/api/get_entity_properties', GetEntityProperties),
+    ('/api/get_entity_definition', GetEntityDefinition),
     ('/api/get_allowed_chils',GetAllowedChildren),
     # ('/api/save_property', SaveProperty),
     ('/api/save_properties',SaveProperties),
