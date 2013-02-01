@@ -1330,7 +1330,6 @@ class User():
             session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
         user_key = hashlib.md5(request_handler.request.remote_ip + request_handler.request.headers.get('User-Agent', None)).hexdigest()
 
-
         db = connection()
         profile_id = db.execute_lastrowid('INSERT INTO user SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, session = %s, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, access_token = %s, changed = NOW();',
                 provider,
@@ -1350,6 +1349,20 @@ class User():
         request_handler.set_secure_cookie('session', session_key)
 
         return session_key
+
+    def logout(self, request_handler, session_key=None):
+        """
+        Ends user session.
+
+        """
+        if not session_key:
+            session_key = request_handler.get_secure_cookie('session')
+        user_key = hashlib.md5(request_handler.request.remote_ip + request_handler.request.headers.get('User-Agent', None)).hexdigest()
+
+        db = connection()
+        db.execute('UPDATE user SET session = NULL, access_token = NULL WHERE session = %s;', session_key+user_key)
+
+        self.clear_cookie('session')
 
 
 class Formula():
