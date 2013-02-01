@@ -44,9 +44,9 @@ class Exit(myRequestHandler):
             elif self.current_user.provider == 'facebook':
                 redirect_url = 'https://www.facebook.com/logout.php?access_token=%s&confirm=1&next=%s://%s/auth' % (self.current_user.access_token, self.request.protocol, self.request.host)
 
-        self.clear_cookie('session')
-        self.redirect(redirect_url)
+            self.current_user.logout(self)
 
+        self.redirect(redirect_url)
 
 
 class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
