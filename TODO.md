@@ -1,7 +1,6 @@
 ## ToDo
 
 1. Calculation (formula) fields
-* Separate login page
 * Show Entity.displaycount
 * Show all entities in search (not first 303)
 * Replace [tornadomail](https://github.com/equeny/tornadomail) with better email library
@@ -17,7 +16,6 @@
 * Edit multiple entities at once
 * Custom labels for displaytabletable
 * Descending sort
-* Download Entity as xml/zip
 * Unique fields
 * Manage rights (sharing view)
 * ...
