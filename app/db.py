@@ -208,7 +208,7 @@ class Entity():
             return
 
         if old_property_id:
-            self.db.execute('UPDATE property SET deleted = NOW(), deleted_by = %s WHERE id = %s;', self.created_by, old_property_id )
+            self.db.execute('UPDATE property SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', self.created_by, old_property_id )
             if definition.formula == 1:
                 Formula(user_locale=self.user_locale, created_by=self.created_by, entity_id=entity_id, property_id=old_property_id).delete()
 
@@ -425,7 +425,8 @@ class Entity():
                         sql = """
                             UPDATE relationship SET
                                 deleted_by = '%s',
-                                deleted = NOW()
+                                deleted = NOW(),
+                                is_deleted = 1
                             WHERE relationship_definition_keyname = '%s'
                             AND entity_id = %s
                             AND related_entity_id = %s;
@@ -498,8 +499,6 @@ class Entity():
         where_parts = []
         join_sql = ''
         select_sql = ''
-        having_sql = ''
-        having_parts = []
         where_parts.append('e.is_deleted = 0')
 
         if search != None:
@@ -538,8 +537,6 @@ class Entity():
 
         if len(where_parts) > 0:
             where_sql = 'WHERE  %s\n' % '\nAND '.join(where_parts)
-        if len(having_parts) > 0:
-            having_sql = 'HAVING %s\n' % '\nAND '.join(having_parts)
 
         sql = """
             SELECT DISTINCT foo.id FROM (
@@ -549,7 +546,6 @@ class Entity():
         sql += join_sql
         sql += where_sql
         sql += 'GROUP BY e.id\n'
-        sql += having_sql
         sql += 'ORDER BY e.sort, e.created DESC LIMIT 1000) foo;'
 
         logging.debug(sql)
@@ -1263,7 +1259,7 @@ class Entity():
         for child_id in self.get_relatives(ids_only=True, entity_id=entity_id, relationship_definition_keyname='child'):
             self.delete(child_id)
 
-        self.db.execute('UPDATE entity SET deleted = NOW(), deleted_by = %s WHERE id = %s;', self.created_by, entity_id)
+        self.db.execute('UPDATE entity SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', self.created_by, entity_id)
 
         # remove "contains" information
         self.db.execute('DELETE FROM dag_entity WHERE entity_id = %s OR related_entity_id = %s;', entity_id, entity_id)
@@ -1391,9 +1387,9 @@ class Formula():
         Mark property's dependencies as deleted and revaluate formulas that were depending on property.
         Then mark explicit DAG relations as deleted.
         """
-        self.db.execute('UPDATE dag_formula SET deleted = NOW(), deleted_by = %s WHERE property_id = %s;', self.created_by, self.formula_property_id )
+        self.db.execute('UPDATE dag_formula SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE property_id = %s;', self.created_by, self.formula_property_id )
         self.update_depending_formulas()
-        self.db.execute('UPDATE dag_formula SET deleted = NOW(), deleted_by = %s WHERE related_property_id = %s;', self.created_by, self.formula_property_id )
+        self.db.execute('UPDATE dag_formula SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE related_property_id = %s;', self.created_by, self.formula_property_id )
 
     def evaluate(self):
         if not self.formula:
@@ -1416,7 +1412,7 @@ class Formula():
         if old_property_id:
             for row in self.db.query('SELECT property_id FROM dag_formula WHERE related_property_id = %s AND is_deleted = 0', old_property_id):
                 self.db.execute('INSERT INTO dag_formula SET created = NOW(), created_by = %s, property_id = %s, related_property_id = %s;', self.created_by, row.property_id, new_property_id)
-            self.db.execute('UPDATE dag_formula SET deleted = NOW(), deleted_by = %s WHERE related_property_id = %s;', self.created_by, old_property_id)
+            self.db.execute('UPDATE dag_formula SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE related_property_id = %s;', self.created_by, old_property_id)
 
         self.db.execute('UPDATE property SET value_formula = %s WHERE id = %s;', self.formula, new_property_id)
 
@@ -1472,7 +1468,8 @@ class Formula():
             AND    df.reverse_relationship IS NULL
             AND    df.entity_definition_keyname IS NULL
             AND    pd.dataproperty = df.dataproperty
-            AND     p.id = %s """ % property_id_in
+            AND    p.is_deleted = 0
+            AND    p.id = %s """ % property_id_in
         # logging.debug(sql)
         for row in self.db.query(sql):
             if row not in rowset:
