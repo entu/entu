@@ -98,14 +98,14 @@ class Entity():
                 NOW()
             FROM relationship AS r
             WHERE r.relationship_definition_keyname = 'default-parent'
-            AND r.deleted IS NULL
+            AND r.is_deleted = 0
             AND r.entity_definition_keyname = %s;
         """
         # logging.debug(sql)
         self.db.execute(sql, entity_id, self.created_by, entity_definition_keyname)
 
         # Insert or update "contains" information
-        for row in self.db.query("SELECT entity_id FROM relationship r WHERE relationship_definition_keyname = 'child' AND related_entity_id = %s" , entity_id):
+        for row in self.db.query("SELECT entity_id FROM relationship r WHERE r.is_deleted = 0 AND r.relationship_definition_keyname = 'child' AND r.related_entity_id = %s" , entity_id):
             self.db.execute('INSERT INTO dag_entity SET entity_id = %s, related_entity_id = %s ON DUPLICATE KEY UPDATE distance=1;', row.entity_id, entity_id)
             self.db.execute('INSERT INTO dag_entity SELECT de.entity_id, %s, de.distance+1 FROM dag_entity AS de WHERE de.related_entity_id = %s ON DUPLICATE KEY UPDATE distance = LEAST(dag_entity.distance, de.distance+1);', entity_id, row.entity_id)
 
@@ -125,9 +125,10 @@ class Entity():
                 NOW()
             FROM      relationship r
             LEFT JOIN relationship rr ON rr.entity_id = r.entity_id
-            WHERE     r.deleted IS NULL
+            WHERE     r.is_deleted = 0
             AND       r.related_entity_id = %s
             AND       r.relationship_definition_keyname = 'child'
+            AND       rr.is_deleted = 0
             AND       rr.relationship_definition_keyname IN ('leecher', 'viewer', 'editor', 'owner' );
         """
         # logging.debug(sql)
@@ -178,8 +179,8 @@ class Entity():
             AND pd.entity_definition_keyname = %s
             AND p.entity_id = %s
             AND r.relationship_definition_keyname = 'propagated_property'
-            AND p.deleted IS NULL
-            AND r.deleted IS NULL
+            AND p.is_deleted = 0
+            AND r.is_deleted = 0
             ;
         """
         # logging.debug(sql)
@@ -325,8 +326,8 @@ class Entity():
                     AND entity.id = property.entity_id
                     AND property_definition.dataproperty = 'series'
                     AND entity.id = (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child' LIMIT 1)
-                    AND entity.deleted IS NULL
-                    AND property.deleted IS NULL
+                    AND entity.is_deleted = 0
+                    AND property.is_deleted = 0
                     LIMIT 1
                 ), ''),
                 IFNULL((
@@ -341,8 +342,8 @@ class Entity():
                     AND entity.id = property.entity_id
                     AND property_definition.dataproperty='prefix'
                     AND entity.id = (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child' LIMIT 1)
-                    AND entity.deleted IS NULL
-                    AND property.deleted IS NULL
+                    AND entity.is_deleted = 0
+                    AND property.is_deleted = 0
                     LIMIT 1
                 ), ''),
                 counter.value+counter.increment) AS value,
@@ -363,8 +364,8 @@ class Entity():
             AND property_definition2.datatype = 'counter-value'
             AND relationship.relationship_definition_keyname = 'target-property'
             AND property_definition2.entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %(entity_id)s LIMIT 1)
-            AND relationship.deleted IS NULL
-            AND property.deleted IS NULL
+            AND relationship.is_deleted = 0
+            AND property.is_deleted = 0
             AND counter.type = 'increment';
             UPDATE
             counter,
@@ -387,8 +388,8 @@ class Entity():
                 AND relationship.relationship_definition_keyname = 'target-property'
                 AND property_definition2.entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %(entity_id)s LIMIT 1)
                 AND counter.type = 'increment'
-                AND relationship.deleted IS NULL
-                AND property.deleted IS NULL
+                AND relationship.is_deleted = 0
+                AND property.is_deleted = 0
                 ) X
             SET
                 counter.value = counter.value + counter.increment,
@@ -499,19 +500,19 @@ class Entity():
         select_sql = ''
         having_sql = ''
         having_parts = []
-        having_parts.append('e.deleted IS NULL')
+        where_parts.append('e.is_deleted = 0')
 
         if search != None:
             i = 0
             for s in search.split(' '):
                 i += 1
-                select_sql += '                         , p%i.deleted as p%id\n' % (i, i)
-                join_sql += '                           RIGHT JOIN property AS p%i ON p%i.entity_id = e.id\n' % (i, i)
+                # select_sql += ', p%i.deleted as p%id\n' % (i, i)
+                join_sql += 'RIGHT JOIN property AS p%i ON p%i.entity_id = e.id\n' % (i, i)
                 if not self.user_id or only_public == True:
-                    join_sql += '                            LEFT JOIN property_definition AS pd%i ON pd%i.keyname = p%i.property_definition_keyname\n' % (i, i, i)
+                    join_sql += 'LEFT JOIN property_definition AS pd%i ON pd%i.keyname = p%i.property_definition_keyname\n' % (i, i, i)
 
                 where_parts.append('p%i.value_string LIKE \'%%%%%s%%%%\'' % (i, s))
-                having_parts.append('p%i.deleted IS NULL' % i)
+                where_parts.append('p%i.is_deleted = 0' % i)
 
         if entity_definition_keyname != None:
             if type(entity_definition_keyname) is not list:
@@ -524,9 +525,9 @@ class Entity():
             where_parts.append('e.id IN (%s)' % ','.join(map(str, entity_id)))
 
         if self.user_id and only_public == False:
-            select_sql += '                         , r.deleted       AS rd\n'
+            select_sql += ', r.deleted AS rd\n'
             where_parts.append('r.related_entity_id IN (%s) AND r.relationship_definition_keyname IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id)))
-            join_sql += '                           RIGHT JOIN relationship AS r  ON r.entity_id  = e.id\n'
+            join_sql += 'RIGHT JOIN relationship AS r ON r.entity_id  = e.id\n'
         else:
             where_parts.append('e.public = 1')
             i = 0
@@ -536,23 +537,22 @@ class Entity():
                     where_parts.append('pd%i.public = 1' % i)
 
         if len(where_parts) > 0:
-            where_sql = '                    WHERE  %s\n' % '\n                      AND '.join(where_parts)
+            where_sql = 'WHERE  %s\n' % '\nAND '.join(where_parts)
         if len(having_parts) > 0:
-            having_sql = '                    HAVING %s\n' % '\n                      AND '.join(having_parts)
+            having_sql = 'HAVING %s\n' % '\nAND '.join(having_parts)
 
         sql = """
-            SELECT DISTINCT foo.id
-            FROM   (SELECT e.id            AS id
-                         , e.deleted       AS ed\n"""
+            SELECT DISTINCT foo.id FROM (
+                SELECT e.id AS id, e.deleted AS ed\n"""
         sql += select_sql
-        sql += '                    FROM   entity e\n'
+        sql += 'FROM entity e\n'
         sql += join_sql
         sql += where_sql
-        sql += '                    GROUP BY e.id\n'
+        sql += 'GROUP BY e.id\n'
         sql += having_sql
-        sql += '             ORDER BY e.sort, e.created DESC LIMIT 303) foo;'
+        sql += 'ORDER BY e.sort, e.created DESC LIMIT 1000) foo;'
 
-        # logging.debug(sql)
+        logging.debug(sql)
 
         # sql = """
         #     SELECT DISTINCT
@@ -609,7 +609,7 @@ class Entity():
             FROM property p
             WHERE p.entity_id = %s
             AND p.value_formula is not null
-            AND p.deleted is null
+            AND p.is_deleted = 0
             ORDER BY p.id
             ;""" % entity_id
         # logging.debug(sql)
@@ -689,8 +689,8 @@ class Entity():
                 AND entity_definition.keyname = property_definition.entity_definition_keyname
                 AND (property.language = '%(language)s' OR property.language IS NULL)
                 AND entity.id IN (%(idlist)s)
-                AND entity.deleted IS NULL
-                AND property.deleted IS NULL
+                AND entity.is_deleted = 0
+                AND property.is_deleted = 0
                 %(public)s
                 %(datapropertysql)s
                 ORDER BY
@@ -894,7 +894,7 @@ class Entity():
             AND f.id = property.value_file
             AND property_definition.dataproperty='photo'
             AND property.entity_id = %s
-            AND property.deleted IS NULL
+            AND property.is_deleted = 0
             LIMIT 1;
         """
         f = self.db.get(sql, entity_id)
@@ -991,9 +991,9 @@ class Entity():
                     relationship AS rights
                 WHERE r.entity_id = e.id
                 AND rights.entity_id = e.id
-                AND r.deleted IS NULL
-                AND rights.deleted IS NULL
-                AND e.deleted IS NULL
+                AND r.is_deleted = 0
+                AND rights.is_deleted = 0
+                AND e.is_deleted = 0
             """
         else:
             sql = """
@@ -1008,9 +1008,9 @@ class Entity():
                     relationship AS rights
                 WHERE r.related_entity_id = e.id
                 AND rights.entity_id = e.id
-                AND r.deleted IS NULL
-                AND rights.deleted IS NULL
-                AND e.deleted IS NULL
+                AND r.is_deleted = 0
+                AND rights.is_deleted = 0
+                AND e.is_deleted = 0
             """
             if not ids_only:
                 unionsql = """
@@ -1025,9 +1025,9 @@ class Entity():
                         relationship AS urights
                     WHERE ue.id = up.entity_id
                     AND urights.entity_id = ue.id
-                    AND up.deleted IS NULL
-                    AND ue.deleted IS NULL
-                    AND urights.deleted IS NULL
+                    AND up.is_deleted = 0
+                    AND ue.is_deleted = 0
+                    AND urights.is_deleted = 0
                 """
 
         if entity_id:
@@ -1115,7 +1115,7 @@ class Entity():
             AND pd.keyname = p.property_definition_keyname
             AND f.id IN (%(file_id)s)
             %(public)s
-            AND p.deleted IS NULL
+            AND p.is_deleted = 0
             """ % {'file_id': ','.join(map(str, file_id)), 'public': public}
         # logging.debug(sql)
 
@@ -1165,7 +1165,7 @@ class Entity():
                 LEFT JOIN entity_definition ed ON r.related_entity_definition_keyname = ed.keyname
             WHERE r.relationship_definition_keyname = 'allowed-child'
             AND r.entity_id = %(id)s
-            AND r.deleted IS NULL
+            AND r.is_deleted = 0
             ORDER BY ed.keyname        """  % {'language': self.language, 'id': entity_id}
         # logging.debug(sql)
 
@@ -1188,7 +1188,7 @@ class Entity():
             WHERE relationship.related_entity_definition_keyname = entity_definition.keyname
             AND relationship.relationship_definition_keyname = 'allowed-child'
             AND relationship.entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %(id)s)
-            AND relationship.deleted IS NULL
+            AND relationship.is_deleted = 0
         """  % {'language': self.language, 'id': entity_id}
         # logging.debug(sql)
 
@@ -1218,7 +1218,7 @@ class Entity():
             WHERE relationship.entity_definition_keyname = entity_definition.keyname
             AND relationship.relationship_definition_keyname = 'default-parent'
             AND entity_definition.keyname IN (%(ids)s)
-            AND relationship.deleted IS NULL
+            AND relationship.is_deleted = 0
         """  % {'language': self.language, 'ids': ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])}
         # logging.debug(sql)
 
@@ -1244,8 +1244,8 @@ class Entity():
             AND relationship.relationship_definition_keyname IN ('viewer', 'editor', 'owner')
             AND entity_definition.estonian_menu IS NOT NULL
             AND relationship.related_entity_id IN (%(user_id)s)
-            AND entity.deleted IS NULL
-            AND relationship.deleted IS NULL
+            AND entity.is_deleted = 0
+            AND relationship.is_deleted = 0
             ORDER BY
                 entity_definition.estonian_menu,
                 entity_definition.estonian_label;
@@ -1301,8 +1301,8 @@ class User():
                 user
             WHERE property.property_definition_keyname = property_definition.keyname
             AND entity.id = property.entity_id
-            AND property.deleted IS NULL
-            AND entity.deleted IS NULL
+            AND property.is_deleted = 0
+            AND entity.is_deleted = 0
             AND user.email = property.value_string
             AND property_definition.dataproperty = 'user'
             AND user.session = %s
@@ -1414,7 +1414,7 @@ class Formula():
     def save_property(self, new_property_id, old_property_id):
 
         if old_property_id:
-            for row in self.db.query('SELECT property_id FROM dag_formula WHERE related_property_id = %s AND deleted IS NULL', old_property_id):
+            for row in self.db.query('SELECT property_id FROM dag_formula WHERE related_property_id = %s AND is_deleted = 0', old_property_id):
                 self.db.execute('INSERT INTO dag_formula SET created = NOW(), created_by = %s, property_id = %s, related_property_id = %s;', self.created_by, row.property_id, new_property_id)
             self.db.execute('UPDATE dag_formula SET deleted = NOW(), deleted_by = %s WHERE related_property_id = %s;', self.created_by, old_property_id)
 
@@ -1452,7 +1452,7 @@ class Formula():
             -- Matches explicit dependencies
             SELECT df.id, df.property_id
             FROM dag_formula AS df
-            WHERE  df.deleted IS NULL
+            WHERE  df.is_deleted = 0
             AND    df.related_property_id = %s """ % property_id_in
         # logging.debug(sql)
         for row in self.db.query(sql):
@@ -1466,7 +1466,7 @@ class Formula():
             FROM dag_formula AS df
             LEFT JOIN property AS p ON p.entity_id = df.entity_id
             LEFT JOIN property_definition AS pd ON (pd.keyname = p.property_definition_keyname)
-            WHERE  df.deleted IS NULL
+            WHERE  df.is_deleted = 0
             AND    df.related_property_id IS NULL
             AND    df.relationship_definition_keyname IS NULL
             AND    df.reverse_relationship IS NULL
@@ -1487,8 +1487,10 @@ class Formula():
             LEFT JOIN entity AS e ON (e.id = r.related_entity_id AND (e.entity_definition_keyname = df.entity_definition_keyname OR df.entity_definition_keyname IS NULL))
             LEFT JOIN property AS p ON (p.entity_id = e.id)
             LEFT JOIN property_definition AS pd ON (pd.keyname = p.property_definition_keyname AND pd.dataproperty = df.dataproperty)
-            WHERE  df.deleted IS NULL
-            AND     r.deleted IS NULL
+            WHERE  df.is_deleted = 0
+            AND     r.is_deleted = 0
+            AND     e.is_deleted = 0
+            AND     p.is_deleted = 0
             AND    df.related_property_id IS NULL
             AND    df.reverse_relationship IS NULL
             AND     p.id = %s """ % property_id_in
@@ -1508,8 +1510,10 @@ class Formula():
             LEFT JOIN entity AS e ON (e.id = r.entity_id AND (e.entity_definition_keyname = df.entity_definition_keyname OR df.entity_definition_keyname IS NULL))
             LEFT JOIN property AS p ON (p.entity_id = e.id)
             LEFT JOIN property_definition AS pd ON (pd.keyname = p.property_definition_keyname AND pd.dataproperty = df.dataproperty)
-            WHERE  df.deleted IS NULL
-            AND     r.deleted IS NULL
+            WHERE  df.is_deleted = 0
+            AND     r.is_deleted = 0
+            AND     e.is_deleted = 0
+            AND     p.is_deleted = 0
             AND    df.related_property_id IS NULL
             AND    df.reverse_relationship = 1
             AND     p.id = %s """ % property_id_in
@@ -1634,12 +1638,12 @@ class FExpression():
 
             sql += """
                 WHERE e.id = %(entity_id)s
-                AND e.deleted IS NULL
+                AND e.is_deleted = 0
             """  % {'entity_id': tokens[0]}
 
             if tokens[1] != 'id':
                 sql += """
-                    AND p.deleted IS NULL
+                    AND p.is_deleted = 0
                     AND pd.dataproperty = '%(pdk)s'
                 """ % {'pdk': tokens[1]}
 
@@ -1688,9 +1692,9 @@ class FExpression():
         sql += """
             WHERE e.id = %(entity_id)s
             AND r.relationship_definition_keyname = '%(rdk)s'
-            AND re.deleted IS NULL
-            AND e.deleted IS NULL
-            AND r.deleted IS NULL
+            AND re.is_deleted = 0
+            AND e.is_deleted = 0
+            AND r.is_deleted = 0
         """  % {'entity_id': self.formula.entity_id, 'rdk': tokens[1]}
 
         if tokens[2] != '*':
@@ -1700,7 +1704,7 @@ class FExpression():
 
         if tokens[3] != 'id':
             sql += """
-                AND p.deleted IS NULL
+                AND p.is_deleted = 0
                 AND pd.dataproperty = '%(pdk)s'
             """ % {'pdk': tokens[3]}
 
