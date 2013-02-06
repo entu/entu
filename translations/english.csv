@@ -55,7 +55,7 @@ share_send,Send
 
 action_add_default,Manually
 action_add_ester,Import from Ester
-action_add_ester_search_placeholder,Title or ISBN
+action_add_ester_search_placeholder,"Title, ISBN or URL"
 action_add_ester_add,Add
 action_add_ester_open,Open
 

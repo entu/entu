@@ -68,16 +68,19 @@ class EsterSearch(myRequestHandler):
         if not search_term:
             return
 
-        search_isbn = False
-        if len(search_term) == 10 and search_term[:9].isdigit():
-            search_isbn = True
-        if len(search_term) == 13 and search_term.isdigit():
-            search_isbn = True
-
-        if search_isbn == True:
-            url = 'http://tallinn.ester.ee/search*est/i?SEARCH=%s&searchscope=1&SUBMIT=OTSI' % search_term
+        if search_term[:24] == 'http://tallinn.ester.ee/':
+            url = search_term
         else:
-            url = 'http://tallinn.ester.ee/search*est/X?SEARCH=%s&searchscope=1&SUBMIT=OTSI' % search_term
+            search_isbn = False
+            if len(search_term) == 10 and search_term[:9].isdigit():
+                search_isbn = True
+            if len(search_term) == 13 and search_term.isdigit():
+                search_isbn = True
+
+            if search_isbn == True:
+                url = 'http://tallinn.ester.ee/search*est/i?SEARCH=%s&searchscope=1&SUBMIT=OTSI' % search_term
+            else:
+                url = 'http://tallinn.ester.ee/search*est/X?SEARCH=%s&searchscope=1&SUBMIT=OTSI' % search_term
 
         response = httpclient.AsyncHTTPClient().fetch(url, callback=self._got_list)
 
