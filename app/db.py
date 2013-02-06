@@ -734,6 +734,53 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['public'] = True if row.property_public == 1 else False
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['readonly'] = True if row.property_readonly == 1 else False
 
+                #X properties
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {})['x_created'] = {
+                    'keyname' : 'x_created',
+                    'fieldset' : 'X',
+                    'label' : self.user_locale.translate('created'),
+                    'label_plural' : self.user_locale.translate('created'),
+                    'description' : '',
+                    'datatype': 'datetime',
+                    'dataproperty' : 'x_created',
+                    'multilingual' : False,
+                    'multiplicity' : 1,
+                    'ordinal' : 100000000,
+                    'formula' : False,
+                    'executable' : False,
+                    'public' : False,
+                    'readonly' : True,
+                    'values': {'value_0': {
+                        'id': 0,
+                        'ordinal': 0,
+                        'value': formatDatetime(row.entity_created),
+                        'db_value': row.entity_created
+                    }}
+                }
+
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {})['x_changed'] = {
+                    'keyname' : 'x_changed',
+                    'fieldset' : 'X',
+                    'label' : self.user_locale.translate('changed'),
+                    'label_plural' : self.user_locale.translate('changed'),
+                    'description' : '',
+                    'datatype': 'datetime',
+                    'dataproperty' : 'x_changed',
+                    'multilingual' : False,
+                    'multiplicity' : 1,
+                    'ordinal' : 100000000,
+                    'formula' : False,
+                    'executable' : False,
+                    'public' : False,
+                    'readonly' : True,
+                    'values': {'value_0': {
+                        'id': 0,
+                        'ordinal': 0,
+                        'value': formatDatetime(row.entity_changed),
+                        'db_value': row.entity_created
+                    }}
+                }
+
                 #Value
                 if row.property_datatype in ['string', 'select']:
                     db_value = row.value_string if row.value_string else ''
