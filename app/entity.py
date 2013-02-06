@@ -32,7 +32,7 @@ class ShowGroup(myRequestHandler):
             entity_definition = entity.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
 
         db_connection = db.connection()
-        quota_entities_used = db_connection.get('SELECT COUNT(DISTINCT entity_id) AS entities, COUNT(*) AS properties FROM property WHERE deleted IS NULL;').entities
+        quota_entities_used = db_connection.get('SELECT COUNT(*) AS entities FROM entity WHERE deleted IS NULL;').entities
         # quota_size_used = db_connection.get('SELECT SUM(data_length + index_length) AS size FROM information_schema.TABLES;').size
         quota_size_used = db_connection.get('SELECT SUM(filesize) AS size FROM file;').size
 
