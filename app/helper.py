@@ -11,6 +11,8 @@ import re
 import string
 import base64
 import logging
+import json
+import datetime, time
 
 
 import db
@@ -144,6 +146,17 @@ class myRequestHandler(RequestHandler):
             swapCrypt(self.settings['email_secret']),
             True
         )
+
+
+class JSONDateFix(json.JSONEncoder):
+    """
+    Formats json.dumps() datetime values to YYYY-MM-DD HH:MM:SS. Use it like json.dumps(mydata, cls=JSONDateFix)
+
+    """
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return time.strftime('%Y-%m-%d %H:%M:%S', obj.timetuple())
+        return json.JSONEncoder.default(self, obj)
 
 
 def swapCrypt(s, encrypt=False):

@@ -52,19 +52,11 @@
             </tr>
             {% end %}
             <tr>
-                <th style="text-align:right; white-space:nowrap; vertical-align:middle;">
+                <th style="text-align:right; white-space:nowrap; vertical-align:middle; color:gray;">
                     {{ _('public') }}
                 </th>
-                <td style="width:100%; vertical-align:middle;">
+                <td style="width:100%; vertical-align:middle; color:gray;">
                     {% if entity.get('is_public', False) %}<b>{{ _('boolean_true') }}</b>{% else %}{{ _('boolean_false') }}{% end %}
-                </td>
-            </tr>
-            <tr>
-                <th style="text-align:right; white-space:nowrap; vertical-align:middle;">
-                    {{ _('created') }}
-                </th>
-                <td style="width:100%; vertical-align:middle;">
-                    {{ entity.get('created', '') }}
                 </td>
             </tr>
         </tbody>
@@ -142,9 +134,6 @@
                     {{ l }}
                 </th>
                 {% end %}
-                <th>
-                    {{ _('created') }}
-                </th>
             </tr>
             {% end %}
             {% for i in v %}
@@ -155,9 +144,6 @@
                         <a href="#{{ i.get('id', '') }}" class="open_child" style="display:block;">{% if x %}{{ x }}{% else %}&nbsp;{% end %}</a>
                     </td>
                     {% end %}
-                    <td style="text-align:center; width:70px; white-space:nowrap; vertical-align:middle;">
-                        {{ i.get('created', '') }}
-                    </td>
                 {% else %}
                 <td style="">
                     <a href="#{{ i.get('id', '') }}" class="open_child" style="display:block;">{% if i.get('displayname', '') %}{{ i.get('displayname', '') }}{% else %}&nbsp;{% end %}</a>
