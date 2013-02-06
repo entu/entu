@@ -46,6 +46,7 @@ public,Public
 public_description,Make this document accessible in public view
 
 created,Created
+changed,Changed
 
 share_by_email,Share by email
 share_to,To (email)
