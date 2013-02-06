@@ -193,7 +193,7 @@ class EsterTest(myRequestHandler):
 
 def GetExistingID(ester_id):
     db_connection = db.connection()
-    entity = db_connection.get('SELECT property.entity_id, entity.entity_definition_keyname FROM property, entity, property_definition WHERE entity.id = property.entity_id AND property_definition.keyname = property.property_definition_keyname AND property_definition.dataproperty = \'ester-id\' AND property.value_string = %s AND property.deleted IS NULL LIMIT 1', ester_id)
+    entity = db_connection.get('SELECT property.entity_id, entity.entity_definition_keyname FROM property, entity, property_definition WHERE entity.id = property.entity_id AND property_definition.keyname = property.property_definition_keyname AND property_definition.dataproperty = \'ester-id\' AND property.value_string = %s AND property.deleted IS NULL AND entity.deleted IS NULL LIMIT 1', ester_id)
     if not entity:
         return {}
 
