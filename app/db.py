@@ -268,9 +268,7 @@ class Entity():
         if definition.formula == 1:
             formula.save_property(new_property_id=new_property_id, old_property_id=old_property_id)
         else:
-            pass
-            # SPEED MUST BE FIXED!!!
-            # Formula(user_locale=self.user_locale, created_by=self.created_by, entity_id=entity_id, property_id=new_property_id).update_depending_formulas()
+            Formula(user_locale=self.user_locale, created_by=self.created_by, entity_id=entity_id, property_id=new_property_id).update_depending_formulas()
 
         self.db.execute('UPDATE entity SET changed = NOW(), changed_by = %s WHERE id = %s;',
             self.created_by,

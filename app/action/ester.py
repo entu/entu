@@ -168,7 +168,6 @@ class EsterImport(myRequestHandler):
 
         for field, values in item.iteritems():
             sql = 'SELECT keyname FROM property_definition WHERE dataproperty = \'%s\' AND entity_definition_keyname = \'%s\' LIMIT 1;' % (field, entity_definition_keyname)
-            logging.debug(sql)
 
             property_definition = db_connection.get(sql)
             if not property_definition:
