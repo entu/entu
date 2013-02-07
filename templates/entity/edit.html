@@ -147,7 +147,8 @@
                     data: function (term, page) {
                         return {
                             q: term,
-                            definition: definition
+                            definition: definition,
+                            exclude_entity: $('#database').data('entity_id'),
                         };
                     },
                     results: function (data, page) {

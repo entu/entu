@@ -24,10 +24,10 @@ search_button,Otsi
 search_advanced,Laiendatud otsing
 search_placeholder,Pime kana leiab tera...
 search_term_to_short,Otsisõna '%s' on liiga lühike. Proovi 2x pikemat.
-search_noresult,Ei leidnud midagi. Proovi uuesti.
-search_result,Leiti
+search_noresult,Ei leidnud midagi
 search_result_count1,Leiti üks
 search_result_count2,Leiti %s
+search_result_over_limit, Leiti rohkem kui %s
 
 boolean_true,Jah
 boolean_false,Ei

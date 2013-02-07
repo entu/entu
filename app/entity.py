@@ -67,7 +67,11 @@ class ShowGroup(myRequestHandler):
         """
         entity_definition_keyname = entity_definition_keyname.strip('/').split('/')[0]
         search = self.get_argument('search', None, True)
-        self.write({'items': db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(ids_only=True, search=search, entity_definition_keyname=entity_definition_keyname, limit=303)})
+        limit = 500
+        self.write({
+            'items': db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(ids_only=True, search=search, entity_definition_keyname=entity_definition_keyname, limit=limit+1),
+            'limit': limit,
+        })
 
 
 class ShowListinfo(myRequestHandler):
@@ -101,6 +105,7 @@ class GetEntities(myRequestHandler):
         """
         search = self.get_argument('q', None, True)
         entity_definition_keyname = self.get_argument('definition', None, True)
+        exclude_entity_id = self.get_argument('exclude_entity', 0, True)
         if not search:
             return self.missing()
 
@@ -108,6 +113,8 @@ class GetEntities(myRequestHandler):
 
         result = []
         for e in entity.get(search=search, entity_definition_keyname=entity_definition_keyname, limit=303):
+            if e['id'] == int(exclude_entity_id):
+                continue
             result.append({
                 'id':    e['id'],
                 'title': e['displayname'],
@@ -116,9 +123,6 @@ class GetEntities(myRequestHandler):
             })
 
         self.write({'entities': result})
-
-
-
 
 
 class ShowEntity(myRequestHandler):

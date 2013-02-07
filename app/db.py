@@ -557,7 +557,12 @@ class Entity():
         if len(having_parts) > 0:
             sql += ' HAVING %s' % ' AND '.join(having_parts)
 
-        sql += ' ORDER BY e.sort, e.created DESC LIMIT 303) foo;'
+        if limit:
+            limit = ' LIMIT %s' % limit
+        else:
+            limit = ''
+
+        sql += ' ORDER BY e.sort, e.created DESC%s) foo;' % limit
 
         # logging.debug(sql)
 
