@@ -32,6 +32,9 @@ class Entity():
     """
     Entity class. user_id can be single ID or list of IDs. If user_id is not set all Entity class methods will return only public stuff.
     """
+    timer_start = None
+    timer_last = None
+
     def __init__(self, user_locale, user_id=None):
         self.db             = connection()
 
@@ -46,6 +49,12 @@ class Entity():
             self.created_by = ','.join(map(str, self.user_id))
 
         # logging.debug({'user':self.user_id, 'created':self.created_by})
+
+    def timer(self, msg='', reset=False):
+        if not self.timer_start or reset:
+            self.timer_start = time.time()
+        self.timer_last = time.time() - self.timer_start
+        logging.debug('%0.3f - %s' % (round(self.timer_last, 3), msg))
 
 
     def create(self, entity_definition_keyname, parent_entity_id=None):
@@ -211,7 +220,6 @@ class Entity():
             if definition.formula == 1:
                 Formula(user_locale=self.user_locale, created_by=self.created_by, entity_id=entity_id, property_id=old_property_id).delete()
 
-
         # If no value, then property is deleted, return
         if not value:
             return
@@ -260,7 +268,9 @@ class Entity():
         if definition.formula == 1:
             formula.save_property(new_property_id=new_property_id, old_property_id=old_property_id)
         else:
-            Formula(user_locale=self.user_locale, created_by=self.created_by, entity_id=entity_id, property_id=new_property_id).update_depending_formulas()
+            pass
+            # SPEED MUST BE FIXED!!!
+            # Formula(user_locale=self.user_locale, created_by=self.created_by, entity_id=entity_id, property_id=new_property_id).update_depending_formulas()
 
         self.db.execute('UPDATE entity SET changed = NOW(), changed_by = %s WHERE id = %s;',
             self.created_by,
