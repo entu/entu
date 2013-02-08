@@ -97,6 +97,7 @@
                 $('#content').css('left', parseInt($('#list').css('left'))+parseInt($('#list').css('width'))+'px');
                 $('#content').removeClass('menu-hidden');
                 $('.brand').css('width', parseInt($('#content').css('left'))-10+'px');
+                $('#menu_accordion').accordion('resize');
             };
             function menu_hide(){
                 $('#menu').hide();
