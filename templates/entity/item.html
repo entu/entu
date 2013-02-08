@@ -101,6 +101,7 @@
             <li><a href="/entity-{{ entity['id'] }}/download"><i class="icon-download-alt" style="margin:-2px 0px; padding:0px; font-size:14px; float:right;"></i>{{ _('menu_download') }}</a></li>
         </ul>
     </li>
+    <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-fullscreen" title="{{ _('menu_fullscreen') }}"><i class="icon-resize-full"></i></a></li>
 </ul>
 
 <!--ul class="nav nav-tabs" id="myTab" style="clear:both;">
@@ -169,6 +170,43 @@
 
         $('#toolbar').html($('#toolbar_template').html());
         $('#toolbar_template').html('')
+
+        change_fullscreen_icon();
+
+        function change_fullscreen_icon() {
+            if($('#content').hasClass('fullscreen')) {
+                $('#toolbar-item-fullscreen').children('i').removeClass('icon-resize-full');
+                $('#toolbar-item-fullscreen').children('i').addClass('icon-resize-small');
+            } else {
+                $('#toolbar-item-fullscreen').children('i').removeClass('icon-resize-small');
+                $('#toolbar-item-fullscreen').children('i').addClass('icon-resize-full');
+            }
+        }
+
+        $('#toolbar-item-fullscreen').click(function() {
+            if($('#content').hasClass('fullscreen')) {
+                if($('#content').hasClass('menu-hidden')) {
+                    $('#menu_hidden').show();
+                } else {
+                    $('#menu').show();
+                };
+                $('#list').show();
+                $('#list_search').show();
+                $('#content').css('left', parseInt($('#list').css('left'))+parseInt($('#list').css('width'))+'px');
+                $('#content').removeClass('fullscreen');
+            } else {
+                if($('#content').hasClass('menu-hidden')) {
+                    $('#menu_hidden').hide();
+                } else {
+                    $('#menu').hide();
+                };
+                $('#list').hide();
+                $('#list_search').hide();
+                $('#content').css('left', '0px');
+                $('#content').addClass('fullscreen');
+            }
+            change_fullscreen_icon();
+        });
 
         $('.toolbar-item-add a').click(function() {
             $.get('/entity-'+$(this).data('entity_id')+'/add/'+$(this).data('definition_keyname'), function(html) {

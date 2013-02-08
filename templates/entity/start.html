@@ -91,10 +91,11 @@
 
             function menu_show() {
                 $('#menu').show();
-                $('#menu_hidden').show();
+                $('#menu_hidden').hide();
                 $('#list').css('left', parseInt($('#menu').css('width'))+1+'px');
                 $('#list_search').css('left', parseInt($('#menu').css('width'))+1+'px');
                 $('#content').css('left', parseInt($('#list').css('left'))+parseInt($('#list').css('width'))+'px');
+                $('#content').removeClass('menu-hidden');
                 $('.brand').css('width', parseInt($('#content').css('left'))-10+'px');
             };
             function menu_hide(){
@@ -103,8 +104,9 @@
                 $('#list').css('left', parseInt($('#menu_hidden').css('width'))+1+'px');
                 $('#list_search').css('left', parseInt($('#menu_hidden').css('width'))+1+'px');
                 $('#content').css('left', parseInt($('#list').css('left'))+parseInt($('#list').css('width'))+'px');
+                $('#content').addClass('menu-hidden');
                 $('.brand').css('width', parseInt($('#content').css('left'))-10+'px');
-            }
+            };
         {% end %}
 
             $('#logout').click(function(e) {

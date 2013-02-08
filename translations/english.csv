@@ -12,6 +12,8 @@ menu_login,Login
 menu_exit,Logout
 menu_help,Help
 menu_download,Download
+menu_fullscreen,Fullscreen
+
 
 version_history,Channge Log
 quota,Usage and Quota
