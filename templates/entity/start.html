@@ -9,13 +9,16 @@
 {% block fluid %}-fluid{% end %}
 
 {% block left_toolbar %}
-    <ul id="toolbar" class="nav">
-    </ul>
 {% end %}
 
 {% block right_toolbar %}
-    <li class="toolbar-item"><a href="">{{ current_user.name }}<img src="{{ current_user.picture }}" style="margin:-2px -5px 0px 10px; height:40px; width:40px;" /></a></li>
-    <li class="toolbar-item"><a id="logout" href="javascript:void(0);" title="{{ _('menu_exit') }}"><i class="icon-off"></i></a></li>
+    <ul id="toolbar" class="nav" style="margin:0px;"></ul>
+    <li class="toolbar-item dropdown">
+        <a href="">{{ current_user.name }}<img src="{{ current_user.picture }}" style="margin:-4px -5px 0px 10px; height:36px; width:36px;" /></a>
+        <ul class="dropdown-menu toolbar-item-add" style="margin-right:5px; mrgin-top:0px;">
+            <li><a id="logout" href="javascript:void(0);"><i class="icon-off"></i> {{ _('menu_exit') }}</a></li>
+        </ul>
+    </li>
 {% end %}
 
 {% block content %}
@@ -76,7 +79,6 @@
         $(document).ready(function(){
 
         {% if show_list %}
-
             menu_hide();
 
             $('#menu, #menu_hidden').hover(function() {
@@ -96,7 +98,6 @@
                 $('#list_search').css('left', parseInt($('#menu').css('width'))+1+'px');
                 $('#content').css('left', parseInt($('#list').css('left'))+parseInt($('#list').css('width'))+'px');
                 $('#content').removeClass('menu-hidden');
-                $('.brand').css('width', parseInt($('#content').css('left'))-10+'px');
                 $('#menu_accordion').accordion('resize');
             };
             function menu_hide(){
@@ -106,7 +107,6 @@
                 $('#list_search').css('left', parseInt($('#menu_hidden').css('width'))+1+'px');
                 $('#content').css('left', parseInt($('#list').css('left'))+parseInt($('#list').css('width'))+'px');
                 $('#content').addClass('menu-hidden');
-                $('.brand').css('width', parseInt($('#content').css('left'))-10+'px');
             };
         {% end %}
 

@@ -10,9 +10,9 @@
                     {% for parent in parentgroup %}
                         <td style="text-align:center;">
                             <a class="no-underline" href="#{{ parent.get('id', '') }}" style="display:block; padding:0px 8px;">
-                                <i class="divider icon-arrow-up pull-left" style="padding-left:0px;"></i>
+                                <i class="divider icon-arrow-up pull-left" style="padding-left:0px; padding-top:2px;"></i>
                                 <b>{{ parent.get('label', '') }}:</b> {{ parent.get('displayname', '') }}
-                                <i class="divider icon-arrow-up pull-right" style="padding-right:0px;"></i>
+                                <i class="divider icon-arrow-up pull-right" style="padding-right:0px; padding-top:2px;"></i>
                             </a>
                         </td>
                     {% end %}

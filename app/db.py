@@ -1388,7 +1388,7 @@ class User():
         db = connection()
         db.execute('UPDATE user SET session = NULL, access_token = NULL WHERE session = %s;', session_key+user_key)
 
-        self.clear_cookie('session')
+        request_handler.clear_cookie('session')
 
 
 class Formula():
