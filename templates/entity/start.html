@@ -12,13 +12,18 @@
 {% end %}
 
 {% block right_toolbar %}
-    <ul id="toolbar" class="nav" style="margin:0px;"></ul>
-    <li class="toolbar-item dropdown">
-        <a href="">{{ current_user.name }}<img src="{{ current_user.picture }}" style="margin:-4px -5px 0px 10px; height:36px; width:36px;" /></a>
-        <ul class="dropdown-menu toolbar-item-add" style="margin-right:5px; mrgin-top:0px;">
-            <li><a id="logout" href="javascript:void(0);"><i class="icon-off"></i> {{ _('menu_exit') }}</a></li>
-        </ul>
-    </li>
+    <ul class="nav pull-right">
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle header-menu-item toolbar-item">{{ current_user.name }}<img src="{{ current_user.picture }}" style="margin: -8px -8px -8px 10px;height:36px; width:36px;" ></a>
+            <ul class="dropdown-menu" style="margin-right:5px; mrgin-top:0px;">
+                <li><a href="javascript:void(0);" class="open-modal-box" data-url="/user/preferences"><i class="icon-cog"></i> {{ _('menu_preferences') }}</a></li>
+                <li class="divider"></li>
+                <li><a href="javascript:void(0);" id="logout"><i class="icon-off" style="font-size:14px;"></i> {{ _('menu_exit') }}</a></li>
+            </ul>
+        </li>
+    </ul>
+    <ul id="toolbar" class="nav pull-right">
+    </ul>
 {% end %}
 
 {% block content %}
@@ -109,6 +114,19 @@
                 $('#content').addClass('menu-hidden');
             };
         {% end %}
+
+            $('.open-modal-box').click(function() {
+                url = $(this).data('url');
+                $.get(url, function(html) {
+                    document.body.style.cursor = 'wait';
+                    $('#modal-box').modal('show');
+                    $('#modal-box').html(html);
+                    setTimeout(function () {
+                        $(':text:input:first').focus();
+                        document.body.style.cursor = 'default';
+                    }, 400);
+                });
+            });
 
             $('#logout').click(function(e) {
                 newwindow = window.open('/exit', 'do_entu_logout', 'height=200,width=150');

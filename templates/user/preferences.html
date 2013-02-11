@@ -2,25 +2,46 @@
 
 <div class="modal-header" style="border:none;">
     <a class="close" data-dismiss="modal"><i class="icon-remove-sign"></i></a>
-    <h3>{{ _('share_by_email') }}</h3>
+    <h3>{{ _('user_preferences') }}</h3>
 </div>
 <div class="modal-body" style="padding:0px;">
     <table class="edit-form table table-bordered" style="margin:0px;">
         <tbody>
             <tr>
                 <th>
-                    {{ _('share_to') }}
+                    {{ _('user_name') }}
                 </th>
-                <td>
-                    <input type="text" id="email-to" />
+                <td style="padding:8px;">
+                    {{ current_user.name }}
                 </td>
             </tr>
             <tr>
                 <th>
-                    {{ _('share_message') }}
+                    {{ _('user_language') }}
                 </th>
                 <td>
-                    <textarea id="email-message"></textarea>
+
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    {{ _('user_timezone') }}
+                </th>
+                <td>
+
+                </td>
+            </tr>
+            <tr>
+                <th rowspan="2">
+                    {{ _('user_accounts') }}
+                </th>
+                <td style="padding:8px;">
+                    Google
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:8px; color:gray;">
+                    Facebook
                 </td>
             </tr>
         </tbody>
@@ -28,20 +49,10 @@
 </div>
 <div class="modal-footer">
     <a href="#" class="btn" data-dismiss="modal">{{ _('close') }}</a>
-    <button id="send-email" class="btn btn-primary">{{ _('share_send') }}</button>
 </div>
 
 <script>
-
     $(document).ready(function(){
-
-        $('textarea').elastic();
-
-        $('#send-email').click(function() {
-            $.post('/entity-{{ entity_id }}/share', { to: $('#email-to').val(), message: $('#email-message').val() }, function(newvalue) {
-                $('#modal-box').modal('hide')
-            });
-        });
 
     });
 </script>
