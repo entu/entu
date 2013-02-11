@@ -1,4 +1,5 @@
 <div id="list">
+    <div id="list_search"><input type="search" id="searchbox" class="search-query" placeholder="{{ _('search_placeholder') }}" /><span></span></div>
     <div id="list_items"></div>
     <img src="{{ static_url('images/spinner_white.gif') }}" class="spinner" />
 </div>
@@ -28,7 +29,7 @@
                 $('#content').html(html);
             });
             if(!skip_push_state) {
-                window.history.replaceState('entity-'+id, '', '/entity/{{ entity_definition }}/' + id);
+                window.history.replaceState('entity-'+id, '', '/entity/{{ entity_definition_keyname }}/' + id);
             };
             _gaq.push(['_trackPageview', '/entity-'+id]);
         } else {
@@ -41,11 +42,11 @@
         items = [];
 
         get_list();
-        open_item(window.location.pathname.replace('/entity/{{ entity_definition }}', '').replace('/', ''));
+        open_item(window.location.pathname.replace('/entity/{{ entity_definition_keyname }}', '').replace('/', ''));
 
         window.onpopstate = function(e){
             if(e.state) {
-                open_item(window.location.pathname.replace('/entity/{{ entity_definition }}', '').replace('/', ''), false);
+                open_item(window.location.pathname.replace('/entity/{{ entity_definition_keyname }}', '').replace('/', ''), false);
             };
         };
 
@@ -59,11 +60,26 @@
             $('#list_items').html('');
             $.post(window.location.pathname, {'search': $('#searchbox').val()}, function(list) {
                 items = list.items;
-                for (i in list.items) {
-                    var id = list.items[i];
+                count = items.length;
+                for (i in items) {
+                    var id = items[i];
                     $('#list_items').append('<a id="listitem_'+id+'" class="listitem empty_item" href="#'+id+'" data-item="'+id+'" tabindex="0"></a>');
                 };
-                $('#list_search span').html('{{ _('search_result') }} '+list.items.length);
+                if(count > list.limit) {
+                    $('#list_search span').html('{{ _('search_result_over_limit') }}'.replace('%s', list.limit));
+                } else {
+                    switch(count) {
+                        case 0:
+                            $('#list_search span').html("{{ _('search_noresult') }}");
+                            break;
+                        case 1:
+                            $('#list_search span').html("{{ _('search_result_count1') }}".replace('%s', count));
+                            break;
+                        default:
+                            $('#list_search span').html("{{ _('search_result_count2') }}".replace('%s', count));
+                            break;
+                    };
+                }
                 $('#list .spinner').hide();
 
                 append_list();
@@ -145,7 +161,7 @@
             if($('#modal-box').data('open_entity_id')) {
                 open_item($('#modal-box').data('open_entity_id'), false);
             } else {
-                open_item(window.location.pathname.replace('/entity/{{ entity_definition }}', '').replace('/', ''), false);
+                open_item(window.location.pathname.replace('/entity/{{ entity_definition_keyname }}', '').replace('/', ''), false);
             }
         })
     });

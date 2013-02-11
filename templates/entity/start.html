@@ -5,23 +5,27 @@
 {% end %}
 
 {% block logo_url %}/entity{% end %}
+
 {% block fluid %}-fluid{% end %}
 
 {% block left_toolbar %}
-    {% if show_list %}
-        <li id="list_search"><input type="search" id="searchbox" class="search-query" placeholder="{{ _('search_placeholder') }}" /><span></span></li>
-    {% end %}
-    <ul id="toolbar" class="nav">
-    </ul>
 {% end %}
 
 {% block right_toolbar %}
-    <li class="toolbar-item"><a href="">{{ current_user.name }}<img src="{{ current_user.picture }}" style="margin:-2px -5px 0px 10px; height:40px; width:40px;" /></a></li>
-    <li class="toolbar-item"><a id="logout" href="javascript:void(0);" title="{{ _('menu_exit') }}"><i class="icon-off"></i></a></li>
+    <ul id="toolbar" class="nav" style="margin:0px;"></ul>
+    <li class="toolbar-item dropdown">
+        <a href="">{{ current_user.name }}<img src="{{ current_user.picture }}" style="margin:-4px -5px 0px 10px; height:36px; width:36px;" /></a>
+        <ul class="dropdown-menu toolbar-item-add" style="margin-right:5px; mrgin-top:0px;">
+            <li><a id="logout" href="javascript:void(0);"><i class="icon-off"></i> {{ _('menu_exit') }}</a></li>
+        </ul>
+    </li>
 {% end %}
 
 {% block content %}
     <div class="container-fluid">
+        <div id="menu_hidden">
+            <div class="rotate">{{ entity_definition_label }}</div>
+        </div>
         <div id="menu">
             <div id="menu_accordion" class="accordion">
                 {% for m in menu %}
@@ -74,6 +78,38 @@
     <script>
         $(document).ready(function(){
 
+        {% if show_list %}
+            menu_hide();
+
+            $('#menu, #menu_hidden').hover(function() {
+                menu_show();
+            }, function() {
+                menu_hide();
+            });
+
+            $('#menu_hidden').click(function() {
+                menu_show();
+            });
+
+            function menu_show() {
+                $('#menu').show();
+                $('#menu_hidden').hide();
+                $('#list').css('left', parseInt($('#menu').css('width'))+1+'px');
+                $('#list_search').css('left', parseInt($('#menu').css('width'))+1+'px');
+                $('#content').css('left', parseInt($('#list').css('left'))+parseInt($('#list').css('width'))+'px');
+                $('#content').removeClass('menu-hidden');
+                $('#menu_accordion').accordion('resize');
+            };
+            function menu_hide(){
+                $('#menu').hide();
+                $('#menu_hidden').show();
+                $('#list').css('left', parseInt($('#menu_hidden').css('width'))+1+'px');
+                $('#list_search').css('left', parseInt($('#menu_hidden').css('width'))+1+'px');
+                $('#content').css('left', parseInt($('#list').css('left'))+parseInt($('#list').css('width'))+'px');
+                $('#content').addClass('menu-hidden');
+            };
+        {% end %}
+
             $('#logout').click(function(e) {
                 newwindow = window.open('/exit', 'do_entu_logout', 'height=200,width=150');
                 close = setInterval(function() {
@@ -83,12 +119,12 @@
                 }, 3000);
             });
 
-            $(".accordion").accordion({
+            $('.accordion').accordion({
                 fillSpace: true,
                 navigation: true,
             });
-            $("#menu").find("a[href='"+window.location.pathname+"']").each(function(){
-                $(this).addClass("active")
+            $('#menu').find("a[href='"+window.location.pathname+"']").each(function(){
+                $(this).addClass('active')
             })
 
             $(window).resize(function(){

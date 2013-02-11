@@ -32,6 +32,9 @@ class Entity():
     """
     Entity class. user_id can be single ID or list of IDs. If user_id is not set all Entity class methods will return only public stuff.
     """
+    timer_start = None
+    timer_last = None
+
     def __init__(self, user_locale, user_id=None):
         self.db             = connection()
 
@@ -46,6 +49,12 @@ class Entity():
             self.created_by = ','.join(map(str, self.user_id))
 
         # logging.debug({'user':self.user_id, 'created':self.created_by})
+
+    def timer(self, msg='', reset=False):
+        if not self.timer_start or reset:
+            self.timer_start = time.time()
+        self.timer_last = time.time() - self.timer_start
+        logging.debug('%0.3f - %s' % (round(self.timer_last, 3), msg))
 
 
     def create(self, entity_definition_keyname, parent_entity_id=None):
@@ -211,7 +220,6 @@ class Entity():
             self.db.execute('UPDATE property SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', self.created_by, old_property_id )
             if definition.formula == 1:
                 Formula(user_locale=self.user_locale, created_by=self.created_by, entity_id=entity_id, property_id=old_property_id).delete()
-
 
         # If no value, then property is deleted, return
         if not value:
@@ -495,23 +503,24 @@ class Entity():
 
         """
 
-        where_sql = ''
+        select_parts = ['e.id AS id', 'e.deleted AS ed']
+        join_parts = []
         where_parts = []
-        join_sql = ''
-        select_sql = ''
-        where_parts.append('e.is_deleted = 0')
+        groupby_parts = ['e.id', 'e.deleted']
+        having_parts = ['e.deleted IS NULL']
 
         if search != None:
             i = 0
             for s in search.split(' '):
                 i += 1
-                # select_sql += ', p%i.deleted as p%id\n' % (i, i)
-                join_sql += 'RIGHT JOIN property AS p%i ON p%i.entity_id = e.id\n' % (i, i)
+                select_parts.append('p%i.deleted as p%id' % (i, i))
+                join_parts.append('RIGHT JOIN property AS p%i ON p%i.entity_id = e.id' % (i, i))
                 if not self.user_id or only_public == True:
-                    join_sql += 'LEFT JOIN property_definition AS pd%i ON pd%i.keyname = p%i.property_definition_keyname\n' % (i, i, i)
+                    join_parts.append('LEFT JOIN property_definition AS pd%i ON pd%i.keyname = p%i.property_definition_keyname' % (i, i, i))
 
                 where_parts.append('p%i.value_string LIKE \'%%%%%s%%%%\'' % (i, s))
-                where_parts.append('p%i.is_deleted = 0' % i)
+                groupby_parts.append('p%i.deleted' % i)
+                having_parts.append('p%i.deleted IS NULL' % i)
 
         if entity_definition_keyname != None:
             if type(entity_definition_keyname) is not list:
@@ -524,9 +533,9 @@ class Entity():
             where_parts.append('e.id IN (%s)' % ','.join(map(str, entity_id)))
 
         if self.user_id and only_public == False:
-            select_sql += ', r.deleted AS rd\n'
+            select_parts.append('r.deleted AS rd')
+            join_parts.append('RIGHT JOIN relationship AS r  ON r.entity_id  = e.id')
             where_parts.append('r.related_entity_id IN (%s) AND r.relationship_definition_keyname IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id)))
-            join_sql += 'RIGHT JOIN relationship AS r ON r.entity_id  = e.id\n'
         else:
             where_parts.append('e.public = 1')
             i = 0
@@ -535,62 +544,35 @@ class Entity():
                     i += 1
                     where_parts.append('pd%i.public = 1' % i)
 
+        if len(having_parts) > 0:
+            having_sql = ' HAVING %s' % ' AND '.join(having_parts)
+
+        sql = 'SELECT DISTINCT foo.id FROM ('
+
+        if len(select_parts) > 0:
+            sql += 'SELECT %s' % ', '.join(select_parts)
+
+        sql += ' FROM entity AS e'
+
+        if len(join_parts) > 0:
+            sql += ' %s' %  ' '.join(join_parts)
+
         if len(where_parts) > 0:
-            where_sql = 'WHERE  %s\n' % '\nAND '.join(where_parts)
+            sql += ' WHERE %s' % ' AND '.join(where_parts)
 
-        sql = """
-            SELECT DISTINCT foo.id FROM (
-                SELECT e.id AS id, e.deleted AS ed\n"""
-        sql += select_sql
-        sql += 'FROM entity e\n'
-        sql += join_sql
-        sql += where_sql
-        sql += 'GROUP BY e.id\n'
-        sql += 'ORDER BY e.sort, e.created DESC LIMIT 1000) foo;'
+        if len(groupby_parts) > 0:
+            sql += ' GROUP BY %s' % ', '.join(groupby_parts)
 
-        logging.debug(sql)
+        if len(having_parts) > 0:
+            sql += ' HAVING %s' % ' AND '.join(having_parts)
 
-        # sql = """
-        #     SELECT DISTINCT
-        #         entity.id AS id
-        #     FROM
-        #         property_definition,
-        #         property,
-        #         entity,
-        #         relationship
-        #     WHERE property.property_definition_keyname = property_definition.keyname
-        #     AND entity.id = property.entity_id
-        #     AND relationship.entity_id = entity.id
-        #     AND entity.deleted IS NULL
-        #     AND property.deleted IS NULL
-        #     AND relationship.deleted IS NULL
-        # """
+        if limit:
+            limit = ' LIMIT %s' % limit
+        else:
+            limit = ''
 
-        # if entity_id != None:
-        #     if type(entity_id) is not list:
-        #         entity_id = [entity_id]
-        #     sql += ' AND entity.id IN (%s)' % ','.join(map(str, entity_id))
+        sql += ' ORDER BY e.sort, e.created DESC%s) foo;' % limit
 
-        # if search != None:
-        #     for s in search.split(' '):
-        #         sql += ' AND value_string LIKE \'%%%%%s%%%%\'' % s
-
-        # if entity_definition_keyname != None:
-        #     if type(entity_definition_keyname) is not list:
-        #         entity_definition_keyname = [entity_definition_keyname]
-        #     sql += ' AND entity.entity_definition_keyname IN (%s)' % ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])
-
-        # if self.user_id and only_public == False:
-        #     sql += ' AND relationship.related_entity_id IN (%s) AND relationship.relationship_definition_keyname IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
-        # else:
-        #     sql += ' AND entity.public = 1 AND property_definition.public = 1'
-
-        # sql += ' ORDER BY entity.sort, entity.created DESC'
-
-        # if limit != None:
-        #     sql += ' LIMIT %d' % limit
-
-        # sql += ';'
         # logging.debug(sql)
 
         items = self.db.query(sql)
@@ -729,6 +711,55 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['executable'] = True if row.property_executable == 1 else False
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['public'] = True if row.property_public == 1 else False
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['readonly'] = True if row.property_readonly == 1 else False
+
+                #X properties
+                if row.entity_created:
+                    items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {})['x_created'] = {
+                        'keyname' : 'x_created',
+                        'fieldset' : 'X',
+                        'label' : self.user_locale.translate('created'),
+                        'label_plural' : self.user_locale.translate('created'),
+                        'description' : '',
+                        'datatype': 'datetime',
+                        'dataproperty' : 'x_created',
+                        'multilingual' : False,
+                        'multiplicity' : 1,
+                        'ordinal' : 100000,
+                        'formula' : False,
+                        'executable' : False,
+                        'public' : False,
+                        'readonly' : True,
+                        'values': {'value_0': {
+                            'id': 0,
+                            'ordinal': 0,
+                            'value': formatDatetime(row.entity_created),
+                            'db_value': row.entity_created
+                        }}
+                    }
+
+                if row.entity_changed:
+                    items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {})['x_changed'] = {
+                        'keyname' : 'x_changed',
+                        'fieldset' : 'X',
+                        'label' : self.user_locale.translate('changed'),
+                        'label_plural' : self.user_locale.translate('changed'),
+                        'description' : '',
+                        'datatype': 'datetime',
+                        'dataproperty' : 'x_changed',
+                        'multilingual' : False,
+                        'multiplicity' : 1,
+                        'ordinal' : 100001,
+                        'formula' : False,
+                        'executable' : False,
+                        'public' : False,
+                        'readonly' : True,
+                        'values': {'value_0': {
+                            'id': 0,
+                            'ordinal': 0,
+                            'value': formatDatetime(row.entity_changed),
+                            'db_value': row.entity_created
+                        }}
+                    }
 
                 #Value
                 if row.property_datatype in ['string', 'select']:
@@ -1358,7 +1389,7 @@ class User():
         db = connection()
         db.execute('UPDATE user SET session = NULL, access_token = NULL WHERE session = %s;', session_key+user_key)
 
-        self.clear_cookie('session')
+        request_handler.clear_cookie('session')
 
 
 class Formula():

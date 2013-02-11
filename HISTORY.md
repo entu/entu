@@ -1,3 +1,8 @@
+## 2013-02-06
+* Search improvements
+* Removed hardcoded 'Created' field from Entity childs table
+* Show quota on start page
+
 ## 2013-01-21
 * New login page
 * Show Entities where Entity is set in reference property

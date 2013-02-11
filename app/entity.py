@@ -32,7 +32,7 @@ class ShowGroup(myRequestHandler):
             entity_definition = entity.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
 
         db_connection = db.connection()
-        quota_entities_used = db_connection.get('SELECT COUNT(DISTINCT entity_id) AS entities, COUNT(*) AS properties FROM property WHERE deleted IS NULL;').entities
+        quota_entities_used = db_connection.get('SELECT COUNT(*) AS entities FROM entity WHERE deleted IS NULL;').entities
         # quota_size_used = db_connection.get('SELECT SUM(data_length + index_length) AS size FROM information_schema.TABLES;').size
         quota_size_used = db_connection.get('SELECT SUM(filesize) AS size FROM file;').size
 
@@ -48,7 +48,8 @@ class ShowGroup(myRequestHandler):
             page_title = entity_definition[0].label_plural if entity_definition else '',
             menu = entity.get_menu(),
             show_list = True if entity_definition_keyname else False,
-            entity_definition = entity_definition_keyname,
+            entity_definition_label = entity_definition[0].label_plural if entity_definition else '',
+            entity_definition_keyname = entity_definition_keyname,
             add_definitions = entity.get_definitions_with_default_parent(entity_definition_keyname) if entity_definition_keyname else None,
             history = history,
             quota_entities = int(self.settings['quota_entities']),
@@ -67,7 +68,11 @@ class ShowGroup(myRequestHandler):
         """
         entity_definition_keyname = entity_definition_keyname.strip('/').split('/')[0]
         search = self.get_argument('search', None, True)
-        self.write({'items': db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(ids_only=True, search=search, entity_definition_keyname=entity_definition_keyname, limit=303)})
+        limit = 500
+        self.write({
+            'items': db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(ids_only=True, search=search, entity_definition_keyname=entity_definition_keyname, limit=limit+1),
+            'limit': limit,
+        })
 
 
 class ShowListinfo(myRequestHandler):
@@ -101,6 +106,7 @@ class GetEntities(myRequestHandler):
         """
         search = self.get_argument('q', None, True)
         entity_definition_keyname = self.get_argument('definition', None, True)
+        exclude_entity_id = self.get_argument('exclude_entity', 0, True)
         if not search:
             return self.missing()
 
@@ -108,6 +114,8 @@ class GetEntities(myRequestHandler):
 
         result = []
         for e in entity.get(search=search, entity_definition_keyname=entity_definition_keyname, limit=303):
+            if e['id'] == int(exclude_entity_id):
+                continue
             result.append({
                 'id':    e['id'],
                 'title': e['displayname'],
@@ -116,9 +124,6 @@ class GetEntities(myRequestHandler):
             })
 
         self.write({'entities': result})
-
-
-
 
 
 class ShowEntity(myRequestHandler):

@@ -68,16 +68,19 @@ class EsterSearch(myRequestHandler):
         if not search_term:
             return
 
-        search_isbn = False
-        if len(search_term) == 10 and search_term[:9].isdigit():
-            search_isbn = True
-        if len(search_term) == 13 and search_term.isdigit():
-            search_isbn = True
-
-        if search_isbn == True:
-            url = 'http://tallinn.ester.ee/search*est/i?SEARCH=%s&searchscope=1&SUBMIT=OTSI' % search_term
+        if search_term[:24] == 'http://tallinn.ester.ee/':
+            url = search_term
         else:
-            url = 'http://tallinn.ester.ee/search*est/X?SEARCH=%s&searchscope=1&SUBMIT=OTSI' % search_term
+            search_isbn = False
+            if len(search_term) == 10 and search_term[:9].isdigit():
+                search_isbn = True
+            if len(search_term) == 13 and search_term.isdigit():
+                search_isbn = True
+
+            if search_isbn == True:
+                url = 'http://tallinn.ester.ee/search*est/i?SEARCH=%s&searchscope=1&SUBMIT=OTSI' % search_term
+            else:
+                url = 'http://tallinn.ester.ee/search*est/X?SEARCH=%s&searchscope=1&SUBMIT=OTSI' % search_term
 
         response = httpclient.AsyncHTTPClient().fetch(url, callback=self._got_list)
 
@@ -165,7 +168,6 @@ class EsterImport(myRequestHandler):
 
         for field, values in item.iteritems():
             sql = 'SELECT keyname FROM property_definition WHERE dataproperty = \'%s\' AND entity_definition_keyname = \'%s\' LIMIT 1;' % (field, entity_definition_keyname)
-            logging.debug(sql)
 
             property_definition = db_connection.get(sql)
             if not property_definition:
@@ -193,7 +195,7 @@ class EsterTest(myRequestHandler):
 
 def GetExistingID(ester_id):
     db_connection = db.connection()
-    entity = db_connection.get('SELECT property.entity_id, entity.entity_definition_keyname FROM property, entity, property_definition WHERE entity.id = property.entity_id AND property_definition.keyname = property.property_definition_keyname AND property_definition.dataproperty = \'ester-id\' AND property.value_string = %s AND property.deleted IS NULL LIMIT 1', ester_id)
+    entity = db_connection.get('SELECT property.entity_id, entity.entity_definition_keyname FROM property, entity, property_definition WHERE entity.id = property.entity_id AND property_definition.keyname = property.property_definition_keyname AND property_definition.dataproperty = \'ester-id\' AND property.value_string = %s AND property.deleted IS NULL AND entity.deleted IS NULL LIMIT 1', ester_id)
     if not entity:
         return {}
 

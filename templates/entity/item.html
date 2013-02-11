@@ -10,9 +10,9 @@
                     {% for parent in parentgroup %}
                         <td style="text-align:center;">
                             <a class="no-underline" href="#{{ parent.get('id', '') }}" style="display:block; padding:0px 8px;">
-                                <i class="divider icon-arrow-up pull-left" style="padding-left:0px;"></i>
+                                <i class="divider icon-arrow-up pull-left" style="padding-left:0px; padding-top:2px;"></i>
                                 <b>{{ parent.get('label', '') }}:</b> {{ parent.get('displayname', '') }}
-                                <i class="divider icon-arrow-up pull-right" style="padding-right:0px;"></i>
+                                <i class="divider icon-arrow-up pull-right" style="padding-right:0px; padding-top:2px;"></i>
                             </a>
                         </td>
                     {% end %}
@@ -22,7 +22,7 @@
     </table>
 {% end %}
 
-<div class="pull-right" style="margin:0px 0px 20px 0px; text-align:center; text-transform:uppercase; color:#B9B9B9; font-weight:bold;">
+<div class="pull-right" style="margin:0px 0px 20px 0px; width:120px; text-align:center; text-transform:uppercase; color:#B9B9B9; font-weight:bold;">
     <img src="{{ entity['displaypicture'] }}" id="entity_picture" class="" width="120" style="padding-bottom:4px; width:120px;" /><br />
     {{ entity['label'] }}
 </div>
@@ -52,19 +52,11 @@
             </tr>
             {% end %}
             <tr>
-                <th style="text-align:right; white-space:nowrap; vertical-align:middle;">
+                <th style="text-align:right; white-space:nowrap; vertical-align:middle; color:gray;">
                     {{ _('public') }}
                 </th>
-                <td style="width:100%; vertical-align:middle;">
+                <td style="width:100%; vertical-align:middle; color:gray;">
                     {% if entity.get('is_public', False) %}<b>{{ _('boolean_true') }}</b>{% else %}{{ _('boolean_false') }}{% end %}
-                </td>
-            </tr>
-            <tr>
-                <th style="text-align:right; white-space:nowrap; vertical-align:middle;">
-                    {{ _('created') }}
-                </th>
-                <td style="width:100%; vertical-align:middle;">
-                    {{ entity.get('created', '') }}
                 </td>
             </tr>
         </tbody>
@@ -100,15 +92,9 @@
     {% if is_owner %}
         <!--li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-rights" title="{{ _('menu_rights') }}"><i class="icon-lock"></i></a></li-->
     {% end %}
-    <!--li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-email" title="{{ _('menu_share') }}"><i class="icon-envelope"></i></a></li>
-    <li class="toolbar-item"><a href="/entity-{{ entity['id'] }}/download" title="{{ _('menu_download') }}"><i class="icon-download-alt"></i></a></li-->
-    <li class="toolbar-item dropdown">
-        <a href="#" class="dropdown-toggle header-menu-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="icon-share"></i></a>
-        <ul class="dropdown-menu toolbar-item-add">
-            <li><a href="javascript:void(0);" id="toolbar-item-email" title="{{ _('menu_share') }}"><i class="icon-envelope" style="margin:-2px 0px; padding:0px; font-size:14px; float:right;"></i>{{ _('menu_share') }}</a></li>
-            <li><a href="/entity-{{ entity['id'] }}/download"><i class="icon-download-alt" style="margin:-2px 0px; padding:0px; font-size:14px; float:right;"></i>{{ _('menu_download') }}</a></li>
-        </ul>
-    </li>
+    <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-email" title="{{ _('menu_share') }}"><i class="icon-envelope"></i></a></li>
+    <!--li class="toolbar-item"><a href="/entity-{{ entity['id'] }}/download" title="{{ _('menu_download') }}"><i class="icon-download-alt"></i></a></li-->
+    <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-fullscreen" title="{{ _('menu_fullscreen') }}"><i class="icon-resize-full"></i></a></li>
 </ul>
 
 <!--ul class="nav nav-tabs" id="myTab" style="clear:both;">
@@ -142,9 +128,6 @@
                     {{ l }}
                 </th>
                 {% end %}
-                <th>
-                    {{ _('created') }}
-                </th>
             </tr>
             {% end %}
             {% for i in v %}
@@ -155,9 +138,6 @@
                         <a href="#{{ i.get('id', '') }}" class="open_child" style="display:block;">{% if x %}{{ x }}{% else %}&nbsp;{% end %}</a>
                     </td>
                     {% end %}
-                    <td style="text-align:center; width:70px; white-space:nowrap; vertical-align:middle;">
-                        {{ i.get('created', '') }}
-                    </td>
                 {% else %}
                 <td style="">
                     <a href="#{{ i.get('id', '') }}" class="open_child" style="display:block;">{% if i.get('displayname', '') %}{{ i.get('displayname', '') }}{% else %}&nbsp;{% end %}</a>
@@ -183,6 +163,43 @@
 
         $('#toolbar').html($('#toolbar_template').html());
         $('#toolbar_template').html('')
+
+        change_fullscreen_icon();
+
+        function change_fullscreen_icon() {
+            if($('#content').hasClass('fullscreen')) {
+                $('#toolbar-item-fullscreen').children('i').removeClass('icon-resize-full');
+                $('#toolbar-item-fullscreen').children('i').addClass('icon-resize-small');
+            } else {
+                $('#toolbar-item-fullscreen').children('i').removeClass('icon-resize-small');
+                $('#toolbar-item-fullscreen').children('i').addClass('icon-resize-full');
+            }
+        }
+
+        $('#toolbar-item-fullscreen').click(function() {
+            if($('#content').hasClass('fullscreen')) {
+                if($('#content').hasClass('menu-hidden')) {
+                    $('#menu_hidden').show();
+                } else {
+                    $('#menu').show();
+                };
+                $('#list').show();
+                $('#list_search').show();
+                $('#content').css('left', parseInt($('#list').css('left'))+parseInt($('#list').css('width'))+'px');
+                $('#content').removeClass('fullscreen');
+            } else {
+                if($('#content').hasClass('menu-hidden')) {
+                    $('#menu_hidden').hide();
+                } else {
+                    $('#menu').hide();
+                };
+                $('#list').hide();
+                $('#list_search').hide();
+                $('#content').css('left', '0px');
+                $('#content').addClass('fullscreen');
+            }
+            change_fullscreen_icon();
+        });
 
         $('.toolbar-item-add a').click(function() {
             $.get('/entity-'+$(this).data('entity_id')+'/add/'+$(this).data('definition_keyname'), function(html) {
