@@ -503,26 +503,21 @@ class Entity():
 
         """
 
-        select_parts = ['e.id AS id', 'e.is_deleted AS ed']
+        select_parts = ['e.id AS id']
         join_parts = []
         where_parts = ['e.is_deleted = 0']
-        groupby_parts = ['e.id', 'e.is_deleted']
-        # having_parts = ['e.deleted IS NULL']
-        sql_parts = ['SELECT DISTINCT foo.id FROM (']
+        sql_parts = []
 
         if search != None:
             i = 0
             for s in search.split(' '):
                 i += 1
-                select_parts.append('p%i.is_deleted as p%id' % (i, i))
                 join_parts.append('RIGHT JOIN property AS p%i ON p%i.entity_id = e.id' % (i, i))
                 if not self.user_id or only_public == True:
                     join_parts.append('LEFT JOIN property_definition AS pd%i ON pd%i.keyname = p%i.property_definition_keyname' % (i, i, i))
 
                 where_parts.append('p%i.value_string LIKE \'%%%%%s%%%%\'' % (i, s))
-                groupby_parts.append('p%i.is_deleted' % i)
-                where_parts.append('p%i.is_deleted = 0' % (i, s))
-                # having_parts.append('p%i.deleted IS NULL' % i)
+                where_parts.append('p%i.is_deleted = 0' % i)
 
         if entity_definition_keyname != None:
             if type(entity_definition_keyname) is not list:
@@ -535,7 +530,7 @@ class Entity():
             where_parts.append('e.id IN (%s)' % ','.join(map(str, entity_id)))
 
         if self.user_id and only_public == False:
-            select_parts.append('r.is_deleted AS rd')
+            where_parts.append('r.is_deleted = 0')
             join_parts.append('RIGHT JOIN relationship AS r  ON r.entity_id  = e.id')
             where_parts.append('r.related_entity_id IN (%s) AND r.relationship_definition_keyname IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id)))
         else:
@@ -546,12 +541,8 @@ class Entity():
                     i += 1
                     where_parts.append('pd%i.public = 1' % i)
 
-        # if len(having_parts) > 0:
-            # having_sql = ' HAVING %s' % ' AND '.join(having_parts)
-
-
         if len(select_parts) > 0:
-            sql_parts.append('SELECT %s' % ', '.join(select_parts))
+            sql_parts.append('SELECT DISTINCT %s' % ', '.join(select_parts))
 
         sql_parts.append(' FROM entity AS e')
 
@@ -561,18 +552,12 @@ class Entity():
         if len(where_parts) > 0:
             sql_parts.append(' WHERE %s' % ' AND '.join(where_parts))
 
-        if len(groupby_parts) > 0:
-            sql_parts.append(' GROUP BY %s' % ', '.join(groupby_parts))
-
-        # if len(having_parts) > 0:
-            # sql_parts.append(' HAVING %s' % ' AND '.join(having_parts))
-
         if limit:
             limit = ' LIMIT %s' % limit
         else:
             limit = ''
 
-        sql_parts.append(' ORDER BY e.sort, e.created DESC%s) foo;' % limit)
+        sql_parts.append(' ORDER BY e.sort, e.created DESC%s;' % limit)
 
         sql = ''.join(sql_parts)
         # logging.debug(sql)
