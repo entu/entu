@@ -37,8 +37,6 @@
 
         $('textarea').elastic();
 
-        document.body.style.cursor = 'default';
-
         $('#send-email').click(function() {
             $.post('/entity-{{ entity_id }}/share', { to: $('#email-to').val(), message: $('#email-message').val() }, function(newvalue) {
                 $('#modal-box').modal('hide')

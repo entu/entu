@@ -12,6 +12,14 @@ menu_login,Login
 menu_exit,Logout
 menu_help,Help
 menu_download,Download
+menu_fullscreen,Fullscreen
+menu_preferences,Preferences
+
+
+version_history,Change Log
+quota,Usage and Quota
+quota_entities,Entities: %s of %s
+quota_files,Files: %s of %s
 
 version_history,Channge Log
 quota,Usage and Quota
@@ -23,10 +31,10 @@ search_button,Search
 search_advanced,Advanced search
 search_placeholder,Search something...
 search_term_to_short,Searching term '%s' is too short. Try to double it.
-search_noresult,Didn't found enything. Try again.
-search_result,Found
+search_noresult,Didn't found enything
 search_result_count1,Found just one
 search_result_count2,Found %s
+search_result_over_limit, Found more than %s
 
 boolean_true,Yes
 boolean_false,No
@@ -46,6 +54,7 @@ public,Public
 public_description,Make this document accessible in public view
 
 created,Created
+changed,Changed
 
 share_by_email,Share by email
 share_to,To (email)
@@ -54,7 +63,7 @@ share_send,Send
 
 action_add_default,Manually
 action_add_ester,Import from Ester
-action_add_ester_search_placeholder,Title or ISBN
+action_add_ester_search_placeholder,"Title, ISBN or URL"
 action_add_ester_add,Add
 action_add_ester_open,Open
 
@@ -63,3 +72,9 @@ action_add_csv_file,CSV file
 action_add_csv_delimiter,Delimiter
 action_add_csv_first_row,First row
 action_add_csv_do_import,Import %s rows
+
+user_preferences,User preferences
+user_name,Name
+user_language,Language
+user_timezone,Timezone
+user_accounts,Accounts

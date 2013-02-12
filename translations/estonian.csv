@@ -13,6 +13,8 @@ menu_login,Sisene
 menu_exit,Välju
 menu_help,Abiinfo
 menu_download,Lae alla
+menu_fullscreen,Täisekraan
+menu_preferences,Seaded
 
 version_history,Viimased muudatused
 quota,Kasutus ja limiit
@@ -24,10 +26,10 @@ search_button,Otsi
 search_advanced,Laiendatud otsing
 search_placeholder,Pime kana leiab tera...
 search_term_to_short,Otsisõna '%s' on liiga lühike. Proovi 2x pikemat.
-search_noresult,Ei leidnud midagi. Proovi uuesti.
-search_result,Leiti
+search_noresult,Ei leidnud midagi
 search_result_count1,Leiti üks
 search_result_count2,Leiti %s
+search_result_over_limit, Leiti rohkem kui %s
 
 boolean_true,Jah
 boolean_false,Ei
@@ -47,6 +49,7 @@ public,Avalik
 public_description,Tee see dokument nähtavaks avalikus vaates
 
 created,Loodud
+changed,Muudetud
 
 share_by_email,Saada epostiga
 share_to,Kellele (email)
@@ -55,7 +58,7 @@ share_send,Saada
 
 action_add_default,Käsitsi
 action_add_ester,Impordi Estrist
-action_add_ester_search_placeholder,Pealkiri või ISBN
+action_add_ester_search_placeholder,"Pealkiri, ISBN või URL"
 action_add_ester_add,Lisa
 action_add_ester_open,Ava
 
@@ -64,6 +67,13 @@ action_add_csv_file,CSV fail
 action_add_csv_delimiter,Väljade eraldaja
 action_add_csv_first_row,Alusta reast
 action_add_csv_do_import,Impordi %s rida
+
+user_preferences,Kasutaja seaded
+user_name,Nimi
+user_language,Keel
+user_timezone,Ajavöönd
+user_accounts,Kontod
+
 
 
 
