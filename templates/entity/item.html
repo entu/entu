@@ -65,36 +65,31 @@
 
 <ul id="toolbar_template" style="display:none;">
     {% if can_add and allowed_childs or add_definitions %}
-        <li class="toolbar-item dropdown">
-            <a href="#" class="dropdown-toggle header-menu-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="icon-plus"></i></a>
-            <ul class="dropdown-menu toolbar-item-add">
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle header-menu-item toolbar-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="icon-plus"></i></a>
+            <ul class="dropdown-menu">
                 {% for c in add_definitions %}
-                <li><a href="javascript:void(0);" data-entity_id="{{ c.related_entity_id }}" data-definition_keyname="{{ c.keyname }}">{{ c.label }}</a></li>
+                    <li><a href="javascript:void(0);" class="open-modal-box" data-url="/entity-{{ c.related_entity_id }}/add/{{ c.keyname }}">{{ c.label }}</a></li>
                 {% end %}
                 {% if can_add and allowed_childs and add_definitions %}
-                <li><hr style="padding:0px; margin:3px 0px;" /></li>
+                    <li class="divider"></li>
                 {% end %}
                 {% for c in allowed_childs %}
-                <li><a href="javascript:void(0);" data-entity_id="{{ entity['id'] }}" data-definition_keyname="{{ c.keyname }}">{{ c.label }}</a></li>
+                    <li><a href="javascript:void(0);" class="open-modal-box" data-url="/entity-{{ entity['id'] }}/add/{{ c.keyname }}">{{ c.label }}</a></li>
                 {% end %}
             </ul>
         </li>
     {% end %}
-    {% if can_add and allowed_childs %}
-        <!--li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-add-default" title="{{ _('menu_add') }}"><i class="icon-edit"></i></a></li-->
-    {% end %}
     {% if can_edit %}
-        <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-edit" title="{{ _('menu_edit') }}"><i class="icon-pencil"></i></a></li>
-    {% end %}
-    {% if can_edit %}
-        <!--li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-link" title="{{ _('menu_relate') }}"><i class="icon-link"></i></a></li-->
+        <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/edit" title="{{ _('menu_edit') }}"><i class="icon-pencil"></i></a></li>
+        <!--li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/relate" title="{{ _('menu_relate') }}"><i class="icon-link"></i></a></li-->
     {% end %}
     {% if is_owner %}
-        <!--li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-rights" title="{{ _('menu_rights') }}"><i class="icon-lock"></i></a></li-->
+        <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/rights" title="{{ _('menu_rights') }}"><i class="icon-lock"></i></a></li>
     {% end %}
-    <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-email" title="{{ _('menu_share') }}"><i class="icon-envelope"></i></a></li>
-    <!--li class="toolbar-item"><a href="/entity-{{ entity['id'] }}/download" title="{{ _('menu_download') }}"><i class="icon-download-alt"></i></a></li-->
-    <li class="toolbar-item"><a href="javascript:void(0);" id="toolbar-item-fullscreen" title="{{ _('menu_fullscreen') }}"><i class="icon-resize-full"></i></a></li>
+    <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/share" title="{{ _('menu_share') }}"><i class="icon-envelope"></i></a></li>
+    <!--li><a href="/entity-{{ entity['id'] }}/download" class="toolbar-item" title="{{ _('menu_download') }}"><i class="icon-cloud-download"></i></a></li-->
+    <li><a href="javascript:void(0);" id="toolbar-item-fullscreen" class="toolbar-item " title="{{ _('menu_fullscreen') }}"><i class="icon-resize-full"></i></a></li>
 </ul>
 
 <!--ul class="nav nav-tabs" id="myTab" style="clear:both;">
@@ -152,7 +147,7 @@
 <script>
     $(document).ready(function(){
 
-        document.title = '{{ page_title.replace('\'', '\\\'') }}';
+        document.title = "{{ page_title.replace('\"', '\\\"') }}";
 
         $('#list_items a.active').removeClass('active');
         $('#listitem_{{ entity.get('id') }}').addClass('active');
@@ -201,38 +196,16 @@
             change_fullscreen_icon();
         });
 
-        $('.toolbar-item-add a').click(function() {
-            $.get('/entity-'+$(this).data('entity_id')+'/add/'+$(this).data('definition_keyname'), function(html) {
+        $('.open-modal-box').click(function() {
+            url = $(this).data('url');
+            $.get(url, function(html) {
                 document.body.style.cursor = 'wait';
                 $('#modal-box').modal('show');
                 $('#modal-box').html(html);
                 setTimeout(function () {
                     $(':text:input:first').focus();
+                    document.body.style.cursor = 'default';
                 }, 400);
-            });
-        });
-
-        $('#toolbar-item-edit').click(function() {
-            $.get('/entity-{{ entity['id'] }}/edit', function(html) {
-                document.body.style.cursor = 'wait';
-                $('#modal-box').modal('show');
-                $('#modal-box').html(html);
-            });
-        });
-
-        $('#toolbar-item-email').click(function() {
-            $.get('/entity-{{ entity['id'] }}/share', function(html) {
-                document.body.style.cursor = 'wait';
-                $('#modal-box').modal('show');
-                $('#modal-box').html(html);
-            });
-        });
-
-        $('#toolbar-item-relate').click(function() {
-            $.get('/entity-{{ entity['id'] }}/relate', function(html) {
-                document.body.style.cursor = 'wait';
-                $('#modal-box').modal('show');
-                $('#modal-box').html(html);
             });
         });
 

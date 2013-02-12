@@ -13,6 +13,7 @@ menu_exit,Logout
 menu_help,Help
 menu_download,Download
 menu_fullscreen,Fullscreen
+menu_preferences,Preferences
 
 
 version_history,Change Log
@@ -66,3 +67,9 @@ action_add_csv_file,CSV file
 action_add_csv_delimiter,Delimiter
 action_add_csv_first_row,First row
 action_add_csv_do_import,Import %s rows
+
+user_preferences,User preferences
+user_name,Name
+user_language,Language
+user_timezone,Timezone
+user_accounts,Accounts

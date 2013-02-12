@@ -14,6 +14,7 @@ menu_exit,Välju
 menu_help,Abiinfo
 menu_download,Lae alla
 menu_fullscreen,Täisekraan
+menu_preferences,Seaded
 
 version_history,Viimased muudatused
 quota,Kasutus ja limiit
@@ -66,6 +67,13 @@ action_add_csv_file,CSV fail
 action_add_csv_delimiter,Väljade eraldaja
 action_add_csv_first_row,Alusta reast
 action_add_csv_do_import,Impordi %s rida
+
+user_preferences,Kasutaja seaded
+user_name,Nimi
+user_language,Keel
+user_timezone,Ajavöönd
+user_accounts,Kontod
+
 
 
 
