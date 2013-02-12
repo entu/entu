@@ -24,11 +24,6 @@ quota,Usage and Quota
 quota_entities,Entities: %s of %s
 quota_files,Files: %s of %s
 
-version_history,Channge Log
-quota,Usage and Quota
-quota_entities,Entities: %s of %s
-quota_files,Files: %s of %s
-
 search,Search
 search_button,Search
 search_advanced,Advanced search
