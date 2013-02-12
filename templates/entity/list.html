@@ -6,9 +6,9 @@
 
 <ul id="list_toolbar_template" style="display:none;">
     {% if add_definitions %}
-        <li class="dropdown toolbar-item">
-            <a href="#" class="dropdown-toggle header-menu-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="icon-plus"></i></a>
-            <ul class="dropdown-menu toolbar-item-add">
+        <li class="dropdown">
+            <a href="#" class="toolbar-item dropdown-toggle header-menu-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="icon-plus"></i></a>
+            <ul class="dropdown-menu">
                 {% for c in add_definitions %}
                 <li><a href="javascript:void(0);" data-entity_id="{{ c.related_entity_id }}" data-definition_keyname="{{ c.keyname }}">{{ c.label }}</a></li>
                 {% end %}
