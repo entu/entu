@@ -303,7 +303,7 @@
         $('.delete-file').click(function() {
 
             link = $(this);
-            if (confirm('{{ _('confirm_file_delete').replace('\'', '\\\'') }}'.replace('%s',link.prev().html()))) {
+            if (confirm("{{ _('confirm_file_delete').replace('\"', '\\\"') }}".replace('%s',link.prev().html()))) {
                 $.post('/entity/delete-file', {
                     property_id: $(this).data('property_id'),
                     entity_id: '{{ entity.get('id', '') }}',

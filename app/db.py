@@ -1314,6 +1314,7 @@ class User():
         user = db.get("""
             SELECT
                 property.entity_id AS id,
+                user.id AS user_id,
                 user.name,
                 user.language,
                 user.email,
@@ -1342,6 +1343,9 @@ class User():
             setattr(self, k, v)
 
     def __setitem__(self, key, value):
+        if key == 'language':
+            db = connection()
+            db.execute('UPDATE user SET language = %s WHERE id = %s;', value, self.user_id)
         setattr(self, key, value)
 
     def __getitem__(self, key):
