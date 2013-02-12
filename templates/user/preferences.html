@@ -19,11 +19,14 @@
                 <th>
                     {{ _('user_language') }}
                 </th>
-                <td>
-
+                <td style="padding:8px;">
+                    <select id="language">
+                        <option value="estonian"{%if current_user.language == 'estonian' %} selected{% end %}>Eesti keel</option>
+                        <option value="english"{%if current_user.language == 'english' %} selected{% end %}>English</option>
+                    </select>
                 </td>
             </tr>
-            <tr>
+            <!--tr>
                 <th>
                     {{ _('user_timezone') }}
                 </th>
@@ -43,7 +46,7 @@
                 <td style="padding:8px; color:gray;">
                     Facebook
                 </td>
-            </tr>
+            </tr-->
         </tbody>
     </table>
 </div>
@@ -53,6 +56,12 @@
 
 <script>
     $(document).ready(function(){
+        $('#language').change(function() {
+            $.post('/user/preferences', {
+                language: $(this).val(),
+            });
+
+        });
 
     });
 </script>
