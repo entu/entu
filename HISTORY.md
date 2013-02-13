@@ -1,3 +1,9 @@
+## 2013-02-12
+* Search and import from ESTER by URL
+* Minor design changes - hide menu, fullscreen view
+* Edit user preferences
+* Bugfixes
+
 ## 2013-02-06
 * Search improvements
 * Removed hardcoded 'Created' field from Entity childs table

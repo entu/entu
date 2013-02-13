@@ -1305,6 +1305,7 @@ class User():
                 user.id AS user_id,
                 user.name,
                 user.language,
+                user.hide_menu,
                 user.email,
                 user.picture,
                 user.provider,
@@ -1331,9 +1332,16 @@ class User():
             setattr(self, k, v)
 
     def __setitem__(self, key, value):
-        if key == 'language':
+        if key == 'language' and value in ['estonian', 'english']:
             db = connection()
             db.execute('UPDATE user SET language = %s WHERE id = %s;', value, self.user_id)
+        elif key == 'hide_menu' and value.lower() in ['true', 'false']:
+            if value.lower() == 'true':
+                value = True
+            else:
+                value = False
+            db = connection()
+            db.execute('UPDATE user SET hide_menu = %s WHERE id = %s;', value, self.user_id)
         setattr(self, key, value)
 
     def __getitem__(self, key):
