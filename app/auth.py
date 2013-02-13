@@ -43,9 +43,11 @@ class Exit(myRequestHandler):
                 redirect_url = 'https://www.google.com/accounts/logout'
             elif self.current_user.provider == 'facebook':
                 redirect_url = 'https://www.facebook.com/logout.php?access_token=%s&confirm=1&next=%s://%s/auth' % (self.current_user.access_token, self.request.protocol, self.request.host)
+            elif self.current_user.provider == 'live':
+                redirect_url = 'https://login.live.com/oauth20_logout.srf?client_id=%s&redirect_uri=%s://%s/auth' % (self.settings['live_client_key'], self.request.protocol, self.request.host)
 
             self.current_user.logout(self)
-
+        logging.debug(redirect_url)
         self.redirect(redirect_url)
 
 
@@ -96,10 +98,10 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 'provider':     'live',
                 'key':          self.settings['live_client_key'],
                 'secret':       self.settings['live_client_secret'],
-                'auth_url':     'https://oauth.live.com/authorize?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s&response_type=code',
-                'token_url':    'https://oauth.live.com/token',
+                'auth_url':     'https://login.live.com/oauth20_authorize.srf?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s&response_type=code',
+                'token_url':    'https://login.live.com/oauth20_token.srf',
                 'info_url':     'https://apis.live.net/v5.0/me?access_token=%(token)s',
-                'scope':        'wl.signin+wl.emails',
+                'scope':        'wl.basic+wl.emails',
                 'user_id':      '%(id)s',
                 'user_email':   '',
                 'user_name':    '%(name)s',
