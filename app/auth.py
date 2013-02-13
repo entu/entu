@@ -42,9 +42,9 @@ class Exit(myRequestHandler):
             if self.current_user.provider == 'google':
                 redirect_url = 'https://www.google.com/accounts/logout'
             elif self.current_user.provider == 'facebook':
-                redirect_url = 'https://www.facebook.com/logout.php?access_token=%s&confirm=1&next=%s://%s/auth' % (self.current_user.access_token, self.request.protocol, self.request.host)
+                redirect_url = 'https://www.facebook.com/logout.php?access_token=%s&confirm=1&next=%s://%s/status' % (self.current_user.access_token, self.request.protocol, self.request.host)
             elif self.current_user.provider == 'live':
-                redirect_url = 'https://login.live.com/oauth20_logout.srf?client_id=%s&redirect_uri=%s://%s/auth' % (self.settings['live_client_key'], self.request.protocol, self.request.host)
+                redirect_url = 'https://login.live.com/oauth20_logout.srf?client_id=%s&redirect_uri=%s://%s/status' % (self.settings['live_client_key'], self.request.protocol, self.request.host)
 
             self.current_user.logout(self)
         logging.debug(redirect_url)
