@@ -1369,7 +1369,7 @@ class User():
         user_key = hashlib.md5(request_handler.request.remote_ip + request_handler.request.headers.get('User-Agent', None)).hexdigest()
 
         db = connection()
-        profile_id = db.execute_lastrowid('INSERT INTO user SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, session = %s, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, access_token = %s, changed = NOW();',
+        profile_id = db.execute_lastrowid('INSERT INTO user SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, session = %s, login_count = 0, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, access_token = %s, login_count = login_count + 1, changed = NOW();',
                 provider,
                 provider_id,
                 email,
