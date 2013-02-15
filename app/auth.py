@@ -220,6 +220,7 @@ class AuthMobileID(myRequestHandler):
     """
     def post(self):
         client = Client('https://digidocservice.sk.ee')
+        db_connection = db.connection()
 
         mobile = re.sub(r'[^0-9:]', '', self.get_argument('mobile', '', True))
         if mobile:
@@ -227,12 +228,18 @@ class AuthMobileID(myRequestHandler):
                 mobile = '372%s' % mobile
 
             service = self.settings['mobileid_service_name']
+            text = self.request.host
             rnd = ''.join(random.choice(string.digits) for x in range(20))
 
             try:
-                mid = client.service.MobileAuthenticate('', '', mobile, 'EST', service, self.request.host, rnd, 'asynchClientServer', 0, False, False)
-                db_connection = db.connection()
-                file_id = db_connection.execute_lastrowid('INSERT INTO tmp_file SET filename = %s, file = %s, created = NOW();', 'mobileid-%s' % mid.Sesscode, json.dumps({'id': mid.UserIDCode, 'name': '%s %s' % (mid.UserGivenname, mid.UserSurname)}))
+                mid = client.service.MobileAuthenticate('', '', mobile, 'EST', service, text, rnd, 'asynchClientServer', 0, False, False)
+                file_id = db_connection.execute_lastrowid('INSERT INTO tmp_file SET filename = %s, file = %s, created = NOW();',
+                    'mobileid-%s' % mid.Sesscode,
+                    json.dumps({
+                        'id': mid.UserIDCode,
+                        'name': '%s %s' % (mid.UserGivenname, mid.UserSurname)
+                    })
+                )
                 self.write({
                     'code': mid.ChallengeID,
                     'status': mid.Status,
@@ -252,7 +259,6 @@ class AuthMobileID(myRequestHandler):
             if status != 'USER_AUTHENTICATED':
                 return self.write({'status': status})
 
-            db_connection = db.connection()
             user_file = db_connection.get('SELECT file FROM tmp_file WHERE id = %s LIMIT 1;', int(file_id))
             if user_file:
                 if user_file.file:
