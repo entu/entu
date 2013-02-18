@@ -27,7 +27,7 @@ class ShowAuthPage(myRequestHandler):
 
         self.clear_cookie('session')
         self.render('auth/start.html',
-            mobileid = True if self.settings['mobileid_service_name'] else False,
+            mobileid = True if self.settings['mobileid_service_name'] and self.settings['mobileid_url'] else False,
             google = True if self.settings['google_client_key'] and self.settings['google_client_secret'] else False,
             facebook = True if self.settings['facebook_api_key'] and self.settings['facebook_secret'] else False,
             twitter = True if self.settings['twitter_consumer_key'] and self.settings['twitter_consumer_secret'] else False,
@@ -219,7 +219,8 @@ class AuthMobileID(myRequestHandler):
 
     """
     def post(self):
-        client = Client('https://digidocservice.sk.ee')
+        url = self.settings['mobileid_url']
+        client = Client(url)
         db_connection = db.connection()
 
         mobile = re.sub(r'[^0-9:]', '', self.get_argument('mobile', '', True))
@@ -267,7 +268,7 @@ class AuthMobileID(myRequestHandler):
                         request_handler = self,
                         provider        = 'mobileid',
                         provider_id     = user['id'],
-                        email           = None,
+                        email           = '%s@eesti.ee' % user['id'],
                         name            = user['name'],
                         picture         = None
                     )
