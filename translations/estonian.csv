@@ -1,6 +1,9 @@
 help,Abi
 close,Sulge
 log_in,Logi sisse
+log_in_mid_phone,Telefoninumber
+log_in_mid_go,Sisene
+log_in_mid_cancel,Tühista
 log_in_info,entu.ee kasutab autentimiseks vaid ülaltoodud teenusepakkujaid. Teie kasutajanime ega parooli meile ei edastata.
 
 

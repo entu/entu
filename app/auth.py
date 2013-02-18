@@ -2,6 +2,9 @@ from tornado import auth
 from tornado import web
 from tornado import httpclient
 
+from suds.client import Client
+
+import re
 import random
 import string
 import urllib
@@ -24,6 +27,7 @@ class ShowAuthPage(myRequestHandler):
 
         self.clear_cookie('session')
         self.render('auth/start.html',
+            mobileid = True if self.settings['mobileid_service_name'] else False,
             google = True if self.settings['google_client_key'] and self.settings['google_client_secret'] else False,
             facebook = True if self.settings['facebook_api_key'] and self.settings['facebook_secret'] else False,
             twitter = True if self.settings['twitter_consumer_key'] and self.settings['twitter_consumer_secret'] else False,
@@ -42,7 +46,9 @@ class Exit(myRequestHandler):
             if self.current_user.provider == 'google':
                 redirect_url = 'https://www.google.com/accounts/logout'
             elif self.current_user.provider == 'facebook':
-                redirect_url = 'https://www.facebook.com/logout.php?access_token=%s&confirm=1&next=%s://%s/auth' % (self.current_user.access_token, self.request.protocol, self.request.host)
+                redirect_url = 'https://www.facebook.com/logout.php?access_token=%s&confirm=1&next=%s://%s/status' % (self.current_user.access_token, self.request.protocol, self.request.host)
+            elif self.current_user.provider == 'live':
+                redirect_url = 'https://login.live.com/oauth20_logout.srf?client_id=%s&redirect_uri=%s://%s/status' % (self.settings['live_client_key'], self.request.protocol, self.request.host)
 
             self.current_user.logout(self)
 
@@ -96,10 +102,10 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 'provider':     'live',
                 'key':          self.settings['live_client_key'],
                 'secret':       self.settings['live_client_secret'],
-                'auth_url':     'https://oauth.live.com/authorize?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s&response_type=code',
-                'token_url':    'https://oauth.live.com/token',
+                'auth_url':     'https://login.live.com/oauth20_authorize.srf?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s&response_type=code',
+                'token_url':    'https://login.live.com/oauth20_token.srf',
                 'info_url':     'https://apis.live.net/v5.0/me?access_token=%(token)s',
-                'scope':        'wl.signin+wl.emails',
+                'scope':        'wl.basic+wl.emails',
                 'user_id':      '%(id)s',
                 'user_email':   '',
                 'user_name':    '%(name)s',
@@ -207,57 +213,66 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
         self.redirect(get_redirect(self))
 
 
-class AuthMobileID(myRequestHandler, auth.OpenIdMixin):
+class AuthMobileID(myRequestHandler):
     """
     Estonian Mobile ID authentication.
 
     """
-    @web.asynchronous
-    def get(self):
-        set_redirect(self)
-        self._OPENID_ENDPOINT = 'https://openid.ee/server/xrds/mid'
+    def post(self):
+        client = Client('https://digidocservice.sk.ee')
+        db_connection = db.connection()
 
-        if not self.get_argument('openid.mode', None):
-            url = self.request.protocol + '://' + self.request.host + '/auth/mobileid'
-            self.authenticate_redirect(callback_uri=url)
+        mobile = re.sub(r'[^0-9:]', '', self.get_argument('mobile', '', True))
+        if mobile:
+            if mobile[:3] != '372':
+                mobile = '372%s' % mobile
 
-        self.get_authenticated_user(self.async_callback(self._got_user))
+            service = self.settings['mobileid_service_name']
+            text = self.request.host
+            rnd = ''.join(random.choice(string.digits) for x in range(20))
 
-    def _got_user(self, user):
-        if not user:
-            raise web.HTTPError(500, 'MobileID auth failed')
+            try:
+                mid = client.service.MobileAuthenticate('', '', mobile, 'EST', service, text, rnd, 'asynchClientServer', 0, False, False)
+                file_id = db_connection.execute_lastrowid('INSERT INTO tmp_file SET filename = %s, file = %s, created = NOW();',
+                    'mobileid-%s' % mid.Sesscode,
+                    json.dumps({
+                        'id': mid.UserIDCode,
+                        'name': '%s %s' % (mid.UserGivenname, mid.UserSurname)
+                    })
+                )
+                self.write({
+                    'code': mid.ChallengeID,
+                    'status': mid.Status,
+                    'session': mid.Sesscode,
+                    'file': file_id,
+                })
+            except:
+                return
 
-        db.User().login(
-            request_handler = self,
-            provider_id     = self.get_argument('openid.identity', None)
-        )
-        self.redirect(get_redirect(self))
+        session = self.get_argument('session', None, True)
+        file_id = self.get_argument('file', None, True)
+        if session and file_id:
+            status = client.service.GetMobileAuthenticateStatus(session, False).Status
+            if status == 'OUTSTANDING_TRANSACTION':
+                return self.write({'in_progress': True})
 
+            if status != 'USER_AUTHENTICATED':
+                return self.write({'status': status})
 
-class AuthIDcard(myRequestHandler, auth.OpenIdMixin):
-    """
-    Estonian ID card authentication.
+            user_file = db_connection.get('SELECT file FROM tmp_file WHERE id = %s LIMIT 1;', int(file_id))
+            if user_file:
+                if user_file.file:
+                    user = json.loads(user_file.file)
+                    db.User().login(
+                        request_handler = self,
+                        provider        = 'mobileid',
+                        provider_id     = user['id'],
+                        email           = None,
+                        name            = user['name'],
+                        picture         = None
+                    )
 
-    """
-    @web.asynchronous
-    def get(self):
-        set_redirect(self)
-        self._OPENID_ENDPOINT = 'https://openid.ee/server/eid'
-
-        if not self.get_argument('openid.mode', None):
-            return self.authenticate_redirect()
-
-        self.get_authenticated_user(self.async_callback(self._got_user))
-
-    def _got_user(self, user):
-        if not user:
-            raise web.HTTPError(500, 'IDcard auth failed')
-
-        db.User().login(
-            request_handler = self,
-            provider_id     = self.get_argument('openid.identity', None)
-        )
-        self.redirect(get_redirect(self))
+            return self.write({'url': get_redirect(self)})
 
 
 class AuthTwitter(myRequestHandler, auth.TwitterMixin):
@@ -311,7 +326,6 @@ handlers = [
     ('/auth', ShowAuthPage),
     ('/exit', Exit),
     ('/auth/mobileid', AuthMobileID),
-    ('/auth/idcard', AuthIDcard),
     ('/auth/twitter', AuthTwitter),
     ('/auth/(.*)', AuthOAuth2),
 ]

@@ -8,11 +8,11 @@
     <table class="edit-form table table-bordered" style="margin:0px;">
         <tbody>
             <tr>
-                <th>
-                    {{ _('user_name') }}
-                </th>
-                <td style="padding:8px;">
-                    {{ current_user.name }}
+                <td colspan="2" style="vertical-align:middle; text-align:center;">
+                    <h4>
+                        <img src="{{ current_user.picture }}" class="img-rounded" style="height:120px; width:120px; margin-bottom:5px;" ><br />
+                        {{ current_user.name }}
+                    </h4>
                 </td>
             </tr>
             <tr>

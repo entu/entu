@@ -11,48 +11,74 @@
 
 {% block content %}
     <div class="container" style="">
-        <div class="well span3 offset4" style="margin-top:150px; text-align:center;">
+        {% if mobileid %}
+            <div id="mobileid-check" class="well span3 offset4" style="margin-top:150px; text-align:center; display:none;">
+                <h2 id="mobileid-code"></h2>
+                Kontrollige, et näete oma mobiiltelefoni ekraanil täpselt sama numbrit ning seejärel sisestage Mobiil-ID PIN1.<br />
+                <h2><i class="icon-spinner icon-spin"></i></h2>
+                <button id="mobileid-cancel" class="btn btn-link" type="button">{{ _('log_in_mid_cancel') }}</button>
+            </div>
+        {% end %}
+        <div id="authenticators" class="well span3 offset4" style="margin-top:150px; text-align:center;">
             <h2>{{ _('log_in') }}</h2>
             <table class="table table-bordered table-condensed" style="width:100%; background-color:white; margin-top:20px;">
+                {% if mobileid %}
+                    <tr class="mobileid">
+                        <td style="vertical-align:middle; width:80px;">
+                            <a class="no-underline" href="javascript:void(0);" style="display:block; text-align:right;"><i class="icon-mobile-phone" style="padding-top:5px; padding-right:5px; font-size:26px; line-height:20px; color:#F04822;"></i></a>
+                        </td>
+                        <td style="vertical-align:middle; border-left:none;">
+                            <a class="no-underline" href="javascript:void(0);" style="display:block; color:black; font-weight:bold;">Mobiil-ID</a>
+                        </td>
+                    </tr>
+                    <tr id="mobileid-input" style="display:none;">
+                        <td class="input-append" colspan="2" style="text-align:center; border-top:none; padding-bottom:10px; ">
+                            <form id="mobileid-form" style="margin:0px; padding:0px;">
+                                <input id="mobileid-phone" class="span2" type="text" placeholder="{{ _('log_in_mid_phone') }}" />
+                                <button id="mobileid-submit" class="btn" type="submit">{{ _('log_in_mid_go') }}</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% end %}
                 {% if google %}
-                <tr>
-                    <td style="vertical-align:middle; width:40%;">
-                        <a class="no-underline" href="/auth/google" style="display:block; text-align:right;"><i class="icon-google-sign" style="font-size:30px; line-height:20px; color:#DC2400;"></i></a>
-                    </td>
-                    <td style="vertical-align:middle; border-left:none;">
-                        <a class="no-underline" href="/auth/google" style="display:block; color:black; font-weight:bold;">Google</a>
-                    </td>
-                </tr>
+                    <tr>
+                        <td style="vertical-align:middle; width:80px;">
+                            <a class="no-underline" href="/auth/google" style="display:block; text-align:right;"><i class="icon-google-sign" style="font-size:25px; line-height:20px; color:#DC2400;"></i></a>
+                        </td>
+                        <td style="vertical-align:middle; border-left:none;">
+                            <a class="no-underline" href="/auth/google" style="display:block; color:black; font-weight:bold;">Google</a>
+                        </td>
+                    </tr>
                 {% end %}
                 {% if facebook %}
-                <tr>
-                    <td style="vertical-align:middle; width:40%;">
-                        <a class="no-underline" href="/auth/facebook" style="display:block; text-align:right;"><i class="icon-facebook-sign" style="padding-top:5px; font-size:30px; line-height:20px; color:#39579A";></i></a>
-                    </td>
-                    <td style="vertical-align:middle; border-left:none;">
-                        <a class="no-underline" href="/auth/facebook" style="display:block; color:black; font-weight:bold;">Facebook</a>
-                    </td>
-                </tr>
+                    <tr>
+                        <td style="vertical-align:middle; width:80px;">
+                            <a class="no-underline" href="/auth/facebook" style="display:block; text-align:right;"><i class="icon-facebook-sign" style="padding-top:5px; font-size:26px; line-height:20px; color:#39579A";></i></a>
+                        </td>
+                        <td style="vertical-align:middle; border-left:none;">
+                            <a class="no-underline" href="/auth/facebook" style="display:block; color:black; font-weight:bold;">Facebook</a>
+                        </td>
+                    </tr>
                 {% end %}
                 {% if twitter %}
-                <tr>
-                    <td style="vertical-align:middle; width:40%;">
-                        <a class="no-underline" href="/auth/twitter" style="display:block; text-align:right;"><i class="icon-twitter-sign" style="padding-top:5px; font-size:30px; line-height:20px; color:#00A7E9;"></i></a>
-                    </td>
-                    <td style="vertical-align:middle; border-left:none;">
-                        <a class="no-underline" href="/auth/twitter" style="display:block; color:black; font-weight:bold;">Twitter</a>
-                    </td>
-                </tr>
+                    <tr>
+                        <td style="vertical-align:middle; width:80px;">
+                            <a class="no-underline" href="/auth/twitter" style="display:block; text-align:right;"><i class="icon-twitter-sign" style="padding-top:5px; font-size:26px; line-height:20px; color:#00A7E9;"></i></a>
+                        </td>
+                        <td style="vertical-align:middle; border-left:none;">
+                            <a class="no-underline" href="/auth/twitter" style="display:block; color:black; font-weight:bold;">Twitter</a>
+                        </td>
+                    </tr>
                 {% end %}
                 {% if live %}
-                <tr>
-                    <td style="vertical-align:middle; width:40%;">
-                        <a class="no-underline" href="/auth/live" style="display:block; text-align:right;"><i class="icon-windows-8" style="padding-top:5px; font-size:30px; line-height:20px; color:#0070C9;"></i></a>
-                    </td>
-                    <td style="vertical-align:middle; border-left:none;">
-                        <a class="no-underline" href="/auth/live" style="display:block; color:black; font-weight:bold;">MS Live</a>
-                    </td>
-                </tr>
+                    <tr>
+                        <td style="vertical-align:middle; width:80px;">
+                            <a class="no-underline" href="/auth/live" style="display:block; text-align:right;"><i class="icon-windows8" style="padding-top:0px; font-size:21px; line-height:20px; color:#0070C9;"></i></a>
+                        </td>
+                        <td style="vertical-align:middle; border-left:none;">
+                            <a class="no-underline" href="/auth/live" style="display:block; color:black; font-weight:bold;">Microsoft Live</a>
+                        </td>
+                    </tr>
                 {% end %}
             </table>
             <div class="muted" style="text-align:justify;">
@@ -97,6 +123,74 @@
                   // (new Image()).src = this;
               });
             }
+
+            {% if mobileid %}
+
+                $('.mobileid').click(function() {
+                    $('#mobileid-input').toggle();
+                    $('#mobileid-input').addClass('success');
+                    $('#mobileid-phone').focus();
+                });
+
+                $('.mobileid').hover(function() {
+                    $('#mobileid-input').addClass('success');
+                });
+
+                $('#mobileid-input').hover(function() {
+                    $(this).prev().addClass('success');
+                });
+
+                mobile_id_inprogress = false;
+                $('#mobileid-form').submit(function(e) {
+                    if($('#mobileid-phone').val() && !mobile_id_inprogress) {
+                        mobile_id_inprogress = true;
+                        $.post('/auth/mobileid', {
+                            mobile: $('#mobileid-phone').val(),
+                        }, function(data) {
+                            mobile_id_inprogress = false;
+                            $('#mobileid-code').html('');
+                            if(data){
+                                $('#mobileid-code').html(data.code);
+                                $('#mobileid-code').data('session', data.session);
+                                $('#mobileid-code').data('file', data.file);
+                                $('#authenticators').hide();
+                                $('#mobileid-check').show();
+                                setTimeout(mobile_id_check, 5000);
+                            } else {
+                                $('#mobileid-phone').select();
+                                $('#mobileid-form').effect('shake', { times:3 }, 100);
+                            }
+                        }, 'json');
+                    }
+                    return false;
+                });
+
+                function mobile_id_check() {
+                    $.post('/auth/mobileid', {
+                        session: $('#mobileid-code').data('session'),
+                        file: $('#mobileid-code').data('file'),
+                    }, function(data) {
+                        if(data) {
+                            if(data.url) {
+                                window.location.href = data.url;
+                            } else if(data.in_progress) {
+                                setTimeout(mobile_id_check, 2000);
+                            } else {
+                                $('#mobileid-cancel').click();
+                            }
+                        }
+                    }, 'json');
+                }
+
+                $('#mobileid-cancel').click(function() {
+                    $('#mobileid-phone').val('')
+                    $('#mobileid-input').hide();
+                    $('#mobileid-code').html('');
+                    $('#mobileid-check').hide();
+                    $('#authenticators').show();
+                });
+
+            {% end %}
 
             $('tr').hover(function() {
                 $(this).addClass('success');
