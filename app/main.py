@@ -81,7 +81,7 @@ class myApplication(tornado.web.Application):
             user        = options.mysql_user,
             password    = options.mysql_password,
         )
-        for preference in db.query('SELECT keyname, value FROM app_settings WHERE value IS NOT NULL;'):
+        for preference in db.query('SELECT keyname, value FROM app_settings;'):
             settings[preference.keyname] = preference.value
 
         tornado.web.Application.__init__(self, handlers, **settings)

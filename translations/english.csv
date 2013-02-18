@@ -1,7 +1,10 @@
 help,Help
 close,Close
 log_in,Log In
-log_in_info,
+log_in_mid_phone,Phone number
+log_in_mid_go,Go
+log_in_mid_cancel,Cancel
+log_in_info,entu.ee uses onlu those providers for user authentication. We don't get nor save Your password.
 
 menu_add,Add new
 menu_edit,Edit
@@ -73,3 +76,4 @@ user_name,Name
 user_language,Language
 user_timezone,Timezone
 user_accounts,Accounts
+user_hide_menu,Hide entities menu

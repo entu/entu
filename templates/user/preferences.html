@@ -8,11 +8,12 @@
     <table class="edit-form table table-bordered" style="margin:0px;">
         <tbody>
             <tr>
-                <th>
-                    {{ _('user_name') }}
-                </th>
-                <td style="padding:8px;">
-                    {{ current_user.name }}
+                <td colspan="2" style="vertical-align:middle; text-align:center; padding-bottom:5px;">
+                    <h4 style="margin-bottom:0px;">
+                        <img src="{{ current_user.picture }}" class="img-rounded" style="height:120px; width:120px; margin-bottom:5px;" ><br />
+                        {{ current_user.name }}<br />
+                    </h4>
+                    <span style="color:gray;">{{ current_user.email }}</span>
                 </td>
             </tr>
             <tr>
@@ -20,10 +21,18 @@
                     {{ _('user_language') }}
                 </th>
                 <td style="padding:8px;">
-                    <select id="language">
+                    <select class="autosave" name="language">
                         <option value="estonian"{%if current_user.language == 'estonian' %} selected{% end %}>Eesti keel</option>
                         <option value="english"{%if current_user.language == 'english' %} selected{% end %}>English</option>
                     </select>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    {{ _('user_hide_menu') }}
+                </th>
+                <td style="padding:8px;">
+                    <input class="autosave" name="hide_menu" type="checkbox" {%if current_user.hide_menu == True %} checked{% end %} />
                 </td>
             </tr>
             <!--tr>
@@ -56,12 +65,18 @@
 
 <script>
     $(document).ready(function(){
-        $('#language').change(function() {
+        $('.autosave').change(function() {
+            var inputbox = $(this);
+            property = inputbox.attr('name');
+            if (inputbox.attr('type') == 'checkbox') {
+                value = inputbox.is(':checked');
+            } else {
+                value = inputbox.val();
+            }
             $.post('/user/preferences', {
-                language: $(this).val(),
+                property: property,
+                value: value
             });
-
         });
-
     });
 </script>
