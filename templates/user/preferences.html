@@ -8,11 +8,12 @@
     <table class="edit-form table table-bordered" style="margin:0px;">
         <tbody>
             <tr>
-                <td colspan="2" style="vertical-align:middle; text-align:center;">
-                    <h4>
+                <td colspan="2" style="vertical-align:middle; text-align:center; padding-bottom:5px;">
+                    <h4 style="margin-bottom:0px;">
                         <img src="{{ current_user.picture }}" class="img-rounded" style="height:120px; width:120px; margin-bottom:5px;" ><br />
-                        {{ current_user.name }}
+                        {{ current_user.name }}<br />
                     </h4>
+                    <span style="color:gray;">{{ current_user.email }}</span>
                 </td>
             </tr>
             <tr>
