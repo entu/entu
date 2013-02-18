@@ -567,7 +567,6 @@ class Entity():
             return []
         return [x.id for x in items]
 
-
     def formula_properties(self, entity_id):
         sql = """
             SELECT *
