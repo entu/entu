@@ -226,7 +226,26 @@ class AuthMobileID(myRequestHandler):
         mobile = re.sub(r'[^0-9:]', '', self.get_argument('mobile', '', True))
         if mobile:
             if mobile[:3] != '372':
-                mobile = '372%s' % mobile
+                mobile = '+372%s' % mobile
+
+            person = db_connection.get("""
+                SELECT
+                    p1.value_string AS idcode,
+                    p2.value_string AS phone
+                FROM
+                    property AS p1,
+                    property AS p2
+                WHERE p1.entity_id = p2.entity_id
+                AND p1.property_definition_keyname = 'person-idcode'
+                AND p2.property_definition_keyname = 'person-phone'
+                AND p1.is_deleted = 0
+                AND p2.is_deleted = 0
+                AND p2.value_string = %s
+                LIMIT 1;
+            """, mobile)
+
+            if not person:
+                return
 
             service = self.settings['mobileid_service_name']
             text = self.request.host
