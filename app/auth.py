@@ -41,7 +41,7 @@ class Exit(myRequestHandler):
 
     """
     def get(self):
-        redirect_url = ''
+        redirect_url = '/'
         if self.current_user:
             if self.current_user.provider == 'google':
                 redirect_url = 'https://www.google.com/accounts/logout'
