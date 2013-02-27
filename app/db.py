@@ -132,7 +132,7 @@ class Entity():
             AND       r.related_entity_id = %s
             AND       r.relationship_definition_keyname = 'child'
             AND       rr.is_deleted = 0
-            AND       rr.relationship_definition_keyname IN ('leecher', 'viewer', 'editor', 'owner' );
+            AND       rr.relationship_definition_keyname IN ('viewer', 'editor', 'owner' );
         """
         # logging.debug(sql)
         self.db.execute(sql, entity_id, self.created_by, entity_id)
@@ -526,7 +526,7 @@ class Entity():
         if self.user_id and only_public == False:
             where_parts.append('r.is_deleted = 0')
             join_parts.append('RIGHT JOIN relationship AS r  ON r.entity_id  = e.id')
-            where_parts.append('r.related_entity_id IN (%s) AND r.relationship_definition_keyname IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id)))
+            where_parts.append('r.related_entity_id IN (%s) AND r.relationship_definition_keyname IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id)))
         else:
             where_parts.append('e.public = 1')
             i = 0
@@ -1044,7 +1044,7 @@ class Entity():
             sql += ' AND r.related_entity_id IN (%s)' % ','.join(map(str, related_entity_id))
 
         if self.user_id and only_public == False:
-            sql += ' AND rights.related_entity_id IN (%s) AND rights.relationship_definition_keyname IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
+            sql += ' AND rights.related_entity_id IN (%s) AND rights.relationship_definition_keyname IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
         else:
             sql += ' AND e.public = 1'
 
@@ -1061,7 +1061,7 @@ class Entity():
                 sql += ' AND up.value_reference IN (%s)' % ','.join(map(str, entity_id))
 
             if self.user_id and only_public == False:
-                sql += ' AND urights.related_entity_id IN (%s) AND urights.relationship_definition_keyname IN (\'leecher\', \'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
+                sql += ' AND urights.related_entity_id IN (%s) AND urights.relationship_definition_keyname IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
             else:
                 sql += ' AND ue.public = 1'
 
