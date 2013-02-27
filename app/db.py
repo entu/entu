@@ -79,19 +79,7 @@ class Entity():
         if not parent_entity_id:
             return entity_id
 
-        # Insert child relationship
-        sql = """
-            INSERT INTO relationship SET
-                relationship_definition_keyname = 'child',
-                entity_id = %s,
-                related_entity_id = %s,
-                created_by = %s,
-                created = NOW();
-        """
-        # logging.debug(sql)
-        self.db.execute(sql, parent_entity_id, entity_id, self.created_by)
-
-        # Insert child relationship from default parent
+        # Insert child relationship and/or default parent child relationship
         sql = """
             INSERT INTO relationship (
                 relationship_definition_keyname,
@@ -108,10 +96,16 @@ class Entity():
             FROM relationship AS r
             WHERE r.relationship_definition_keyname = 'default-parent'
             AND r.is_deleted = 0
-            AND r.entity_definition_keyname = %s;
+            AND r.entity_definition_keyname = %s
+            UNION SELECT
+                'child',
+                %s,
+                %s,
+                %s,
+                NOW();
         """
         # logging.debug(sql)
-        self.db.execute(sql, entity_id, self.created_by, entity_definition_keyname)
+        self.db.execute(sql, entity_id, self.created_by, entity_definition_keyname, parent_entity_id, entity_id, self.created_by)
 
         # Insert or update "contains" information
         for row in self.db.query("SELECT entity_id FROM relationship r WHERE r.is_deleted = 0 AND r.relationship_definition_keyname = 'child' AND r.related_entity_id = %s" , entity_id):
