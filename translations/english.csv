@@ -15,6 +15,7 @@ menu_login,Login
 menu_exit,Logout
 menu_help,Help
 menu_download,Download
+menu_print,Print
 menu_fullscreen,Fullscreen
 menu_preferences,Preferences
 
