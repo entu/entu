@@ -110,7 +110,7 @@
     <table class="table table-condensed table-bordered" style="clear:both; margin-top:20px;">
         <thead class="toggle-table">
             <tr>
-                <th {% if v[0].get('displaytable', None) %}colspan="{{ len(v[0].get('displaytable', ''))+1 }}"{% end %}>
+                <th {% if v[0].get('displaytable', None) %}colspan="{{ len(v[0].get('displaytable', '')) }}"{% end %}>
                     {{ k }}<span style="float:right; font-weight:normal;">{{ len(v) }}</span>
                 </th>
             </tr>
