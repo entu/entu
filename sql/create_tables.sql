@@ -41,8 +41,8 @@ CREATE TABLE `dag_entity` (
   `distance` int(10) unsigned NOT NULL DEFAULT '1',
   PRIMARY KEY (`entity_id`,`related_entity_id`),
   KEY `de_fk_re` (`related_entity_id`),
-  CONSTRAINT `de_fk_re` FOREIGN KEY (`related_entity_id`) REFERENCES `entity` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `de_fk_e` FOREIGN KEY (`entity_id`) REFERENCES `entity` (`id`) ON DELETE CASCADE
+  CONSTRAINT `de_fk_e` FOREIGN KEY (`entity_id`) REFERENCES `entity` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `de_fk_re` FOREIGN KEY (`related_entity_id`) REFERENCES `entity` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
 -- Create syntax for TABLE 'dag_formula'
@@ -188,10 +188,10 @@ CREATE TABLE `property` (
   KEY `value_entity` (`value_entity`),
   KEY `property_definition_keyname` (`property_definition_keyname`),
   KEY `deleted` (`deleted`),
-  CONSTRAINT `p_fk_v_file` FOREIGN KEY (`value_file`) REFERENCES `file` (`id`),
   CONSTRAINT `p_fk_e` FOREIGN KEY (`entity_id`) REFERENCES `entity` (`id`),
   CONSTRAINT `p_fk_pd` FOREIGN KEY (`property_definition_keyname`) REFERENCES `property_definition` (`keyname`) ON UPDATE CASCADE,
   CONSTRAINT `p_fk_v_counter` FOREIGN KEY (`value_counter`) REFERENCES `counter` (`id`),
+  CONSTRAINT `p_fk_v_file` FOREIGN KEY (`value_file`) REFERENCES `file` (`id`),
   CONSTRAINT `p_fk_v_reference` FOREIGN KEY (`value_reference`) REFERENCES `entity` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
@@ -267,14 +267,14 @@ CREATE TABLE `relationship` (
   `old_id` varchar(200) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `old_id` (`old_id`),
-  KEY `entity_id` (`entity_id`),
   KEY `related_entity_id` (`related_entity_id`),
-  KEY `entity_id_2` (`entity_id`,`related_entity_id`),
-  KEY `r_fk_rd` (`relationship_definition_keyname`),
+  KEY `relationship_definition_keyname` (`relationship_definition_keyname`),
+  KEY `entity_id` (`entity_id`,`related_entity_id`),
   KEY `r_fk_pd` (`property_definition_keyname`),
   KEY `r_fk_rpd` (`related_property_definition_keyname`),
   KEY `r_fk_ed` (`entity_definition_keyname`),
   KEY `r_fk_red` (`related_entity_definition_keyname`),
+  KEY `entity_id_2` (`entity_id`),
   CONSTRAINT `r_fk_re` FOREIGN KEY (`related_entity_id`) REFERENCES `entity` (`id`),
   CONSTRAINT `r_fk_e` FOREIGN KEY (`entity_id`) REFERENCES `entity` (`id`),
   CONSTRAINT `r_fk_ed` FOREIGN KEY (`entity_definition_keyname`) REFERENCES `entity_definition` (`keyname`) ON UPDATE CASCADE,

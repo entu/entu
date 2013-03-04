@@ -89,6 +89,7 @@
     {% end %}
     <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/share" title="{{ _('menu_share') }}"><i class="icon-envelope"></i></a></li>
     <!--li><a href="/entity-{{ entity['id'] }}/download" class="toolbar-item" title="{{ _('menu_download') }}"><i class="icon-cloud-download"></i></a></li-->
+    <li><a href="javascript:javascript:window.print();" class="toolbar-item " title="{{ _('menu_print') }}"><i class="icon-print"></i></a></li>
     <li><a href="javascript:void(0);" id="toolbar-item-fullscreen" class="toolbar-item " title="{{ _('menu_fullscreen') }}"><i class="icon-resize-full"></i></a></li>
 </ul>
 
@@ -110,7 +111,7 @@
     <table class="table table-condensed table-bordered" style="clear:both; margin-top:20px;">
         <thead class="toggle-table">
             <tr>
-                <th {% if v[0].get('displaytable', None) %}colspan="{{ len(v[0].get('displaytable', ''))+1 }}"{% end %}>
+                <th {% if v[0].get('displaytable', None) %}colspan="{{ len(v[0].get('displaytable', '')) }}"{% end %}>
                     {{ k }}<span style="float:right; font-weight:normal;">{{ len(v) }}</span>
                 </th>
             </tr>

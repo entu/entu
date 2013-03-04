@@ -1,6 +1,9 @@
 help,Abi
 close,Sulge
 log_in,Logi sisse
+log_in_mid_phone,Telefoninumber
+log_in_mid_go,Sisene
+log_in_mid_cancel,Tühista
 log_in_info,entu.ee kasutab autentimiseks vaid ülaltoodud teenusepakkujaid. Teie kasutajanime ega parooli meile ei edastata.
 
 
@@ -13,6 +16,7 @@ menu_login,Sisene
 menu_exit,Välju
 menu_help,Abiinfo
 menu_download,Lae alla
+menu_print,Trüki
 menu_fullscreen,Täisekraan
 menu_preferences,Seaded
 
@@ -73,6 +77,7 @@ user_name,Nimi
 user_language,Keel
 user_timezone,Ajavöönd
 user_accounts,Kontod
+user_hide_menu,Peida objektide menüü
 
 
 

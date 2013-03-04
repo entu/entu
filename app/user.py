@@ -21,8 +21,7 @@ class ShowUserPreferences(myRequestHandler):
         Save user preferences
 
         """
-        if self.get_argument('language', None, True) in ['estonian', 'english']:
-            self.current_user['language'] = self.get_argument('language', None, True)
+        self.current_user[self.get_argument('property', None, True)] = self.get_argument('value', None, True)
 
 
 handlers = [

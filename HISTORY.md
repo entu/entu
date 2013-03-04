@@ -1,3 +1,8 @@
+## 2013-02-18
+* Estonian MobileID authentication
+* Set menu auto hiding from user preferences
+* Bugfixes
+
 ## 2013-02-12
 * Search and import from ESTER by URL
 * Minor design changes - hide menu, fullscreen view

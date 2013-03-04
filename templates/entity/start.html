@@ -83,7 +83,7 @@
     <script>
         $(document).ready(function(){
 
-        {% if show_list %}
+        {% if show_list and current_user.hide_menu == True %}
             menu_hide();
 
             $('#menu, #menu_hidden').hover(function() {

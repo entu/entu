@@ -8,7 +8,6 @@ from bs4 import BeautifulSoup
 import logging
 
 from HTMLParser import HTMLParser
-# from urllib import quote
 
 import db
 from helper import *
@@ -82,10 +81,15 @@ class EsterSearch(myRequestHandler):
             else:
                 url = 'http://tallinn.ester.ee/search*est/X?SEARCH=%s&searchscope=1&SUBMIT=OTSI' % search_term
 
-        response = httpclient.AsyncHTTPClient().fetch(url, callback=self._got_list)
+        response = httpclient.AsyncHTTPClient().fetch(url, callback=self._got_list, request_timeout=60)
 
     @web.asynchronous
     def _got_list(self, response):
+        if not response.body:
+            self.write({'items': []})
+            self.finish()
+            return
+
         soup = BeautifulSoup(response.body.decode('utf-8','ignore'))
 
         items = []
@@ -114,8 +118,12 @@ class EsterSearch(myRequestHandler):
 
     @web.asynchronous
     def _got_one(self, response):
+        if not response.body:
+            self.write({'items': []})
+            self.finish()
+            return
+
         marc = response.body.split('<pre>')[1].split('</pre>')[0].strip()
-        # item = ParseMARC(HTMLParser().unescape((marc))
         item = ParseMARC(marc)
         ester_id = response.effective_url.split('/marc~')[1]
         entity = GetExistingID(ester_id)
@@ -195,7 +203,7 @@ class EsterTest(myRequestHandler):
 
 def GetExistingID(ester_id):
     db_connection = db.connection()
-    entity = db_connection.get('SELECT property.entity_id, entity.entity_definition_keyname FROM property, entity, property_definition WHERE entity.id = property.entity_id AND property_definition.keyname = property.property_definition_keyname AND property_definition.dataproperty = \'ester-id\' AND property.value_string = %s AND property.deleted IS NULL AND entity.deleted IS NULL LIMIT 1', ester_id)
+    entity = db_connection.get('SELECT property.entity_id, entity.entity_definition_keyname FROM property, entity, property_definition WHERE entity.id = property.entity_id AND property_definition.keyname = property.property_definition_keyname AND property_definition.dataproperty = \'ester-id\' AND property.value_string = %s AND property.is_deleted = 0 AND entity.is_deleted = 0 LIMIT 1', ester_id)
     if not entity:
         return {}
 
