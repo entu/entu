@@ -9,7 +9,7 @@ class ShowStatus(myRequestHandler):
         self.require_setting('app_organisation', 'this application')
 
         db_connection = db.connection()
-        count = db_connection.get('SELECT COUNT(DISTINCT entity_id) AS entities, COUNT(*) AS properties FROM property WHERE deleted IS NULL;')
+        count = db_connection.get('SELECT COUNT(DISTINCT entity_id) AS entities, COUNT(*) AS properties FROM property WHERE is_deleted = 0;')
 
         self.add_header('Content-Type', 'text/plain; charset=utf-8')
         self.write('%s\n'  % self.settings['app_title'])
