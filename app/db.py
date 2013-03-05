@@ -327,7 +327,7 @@ class Entity():
                     AND entity.entity_definition_keyname = property_definition.entity_definition_keyname
                     AND entity.id = property.entity_id
                     AND property_definition.dataproperty = 'series'
-                    AND entity.id = (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child' LIMIT 1)
+                    AND entity.id IN (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child')
                     AND entity.is_deleted = 0
                     AND property.is_deleted = 0
                     LIMIT 1
@@ -343,7 +343,7 @@ class Entity():
                     AND entity.entity_definition_keyname = property_definition.entity_definition_keyname
                     AND entity.id = property.entity_id
                     AND property_definition.dataproperty='prefix'
-                    AND entity.id = (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child' LIMIT 1)
+                    AND entity.id IN (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child')
                     AND entity.is_deleted = 0
                     AND property.is_deleted = 0
                     LIMIT 1
@@ -361,7 +361,7 @@ class Entity():
             AND relationship.property_definition_keyname = property_definition.keyname
             AND property_definition2.keyname = relationship.related_property_definition_keyname
             AND counter.id = property.value_counter
-            AND property.entity_id = (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child' LIMIT 1)
+            AND property.entity_id IN (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child')
             AND property_definition.datatype= 'counter'
             AND property_definition2.datatype = 'counter-value'
             AND relationship.relationship_definition_keyname = 'target-property'
@@ -384,7 +384,7 @@ class Entity():
                 AND relationship.property_definition_keyname = property_definition.keyname
                 AND property_definition2.keyname = relationship.related_property_definition_keyname
                 AND counter.id = property.value_counter
-                AND property.entity_id = (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child' LIMIT 1)
+                AND property.entity_id IN (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child')
                 AND property_definition.datatype= 'counter'
                 AND property_definition2.datatype = 'counter-value'
                 AND relationship.relationship_definition_keyname = 'target-property'
