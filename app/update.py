@@ -16,6 +16,20 @@ class UpdateFormulasWeb(myRequestHandler):
         updateFormulas(entity_id=entity_id, user_locale=self.get_user_locale(), user_id=self.current_user.id)
 
 
+class UpdateFormulasByDefinitionWeb(myRequestHandler):
+    @web.authenticated
+    def get(self, entity_definition_keyname, dataproperty):
+        if self.current_user.email != 'mihkel.putrinsh@gmail.com':
+            return
+
+        for row in db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(entity_definition_keyname=entity_definition_keyname, dataproperty=dataproperty):
+            logging.debug('ID: %s', str(row['id']))
+            logging.debug('properties: %s', row['properties'])
+            for p in row['properties'][dataproperty]['values']:
+                logging.debug(p)
+                db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).set_property(entity_id=row['id'], old_property_id = p['id'], property_definition_keyname = row['properties'][dataproperty]['keyname'], value = p['db_value'])
+
+
 class UpdateFormulasRecursiveWeb(myRequestHandler):
     @web.authenticated
     def get(self, entity_id):
@@ -30,8 +44,9 @@ def updateFormulas(entity_id, user_locale, user_id):
 
     logging.debug('e:%s' % str(entity_id))
     for row in entity.formula_properties(entity_id = entity_id):
-        logging.debug('p:%s, f:%s' % (str(row.entity_id), row.value_formula))
+        # logging.debug('p:%s, f:%s' % (str(row.entity_id), row.value_formula))
         entity.set_property(entity_id=entity_id, old_property_id = row.id, property_definition_keyname = row.property_definition_keyname, value = row.value_formula)
+
 
 def updateFormulasRecursive(entity_id, user_locale, user_id):
     updateFormulas(entity_id, user_locale, user_id)
@@ -41,6 +56,7 @@ def updateFormulasRecursive(entity_id, user_locale, user_id):
 
 
 handlers = [
-    (r'/update/formulas/(.*)', UpdateFormulasWeb),
+    (r'/update/formula/(.*)', UpdateFormulasWeb),
+    (r'/update/formulas/(.*)/(.*)', UpdateFormulasByDefinitionWeb),
     (r'/update/formulas-rec/(.*)', UpdateFormulasRecursiveWeb),
 ]

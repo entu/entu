@@ -1819,6 +1819,8 @@ def mdbg(matchobj):
 
 
 def sortableDateTime(s_date):
+    if not s_date:
+        return ''
     formatted_date = '%(year)d%(month)02d%(day)02d%(hour)02d%(minute)02d%(second)02d' % {'year': s_date.year, 'month': s_date.month, 'day': s_date.day, 'hour': s_date.hour, 'minute': s_date.minute, 'second': s_date.second}
     logging.debug(formatted_date)
     return formatted_date
