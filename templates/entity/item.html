@@ -45,6 +45,8 @@
                         <div class="html-property" data-property="{{ p['dataproperty'] }}" style="display:block; width:100%;"><img src="{{ static_url('images/spinner_white.gif') }}" id="search-spinner" /></div>
                     {% elif p['datatype'] == 'text' %}
                         {{ markdown2.markdown('   \n'.join(['%s' % v['value'].replace('\n', '   \n') for v in p['values']])) }}
+                    {% elif p['datatype'] == 'reference' %}
+                        {{ '<br />'.join(['<a href="%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
                     {% else %}
                         {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
                     {% end %}
