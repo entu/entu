@@ -1,6 +1,5 @@
 from tornado import auth, web
 
-import db
 from helper import *
 
 

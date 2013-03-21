@@ -40,18 +40,15 @@ class UpdateFormulasRecursiveWeb(myRequestHandler):
 
 
 def updateFormulas(entity_id, user_locale, user_id):
-    entity = db.Entity(user_locale, user_id)
-
     logging.debug('e:%s' % str(entity_id))
     for row in entity.formula_properties(entity_id = entity_id):
         # logging.debug('p:%s, f:%s' % (str(row.entity_id), row.value_formula))
-        entity.set_property(entity_id=entity_id, old_property_id = row.id, property_definition_keyname = row.property_definition_keyname, value = row.value_formula)
+        self.set_property(entity_id=entity_id, old_property_id = row.id, property_definition_keyname = row.property_definition_keyname, value = row.value_formula)
 
 
 def updateFormulasRecursive(entity_id, user_locale, user_id):
     updateFormulas(entity_id, user_locale, user_id)
-    entity = db.Entity(user_locale, user_id)
-    for e_id in entity.get_relatives(ids_only=True, entity_id=entity_id, relationship_definition_keyname='child'):
+    for e_id in self.get_relatives(ids_only=True, entity_id=entity_id, relationship_definition_keyname='child'):
         updateFormulasRecursive(e_id, user_locale, user_id)
 
 

@@ -12,7 +12,6 @@ import urlparse
 import logging
 import json
 
-import db
 from helper import *
 
 
@@ -27,11 +26,11 @@ class ShowAuthPage(myRequestHandler):
 
         self.clear_cookie('session')
         self.render('auth/start.html',
-            mobileid = True if self.settings['mobileid_service_name'] and self.settings['mobileid_url'] else False,
-            google = True if self.settings['google_client_key'] and self.settings['google_client_secret'] else False,
-            facebook = True if self.settings['facebook_api_key'] and self.settings['facebook_secret'] else False,
-            twitter = True if self.settings['twitter_consumer_key'] and self.settings['twitter_consumer_secret'] else False,
-            live = True if self.settings['live_client_key'] and self.settings['live_client_secret'] else False,
+            mobileid = True if self.app_settings['mobileid_service_name'] and self.app_settings['mobileid_url'] else False,
+            google = True if self.app_settings['google_client_key'] and self.app_settings['google_client_secret'] else False,
+            facebook = True if self.app_settings['facebook_api_key'] and self.app_settings['facebook_secret'] else False,
+            twitter = True if self.app_settings['twitter_consumer_key'] and self.app_settings['twitter_consumer_secret'] else False,
+            live = True if self.app_settings['live_client_key'] and self.app_settings['live_client_secret'] else False,
         )
 
 
@@ -48,9 +47,9 @@ class Exit(myRequestHandler):
             elif self.current_user.provider == 'facebook':
                 redirect_url = 'https://www.facebook.com/logout.php?access_token=%s&confirm=1&next=%s://%s/status' % (self.current_user.access_token, self.request.protocol, self.request.host)
             elif self.current_user.provider == 'live':
-                redirect_url = 'https://login.live.com/oauth20_logout.srf?client_id=%s&redirect_uri=%s://%s/status' % (self.settings['live_client_key'], self.request.protocol, self.request.host)
+                redirect_url = 'https://login.live.com/oauth20_logout.srf?client_id=%s&redirect_uri=%s://%s/status' % (self.app_settings['live_client_key'], self.request.protocol, self.request.host)
 
-            self.current_user.logout(self)
+            self.user_logout()
 
         self.redirect(redirect_url)
 
@@ -65,12 +64,12 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
         set_redirect(self)
         self.oauth2_provider = None
 
-        if provider == 'facebook' and 'facebook_api_key' in self.settings and 'facebook_secret' in self.settings:
+        if provider == 'facebook' and 'facebook_api_key' in self.app_settings and 'facebook_secret' in self.app_settings:
             # https://developers.facebook.com/apps
             self.oauth2_provider = {
                 'provider':     'facebook',
-                'key':          self.settings['facebook_api_key'],
-                'secret':       self.settings['facebook_secret'],
+                'key':          self.app_settings['facebook_api_key'],
+                'secret':       self.app_settings['facebook_secret'],
                 'auth_url':     'https://www.facebook.com/dialog/oauth?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s',
                 'token_url':    'https://graph.facebook.com/oauth/access_token',
                 'info_url':     'https://graph.facebook.com/me?access_token=%(token)s',
@@ -81,12 +80,12 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 'user_picture': 'http://graph.facebook.com/%(id)s/picture?type=large',
             }
 
-        if provider == 'google' and 'google_client_key' in self.settings and 'google_client_secret' in self.settings:
+        if provider == 'google' and 'google_client_key' in self.app_settings and 'google_client_secret' in self.app_settings:
             # https://code.google.com/apis/console
             self.oauth2_provider = {
                 'provider':     'google',
-                'key':          self.settings['google_client_key'],
-                'secret':       self.settings['google_client_secret'],
+                'key':          self.app_settings['google_client_key'],
+                'secret':       self.app_settings['google_client_secret'],
                 'auth_url':     'https://accounts.google.com/o/oauth2/auth?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s&response_type=code&approval_prompt=auto&access_type=online',
                 'token_url':    'https://accounts.google.com/o/oauth2/token',
                 'info_url':     'https://www.googleapis.com/oauth2/v2/userinfo?access_token=%(token)s',
@@ -96,12 +95,12 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 'user_name':    '%(name)s',
                 'user_picture': '%(picture)s',
             }
-        if provider == 'live' and 'live_client_key' in self.settings and 'live_client_secret' in self.settings:
+        if provider == 'live' and 'live_client_key' in self.app_settings and 'live_client_secret' in self.app_settings:
             # https://manage.dev.live.com/Applications/Index
             self.oauth2_provider = {
                 'provider':     'live',
-                'key':          self.settings['live_client_key'],
-                'secret':       self.settings['live_client_secret'],
+                'key':          self.app_settings['live_client_key'],
+                'secret':       self.app_settings['live_client_secret'],
                 'auth_url':     'https://login.live.com/oauth20_authorize.srf?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s&response_type=code',
                 'token_url':    'https://login.live.com/oauth20_token.srf',
                 'info_url':     'https://apis.live.net/v5.0/me?access_token=%(token)s',
@@ -180,8 +179,7 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
             return
 
         if self.oauth2_provider['provider'] == 'facebook':
-            db.User().login(
-                request_handler = self,
+            self.user_login(
                 provider        = self.oauth2_provider['provider'],
                 provider_id     = user.setdefault('id', None),
                 email           = user.setdefault('email', None),
@@ -190,8 +188,7 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 access_token    = access_token
             )
         if self.oauth2_provider['provider'] == 'google':
-            db.User().login(
-                request_handler = self,
+            self.user_login(
                 provider        = self.oauth2_provider['provider'],
                 provider_id     = user.setdefault('id', None),
                 email           = user.setdefault('email', None),
@@ -200,8 +197,7 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 access_token    = access_token
             )
         if self.oauth2_provider['provider'] == 'live':
-            db.User().login(
-                request_handler = self,
+            self.user_login(
                 provider        = self.oauth2_provider['provider'],
                 provider_id     = user.setdefault('id', None),
                 email           = user.setdefault('emails', {}).setdefault('preferred', user.setdefault('emails', {}).setdefault('preferred', user.setdefault('personal', {}).setdefault('account', None))),
@@ -219,7 +215,7 @@ class AuthMobileID(myRequestHandler):
 
     """
     def post(self):
-        url = self.settings['mobileid_url']
+        url = self.app_settings['mobileid_url']
         client = Client(url)
         db_connection = db.connection()
 
@@ -247,7 +243,7 @@ class AuthMobileID(myRequestHandler):
             if not person:
                 return
 
-            service = self.settings['mobileid_service_name']
+            service = self.app_settings['mobileid_service_name']
             text = self.request.host
             rnd = ''.join(random.choice(string.digits) for x in range(20))
 
@@ -283,8 +279,7 @@ class AuthMobileID(myRequestHandler):
             if user_file:
                 if user_file.file:
                     user = json.loads(user_file.file)
-                    db.User().login(
-                        request_handler = self,
+                    self.user_login(
                         provider        = 'mobileid',
                         provider_id     = user['id'],
                         email           = '%s@eesti.ee' % user['id'],
@@ -311,8 +306,7 @@ class AuthTwitter(myRequestHandler, auth.TwitterMixin):
         if not user:
             raise web.HTTPError(500, 'Twitter auth failed')
 
-        db.User().login(
-            request_handler = self,
+        self.user_login(
             provider        = 'twitter',
             provider_id     = '%s' % user.setdefault('id'),
             email           = None,

@@ -5,11 +5,8 @@ import csv
 import StringIO
 import logging
 
-from HTMLParser import HTMLParser
-# from urllib import quote
-
-import db
 from helper import *
+from db import *
 
 
 class UploadFile(myRequestHandler):
@@ -24,8 +21,7 @@ class UploadFile(myRequestHandler):
         if not uploaded_file:
             return
 
-        db_connection = db.connection()
-        file_id = db_connection.execute_lastrowid('INSERT INTO tmp_file SET filename = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], uploaded_file['body'], self.current_user.id)
+        file_id = self.db.execute_lastrowid('INSERT INTO tmp_file SET filename = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], uploaded_file['body'], self.current_user.id)
 
         # csv.reader(zf.read('0010711996.txt').split('\n'), delimiter='\t')
 
@@ -48,8 +44,7 @@ class ReadFile(myRequestHandler):
 
         first_row = int(first_row)
 
-        db_connection = db.connection()
-        tmp_file = db_connection.get('SELECT * FROM tmp_file WHERE id = %s AND created_by = %s LIMIT 1;', file_id, self.current_user.id)
+        tmp_file = self.db.get('SELECT * FROM tmp_file WHERE id = %s AND created_by = %s LIMIT 1;', file_id, self.current_user.id)
 
         if not tmp_file:
             return
@@ -62,8 +57,7 @@ class ReadFile(myRequestHandler):
             row_count += 1
 
 
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
-        item = entity.get(entity_id=0, entity_definition_keyname=entity_definition_keyname, limit=1, full_definition=True)
+        item = self.get_entities(entity_id=0, entity_definition_keyname=entity_definition_keyname, limit=1, full_definition=True)
 
         self.render('action/csv_read.html',
             file_id = file_id,
@@ -91,14 +85,12 @@ class ImportFile(myRequestHandler):
 
         first_row = int(first_row)
 
-        db_connection = db.connection()
-        tmp_file = db_connection.get('SELECT * FROM tmp_file WHERE id = %s AND created_by = %s LIMIT 1;', file_id, self.current_user.id)
+        tmp_file = self.db.get('SELECT * FROM tmp_file WHERE id = %s AND created_by = %s LIMIT 1;', file_id, self.current_user.id)
 
         if not tmp_file:
             return
 
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
-        item = entity.get(entity_id=0, entity_definition_keyname=entity_definition_keyname, limit=1, full_definition=True)
+        item = self.get_entities(entity_id=0, entity_definition_keyname=entity_definition_keyname, limit=1, full_definition=True)
         properties = item.get('properties', {}).values()
 
         row_num = 0
@@ -106,7 +98,7 @@ class ImportFile(myRequestHandler):
             row_num += 1
             if row_num < first_row:
                 continue
-            entity_id = entity.create(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
+            entity_id = self.create(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
             for p in properties:
                 field = self.get_argument('field_%s' % p.get('dataproperty'), None)
                 if not field:
@@ -115,7 +107,7 @@ class ImportFile(myRequestHandler):
                 if not value:
                     continue
 
-                property_id = entity.set_property(entity_id=entity_id, property_definition_keyname=p.get('keyname'), value=value)
+                property_id = self.set_property(entity_id=entity_id, property_definition_keyname=p.get('keyname'), value=value)
 
 
 handlers = [

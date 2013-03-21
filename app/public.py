@@ -4,11 +4,11 @@ from operator import itemgetter
 import urllib
 import magic
 
-import db
 from helper import *
+from db import *
 
 
-class PublicHandler(myRequestHandler):
+class PublicHandler(myRequestHandler, Entity):
     """
     Show public startpage.
 
@@ -16,9 +16,8 @@ class PublicHandler(myRequestHandler):
     @web.removeslash
     def get(self, path=None):
         path = path.strip('/').strip('-')
-        db_connection = db.connection()
         if not path:
-            path = db_connection.get('SELECT public_path FROM entity_definition WHERE public_path IS NOT NULL ORDER BY public_path LIMIT 1;')
+            path = self.db.get('SELECT public_path FROM entity_definition WHERE public_path IS NOT NULL ORDER BY public_path LIMIT 1;')
             if path:
                 return self.redirect('/public-%s' % path.public_path)
             else:
@@ -26,14 +25,14 @@ class PublicHandler(myRequestHandler):
 
 
         self.render('public/start.html',
-            paths = get_paths(self.get_user_locale()),
+            paths = get_paths(self, self.get_user_locale()),
             path = path,
             search = '',
-            entity_definitions = get_definitions(self.get_user_locale(), path)
+            entity_definitions = get_definitions(self, path)
         )
 
 
-class PublicSearchHandler(myRequestHandler):
+class PublicSearchHandler(myRequestHandler, Entity):
     """
     Show public search results.
 
@@ -49,10 +48,9 @@ class PublicSearchHandler(myRequestHandler):
         locale = self.get_user_locale()
         items = []
         if len(search) > 1:
-            db_connection = db.connection()
-            entity_definitions = [x.keyname for x in db_connection.query('SELECT keyname FROM entity_definition WHERE public_path = %s;', path)]
+            entity_definitions = [x.keyname for x in self.db.query('SELECT keyname FROM entity_definition WHERE public_path = %s;', path)]
 
-            entities = db.Entity(user_locale=self.get_user_locale()).get(search=search, entity_definition_keyname=entity_definitions, only_public=True)
+            entities = self.get_entities(search=search, entity_definition_keyname=entity_definitions, only_public=True)
             if entities:
                 for item in entities:
                     items.append({
@@ -74,7 +72,7 @@ class PublicSearchHandler(myRequestHandler):
         self.render('public/list.html',
             entities = sorted(items, key=itemgetter('name')) ,
             itemcount = itemcount,
-            paths = get_paths(self.get_user_locale()),
+            paths = get_paths(self, self.get_user_locale()),
             path = path,
             search = urllib.unquote_plus(search),
         )
@@ -87,7 +85,7 @@ class PublicSearchHandler(myRequestHandler):
         self.redirect('/public-%s/search/%s' % (path, urllib.quote_plus(search_get.encode('utf-8'))))
 
 
-class PublicAdvancedSearchHandler(myRequestHandler):
+class PublicAdvancedSearchHandler(myRequestHandler, Entity):
     """
     Show public advanced search results.
 
@@ -101,10 +99,8 @@ class PublicAdvancedSearchHandler(myRequestHandler):
 
         entity_definition_keyname = self.get_argument('ed')
 
-        entity = db.Entity(user_locale=self.get_user_locale())
-        entity_definition = entity.get(entity_id=0, entity_definition_keyname=entity_definition_keyname, full_definition=True, limit=1, only_public=True)
+        entity_definition = self.get_entities(entity_id=0, entity_definition_keyname=entity_definition_keyname, full_definition=True, limit=1, only_public=True)
 
-        db_connection = db.connection()
         entity_ids = None
 
         for p in entity_definition.get('properties', {}).values():
@@ -130,7 +126,7 @@ class PublicAdvancedSearchHandler(myRequestHandler):
             if sql:
                 sql = 'SELECT DISTINCT entity.id FROM property, entity WHERE entity.id = property.entity_id AND entity.entity_definition_keyname = \'%s\' AND property.property_definition_keyname = \'%s\' AND entity.public = 1 %s' % (entity_definition_keyname, p['keyname'], sql)
                 logging.debug(sql)
-                ids = [x.id for x in db_connection.query(sql)]
+                ids = [x.id for x in self.db.query(sql)]
                 if entity_ids == None:
                     entity_ids = ids
                 entity_ids = ListMatch(entity_ids, ids)
@@ -138,9 +134,9 @@ class PublicAdvancedSearchHandler(myRequestHandler):
         locale = self.get_user_locale()
         items = []
         if entity_ids:
-            entity_definitions = [x.keyname for x in db_connection.query('SELECT keyname FROM entity_definition WHERE public_path = %s;', path)]
+            entity_definitions = [x.keyname for x in self.db.query('SELECT keyname FROM entity_definition WHERE public_path = %s;', path)]
 
-            entities = db.Entity(user_locale=self.get_user_locale()).get(entity_id=entity_ids, entity_definition_keyname=entity_definitions, only_public=True)
+            entities = self.get_entities(entity_id=entity_ids, entity_definition_keyname=entity_definitions, only_public=True)
             if entities:
                 for item in entities:
                     items.append({
@@ -160,13 +156,13 @@ class PublicAdvancedSearchHandler(myRequestHandler):
         self.render('public/list.html',
             entities = sorted(items, key=itemgetter('name')) ,
             itemcount = itemcount,
-            paths = get_paths(self.get_user_locale()),
+            paths = get_paths(self, self.get_user_locale()),
             path = path,
             search = '',
         )
 
 
-class PublicEntityHandler(myRequestHandler):
+class PublicEntityHandler(myRequestHandler, Entity):
     """
     Show public entity.
 
@@ -177,20 +173,20 @@ class PublicEntityHandler(myRequestHandler):
         except:
             return self.missing()
 
-        item = db.Entity(user_locale=self.get_user_locale()).get(entity_id=entity_id, limit=1, only_public=True)
+        item = self.get_entities(entity_id=entity_id, limit=1, only_public=True)
         if not item:
             return self.missing()
 
         self.render('public/item.html',
             page_title = item['displayname'],
             entity = item,
-            paths = get_paths(self.get_user_locale()),
+            paths = get_paths(self, self.get_user_locale()),
             path = path,
             search = '',
         )
 
 
-class PublicFileHandler(myRequestHandler):
+class PublicFileHandler(myRequestHandler, Entity):
     """
     Download public file.
 
@@ -201,7 +197,7 @@ class PublicFileHandler(myRequestHandler):
         except:
             return self.missing()
 
-        files = db.Entity(user_locale=self.get_user_locale()).get_file(file_id)
+        files = self.get_file(file_id)
         if not files:
             return self.missing()
 
@@ -216,17 +212,14 @@ class PublicFileHandler(myRequestHandler):
         self.write(file.file)
 
 
-def get_paths(user_locale):
-    db_connection = db.connection()
-    return db_connection.query('SELECT DISTINCT public_path AS path, %s_public AS label FROM entity_definition WHERE public_path IS NOT NULL ORDER BY public_path;' % user_locale.code)
+def get_paths(rh, user_locale):
+    return rh.db.query('SELECT DISTINCT public_path AS path, %s_public AS label FROM entity_definition WHERE public_path IS NOT NULL ORDER BY public_path;' % user_locale.code)
 
 
-def get_definitions(user_locale, path):
-    db_connection = db.connection()
+def get_definitions(rh, path):
     entity_definitions = []
-    entity = db.Entity(user_locale=user_locale)
-    for entity_definition_keyname in [x.keyname for x in db_connection.query('SELECT keyname FROM entity_definition WHERE public_path = %s;', path)]:
-        entity_definitions.append(entity.get(entity_id=0, entity_definition_keyname=entity_definition_keyname, full_definition=True, limit=1, only_public=True))
+    for entity_definition_keyname in [x.keyname for x in rh.db.query('SELECT keyname FROM entity_definition WHERE public_path = %s;', path)]:
+        entity_definitions.append(rh.get_entities(entity_id=0, entity_definition_keyname=entity_definition_keyname, full_definition=True, limit=1, only_public=True))
     return entity_definitions
 
 

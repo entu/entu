@@ -31,7 +31,9 @@
             if(!skip_push_state) {
                 window.history.replaceState('entity-'+id, '', '/entity/{{ entity_definition_keyname }}/' + id);
             };
-            _gaq.push(['_trackPageview', '/entity-'+id]);
+            if(typeof _gaq != 'undefined') {
+                _gaq.push(['_trackPageview', '/entity-'+id]);
+            }
         } else {
             $('#toolbar').html($('#list_toolbar_template').html());
             $('#content').html('');

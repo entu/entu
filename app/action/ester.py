@@ -9,8 +9,8 @@ import logging
 
 from HTMLParser import HTMLParser
 
-import db
 from helper import *
+from db import *
 
 #http://www.loc.gov/marc/bibliographic/
 MARCMAP = {
@@ -57,7 +57,7 @@ AUTHORMAP = {
     u'tõlkija':          'translator',
 }
 
-class EsterSearch(myRequestHandler):
+class EsterSearch(myRequestHandler, Entity):
     """
     """
     @web.authenticated
@@ -104,7 +104,7 @@ class EsterSearch(myRequestHandler):
                 title = cells[1].span.a.contents[0].strip()
                 isbn = cells[1].find(text='ISBN/ISSN').next.strip(':&nbsp;\n ').strip()
                 year = cells[4].contents[0].strip().strip('c')
-                entity = GetExistingID(ester_id)
+                entity = GetExistingID(self, ester_id)
                 items.append({
                     'id': ester_id,
                     'entity_id': entity.get('entity_id'),
@@ -126,7 +126,7 @@ class EsterSearch(myRequestHandler):
         marc = response.body.split('<pre>')[1].split('</pre>')[0].strip()
         item = ParseMARC(marc)
         ester_id = response.effective_url.split('/marc~')[1]
-        entity = GetExistingID(ester_id)
+        entity = GetExistingID(self, ester_id)
 
         items = []
         items.append({
@@ -142,7 +142,7 @@ class EsterSearch(myRequestHandler):
         self.finish()
 
 
-class EsterImport(myRequestHandler):
+class EsterImport(myRequestHandler, Entity):
     """
     """
     @web.authenticated
@@ -153,7 +153,7 @@ class EsterImport(myRequestHandler):
         if not ester_id or not parent_entity_id or not entity_definition_keyname:
             return
 
-        entity = GetExistingID(ester_id)
+        entity = GetExistingID(self, ester_id)
         if entity.get('entity_id'):
             return self.write(str(entity.get('entity_id')))
 
@@ -167,17 +167,14 @@ class EsterImport(myRequestHandler):
 
         item['ester-id'] = ester_id
 
-        db_connection = db.connection()
+        # logging.debug(str(item))
 
-        logging.debug(str(item))
-
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
-        entity_id = entity.create(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
+        entity_id = self.create(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
 
         for field, values in item.iteritems():
             sql = 'SELECT keyname FROM property_definition WHERE dataproperty = \'%s\' AND entity_definition_keyname = \'%s\' LIMIT 1;' % (field, entity_definition_keyname)
 
-            property_definition = db_connection.get(sql)
+            property_definition = self.db.get(sql)
             if not property_definition:
                 logging.warning('%s: %s' % (field, values))
                 continue
@@ -185,7 +182,7 @@ class EsterImport(myRequestHandler):
             if type(values) is not list:
                 values = [values]
             for value in values:
-                entity.set_property(entity_id=entity_id, property_definition_keyname=property_definition.keyname, value=value)
+                self.set_property(entity_id=entity_id, property_definition_keyname=property_definition.keyname, value=value)
 
         self.write(str(entity_id))
 
@@ -201,9 +198,8 @@ class EsterTest(myRequestHandler):
         self.write(ParseMARC(marc))
 
 
-def GetExistingID(ester_id):
-    db_connection = db.connection()
-    entity = db_connection.get('SELECT property.entity_id, entity.entity_definition_keyname FROM property, entity, property_definition WHERE entity.id = property.entity_id AND property_definition.keyname = property.property_definition_keyname AND property_definition.dataproperty = \'ester-id\' AND property.value_string = %s AND property.is_deleted = 0 AND entity.is_deleted = 0 LIMIT 1', ester_id)
+def GetExistingID(rh, ester_id):
+    entity = rh.db.get('SELECT property.entity_id, entity.entity_definition_keyname FROM property, entity, property_definition WHERE entity.id = property.entity_id AND property_definition.keyname = property.property_definition_keyname AND property_definition.dataproperty = \'ester-id\' AND property.value_string = %s AND property.is_deleted = 0 AND entity.is_deleted = 0 LIMIT 1', ester_id)
     if not entity:
         return {}
 

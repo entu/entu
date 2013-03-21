@@ -8,43 +8,44 @@ import tornado.database
 import tornado.options
 from tornado.options import define, options
 
+import yaml
 import logging
+import random
+import string
+
+from helper import *
 
 
 # Command line options
-define('debug',          help = 'run on debug mode',        type = str, default='False')
-define('port',           help = 'run on the given port',    type = int, default=8000)
-define('mysql_host',     help = 'mysql database host',      type = str, default='localhost')
-define('mysql_database', help = 'mysql database name',      type = str)
-define('mysql_user',     help = 'mysql database user',      type = str)
-define('mysql_password', help = 'mysql database password',  type = str)
+define('debug', help='run on debug mode',     type=str, default='False')
+define('port',  help='run on the given port', type=int, default=8000)
 
 
 # List of controllers to load.
-controllers = [
+app_controllers = [
+    'action.csv_import',
+    'action.ester',
+    'api',
     'auth',
     'entity',
     'public',
     'status',
-    'action.ester',
-    'action.csv_import',
-    'api',
-    'user',
     'update',
+    'user',
+    'xxx',
 ]
 
 
-class MainPage(tornado.web.RequestHandler):
+class MainPage(myRequestHandler):
     """
     Redirects / to site's default path.
 
     """
     def get(self):
-        self.require_setting('default_path', 'this application')
-        self.redirect(self.settings['default_path'])
+        self.redirect(self.app_settings['default_path'])
 
 
-class PageNotFound(tornado.web.RequestHandler):
+class PageNotFound(myRequestHandler):
     """
     """
     def get(self, page=None):
@@ -58,32 +59,31 @@ class myApplication(tornado.web.Application):
 
     """
     def __init__(self):
-        handlers = [(r'/', MainPage)]
-        for controller in controllers:
-            c = __import__ (controller, globals(), locals(), ['*'], -1)
-            handlers.extend(c.handlers)
-
-            for h in c.handlers:
-                logging.info('%s.py -> %s' % (controller, h[0]))
-        handlers.append((r'(.*)', PageNotFound))
-
-        settings = {
+        # load settings
+        settings_static = {
+            'debug':            True if str(options.debug).lower() == 'true' else False,
             'template_path':    path.join(path.dirname(__file__), '..', 'templates'),
             'static_path':      path.join(path.dirname(__file__), '..', 'static'),
-            'debug':            True if str(options.debug).lower() == 'true' else False,
-            'login_url':        '/auth',
             'xsrf_coocies':     True,
+            'cookie_secret':    ''.join(random.choice(string.ascii_letters + string.digits) for x in range(64)),
+            'login_url':        '/auth',
         }
+        settings_yaml = yaml.safe_load(open('config.yaml', 'r'))
 
-        db = tornado.database.Connection(
-            host        = options.mysql_host,
-            database    = options.mysql_database,
-            user        = options.mysql_user,
-            password    = options.mysql_password,
-        )
-        for preference in db.query('SELECT keyname, value FROM app_settings;'):
-            settings[preference.keyname] = preference.value
+        # load handlers
+        handlers = [(r'/', MainPage)]
+        for controller in app_controllers:
+            c = __import__ (controller, globals(), locals(), ['*'], -1)
+            handlers.extend(c.handlers)
+            for h in c.handlers:
+                settings_static.setdefault('paths', {}).setdefault('%s.py' % controller, []).append(h[0])
+        handlers.append((r'(.*)', PageNotFound))
 
+        # merge command line and static settings
+        settings = dict(settings_static.items() + settings_yaml.items())
+
+        # init application
+        logging.debug('App settings:\n%s' % yaml.safe_dump(settings, default_flow_style=False, allow_unicode=True))
         tornado.web.Application.__init__(self, handlers, **settings)
 
 
@@ -93,3 +93,13 @@ if __name__ == '__main__':
     tornado.options.parse_command_line()
     tornado.httpserver.HTTPServer(myApplication(), xheaders=True).listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
+
+
+    # server = tornado.httpserver.HTTPServer(myApplication(), xheaders=True)
+    # server.listen(options.port)
+
+    # io_loop = tornado.ioloop.IOLoop.instance()
+    # io_loop.set_blocking_signal_threshold(1, io_loop.log_stack)
+    # io_loop.start()
+
+

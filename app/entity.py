@@ -8,11 +8,11 @@ import yaml
 import time
 import markdown2
 
-import db
 from helper import *
+from db import *
 
 
-class ShowGroup(myRequestHandler):
+class ShowGroup(myRequestHandler, Entity):
     """
     """
     @web.removeslash
@@ -22,19 +22,14 @@ class ShowGroup(myRequestHandler):
         Show entities page with menu.
 
         """
-        self.require_setting('quota_entities', 'this application')
-        self.require_setting('quota_size_bytes', 'this application')
-
         entity_definition_keyname = entity_definition_keyname.strip('/').split('/')[0]
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
         entity_definition = None
         if entity_definition_keyname:
-            entity_definition = entity.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
+            entity_definition = self.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
 
-        db_connection = db.connection()
-        quota_entities_used = db_connection.get('SELECT COUNT(*) AS entities FROM entity WHERE is_deleted = 0;').entities
-        # quota_size_used = db_connection.get('SELECT SUM(data_length + index_length) AS size FROM information_schema.TABLES;').size
-        quota_size_used = db_connection.get('SELECT SUM(filesize) AS size FROM file;').size
+        quota_entities_used = self.db.get('SELECT COUNT(*) AS entities FROM entity WHERE is_deleted = 0;').entities
+        # quota_size_used = self.db.get('SELECT SUM(data_length + index_length) AS size FROM information_schema.TABLES;').size
+        quota_size_used = self.db.get('SELECT SUM(filesize) AS size FROM file;').size
 
         try:
             f = open('../HISTORY.md', 'r')
@@ -42,20 +37,18 @@ class ShowGroup(myRequestHandler):
         except:
             history = ''
 
-
-
         self.render('entity/start.html',
             page_title = entity_definition[0].label_plural if entity_definition else '',
-            menu = entity.get_menu(),
+            menu = self.get_menu(),
             show_list = True if entity_definition_keyname else False,
             entity_definition_label = entity_definition[0].label_plural if entity_definition else '',
             entity_definition_keyname = entity_definition_keyname,
-            add_definitions = entity.get_definitions_with_default_parent(entity_definition_keyname) if entity_definition_keyname else None,
+            add_definitions = self.get_definitions_with_default_parent(entity_definition_keyname) if entity_definition_keyname else None,
             history = history,
-            quota_entities = int(self.settings['quota_entities']),
+            quota_entities = int(self.app_settings['quota_entities']),
             quota_entities_used = int(quota_entities_used),
-            quota_size = int(self.settings['quota_size_bytes']),
-            quota_size_human = GetHumanReadableBytes(self.settings['quota_size_bytes'], 1),
+            quota_size = int(self.app_settings['quota_size_bytes']),
+            quota_size_human = GetHumanReadableBytes(self.app_settings['quota_size_bytes'], 1),
             quota_size_used = int(quota_size_used) if quota_size_used else 0,
             quota_size_used_human = GetHumanReadableBytes(quota_size_used, 1) if quota_size_used else '0B'
         )
@@ -70,12 +63,12 @@ class ShowGroup(myRequestHandler):
         search = self.get_argument('search', None, True)
         limit = 500
         self.write({
-            'items': db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(ids_only=True, search=search, entity_definition_keyname=entity_definition_keyname, limit=limit+1),
+            'items': self.get_entities(ids_only=True, search=search, entity_definition_keyname=entity_definition_keyname, limit=limit+1),
             'limit': limit,
         })
 
 
-class ShowListinfo(myRequestHandler):
+class ShowListinfo(myRequestHandler, Entity):
     """
     """
     @web.authenticated
@@ -84,8 +77,7 @@ class ShowListinfo(myRequestHandler):
         Returns Entitiy info for list as JSON.
 
         """
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
-        item = entity.get(entity_id=entity_id, limit=1)
+        item = self.get_entities(entity_id=entity_id, limit=1)
         if not item:
             return self.missing()
 
@@ -97,7 +89,7 @@ class ShowListinfo(myRequestHandler):
         })
 
 
-class GetEntities(myRequestHandler):
+class GetEntities(myRequestHandler, Entity):
     """
     """
     @web.authenticated
@@ -110,10 +102,9 @@ class GetEntities(myRequestHandler):
         if not search:
             return self.missing()
 
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
 
         result = []
-        for e in entity.get(search=search, entity_definition_keyname=entity_definition_keyname, limit=303):
+        for e in self.get_entities(search=search, entity_definition_keyname=entity_definition_keyname, limit=303):
             if e['id'] == int(exclude_entity_id):
                 continue
             result.append({
@@ -126,7 +117,7 @@ class GetEntities(myRequestHandler):
         self.write({'entities': result})
 
 
-class ShowEntity(myRequestHandler):
+class ShowEntity(myRequestHandler, Entity):
     @web.authenticated
     def get(self, entity_id=None, url=None):
         """
@@ -137,18 +128,17 @@ class ShowEntity(myRequestHandler):
         if not entity_id:
             return self.missing()
 
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
-        item = entity.get(entity_id=entity_id, limit=1)
+        item = self.get_entities(entity_id=entity_id, limit=1)
 
         if not item:
             return self.missing()
 
-        relatives = entity.get_relatives(entity_id=item['id'], relationship_definition_keyname=['child'])
-        parents = entity.get_relatives(related_entity_id=item['id'], relationship_definition_keyname='child', reverse_relation=True)
-        allowed_childs = entity.get_allowed_childs(entity_id=item['id'])
+        relatives = self.get_relatives(entity_id=item['id'], relationship_definition_keyname=['child'])
+        parents = self.get_relatives(related_entity_id=item['id'], relationship_definition_keyname='child', reverse_relation=True)
+        allowed_childs = self.get_allowed_childs(entity_id=item['id'])
 
-        can_edit = False if self.current_user.provider == 'application' else True #entity.get_relatives(ids_only=True, entity_id=item['id'], related_entity_id=self.current_user.id, relationship_definition_keyname=['viewer', 'editor', 'owner'])
-        can_add = False if self.current_user.provider == 'application' else True #entity.get_relatives(ids_only=True, entity_id=item['id'], related_entity_id=self.current_user.id, relationship_definition_keyname=['viewer', 'editor', 'owner'])
+        can_edit = False if self.current_user.provider == 'application' else True #self.get_relatives(ids_only=True, entity_id=item['id'], related_entity_id=self.current_user.id, relationship_definition_keyname=['viewer', 'editor', 'owner'])
+        can_add = False if self.current_user.provider == 'application' else True #self.get_relatives(ids_only=True, entity_id=item['id'], related_entity_id=self.current_user.id, relationship_definition_keyname=['viewer', 'editor', 'owner'])
 
         rating_scale = None
         # rating_scale_list = [x.get('values', []) for x in item.get('properties', []) if x.get('dataproperty', '') == 'rating_scale']
@@ -166,11 +156,11 @@ class ShowEntity(myRequestHandler):
             can_edit = can_edit,
             can_add = can_add,
             is_owner = True,
-            add_definitions = entity.get_definitions_with_default_parent(item.get('definition_keyname')) if item.get('definition_keyname') else None,
+            add_definitions = self.get_definitions_with_default_parent(item.get('definition_keyname')) if item.get('definition_keyname') else None,
         )
 
 
-class DownloadFile(myRequestHandler):
+class DownloadFile(myRequestHandler, Entity):
     @web.authenticated
     def get(self, file_ids=None, url=None):
         """
@@ -178,7 +168,7 @@ class DownloadFile(myRequestHandler):
 
         """
         file_ids = file_ids.split('/')[0]
-        files = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get_file(file_ids)
+        files = self.get_file(file_ids)
 
         if not files:
             return self.missing()
@@ -211,15 +201,14 @@ class DownloadFile(myRequestHandler):
         self.write(outfile)
 
 
-class ShowEntityEdit(myRequestHandler):
+class ShowEntityEdit(myRequestHandler, Entity):
     @web.authenticated
     def get(self, entity_id=None):
         """
         Shows Entitiy edit form.
 
         """
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
-        item = entity.get(entity_id=entity_id, limit=1, full_definition=True)
+        item = self.get_entities(entity_id=entity_id, limit=1, full_definition=True)
         if not item:
             return
 
@@ -232,19 +221,18 @@ class ShowEntityEdit(myRequestHandler):
         )
 
 
-class ShowEntityAdd(myRequestHandler):
+class ShowEntityAdd(myRequestHandler, Entity):
     @web.authenticated
     def get(self, entity_id=None, entity_definition_keyname=None):
         """
         Shows Entitiy adding form.
 
         """
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
-        item = entity.get(entity_id=0, entity_definition_keyname=entity_definition_keyname, limit=1, full_definition=True)
+        item = self.get_entities(entity_id=0, entity_definition_keyname=entity_definition_keyname, limit=1, full_definition=True)
         if not item:
             return
 
-        entity_definition = entity.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
+        entity_definition = self.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
         actions = StrToList(entity_definition[0].get('actions_add'))
 
         self.render('entity/edit.html',
@@ -256,15 +244,14 @@ class ShowEntityAdd(myRequestHandler):
         )
 
 
-class ShowEntityRelate(myRequestHandler):
+class ShowEntityRelate(myRequestHandler, Entity):
     @web.authenticated
     def get(self, entity_id=None):
         """
         Shows Entitiy relate form.
 
         """
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
-        item = entity.get(entity_id=entity_id, limit=1, full_definition=True)
+        item = self.get_entities(entity_id=entity_id, limit=1, full_definition=True)
         if not item:
             return
 
@@ -275,8 +262,7 @@ class ShowEntityRelate(myRequestHandler):
         )
 
 
-class SaveEntity(myRequestHandler):
-    entity                      = None
+class SaveEntity(myRequestHandler, Entity):
     entity_id                   = None
     new_property_id             = None
     property_definition_keyname = None
@@ -307,15 +293,14 @@ class SaveEntity(myRequestHandler):
         dropbox_file                        = self.get_argument('dropbox_file', default=None, strip=True)
         dropbox_name                        = self.get_argument('dropbox_name', default=None, strip=True)
 
-        self.entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
         if not self.entity_id and parent_entity_id and entity_definition_keyname:
-            self.entity_id = self.entity.create(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
+            self.entity_id = self.create(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
 
         if is_counter.lower() == 'true':
-            self.value = self.entity.set_counter(entity_id=self.entity_id)
+            self.value = self.set_counter(entity_id=self.entity_id)
         elif is_public.lower() == 'true':
             self.value = True if self.value.lower() == 'true' else False
-            self.value = self.entity.set_public(entity_id=self.entity_id, is_public=self.value)
+            self.value = self.set_public(entity_id=self.entity_id, is_public=self.value)
         elif dropbox_file and dropbox_name:
             self.value = [{'filename': dropbox_name, 'body': None}]
             httpclient.AsyncHTTPClient().fetch(dropbox_file, method = 'GET', request_timeout = 3600, callback=self._got_dropbox_file)
@@ -324,14 +309,14 @@ class SaveEntity(myRequestHandler):
             if type(self.value) is not list:
                 self.value = [self.value]
             for v in self.value:
-                self.new_property_id = self.entity.set_property(entity_id=self.entity_id, property_definition_keyname=self.property_definition_keyname, value=v, old_property_id=property_id)
+                self.new_property_id = self.set_property(entity_id=self.entity_id, property_definition_keyname=self.property_definition_keyname, value=v, old_property_id=property_id)
 
         self._printout()
 
     @web.asynchronous
     def _got_dropbox_file(self, response):
         self.value[0]['body'] = response.body
-        self.new_property_id = self.entity.set_property(entity_id=self.entity_id, property_definition_keyname=self.property_definition_keyname, value=self.value[0])
+        self.new_property_id = self.set_property(entity_id=self.entity_id, property_definition_keyname=self.property_definition_keyname, value=self.value[0])
         self._printout()
 
     @web.asynchronous
@@ -345,7 +330,7 @@ class SaveEntity(myRequestHandler):
         self.finish()
 
 
-class DeleteFile(myRequestHandler):
+class DeleteFile(myRequestHandler, Entity):
     @web.authenticated
     def post(self, file_id=None):
         """
@@ -361,15 +346,14 @@ class DeleteFile(myRequestHandler):
         property_id = self.get_argument('property_id', None, True)
         entity_id = self.get_argument('entity_id', None, True)
 
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
-        item = entity.get(entity_id=entity_id, limit=1)
+        item = self.get_entities(entity_id=entity_id, limit=1)
         if not item:
             return self.missing()
 
-        entity.set_property(entity_id=entity_id, old_property_id=property_id)
+        self.set_property(entity_id=entity_id, old_property_id=property_id)
 
 
-class DeleteEntity(myRequestHandler):
+class DeleteEntity(myRequestHandler, Entity):
     @web.authenticated
     def post(self, id=None):
         """
@@ -385,15 +369,14 @@ class DeleteEntity(myRequestHandler):
         """
         entity_id = self.get_argument('entity_id', None, True)
 
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
-        item = entity.get(entity_id=entity_id, limit=1)
+        item = self.get_entities(entity_id=entity_id, limit=1)
         if not item:
             return self.missing()
 
-        entity.delete(entity_id)
+        self.delete(entity_id)
 
 
-class ShareByEmail(myRequestHandler):
+class ShareByEmail(myRequestHandler, Entity):
     @web.authenticated
     def get(self,  entity_id=None):
         """
@@ -412,8 +395,7 @@ class ShareByEmail(myRequestHandler):
         to = self.get_argument('to', None)
         message = self.get_argument('message', '')
 
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
-        item = entity.get(entity_id=entity_id, limit=1)
+        item = self.get_entities(entity_id=entity_id, limit=1)
         if not item:
             return self.missing()
 
@@ -426,7 +408,7 @@ class ShareByEmail(myRequestHandler):
         )
 
 
-class ShowHTMLproperty(myRequestHandler):
+class ShowHTMLproperty(myRequestHandler, Entity):
     @web.authenticated
     def get(self, entity_id, dataproperty):
         """
@@ -434,15 +416,14 @@ class ShowHTMLproperty(myRequestHandler):
 
         """
 
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
-        item = entity.get(entity_id=entity_id, limit=1, full_definition=False)
+        item = self.get_entities(entity_id=entity_id, limit=1, full_definition=False)
         if not item:
             return
 
         self.write('\n'.join([x.get('value', '') for x in item.get('properties', {}).get(dataproperty, {}).get('values') if x.get('value', '')]))
 
 
-class DownloadEntity(myRequestHandler):
+class DownloadEntity(myRequestHandler, Entity):
     @web.authenticated
     def get(self, entity_id):
         """
@@ -450,8 +431,7 @@ class DownloadEntity(myRequestHandler):
 
         """
 
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
-        item = entity.get(entity_id=entity_id, limit=1, full_definition=False)
+        item = self.get_entities(entity_id=entity_id, limit=1, full_definition=False)
         if not item:
             return
 
@@ -481,8 +461,7 @@ class DownloadEntity(myRequestHandler):
 
         """
 
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id)
-        item = entity.get(entity_id=entity_id, limit=1, full_definition=False)
+        item = self.get_entities(entity_id=entity_id, limit=1, full_definition=False)
         if not item:
             return
 
@@ -502,7 +481,7 @@ class DownloadEntity(myRequestHandler):
 
 
             if p.get('datatype') == 'file':
-                for f in entity.get_file([x.get('db_value') for x in p.get('values', []) if x.get('db_value')]):
+                for f in self.get_file([x.get('db_value') for x in p.get('values', []) if x.get('db_value')]):
                     result.append({
                         'path': '%s/%s' % (path, p.get('label_plural', p.get('label', p.get('keyname',''))).replace('/', '_')),
                         'name': f.filename,
@@ -517,7 +496,7 @@ class DownloadEntity(myRequestHandler):
             'file': yaml.safe_dump(itemyaml, default_flow_style=False, allow_unicode=True)
         })
 
-        for definition, relatives in entity.get_relatives(entity_id=entity_id, relationship_definition_keyname='child').iteritems():
+        for definition, relatives in self.get_relatives(entity_id=entity_id, relationship_definition_keyname='child').iteritems():
             for r in relatives:
                 relatives_result = self.__get_files(r.get('id'), path)
                 if relatives_result:
