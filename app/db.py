@@ -14,48 +14,22 @@ import hashlib
 import re
 import math
 
-
-def connection():
-    """
-    Returns DB connection.
-
-    """
-    return database.Connection(
-        host        = options.mysql_host,
-        database    = options.mysql_database,
-        user        = options.mysql_user,
-        password    = options.mysql_password,
-    )
+from helper import *
 
 
 class Entity():
     """
-    Entity class. user_id can be single ID or list of IDs. If user_id is not set all Entity class methods will return only public stuff.
+    Entity class.
+
     """
-    timer_start = None
-    timer_last = None
 
-    def __init__(self, user_locale, user_id=None):
-        self.db             = connection()
-
-        self.user_id        = user_id
-        self.user_locale    = user_locale
-        self.language       = user_locale.code
-        self.created_by     = ''
-
-        if user_id:
-            if type(self.user_id) is not list:
-                self.user_id = [self.user_id]
-            self.created_by = ','.join(map(str, self.user_id))
-
-        # logging.debug({'user':self.user_id, 'created':self.created_by})
-
-    def timer(self, msg='', reset=False):
-        if not self.timer_start or reset:
-            self.timer_start = time.time()
-        self.timer_last = time.time() - self.timer_start
-        logging.debug('%0.3f - %s' % (round(self.timer_last, 3), msg))
-
+    @property
+    def __user_id(self):
+        if not self.current_user:
+            return None
+        if not self.current_user.id:
+            return None
+        return self.current_user.id
 
     def create(self, entity_definition_keyname, parent_entity_id=None):
         """
@@ -74,7 +48,7 @@ class Entity():
                 created = NOW();
         """
         # logging.debug(sql)
-        entity_id = self.db.execute_lastrowid(sql, entity_definition_keyname, self.created_by)
+        entity_id = self.db.execute_lastrowid(sql, entity_definition_keyname, self.__user_id)
 
         if not parent_entity_id:
             return entity_id
@@ -105,7 +79,7 @@ class Entity():
                 NOW();
         """
         # logging.debug(sql)
-        self.db.execute(sql, entity_id, self.created_by, entity_definition_keyname, parent_entity_id, entity_id, self.created_by)
+        self.db.execute(sql, entity_id, self.__user_id, entity_definition_keyname, parent_entity_id, entity_id, self.__user_id)
 
         # Insert or update "contains" information
         for row in self.db.query("SELECT entity_id FROM relationship r WHERE r.is_deleted = 0 AND r.relationship_definition_keyname = 'child' AND r.related_entity_id = %s" , entity_id):
@@ -135,7 +109,7 @@ class Entity():
             AND       rr.relationship_definition_keyname IN ('viewer', 'editor', 'owner' );
         """
         # logging.debug(sql)
-        self.db.execute(sql, entity_id, self.created_by, entity_id)
+        self.db.execute(sql, entity_id, self.__user_id, entity_id)
 
         # Populate default values
         for default_value in self.db.query('SELECT keyname, defaultvalue FROM property_definition WHERE entity_definition_keyname = %s AND defaultvalue IS NOT null', entity_definition_keyname):
@@ -187,7 +161,7 @@ class Entity():
             ;
         """
         # logging.debug(sql)
-        self.db.execute(sql, entity_id, self.created_by, entity_definition_keyname, parent_entity_id)
+        self.db.execute(sql, entity_id, self.__user_id, entity_definition_keyname, parent_entity_id)
 
         return entity_id
 
@@ -211,9 +185,9 @@ class Entity():
             return
 
         if old_property_id:
-            self.db.execute('UPDATE property SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', self.created_by, old_property_id )
+            self.db.execute('UPDATE property SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', self.__user_id, old_property_id )
             if definition.formula == 1:
-                Formula(user_locale=self.user_locale, created_by=self.created_by, entity_id=entity_id, property_id=old_property_id).delete()
+                Formula(self.db, user_locale=self.get_user_locale(), created_by=self.__user_id, entity_id=entity_id, property_id=old_property_id).delete()
 
         # If no value, then property is deleted, return
         if not value:
@@ -222,11 +196,11 @@ class Entity():
         new_property_id = self.db.execute_lastrowid('INSERT INTO property SET entity_id = %s, property_definition_keyname = %s, created = NOW(), created_by = %s;',
             entity_id,
             property_definition_keyname,
-            self.created_by
+            self.__user_id
         )
 
         if definition.formula == 1:
-            formula = Formula(user_locale=self.user_locale, created_by=self.created_by, entity_id=entity_id, property_id=new_property_id, formula=value)
+            formula = Formula(self.db, user_locale=self.get_user_locale(), created_by=self.__user_id, entity_id=entity_id, property_id=new_property_id, formula=value)
             value = ''.join(formula.evaluate())
 
         if definition.datatype in ['text', 'html']:
@@ -245,7 +219,7 @@ class Entity():
             field = 'value_reference'
         elif definition.datatype == 'file':
             uploaded_file = value
-            value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, filesize = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], len(uploaded_file['body']), uploaded_file['body'], self.created_by)
+            value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, filesize = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], len(uploaded_file['body']), uploaded_file['body'], self.__user_id)
             field = 'value_file'
         elif definition.datatype == 'boolean':
             field = 'value_boolean'
@@ -263,10 +237,10 @@ class Entity():
         if definition.formula == 1:
             formula.save_property(new_property_id=new_property_id, old_property_id=old_property_id)
         else:
-            Formula(user_locale=self.user_locale, created_by=self.created_by, entity_id=entity_id, property_id=new_property_id).update_depending_formulas()
+            Formula(self.db, user_locale=self.get_user_locale(), created_by=self.__user_id, entity_id=entity_id, property_id=new_property_id).update_depending_formulas()
 
         self.db.execute('UPDATE entity SET changed = NOW(), changed_by = %s WHERE id = %s;',
-            self.created_by,
+            self.__user_id,
             entity_id,
         )
 
@@ -398,7 +372,7 @@ class Entity():
                 counter.changed_by = '%(user_id)s',
                 counter.changed = NOW()
             WHERE counter.id = X.id;
-        """ % {'entity_id': entity_id, 'user_id': ','.join(map(str, self.user_id))}
+        """ % {'entity_id': entity_id, 'user_id': self.__user_id}
         # logging.debug(sql)
 
         property_id = self.db.execute_lastrowid(sql)
@@ -432,7 +406,7 @@ class Entity():
                             WHERE relationship_definition_keyname = '%s'
                             AND entity_id = %s
                             AND related_entity_id = %s;
-                        """ % (self.created_by, t, e, r)
+                        """ % (self.__user_id, t, e, r)
                         # logging.debug(sql)
                         self.db.execute(sql)
                     elif update == True:
@@ -445,7 +419,7 @@ class Entity():
                             WHERE relationship_definition_keyname = '%s'
                             AND entity_id = %s
                             AND related_entity_id = %s;
-                        """ % (self.created_by, t, e, r)
+                        """ % (self.__user_id, t, e, r)
                         # logging.debug(sql)
                         old = self.db.execute_rowcount(sql)
                         if not old:
@@ -456,7 +430,7 @@ class Entity():
                                     related_entity_id = %s,
                                     created_by = '%s',
                                     created = NOW();
-                            """ % (t, e, r, self.created_by)
+                            """ % (t, e, r, self.__user_id)
                             # logging.debug(sql)
                             self.db.execute(sql)
                     else:
@@ -467,11 +441,11 @@ class Entity():
                                 related_entity_id = %s,
                                 created_by = '%s',
                                 created = NOW();
-                        """ % (t, e, r, self.created_by)
+                        """ % (t, e, r, self.__user_id)
                         # logging.debug(sql)
                         self.db.execute(sql)
 
-    def get(self, ids_only=False, entity_id=None, search=None, entity_definition_keyname=None, dataproperty=None, limit=None, full_definition=False, only_public=False):
+    def get_entities(self, ids_only=False, entity_id=None, search=None, entity_definition_keyname=None, dataproperty=None, limit=None, full_definition=False, only_public=False):
         """
         If ids_only = True, then returns list of Entity IDs. Else returns list of Entities (with properties) as dictionary. entity_id, entity_definition and dataproperty can be single value or list of values.
         If limit = 1, then returns Entity (not list).
@@ -507,7 +481,7 @@ class Entity():
             for s in search.split(' '):
                 i += 1
                 join_parts.append('RIGHT JOIN property AS p%i ON p%i.entity_id = e.id' % (i, i))
-                if not self.user_id or only_public == True:
+                if not self.__user_id or only_public == True:
                     join_parts.append('LEFT JOIN property_definition AS pd%i ON pd%i.keyname = p%i.property_definition_keyname' % (i, i, i))
 
                 where_parts.append('p%i.value_string LIKE \'%%%%%s%%%%\'' % (i, s))
@@ -523,10 +497,10 @@ class Entity():
                 entity_id = [entity_id]
             where_parts.append('e.id IN (%s)' % ','.join(map(str, entity_id)))
 
-        if self.user_id and only_public == False:
+        if self.__user_id and only_public == False:
             where_parts.append('r.is_deleted = 0')
             join_parts.append('RIGHT JOIN relationship AS r  ON r.entity_id  = e.id')
-            where_parts.append('r.related_entity_id IN (%s) AND r.relationship_definition_keyname IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id)))
+            where_parts.append('r.related_entity_id IN (%s) AND r.relationship_definition_keyname IN (\'viewer\', \'editor\', \'owner\')' % self.__user_id)
         else:
             where_parts.append('e.public = 1')
             i = 0
@@ -583,7 +557,7 @@ class Entity():
             if type(entity_id) is not list:
                 entity_id = [entity_id]
 
-            if self.user_id and only_public == False:
+            if self.__user_id and only_public == False:
                 public = ''
             else:
                 public = 'AND entity.public = 1 AND property_definition.public = 1'
@@ -654,7 +628,7 @@ class Entity():
                 ORDER BY
                     entity_definition.keyname,
                     entity.created DESC
-            """ % {'language': self.language, 'public': public, 'idlist': ','.join(map(str, entity_id)), 'datapropertysql': datapropertysql}
+            """ % {'language': self.get_user_locale().code, 'public': public, 'idlist': ','.join(map(str, entity_id)), 'datapropertysql': datapropertysql}
             # logging.debug(sql)
 
             items = {}
@@ -697,8 +671,8 @@ class Entity():
                     items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {})['x_created'] = {
                         'keyname' : 'x_created',
                         'fieldset' : 'X',
-                        'label' : self.user_locale.translate('created'),
-                        'label_plural' : self.user_locale.translate('created'),
+                        'label' : self.get_user_locale().translate('created'),
+                        'label_plural' : self.get_user_locale().translate('created'),
                         'description' : '',
                         'datatype': 'datetime',
                         'dataproperty' : 'x_created',
@@ -721,8 +695,8 @@ class Entity():
                     items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {})['x_changed'] = {
                         'keyname' : 'x_changed',
                         'fieldset' : 'X',
-                        'label' : self.user_locale.translate('changed'),
-                        'label_plural' : self.user_locale.translate('changed'),
+                        'label' : self.get_user_locale().translate('changed'),
+                        'label_plural' : self.get_user_locale().translate('changed'),
                         'description' : '',
                         'datatype': 'datetime',
                         'dataproperty' : 'x_changed',
@@ -774,9 +748,9 @@ class Entity():
                     items.setdefault('item_%s' % row.entity_id, {})['file_count'] += 1
                 elif row.property_datatype == 'boolean':
                     db_value = row.value_boolean
-                    value = self.user_locale.translate('boolean_true') if row.value_boolean == 1 else self.user_locale.translate('boolean_false')
+                    value = self.get_user_locale().translate('boolean_true') if row.value_boolean == 1 else self.get_user_locale().translate('boolean_false')
                 elif row.property_datatype == 'counter':
-                    counter = self.db.get('SELECT %(language)s_label AS label FROM counter WHERE id=%(id)s LIMIT 1' % {'language': self.language, 'id': row.value_counter})
+                    counter = self.db.get('SELECT %(language)s_label AS label FROM counter WHERE id=%(id)s LIMIT 1' % {'language': self.get_user_locale().code, 'id': row.value_counter})
                     db_value = row.value_counter
                     value = counter.label
                 elif row.property_datatype == 'counter-value':
@@ -838,7 +812,7 @@ class Entity():
                         items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['can_add_new'] = False
 
                     if d.property_classifier_id:
-                        for c in self.get(entity_definition_keyname=d.property_classifier_id, only_public=True):
+                        for c in self.get_entities(entity_definition_keyname=d.property_classifier_id, only_public=True):
                             if c.get('id', None):
                                 items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {}).setdefault('select', []).append({'id': c.get('id', ''), 'label': c.get('displayname', '')})
 
@@ -948,7 +922,7 @@ class Entity():
                 property_definition
             WHERE entity_definition.keyname = property_definition.entity_definition_keyname
             AND entity_definition.keyname IN (%(keyname)s)
-        """ % {'language': self.language, 'keyname': ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])}
+        """ % {'language': self.get_user_locale().code, 'keyname': ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])}
         # logging.debug(sql)
 
         return self.db.query(sql)
@@ -1043,8 +1017,8 @@ class Entity():
         if related_entity_id:
             sql += ' AND r.related_entity_id IN (%s)' % ','.join(map(str, related_entity_id))
 
-        if self.user_id and only_public == False:
-            sql += ' AND rights.related_entity_id IN (%s) AND rights.relationship_definition_keyname IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
+        if self.__user_id and only_public == False:
+            sql += ' AND rights.related_entity_id IN (%s) AND rights.relationship_definition_keyname IN (\'viewer\', \'editor\', \'owner\')' % self.__user_id
         else:
             sql += ' AND e.public = 1'
 
@@ -1060,8 +1034,8 @@ class Entity():
             if entity_id:
                 sql += ' AND up.value_reference IN (%s)' % ','.join(map(str, entity_id))
 
-            if self.user_id and only_public == False:
-                sql += ' AND urights.related_entity_id IN (%s) AND urights.relationship_definition_keyname IN (\'viewer\', \'editor\', \'owner\')' % ','.join(map(str, self.user_id))
+            if self.__user_id and only_public == False:
+                sql += ' AND urights.related_entity_id IN (%s) AND urights.relationship_definition_keyname IN (\'viewer\', \'editor\', \'owner\')' % self.__user_id
             else:
                 sql += ' AND ue.public = 1'
 
@@ -1103,7 +1077,7 @@ class Entity():
         if type(file_id) is not list:
             file_id = [file_id]
 
-        if self.user_id:
+        if self.__user_id:
             public = ''
         else:
             public = 'AND pd.public = 1'
@@ -1150,7 +1124,7 @@ class Entity():
             FROM
                 entity_definition
             WHERE keyname IN (%(ids)s);
-        """  % {'language': self.language, 'ids': ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])}
+        """  % {'language': self.get_user_locale().code, 'ids': ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])}
         # logging.debug(sql)
 
         return self.db.query(sql)
@@ -1173,7 +1147,7 @@ class Entity():
             WHERE r.relationship_definition_keyname = 'allowed-child'
             AND r.entity_id = %(id)s
             AND r.is_deleted = 0
-            ORDER BY ed.keyname        """  % {'language': self.language, 'id': entity_id}
+            ORDER BY ed.keyname        """  % {'language': self.get_user_locale().code, 'id': entity_id}
         # logging.debug(sql)
 
         result = self.db.query(sql)
@@ -1196,7 +1170,7 @@ class Entity():
             AND relationship.relationship_definition_keyname = 'allowed-child'
             AND relationship.entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %(id)s)
             AND relationship.is_deleted = 0
-        """  % {'language': self.language, 'id': entity_id}
+        """  % {'language': self.get_user_locale().code, 'id': entity_id}
         # logging.debug(sql)
 
         return self.db.query(sql)
@@ -1226,7 +1200,7 @@ class Entity():
             AND relationship.relationship_definition_keyname = 'default-parent'
             AND entity_definition.keyname IN (%(ids)s)
             AND relationship.is_deleted = 0
-        """  % {'language': self.language, 'ids': ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])}
+        """  % {'language': self.get_user_locale().code, 'ids': ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])}
         # logging.debug(sql)
 
         return self.db.query(sql)
@@ -1256,7 +1230,7 @@ class Entity():
             ORDER BY
                 entity_definition.estonian_menu,
                 entity_definition.estonian_label;
-        """ % {'language': self.language, 'user_id': ','.join(map(str, self.user_id))}
+        """ % {'language': self.get_user_locale().code, 'user_id': self.__user_id}
         # logging.debug(sql)
 
         menu = {}
@@ -1270,132 +1244,23 @@ class Entity():
         for child_id in self.get_relatives(ids_only=True, entity_id=entity_id, relationship_definition_keyname='child'):
             self.delete(child_id)
 
-        self.db.execute('UPDATE entity SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', self.created_by, entity_id)
+        self.db.execute('UPDATE entity SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', self.__user_id, entity_id)
 
         # remove "contains" information
         self.db.execute('DELETE FROM dag_entity WHERE entity_id = %s OR related_entity_id = %s;', entity_id, entity_id)
-
-
-class User():
-    """
-    If session is given returns user object. User properties are id, name, email, picture, language.
-
-    """
-    id          = None
-    name        = None
-    email       = None
-    picture     = None
-    language    = None
-
-    def __init__(self, session=None):
-        if not session:
-            return
-
-        db = connection()
-        user = db.get("""
-            SELECT
-                property.entity_id AS id,
-                user.id AS user_id,
-                user.name,
-                user.language,
-                user.hide_menu,
-                user.email,
-                user.picture,
-                user.provider,
-                user.access_token
-            FROM
-                property_definition,
-                property,
-                entity,
-                user
-            WHERE property.property_definition_keyname = property_definition.keyname
-            AND entity.id = property.entity_id
-            AND property.is_deleted = 0
-            AND entity.is_deleted = 0
-            AND user.email = property.value_string
-            AND property_definition.dataproperty = 'user'
-            AND user.session = %s
-            LIMIT 1;
-        """, session)
-
-        if not user:
-            return
-
-        for k, v in user.items():
-            setattr(self, k, v)
-
-    def __setitem__(self, key, value):
-        if key == 'language' and value in ['estonian', 'english']:
-            db = connection()
-            db.execute('UPDATE user SET language = %s WHERE id = %s;', value, self.user_id)
-        elif key == 'hide_menu' and value.lower() in ['true', 'false']:
-            if value.lower() == 'true':
-                value = True
-            else:
-                value = False
-            db = connection()
-            db.execute('UPDATE user SET hide_menu = %s WHERE id = %s;', value, self.user_id)
-        setattr(self, key, value)
-
-    def __getitem__(self, key):
-        return getattr(self, key)
-
-    def login(self, request_handler, session_key=None, provider=None, provider_id=None, email=None, name=None, picture=None, access_token=None):
-        """
-        Starts session. Creates new (or updates old) user.
-
-        """
-        if not session_key:
-            session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
-        user_key = hashlib.md5(request_handler.request.remote_ip + request_handler.request.headers.get('User-Agent', None)).hexdigest()
-
-        db = connection()
-        profile_id = db.execute_lastrowid('INSERT INTO user SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, session = %s, login_count = 0, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, access_token = %s, login_count = login_count + 1, changed = NOW();',
-                provider,
-                provider_id,
-                email,
-                name,
-                picture,
-                request_handler.settings['default_language'],
-                session_key+user_key,
-                email,
-                name,
-                picture,
-                session_key+user_key,
-                access_token
-            )
-
-        request_handler.set_secure_cookie('session', session_key)
-
-        return session_key
-
-    def logout(self, request_handler, session_key=None):
-        """
-        Ends user session.
-
-        """
-        if not session_key:
-            session_key = request_handler.get_secure_cookie('session')
-        user_key = hashlib.md5(request_handler.request.remote_ip + request_handler.request.headers.get('User-Agent', None)).hexdigest()
-
-        db = connection()
-        db.execute('UPDATE user SET session = NULL, access_token = NULL WHERE session = %s;', session_key+user_key)
-
-        request_handler.clear_cookie('session')
 
 
 class Formula():
     """
     entity_id is accessed from FExpression.fetch_path_from_db() method
     """
-    def __init__(self, user_locale, created_by, property_id, formula=None, entity_id=None):
-        self.db                     = connection()
+    def __init__(self, db, user_locale, created_by, property_id, formula=None, entity_id=None):
+        self.db                     = db
         self.formula                = formula
         self.entity_id              = entity_id
         self.value                  = []
         self.dependencies           = []
         self.user_locale            = user_locale
-        self.language               = user_locale.code
         self.created_by             = created_by
 
         self.dag_stack              = Queue()
@@ -1424,7 +1289,7 @@ class Formula():
             if m[0]:
                 self.value.append(m[0].encode('utf8'))
             if m[1]:
-                self.value.append('%s'.encode('utf8') % ','.join(map(str, FExpression(self, m[1]).value)))
+                self.value.append('%s'.encode('utf8') % ','.join(['%s' % x for x in FExpression(self, m[1]).value]))
             if m[2]:
                 self.value.append(m[2].encode('utf8'))
 
@@ -1450,7 +1315,7 @@ class Formula():
             property_id = self.dag_stack.pop()
             db_property = self.db.get('SELECT value_formula, entity_id FROM property WHERE id = %s', property_id)
             # logging.debug(db_property)
-            formula = Formula(user_locale=self.user_locale, created_by=self.created_by, formula=db_property.value_formula, entity_id=db_property.entity_id, property_id=property_id)
+            formula = Formula(self.db, user_locale=self.user_locale, created_by=self.created_by, formula=db_property.value_formula, entity_id=db_property.entity_id, property_id=property_id)
             value = ''.join(formula.evaluate())
             self.db.execute('UPDATE property SET value_string = %s WHERE id = %s', value, property_id)
             # logging.debug(value)
@@ -1561,9 +1426,8 @@ class Formula():
 
 
 class FExpression():
-
     def __init__(self, formula, xpr):
-        self.db             = connection()
+        self.db             = formula.db
         self.formula        = formula
         self.xpr            = re.sub(' ', '', xpr)
         self.value          = []
@@ -1586,7 +1450,7 @@ class FExpression():
                 # logging.debug(row.value)
                 _values.append(row.value)
 
-            self.value = [', '.join(map(str,_values))]
+            self.value = [', '.join(['%s' % x for x in _values])]
             # logging.debug(self.value)
 
         # logging.debug(re.findall(r"(.*?)([A-Z]+)\(([^\)]*)\)",self.xpr))

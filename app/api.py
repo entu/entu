@@ -1,5 +1,3 @@
-from helper import *
-from db import Entity
 from tornado import web
 from tornado import auth
 from tornado import httpclient
@@ -12,6 +10,10 @@ import hashlib
 import random
 import time
 import magic
+
+from helper import *
+from db import *
+
 
 class GetEntityList (myRequestHandler):
     """
@@ -124,9 +126,8 @@ class GetEntityList (myRequestHandler):
         else:
             only_public = True
 
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=user_id)
 
-        result = entity.get(ids_only=False, search=keywords, entity_definition_keyname=entity_definition, dataproperty=dataproperty, limit=limit, full_definition=full_definition, only_public=only_public)
+        result = entity.get_entities(ids_only=False, search=keywords, entity_definition_keyname=entity_definition, dataproperty=dataproperty, limit=limit, full_definition=full_definition, only_public=only_public)
 
         if not result:
             return self.missing()
@@ -212,9 +213,8 @@ class GetEntity (myRequestHandler):
         else:
             only_public = True
 
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=user_id)
 
-        result = entity.get(entity_id=entity_id, limit=1, full_definition=full_definition, only_public=only_public)
+        result = entity.get_entities(entity_id=entity_id, limit=1, full_definition=full_definition, only_public=only_public)
 
         if not result:
             return self.missing()
@@ -268,7 +268,6 @@ class GetEntityDefinition(myRequestHandler):
         else:
             only_public = True
 
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=user_id)
 
         result = entity.get_definition(entity_definition_keyname)
 
@@ -342,7 +341,6 @@ class GetAllowedChildren(myRequestHandler):
         else:
             only_public = True
 
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=user_id)
 
         result = entity.get_allowed_childs(entity_id)
 
@@ -424,7 +422,6 @@ class SaveEntity(myRequestHandler):
             raise web.HTTPError(401, "Unauthorized")
 
         if entity_definition_keyname != None:
-            entity = db.Entity(user_locale=self.get_user_locale(), user_id=user_id)
             entity_id = entity.create(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
             if public:
                 entity.set_public(entity_id,is_public=public)
@@ -576,7 +573,6 @@ class SaveProperty(myRequestHandler):
         uploaded_file = self.request.files.get('file', [])[0] if self.request.files.get('file', None) else None
 
         if entity_id and (property_definition_keyname or property_id):
-            entity = db.Entity(user_locale=self.get_user_locale(), user_id=user_id)
             property_id = entity.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value=value, old_property_id=property_id, uploaded_file=uploaded_file)
             if not property_id:
                 return self.missing()
@@ -610,7 +606,6 @@ class SaveProperties(myRequestHandler):
         if not isinstance(properties,list):
             properties = [properties]
 
-        entity = db.Entity(user_locale=self.get_user_locale(), user_id=user_id)
         property_id_list = []
 
         for property in properties:
