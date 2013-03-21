@@ -648,7 +648,7 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {})['displaytable'] = row.entity_displaytable
                 items.setdefault('item_%s' % row.entity_id, {})['file_count'] = 0
                 items.setdefault('item_%s' % row.entity_id, {})['is_public'] = True if row.entity_public == 1 else False
-                items.setdefault('item_%s' % row.entity_id, {})['ordinal'] = row.entity_created if row.entity_created else datetime.now()
+                items.setdefault('item_%s' % row.entity_id, {})['ordinal'] = row.entity_created if row.entity_created else datetime.datetime.now()
 
                 #Property
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['keyname'] = row.property_keyname
