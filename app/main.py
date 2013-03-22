@@ -12,6 +12,8 @@ import yaml
 import logging
 import random
 import string
+import datetime, time
+
 
 from helper import *
 
@@ -29,7 +31,6 @@ app_controllers = [
     'auth',
     'entity',
     'public',
-    'status',
     'update',
     'user',
     'xxx',
@@ -50,7 +51,22 @@ class PageNotFound(myRequestHandler):
     """
     def get(self, page=None):
         self.set_status(404)
+        self.add_header('Content-Type', 'text/plain; charset=utf-8')
         self.write('Page not found!')
+
+
+class ShowStatus(myRequestHandler):
+    @web.removeslash
+    def get(self, url):
+        self.add_header('Content-Type', 'text/plain; charset=utf-8')
+        status = {
+            'Entu': {
+                'debug':    self.settings['debug'],
+                'port':     self.settings['port'],
+                'uptime':   str(datetime.timedelta(seconds=round(time.time() - self.settings['start_time'])))
+            }
+        }
+        self.write(yaml.safe_dump(status, default_flow_style=False, allow_unicode=True))
 
 
 class myApplication(tornado.web.Application):
@@ -61,12 +77,13 @@ class myApplication(tornado.web.Application):
     def __init__(self):
         # load settings
         settings_static = {
+            'port':             options.port,
             'debug':            True if str(options.debug).lower() == 'true' else False,
             'template_path':    path.join(path.dirname(__file__), '..', 'templates'),
             'static_path':      path.join(path.dirname(__file__), '..', 'static'),
             'xsrf_coocies':     True,
-            'cookie_secret':    ''.join(random.choice(string.ascii_letters + string.digits) for x in range(64)),
             'login_url':        '/auth',
+            'start_time':       time.time(),
         }
         settings_yaml = yaml.safe_load(open('config.yaml', 'r'))
 
@@ -77,13 +94,14 @@ class myApplication(tornado.web.Application):
             handlers.extend(c.handlers)
             for h in c.handlers:
                 settings_static.setdefault('paths', {}).setdefault('%s.py' % controller, []).append(h[0])
+        handlers.append((r'/status(.*)', ShowStatus))
         handlers.append((r'(.*)', PageNotFound))
 
         # merge command line and static settings
         settings = dict(settings_static.items() + settings_yaml.items())
 
         # init application
-        logging.debug('App settings:\n%s' % yaml.safe_dump(settings, default_flow_style=False, allow_unicode=True))
+        # logging.debug('App settings:\n%s' % yaml.safe_dump(settings, default_flow_style=False, allow_unicode=True))
         tornado.web.Application.__init__(self, handlers, **settings)
 
 

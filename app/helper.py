@@ -134,7 +134,8 @@ class myUser():
             session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
         user_key = hashlib.md5(self.request.remote_ip + self.request.headers.get('User-Agent', None)).hexdigest()
 
-        profile_id = self.db.execute_lastrowid('INSERT INTO user SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, session = %s, login_count = 0, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, access_token = %s, login_count = login_count + 1, changed = NOW();',
+        profile_id = self.db.execute_lastrowid('INSERT INTO user SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, session = %s, access_token = %s, login_count = 0, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, access_token = %s, login_count = login_count + 1, changed = NOW();',
+                # insert
                 provider,
                 provider_id,
                 email,
@@ -142,6 +143,8 @@ class myUser():
                 picture,
                 self.app_settings['default_language'],
                 session_key+user_key,
+                access_token,
+                # update
                 email,
                 name,
                 picture,
@@ -172,10 +175,15 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
     __timer_start = None
     __timer_last = None
 
+    def prepare(self):
+        self.__timer_start = time.time()
 
-    def timer(self, msg='', reset=False):
-        if not self.__timer_start or reset:
-            self.__timer_start = time.time()
+    def on_finish(self):
+        request_time = time.time() - self.__timer_start
+        if request_time > (self.settings['slow_request_ms']/1000):
+            logging.warning('%s %s request time was %0.3fs!' % (self.request.method, self.request.full_url(), round(request_time, 3)))
+
+    def timer(self, msg=''):
         self.__timer_last = time.time() - self.__timer_start
         logging.debug('TIMER: %0.3f - %s' % (round(self.__timer_last, 3), msg))
 
