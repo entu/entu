@@ -177,9 +177,10 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
     def on_finish(self):
         request_time = self.request.request_time()
-        if request_time > (self.settings['slow_request_ms']/1000):
+        if request_time > (float(self.settings['slow_request_ms'])/1000.0):
             self.settings['slow_request_count'] += 1
             self.settings['slow_request_time'] += request_time
+
             logging.warning('%s %s request time was %0.3fs!' % (self.request.method, self.request.full_url(), round(request_time, 3)))
         else:
             self.settings['request_count'] += 1

@@ -80,11 +80,11 @@ class ShowStatus(myRequestHandler):
                 'Entu service %s' % self.settings['port']: {
                     'uptime': str(datetime.timedelta(seconds=round(time.time() - self.settings['start_time']))),
                     'requests': {
-                        'avg_time': '%0.3fms' % round(float(self.settings['request_time'])/float(self.settings['request_count'])*1000, 3) if self.settings['request_count'] else 0,
+                        'time': '%0.3fms' % round(float(self.settings['request_time'])/float(self.settings['request_count'])*1000, 3) if self.settings['request_count'] else 0,
                         'count': self.settings['request_count'],
                     },
                     'slow_requests': {
-                        'avg_time': '%0.3fs' % round(float(self.settings['slow_request_time'])/float(self.settings['slow_request_count']), 3) if self.settings['slow_request_count'] else 0,
+                        'time': '%0.3fs' % round(float(self.settings['slow_request_time'])/float(self.settings['slow_request_count']), 3) if self.settings['slow_request_count'] else 0,
                         'count': self.settings['slow_request_count'],
                     }
                 }
@@ -109,9 +109,9 @@ class myApplication(tornado.web.Application):
             'login_url':            '/auth',
             'start_time':           time.time(),
             'request_count':        0,
-            'request_time':        0,
+            'request_time':         0,
             'slow_request_count':   0,
-            'slow_request_time':   0,
+            'slow_request_time':    0,
         }
         settings_yaml = yaml.safe_load(open('config.yaml', 'r'))
 
