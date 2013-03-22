@@ -59,13 +59,37 @@ class ShowStatus(myRequestHandler):
     @web.removeslash
     def get(self, url):
         self.add_header('Content-Type', 'text/plain; charset=utf-8')
-        status = {
-            'Entu': {
-                'debug':    self.settings['debug'],
-                'port':     self.settings['port'],
-                'uptime':   str(datetime.timedelta(seconds=round(time.time() - self.settings['start_time'])))
+
+        status = {}
+        if url == '/database':
+            for s in self.settings['hosts'].values():
+                db_connection = database.Connection(
+                    host        = s['database']['host'],
+                    database    = s['database']['database'],
+                    user        = s['database']['user'],
+                    password    = s['database']['password'],
+                )
+                size = db_connection.get('SELECT SUM(table_rows) AS table_rows,  SUM(data_length) AS data_length, SUM(index_length) AS index_length FROM information_schema.TABLES;')
+                status.setdefault('Entu databases', {})[s['database']['database']] = {
+                    'data': GetHumanReadableBytes(size.data_length, 2),
+                    'index': GetHumanReadableBytes(size.index_length, 2),
+                    'total': GetHumanReadableBytes(size.data_length+size.index_length, 2),
+                }
+        else:
+            status = {
+                'Entu service %s' % self.settings['port']: {
+                    'uptime': str(datetime.timedelta(seconds=round(time.time() - self.settings['start_time']))),
+                    'requests': {
+                        'avg_time': round(float(self.settings['request_time'])/float(self.settings['request_count']), 3) if self.settings['request_count'] else 0,
+                        'count': self.settings['request_count'],
+                    },
+                    'slow_requests': {
+                        'avg_time': round(float(self.settings['slow_request_time'])/float(self.settings['slow_request_count']), 3) if self.settings['slow_request_count'] else 0,
+                        'count': self.settings['slow_request_count'],
+                    }
+                }
             }
-        }
+
         self.write(yaml.safe_dump(status, default_flow_style=False, allow_unicode=True))
 
 
@@ -77,13 +101,17 @@ class myApplication(tornado.web.Application):
     def __init__(self):
         # load settings
         settings_static = {
-            'port':             options.port,
-            'debug':            True if str(options.debug).lower() == 'true' else False,
-            'template_path':    path.join(path.dirname(__file__), '..', 'templates'),
-            'static_path':      path.join(path.dirname(__file__), '..', 'static'),
-            'xsrf_coocies':     True,
-            'login_url':        '/auth',
-            'start_time':       time.time(),
+            'port':                 options.port,
+            'debug':                True if str(options.debug).lower() == 'true' else False,
+            'template_path':        path.join(path.dirname(__file__), '..', 'templates'),
+            'static_path':          path.join(path.dirname(__file__), '..', 'static'),
+            'xsrf_coocies':         True,
+            'login_url':            '/auth',
+            'start_time':           time.time(),
+            'request_count':        0,
+            'request_time':        0,
+            'slow_request_count':   0,
+            'slow_request_time':   0,
         }
         settings_yaml = yaml.safe_load(open('config.yaml', 'r'))
 
