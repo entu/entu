@@ -135,7 +135,7 @@ class myApplication(tornado.web.Application):
 
 if __name__ == '__main__':
     tornado.options.enable_pretty_logging()
-    tornado.locale.load_translations(path.join(path.dirname(__file__), '..', 'translations'))
+    tornado.locale.load_translations(path.join(path.dirname(__file__), '..', 'translation'))
     tornado.options.parse_command_line()
     tornado.httpserver.HTTPServer(myApplication(), xheaders=True).listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
