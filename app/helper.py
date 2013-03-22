@@ -175,23 +175,18 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
     __timer_start = None
     __timer_last = None
 
-    def prepare(self):
-        self.__timer_start = time.time()
-
     def on_finish(self):
-        self.settings['request_count'] += 1
-        request_time = time.time() - self.__timer_start
+        request_time = self.request.request_time()
         if request_time > (self.settings['slow_request_ms']/1000):
             self.settings['slow_request_count'] += 1
             self.settings['slow_request_time'] += request_time
             logging.warning('%s %s request time was %0.3fs!' % (self.request.method, self.request.full_url(), round(request_time, 3)))
         else:
+            self.settings['request_count'] += 1
             self.settings['request_time'] += request_time
 
-
     def timer(self, msg=''):
-        self.__timer_last = time.time() - self.__timer_start
-        logging.debug('TIMER: %0.3f - %s' % (round(self.__timer_last, 3), msg))
+        logging.debug('TIMER: %0.3f - %s' % (round(self.request.request_time(), 3), msg))
 
 
     def get_current_user(self):
