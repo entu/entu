@@ -15,7 +15,8 @@ import string
 import datetime, time
 
 
-from helper import *
+from main.helper import *
+from main.db import *
 
 
 # Command line options

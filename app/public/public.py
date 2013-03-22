@@ -4,8 +4,8 @@ from operator import itemgetter
 import urllib
 import magic
 
-from helper import *
-from db import *
+from main.helper import *
+from main.db import *
 
 
 class PublicHandler(myRequestHandler, Entity):

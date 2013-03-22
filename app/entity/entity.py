@@ -8,8 +8,8 @@ import yaml
 import time
 import markdown2
 
-from helper import *
-from db import *
+from main.helper import *
+from main.db import *
 
 
 class ShowGroup(myRequestHandler, Entity):

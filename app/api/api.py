@@ -11,8 +11,8 @@ import random
 import time
 import magic
 
-from helper import *
-from db import *
+from main.helper import *
+from main.db import *
 
 
 class GetEntityList (myRequestHandler):

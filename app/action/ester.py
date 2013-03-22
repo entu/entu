@@ -9,8 +9,8 @@ import logging
 
 from HTMLParser import HTMLParser
 
-from helper import *
-from db import *
+from main.helper import *
+from main.db import *
 
 #http://www.loc.gov/marc/bibliographic/
 MARCMAP = {

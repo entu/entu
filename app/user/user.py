@@ -1,6 +1,6 @@
 from tornado import auth, web
 
-from helper import *
+from main.helper import *
 
 
 class ShowUserPreferences(myRequestHandler):

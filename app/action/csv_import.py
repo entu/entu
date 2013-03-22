@@ -5,8 +5,8 @@ import csv
 import StringIO
 import logging
 
-from helper import *
-from db import *
+from main.helper import *
+from main.db import *
 
 
 class UploadFile(myRequestHandler):

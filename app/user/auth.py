@@ -12,7 +12,7 @@ import urlparse
 import logging
 import json
 
-from helper import *
+from main.helper import *
 
 
 class ShowAuthPage(myRequestHandler):

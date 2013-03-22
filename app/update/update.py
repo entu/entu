@@ -3,8 +3,8 @@ from tornado import httpclient
 
 import logging
 
-from helper import *
-from db import *
+from main.helper import *
+from main.db import *
 
 
 class UpdateFormulasWeb(myRequestHandler):
