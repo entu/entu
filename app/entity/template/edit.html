@@ -16,8 +16,8 @@
     <div class="tab-content">
         {% for idx, action in enumerate(actions) %}
             <div id="{{ action }}" class="tab-pane{% if idx == 0 %} active{% end %}" >
-                {% if action == 'ester' %}{% include '../action/ester.html' %}{% end %}
-                {% if action == 'csv' %}{% include '../action/csv.html' %}{% end %}
+                {% if action == 'ester' %}{% include '../../action/template/ester.html' %}{% end %}
+                {% if action == 'csv' %}{% include '../../action/template/csv.html' %}{% end %}
             </div>
         {% end %}
         <table id="home" class="edit-form table table-bordered{% if actions %} tab-pane{% end %}">

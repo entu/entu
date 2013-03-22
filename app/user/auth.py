@@ -25,7 +25,7 @@ class ShowAuthPage(myRequestHandler):
         set_redirect(self)
 
         self.clear_cookie('session')
-        self.render('auth/start.html',
+        self.render('user/template/auth.html',
             mobileid = True if self.app_settings['mobileid_service_name'] and self.app_settings['mobileid_url'] else False,
             google = True if self.app_settings['google_client_key'] and self.app_settings['google_client_secret'] else False,
             facebook = True if self.app_settings['facebook_api_key'] and self.app_settings['facebook_secret'] else False,

@@ -37,7 +37,7 @@ class ShowGroup(myRequestHandler, Entity):
         except:
             history = ''
 
-        self.render('entity/start.html',
+        self.render('entity/template/start.html',
             page_title = entity_definition[0].label_plural if entity_definition else '',
             menu = self.get_menu(),
             show_list = True if entity_definition_keyname else False,
@@ -146,7 +146,7 @@ class ShowEntity(myRequestHandler, Entity):
         #     rating_scale = rating_scale_list[0][0]
 
 
-        self.render('entity/item.html',
+        self.render('entity/template/item.html',
             page_title = item['displayname'],
             entity = item,
             relatives = relatives,
@@ -212,7 +212,7 @@ class ShowEntityEdit(myRequestHandler, Entity):
         if not item:
             return
 
-        self.render('entity/edit.html',
+        self.render('entity/template/edit.html',
             entity = item,
             parent_entity_id = '',
             entity_definition_keyname = '',
@@ -235,7 +235,7 @@ class ShowEntityAdd(myRequestHandler, Entity):
         entity_definition = self.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
         actions = StrToList(entity_definition[0].get('actions_add'))
 
-        self.render('entity/edit.html',
+        self.render('entity/template/edit.html',
             entity = item,
             parent_entity_id = entity_id,
             entity_definition_keyname = entity_definition_keyname,
@@ -255,7 +255,7 @@ class ShowEntityRelate(myRequestHandler, Entity):
         if not item:
             return
 
-        self.render('entity/edit.html',
+        self.render('entity/template/edit.html',
             entity = item,
             parent_entity_id = '',
             entity_definition_keyname = '',
@@ -383,7 +383,7 @@ class ShareByEmail(myRequestHandler, Entity):
         Shows Entitiy share by email form.
 
         """
-        self.render('entity/email.html',
+        self.render('entity/template/email.html',
             entity_id = entity_id
         )
 

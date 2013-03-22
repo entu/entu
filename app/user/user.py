@@ -11,7 +11,7 @@ class ShowUserPreferences(myRequestHandler):
         Show user preferences.
 
         """
-        self.render('user/preferences.html')
+        self.render('user/template/preferences.html')
 
     @web.removeslash
     @web.authenticated

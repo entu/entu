@@ -27,13 +27,12 @@ define('port',  help='run on the given port', type=int, default=8000)
 app_controllers = [
     'action.csv_import',
     'action.ester',
-    'api',
-    'auth',
-    'entity',
-    'public',
-    'update',
-    'user',
-    'xxx',
+    'api.api',
+    'entity.entity',
+    'public.public',
+    'update.update',
+    'user.auth',
+    'user.user',
 ]
 
 
@@ -103,7 +102,7 @@ class myApplication(tornado.web.Application):
         settings_static = {
             'port':                 options.port,
             'debug':                True if str(options.debug).lower() == 'true' else False,
-            'template_path':        path.join(path.dirname(__file__), '..', 'templates'),
+            'template_path':        path.join(path.dirname(__file__), '..', 'app'),
             'static_path':          path.join(path.dirname(__file__), '..', 'static'),
             'xsrf_coocies':         True,
             'login_url':            '/auth',

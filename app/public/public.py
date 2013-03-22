@@ -24,7 +24,7 @@ class PublicHandler(myRequestHandler, Entity):
                 return self.missing()
 
 
-        self.render('public/start.html',
+        self.render('public/template/start.html',
             paths = get_paths(self, self.get_user_locale()),
             path = path,
             search = '',
@@ -69,7 +69,7 @@ class PublicSearchHandler(myRequestHandler, Entity):
         else:
             itemcount =locale.translate('search_result_count2') % len(items)
 
-        self.render('public/list.html',
+        self.render('public/template/list.html',
             entities = sorted(items, key=itemgetter('name')) ,
             itemcount = itemcount,
             paths = get_paths(self, self.get_user_locale()),
@@ -153,7 +153,7 @@ class PublicAdvancedSearchHandler(myRequestHandler, Entity):
         else:
             itemcount =locale.translate('search_result_count2') % len(items)
 
-        self.render('public/list.html',
+        self.render('public/template/list.html',
             entities = sorted(items, key=itemgetter('name')) ,
             itemcount = itemcount,
             paths = get_paths(self, self.get_user_locale()),
@@ -177,7 +177,7 @@ class PublicEntityHandler(myRequestHandler, Entity):
         if not item:
             return self.missing()
 
-        self.render('public/item.html',
+        self.render('public/template/item.html',
             page_title = item['displayname'],
             entity = item,
             paths = get_paths(self, self.get_user_locale()),
