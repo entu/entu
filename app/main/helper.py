@@ -19,6 +19,7 @@ import datetime, time
 
 class myDatabase():
     __app_settings = None
+    __db_connection = None
 
     @property
     def db(self):
@@ -26,7 +27,20 @@ class myDatabase():
         Returns DB connection.
 
         """
-        return self.settings['databases'][self.request.host]
+        if self.__db_connection:
+            return self.__db_connection
+
+        host = self.request.host
+        connection = database.Connection(
+            host        = self.settings['hosts'][host]['database']['host'],
+            database    = self.settings['hosts'][host]['database']['database'],
+            user        = self.settings['hosts'][host]['database']['user'],
+            password    = self.settings['hosts'][host]['database']['password'],
+        )
+        self.__db_connection = connection
+        logging.debug('Connected to database \'%s\' (%s).' % (self.settings['hosts'][host]['database']['database'], host))
+
+        return connection
 
     @property
     def app_settings(self):
