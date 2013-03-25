@@ -182,7 +182,8 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
             self.settings['request_count'] += 1
             self.settings['request_time'] += request_time
 
-        self.db.execute('INSERT INTO app_requests SET date = NOW(), time = %s, status = %s, method = %s, url = %s, arguments = %s, user_id = %s, ip = %s, browser = %s, port = %s;',
+        self.db.execute('INSERT INTO app_requests SET date = NOW(), port = %s, time = %s, status = %s, method = %s, url = %s, arguments = %s, user_id = %s, ip = %s, browser = %s;',
+            self.settings['port'],
             request_time,
             self.get_status(),
             self.request.method,
@@ -190,8 +191,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
             str(self.request.arguments) if self.request.arguments else None,
             current_user_id,
             self.request.remote_ip,
-            self.request.headers.get('User-Agent', None),
-            self.settings['port']
+            self.request.headers.get('User-Agent', None)
         )
 
     def timer(self, msg=''):
@@ -242,7 +242,9 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
         """
         self.set_status(404)
-        self.write('Page not found!')
+        self.render('main/template/404.html',
+            page_title = '404'
+        )
 
     def mail_send(self, to, cc=None, bcc=None, subject='', message='', attachments=None):
         """

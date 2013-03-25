@@ -50,9 +50,7 @@ class PageNotFound(myRequestHandler):
     """
     """
     def get(self, page=None):
-        self.set_status(404)
-        self.add_header('Content-Type', 'text/plain; charset=utf-8')
-        self.write('Page not found!')
+        self.missing()
 
 
 class ShowStatus(myRequestHandler):
