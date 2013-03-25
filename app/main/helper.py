@@ -177,6 +177,8 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
     def on_finish(self):
         request_time = self.request.request_time()
+        current_user_id = self.get_current_user().id if self.get_current_user() else None
+
         if request_time > (float(self.settings['slow_request_ms'])/1000.0):
             self.settings['slow_request_count'] += 1
             self.settings['slow_request_time'] += request_time
@@ -185,6 +187,18 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
         else:
             self.settings['request_count'] += 1
             self.settings['request_time'] += request_time
+
+        self.db.execute('INSERT INTO app_requests SET date = NOW(), time = %s, status = %s, method = %s, url = %s, arguments = %s, user_id = %s, ip = %s, browser = %s, port = %s;',
+            request_time,
+            self.get_status(),
+            self.request.method,
+            self.request.full_url(),
+            str(self.request.arguments) if self.request.arguments else None,
+            current_user_id,
+            self.request.remote_ip,
+            self.request.headers.get('User-Agent', None),
+            self.settings['port']
+        )
 
     def timer(self, msg=''):
         logging.debug('TIMER: %0.3f - %s' % (round(self.request.request_time(), 3), msg))
