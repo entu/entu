@@ -110,8 +110,18 @@ class myApplication(tornado.web.Application):
             'request_time':         0,
             'slow_request_count':   0,
             'slow_request_time':    0,
+            'databases':            {},
         }
         settings_yaml = yaml.safe_load(open('config.yaml', 'r'))
+
+        # make DB connections
+        for h, s in settings_yaml['hosts'].iteritems():
+            settings_static['databases'][h] = database.Connection(
+                host        = s['database']['host'],
+                database    = s['database']['database'],
+                user        = s['database']['user'],
+                password    = s['database']['password'],
+            )
 
         # load handlers
         handlers = [(r'/', MainPage)]
