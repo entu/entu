@@ -27,9 +27,9 @@ define('port',  help='run on the given port', type=int, default=8000)
 # List of controllers to load.
 app_controllers = [
     'action.csv_import',
-    'action.ester',
     'api.api',
     'entity.entity',
+    'library.ester',
     'public.public',
     'update.update',
     'user.auth',
