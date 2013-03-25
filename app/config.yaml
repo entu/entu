@@ -1,0 +1,9 @@
+cookie_secret:      ** SOME RANDOM HASH **
+slow_request_ms:    1000
+hosts:
+    develop.entu.ee:
+        database:
+            host:      **  SERVER  **
+            database:  ** DATABASE **
+            user:      ** USERNAME **
+            password:  ** PASSWORD **
