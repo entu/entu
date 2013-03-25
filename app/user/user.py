@@ -20,7 +20,7 @@ class ShowUserPreferences(myRequestHandler):
         Save user preferences
 
         """
-        self.current_user[self.get_argument('property', None, True)] = self.get_argument('value', None, True)
+        self.set_preferences(self.get_argument('property', None, True), self.get_argument('value', None, True))
 
 
 handlers = [

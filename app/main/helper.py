@@ -109,21 +109,15 @@ class myUser():
         logging.debug('Loaded user #%s' % user.user_id)
         return user
 
-    # def __setitem__(self, key, value):
-    #     if key == 'language' and value in ['estonian', 'english']:
-    #         db = connection()
-    #         db.execute('UPDATE user SET language = %s WHERE id = %s;', value, self.user_id)
-    #     elif key == 'hide_menu' and value.lower() in ['true', 'false']:
-    #         if value.lower() == 'true':
-    #             value = True
-    #         else:
-    #             value = False
-    #         db = connection()
-    #         db.execute('UPDATE user SET hide_menu = %s WHERE id = %s;', value, self.user_id)
-    #     setattr(self, key, value)
-
-    # def __getitem__(self, key):
-    #     return getattr(self, key)
+    def set_preferences(self, key, value):
+        if key == 'language' and value in ['estonian', 'english']:
+            self.db.execute('UPDATE user SET language = %s WHERE id = %s;', value, self.get_current_user().user_id)
+        elif key == 'hide_menu' and value.lower() in ['true', 'false']:
+            if value.lower() == 'true':
+                value = True
+            else:
+                value = False
+            self.db.execute('UPDATE user SET hide_menu = %s WHERE id = %s;', value, self.get_current_user().user_id)
 
     def user_login(self, session_key=None, provider=None, provider_id=None, email=None, name=None, picture=None, access_token=None):
         """
