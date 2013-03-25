@@ -373,7 +373,7 @@ class DeleteEntity(myRequestHandler, Entity):
         if not item:
             return self.missing()
 
-        self.delete(entity_id)
+        self.delete_entity(entity_id)
 
 
 class ShareByEmail(myRequestHandler, Entity):

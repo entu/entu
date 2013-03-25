@@ -1240,9 +1240,9 @@ class Entity():
 
         return sorted(menu.values(), key=itemgetter('label'))
 
-    def delete(self, entity_id):
+    def delete_entity(self, entity_id):
         for child_id in self.get_relatives(ids_only=True, entity_id=entity_id, relationship_definition_keyname='child'):
-            self.delete(child_id)
+            self.delete_entity(child_id)
 
         self.db.execute('UPDATE entity SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', self.__user_id, entity_id)
 
