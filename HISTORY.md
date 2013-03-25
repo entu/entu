@@ -1,3 +1,9 @@
+## 2013-03-22
+* Host based database selection - one process can serve multiple hosts/databases
+* Reference propery values are now links to referred entity
+* Application code reorganized to subfolders/-apps
+* Bugfixes
+
 ## 2013-02-18
 * Estonian MobileID authentication
 * Set menu auto hiding from user preferences
