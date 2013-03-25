@@ -216,7 +216,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
         kwargs['app_organisation'] = self.app_settings['app_organisation']
         kwargs['app_logo_big'] = self.app_settings['app_logo_big']
         kwargs['page_title'] = '%s - %s' % (self.app_settings['app_title'], kwargs['page_title']) if kwargs.get('page_title', None) else self.app_settings['app_title']
-        kwargs['google_analytics_code'] = self.app_settings['google_analytics_code'] if 'google_analytics_code' in self.settings else None
+        kwargs['google_analytics_code'] = self.app_settings['google_analytics_code'] if self.app_settings.get('google_analytics_code') else None
 
         web.RequestHandler.render(self, template_name, **kwargs)
 
