@@ -155,7 +155,7 @@ class Entity():
             AND p.property_definition_keyname = pd.keyname
             AND pd.entity_definition_keyname = %s
             AND p.entity_id = %s
-            AND r.relationship_definition_keyname = 'propagated_property'
+            AND r.relationship_definition_keyname = 'propagated-property'
             AND p.is_deleted = 0
             AND r.is_deleted = 0
             ;
