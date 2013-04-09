@@ -1,0 +1,170 @@
+<div class="modal-header" style="border:none;">
+    <a href="javascript:showHelp();" class="btn btn-link pull-right no-underline" style="padding-right:0px; font-size:20px; color:grey;"><i class="icon-info-sign"></i></a>
+    <h3>{{ _('menu_rights') }}</h3>
+</div>
+<div class="modal-body" style="padding:0px;">
+    <table class="table" style="margin:15px auto 20px auto; width:560px;" data-intro="{{ _('rights_help_share') }}" data-position="left">
+        <tbody>
+            <tr class="share" data-value="public" style="cursor:pointer;">
+                <td class="share-icon" style="vertical-align:middle; border:none; font-size:30px; color:gray;"><i class="icon-globe"></i></td>
+                <td class="share-name" style="width:100%; vertical-align:middle; padding: 8px; border:none;">
+                    {{ _('rights_public') }}<br />
+                    <span style="font-size:12px; font-weight:normal; color:gray;">{{ _('rights_public_desc') }}</span>
+                </td>
+                <td class="share-cb" style="vertical-align:middle; border:none; font-size:24px; color:#F5F5F5;"><i class="icon-ok"></i></td>
+            </tr>
+            <tr class="share" data-value="link" style="cursor:pointer;">
+                <td class="share-icon" style="vertical-align:middle; font-size:30px; color:gray;"><i class="icon-link"></i></td>
+                <td class="share-name" style="width:100%; vertical-align:middle; padding: 8px;">
+                    {{ _('rights_link') }}<br />
+                    <span style="font-size:12px; font-weight:normal; color:gray;">{{ _('rights_link_desc') }}</span>
+                </td>
+                <td class="share-cb" style="vertical-align:middle; font-size:24px; color:#F5F5F5;"><i class="icon-ok"></i></td>
+            </tr>
+            <tr class="share" data-value="domain" style="cursor:pointer;">
+                <td class="share-icon" style="vertical-align:middle; font-size:30px; color:gray;"><i class="icon-home"></i></td>
+                <td class="share-name" style="width:100%; vertical-align:middle; padding: 8px;">
+                    {{ _('rights_domain') % app_organisation }}<br />
+                    <span style="font-size:12px; font-weight:normal; color:gray;">{{ _('rights_domain_desc') % app_organisation }}</span>
+                </td>
+                <td class="share-cb" style="vertical-align:middle; font-size:24px; color:#F5F5F5;"><i class="icon-ok"></i></td>
+            </tr>
+            <tr class="share" data-value="private" style="cursor:pointer;">
+                <td class="share-icon" style="vertical-align:middle; font-size:30px; color:gray;"><i class="icon-user" style="font-size:30px;"></i></td>
+                <td class="share-name" style="width:100%; vertical-align:middle; padding: 8px;">
+                    {{ _('rights_private') }}<br />
+                    <span style="font-size:12px; font-weight:normal; color:gray;">{{ _('rights_private_desc') }}</span>
+                </td>
+                <td class="share-cb" style="vertical-align:middle; font-size:24px; color:#F5F5F5;"><i class="icon-ok"></i></td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="edit-form table table-bordered" style="margin:0px;" data-intro="{{ _('rights_help_rights') }}" data-position="right">
+        <tbody>
+            {% for r in rights %}
+            <tr class="rights" {% if not r['id'] %} id="rights-new" style="display:none;"{% end %}>
+                <th>
+                    {{ r['name'] }}
+                </th>
+                <td class="rights-icon" data-title="{{ _('rights_no_access') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-ban-circle"></i></td>
+                <td class="rights-icon" data-title="{{ _('rights_can_view') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-eye-open"></i></td>
+                <td class="rights-icon" data-title="{{ _('rights_can_add_child') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-plus"></i></td>
+                <td class="rights-icon" data-title="{{ _('rights_can_edit') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-pencil"></i></td>
+                <td class="rights-icon" data-title="{{ _('rights_owner') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-unlock"></i></td>
+                <td class="rights-title" style="padding:8px; vertical-align:middle; font-size:12px;"></td>
+            </tr>
+            {% end %}
+        </tbody>
+    </table>
+    <table class="edit-form table table-bordered" style="margin:30px 0px 50px 0px;">
+        <tbody>
+            <tr class="rights">
+                <th style=" border-top:none;">
+                    {{ _('rights_add_user') }}
+                </th>
+                <td colspan="6" data-intro="{{ _('rights_help_add') }}" data-position="bottom">
+                    <input id="add-new-person" style="width:100%;" />
+                </td>
+        </tbody>
+    </table>
+
+</div>
+<div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">{{ _('close') }}</a>
+</div>
+
+<script>
+
+    $(document).ready(function(){
+
+        $('#add_user').select2();
+
+        $('.share').click(function() {
+            $('.share-icon').css('color', 'gray');
+            $('.share-cb').css('color', '#F5F5F5');
+            $('.share-name').css('font-weight', 'normal');
+            $(this).children('.share-icon').css('color', 'black');
+            $(this).children('.share-cb').css('color', 'green');
+            $(this).children('.share-name').css('font-weight', 'bold');
+
+            // $.post('/entity-{{ entity_id }}/share', { to: $('#email-to').val(), message: $('#email-message').val() }, function(newvalue) {
+            //     $('#modal-box').modal('hide')
+            // });
+        });
+
+        $('.rights').hover(function() {
+
+        }, function() {
+            $(this).children('.rights-icon').css('color', '#F5F5F5');
+            $(this).children('.rights-icon-selected').css('color', 'green');
+            if ($(this).data('title')) {
+                $(this).children('.rights-title').html($(this).data('title'));
+            } else {
+                $(this).children('.rights-title').html('');
+            }
+        });
+
+        $('.rights-icon').hover(function() {
+            $(this).parent('tr').children('.rights-title').html($(this).data('title'));
+        });
+
+        $('.rights-icon').click(function() {
+            $(this).parent('tr').data('title', $(this).data('title'));
+
+            $(this).parent('tr').children('.rights-icon').removeClass('rights-icon-selected');
+            $(this).addClass('rights-icon-selected');
+
+            $(this).parent('tr').children('.rights-icon').css('color', '#F5F5F5');
+            $(this).css('color', 'green');
+
+            // $.post('/entity-{{ entity_id }}/share', { to: $('#email-to').val(), message: $('#email-message').val() }, function(newvalue) {
+            //     $('#modal-box').modal('hide')
+            // });
+        });
+
+        $('#add-new-person').select2({
+            placeholder: ' ',
+            minimumInputLength: 1,
+            ajax: {
+                url: '/entity/search',
+                dataType: 'json',
+                quietMillis: 1000,
+                data: function (term, page) {
+                    return {
+                        q: term,
+                        definition: 'person',
+                    };
+                },
+                results: function (data, page) {
+                    return {results: data.entities};
+                }
+            },
+            formatResult: formatSelectBoxResult,
+        });
+
+        $('#add-new-person').change(function(data) {
+            alert(data.added.title);
+            var data = $(this).data;
+            var template = $('#rights-new');
+            var newrow = template.clone(true);
+            newrow.removeData('id');
+            newrow.children('th').html(data.title);
+            inputbox.after(template);
+        });
+
+        function formatSelectBoxResult(data) {
+            if(data.image) {
+                image = '<img src="'+data.image+'" />';
+            } else {
+                image = '';
+            };
+            if(data.info) {
+                info = '<span>'+data.info+'</span>';
+            } else {
+                info = '';
+            };
+            return '<div class="entity-list-item">'+image+data.title+info+'</div>';
+        }
+
+    });
+</script>

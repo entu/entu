@@ -408,6 +408,55 @@ class ShareByEmail(myRequestHandler, Entity):
         )
 
 
+class EntityRights(myRequestHandler, Entity):
+    @web.authenticated
+    def get(self,  entity_id=None):
+        """
+        Shows Entitiy rights form.
+
+        """
+        rights = []
+        for right in ['viewer', 'editor', 'owner']:
+            for r in self.get_relatives(entity_id=entity_id, relationship_definition_keyname=right).values():
+                for entity in r:
+                    rights.append({
+                        'right': right,
+                        'id': entity.get('id'),
+                        'name': entity.get('displayname'),
+                    })
+
+        rights.append({
+            'right': 'viewer',
+            'id': None,
+            'name': None,
+        })
+
+        self.render('entity/template/rights.html',
+            entity_id = entity_id,
+            rights = rights,
+        )
+
+    @web.authenticated
+    def post(self,  entity_id=None):
+        if not self.get_argument('to', None):
+            return self.missing()
+
+        to = self.get_argument('to', None)
+        message = self.get_argument('message', '')
+
+        item = self.get_entities(entity_id=entity_id, limit=1)
+        if not item:
+            return self.missing()
+
+        url = 'https://%s/entity/%s/%s' % (self.request.headers.get('Host'), item['definition_keyname'], item['id'])
+
+        self.mail_send(
+            to = to,
+            subject = item['displayname'],
+            message = '%s\n\n%s\n\n%s\n%s' % (message, url, self.current_user.name, self.current_user.email)
+        )
+
+
 class ShowHTMLproperty(myRequestHandler, Entity):
     @web.authenticated
     def get(self, entity_id, dataproperty):
@@ -516,6 +565,7 @@ handlers = [
     (r'/entity-(.*)/relate', ShowEntityRelate),
     (r'/entity-(.*)/add/(.*)', ShowEntityAdd),
     (r'/entity-(.*)/share', ShareByEmail),
+    (r'/entity-(.*)/rights', EntityRights),
     (r'/entity-(.*)/html-(.*)', ShowHTMLproperty),
     (r'/entity-(.*)/download', DownloadEntity),
     (r'/entity-(.*)', ShowEntity),
