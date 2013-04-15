@@ -32,6 +32,7 @@ app_controllers = [
     'library.ester',
     'public.public',
     'update.update',
+    'main.config',
     'user.auth',
     'user.user',
 ]
