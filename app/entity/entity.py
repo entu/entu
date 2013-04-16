@@ -418,22 +418,29 @@ class EntityRights(myRequestHandler, Entity):
         rights = []
         for right in ['viewer', 'editor', 'owner']:
             for r in self.get_relatives(entity_id=entity_id, relationship_definition_keyname=right).values():
-                for entity in r:
+                for e in r:
                     rights.append({
                         'right': right,
-                        'id': entity.get('id'),
-                        'name': entity.get('displayname'),
+                        'id': e.get('id'),
+                        'name': e.get('displayname'),
                     })
+
+        entity = self.get_entities(entity_id=entity_id, limit=1)
+
+        sharing = 'private'
+        if entity.get('is_public'):
+            sharing = 'public'
 
         rights.append({
             'right': 'viewer',
             'id': None,
-            'name': None,
+            'name': 'XXXX',
         })
 
         self.render('entity/template/rights.html',
             entity_id = entity_id,
-            rights = rights,
+            sharing = sharing,
+            rights = sorted(rights, key=itemgetter('name')),
         )
 
     @web.authenticated
