@@ -1,6 +1,6 @@
 ## 2013-03-22
 * Host based database selection - one process can serve multiple hosts/databases
-* Reference propery values are now links to referred entity
+* Reference property values are now links to referred entity
 * Application code reorganized to subfolders/-apps
 * Bugfixes
 
