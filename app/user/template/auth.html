@@ -1,6 +1,18 @@
 {% extends '../../main/template/index.html' %}
 
 {% block style %}
+    {% from random import randint %}
+    html {
+        background: url('{{ static_url('images/bg-optimized-%s.png' % randint(1, 8)) }}') no-repeat center center fixed;
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+        background-color: none important!;
+    }
+    body {
+        background: none;
+    }
     .brand {padding-left:0px !important;}
 {% end %}
 
@@ -88,40 +100,7 @@
     <script>
         $(document).ready(function(){
 
-            var images = [
-                '{{ static_url('images/bg-optimized-1.png') }}',
-                '{{ static_url('images/bg-optimized-2.png') }}',
-                '{{ static_url('images/bg-optimized-3.png') }}',
-                '{{ static_url('images/bg-optimized-4.png') }}',
-                '{{ static_url('images/bg-optimized-5.png') }}',
-                '{{ static_url('images/bg-optimized-6.png') }}',
-                '{{ static_url('images/bg-optimized-7.png') }}',
-                '{{ static_url('images/bg-optimized-8.png') }}'
-            ];
-
-            $('html').css('background-size', 'cover');
-            $('html').css('background-position', 'center top');
-            $('body').css('background', 'none');
             $('#content-wrap .content').css('min-height', $(document).height() - 255 + 'px');
-
-            randomize(images);
-            preload(images);
-
-            /*setInterval(function() {
-                randomize(images)
-            }, 10000);*/
-
-            function randomize(arrayOfImages) {
-              $('html').css('background-image', 'url(' + images[Math.floor(Math.random() * images.length)] + ')');
-            }
-
-            function preload(arrayOfImages) {
-              $(arrayOfImages).each(function(){
-                  $('<img/>')[0].src = this;
-                  // Alternatively you could use:
-                  // (new Image()).src = this;
-              });
-            }
 
             {% if mobileid %}
 
