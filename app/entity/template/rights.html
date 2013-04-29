@@ -42,15 +42,15 @@
     <table class="edit-form table table-bordered" style="margin:0px;" data-intro="{{ _('rights_help_rights') }}" data-position="right">
         <tbody>
             {% for r in rights %}
-            <tr class="rights rights-{{ r['right'] }}" {% if not r['id'] %} id="rights-new" style="display:none;"{% end %}>
-                <th{% if r['id'] == current_user.id %} style="color:grey;"{% end %}>
+            <tr class="rights rights-{{ r['right'] }}" {% if r['id'] %}data-id="{{ r['id'] }}"{% else %}id="rights-new" style="display:none;"{% end %}>
+                <th class="rights-name" {% if r['id'] == current_user.id %} style="color:grey;"{% end %}>
                     {{ r['name'] }}
                 </th>
-                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}" data-title="{{ _('rights_no_access') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-ban-circle"></i></td>
-                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}{% if r['right'] == 'viewer' %} rights-selected{% end %}" data-title="{{ _('rights_can_view') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-eye-open"></i></td>
-                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}{% if r['right'] == 'add-child' %} rights-selected{% end %}" data-title="{{ _('rights_can_add_child') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-plus"></i></td>
-                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}{% if r['right'] == 'editor' %} rights-selected{% end %}" data-title="{{ _('rights_can_edit') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-pencil"></i></td>
-                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}{% if r['right'] == 'owner' %} rights-selected{% end %}" data-title="{{ _('rights_owner') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-unlock"></i></td>
+                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}" data-value="" data-title="{{ _('rights_no_access') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-ban-circle"></i></td>
+                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}{% if r['right'] == 'viewer' %} rights-selected{% end %}" data-value="viewer" data-title="{{ _('rights_can_view') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-eye-open"></i></td>
+                <!--td class="{% if r['id'] != current_user.id %}rights-icon{% end %}{% if r['right'] == 'add-child' %} rights-selected{% end %}" data-value="add-child" data-title="{{ _('rights_can_add_child') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-plus"></i></td-->
+                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}{% if r['right'] == 'editor' %} rights-selected{% end %}" data-value="editor" data-title="{{ _('rights_can_edit') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-pencil"></i></td>
+                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}{% if r['right'] == 'owner' %} rights-selected{% end %}" data-value="owner" data-title="{{ _('rights_owner') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-unlock"></i></td>
                 <td class="rights-title" style="padding:8px; vertical-align:middle; font-size:12px;"></td>
             </tr>
             {% end %}
@@ -85,10 +85,7 @@
 
         $('.share').click(function() {
             select_sharing($(this));
-
-            // $.post('/entity-{{ entity_id }}/share', { to: $('#email-to').val(), message: $('#email-message').val() }, function(newvalue) {
-            //     $('#modal-box').modal('hide')
-            // });
+            $.post('/entity-{{ entity_id }}/rights', { sharing: $(this).data('value') });
         });
 
         function select_sharing(object) {
@@ -118,18 +115,15 @@
         });
 
         $('.rights-icon').click(function() {
-            select_rights($(this));
-
-            // $.post('/entity-{{ entity_id }}/share', { to: $('#email-to').val(), message: $('#email-message').val() }, function(newvalue) {
-            //     $('#modal-box').modal('hide')
-            // });
+            select_right($(this));
+            set_right($(this).parent('tr').data('id'), $(this).data('value'));
         });
 
         $('.rights-selected').each(function() {
-            select_rights($(this));
+            select_right($(this));
         });
 
-        function select_rights(object) {
+        function select_right(object) {
             object.parent('tr').data('title', object.data('title'));
             object.parent('tr').children('.rights-title').html(object.data('title'));
 
@@ -138,6 +132,10 @@
 
             object.parent('tr').children('.rights-icon').css('color', '#F5F5F5');
             object.css('color', '#2E2E2E');
+        }
+
+        function set_right(id, right) {
+            $.post('/entity-{{ entity_id }}/rights', { person: id, right: right });
         }
 
         $('#add-new-person').select2({
@@ -151,6 +149,7 @@
                     return {
                         q: term,
                         definition: 'person',
+                        exclude_entity: '{{ ','.join([str(x['id']) for x in rights if x.get('id')]) }}',
                     };
                 },
                 results: function (data, page) {
@@ -162,12 +161,14 @@
 
         $('#add-new-person').change(function() {
             var data = $(this).select2('data');
-            alert(JSON.stringify(data));
+            set_right(data.id, 'viewer');
             var newrow_template = $('#rights-new');
             var newrow = newrow_template.clone(true);
-            newrow.removeData('id');
-            newrow.children().html('sdfsdf');
-            newrow.after(newrow_template);
+            newrow.removeAttr('id');
+            newrow.children('.rights-name').html(data.title);
+            newrow.data('id', data.id)
+            select_right(newrow.children(".rights-icon[data-value='viewer']"));
+            newrow_template.before(newrow);
             newrow.show();
         });
 

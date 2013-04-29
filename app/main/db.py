@@ -445,6 +445,49 @@ class Entity():
                         # logging.debug(sql)
                         self.db.execute(sql)
 
+    def set_rights(self, entity_id, related_entity_id, relationship_definition_keyname=None):
+        if not entity_id or not related_entity_id:
+            return
+
+        if type(entity_id) is not list:
+            entity_id = [entity_id]
+
+        if type(related_entity_id) is not list:
+            related_entity_id = [related_entity_id]
+
+        sql = """
+            UPDATE relationship SET
+                deleted = NOW(),
+                is_deleted = 1,
+                deleted_by = %s
+            WHERE is_deleted = 0
+            AND entity_id IN (%s)
+            AND related_entity_id IN (%s);
+        """ % (self.__user_id, ','.join(map(str, entity_id)), ','.join(map(str, related_entity_id)))
+        self.db.execute(sql)
+
+        if relationship_definition_keyname:
+            for e in entity_id:
+                for re in related_entity_id:
+                    self.db.execute('INSERT INTO relationship SET relationship_definition_keyname = %s, entity_id = %s, related_entity_id = %s, created = NOW(), created_by = %s;', relationship_definition_keyname, int(e), int(re), self.__user_id)
+
+    def set_sharing(self, entity_id, sharing):
+        if not entity_id or not sharing:
+            return
+
+        if type(entity_id) is not list:
+            entity_id = [entity_id]
+
+        sql = """
+            UPDATE entity SET
+                sharing = %%s,
+                changed = NOW(),
+                changed_by = %%s
+            WHERE id IN (%s);
+        """ % ','.join(map(str, entity_id))
+
+        self.db.execute(sql, sharing, self.__user_id)
+
     def get_entities(self, ids_only=False, entity_id=None, search=None, entity_definition_keyname=None, dataproperty=None, limit=None, full_definition=False, only_public=False):
         """
         If ids_only = True, then returns list of Entity IDs. Else returns list of Entities (with properties) as dictionary. entity_id, entity_definition and dataproperty can be single value or list of values.
@@ -578,6 +621,7 @@ class Entity():
                     entity.created                                  AS entity_created,
                     entity.changed                                  AS entity_changed,
                     entity.public                                   AS entity_public,
+                    entity.sharing                                  AS entity_sharing,
                     entity_definition.%(language)s_displayname      AS entity_displayname,
                     entity_definition.%(language)s_displayinfo      AS entity_displayinfo,
                     entity_definition.%(language)s_displaytable     AS entity_displaytable,
@@ -648,6 +692,7 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {})['displaytable'] = row.entity_displaytable
                 items.setdefault('item_%s' % row.entity_id, {})['file_count'] = 0
                 items.setdefault('item_%s' % row.entity_id, {})['is_public'] = True if row.entity_public == 1 else False
+                items.setdefault('item_%s' % row.entity_id, {})['sharing'] = row.entity_sharing
                 items.setdefault('item_%s' % row.entity_id, {})['ordinal'] = row.entity_created if row.entity_created else datetime.datetime.now()
 
                 #Property

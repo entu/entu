@@ -98,14 +98,14 @@ class GetEntities(myRequestHandler, Entity):
         """
         search = self.get_argument('q', None, True)
         entity_definition_keyname = self.get_argument('definition', None, True)
-        exclude_entity_id = self.get_argument('exclude_entity', 0, True)
+        exclude_entity_id = self.get_argument('exclude_entity', '0', True)
         if not search:
             return self.missing()
 
 
         result = []
         for e in self.get_entities(search=search, entity_definition_keyname=entity_definition_keyname, limit=303):
-            if e['id'] == int(exclude_entity_id):
+            if e['id'] in [int(x) for x in exclude_entity_id.split(',')]:
                 continue
             result.append({
                 'id':    e['id'],
@@ -418,6 +418,7 @@ class EntityRights(myRequestHandler, Entity):
         rights = []
         for right in ['viewer', 'editor', 'owner']:
             for r in self.get_relatives(entity_id=entity_id, relationship_definition_keyname=right).values():
+                # logging.debug('%s  -  %s' % (right, str(r)))
                 for e in r:
                     rights.append({
                         'right': right,
@@ -427,10 +428,6 @@ class EntityRights(myRequestHandler, Entity):
 
         entity = self.get_entities(entity_id=entity_id, limit=1)
 
-        sharing = 'private'
-        if entity.get('is_public'):
-            sharing = 'public'
-
         rights.append({
             'right': 'viewer',
             'id': None,
@@ -439,29 +436,22 @@ class EntityRights(myRequestHandler, Entity):
 
         self.render('entity/template/rights.html',
             entity_id = entity_id,
-            sharing = sharing,
+            sharing = entity.get('sharing'),
             rights = sorted(rights, key=itemgetter('name')),
         )
 
     @web.authenticated
-    def post(self,  entity_id=None):
-        if not self.get_argument('to', None):
-            return self.missing()
+    def post(self, entity_id=None):
 
-        to = self.get_argument('to', None)
-        message = self.get_argument('message', '')
+        sharing = self.get_argument('sharing', None)
+        related_entity_id = self.get_argument('person', None)
+        relationship_definition_keyname = self.get_argument('right', None)
 
-        item = self.get_entities(entity_id=entity_id, limit=1)
-        if not item:
-            return self.missing()
+        if entity_id and sharing:
+            self.set_sharing(entity_id=entity_id, sharing=sharing)
 
-        url = 'https://%s/entity/%s/%s' % (self.request.headers.get('Host'), item['definition_keyname'], item['id'])
-
-        self.mail_send(
-            to = to,
-            subject = item['displayname'],
-            message = '%s\n\n%s\n\n%s\n%s' % (message, url, self.current_user.name, self.current_user.email)
-        )
+        if entity_id and related_entity_id:
+            self.set_rights(entity_id=entity_id, related_entity_id=related_entity_id, relationship_definition_keyname=relationship_definition_keyname)
 
 
 class ShowHTMLproperty(myRequestHandler, Entity):
