@@ -88,14 +88,6 @@
                     </tr>
                     {% end %}
                 {% end %}
-                <tr title="{{ _('public_description') }}">
-                    <th>
-                        {{ _('public') }}
-                    </th>
-                    <td>
-                        <input type="checkbox" class="is_public" {% if entity.get('is_public', False) %} checked{% end %} />
-                    </td>
-                </tr>
             </tbody>
         </table>
     </div>
