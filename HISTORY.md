@@ -1,6 +1,11 @@
+## 2013-04-29
+* View and set Entity sharing and rights
+* Save all request info to app_requests table
+* New 404 page
+
 ## 2013-03-22
 * Host based database selection - one process can serve multiple hosts/databases
-* Reference property values are now links to referred entity
+* Reference propery values are now links to referred entity
 * Application code reorganized to subfolders/-apps
 * Bugfixes
 
