@@ -53,27 +53,19 @@
                 </td>
             </tr>
             {% end %}
-            <tr>
-                <th style="text-align:right; white-space:nowrap; vertical-align:middle; color:gray;">
-                    {{ _('public') }}
-                </th>
-                <td style="width:100%; vertical-align:middle; color:gray;">
-                    {% if entity.get('is_public', False) %}<b>{{ _('boolean_true') }}</b>{% else %}{{ _('boolean_false') }}{% end %}
-                </td>
-            </tr>
         </tbody>
     </table>
 </div>
 
 <ul id="toolbar_template" style="display:none;">
-    {% if can_add and allowed_childs or add_definitions %}
+    {% if allowed_childs or add_definitions %}
         <li class="dropdown">
             <a href="#" class="dropdown-toggle header-menu-item toolbar-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="icon-plus"></i></a>
             <ul class="dropdown-menu">
                 {% for c in add_definitions %}
                     <li><a href="javascript:void(0);" class="open-modal-box" data-url="/entity-{{ c.related_entity_id }}/add/{{ c.keyname }}">{{ c.label }}</a></li>
                 {% end %}
-                {% if can_add and allowed_childs and add_definitions %}
+                {% if allowed_childs and add_definitions %}
                     <li class="divider"></li>
                 {% end %}
                 {% for c in allowed_childs %}
@@ -82,11 +74,11 @@
             </ul>
         </li>
     {% end %}
-    {% if can_edit %}
+    {% if entity['right'] in ['editor', 'owner'] %}
         <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/edit" title="{{ _('menu_edit') }}"><i class="icon-pencil"></i></a></li>
         <!--li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/relate" title="{{ _('menu_relate') }}"><i class="icon-link"></i></a></li-->
     {% end %}
-    {% if is_owner %}
+    {% if entity['right'] == 'owner' %}
         <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/rights" title="{{ _('menu_rights') }}"><i class="icon-lock"></i></a></li>
     {% end %}
     <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/share" title="{{ _('menu_share') }}"><i class="icon-envelope"></i></a></li>

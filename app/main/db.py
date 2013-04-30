@@ -53,6 +53,10 @@ class Entity():
         if not parent_entity_id:
             return entity_id
 
+        # Propagate sharing
+        parent = self.db.get('SELECT sharing FROM entity WHERE id = %s LIMIT 1;', parent_entity_id)
+        self.db.execute('UPDATE entity SET sharing = %s WHERE id = %s LIMIT 1;', parent.sharing, entity_id)
+
         # Insert child relationship and/or default parent child relationship
         sql = """
             INSERT INTO relationship (
@@ -106,10 +110,13 @@ class Entity():
             AND       r.related_entity_id = %s
             AND       r.relationship_definition_keyname = 'child'
             AND       rr.is_deleted = 0
-            AND       rr.relationship_definition_keyname IN ('viewer', 'editor', 'owner' );
+            AND       rr.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner');
         """
         # logging.debug(sql)
         self.db.execute(sql, entity_id, self.__user_id, entity_id)
+
+        # set creator to owner
+        self.set_rights(entity_id=entity_id, related_entity_id=self.__user_id, right='owner')
 
         # Populate default values
         for default_value in self.db.query('SELECT keyname, defaultvalue FROM property_definition WHERE entity_definition_keyname = %s AND defaultvalue IS NOT null', entity_definition_keyname):
@@ -400,7 +407,7 @@ class Entity():
                     if delete == True:
                         sql = """
                             UPDATE relationship SET
-                                deleted_by = '%s',
+                                deleted_by = %s,
                                 deleted = NOW(),
                                 is_deleted = 1
                             WHERE relationship_definition_keyname = '%s'
@@ -414,7 +421,7 @@ class Entity():
                             UPDATE relationship SET
                                 deleted_by = NULL,
                                 deleted = NULL,
-                                changed_by = '%s',
+                                changed_by = %s,
                                 changed = NOW()
                             WHERE relationship_definition_keyname = '%s'
                             AND entity_id = %s
@@ -428,7 +435,7 @@ class Entity():
                                     relationship_definition_keyname = '%s',
                                     entity_id = %s,
                                     related_entity_id = %s,
-                                    created_by = '%s',
+                                    created_by = %s,
                                     created = NOW();
                             """ % (t, e, r, self.__user_id)
                             # logging.debug(sql)
@@ -439,13 +446,13 @@ class Entity():
                                 relationship_definition_keyname = '%s',
                                 entity_id = %s,
                                 related_entity_id = %s,
-                                created_by = '%s',
+                                created_by = %s,
                                 created = NOW();
                         """ % (t, e, r, self.__user_id)
                         # logging.debug(sql)
                         self.db.execute(sql)
 
-    def set_rights(self, entity_id, related_entity_id, relationship_definition_keyname=None):
+    def set_rights(self, entity_id, related_entity_id, right=None):
         if not entity_id or not related_entity_id:
             return
 
@@ -461,15 +468,16 @@ class Entity():
                 is_deleted = 1,
                 deleted_by = %s
             WHERE is_deleted = 0
+            AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
             AND entity_id IN (%s)
             AND related_entity_id IN (%s);
         """ % (self.__user_id, ','.join(map(str, entity_id)), ','.join(map(str, related_entity_id)))
         self.db.execute(sql)
 
-        if relationship_definition_keyname:
+        if right in ['viewer', 'expander', 'editor', 'owner']:
             for e in entity_id:
                 for re in related_entity_id:
-                    self.db.execute('INSERT INTO relationship SET relationship_definition_keyname = %s, entity_id = %s, related_entity_id = %s, created = NOW(), created_by = %s;', relationship_definition_keyname, int(e), int(re), self.__user_id)
+                    self.db.execute('INSERT INTO relationship SET relationship_definition_keyname = %s, entity_id = %s, related_entity_id = %s, created = NOW(), created_by = %s;', right, int(e), int(re), self.__user_id)
 
     def set_sharing(self, entity_id, sharing):
         if not entity_id or not sharing:
@@ -543,7 +551,7 @@ class Entity():
         if self.__user_id and only_public == False:
             where_parts.append('r.is_deleted = 0')
             join_parts.append('RIGHT JOIN relationship AS r  ON r.entity_id  = e.id')
-            where_parts.append('r.related_entity_id IN (%s) AND r.relationship_definition_keyname IN (\'viewer\', \'editor\', \'owner\')' % self.__user_id)
+            where_parts.append('(r.related_entity_id = %s AND r.relationship_definition_keyname IN (\'viewer\', \'expander\', \'editor\', \'owner\') OR e.sharing = \'domain\')' % self.__user_id)
         else:
             where_parts.append('e.public = 1')
             i = 0
@@ -601,8 +609,12 @@ class Entity():
                 entity_id = [entity_id]
 
             if self.__user_id and only_public == False:
+                rights_select = 'relationship.relationship_definition_keyname'
+                rights_join = 'LEFT JOIN relationship ON relationship.entity_id = entity.id AND relationship.is_deleted = 0 AND relationship.related_entity_id = %s AND relationship.relationship_definition_keyname IN (\'viewer\', \'expander\', \'editor\', \'owner\')' % self.__user_id
                 public = ''
             else:
+                rights_select = 'FALSE'
+                rights_join = ''
                 public = 'AND entity.public = 1 AND property_definition.public = 1'
 
             datapropertysql = ''
@@ -620,8 +632,8 @@ class Entity():
                     entity_definition.%(language)s_description      AS entity_description,
                     entity.created                                  AS entity_created,
                     entity.changed                                  AS entity_changed,
-                    entity.public                                   AS entity_public,
                     entity.sharing                                  AS entity_sharing,
+                    %(rights_select)s                               AS entity_right,
                     entity_definition.%(language)s_displayname      AS entity_displayname,
                     entity_definition.%(language)s_displayinfo      AS entity_displayinfo,
                     entity_definition.%(language)s_displaytable     AS entity_displaytable,
@@ -655,7 +667,7 @@ class Entity():
                     property.value_reference                        AS value_reference,
                     property.value_file                             AS value_file
                 FROM
-                    entity,
+                    entity %(rights_join)s,
                     entity_definition,
                     property,
                     property_definition
@@ -672,11 +684,16 @@ class Entity():
                 ORDER BY
                     entity_definition.keyname,
                     entity.created DESC
-            """ % {'language': self.get_user_locale().code, 'public': public, 'idlist': ','.join(map(str, entity_id)), 'datapropertysql': datapropertysql}
+            """ % {'language': self.get_user_locale().code, 'public': public, 'idlist': ','.join(map(str, entity_id)), 'datapropertysql': datapropertysql, 'rights_select': rights_select, 'rights_join': rights_join}
             # logging.debug(sql)
 
             items = {}
             for row in self.db.query(sql):
+                if row.entity_sharing == 'private' and not row.entity_right:
+                    continue
+                if row.entity_sharing == 'domain' and row.entity_right not in ['viewer', 'expander', 'editor', 'owner'] and row.property_public != 1:
+                    continue
+
                 #Entity
                 items.setdefault('item_%s' % row.entity_id, {})['definition_keyname'] = row.entity_definition_keyname
                 items.setdefault('item_%s' % row.entity_id, {})['id'] = row.entity_id
@@ -691,8 +708,8 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {})['displayinfo'] = row.entity_displayinfo
                 items.setdefault('item_%s' % row.entity_id, {})['displaytable'] = row.entity_displaytable
                 items.setdefault('item_%s' % row.entity_id, {})['file_count'] = 0
-                items.setdefault('item_%s' % row.entity_id, {})['is_public'] = True if row.entity_public == 1 else False
                 items.setdefault('item_%s' % row.entity_id, {})['sharing'] = row.entity_sharing
+                items.setdefault('item_%s' % row.entity_id, {})['right'] = row.entity_right
                 items.setdefault('item_%s' % row.entity_id, {})['ordinal'] = row.entity_created if row.entity_created else datetime.datetime.now()
 
                 #Property
@@ -1063,7 +1080,7 @@ class Entity():
             sql += ' AND r.related_entity_id IN (%s)' % ','.join(map(str, related_entity_id))
 
         if self.__user_id and only_public == False:
-            sql += ' AND rights.related_entity_id IN (%s) AND rights.relationship_definition_keyname IN (\'viewer\', \'editor\', \'owner\')' % self.__user_id
+            sql += ' AND (rights.related_entity_id = %s AND rights.relationship_definition_keyname IN (\'viewer\', \'expander\', \'editor\', \'owner\') OR e.sharing = \'domain\')' % self.__user_id
         else:
             sql += ' AND e.public = 1'
 
@@ -1080,7 +1097,7 @@ class Entity():
                 sql += ' AND up.value_reference IN (%s)' % ','.join(map(str, entity_id))
 
             if self.__user_id and only_public == False:
-                sql += ' AND urights.related_entity_id IN (%s) AND urights.relationship_definition_keyname IN (\'viewer\', \'editor\', \'owner\')' % self.__user_id
+                sql += ' AND (urights.related_entity_id = %s AND urights.relationship_definition_keyname IN (\'viewer\', \'expander\', \'editor\', \'owner\') OR ue.sharing = \'domain\')' % self.__user_id
             else:
                 sql += ' AND ue.public = 1'
 
@@ -1179,6 +1196,10 @@ class Entity():
         Returns allowed child definitions.
 
         """
+
+        if not self.db.get('SELECT id FROM relationship WHERE relationship_definition_keyname iN (\'expander\', \'owner\') AND entity_id = %s AND related_entity_id = %s LIMIT 1;', entity_id, self.__user_id):
+            return []
+
         sql = """
             SELECT DISTINCT
                 ed.keyname,
@@ -1192,7 +1213,8 @@ class Entity():
             WHERE r.relationship_definition_keyname = 'allowed-child'
             AND r.entity_id = %(id)s
             AND r.is_deleted = 0
-            ORDER BY ed.keyname        """  % {'language': self.get_user_locale().code, 'id': entity_id}
+            ORDER BY ed.keyname
+        """  % {'language': self.get_user_locale().code, 'id': entity_id}
         # logging.debug(sql)
 
         result = self.db.query(sql)
@@ -1267,9 +1289,9 @@ class Entity():
                 relationship
             WHERE entity.entity_definition_keyname = entity_definition.keyname
             AND relationship.entity_id = entity.id
-            AND relationship.relationship_definition_keyname IN ('viewer', 'editor', 'owner')
+            AND relationship.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
             AND entity_definition.estonian_menu IS NOT NULL
-            AND relationship.related_entity_id IN (%(user_id)s)
+            AND relationship.related_entity_id = %(user_id)s
             AND entity.is_deleted = 0
             AND relationship.is_deleted = 0
             ORDER BY
