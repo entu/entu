@@ -900,7 +900,7 @@ class Entity():
                     else:
                         items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['can_add_new'] = False
 
-                    if d.property_classifier_id:
+                    if d.property_classifier_id and d.property_datatype != 'reference':
                         for c in self.get_entities(entity_definition_keyname=d.property_classifier_id, only_public=True):
                             if c.get('id', None):
                                 items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {}).setdefault('select', []).append({'id': c.get('id', ''), 'label': c.get('displayname', '')})
