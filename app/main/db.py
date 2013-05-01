@@ -452,6 +452,33 @@ class Entity():
                         # logging.debug(sql)
                         self.db.execute(sql)
 
+    def get_rights(self, entity_id):
+        if not entity_id:
+            return
+
+        rights = {}
+        for right in ['viewer', 'expander', 'editor', 'owner']:
+            sql = """
+                SELECT related_entity_id
+                FROM relationship
+                WHERE is_deleted = 0
+                AND relationship_definition_keyname = %s
+                AND entity_id = %s
+            """
+
+            relationship = self.db.query(sql, right, entity_id)
+            if not relationship:
+                continue
+
+            ids = [x.related_entity_id for x in relationship]
+            if ids:
+                entities = self.__get_properties(entity_id=ids, full_definition=False, only_public=False)
+                if entities:
+                    rights[right] = entities
+
+        return rights
+
+
     def set_rights(self, entity_id, related_entity_id, right=None):
         if not entity_id or not related_entity_id:
             return

@@ -365,7 +365,7 @@ class DeleteEntity(myRequestHandler, Entity):
 
 class ShareByEmail(myRequestHandler, Entity):
     @web.authenticated
-    def get(self,  entity_id=None):
+    def get(self, entity_id=None):
         """
         Shows Entitiy share by email form.
 
@@ -375,7 +375,7 @@ class ShareByEmail(myRequestHandler, Entity):
         )
 
     @web.authenticated
-    def post(self,  entity_id=None):
+    def post(self, entity_id=None):
         if not self.get_argument('to', None):
             return self.missing()
 
@@ -397,21 +397,19 @@ class ShareByEmail(myRequestHandler, Entity):
 
 class EntityRights(myRequestHandler, Entity):
     @web.authenticated
-    def get(self,  entity_id=None):
+    def get(self, entity_id=None):
         """
         Shows Entitiy rights form.
 
         """
         rights = []
-        for right in ['viewer', 'expander', 'editor', 'owner']:
-            for r in self.get_relatives(entity_id=entity_id, relationship_definition_keyname=right).values():
-                # logging.debug('%s  -  %s' % (right, str(r)))
-                for e in r:
-                    rights.append({
-                        'right': right,
-                        'id': e.get('id'),
-                        'name': e.get('displayname'),
-                    })
+        for right, entities in self.get_rights(entity_id=entity_id).iteritems():
+            for e in entities:
+                rights.append({
+                    'right': right,
+                    'id': e.get('id'),
+                    'name': e.get('displayname'),
+                })
 
         entity = self.get_entities(entity_id=entity_id, limit=1)
 
