@@ -1,3 +1,8 @@
+## 2013-05-01
+* Show and allow edit Entities based on sharing and rights settings
+* Additional right (to viewer, editor, owner) is right to add child Entities
+* Bugfixes
+
 ## 2013-04-29
 * View and set Entity sharing and rights
 * Save all request info to app_requests table
