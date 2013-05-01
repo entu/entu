@@ -470,7 +470,7 @@ class Entity():
             if not relationship:
                 continue
 
-            ids = [x.related_entity_id for x in relationship]
+            ids = [x.related_entity_id for x in relationship if x.related_entity_id]
             if ids:
                 entities = self.__get_properties(entity_id=ids, full_definition=False, only_public=False)
                 if entities:
