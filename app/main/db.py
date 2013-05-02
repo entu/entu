@@ -813,16 +813,16 @@ class Entity():
                     value = row.value_text if row.value_text else ''
                 elif row.property_datatype == 'integer':
                     db_value = row.value_integer
-                    value = row.value_integer
+                    value = row.value_integer if row.value_integer else ''
                 elif row.property_datatype == 'decimal':
                     db_value = row.value_decimal
-                    value = '%.2f' % row.value_decimal
+                    value = '%.2f' % row.value_decimal if row.value_decimal else ''
                 elif row.property_datatype == 'date':
                     db_value = row.value_datetime
                     value = formatDatetime(row.value_datetime, '%(day)02d.%(month)02d.%(year)d')
                 elif row.property_datatype == 'datetime':
                     db_value = row.value_datetime
-                    value = formatDatetime(row.value_datetime)
+                    value = formatDatetime(row.value_datetime) if row.value_datetime else ''
                 elif row.property_datatype == 'reference':
                     value = ''
                     if row.value_reference:
