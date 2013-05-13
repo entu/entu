@@ -1,0 +1,22 @@
+CACHE MANIFEST
+# Version 1
+
+CACHE:
+index.html
+
+assets/jquery.min.js
+assets/spinner.gif
+
+media/browsers.png
+media/catnmouse.jpg
+media/work.jpg
+
+media/bach.mp3
+
+media/lego1.mp4
+media/lego2.mp4
+media/politsei.mp4
+media/karl.mp4
+
+NETWORK:
+*
