@@ -210,6 +210,7 @@ class Entity():
             formula = Formula(self.db, user_locale=self.get_user_locale(), created_by=self.__user_id, entity_id=entity_id, property_id=new_property_id, formula=value)
             value = ''.join(formula.evaluate())
 
+        value_string = value[:500]
         if definition.datatype in ['text', 'html']:
             field = 'value_text'
         elif definition.datatype == 'integer':
@@ -218,16 +219,20 @@ class Entity():
             field = 'value_decimal'
             value = value.replace(',', '.')
             value = re.sub(r'[^\.0-9:]', '', value)
+            value_string = '%s %s'[:500] % (value_string, value)
         elif definition.datatype == 'date':
             field = 'value_datetime'
         elif definition.datatype == 'datetime':
             field = 'value_datetime'
         elif definition.datatype == 'reference':
             field = 'value_reference'
+            value_string = self.__get_properties(value)[0]['displayname']
+            logging.debug(self.__get_properties(value)[0])
         elif definition.datatype == 'file':
             uploaded_file = value
             value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, filesize = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], len(uploaded_file['body']), uploaded_file['body'], self.__user_id)
             field = 'value_file'
+            value_string = uploaded_file['filename'][:500]
         elif definition.datatype == 'boolean':
             field = 'value_boolean'
             value = 1 if value.lower() == 'true' else 0
@@ -236,10 +241,15 @@ class Entity():
         else:
             field = 'value_string'
             value = value[:500]
+            value_string = ''
 
         # logging.debug('UPDATE property SET %s = %s WHERE id = %s;' % (field, value, new_property_id) )
+        logging.debug(value_string)
 
-        self.db.execute('UPDATE property SET %s = %%s WHERE id = %%s;' % field, value, new_property_id )
+        if value_string:
+            self.db.execute('UPDATE property SET %s = %%s, value_string = %%s WHERE id = %%s;' % field, value, value_string, new_property_id )
+        else:
+            self.db.execute('UPDATE property SET %s = %%s WHERE id = %%s;' % field, value, new_property_id )
 
         if definition.formula == 1:
             formula.save_property(new_property_id=new_property_id, old_property_id=old_property_id)
@@ -477,7 +487,6 @@ class Entity():
                     rights[right] = entities
 
         return rights
-
 
     def set_rights(self, entity_id, related_entity_id, right=None):
         if not entity_id or not related_entity_id:
