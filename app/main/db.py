@@ -589,7 +589,7 @@ class Entity():
             join_parts.append('RIGHT JOIN relationship AS r  ON r.entity_id  = e.id')
             where_parts.append('(r.related_entity_id = %s AND r.relationship_definition_keyname IN (\'viewer\', \'expander\', \'editor\', \'owner\') OR e.sharing = \'domain\')' % self.__user_id)
         else:
-            where_parts.append('e.public = 1')
+            where_parts.append('e.sharing = \'public\'')
             i = 0
             if search != None:
                 for s in search.split(' '):
@@ -651,7 +651,7 @@ class Entity():
             else:
                 rights_select = 'FALSE'
                 rights_join = ''
-                public = 'AND entity.public = 1 AND property_definition.public = 1'
+                public = 'AND entity.sharing = \'public\' AND property_definition.public = 1'
 
             datapropertysql = ''
             if dataproperty:
@@ -1124,7 +1124,7 @@ class Entity():
             sql += ' AND r.relationship_definition_keyname IN (%s)' % ','.join(['\'%s\'' % x for x in relationship_definition_keyname])
 
         if entity_definition_keyname:
-            sql += ' AND e.entity_definition_keyname IN (%s)' % ','.join(map(str, entity_definition_keyname))
+            sql += ' AND e.entity_definition_keyname IN (%s)' % ','.join(['\'%s\'' % x for x in entity_definition_keyname])
 
         if unionsql:
             sql += unionsql
@@ -1138,7 +1138,7 @@ class Entity():
                 sql += ' AND ue.public = 1'
 
             if entity_definition_keyname:
-                sql += ' AND ue.entity_definition_keyname IN (%s)' % ','.join(map(str, entity_definition_keyname))
+                sql += ' AND ue.entity_definition_keyname IN (%s)' % ','.join(['\'%s\'' % x for x in entity_definition_keyname])
 
         sql += ' ORDER BY sort, created DESC'
 
