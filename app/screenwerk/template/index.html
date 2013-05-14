@@ -79,28 +79,28 @@
           }
 
           schedule = Array(
-            {start: getTime(), cleanup: true, playlists: Array(
+            {id: 1, start: getTime(), cleanup: true, playlists: Array(
               {id: 1, top: 0, left: 30, width: 40, height: 25, zindex: 2, loop: true, media: Array(
-                {id: 1, type: 'image', src: 'media/work.jpg', time: 10},
-                {id: 2, type: 'image', src: 'media/catnmouse.jpg', time: 3, height: 50, zindex: 20}
+                {id: 1, type: 'image', src: 'media/work.jpg', duration: 10},
+                {id: 2, type: 'image', src: 'media/catnmouse.jpg', duration: 3, height: 50, zindex: 20}
               )},
               {id: 2, top: 25, left: 30, width: 40, height: 25, zindex: 2, loop: true, media: Array(
                 {id: 2, type: 'image', src: 'media/catnmouse.jpg'}
               )},
               {id: 3, top: 3, left: 87, width: 10, height: 3, zindex: 1000, media: Array(
-                {id: 1, type: 'image', src: 'media/browsers.png', time: 10}
+                {id: 1, type: 'image', src: 'media/browsers.png', duration: 10}
               )},
               {id: 4, top: 0, left: 70, width: 30, height: 100, zindex: 2, loop: true, media: Array(
-                {id: 1, type: 'url', src: 'https://www.entu.ee/#about', time: 5},
+                {id: 1, type: 'url', src: 'https://www.entu.ee/#about', duration: 5},
                 {id: 2, type: 'video', src: 'media/politsei.mp4', ratio: 480/272},
-                {id: 3, type: 'image', src: 'media/catnmouse.jpg', time: 10}
+                {id: 3, type: 'image', src: 'media/catnmouse.jpg', duration: 10}
               )},
               {id: 5, top: 0, left: 0, width: 30, height: 50, zindex: 1, loop: true, media: Array(
                 {id: 1, type: 'video', src: 'media/politsei.mp4', ratio: 480/272}
               )},
               {id: 6, top: 50, left: 0, width: 70, height: 50, zindex: 10, loop: true, media: Array(
                 {id: 1, type: 'video', src: 'media/lego1.mp4', ratio: 640/480},
-                {id: 2, type: 'url', src: 'https://www.entu.ee', time: 10},
+                {id: 2, type: 'url', src: 'https://www.entu.ee', duration: 10},
                 {id: 3, type: 'video', src: 'media/lego2.mp4', ratio: 640/480},
                 {id: 4, type: 'video', src: 'media/lego1.mp4', ratio: 640/480, top: 20, left: 20, width: 60, height: 60, zindex: 1000},
                 {id: 5, type: 'video', src: 'media/karl.mp4', ratio: 1280/720, aaudio: true},
@@ -110,22 +110,22 @@
                 {id: 2, type: 'audio', src: 'media/bach.mp3'}
               )}
             )},
-            {start: getTime() + 200, playlists: Array(
+            {id: 2, start: getTime() + 200, playlists: Array(
               {id: 8, top: 0, left: 0, width: 100, height: 100, zindex: 2000, media: Array(
-                {id: 2, type: 'image', src: 'media/catnmouse.jpg', time: 13}
+                {id: 2, type: 'image', src: 'media/catnmouse.jpg', duration: 13}
               )}
             )},
-            {start: getTime() + 200, playlists: Array(
+            {id: 3, start: getTime() + 200, playlists: Array(
               {id: 9, top: 0, left: 0, width: 100, height: 100, zindex: 2000, media: Array(
                 {id: 2, type: 'audio', src: 'media/bach.mp3'}
               )}
             )},
-            {start: getTime() + 400, cleanup: true, playlists: Array(
+            {id: 4, start: getTime() + 400, cleanup: true, playlists: Array(
               {id: 10, top: 0, left: 0, width: 100, height: 100, zindex: 1, media: Array(
                 {id: 2, type: 'video', src: 'media/lego2.mp4'}
               )}
             )},
-            {start: getTime() + 400, cleanup: true, playlists: Array(
+            {id: 5, start: getTime() + 400, cleanup: true, playlists: Array(
               {id: 11, top: 48, left: 45, width: 10, height: 3, zindex: 1, media: Array(
                 {id: 1, type: 'image', src: 'media/browsers.png'}
               )}
@@ -279,9 +279,9 @@
               if(box.data('type') == 'video') box.get(0).muted = !box.data('audio');
               box.get(0).load();
               box.get(0).play();
-            } else if(box.data('time')) {
+            } else if(box.data('duration')) {
               // set image/url timer
-              setTimeout(function() {showNext(box)}, box.data('time') * 1000);
+              setTimeout(function() {showNext(box)}, box.data('duration') * 1000);
             }
           }
 
