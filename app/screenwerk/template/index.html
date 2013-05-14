@@ -1,7 +1,8 @@
+{% autoescape None %}
 <!DOCTYPE HTML>
-<html manifest="cache.manifest">
+<html manifest="{{ '%s/cache.manifest' % request.uri }}">
   <head>
-    <title>ScreenWerk</title>
+    <title>ScreenWerk - {{ screen.get('displayname', '...')}}</title>
     <style type="text/css">
       html, body {
         background: black;
@@ -30,10 +31,9 @@
         display: inline;
       }
     </style>
-    <script src="assets/jquery.min.js"></script>
+    <script src="{{ static_url('javascript/jquery.min.js') }}"></script>
     <script>
       $(document).ready(function(){
-
 
           // CACHE
           window.applicationCache.onchecking = function (e) {
@@ -68,9 +68,9 @@
           };
           window.applicationCache.onprogress = function (e) {
             if (e.lengthComputable) {
-              updateCacheStatus('Downloading file ' + e.loaded + ' of ' + e.total + '. Please wait...<br /><img src="assets/spinner.gif" />');
+              updateCacheStatus('Downloading file ' + e.loaded + ' of ' + e.total + '. Please wait...<br /><img src="{{ static_url('images/spinner_pacman.gif') }}" />');
             } else {
-              updateCacheStatus('Downloading files. Please wait...<br /><img src="assets/spinner.gif" />');
+              updateCacheStatus('Downloading files. Please wait...<br /><img src="{{ static_url('images/spinner_pacman.gif') }}" />');
             };
           };
 
@@ -78,62 +78,9 @@
             $('body').html('<div id="cache-progress">' + msg + '</div>');
           }
 
-          schedule = Array(
-            {id: 1, start: getTime(), cleanup: true, playlists: Array(
-              {id: 1, top: 0, left: 30, width: 40, height: 25, zindex: 2, loop: true, media: Array(
-                {id: 1, type: 'image', src: 'media/work.jpg', duration: 10},
-                {id: 2, type: 'image', src: 'media/catnmouse.jpg', duration: 3, height: 50, zindex: 20}
-              )},
-              {id: 2, top: 25, left: 30, width: 40, height: 25, zindex: 2, loop: true, media: Array(
-                {id: 2, type: 'image', src: 'media/catnmouse.jpg'}
-              )},
-              {id: 3, top: 3, left: 87, width: 10, height: 3, zindex: 1000, media: Array(
-                {id: 1, type: 'image', src: 'media/browsers.png', duration: 10}
-              )},
-              {id: 4, top: 0, left: 70, width: 30, height: 100, zindex: 2, loop: true, media: Array(
-                {id: 1, type: 'url', src: 'https://www.entu.ee/#about', duration: 5},
-                {id: 2, type: 'video', src: 'media/politsei.mp4', ratio: 480/272},
-                {id: 3, type: 'image', src: 'media/catnmouse.jpg', duration: 10}
-              )},
-              {id: 5, top: 0, left: 0, width: 30, height: 50, zindex: 1, loop: true, media: Array(
-                {id: 1, type: 'video', src: 'media/politsei.mp4', ratio: 480/272}
-              )},
-              {id: 6, top: 50, left: 0, width: 70, height: 50, zindex: 10, loop: true, media: Array(
-                {id: 1, type: 'video', src: 'media/lego1.mp4', ratio: 640/480},
-                {id: 2, type: 'url', src: 'https://www.entu.ee', duration: 10},
-                {id: 3, type: 'video', src: 'media/lego2.mp4', ratio: 640/480},
-                {id: 4, type: 'video', src: 'media/lego1.mp4', ratio: 640/480, top: 20, left: 20, width: 60, height: 60, zindex: 1000},
-                {id: 5, type: 'video', src: 'media/karl.mp4', ratio: 1280/720, aaudio: true},
-                {id: 6, type: 'video', src: 'media/lego2.mp4', ratio: 640/480}
-              )},
-              {id: 7, top: 0, left: 0, width: 40, height: 25, zindex: 2000, media: Array(
-                {id: 2, type: 'audio', src: 'media/bach.mp3'}
-              )}
-            )},
-            {id: 2, start: getTime() + 200, playlists: Array(
-              {id: 8, top: 0, left: 0, width: 100, height: 100, zindex: 2000, media: Array(
-                {id: 2, type: 'image', src: 'media/catnmouse.jpg', duration: 13}
-              )}
-            )},
-            {id: 3, start: getTime() + 200, playlists: Array(
-              {id: 9, top: 0, left: 0, width: 100, height: 100, zindex: 2000, media: Array(
-                {id: 2, type: 'audio', src: 'media/bach.mp3'}
-              )}
-            )},
-            {id: 4, start: getTime() + 400, cleanup: true, playlists: Array(
-              {id: 10, top: 0, left: 0, width: 100, height: 100, zindex: 1, media: Array(
-                {id: 2, type: 'video', src: 'media/lego2.mp4'}
-              )}
-            )},
-            {id: 5, start: getTime() + 400, cleanup: true, playlists: Array(
-              {id: 11, top: 48, left: 45, width: 10, height: 3, zindex: 1, media: Array(
-                {id: 1, type: 'image', src: 'media/browsers.png'}
-              )}
-            )}
-          );
+          var schedule = jQuery.parseJSON('{{ schedule }}').schedules;
 
-
-          // runApp();
+          runApp();
 
 
           // GENERAL FUNCTIONS
@@ -155,7 +102,7 @@
 
 
           // TIMER
-          var start = 0;
+          var start = getTime();
           function runApp() {
             $('#cache-progress').hide();
             start = getTime();
@@ -163,7 +110,7 @@
           }
 
           function checkSchedule() {
-            document.title = 'ScreenWerk - ' + (getTime() - start);
+            document.title = 'ScreenWerk - {{ screen.get('displayname', '...')}} - ' + (getTime() - start);
 
             // delete obsolete layouts
             // var layout = schedule.filter(getObsoleteLayout)[0];
@@ -184,7 +131,7 @@
                 if(layout['cleanup'] == true) {
                   $('img, audio, video, iframe').remove();
                 }
-                createScreen(layout['playlists']);
+                createScreen(layout['start'], layout['playlists']);
               }
             }
           }
@@ -207,7 +154,7 @@
 
 
           // BOX
-          function createScreen(playlists) {
+          function createScreen(id, playlists) {
             for(p in playlists) {
               var playlist = playlists[p];
               var medias = playlist['media'];
@@ -230,10 +177,10 @@
                 }
 
                 // set box ID
-                $box.attr('id', 'media-' + playlist['id'] + '-' + media['id']);
+                $box.attr('id', 'media-' + id + '-' + playlist['id'] + '-' + media['id']);
 
                 // set box Class
-                $box.addClass('playlist-' + playlist['id']);
+                $box.addClass('playlist-' + id + '-' + playlist['id']);
 
                 // set source
                 $box.attr('src', media['src']);
@@ -246,9 +193,9 @@
 
                 // set next media
                 if(medias.length > parseInt(m) + 1) {
-                  $box.data('next', 'media-' + playlist['id'] + '-' + medias[parseInt(m) + 1]['id']);
+                  $box.data('next', 'media-' + id + '-' + playlist['id'] + '-' + medias[parseInt(m) + 1]['id']);
                 } else {
-                  if(playlist['loop'] == true) $box.data('next', 'media-' + playlist['id'] + '-' + medias[0]['id']);
+                  if(playlist['loop'] == true) $box.data('next', 'media-' + id + '-' + playlist['id'] + '-' + medias[0]['id']);
                 }
 
                 // set box dimensions
