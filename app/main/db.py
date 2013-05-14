@@ -1118,7 +1118,7 @@ class Entity():
         if self.__user_id and only_public == False:
             sql += ' AND (rights.related_entity_id = %s AND rights.relationship_definition_keyname IN (\'viewer\', \'expander\', \'editor\', \'owner\') OR e.sharing = \'domain\')' % self.__user_id
         else:
-            sql += ' AND e.public = 1'
+            sql += ' AND e.sharing = \'public\''
 
         if relationship_definition_keyname:
             sql += ' AND r.relationship_definition_keyname IN (%s)' % ','.join(['\'%s\'' % x for x in relationship_definition_keyname])
@@ -1798,9 +1798,9 @@ def sortableInteger(s_integer):
 
 
 def sortableDecimal(s_decimal):
-    logging.debug(s_decimal)
+    # logging.debug(s_decimal)
     formatted_decimal = '%016.4f' % s_decimal
-    logging.debug(formatted_decimal)
+    # logging.debug(formatted_decimal)
     return formatted_decimal
 
 
