@@ -227,7 +227,6 @@ class Entity():
         elif definition.datatype == 'reference':
             field = 'value_reference'
             value_string = self.__get_properties(value)[0]['displayname']
-            logging.debug(self.__get_properties(value)[0])
         elif definition.datatype == 'file':
             uploaded_file = value
             value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, filesize = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], len(uploaded_file['body']), uploaded_file['body'], self.__user_id)
@@ -244,7 +243,6 @@ class Entity():
             value_string = ''
 
         # logging.debug('UPDATE property SET %s = %s WHERE id = %s;' % (field, value, new_property_id) )
-        logging.debug(value_string)
 
         if value_string:
             self.db.execute('UPDATE property SET %s = %%s, value_string = %%s WHERE id = %%s;' % field, value, value_string, new_property_id )
@@ -393,7 +391,6 @@ class Entity():
         # logging.debug(sql)
 
         property_id = self.db.execute_lastrowid(sql)
-        # logging.warning(str(property_id))
         return self.db.get('SELECT value_string FROM property WHERE id = %s', property_id).value_string
 
     def set_relations(self, entity_id, related_entity_id, relationship_definition_keyname, delete=False, update=False):
@@ -1781,15 +1778,15 @@ def mdbg(matchobj):
     # mdbg() is for regex match object debugging.
     #   i.e: re.sub(r"([^{]*){([^{}]*)}|(.*?)$", mdbg, self.formula)(ha()a)
     for m in matchobj.groups():
-        None
-        logging.debug(m)
+        pass
+        # logging.debug(m)
 
 
 def sortableDateTime(s_date):
     if not s_date:
         return ''
     formatted_date = '%(year)d%(month)02d%(day)02d%(hour)02d%(minute)02d%(second)02d' % {'year': s_date.year, 'month': s_date.month, 'day': s_date.day, 'hour': s_date.hour, 'minute': s_date.minute, 'second': s_date.second}
-    logging.debug(formatted_date)
+    # logging.debug(formatted_date)
     return formatted_date
 
 
