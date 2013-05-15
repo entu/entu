@@ -210,7 +210,9 @@ class Entity():
             formula = Formula(self.db, user_locale=self.get_user_locale(), created_by=self.__user_id, entity_id=entity_id, property_id=new_property_id, formula=value)
             value = ''.join(formula.evaluate())
 
-        value_string = value[:500]
+        if definition.datatype != 'file':
+            value_string = value[:500]
+
         if definition.datatype in ['text', 'html']:
             field = 'value_text'
         elif definition.datatype == 'integer':
