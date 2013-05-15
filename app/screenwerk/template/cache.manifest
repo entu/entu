@@ -6,7 +6,7 @@ CACHE:
 {{ static_url('images/spinner_pacman.gif') }}
 
 {% for f in files %}
-{{ f.get('src') }}
+{% if f.get('type') in ['audio', 'video'] %}{{ f.get('src') }}{% end %}
 {% end %}
 
 NETWORK:

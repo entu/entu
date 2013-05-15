@@ -133,7 +133,7 @@ class Schedule():
 
                     media_file = '%s://%s/screenwerk/file-%s' % (self.request.protocol, self.request.host, media.get('properties', {}).get('file', {}).get('values', [{}])[0].get('db_value')) if media.get('properties', {}).get('file', {}).get('values', [{}])[0].get('db_value', '') else media.get('properties', {}).get('url', {}).get('values', [{}])[0].get('value')
                     media_type = media.get('properties', {}).get('type', {}).get('values', [{}])[0].get('value', '').lower()
-                    media_ratio = media.get('properties', {}).get('width', {}).get('values', [{}])[0].get('value', 1) / media.get('properties', {}).get('height', {}).get('values', [{}])[0].get('value', 1)
+                    media_ratio = float(media.get('properties', {}).get('width', {}).get('values', [{}])[0].get('db_value', 1)) / float(media.get('properties', {}).get('height', {}).get('values', [{}])[0].get('db_value', 1))
                     if media_type == 'video':
                         pass
 
