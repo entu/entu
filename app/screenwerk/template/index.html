@@ -78,9 +78,9 @@
             $('body').html('<div id="cache-progress">' + msg + '</div>');
           }
 
-          var schedule = jQuery.parseJSON('{{ schedule }}').schedules;
+          var schedule = jQuery.parseJSON('{{ json }}').schedule;
 
-          runApp();
+          // runApp();
 
 
           // GENERAL FUNCTIONS
@@ -89,7 +89,7 @@
           });
 
           function getTime() {
-            return Math.round(+new Date()/100);
+            return Math.round(+new Date()/1000);
           }
 
           function getWidth(percent) {
@@ -103,8 +103,9 @@
 
           // TIMER
           var start = getTime();
+
           function runApp() {
-            $('#cache-progress').hide();
+            $('#cache-progress').remove();
             start = getTime();
             var t = setInterval(checkSchedule, 100);
           }

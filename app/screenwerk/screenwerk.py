@@ -1,6 +1,7 @@
 import logging
 import json
 import magic
+from operator import itemgetter
 from datetime import datetime
 from croniter import croniter
 
@@ -9,11 +10,12 @@ from main.db import *
 
 
 class Schedule():
-    days = 3
+    days = 7
     def get_schedule(self, entity_id):
         now = datetime.datetime.now()
         last_day = now + datetime.timedelta(days=self.days)
         schedule_dict = {}
+        files_dict = {}
 
         # get screen
         screen = self.get_entities(entity_id=entity_id, limit=1, only_public=True)
@@ -139,21 +141,29 @@ class Schedule():
                         continue
 
                     for t in run_times:
-                        if playlist.get('properties', {}).get('valid-from', {}).get('values', [{}])[0].get('db_value', now) > t:
-                            continue
-                        if playlist.get('properties', {}).get('valid-to', {}).get('values', [{}])[0].get('db_value', last_day) < t:
-                            continue
-                        if pm.get('properties', {}).get('valid-from', {}).get('values', [{}])[0].get('db_value', now) > t:
-                            continue
-                        if pm.get('properties', {}).get('valid-to', {}).get('values', [{}])[0].get('db_value', last_day) < t:
-                            continue
-                        if media.get('properties', {}).get('valid-from', {}).get('values', [{}])[0].get('db_value', now) > t:
-                            continue
-                        if media.get('properties', {}).get('valid-to', {}).get('values', [{}])[0].get('db_value', last_day) < t:
-                            continue
+                        if playlist.get('properties', {}).get('valid-from', {}).get('values', [{}])[0].get('db_value'):
+                            if playlist.get('properties', {}).get('valid-from', {}).get('values', [{}])[0].get('db_value') > t:
+                                continue
+                        if playlist.get('properties', {}).get('valid-to', {}).get('values', [{}])[0].get('db_value'):
+                            if playlist.get('properties', {}).get('valid-to', {}).get('values', [{}])[0].get('db_value') < t:
+                                continue
+                        if pm.get('properties', {}).get('valid-from', {}).get('values', [{}])[0].get('db_value'):
+                            if pm.get('properties', {}).get('valid-from', {}).get('values', [{}])[0].get('db_value') > t:
+                                logging.debug(str(t) + ' ' + str(valid_from))
+                                continue
+                        if pm.get('properties', {}).get('valid-to', {}).get('values', [{}])[0].get('db_value'):
+                            if pm.get('properties', {}).get('valid-to', {}).get('values', [{}])[0].get('db_value') < t:
+                                continue
+                        if media.get('properties', {}).get('valid-from', {}).get('values', [{}])[0].get('db_value'):
+                            if media.get('properties', {}).get('valid-from', {}).get('values', [{}])[0].get('db_value') > t:
+                                continue
+                        if media.get('properties', {}).get('valid-to', {}).get('values', [{}])[0].get('db_value'):
+                            if media.get('properties', {}).get('valid-to', {}).get('values', [{}])[0].get('db_value') < t:
+                                continue
 
                         # schedule
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {})['start'] = int(time.mktime(t.timetuple()))
+                        schedule_dict.setdefault(int(time.mktime(t.timetuple())), {})['start_dt'] = str(t)
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {})['cleanup'] = bool(s.get('properties', {}).get('cleanup', {}).get('values', [{}])[0].get('db_value', False))
                         # playlist
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {})['id'] = lp.get('id')
@@ -179,7 +189,19 @@ class Schedule():
 
             delete_keys_from_dict(schedule_dict)
 
-            return schedule_dict
+            for s in schedule_dict.keys():
+                for p in schedule_dict[s]['playlists'].keys():
+                    schedule_dict.setdefault(s, {}).setdefault('playlists', {}).setdefault(p, {})['media'] = schedule_dict.get(s, {}).get('playlists', {}).get(p, {}).get('media', {}).values()
+                    for m in schedule_dict.get(s, {}).get('playlists', {}).get(p, {}).get('media', {}):
+                        files_dict.setdefault(m.get('id'), {})['id'] = m.get('id')
+                        files_dict.setdefault(m.get('id'), {})['type'] = m.get('type')
+                        files_dict.setdefault(m.get('id'), {})['src'] = m.get('src')
+                schedule_dict.setdefault(s, {})['playlists'] = schedule_dict.get(s, {}).get('playlists', {}).values()
+
+            return {
+                'schedule': sorted(schedule_dict.values(), key=itemgetter('start')),
+                'files': sorted(files_dict.values(), key=itemgetter('id'))
+            }
 
 
 class ShowPlayer(myRequestHandler, Entity, Schedule):
@@ -189,44 +211,25 @@ class ShowPlayer(myRequestHandler, Entity, Schedule):
             return self.missing()
 
         schedule = self.get_schedule(entity_id=entity_id)
-        for s in schedule.keys():
-            for p in schedule[s]['playlists'].keys():
-                schedule.setdefault(s, {}).setdefault('playlists', {}).setdefault(p, {})['media'] = schedule.get(s, {}).get('playlists', {}).get(p, {}).get('media', {}).values()
-            schedule.setdefault(s, {})['playlists'] = schedule.get(s, {}).get('playlists', {}).values()
-        schedule = {'schedules': schedule.values() }
 
         self.render('screenwerk/template/index.html',
             screen = screen,
-            schedule = json.dumps(schedule),
+            json = json.dumps(schedule),
         )
 
 
-
-class ShowOfflineManifest(myRequestHandler, Entity, Schedule):
+class ShowCacheManifest(myRequestHandler, Entity, Schedule):
     def get(self, entity_id):
         schedule = self.get_schedule(entity_id=entity_id)
-        files = []
-        for s in schedule.values():
-            for p in s.get('playlists', {}).values():
-                for m in p.get('media', {}).values():
-                    files.append(m.get('src'))
-        files = sorted(list(set(files)))
-
+        self.add_header('Content-Type', 'text/cache-manifest ')
         self.render('screenwerk/template/cache.manifest',
-            files = files
+            files = schedule.get('files', {})
         )
 
 
-class ShowSchedule(myRequestHandler, Entity, Schedule):
+class ShowPlayerJSON(myRequestHandler, Entity, Schedule):
     def get(self, entity_id):
         schedule = self.get_schedule(entity_id=entity_id)
-
-        for s in schedule.keys():
-            for p in schedule[s]['playlists'].keys():
-                schedule.setdefault(s, {}).setdefault('playlists', {}).setdefault(p, {})['media'] = schedule.get(s, {}).get('playlists', {}).get(p, {}).get('media', {}).values()
-            schedule.setdefault(s, {})['playlists'] = schedule.get(s, {}).get('playlists', {}).values()
-        schedule = {'schedules': schedule.values() }
-
         self.write(schedule)
 
 
@@ -257,8 +260,8 @@ def delete_keys_from_dict(dict_del):
 
 
 handlers = [
-    (r'/screenwerk/screen-(.*)/schedule', ShowSchedule),
-    (r'/screenwerk/screen-(.*)/cache.manifest', ShowOfflineManifest),
+    (r'/screenwerk/screen-(.*)/json', ShowPlayerJSON),
+    (r'/screenwerk/screen-(.*)/cache.manifest', ShowCacheManifest),
     (r'/screenwerk/screen-(.*)', ShowPlayer),
     (r'/screenwerk/file-(.*)', ShowFile),
 ]

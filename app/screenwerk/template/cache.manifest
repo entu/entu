@@ -1,11 +1,13 @@
 CACHE MANIFEST
-# Version 1.0
+# Version 3
 
 CACHE:
 {{ static_url('javascript/jquery.min.js') }}
 {{ static_url('images/spinner_pacman.gif') }}
 
-{{ '\n'.join(files) }}
+{% for f in files %}
+{{ f.get('src') }}
+{% end %}
 
 NETWORK:
 *
