@@ -927,6 +927,61 @@ class Entity():
 
         return self.db.query(sql)
 
+    def get_childs(self, entity_id=None, entity_definition_keyname=None):
+        """
+        Return 'child' entities for one or more parent entities.
+        entity_id : integer or list of integers representing parent entities
+        """
+        if not entity_id:
+            return
+
+        if type(entity_id) is not list:
+            entity_id = [entity_id]
+
+        if entity_definition_keyname:
+            if type(entity_definition_keyname) is not list:
+                entity_definition_keyname = [entity_definition_keyname]
+
+        sql = """
+SELECT DISTINCT
+    r.id AS relationship_id,
+    r.related_entity_id AS related_entity_id
+FROM
+    entity AS e
+    LEFT JOIN relationship AS rights ON rights.entity_id = e.id
+    LEFT JOIN relationship AS r ON r.entity_id = e.id
+    LEFT JOIN entity AS child ON child.id = r.related_entity_id
+WHERE e.id IN (40974)
+AND e.is_deleted = 0
+AND r.is_deleted = 0
+AND rights.is_deleted = 0
+AND rights.related_entity_id IN (5)
+AND rights.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
+AND r.relationship_definition_keyname IN ('child')
+AND child.entity_definition_keyname IN ('conf-property')"""
+
+        if self.__user_id:
+            sql += """
+AND ( rights.related_entity_id IN (%s) AND rights.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
+      OR child.public = 1 )""" % self.__user_id
+        else:
+            sql += """
+AND child.public = 1"""
+
+        if entity_definition_keyname:
+            sql += """
+AND child.entity_definition_keyname IN ('%s')""" % ','.join(map(str, entity_definition_keyname))
+
+        sql += """
+ORDER BY child.sort, child.created DESC;"""
+
+        logging.debug(sql)
+        child_ids = [x.related_entity_id for x in self.db.query(sql)]
+        logging.debug(child_ids)
+
+        return self.__get_properties(entity_id=child_ids)
+
+
     def get_relatives(self, ids_only=False, relationship_ids_only=False, entity_id=None, related_entity_id=None, relationship_definition_keyname=None, reverse_relation=False, entity_definition_keyname=None, full_definition=False, limit=None, only_public=False):
         """
         Get Entity relatives.
@@ -1026,7 +1081,7 @@ class Entity():
             sql += ' AND r.relationship_definition_keyname IN (%s)' % ','.join(['\'%s\'' % x for x in relationship_definition_keyname])
 
         if entity_definition_keyname:
-            sql += ' AND e.entity_definition_keyname IN (%s)' % ','.join(map(str, entity_definition_keyname))
+            sql += ' AND e.entity_definition_keyname IN (\'%s\')' % ','.join(map(str, entity_definition_keyname))
 
         if unionsql:
             sql += unionsql
@@ -1040,7 +1095,7 @@ class Entity():
                 sql += ' AND ue.public = 1'
 
             if entity_definition_keyname:
-                sql += ' AND ue.entity_definition_keyname IN (%s)' % ','.join(map(str, entity_definition_keyname))
+                sql += ' AND ue.entity_definition_keyname IN (\'%s\')' % ','.join(map(str, entity_definition_keyname))
 
         sql += ' ORDER BY sort, created DESC'
 
@@ -1686,7 +1741,7 @@ def sortableDateTime(s_date):
     if not s_date:
         return ''
     formatted_date = '%(year)d%(month)02d%(day)02d%(hour)02d%(minute)02d%(second)02d' % {'year': s_date.year, 'month': s_date.month, 'day': s_date.day, 'hour': s_date.hour, 'minute': s_date.minute, 'second': s_date.second}
-    logging.debug(formatted_date)
+    # logging.debug(formatted_date)
     return formatted_date
 
 
@@ -1695,9 +1750,9 @@ def sortableInteger(s_integer):
 
 
 def sortableDecimal(s_decimal):
-    logging.debug(s_decimal)
+    # logging.debug(s_decimal)
     formatted_decimal = '%016.4f' % s_decimal
-    logging.debug(formatted_decimal)
+    # logging.debug(formatted_decimal)
     return formatted_decimal
 
 
