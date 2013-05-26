@@ -2,7 +2,6 @@
 
 from tornado import web
 from tornado import locale
-from tornado import database
 
 from tornadomail.message import EmailMessage, EmailMultiAlternatives
 from tornadomail.backends.smtp import EmailBackend
