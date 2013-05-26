@@ -1,0 +1,13 @@
+CACHE MANIFEST
+# Version 3
+
+CACHE:
+{{ static_url('javascript/jquery.min.js') }}
+{{ static_url('images/spinner_pacman.gif') }}
+
+{% for f in files %}
+{% if f.get('type') in ['audio', 'video'] %}{{ f.get('src') }}{% end %}
+{% end %}
+
+NETWORK:
+*

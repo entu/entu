@@ -44,13 +44,11 @@ add_files_dropbox,Add from Dropbox
 entity_delete,Delete
 confirm_entity_delete,'%s' and all its childs will be deleted.
 confirm_file_delete,File '%s' will be deleted
+edit_help_tabs,"Donec a metus tellus. Nullam vulputate, ligula a ornare eleifend, dolor quam ornare velit, a malesuada mauris mi vitae quam. Quisque auctor nulla faucibus sem elementum placerat."
 
 download_all_as_zip,Download all files
 
 counter_generate_value,Generate number
-
-public,Public
-public_description,Make this document accessible in public view
 
 created,Created
 changed,Changed
@@ -60,11 +58,30 @@ share_to,To (email)
 share_message,Message
 share_send,Send
 
+rights_public,Public on the web
+rights_public_desc,Anyone on the Internet can access and view public properties. No sign-in required.
+rights_link,Anyone with the link
+rights_link_desc,Anyone who has the link can access and view public properties. No sign-in required.
+rights_domain,Anyone at %s
+rights_domain_desc,People at %s can access and view all properties. Sign-in required.
+rights_private,Private
+rights_private_desc,Only people explicitly granted permission (see below) can access. Sign-in required.
+rights_no_access, No access
+rights_can_view,Can only view
+rights_can_add_child,Can view and add childs
+rights_can_edit,"Can edit, delete and add childs"
+rights_owner,"Can edit, delete, add childs and change rights"
+rights_add_user,Add new
+rights_help_share,"Donec pharetra, sem quis pellentesque convallis, ligula neque dignissim tellus, non laoreet dolor neque nec felis. Etiam id eleifend nunc."
+rights_help_rights,"Pellentesque ac eros nec odio adipiscing sollicitudin. Etiam congue, purus a volutpat semper, mi arcu condimentum ante, luctus consequat odio nisl sit amet nunc. Nullam risus ante, posuere vitae euismod eu, molestie sit amet nibh. Donec id turpis eget ante placerat tincidunt. "
+rights_help_add,"Quisque turpis tortor, cursus in feugiat vel, aliquet vitae eros. Sed tincidunt cursus ante, vitae placerat dui vulputate in. Nulla dignissim suscipit arcu, id mattis ligula iaculis id."
+
 action_add_default,Manually
 action_add_ester,Import from Ester
 action_add_ester_search_placeholder,"Title, ISBN or URL"
 action_add_ester_add,Add
 action_add_ester_open,Open
+action_add_ester_help_search,"Donec pharetra, sem quis pellentesque convallis, ligula neque dignissim tellus, non laoreet dolor neque nec felis. Etiam id eleifend nunc."
 
 action_add_csv,From CSV file
 action_add_csv_file,CSV file

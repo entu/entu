@@ -1,12 +1,12 @@
 {% from operator import itemgetter %}
 
 <div class="modal-header">
-    <a class="close" data-dismiss="modal"><i class="icon-remove-sign"></i></a>
+    <a href="javascript:showHelp();" class="btn btn-link pull-right no-underline" style="padding-right:0px; font-size:20px; color:grey;"><i class="icon-info-sign"></i></a>
     <h3>{{ entity.get('displayname', '') }}</h3>
 </div>
 <div class="modal-body">
     {% if actions %}
-        <ul class="nav nav-tabs">
+        <ul class="nav nav-tabs" data-intro="{{ _('edit_help_tabs') }}" data-position="left">
             {% for idx, action in enumerate(actions) %}
                 <li{% if idx == 0 %} class="active"{% end %}><a href="#{{ action }}" data-toggle="tab">{{ _('action_add_%s' % action) }}</a></li>
             {% end %}
@@ -36,9 +36,9 @@
                             {% else %}
                                 {% if p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal'] %}
                                     {% if p.get('select', None) %}
-                                        <select class="autosave {% if p['can_add_new'] and idx+1 == len(p['values']) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}">
+                                        <select class="autosave classifier-select {% if p['can_add_new'] and idx+1 == len(p['values']) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" style="width:100%;">
                                             <option value=""></option>
-                                            {% for s in p.get('select','') %}
+                                            {% for s in sorted(p.get('select',''), key=itemgetter('label')) %}
                                             <option value="{{ s['label'] }}" {% if s['label'] == v['value'] %} selected{% end %}>{{ s['label'] }}</option>
                                             {% end %}
                                         </select>
@@ -88,14 +88,6 @@
                     </tr>
                     {% end %}
                 {% end %}
-                <tr title="{{ _('public_description') }}">
-                    <th>
-                        {{ _('public') }}
-                    </th>
-                    <td>
-                        <input type="checkbox" class="is_public" {% if entity.get('is_public', False) %} checked{% end %} />
-                    </td>
-                </tr>
             </tbody>
         </table>
     </div>
@@ -131,6 +123,10 @@
 
         $('textarea').elastic();
 
+        $('.classifier-select').select2({
+            placeholder: ' ',
+            allowClear: true,
+        })
 
         $('.reference').each( function() {
             var definition = $(this).data('reference_definition');

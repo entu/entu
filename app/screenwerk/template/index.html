@@ -1,0 +1,276 @@
+{% autoescape None %}
+<!DOCTYPE HTML>
+<html manifest="{{ '%s/cache.manifest' % request.uri }}">
+  <head>
+    <title>ScreenWerk - {{ screen.get('displayname', '...')}}</title>
+    <style type="text/css">
+      html, body {
+        background: black;
+        color: white;
+        margin: 0px;
+        padding: 0px;
+      }
+      video, img, iframe {
+        position: absolute;
+        display: none;
+        border: none;
+        overflow: hidden;
+      }
+      #cache-progress {
+        position:absolute;
+        top:45%;
+        left:0;
+        width:100%;
+        margin-top: -15px;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 30px;
+        text-align: center;
+      }
+      #cache-progress img {
+        position: relative;
+        display: inline;
+      }
+    </style>
+    <script src="{{ static_url('javascript/jquery.min.js') }}"></script>
+    <script>
+      $(document).ready(function(){
+
+          // CACHE
+          window.applicationCache.onchecking = function (e) {
+            updateCacheStatus('Checking for new files...');
+          };
+          window.applicationCache.ondownloading = function (e) {
+            updateCacheStatus('Downloading new files...');
+          };
+          window.applicationCache.oncached = function (e) {
+            updateCacheStatus('All files are available offline. Starting...');
+            runApp();
+          };
+          window.applicationCache.onerror = function (e) {
+            if(window.applicationCache.status == 1) {
+              updateCacheStatus('We are offline! Starting anyway...');
+              runApp();
+            } else {
+              updateCacheStatus('Something went wrong while downloading files!');
+            }
+          };
+          window.applicationCache.onupdateready = function (e) {
+            window.applicationCache.swapCache();
+            updateCacheStatus('Some files are updated. Restarting...');
+            window.location = '';
+          };
+          window.applicationCache.onnoupdate = function (e) {
+            updateCacheStatus('No new files are available. Starting...');
+            runApp();
+          };
+          window.applicationCache.onobsolete = function (e) {
+            updateCacheStatus('Manifest file was not found!');
+          };
+          window.applicationCache.onprogress = function (e) {
+            if (e.lengthComputable) {
+              updateCacheStatus('Downloading file ' + e.loaded + ' of ' + e.total + '. Please wait...<br /><img src="{{ static_url('images/spinner_pacman.gif') }}" />');
+            } else {
+              updateCacheStatus('Downloading files. Please wait...<br /><img src="{{ static_url('images/spinner_pacman.gif') }}" />');
+            };
+          };
+
+          function updateCacheStatus(msg) {
+            $('body').html('<div id="cache-progress">' + msg + '</div>');
+          }
+
+          var schedule = jQuery.parseJSON('{{ json }}').schedule;
+
+          // runApp();
+
+
+          // GENERAL FUNCTIONS
+          $(window).resize(function() {
+            $('img, iframe, video').each(function() {resizeBox($(this)); });
+          });
+
+          function getTime() {
+            return Math.round(+new Date()/1000);
+          }
+
+          function getWidth(percent) {
+            return $(window).width() * percent / 100
+          }
+
+          function getHeight(percent) {
+            return $(window).height() * percent / 100
+          }
+
+
+          // TIMER
+          var start = getTime();
+
+          function runApp() {
+            $('#cache-progress').remove();
+            start = getTime();
+            var t = setInterval(checkSchedule, 100);
+          }
+
+          function checkSchedule() {
+            document.title = 'ScreenWerk - {{ screen.get('displayname', '...')}} - ' + (getTime() - start);
+
+            // delete obsolete layouts
+            // var layout = schedule.filter(getObsoleteLayout)[0];
+            // if(layout) {
+            //   alert(JSON.stringify(layout));
+            //   var playlists = layout['playlists'];
+            //   for(p in playlists) {
+            //     var playlist = playlists[p];
+            //     $('.playlist' + playlist['id']).remove();
+            //   }
+            // }
+
+            // create current layout
+            var layouts = schedule.filter(getCurrentLayout);
+            if(layouts) {
+              for(l in layouts) {
+                var layout = layouts[l];
+                if(layout['cleanup'] == true) {
+                  $('img, audio, video, iframe').remove();
+                }
+                createScreen(layout['start'], layout['playlists']);
+              }
+            }
+          }
+
+          function getCurrentLayout(element, index, array) {
+            // check if layout must run
+            if(element['start'] <=  getTime() && !element['done']) {
+              element['done'] = true;
+              return true;
+            }
+          }
+
+          function getObsoleteLayout(element, index, array) {
+            // check if layout must run
+            if(element['end'] < getTime() && !element['obsolete']) {
+              element['obsolete'] = true;
+              return true;
+            }
+          }
+
+
+          // BOX
+          function createScreen(id, playlists) {
+            for(p in playlists) {
+              var playlist = playlists[p];
+              var medias = playlist['media'];
+
+              for(m in medias) {
+                var media = medias[m];
+
+                // create media box
+                if(media['type'] == 'image') {
+                  var $box = $(document.createElement('img'));
+                } else if(media['type'] == 'video') {
+                  var $box = $(document.createElement('video'));
+                  $box.bind('ended', function() {showNext($(this)); });
+                } else if(media['type'] == 'audio') {
+                  var $box = $(document.createElement('audio'));
+                  $box.bind('ended', function() {showNext($(this)); });
+                } else if(media['type'] == 'url') {
+                  var $box = $(document.createElement('iframe'));
+                  $box.attr('scrolling', 'no');
+                }
+
+                // set box ID
+                $box.attr('id', 'media-' + id + '-' + playlist['id'] + '-' + media['id']);
+
+                // set box Class
+                $box.addClass('playlist-' + id + '-' + playlist['id']);
+
+                // set source
+                $box.attr('src', media['src']);
+
+                // set box data
+                $box.data(media);
+
+                // set first media as current
+                if(m == 0) $box.addClass('current');
+
+                // set next media
+                if(medias.length > parseInt(m) + 1) {
+                  $box.data('next', 'media-' + id + '-' + playlist['id'] + '-' + medias[parseInt(m) + 1]['id']);
+                } else {
+                  if(playlist['loop'] == true) $box.data('next', 'media-' + id + '-' + playlist['id'] + '-' + medias[0]['id']);
+                }
+
+                // set box dimensions
+                if(media['top'] != null) { $box.data('top', media['top']) } else { $box.data('top', playlist['top']) };
+                if(media['left'] != null) { $box.data('left', media['left']) } else { $box.data('left', playlist['left']) };
+                if(media['width'] != null) { $box.data('width', media['width']) } else { $box.data('width', playlist['width']) };
+                if(media['height'] != null) { $box.data('height', media['height']) } else { $box.data('height', playlist['height']) };
+                if(media['zindex'] != null) { $box.data('zindex', media['zindex']) } else { $box.data('zindex', playlist['zindex']) };
+
+                // resize boxes
+                resizeBox($box);
+
+                // add box to body
+                $('body').append($box);
+
+                // show box
+                if(m == 0) showBox($box);
+              }
+            }
+          }
+
+          function showBox(box) {
+            // show box (if not audio)
+            box.addClass('current');
+            if(box.data('type') != 'audio') box.show();
+            if(box.data('type') == 'audio' || box.data('type') == 'video') {
+              // play audio/video and mute it if set
+              if(box.data('type') == 'video') box.get(0).muted = !box.data('audio');
+              box.get(0).load();
+              box.get(0).play();
+            } else if(box.data('duration')) {
+              // set image/url timer
+              setTimeout(function() {showNext(box)}, box.data('duration') * 1000);
+            }
+          }
+
+          function showNext(box) {
+            // hide current box
+            box.hide();
+            box.removeClass('current');
+            if(box.data('next')) {
+              // show next box in playlist (if set)
+              var next = $('#' + box.data('next'));
+              showBox(next);
+            }
+          }
+
+          function resizeBox(box) {
+            // resize and set box position
+            box.css({
+              'top':      getHeight(box.data('top')) + 'px',
+              'left':     getWidth(box.data('left')) + 'px',
+              'width':    getWidth(box.data('width')) + 'px',
+              'height':   getHeight(box.data('height')) + 'px',
+              'z-index':  box.data('zindex')
+            });
+
+            //additional sizing parameters for video
+            if(box.data('type') == 'video') {
+              var scale = box.data('ratio') / (getWidth(box.data('width')) / getHeight(box.data('height')));
+              box.css({
+                'height':                   getHeight(box.data('height')) / scale + 'px',
+                'transform-origin':         '0% 0%',
+                '-webkit-transform-origin': '0% 0%',
+                'transform':                'scaleY(' + scale + ')',
+                '-webkit-transform':        'scaleY(' + scale + ')',
+              });
+            }
+          }
+
+
+      });
+    </script>
+  </head>
+  <body>
+  </body>
+</html>

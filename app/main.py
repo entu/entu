@@ -31,6 +31,7 @@ app_controllers = [
     'entity.entity',
     'library.ester',
     'public.public',
+    'screenwerk.screenwerk',
     'update.update',
     'main.config',
     'user.auth',

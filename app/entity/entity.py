@@ -98,14 +98,14 @@ class GetEntities(myRequestHandler, Entity):
         """
         search = self.get_argument('q', None, True)
         entity_definition_keyname = self.get_argument('definition', None, True)
-        exclude_entity_id = self.get_argument('exclude_entity', 0, True)
+        exclude_entity_id = self.get_argument('exclude_entity', '0', True)
         if not search:
             return self.missing()
 
 
         result = []
         for e in self.get_entities(search=search, entity_definition_keyname=entity_definition_keyname, limit=303):
-            if e['id'] == int(exclude_entity_id):
+            if e['id'] in [int(x) for x in exclude_entity_id.split(',')]:
                 continue
             result.append({
                 'id':    e['id'],
@@ -137,25 +137,12 @@ class ShowEntity(myRequestHandler, Entity):
         parents = self.get_relatives(related_entity_id=item['id'], relationship_definition_keyname='child', reverse_relation=True)
         allowed_childs = self.get_allowed_childs(entity_id=item['id'])
 
-        can_edit = False if self.current_user.provider == 'application' else True #self.get_relatives(ids_only=True, entity_id=item['id'], related_entity_id=self.current_user.id, relationship_definition_keyname=['viewer', 'editor', 'owner'])
-        can_add = False if self.current_user.provider == 'application' else True #self.get_relatives(ids_only=True, entity_id=item['id'], related_entity_id=self.current_user.id, relationship_definition_keyname=['viewer', 'editor', 'owner'])
-
-        rating_scale = None
-        # rating_scale_list = [x.get('values', []) for x in item.get('properties', []) if x.get('dataproperty', '') == 'rating_scale']
-        # if rating_scale_list:
-        #     rating_scale = rating_scale_list[0][0]
-
-
         self.render('entity/template/item.html',
             page_title = item['displayname'],
             entity = item,
             relatives = relatives,
             parents = parents.values() if parents else [],
             allowed_childs = allowed_childs,
-            rating_scale = rating_scale,
-            can_edit = can_edit,
-            can_add = can_add,
-            is_owner = True,
             add_definitions = self.get_definitions_with_default_parent(item.get('definition_keyname')) if item.get('definition_keyname') else None,
         )
 
@@ -378,7 +365,7 @@ class DeleteEntity(myRequestHandler, Entity):
 
 class ShareByEmail(myRequestHandler, Entity):
     @web.authenticated
-    def get(self,  entity_id=None):
+    def get(self, entity_id=None):
         """
         Shows Entitiy share by email form.
 
@@ -388,7 +375,7 @@ class ShareByEmail(myRequestHandler, Entity):
         )
 
     @web.authenticated
-    def post(self,  entity_id=None):
+    def post(self, entity_id=None):
         if not self.get_argument('to', None):
             return self.missing()
 
@@ -406,6 +393,50 @@ class ShareByEmail(myRequestHandler, Entity):
             subject = item['displayname'],
             message = '%s\n\n%s\n\n%s\n%s' % (message, url, self.current_user.name, self.current_user.email)
         )
+
+
+class EntityRights(myRequestHandler, Entity):
+    @web.authenticated
+    def get(self, entity_id=None):
+        """
+        Shows Entitiy rights form.
+
+        """
+        rights = []
+        for right, entities in self.get_rights(entity_id=entity_id).iteritems():
+            for e in entities:
+                rights.append({
+                    'right': right,
+                    'id': e.get('id'),
+                    'name': e.get('displayname'),
+                })
+
+        entity = self.get_entities(entity_id=entity_id, limit=1)
+
+        rights.append({
+            'right': 'viewer',
+            'id': None,
+            'name': 'XXXX',
+        })
+
+        self.render('entity/template/rights.html',
+            entity_id = entity_id,
+            sharing = entity.get('sharing'),
+            rights = sorted(rights, key=itemgetter('name')),
+        )
+
+    @web.authenticated
+    def post(self, entity_id=None):
+
+        sharing = self.get_argument('sharing', None)
+        related_entity_id = self.get_argument('person', None)
+        right = self.get_argument('right', None)
+
+        if entity_id and sharing:
+            self.set_sharing(entity_id=entity_id, sharing=sharing)
+
+        if entity_id and related_entity_id:
+            self.set_rights(entity_id=entity_id, related_entity_id=related_entity_id, right=right)
 
 
 class ShowHTMLproperty(myRequestHandler, Entity):
@@ -516,6 +547,7 @@ handlers = [
     (r'/entity-(.*)/relate', ShowEntityRelate),
     (r'/entity-(.*)/add/(.*)', ShowEntityAdd),
     (r'/entity-(.*)/share', ShareByEmail),
+    (r'/entity-(.*)/rights', EntityRights),
     (r'/entity-(.*)/html-(.*)', ShowHTMLproperty),
     (r'/entity-(.*)/download', DownloadEntity),
     (r'/entity-(.*)', ShowEntity),

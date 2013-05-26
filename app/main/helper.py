@@ -154,31 +154,36 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
     """
     __timer_start = None
     __timer_last = None
+    __request_id = None
+
+    def prepare(self):
+        self.__request_id = self.db.execute_lastrowid('INSERT INTO app_requests SET date = NOW(), port = %s, method = %s, url = %s, arguments = %s, user_id = %s, ip = %s, browser = %s;',
+            self.settings['port'],
+            self.request.method,
+            self.request.full_url(),
+            str(self.request.arguments) if self.request.arguments else None,
+            self.get_current_user().id if self.get_current_user() else None,
+            self.request.remote_ip,
+            self.request.headers.get('User-Agent', None)
+        )
 
     def on_finish(self):
         request_time = self.request.request_time()
-        current_user_id = self.get_current_user().id if self.get_current_user() else None
 
         if request_time > (float(self.settings['slow_request_ms'])/1000.0):
             self.settings['slow_request_count'] += 1
             self.settings['slow_request_time'] += request_time
-
             logging.warning('%s %s request time was %0.3fs!' % (self.request.method, self.request.full_url(), round(request_time, 3)))
         else:
             self.settings['request_count'] += 1
             self.settings['request_time'] += request_time
 
-        self.db.execute('INSERT INTO app_requests SET date = NOW(), port = %s, time = %s, status = %s, method = %s, url = %s, arguments = %s, user_id = %s, ip = %s, browser = %s;',
-            self.settings['port'],
-            request_time,
-            self.get_status(),
-            self.request.method,
-            self.request.full_url(),
-            str(self.request.arguments) if self.request.arguments else None,
-            current_user_id,
-            self.request.remote_ip,
-            self.request.headers.get('User-Agent', None)
-        )
+        if self.__request_id:
+            self.db.execute('UPDATE app_requests SET time = %s, status = %s WHERE id = %s;',
+                request_time,
+                self.get_status(),
+                self.__request_id
+            )
 
     def timer(self, msg=''):
         logging.debug('TIMER: %0.3f - %s' % (round(self.request.request_time(), 3), msg))
