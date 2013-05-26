@@ -1,4 +1,3 @@
-from tornado import database
 from tornado import locale
 from tornado.options import options
 

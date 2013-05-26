@@ -1,10 +1,10 @@
 from os import path
 
+import torndb
 import tornado.ioloop
 import tornado.locale
 import tornado.web
 import tornado.httpserver
-import tornado.database
 import tornado.options
 from tornado.options import define, options
 
@@ -63,7 +63,7 @@ class ShowStatus(myRequestHandler):
         status = {}
         if url == '/database':
             for s in self.settings['hosts'].values():
-                db_connection = database.Connection(
+                db_connection = torndb.Connection(
                     host        = s['database']['host'],
                     database    = s['database']['database'],
                     user        = s['database']['user'],
@@ -118,7 +118,7 @@ class myApplication(tornado.web.Application):
 
         # make DB connections
         for h, s in settings_yaml['hosts'].iteritems():
-            settings_static['databases'][h] = database.Connection(
+            settings_static['databases'][h] = torndb.Connection(
                 host        = s['database']['host'],
                 database    = s['database']['database'],
                 user        = s['database']['user'],
@@ -144,18 +144,7 @@ class myApplication(tornado.web.Application):
 
 
 if __name__ == '__main__':
-    tornado.options.enable_pretty_logging()
     tornado.locale.load_translations(path.join(path.dirname(__file__), '..', 'translation'))
     tornado.options.parse_command_line()
     tornado.httpserver.HTTPServer(myApplication(), xheaders=True).listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
-
-
-    # server = tornado.httpserver.HTTPServer(myApplication(), xheaders=True)
-    # server.listen(options.port)
-
-    # io_loop = tornado.ioloop.IOLoop.instance()
-    # io_loop.set_blocking_signal_threshold(1, io_loop.log_stack)
-    # io_loop.start()
-
-

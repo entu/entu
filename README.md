@@ -42,6 +42,7 @@ _Futuristic Data Management System_
     * [python-suds](https://fedorahosted.org/suds/)
     * [python-markdown2](https://github.com/trentm/python-markdown2)
     * [tornadomail](https://github.com/equeny/tornadomail)
+    * [torndb](https://github.com/bdarnell/torndb)
     * [xmltodict](https://github.com/martinblech/xmltodict)
     * [Beautiful Soup](http://www.crummy.com/software/BeautifulSoup)
     * [PyYAML](http://pyyaml.org)
