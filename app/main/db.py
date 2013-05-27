@@ -1029,7 +1029,10 @@ class Entity():
         entity_id : integer or list of integers representing parent entities
         """
         if not entity_id:
+            logging.debug('No entity ID')
             return
+
+        # logging.debug(entity_id)
 
         if type(entity_id) is not list:
             entity_id = [entity_id]
@@ -1047,14 +1050,15 @@ FROM
     LEFT JOIN relationship AS rights ON rights.entity_id = e.id
     LEFT JOIN relationship AS r ON r.entity_id = e.id
     LEFT JOIN entity AS child ON child.id = r.related_entity_id
-WHERE e.id IN (40974)
+WHERE e.id IN (%s)
 AND e.is_deleted = 0
-AND r.is_deleted = 0
 AND rights.is_deleted = 0
+AND r.is_deleted = 0
+AND child.is_deleted = 0
 AND rights.related_entity_id IN (5)
 AND rights.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
 AND r.relationship_definition_keyname IN ('child')
-AND child.entity_definition_keyname IN ('conf-property')"""
+AND child.entity_definition_keyname IN ('conf-property')""" % ','.join(map(str, entity_id))
 
         if self.__user_id:
             sql += """

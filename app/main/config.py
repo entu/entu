@@ -10,7 +10,7 @@ from main.db import *
 class SyncConfig(myRequestHandler, Entity):
     @web.authenticated
     def get(self):
-        if self.current_user.email != 'mihkel.putrinsh@gmail.com':
+        if self.current_user.email not in ('mihkel.putrinsh@gmail.com', 'argo@roots.ee'):
             return
 
 
@@ -26,7 +26,7 @@ class SyncConfig(myRequestHandler, Entity):
         # TODO:
         # only alter definitions of configurations, where user has at least editing rights
         for conf_e in self.get_entities(entity_definition_keyname = 'conf-entity'):
-            logging.debug(conf_e)
+            # logging.debug(conf_e)
 
             e_props = {}
 
@@ -108,7 +108,7 @@ class SyncConfig(myRequestHandler, Entity):
 
             # for conf_p in self.get_entities(entity_definition_keyname = 'conf-property'):
             for conf_p in self.get_childs(entity_id = conf_e['id'], entity_definition_keyname = 'conf-property'):
-                logging.debug(conf_p)
+                # logging.debug(conf_p)
                 p_props = {}
 
                 p_props['autocomplete'] = conf_p.get('properties', {}).get('autocomplete' , {}).get('values', [{}])[0].get('db_value', None)
@@ -134,28 +134,32 @@ class SyncConfig(myRequestHandler, Entity):
                 p_props['search']       = conf_p.get('properties', {}).get('search'       , {}).get('values', [{}])[0].get('db_value', None)
                 p_props['visible']      = conf_p.get('properties', {}).get('visible'      , {}).get('values', [{}])[0].get('db_value', None)
 
-                p_props['datatype']     = self.db.get('SELECT value_string FROM property WHERE property_definition_keyname = \'conf-datatype-name\' AND entity_id = %s;' % p_props['datatype'])['value_string']
+                p_props['datatype']     = self.db.get('SELECT value_string FROM property WHERE is_deleted = 0 AND property_definition_keyname = \'conf-datatype-name\' AND entity_id = %s;' % p_props['datatype'])['value_string']
                 if not p_props['formula']:
-                    p_props['formula']      = 0
+                    p_props['formula']            = 0
                 if not p_props['executable']:
-                    p_props['executable']      = 0
+                    p_props['executable']         = 0
                 if not p_props['multilingual']:
-                    p_props['multilingual']      = 0
+                    p_props['multilingual']       = 0
                 if not p_props['readonly']:
-                    p_props['readonly']      = 0
+                    p_props['readonly']           = 0
                 if not p_props['createonly']:
-                    p_props['createonly']      = 0
+                    p_props['createonly']         = 0
                 if not p_props['propagates']:
-                    p_props['propagates']      = 0
+                    p_props['propagates']         = 0
                 if not p_props['autocomplete']:
-                    p_props['autocomplete']      = 0
+                    p_props['autocomplete']       = 0
                 if not p_props['mandatory']:
-                    p_props['mandatory']      = 0
+                    p_props['mandatory']          = 0
+                if not p_props['search']:
+                    p_props['search']             = 0
+                if not p_props['public']:
+                    p_props['public']             = 0
 
                 p_props['keyname']   = '%s-%s' % (e_props['keyname'], p_props['dataproperty'])
                 p_props['old_id']    = 'try01-%s' % p_props['keyname']
 
-                logging.debug(p_props)
+                # logging.debug(p_props)
 
                 if p_props['classifier']:
                     p_props['classifier'] = self.get_entities(entity_id = p_props['classifier'], limit = 1)['displayname']
