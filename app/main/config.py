@@ -105,122 +105,123 @@ class SyncConfig(myRequestHandler, Entity):
             # conf-property
             #
 
+            childs = self.get_relatives(entity_id = conf_e['id'], relationship_definition_keyname = 'child', entity_definition_keyname = 'conf-property').values()
+            if childs:
+                for conf_p in childs[0]:
+                # for conf_p in self.get_childs(entity_id = conf_e['id'], entity_definition_keyname = 'conf-property'):
+                    # logging.debug(conf_p)
+                    p_props = {}
 
-            # for conf_p in self.get_entities(entity_definition_keyname = 'conf-property'):
-            for conf_p in self.get_childs(entity_id = conf_e['id'], entity_definition_keyname = 'conf-property'):
-                # logging.debug(conf_p)
-                p_props = {}
+                    p_props['autocomplete'] = conf_p.get('properties', {}).get('autocomplete' , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['classifier']   = conf_p.get('properties', {}).get('classifier'   , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['createonly']   = conf_p.get('properties', {}).get('createonly'   , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['dataproperty'] = conf_p.get('properties', {}).get('dataproperty' , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['datatype']     = conf_p.get('properties', {}).get('datatype'     , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['defaultvalue'] = conf_p.get('properties', {}).get('defaultvalue' , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['description']  = conf_p.get('properties', {}).get('description'  , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['executable']   = conf_p.get('properties', {}).get('executable'   , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['fieldset']     = conf_p.get('properties', {}).get('fieldset'     , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['formatstring'] = conf_p.get('properties', {}).get('formatstring' , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['formula']      = conf_p.get('properties', {}).get('formula'      , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['label']        = conf_p.get('properties', {}).get('label'        , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['label_plural'] = conf_p.get('properties', {}).get('label-plural' , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['mandatory']    = conf_p.get('properties', {}).get('mandatory'    , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['multilingual'] = conf_p.get('properties', {}).get('multilingual' , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['multiplicity'] = conf_p.get('properties', {}).get('multiplicity' , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['ordinal']      = conf_p.get('properties', {}).get('ordinal'      , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['propagates']   = conf_p.get('properties', {}).get('propagates'   , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['public']       = conf_p.get('properties', {}).get('public'       , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['readonly']     = conf_p.get('properties', {}).get('readonly'     , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['search']       = conf_p.get('properties', {}).get('search'       , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['visible']      = conf_p.get('properties', {}).get('visible'      , {}).get('values', [{}])[0].get('db_value', None)
 
-                p_props['autocomplete'] = conf_p.get('properties', {}).get('autocomplete' , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['classifier']   = conf_p.get('properties', {}).get('classifier'   , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['createonly']   = conf_p.get('properties', {}).get('createonly'   , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['dataproperty'] = conf_p.get('properties', {}).get('dataproperty' , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['datatype']     = conf_p.get('properties', {}).get('datatype'     , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['defaultvalue'] = conf_p.get('properties', {}).get('defaultvalue' , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['description']  = conf_p.get('properties', {}).get('description'  , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['executable']   = conf_p.get('properties', {}).get('executable'   , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['fieldset']     = conf_p.get('properties', {}).get('fieldset'     , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['formatstring'] = conf_p.get('properties', {}).get('formatstring' , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['formula']      = conf_p.get('properties', {}).get('formula'      , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['label']        = conf_p.get('properties', {}).get('label'        , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['label_plural'] = conf_p.get('properties', {}).get('label-plural' , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['mandatory']    = conf_p.get('properties', {}).get('mandatory'    , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['multilingual'] = conf_p.get('properties', {}).get('multilingual' , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['multiplicity'] = conf_p.get('properties', {}).get('multiplicity' , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['ordinal']      = conf_p.get('properties', {}).get('ordinal'      , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['propagates']   = conf_p.get('properties', {}).get('propagates'   , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['public']       = conf_p.get('properties', {}).get('public'       , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['readonly']     = conf_p.get('properties', {}).get('readonly'     , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['search']       = conf_p.get('properties', {}).get('search'       , {}).get('values', [{}])[0].get('db_value', None)
-                p_props['visible']      = conf_p.get('properties', {}).get('visible'      , {}).get('values', [{}])[0].get('db_value', None)
+                    p_props['datatype']     = self.db.get('SELECT value_string FROM property WHERE is_deleted = 0 AND property_definition_keyname = \'conf-datatype-name\' AND entity_id = %s;' % p_props['datatype'])['value_string']
+                    if not p_props['formula']:
+                        p_props['formula']            = 0
+                    if not p_props['executable']:
+                        p_props['executable']         = 0
+                    if not p_props['multilingual']:
+                        p_props['multilingual']       = 0
+                    if not p_props['readonly']:
+                        p_props['readonly']           = 0
+                    if not p_props['createonly']:
+                        p_props['createonly']         = 0
+                    if not p_props['propagates']:
+                        p_props['propagates']         = 0
+                    if not p_props['autocomplete']:
+                        p_props['autocomplete']       = 0
+                    if not p_props['mandatory']:
+                        p_props['mandatory']          = 0
+                    if not p_props['search']:
+                        p_props['search']             = 0
+                    if not p_props['public']:
+                        p_props['public']             = 0
 
-                p_props['datatype']     = self.db.get('SELECT value_string FROM property WHERE is_deleted = 0 AND property_definition_keyname = \'conf-datatype-name\' AND entity_id = %s;' % p_props['datatype'])['value_string']
-                if not p_props['formula']:
-                    p_props['formula']            = 0
-                if not p_props['executable']:
-                    p_props['executable']         = 0
-                if not p_props['multilingual']:
-                    p_props['multilingual']       = 0
-                if not p_props['readonly']:
-                    p_props['readonly']           = 0
-                if not p_props['createonly']:
-                    p_props['createonly']         = 0
-                if not p_props['propagates']:
-                    p_props['propagates']         = 0
-                if not p_props['autocomplete']:
-                    p_props['autocomplete']       = 0
-                if not p_props['mandatory']:
-                    p_props['mandatory']          = 0
-                if not p_props['search']:
-                    p_props['search']             = 0
-                if not p_props['public']:
-                    p_props['public']             = 0
+                    p_props['keyname']   = '%s-%s' % (e_props['keyname'], p_props['dataproperty'])
+                    p_props['old_id']    = 'try01-%s' % p_props['keyname']
 
-                p_props['keyname']   = '%s-%s' % (e_props['keyname'], p_props['dataproperty'])
-                p_props['old_id']    = 'try01-%s' % p_props['keyname']
+                    # logging.debug(p_props)
 
-                # logging.debug(p_props)
+                    if p_props['classifier']:
+                        p_props['classifier'] = self.get_entities(entity_id = p_props['classifier'], limit = 1)['displayname']
 
-                if p_props['classifier']:
-                    p_props['classifier'] = self.get_entities(entity_id = p_props['classifier'], limit = 1)['displayname']
+                    if p_props['keyname']:
+                        self.db.execute("""
+                            UPDATE `property_definition`
+                            SET `entity_definition_keyname`=%s,
+                                `dataproperty`=%s, `datatype`=%s, `defaultvalue`=%s,
+                                `estonian_fieldset`=%s, `estonian_label`=%s, `estonian_label_plural`=%s, `estonian_description`=%s, `estonian_formatstring`=%s,
+                                `english_fieldset`=%s, `english_label`=%s, `english_label_plural`=%s, `english_description`=%s, `english_formatstring`=%s,
+                                `formula`=%s, `executable`=%s, `visible`=%s, `ordinal`=%s,
+                                `multilingual`=%s, `multiplicity`=%s, `readonly`=%s, `createonly`=%s,
+                                `public`=%s, `mandatory`=%s, `search`=%s, `propagates`=%s, `autocomplete`=%s,
+                                `classifying_entity_definition_keyname`=%s, `is_deleted`=0,
+                                `old_id`=%s
+                            WHERE keyname = %s
+                            ;
+                            """
+                            , e_props['keyname']
+                            , p_props['dataproperty'], p_props['datatype'], p_props['defaultvalue']
+                            , p_props['fieldset'], p_props['label'], p_props['label_plural'], p_props['description'], p_props['formatstring']
+                            , p_props['fieldset'], p_props['label'], p_props['label_plural'], p_props['description'], p_props['formatstring']
+                            , p_props['formula'], p_props['executable'], p_props['visible'], p_props['ordinal']
+                            , p_props['multilingual'], p_props['multiplicity'], p_props['readonly'], p_props['createonly']
+                            , p_props['public'], p_props['mandatory'], p_props['search'], p_props['propagates'], p_props['autocomplete']
+                            , p_props['classifier']
+                            , p_props['old_id']
+                            , p_props['keyname']
+                            )
 
-                if p_props['keyname']:
-                    self.db.execute("""
-                        UPDATE `property_definition`
-                        SET `entity_definition_keyname`=%s,
-                            `dataproperty`=%s, `datatype`=%s, `defaultvalue`=%s,
-                            `estonian_fieldset`=%s, `estonian_label`=%s, `estonian_label_plural`=%s, `estonian_description`=%s, `estonian_formatstring`=%s,
-                            `english_fieldset`=%s, `english_label`=%s, `english_label_plural`=%s, `english_description`=%s, `english_formatstring`=%s,
-                            `formula`=%s, `executable`=%s, `visible`=%s, `ordinal`=%s,
-                            `multilingual`=%s, `multiplicity`=%s, `readonly`=%s, `createonly`=%s,
-                            `public`=%s, `mandatory`=%s, `search`=%s, `propagates`=%s, `autocomplete`=%s,
-                            `classifying_entity_definition_keyname`=%s, `is_deleted`=0,
-                            `old_id`=%s
-                        WHERE keyname = %s
-                        ;
-                        """
-                        , e_props['keyname']
-                        , p_props['dataproperty'], p_props['datatype'], p_props['defaultvalue']
-                        , p_props['fieldset'], p_props['label'], p_props['label_plural'], p_props['description'], p_props['formatstring']
-                        , p_props['fieldset'], p_props['label'], p_props['label_plural'], p_props['description'], p_props['formatstring']
-                        , p_props['formula'], p_props['executable'], p_props['visible'], p_props['ordinal']
-                        , p_props['multilingual'], p_props['multiplicity'], p_props['readonly'], p_props['createonly']
-                        , p_props['public'], p_props['mandatory'], p_props['search'], p_props['propagates'], p_props['autocomplete']
-                        , p_props['classifier']
-                        , p_props['old_id']
-                        , p_props['keyname']
-                        )
-
-                else:
-                    self.db.execute("""
-                        INSERT INTO `property_definition` (
-                            `keyname`, `entity_definition_keyname`,
-                            `dataproperty`, `datatype`, `defaultvalue`,
-                            `estonian_fieldset`, `estonian_label`, `estonian_label_plural`, `estonian_description`, `estonian_formatstring`,
-                            `english_fieldset`, `english_label`, `english_label_plural`, `english_description`, `english_formatstring`,
-                            `formula`, `executable`, `visible`, `ordinal`,
-                            `multilingual`, `multiplicity`, `readonly`, `createonly`,
-                            `public`, `mandatory`, `search`, `propagates`, `autocomplete`,
-                            `classifying_entity_definition_keyname`, `is_deleted`, `old_id`)
-                        VALUES (
-                            %s, %s,
-                            %s, %s, %s,
-                            %s, %s, %s, %s, %s,
-                            %s, %s, %s, %s, %s,
-                            %s, %s, %s, %s,
-                            %s, %s, %s, %s,
-                            %s, %s, %s, %s, %s,
-                            %s, 0, NULL);
-                        """
-                        , 'conf-property-%i-%i' % (parent['id'], conf_p['id']), p_props['ed_keyname']
-                        , p_props['dataproperty'], p_props['datatype'], p_props['defaultvalue']
-                        , p_props['fieldset'], p_props['label'], p_props['label_plural'], p_props['description'], p_props['formatstring']
-                        , p_props['fieldset'], p_props['label'], p_props['label_plural'], p_props['description'], p_props['formatstring']
-                        , p_props['formula'], p_props['executable'], p_props['visible'], p_props['ordinal']
-                        , p_props['multilingual'], p_props['multiplicity'], p_props['readonly'], p_props['createonly']
-                        , p_props['public'], p_props['mandatory'], p_props['search'], p_props['propagates'], p_props['autocomplete']
-                        , p_props['keyname']
-                        )
+                    else:
+                        self.db.execute("""
+                            INSERT INTO `property_definition` (
+                                `keyname`, `entity_definition_keyname`,
+                                `dataproperty`, `datatype`, `defaultvalue`,
+                                `estonian_fieldset`, `estonian_label`, `estonian_label_plural`, `estonian_description`, `estonian_formatstring`,
+                                `english_fieldset`, `english_label`, `english_label_plural`, `english_description`, `english_formatstring`,
+                                `formula`, `executable`, `visible`, `ordinal`,
+                                `multilingual`, `multiplicity`, `readonly`, `createonly`,
+                                `public`, `mandatory`, `search`, `propagates`, `autocomplete`,
+                                `classifying_entity_definition_keyname`, `is_deleted`, `old_id`)
+                            VALUES (
+                                %s, %s,
+                                %s, %s, %s,
+                                %s, %s, %s, %s, %s,
+                                %s, %s, %s, %s, %s,
+                                %s, %s, %s, %s,
+                                %s, %s, %s, %s,
+                                %s, %s, %s, %s, %s,
+                                %s, 0, NULL);
+                            """
+                            , 'conf-property-%i-%i' % (parent['id'], conf_p['id']), p_props['ed_keyname']
+                            , p_props['dataproperty'], p_props['datatype'], p_props['defaultvalue']
+                            , p_props['fieldset'], p_props['label'], p_props['label_plural'], p_props['description'], p_props['formatstring']
+                            , p_props['fieldset'], p_props['label'], p_props['label_plural'], p_props['description'], p_props['formatstring']
+                            , p_props['formula'], p_props['executable'], p_props['visible'], p_props['ordinal']
+                            , p_props['multilingual'], p_props['multiplicity'], p_props['readonly'], p_props['createonly']
+                            , p_props['public'], p_props['mandatory'], p_props['search'], p_props['propagates'], p_props['autocomplete']
+                            , p_props['keyname']
+                            )
 
 
 handlers = [
