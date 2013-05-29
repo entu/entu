@@ -30,7 +30,7 @@ class Entity():
             return None
         return self.current_user.id
 
-    def create(self, entity_definition_keyname, parent_entity_id=None):
+    def create_entity(self, entity_definition_keyname, parent_entity_id=None):
         """
         Creates new Entity and returns its ID.
 
@@ -171,6 +171,15 @@ class Entity():
 
         return entity_id
 
+    def delete_entity(self, entity_id):
+        for child_id in self.get_relatives(ids_only=True, entity_id=entity_id, relationship_definition_keyname='child'):
+            self.delete_entity(child_id)
+
+        self.db.execute('UPDATE entity SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', self.__user_id, entity_id)
+
+        # remove "contains" information
+        self.db.execute('DELETE FROM dag_entity WHERE entity_id = %s OR related_entity_id = %s;', entity_id, entity_id)
+
     def set_property(self, entity_id=None, relationship_id=None, property_definition_keyname=None, value=None, old_property_id=None, uploaded_file=None):
         """
         Saves property value. Creates new one if old_property_id = None. Returns new_property_id.
@@ -261,17 +270,6 @@ class Entity():
         )
 
         return new_property_id
-
-    def set_public(self, entity_id, is_public=False):
-        """
-        """
-        if not entity_id:
-            return
-
-        if is_public==True:
-            self.db.execute('UPDATE entity SET public = 1 WHERE id = %s', entity_id)
-        else:
-            self.db.execute('UPDATE entity SET public = 0 WHERE id = %s', entity_id)
 
     def set_counter(self, entity_id):
         """
@@ -564,6 +562,8 @@ class Entity():
         if search != None:
             i = 0
             for s in search.split(' '):
+                if not s:
+                    continue
                 i += 1
                 join_parts.append('RIGHT JOIN property AS p%i ON p%i.entity_id = e.id' % (i, i))
                 if not self.__user_id or only_public == True:
@@ -982,7 +982,7 @@ class Entity():
 
     def get_definition(self, entity_definition_keyname):
         """
-        Returns Entity definition.
+        Returns Entity definition (with property definitions).
 
         """
         if not entity_definition_keyname:
@@ -1019,6 +1019,33 @@ class Entity():
             WHERE entity_definition.keyname = property_definition.entity_definition_keyname
             AND entity_definition.keyname IN (%(keyname)s)
         """ % {'language': self.get_user_locale().code, 'keyname': ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])}
+        # logging.debug(sql)
+
+        return self.db.query(sql)
+
+    def get_entity_definition(self, entity_definition_keyname):
+        """
+        Returns entity_definition.
+
+        """
+        if entity_definition_keyname:
+            if type(entity_definition_keyname) is not list:
+                entity_definition_keyname = [entity_definition_keyname]
+
+        sql = """
+            SELECT
+                keyname,
+                %(language)s_label AS label,
+                %(language)s_label_plural AS label_plural,
+                %(language)s_description AS description,
+                %(language)s_menu AS menugroup,
+                entity_definition.open_after_add,
+                ordinal,
+                actions_add
+            FROM
+                entity_definition
+            WHERE keyname IN (%(ids)s);
+        """  % {'language': self.get_user_locale().code, 'ids': ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])}
         # logging.debug(sql)
 
         return self.db.query(sql)
@@ -1198,33 +1225,6 @@ class Entity():
 
         return self.db.query(sql)
 
-    def get_entity_definition(self, entity_definition_keyname):
-        """
-        Returns entity_definition.
-
-        """
-        if entity_definition_keyname:
-            if type(entity_definition_keyname) is not list:
-                entity_definition_keyname = [entity_definition_keyname]
-
-        sql = """
-            SELECT
-                keyname,
-                %(language)s_label AS label,
-                %(language)s_label_plural AS label_plural,
-                %(language)s_description AS description,
-                %(language)s_menu AS menugroup,
-                entity_definition.open_after_add,
-                ordinal,
-                actions_add
-            FROM
-                entity_definition
-            WHERE keyname IN (%(ids)s);
-        """  % {'language': self.get_user_locale().code, 'ids': ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])}
-        # logging.debug(sql)
-
-        return self.db.query(sql)
-
     def get_allowed_childs(self, entity_id):
         """
         Returns allowed child definitions.
@@ -1340,15 +1340,6 @@ class Entity():
             menu.setdefault(m.menugroup, {}).setdefault('items', []).append({'keyname': m.keyname, 'title': m.item})
 
         return sorted(menu.values(), key=itemgetter('label'))
-
-    def delete_entity(self, entity_id):
-        for child_id in self.get_relatives(ids_only=True, entity_id=entity_id, relationship_definition_keyname='child'):
-            self.delete_entity(child_id)
-
-        self.db.execute('UPDATE entity SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', self.__user_id, entity_id)
-
-        # remove "contains" information
-        self.db.execute('DELETE FROM dag_entity WHERE entity_id = %s OR related_entity_id = %s;', entity_id, entity_id)
 
 
 class Formula():

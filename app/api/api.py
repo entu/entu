@@ -422,7 +422,7 @@ class SaveEntity(myRequestHandler):
             raise web.HTTPError(401, "Unauthorized")
 
         if entity_definition_keyname != None:
-            entity_id = entity.create(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
+            entity_id = entity.create_entity(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
             if public:
                 entity.set_public(entity_id,is_public=public)
             self.write({

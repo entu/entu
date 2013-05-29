@@ -98,7 +98,7 @@ class ImportFile(myRequestHandler):
             row_num += 1
             if row_num < first_row:
                 continue
-            entity_id = self.create(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
+            entity_id = self.create_entity(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
             for p in properties:
                 field = self.get_argument('field_%s' % p.get('dataproperty'), None)
                 if not field:

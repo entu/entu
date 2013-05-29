@@ -105,8 +105,9 @@ class GetEntities(myRequestHandler, Entity):
 
         result = []
         for e in self.get_entities(search=search, entity_definition_keyname=entity_definition_keyname, limit=303):
-            if e['id'] in [int(x) for x in exclude_entity_id.split(',')]:
-                continue
+            if exclude_entity_id:
+                if e['id'] in [int(x) for x in exclude_entity_id.split(',')]:
+                    continue
             result.append({
                 'id':    e['id'],
                 'title': e['displayname'],
@@ -281,7 +282,7 @@ class SaveEntity(myRequestHandler, Entity):
         dropbox_name                        = self.get_argument('dropbox_name', default=None, strip=True)
 
         if not self.entity_id and parent_entity_id and entity_definition_keyname:
-            self.entity_id = self.create(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
+            self.entity_id = self.create_entity(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
 
         if is_counter.lower() == 'true':
             self.value = self.set_counter(entity_id=self.entity_id)

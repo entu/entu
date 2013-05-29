@@ -169,7 +169,7 @@ class EsterImport(myRequestHandler, Entity):
 
         # logging.debug(str(item))
 
-        entity_id = self.create(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
+        entity_id = self.create_entity(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
 
         for field, values in item.iteritems():
             sql = 'SELECT keyname FROM property_definition WHERE dataproperty = \'%s\' AND entity_definition_keyname = \'%s\' LIMIT 1;' % (field, entity_definition_keyname)
