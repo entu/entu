@@ -63,13 +63,13 @@
             <a href="#" class="dropdown-toggle header-menu-item toolbar-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="icon-plus"></i></a>
             <ul class="dropdown-menu">
                 {% for c in add_definitions %}
-                    <li><a href="javascript:void(0);" class="open-modal-box" data-url="/entity-{{ c.related_entity_id }}/add/{{ c.keyname }}">{{ c.label }}</a></li>
+                    <li><a href="javascript:void(0);" class="open-modal-box" data-url="/entity-{{ c.related_entity_id }}/add/{{ c['keyname'] }}">{{ c['label'] }}</a></li>
                 {% end %}
                 {% if allowed_childs and add_definitions %}
                     <li class="divider"></li>
                 {% end %}
                 {% for c in allowed_childs %}
-                    <li><a href="javascript:void(0);" class="open-modal-box" data-url="/entity-{{ entity['id'] }}/add/{{ c.keyname }}">{{ c.label }}</a></li>
+                    <li><a href="javascript:void(0);" class="open-modal-box" data-url="/entity-{{ entity['id'] }}/add/{{ c['keyname'] }}">{{ c['label'] }}</a></li>
                 {% end %}
             </ul>
         </li>

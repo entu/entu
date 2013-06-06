@@ -21,6 +21,7 @@ class Entity():
     Entity class.
 
     """
+    __translation = None
 
     @property
     def __user_id(self):
@@ -29,6 +30,13 @@ class Entity():
         if not self.current_user.id:
             return None
         return self.current_user.id
+
+    def __get_system_translation(self, field, entity_definition_keyname='', property_definition_keyname=''):
+        if not self.__translation:
+            self.__translation = {}
+            for t in self.db.query('SELECT field, value, IFNULL(entity_definition_keyname, \'\') AS entity_definition_keyname, IFNULL(property_definition_keyname, \'\') AS property_definition_keyname FROM translation WHERE language = %s OR language IS NULL ORDER BY language;', self.get_user_locale().code):
+                self.__translation['%s|%s|%s' % (t.entity_definition_keyname, t.property_definition_keyname, t.field)] = t.value
+        return self.__translation.get('%s|%s|%s' % (entity_definition_keyname, property_definition_keyname, field), None)
 
     def create_entity(self, entity_definition_keyname, parent_entity_id=None):
         """
@@ -543,7 +551,7 @@ class Entity():
         if not entities and full_definition == False and entity_definition_keyname == None:
             return
 
-        if limit == 1:
+        if limit == 1 and len(entities) > 0:
             return entities[0]
 
         return entities
@@ -661,26 +669,15 @@ class Entity():
                 SELECT
                     entity_definition.keyname                       AS entity_definition_keyname,
                     entity.id                                       AS entity_id,
-                    entity_definition.%(language)s_label            AS entity_label,
-                    entity_definition.%(language)s_label_plural     AS entity_label_plural,
-                    entity_definition.%(language)s_description      AS entity_description,
                     entity.created                                  AS entity_created,
                     entity.changed                                  AS entity_changed,
                     entity.sharing                                  AS entity_sharing,
                     %(rights_select)s                               AS entity_right,
-                    entity_definition.%(language)s_displayname      AS entity_displayname,
-                    entity_definition.%(language)s_displayinfo      AS entity_displayinfo,
-                    entity_definition.%(language)s_displaytable     AS entity_displaytable,
-                    entity_definition.%(language)s_sort             AS entity_sort,
                     entity.sort                                     AS entity_sort_value,
                     property_definition.keyname                     AS property_keyname,
                     property_definition.ordinal                     AS property_ordinal,
                     property_definition.formula                     AS property_formula,
                     property_definition.executable                  AS property_executable,
-                    property_definition.%(language)s_fieldset       AS property_fieldset,
-                    property_definition.%(language)s_label          AS property_label,
-                    property_definition.%(language)s_label_plural   AS property_label_plural,
-                    property_definition.%(language)s_description    AS property_description,
                     property_definition.datatype                    AS property_datatype,
                     property_definition.dataproperty                AS property_dataproperty,
                     property_definition.multilingual                AS property_multilingual,
@@ -731,16 +728,16 @@ class Entity():
                 #Entity
                 items.setdefault('item_%s' % row.entity_id, {})['definition_keyname'] = row.entity_definition_keyname
                 items.setdefault('item_%s' % row.entity_id, {})['id'] = row.entity_id
-                items.setdefault('item_%s' % row.entity_id, {})['label'] = row.entity_label
-                items.setdefault('item_%s' % row.entity_id, {})['label_plural'] = row.entity_label_plural
-                items.setdefault('item_%s' % row.entity_id, {})['description'] = row.entity_description
-                items.setdefault('item_%s' % row.entity_id, {})['sort'] = row.entity_sort
+                items.setdefault('item_%s' % row.entity_id, {})['label'] = self.__get_system_translation(field='label', entity_definition_keyname=row.entity_definition_keyname)
+                items.setdefault('item_%s' % row.entity_id, {})['label_plural'] = self.__get_system_translation(field='label_plural', entity_definition_keyname=row.entity_definition_keyname)
+                items.setdefault('item_%s' % row.entity_id, {})['description'] = self.__get_system_translation(field='description', entity_definition_keyname=row.entity_definition_keyname)
+                items.setdefault('item_%s' % row.entity_id, {})['sort'] = self.__get_system_translation(field='sort', entity_definition_keyname=row.entity_definition_keyname)
                 items.setdefault('item_%s' % row.entity_id, {})['sort_value'] = row.entity_sort_value
                 items.setdefault('item_%s' % row.entity_id, {})['created'] = row.entity_created
                 items.setdefault('item_%s' % row.entity_id, {})['changed'] = row.entity_changed
-                items.setdefault('item_%s' % row.entity_id, {})['displayname'] = row.entity_displayname
-                items.setdefault('item_%s' % row.entity_id, {})['displayinfo'] = row.entity_displayinfo
-                items.setdefault('item_%s' % row.entity_id, {})['displaytable'] = row.entity_displaytable
+                items.setdefault('item_%s' % row.entity_id, {})['displayname'] = self.__get_system_translation(field='displayname', entity_definition_keyname=row.entity_definition_keyname)
+                items.setdefault('item_%s' % row.entity_id, {})['displayinfo'] = self.__get_system_translation(field='displayinfo', entity_definition_keyname=row.entity_definition_keyname)
+                items.setdefault('item_%s' % row.entity_id, {})['displaytable'] = self.__get_system_translation(field='displaytable', entity_definition_keyname=row.entity_definition_keyname)
                 items.setdefault('item_%s' % row.entity_id, {})['file_count'] = 0
                 items.setdefault('item_%s' % row.entity_id, {})['sharing'] = row.entity_sharing
                 items.setdefault('item_%s' % row.entity_id, {})['right'] = row.entity_right
@@ -748,10 +745,10 @@ class Entity():
 
                 #Property
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['keyname'] = row.property_keyname
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['fieldset'] = row.property_fieldset
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['label'] = row.property_label
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['label_plural'] = row.property_label_plural
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['description'] = row.property_description
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['fieldset'] = self.__get_system_translation(field='fieldset', property_definition_keyname=row.property_keyname)
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['label'] = self.__get_system_translation(field='label', property_definition_keyname=row.property_keyname)
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['label_plural'] = self.__get_system_translation(field='label_plural', property_definition_keyname=row.property_keyname)
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['description'] = self.__get_system_translation(field='description', property_definition_keyname=row.property_keyname)
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['datatype'] = row.property_datatype
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['dataproperty'] = row.property_dataproperty
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multilingual'] = row.property_multilingual
@@ -887,30 +884,30 @@ class Entity():
             if full_definition:
                 for d in self.get_definition(entity_definition_keyname=value['definition_keyname']):
                     if not value.get('id', None):
-                        items[key]['displayname'] = d.entity_label
-                    items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['keyname'] = d.property_keyname
-                    items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['fieldset'] = d.property_fieldset
-                    items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['label'] = d.property_label
-                    items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['label_plural'] = d.property_label_plural
-                    items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['description'] = d.property_description
-                    items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['datatype'] = d.property_datatype
-                    items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['dataproperty'] = d.property_dataproperty
-                    items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['multilingual'] = d.property_multilingual
-                    items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['multiplicity'] = d.property_multiplicity
-                    items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['ordinal'] = d.property_ordinal
-                    items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['public'] = d.property_public
-                    items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['readonly'] = d.property_readonly
-                    if not d.property_multiplicity or d.property_multiplicity > len(value.get('properties', {}).get('%s' % d.property_dataproperty, {}).get('values', {}).values()):
-                        items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {}).setdefault('values', {})['value_new'] = {'id': '', 'ordinal': 'X', 'value': '', 'db_value': ''}
-                    if not d.property_multiplicity or d.property_multiplicity > len(value.get('properties', {}).get('%s' % d.property_dataproperty, {}).get('values', {}).values()):
-                        items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['can_add_new'] = True
+                        items[key]['displayname'] = d['entity_label']
+                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['keyname'] = d['property_keyname']
+                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['fieldset'] = d['property_fieldset']
+                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['label'] = d['property_label']
+                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['label_plural'] = d['property_label_plural']
+                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['description'] = d['property_description']
+                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['datatype'] = d['property_datatype']
+                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['dataproperty'] = d['property_dataproperty']
+                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['multilingual'] = d['property_multilingual']
+                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['multiplicity'] = d['property_multiplicity']
+                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['ordinal'] = d['property_ordinal']
+                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['public'] = d['property_public']
+                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['readonly'] = d['property_readonly']
+                    if not d['property_multiplicity'] or d['property_multiplicity'] > len(value.get('properties', {}).get('%s' % d['property_dataproperty'], {}).get('values', {}).values()):
+                        items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {}).setdefault('values', {})['value_new'] = {'id': '', 'ordinal': 'X', 'value': '', 'db_value': ''}
+                    if not d['property_multiplicity'] or d['property_multiplicity'] > len(value.get('properties', {}).get('%s' % d['property_dataproperty'], {}).get('values', {}).values()):
+                        items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['can_add_new'] = True
                     else:
-                        items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {})['can_add_new'] = False
+                        items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['can_add_new'] = False
 
-                    if d.property_classifier_id and d.property_datatype != 'reference':
-                        for c in self.get_entities(entity_definition_keyname=d.property_classifier_id, only_public=True):
+                    if d['property_classifier_id'] and d['property_datatype'] != 'reference':
+                        for c in self.get_entities(entity_definition_keyname=d['property_classifier_id'], only_public=True):
                             if c.get('id', None):
-                                items[key].setdefault('properties', {}).setdefault('%s' % d.property_dataproperty, {}).setdefault('select', []).append({'id': c.get('id', ''), 'label': c.get('displayname', '')})
+                                items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {}).setdefault('select', []).append({'id': c.get('id', ''), 'label': c.get('displayname', '')})
 
             for p_key, p_value in value.get('properties', {}).iteritems():
                 items[key]['properties'][p_key]['values'] = sorted(p_value.get('values', {}).values(), key=itemgetter('ordinal'))
@@ -994,17 +991,7 @@ class Entity():
         sql = """
             SELECT
                 entity_definition.keyname AS entity_definition_keyname,
-                entity_definition.%(language)s_label AS entity_label,
-                entity_definition.%(language)s_label_plural AS entity_label_plural,
-                entity_definition.%(language)s_description AS entity_description,
-                entity_definition.%(language)s_displayname AS entity_displayname,
-                entity_definition.%(language)s_displayinfo AS entity_displayinfo,
-                entity_definition.%(language)s_displaytable AS entity_displaytable,
                 property_definition.keyname AS property_keyname,
-                property_definition.%(language)s_fieldset AS property_fieldset,
-                property_definition.%(language)s_label AS property_label,
-                property_definition.%(language)s_label_plural AS property_label_plural,
-                property_definition.%(language)s_description AS property_description,
                 property_definition.datatype AS property_datatype,
                 property_definition.dataproperty AS property_dataproperty,
                 property_definition.multilingual AS property_multilingual,
@@ -1017,11 +1004,36 @@ class Entity():
                 entity_definition,
                 property_definition
             WHERE entity_definition.keyname = property_definition.entity_definition_keyname
-            AND entity_definition.keyname IN (%(keyname)s)
-        """ % {'language': self.get_user_locale().code, 'keyname': ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])}
+            AND entity_definition.keyname IN (%s)
+        """ % ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])
         # logging.debug(sql)
 
-        return self.db.query(sql)
+        defs = []
+        for r in self.db.query(sql):
+            defs.append({
+                'entity_definition_keyname': r.entity_definition_keyname,
+                'entity_label': self.__get_system_translation(field='label', entity_definition_keyname=r.entity_definition_keyname),
+                'entity_label_plural': self.__get_system_translation(field='label_plural', entity_definition_keyname=r.entity_definition_keyname),
+                'entity_description': self.__get_system_translation(field='description', entity_definition_keyname=r.entity_definition_keyname),
+                'entity_displayname': self.__get_system_translation(field='displayname', entity_definition_keyname=r.entity_definition_keyname),
+                'entity_displayinfo': self.__get_system_translation(field='displayinfo', entity_definition_keyname=r.entity_definition_keyname),
+                'entity_displaytable': self.__get_system_translation(field='displaytable', entity_definition_keyname=r.entity_definition_keyname),
+                'property_keyname': r.property_keyname,
+                'property_fieldset': self.__get_system_translation(field='fieldset', property_definition_keyname=r.property_keyname),
+                'property_label': self.__get_system_translation(field='label', property_definition_keyname=r.property_keyname),
+                'property_label_plural': self.__get_system_translation(field='label_plural', property_definition_keyname=r.property_keyname),
+                'property_description': self.__get_system_translation(field='description', property_definition_keyname=r.property_keyname),
+                'property_datatype': r.property_datatype,
+                'property_dataproperty': r.property_dataproperty,
+                'property_multilingual': r.property_multilingual,
+                'property_multiplicity': r.property_multiplicity,
+                'property_ordinal': r.property_ordinal,
+                'property_public': r.property_public,
+                'property_readonly': r.property_readonly,
+                'property_classifier_id': r.property_classifier_id,
+            })
+
+        return defs
 
     def get_entity_definition(self, entity_definition_keyname):
         """
@@ -1035,20 +1047,30 @@ class Entity():
         sql = """
             SELECT
                 keyname,
-                %(language)s_label AS label,
-                %(language)s_label_plural AS label_plural,
-                %(language)s_description AS description,
-                %(language)s_menu AS menugroup,
-                entity_definition.open_after_add,
+                open_after_add,
                 ordinal,
                 actions_add
             FROM
                 entity_definition
-            WHERE keyname IN (%(ids)s);
-        """  % {'language': self.get_user_locale().code, 'ids': ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])}
+            WHERE keyname IN (%s);
+        """  % ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])
         # logging.debug(sql)
 
-        return self.db.query(sql)
+        defs = []
+        for d in self.db.query(sql):
+            defs.append({
+                'keyname': d.keyname,
+                'label': self.__get_system_translation(field='label', entity_definition_keyname=d.keyname),
+                'label_plural': self.__get_system_translation(field='label_plural', entity_definition_keyname=d.keyname),
+                'description': self.__get_system_translation(field='description', entity_definition_keyname=d.keyname),
+                'menugroup': self.__get_system_translation(field='menu', entity_definition_keyname=d.keyname),
+                'open_after_add': d.open_after_add,
+                'ordinal': d.ordinal,
+                'actions_add': d.actions_add
+            })
+
+        return defs
+
 
     def get_relatives(self, ids_only=False, relationship_ids_only=False, entity_id=None, related_entity_id=None, relationship_definition_keyname=None, reverse_relation=False, entity_definition_keyname=None, full_definition=False, limit=None, only_public=False):
         """
@@ -1160,7 +1182,7 @@ class Entity():
             if self.__user_id and only_public == False:
                 sql += ' AND (urights.related_entity_id = %s AND urights.relationship_definition_keyname IN (\'viewer\', \'expander\', \'editor\', \'owner\') OR ue.sharing = \'domain\')' % self.__user_id
             else:
-                sql += ' AND ue.public = 1'
+                sql += ' AND ue.sharing = \'public\''
 
             if entity_definition_keyname:
                 sql += ' AND ue.entity_definition_keyname IN (%s)' % ','.join(['\'%s\'' % x for x in entity_definition_keyname])
@@ -1236,45 +1258,44 @@ class Entity():
 
         sql = """
             SELECT DISTINCT
-                ed.keyname,
-                ed.%(language)s_label AS label,
-                ed.%(language)s_label_plural AS label_plural,
-                ed.%(language)s_description AS description,
-                ed.%(language)s_menu AS menugroup
+                entity_definition.keyname
             FROM
-                relationship r
-                LEFT JOIN entity_definition ed ON r.related_entity_definition_keyname = ed.keyname
-            WHERE r.relationship_definition_keyname = 'allowed-child'
-            AND r.entity_id = %(id)s
-            AND r.is_deleted = 0
-            ORDER BY ed.keyname
-        """  % {'language': self.get_user_locale().code, 'id': entity_id}
-        # logging.debug(sql)
-
-        result = self.db.query(sql)
-        if result:
-            if not result[0].keyname:
-                return []
-            return result
-
-        sql = """
-            SELECT DISTINCT
-                entity_definition.keyname,
-                entity_definition.%(language)s_label AS label,
-                entity_definition.%(language)s_label_plural AS label_plural,
-                entity_definition.%(language)s_description AS description,
-                entity_definition.%(language)s_menu AS menugroup
-            FROM
-                entity_definition,
                 relationship
-            WHERE relationship.related_entity_definition_keyname = entity_definition.keyname
-            AND relationship.relationship_definition_keyname = 'allowed-child'
-            AND relationship.entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %(id)s)
+                LEFT JOIN entity_definition ON relationship.related_entity_definition_keyname = entity_definition.keyname
+            WHERE relationship.relationship_definition_keyname = 'allowed-child'
+            AND relationship.entity_id = %s
             AND relationship.is_deleted = 0
-        """  % {'language': self.get_user_locale().code, 'id': entity_id}
+            ORDER BY entity_definition.keyname
+        """  % entity_id
         # logging.debug(sql)
+        result = self.db.query(sql)
 
-        return self.db.query(sql)
+        if not result:
+            sql = """
+                SELECT DISTINCT
+                    entity_definition.keyname
+                FROM
+                    entity_definition,
+                    relationship
+                WHERE relationship.related_entity_definition_keyname = entity_definition.keyname
+                AND relationship.relationship_definition_keyname = 'allowed-child'
+                AND relationship.entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s)
+                AND relationship.is_deleted = 0
+            """  % entity_id
+            # logging.debug(sql)
+            result = self.db.query(sql)
+
+        defs = []
+        for d in self.db.query(sql):
+            defs.append({
+                'keyname': d.keyname,
+                'label': self.__get_system_translation(field='label', entity_definition_keyname=d.keyname),
+                'label_plural': self.__get_system_translation(field='label_plural', entity_definition_keyname=d.keyname),
+                'description': self.__get_system_translation(field='description', entity_definition_keyname=d.keyname),
+                'menugroup': self.__get_system_translation(field='menu', entity_definition_keyname=d.keyname),
+            })
+
+        return defs
 
     def get_definitions_with_default_parent(self, entity_definition_keyname):
         """
@@ -1289,22 +1310,29 @@ class Entity():
         sql = """
             SELECT DISTINCT
                 entity_definition.keyname,
-                entity_definition.%(language)s_label AS label,
-                entity_definition.%(language)s_label_plural AS label_plural,
-                entity_definition.%(language)s_description AS description,
-                entity_definition.%(language)s_menu AS menugroup,
                 relationship.related_entity_id
             FROM
                 entity_definition,
                 relationship
             WHERE relationship.entity_definition_keyname = entity_definition.keyname
             AND relationship.relationship_definition_keyname = 'default-parent'
-            AND entity_definition.keyname IN (%(ids)s)
+            AND entity_definition.keyname IN (%s)
             AND relationship.is_deleted = 0
-        """  % {'language': self.get_user_locale().code, 'ids': ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])}
+        """  % ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])
         # logging.debug(sql)
 
-        return self.db.query(sql)
+        defs = []
+        for d in self.db.query(sql):
+            defs.append({
+                'keyname': d.keyname,
+                'label': self.__get_system_translation(field='label', entity_definition_keyname=d.keyname),
+                'label_plural': self.__get_system_translation(field='label_plural', entity_definition_keyname=d.keyname),
+                'description': self.__get_system_translation(field='description', entity_definition_keyname=d.keyname),
+                'menugroup': self.__get_system_translation(field='menu', entity_definition_keyname=d.keyname),
+                'related_entity_id': d.related_entity_id
+            })
+
+        return defs
 
     def get_menu(self):
         """
@@ -1314,9 +1342,7 @@ class Entity():
 
         sql = """
             SELECT DISTINCT
-                entity_definition.keyname,
-                entity_definition.%(language)s_menu AS menugroup,
-                entity_definition.%(language)s_label AS item
+                entity_definition.keyname
             FROM
                 entity_definition,
                 entity,
@@ -1324,20 +1350,17 @@ class Entity():
             WHERE entity.entity_definition_keyname = entity_definition.keyname
             AND relationship.entity_id = entity.id
             AND relationship.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
-            AND entity_definition.estonian_menu IS NOT NULL
-            AND relationship.related_entity_id = %(user_id)s
+            AND relationship.related_entity_id = %s
             AND entity.is_deleted = 0
             AND relationship.is_deleted = 0
-            ORDER BY
-                entity_definition.estonian_menu,
-                entity_definition.estonian_label;
-        """ % {'language': self.get_user_locale().code, 'user_id': self.__user_id}
+        """ % self.__user_id
         # logging.debug(sql)
 
         menu = {}
         for m in self.db.query(sql):
-            menu.setdefault(m.menugroup, {})['label'] = m.menugroup
-            menu.setdefault(m.menugroup, {}).setdefault('items', []).append({'keyname': m.keyname, 'title': m.item})
+            group = self.__get_system_translation(field='menu', entity_definition_keyname=m.keyname)
+            menu.setdefault(group, {})['label'] = group
+            menu.setdefault(group, {}).setdefault('items', []).append({'keyname': m.keyname, 'title': self.__get_system_translation(field='label_plural', entity_definition_keyname=m.keyname)})
 
         return sorted(menu.values(), key=itemgetter('label'))
 

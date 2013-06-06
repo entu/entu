@@ -38,10 +38,10 @@ class ShowGroup(myRequestHandler, Entity):
             history = ''
 
         self.render('entity/template/start.html',
-            page_title = entity_definition[0].label_plural if entity_definition else '',
+            page_title = entity_definition[0]['label_plural'] if entity_definition else '',
             menu = self.get_menu(),
             show_list = True if entity_definition_keyname else False,
-            entity_definition_label = entity_definition[0].label_plural if entity_definition else '',
+            entity_definition_label = entity_definition[0]['label_plural'] if entity_definition else '',
             entity_definition_keyname = entity_definition_keyname,
             add_definitions = self.get_definitions_with_default_parent(entity_definition_keyname) if entity_definition_keyname else None,
             history = history,

@@ -27,6 +27,7 @@
 {% end %}
 
 {% block content %}
+{% from operator import itemgetter %}
     <div class="container-fluid">
         <div id="menu_hidden">
             <div class="rotate">{{ entity_definition_label }}</div>
@@ -36,7 +37,7 @@
                 {% for m in menu %}
                     <h3><a href="#">{{ m['label'] }}</a></h3>
                     <div>
-                        {% for i in m['items'] %}
+                        {% for i in sorted(m['items'], key=itemgetter('title')) %}
                             <a href="/entity/{{ i['keyname'] }}">{{ i['title'] }}</a>
                         {% end %}
                     </div>
