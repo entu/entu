@@ -1359,6 +1359,8 @@ class Entity():
         menu = {}
         for m in self.db.query(sql):
             group = self.__get_system_translation(field='menu', entity_definition_keyname=m.keyname)
+            if not group:
+                continue
             menu.setdefault(group, {})['label'] = group
             menu.setdefault(group, {}).setdefault('items', []).append({'keyname': m.keyname, 'title': self.__get_system_translation(field='label_plural', entity_definition_keyname=m.keyname)})
 
