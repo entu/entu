@@ -4,6 +4,7 @@ import magic
 from operator import itemgetter
 from datetime import datetime
 from croniter import croniter
+from email import utils
 
 from main.helper import *
 from main.db import *
@@ -221,9 +222,14 @@ class ShowPlayer(myRequestHandler, Entity, Schedule):
 class ShowCacheManifest(myRequestHandler, Entity, Schedule):
     def get(self, entity_id):
         schedule = self.get_schedule(entity_id=entity_id)
-        self.add_header('Content-Type', 'text/cache-manifest ')
+        expires = utils.formatdate((int(time.mktime(datetime.datetime.now().timetuple()) / 300) + 1) * 300)
+
+        self.add_header('Content-Type', 'text/cache-manifest')
+        self.add_header('Cache-Control', 'public,max-age=%d' % int(300))
+        self.add_header('Expires', expires)
         self.render('screenwerk/template/cache.manifest',
-            files = schedule.get('files', {})
+            files = schedule.get('files', {}),
+            expires = expires,
         )
 
 
