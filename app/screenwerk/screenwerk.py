@@ -185,6 +185,7 @@ class Schedule():
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {}).setdefault('media', {}).setdefault(pm.get('id'), {})['type'] = media_type
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {}).setdefault('media', {}).setdefault(pm.get('id'), {})['src'] = media_file
                         if media_type == 'video':
+                            schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {}).setdefault('media', {}).setdefault(pm.get('id'), {})['filename'] = media.get('properties', {}).get('file', {}).get('values', [{}])[0].get('value', 0)
                             schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {}).setdefault('media', {}).setdefault(pm.get('id'), {})['ratio'] = media_ratio
                             schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {}).setdefault('media', {}).setdefault(pm.get('id'), {})['mute'] = bool(pm.get('properties', {}).get('mute', {}).get('values', [{}])[0].get('db_value', 0))
 
@@ -197,6 +198,7 @@ class Schedule():
                         files_dict.setdefault(m.get('id'), {})['id'] = m.get('id')
                         files_dict.setdefault(m.get('id'), {})['type'] = m.get('type')
                         files_dict.setdefault(m.get('id'), {})['src'] = m.get('src')
+                        files_dict.setdefault(m.get('id'), {})['filename'] = m.get('filename')
                 schedule_dict.setdefault(s, {})['playlists'] = schedule_dict.get(s, {}).get('playlists', {}).values()
 
             return {
