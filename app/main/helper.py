@@ -35,6 +35,8 @@ class myDatabase():
         settings = {}
         for preference in self.db.query('SELECT keyname, value FROM app_settings;'):
             settings[preference.keyname] = preference.value
+
+        settings['database'] = self.settings['hosts'][self.request.host]['database']['database']
         self.__app_settings = settings
         logging.debug('Loaded app_settings for %s.' % self.request.host)
 

@@ -751,7 +751,7 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['description'] = self.__get_system_translation(field='description', property_definition_keyname=row.property_keyname)
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['datatype'] = row.property_datatype
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['dataproperty'] = row.property_dataproperty
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multilingual'] = row.property_multilingual
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multilingual'] = True if row.property_multilingual == 1 else False
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multiplicity'] = row.property_multiplicity
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['ordinal'] = row.property_ordinal
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['formula'] = True if row.property_formula == 1 else False
@@ -926,7 +926,7 @@ class Entity():
         """
         result = {}
         for displayfield in ['displayname', 'displayinfo', 'displaytable', 'sort']:
-            result[displayfield] = entity_dict.get(displayfield, '') if entity_dict.get(displayfield, '') else ''
+            result[displayfield] = entity_dict.get(displayfield, '') if entity_dict.get(displayfield, '') else None
             for data_property in findTags(entity_dict.get(displayfield, ''), '@', '@'):
                 dataproperty_dict = entity_dict.get('properties', {}).get(data_property, {})
                 # logging.debug(dataproperty_dict)
@@ -940,7 +940,7 @@ class Entity():
                     result[displayfield] = result[displayfield].replace('@%s@' % data_property, ', '.join(['%s' % x['value'] for x in dataproperty_dict.get('values', {}).values()]))
                 result[displayfield] = result[displayfield].replace('\n', ' ')
 
-        result['displaytable_labels'] = entity_dict.get('displaytable', '') if entity_dict.get('displaytable', '') else ''
+        result['displaytable_labels'] = entity_dict.get('displaytable', '') if entity_dict.get('displaytable', '') else None
         for data_property in findTags(entity_dict.get('displaytable', ''), '@', '@'):
             result['displaytable_labels'] = result['displaytable_labels'].replace('@%s@' % data_property, entity_dict.get('properties', {}).get(data_property, {}).get('label', ''))
 
