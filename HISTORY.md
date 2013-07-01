@@ -1,3 +1,10 @@
+## 2013-07-01
+* Digital signage (ScreenWerk) player
+* Configuration entities (prototype)
+* Moved entity and property definitions translation to separate table
+* All property types are now searchable
+* Bugfixes
+
 ## 2013-05-01
 * Show and allow edit Entities based on sharing and rights settings
 * Additional right (to viewer, editor, owner) is right to add child Entities
