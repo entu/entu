@@ -35,16 +35,16 @@
             <table class="table table-bordered table-condensed" style="width:100%; background-color:white; margin-top:20px;">
                 {% if mobileid %}
                     <tr class="mobileid">
-                        <td style="vertical-align:middle; width:80px;">
-                            <a class="no-underline" href="javascript:void(0);" style="display:block; text-align:right;"><i class="icon-mobile-phone" style="padding-top:5px; padding-right:5px; font-size:26px; line-height:20px; color:#F04822;"></i></a>
+                        <td style="vertical-align:middle;">
+                            <a class="no-underline" href="javascript:void(0);" style="display:block; text-align:right;"><i class="icon-mobile-phone" style="padding-right:5px; font-size:24px; line-height:24px; color:#F04822;"></i></a>
                         </td>
                         <td style="vertical-align:middle; border-left:none;">
                             <a class="no-underline" href="javascript:void(0);" style="display:block; color:black; font-weight:bold;">Mobiil-ID</a>
                         </td>
                     </tr>
                     <tr id="mobileid-input" style="display:none;">
-                        <td class="input-append" colspan="2" style="text-align:center; border-top:none; padding-bottom:10px; ">
-                            <form id="mobileid-form" style="margin:0px; padding:0px;">
+                        <td colspan="2" style="text-align:center; border-top:none; padding-bottom:10px;" >
+                            <form id="mobileid-form" class="input-append" style="margin:0px; padding:0px;">
                                 <input id="mobileid-phone" class="span2" type="text" placeholder="{{ _('log_in_mid_phone') }}" />
                                 <button id="mobileid-submit" class="btn" type="submit">{{ _('log_in_mid_go') }}</button>
                             </form>
@@ -54,7 +54,7 @@
                 {% if google %}
                     <tr>
                         <td style="vertical-align:middle; width:80px;">
-                            <a class="no-underline" href="/auth/google" style="display:block; text-align:right;"><i class="icon-google-sign" style="font-size:25px; line-height:20px; color:#DC2400;"></i></a>
+                            <a class="no-underline" href="/auth/google" style="display:block; text-align:right;"><i class="icon-google-plus-sign" style="font-size:24px; line-height:24px; color:#DC2400;"></i></a>
                         </td>
                         <td style="vertical-align:middle; border-left:none;">
                             <a class="no-underline" href="/auth/google" style="display:block; color:black; font-weight:bold;">Google</a>
@@ -64,7 +64,7 @@
                 {% if facebook %}
                     <tr>
                         <td style="vertical-align:middle; width:80px;">
-                            <a class="no-underline" href="/auth/facebook" style="display:block; text-align:right;"><i class="icon-facebook-sign" style="padding-top:5px; font-size:26px; line-height:20px; color:#39579A";></i></a>
+                            <a class="no-underline" href="/auth/facebook" style="display:block; text-align:right;"><i class="icon-facebook-sign" style="font-size:24px; line-height:24px; color:#39579A";></i></a>
                         </td>
                         <td style="vertical-align:middle; border-left:none;">
                             <a class="no-underline" href="/auth/facebook" style="display:block; color:black; font-weight:bold;">Facebook</a>
@@ -74,7 +74,7 @@
                 {% if twitter %}
                     <tr>
                         <td style="vertical-align:middle; width:80px;">
-                            <a class="no-underline" href="/auth/twitter" style="display:block; text-align:right;"><i class="icon-twitter-sign" style="padding-top:5px; font-size:26px; line-height:20px; color:#00A7E9;"></i></a>
+                            <a class="no-underline" href="/auth/twitter" style="display:block; text-align:right;"><i class="icon-twitter-sign" style="font-size:24px; line-height:24px; color:#00A7E9;"></i></a>
                         </td>
                         <td style="vertical-align:middle; border-left:none;">
                             <a class="no-underline" href="/auth/twitter" style="display:block; color:black; font-weight:bold;">Twitter</a>
@@ -84,7 +84,7 @@
                 {% if live %}
                     <tr>
                         <td style="vertical-align:middle; width:80px;">
-                            <a class="no-underline" href="/auth/live" style="display:block; text-align:right;"><i class="icon-windows8" style="padding-top:0px; font-size:21px; line-height:20px; color:#0070C9;"></i></a>
+                            <a class="no-underline" href="/auth/live" style="display:block; text-align:right;"><i class="icon-windows" style="font-size:21px; line-height:21px; color:#0070C9;"></i></a>
                         </td>
                         <td style="vertical-align:middle; border-left:none;">
                             <a class="no-underline" href="/auth/live" style="display:block; color:black; font-weight:bold;">Microsoft</a>
