@@ -17,5 +17,4 @@
 * Custom labels for displaytabletable
 * Descending sort
 * Unique fields
-* Manage rights (sharing view)
 * ...
