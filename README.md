@@ -29,7 +29,7 @@ _Futuristic Data Management System_
 
 ## Screenshot
 
-![Screenshot](https://raw.github.com/argoroots/Entu/master/static/images/screenshot.png "Screenshot")
+![Screenshot](https://raw.github.com/argoroots/Entu/2013-07-01/static/images/screenshot.png "Screenshot")
 
 
 ## Dependencies
