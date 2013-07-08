@@ -214,7 +214,13 @@
                 $('body').append($box);
 
                 // show box
-                if(m == 0) showBox($box);
+                if(m == 0) {
+                  if($box.data('delay')) {
+                    setTimeout(function() { showBox($box) }, $box.data('delay') * 1000);
+                  } else {
+                    showBox($box);
+                  }
+                }
               }
             }
           }
@@ -241,7 +247,11 @@
             if(box.data('next')) {
               // show next box in playlist (if set)
               var next = $('#' + box.data('next'));
-              showBox(next);
+              if(next.data('delay')) {
+                setTimeout(function() { showBox(next) }, next.data('delay') * 1000);
+              } else {
+                showBox(next);
+              }
             }
           }
 

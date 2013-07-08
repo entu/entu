@@ -135,8 +135,10 @@ class Schedule():
                     media_file = '%s://%s/screenwerk/file-%s' % (self.request.protocol, self.request.host, media.get('properties', {}).get('file', {}).get('values', [{}])[0].get('db_value')) if media.get('properties', {}).get('file', {}).get('values', [{}])[0].get('db_value', '') else media.get('properties', {}).get('url', {}).get('values', [{}])[0].get('value')
                     media_type = media.get('properties', {}).get('type', {}).get('values', [{}])[0].get('value', '').lower()
                     media_ratio = float(media.get('properties', {}).get('width', {}).get('values', [{}])[0].get('db_value', 1)) / float(media.get('properties', {}).get('height', {}).get('values', [{}])[0].get('db_value', 1))
-                    if media_type == 'video':
-                        pass
+
+                    media_delay = playlist.get('properties', {}).get('delay', {}).get('values', [{}])[0].get('value')
+                    if pm.get('properties', {}).get('delay', {}).get('values', [{}])[0].get('value'):
+                        media_delay = pm.get('properties', {}).get('delay', {}).get('values', [{}])[0].get('value')
 
                     if not media.get('properties', {}).get('url', {}).get('values', [{}])[0].get('value') and not media.get('properties', {}).get('file', {}).get('values', [{}])[0].get('db_value'):
                         continue
@@ -184,6 +186,7 @@ class Schedule():
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {}).setdefault('media', {}).setdefault(pm.get('id'), {})['ordinal'] = pm.get('properties', {}).get('ordinal', {}).get('values', [{}])[0].get('value')
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {}).setdefault('media', {}).setdefault(pm.get('id'), {})['type'] = media_type
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {}).setdefault('media', {}).setdefault(pm.get('id'), {})['src'] = media_file
+                        schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {}).setdefault('media', {}).setdefault(pm.get('id'), {})['delay'] = media_delay
                         if media_type == 'video':
                             schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {}).setdefault('media', {}).setdefault(pm.get('id'), {})['filename'] = media.get('properties', {}).get('file', {}).get('values', [{}])[0].get('value', 0)
                             schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {}).setdefault('media', {}).setdefault(pm.get('id'), {})['ratio'] = media_ratio
