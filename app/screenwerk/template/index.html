@@ -11,14 +11,17 @@
         padding: 0px;
         overflow: hidden;
       }
-      video, img, iframe {
+      div, video, iframe {
         position: absolute;
         display: none;
         border: none;
         overflow: hidden;
+        background-repeat: no-repeat;
+        background-position: center;
       }
       #cache-progress {
         position:absolute;
+        display: block;
         top:45%;
         left:0;
         width:100%;
@@ -86,7 +89,7 @@
 
           // GENERAL FUNCTIONS
           $(window).resize(function() {
-            $('img, iframe, video').each(function() {resizeBox($(this)); });
+            $('div, iframe, video').each(function() {resizeBox($(this)); });
           });
 
           function getTime() {
@@ -131,7 +134,7 @@
               for(l in layouts) {
                 var layout = layouts[l];
                 if(layout['cleanup'] == true) {
-                  $('img, audio, video, iframe').remove();
+                  $('div, audio, video, iframe').remove();
                 }
                 createScreen(layout['start'], layout['playlists']);
               }
@@ -166,7 +169,7 @@
 
                 // create media box
                 if(media['type'] == 'image') {
-                  var $box = $(document.createElement('img'));
+                  var $box = $(document.createElement('div'));
                 } else if(media['type'] == 'video') {
                   var $box = $(document.createElement('video'));
                   $box.bind('ended', function() {showNext($(this)); });
@@ -185,7 +188,11 @@
                 $box.addClass('playlist-' + id + '-' + playlist['id']);
 
                 // set source
-                $box.attr('src', media['src']);
+                if(media['type'] == 'image') {
+                  $box.css('background-image', 'url(\'' + media['src'] + '\')');
+                } else {
+                  $box.attr('src', media['src']);
+                }
 
                 // set box data
                 $box.data(media);
@@ -215,11 +222,12 @@
 
                 // show box
                 if(m == 0) {
-                  if($box.data('delay')) {
-                    setTimeout(function() { showBox($box) }, $box.data('delay') * 1000);
-                  } else {
-                    showBox($box);
-                  }
+                  showBox($box);
+                  // if(media['delay']) {
+                  //   setTimeout(function() { showBox($box) }, media['delay'] * 1000);
+                  // } else {
+                  //   showBox($box);
+                  // }
                 }
               }
             }
@@ -265,8 +273,14 @@
               'z-index':  box.data('zindex')
             });
 
+            if(box.data('type') == 'image' && box.data('stretch') == true) {
+              box.css('background-size', '100% 100%');
+            } else {
+              box.css('background-size', 'contain');
+            }
+
             //additional sizing parameters for video
-            if(box.data('type') == 'video' && box.data('strech') == true) {
+            if(box.data('type') == 'video' && box.data('stretch') == true) {
               var scale = box.data('ratio') / (getWidth(box.data('width')) / getHeight(box.data('height')));
               box.css({
                 'height':                   getHeight(box.data('height')) / scale + 'px',
