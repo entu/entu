@@ -266,7 +266,7 @@
             });
 
             //additional sizing parameters for video
-            if(box.data('type') == 'video') {
+            if(box.data('type') == 'video' && box.data('strech') == true) {
               var scale = box.data('ratio') / (getWidth(box.data('width')) / getHeight(box.data('height')));
               box.css({
                 'height':                   getHeight(box.data('height')) / scale + 'px',
