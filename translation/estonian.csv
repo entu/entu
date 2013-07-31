@@ -39,7 +39,8 @@ boolean_true,Jah
 boolean_false,Ei
 
 add_files_computer,Lisa arvutist
-add_files_dropbox,Lisa Dropboxist
+add_files_dropbox,"Lisa Dropbox'ist"
+add_files_google,"Viita Google Drive'i"
 
 entity_delete,Kustuta
 confirm_entity_delete,'%s' ja kõik selle alamosad kustutatakse.

@@ -37,7 +37,7 @@
                 </th>
                 <td style="width:100%;{%if not p['public'] %} color:gray;{% end %}">
                     {% if p['datatype'] == 'file' %}
-                        {{ '<br />'.join(['<a href="/entity/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
+                        {{ '<br />'.join(['<a href="/entity/file-%s" target="_blank">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
                         {% if len(p['values']) > 1 %}
                             <a href="/entity/file-{{ ','.join(['%s' % v['db_value'] for v in p['values']]) }}" style="font-size:11px; font-style:italic; float:right;">{{ _('download_all_as_zip') }}</a>
                         {% end %}

@@ -60,12 +60,13 @@
                                             <input type="hidden" name="parent_entity_id" value="{{ parent_entity_id }}" />
                                             <input type="hidden" name="entity_definition_keyname" value="{{ entity_definition_keyname }}" />
                                             <input type="hidden" name="property_definition_keyname" value="{{ p['keyname'] }}" />
-                                            <input type="hidden" name="dropbox_file" id="dropbox-file" />
-                                            <input type="hidden" name="dropbox_name" id="dropbox-name" />
+                                            <input type="hidden" name="external_files" id="external-files" />
+                                            <input type="hidden" name="external_download" id="external-download" />
                                             <div class="edit" style="height:23px;">
                                                 <input type="file" name="value" class="dtype-{{ p['datatype'] }}" data-form="#upload-form-{{ p['keyname'] }}" title="{{ _('add_files_computer') }}" multiple />
-                                                <label class="dropbox-open btn btn-mini pull-right" data-form="#upload-form-{{ p['keyname'] }}">{{ _('add_files_dropbox') }}</label>
-                                            <div>
+                                                <div class="google-open btn btn-small pull-right" data-form="#upload-form-{{ p['keyname'] }}">{{ _('add_files_google') }}</div>
+                                                <div class="dropbox-open btn btn-small pull-right" data-form="#upload-form-{{ p['keyname'] }}" style="margin-right:10px;">{{ _('add_files_dropbox') }}</div>
+                                            </div>
                                         </form>
                                     {% else %}
                                         <div class="delete-file-row edit" style="padding:8px;"><a href="/entity/file-{{ v['db_value'] }}">{{ v['value'] }}</a> <a href="javascript:void(0);" data-property_id="{{ v['id'] }}" class="delete-file" style="float:right; display:none;"><i class="icon-trash" style="color:red;"></i></a></div>
@@ -102,6 +103,7 @@
 <div id="database" data-entity_id="{{ entity.get('id', '') }}" style="display:hidden;"></div>
 
 <script type="text/javascript" src="{{ static_url('javascript/bootstrap.file-input.js') }}"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <script>
 
 
@@ -122,6 +124,8 @@
     $(document).ready(function(){
 
         $('textarea').elastic();
+
+        $('input[type=file]').bootstrapFileInput();
 
         $('.classifier-select').select2({
             placeholder: ' ',
@@ -286,15 +290,53 @@
             form = $($(this).data('form'));
             Dropbox.choose({
                 linkType: 'direct',
+                multiselect: true,
                 success: function(files) {
-                    $('#dropbox-file').val(files[0].link);
-                    $('#dropbox-name').val(files[0].name);
-                    form.hide();
-                    form.parent().children('img').show();
-                    form.submit();
+                    var links = new Object();
+                    for(i in files) {
+                        links[files[i].link] = files[i].name;
+                    }
+                    submitExternalFile(form, links, true);
                 }
             });
         });
+
+        $('.google-open').click(function() {
+            var form = $($(this).data('form'));
+
+            google.load('picker', '1', {'callback': function() {
+                var picker = new google.picker.PickerBuilder()
+                    .addView(google.picker.ViewId.DOCS)
+                    .addView(google.picker.ViewId.PHOTOS)
+                    .addView(google.picker.ViewId.YOUTUBE)
+                    .addView(google.picker.ViewId.WEBCAM)
+                    .addView(google.picker.ViewId.RECENTLY_PICKED)
+                    .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
+                    .setCallback(function(data) {
+                        if (data[google.picker.Response.ACTION] == google.picker.Action.PICKED) {
+                            var files = data[google.picker.Response.DOCUMENTS];
+                            var links = new Object();
+                            for(i in files) {
+                                links[files[i][google.picker.Document.URL]] = files[i][google.picker.Document.NAME];
+                            }
+                            submitExternalFile(form, links, false);
+                        }
+                    })
+                    .build();
+                picker.setVisible(true);
+                $('iframe.picker').css('z-index', '7777');
+                $('div.picker-dialog-bg').css('z-index', '8888');
+                $('div.picker-dialog').css('z-index', '9999');
+            }});
+        });
+
+        function submitExternalFile(form, links, download) {
+            $('#external-files').val(JSON.stringify(links));
+            $('#external-download').val(download);
+            form.hide();
+            form.parent().children('img').show();
+            form.submit();
+        }
 
         $('.delete-file').click(function() {
 

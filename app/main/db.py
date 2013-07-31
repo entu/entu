@@ -247,7 +247,7 @@ class Entity():
             value_string = self.__get_properties(value)[0]['displayname']
         elif definition.datatype == 'file':
             uploaded_file = value
-            value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, filesize = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], len(uploaded_file['body']), uploaded_file['body'], self.__user_id)
+            value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, filesize = %s, file = %s, is_link = %s, created_by = %s, created = NOW();', uploaded_file.get('filename', ''), len(uploaded_file.get('body', '')), uploaded_file.get('body', ''), uploaded_file.get('is_link', 0), self.__user_id)
             field = 'value_file'
             value_string = uploaded_file['filename'][:500]
         elif definition.datatype == 'boolean':
@@ -1232,7 +1232,8 @@ class Entity():
                 f.id,
                 f.created,
                 f.file,
-                f.filename
+                f.filename,
+                f.is_link
             FROM
                 file AS f,
                 property AS p,

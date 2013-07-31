@@ -5,6 +5,7 @@ import logging
 import magic
 import zipfile
 import yaml
+import json
 import time
 import markdown2
 
@@ -177,6 +178,8 @@ class DownloadFile(myRequestHandler, Entity):
             file = files[0]
             if not file.file:
                 return self.missing()
+            if file.is_link == 1:
+                return self.redirect(file.file)
             ms = magic.open(magic.MAGIC_MIME)
             ms.load()
             mime = ms.buffer(file.file)
@@ -256,6 +259,7 @@ class SaveEntity(myRequestHandler, Entity):
     property_definition_keyname = None
     is_file                     = False
     value                       = None
+    external_files              = {}
 
     @web.authenticated
     @web.asynchronous
@@ -278,8 +282,8 @@ class SaveEntity(myRequestHandler, Entity):
         property_id                         = self.get_argument('value_id', default=None, strip=True)
         is_counter                          = self.get_argument('counter', default='false', strip=True)
         is_public                           = self.get_argument('is_public', default='false', strip=True)
-        dropbox_file                        = self.get_argument('dropbox_file', default=None, strip=True)
-        dropbox_name                        = self.get_argument('dropbox_name', default=None, strip=True)
+        self.external_files                 = json.loads(self.get_argument('external_files', None)) if self.get_argument('external_files', None) else None
+        external_download                   = True if self.get_argument('external_download', default='false', strip=True).lower() == 'true' else False
 
         if not self.entity_id and parent_entity_id and entity_definition_keyname:
             self.entity_id = self.create_entity(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
@@ -289,10 +293,16 @@ class SaveEntity(myRequestHandler, Entity):
         elif is_public.lower() == 'true':
             self.value = True if self.value.lower() == 'true' else False
             self.value = self.set_public(entity_id=self.entity_id, is_public=self.value)
-        elif dropbox_file and dropbox_name:
-            self.value = [{'filename': dropbox_name, 'body': None}]
-            httpclient.AsyncHTTPClient().fetch(dropbox_file, method = 'GET', request_timeout = 3600, callback=self._got_dropbox_file)
-            return
+        elif self.external_files:
+            self.value = []
+            for link, filename in self.external_files.iteritems():
+                self.value.append(filename)
+                if external_download:
+                    httpclient.AsyncHTTPClient().fetch(link, method = 'GET', request_timeout = 3600, callback=self._got_external_file)
+                else:
+                    self.new_property_id = self.set_property(entity_id=self.entity_id, property_definition_keyname=self.property_definition_keyname, value={'filename': filename, 'body': link, 'is_link': 1})
+            if external_download:
+                return
         else:
             if type(self.value) is not list:
                 self.value = [self.value]
@@ -302,10 +312,12 @@ class SaveEntity(myRequestHandler, Entity):
         self._printout()
 
     @web.asynchronous
-    def _got_dropbox_file(self, response):
-        self.value[0]['body'] = response.body
-        self.new_property_id = self.set_property(entity_id=self.entity_id, property_definition_keyname=self.property_definition_keyname, value=self.value[0])
-        self._printout()
+    def _got_external_file(self, response):
+        filename = self.external_files[response.request.url]
+        self.new_property_id = self.set_property(entity_id=self.entity_id, property_definition_keyname=self.property_definition_keyname, value={'filename': filename, 'body': response.body})
+        del self.external_files[response.request.url]
+        if not self.external_files:
+            self._printout()
 
     @web.asynchronous
     def _printout(self):
@@ -313,7 +325,7 @@ class SaveEntity(myRequestHandler, Entity):
             'entity_id': self.entity_id,
             'property_definition_keyname': self.property_definition_keyname,
             'value_id': self.new_property_id,
-            'value': ', '.join([x['filename'] for x in self.value]) if self.is_file else self.value
+            'value': ', '.join(self.value) if self.is_file else self.value
         })
         self.finish()
 

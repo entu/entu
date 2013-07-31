@@ -40,6 +40,8 @@ boolean_false,No
 
 add_files_computer,Add from Computer
 add_files_dropbox,Add from Dropbox
+add_files_google,Link to Google Drive
+
 
 entity_delete,Delete
 confirm_entity_delete,'%s' and all its childs will be deleted.
