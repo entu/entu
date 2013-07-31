@@ -316,7 +316,7 @@ class SaveEntity(myRequestHandler, Entity):
                 self.value = [self.value]
             for v in self.value:
                 self.new_property_id = self.set_property(entity_id=self.entity_id, property_definition_keyname=self.property_definition_keyname, value=v, old_property_id=property_id)
-
+            self.value = [x['filename'] for x in self.value]
         self._printout()
 
     @web.asynchronous
