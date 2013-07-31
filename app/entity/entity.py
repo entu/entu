@@ -167,9 +167,15 @@ class DownloadFile(myRequestHandler, Entity):
         if len(files) > 1:
             f = StringIO()
             zf = zipfile.ZipFile(f, 'w', zipfile.ZIP_DEFLATED)
+            links = []
             for file in files:
                 if file.file:
-                    zf.writestr(file.filename, file.file)
+                    if file.is_link == 1:
+                        links.append('<a href="%s" target="_blank">%s</a>' % (file.file, file.filename))
+                    else:
+                        zf.writestr(file.filename, file.file)
+            if links:
+                zf.writestr('_links_.html', '<br />'.join(links))
             zf.close()
             mime = 'application/octet-stream'
             filename = '%s.zip' % file_ids
