@@ -69,7 +69,7 @@
                                             </div>
                                         </form>
                                     {% else %}
-                                        <div class="delete-file-row edit" style="padding:8px;"><a href="/entity/file-{{ v['db_value'] }}">{{ v['value'] }}</a> <a href="javascript:void(0);" data-property_id="{{ v['id'] }}" class="delete-file" style="float:right; display:none;"><i class="icon-trash" style="color:red;"></i></a></div>
+                                        <div class="delete-file-row edit" style="padding:8px;"><a href="/entity/file-{{ v['db_value'] }}" target="_blank">{{ v['value'] }}</a> <a href="javascript:void(0);" data-property_id="{{ v['id'] }}" class="delete-file" style="float:right; display:none;"><i class="icon-trash" style="color:red;"></i></a></div>
                                     {% end %}
                                 {% elif p['datatype'] == 'counter-value' %}
                                     {% if v['value'] %}
@@ -113,7 +113,9 @@
         $('#database').data('entity_id', newvalue.entity_id);
         {% if open_after_add %}$('#modal-box').data('open_entity_id', newvalue.entity_id);{% end %}
         $('.file_entity_id').val(newvalue.entity_id);
-        td.children('.new-filenames').prepend('<div class="new-input">'+newvalue.value+'</div>');
+        for(i in newvalue.files) {
+            td.children('.new-filenames').append('<div class="new-input" style="padding:8px; color:gray;">'+newvalue.files[i]+'</div>');
+        }
         td.children('img').hide();
         td.children('form').children('.dtype-file').val('');
         td.children('form').show();
