@@ -56,12 +56,12 @@
                                         <iframe name="iframe_{{ p['keyname'] }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML, '#upload-form-{{ p['keyname'] }}');" style="display:none;"></iframe>
                                         <form id="upload-form-{{ p['keyname'] }}" method="post" action="/entity/save" target="iframe_{{ p['keyname'] }}" enctype="multipart/form-data" style="margin:0px; padding:0px;">
                                             <input type="hidden" name="is_file" value="true" />
-                                            <input type="hidden" class="file_entity_id" name="entity_id" value="{{ entity.get('id', '') }}" />
+                                            <input type="hidden" name="entity_id" class="file_entity_id" value="{{ entity.get('id', '') }}" />
                                             <input type="hidden" name="parent_entity_id" value="{{ parent_entity_id }}" />
                                             <input type="hidden" name="entity_definition_keyname" value="{{ entity_definition_keyname }}" />
                                             <input type="hidden" name="property_definition_keyname" value="{{ p['keyname'] }}" />
-                                            <input type="hidden" name="external_files" id="external-files" />
-                                            <input type="hidden" name="external_download" id="external-download" />
+                                            <input type="hidden" name="external_files" class="external-files" />
+                                            <input type="hidden" name="external_download" class="external-download" />
                                             <div class="edit" style="height:23px;">
                                                 <input type="file" name="value" class="dtype-{{ p['datatype'] }}" data-form="#upload-form-{{ p['keyname'] }}" title="{{ _('add_files_computer') }}" multiple />
                                                 <div class="google-open btn btn-small pull-right" data-form="#upload-form-{{ p['keyname'] }}">{{ _('add_files_google') }}</div>
@@ -117,8 +117,8 @@
         td.children('img').hide();
         td.children('form').children('.dtype-file').val('');
         td.children('form').show();
-        $('#dropbox-file').val('');
-        $('#dropbox-name').val('');
+        td.children('form').children('.external-files').val('');
+        td.children('form').children('.external-download').val('');
     };
 
     $(document).ready(function(){
@@ -331,8 +331,8 @@
         });
 
         function submitExternalFile(form, links, download) {
-            $('#external-files').val(JSON.stringify(links));
-            $('#external-download').val(download);
+            form.children('.external-files').val(JSON.stringify(links));
+            form.children('.external-download').val(download);
             form.hide();
             form.parent().children('img').show();
             form.submit();
@@ -347,7 +347,7 @@
                     entity_id: '{{ entity.get('id', '') }}',
                 },
                 function(newvalue) {
-                    link.parent().remove();
+                    link.parent().parent().remove();
                 }, 'json');
             };
         });

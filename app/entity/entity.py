@@ -171,11 +171,13 @@ class DownloadFile(myRequestHandler, Entity):
             for file in files:
                 if file.file:
                     if file.is_link == 1:
-                        links.append('<a href="%s" target="_blank">%s</a>' % (file.file, file.filename))
+                        links.append('<a href="%s" target="_blank">%s</a>' % (file.file, file.filename.encode('utf-8')))
                     else:
-                        zf.writestr(file.filename, file.file)
+                        zf.writestr('files/%s' % file.filename, file.file)
+                        links.append('<a href="%s" target="_blank">%s</a>' % ('files/%s' % file.filename.encode('utf-8'), file.filename.encode('utf-8')))
             if links:
-                zf.writestr('_links_.html', '<br />'.join(links))
+                linksfile = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<style type="text/css">body {margin:50px 100px; font-family:sans-serif; font-size:13px;} a {display: block; margin-top:10px;}</style>\n</head>\n<body>\n%s\n</body>\n</html>' % '\n'.join(links)
+                zf.writestr('index.html', linksfile)
             zf.close()
             mime = 'application/octet-stream'
             filename = '%s.zip' % file_ids
