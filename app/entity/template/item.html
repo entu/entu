@@ -48,7 +48,7 @@
                     {% elif p['datatype'] == 'reference' %}
                         {{ '<br />'.join(['<a href="#%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
                     {% else %}
-                        {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
+                        {{ '<br />'.join(['%s' % linkify(v['value'], shorten=True, extra_params='target="_blank"') for v in p['values']]) }}
                     {% end %}
                 </td>
             </tr>
