@@ -1,3 +1,8 @@
+## 2013-08-01
+* Digital signage player enhancements
+* Link files directly from Google Drive and Google+ photos
+* Lots of file upload bugs fixed (now works with IE, FF and Opera)
+
 ## 2013-07-01
 * Digital signage (ScreenWerk) player
 * Configuration entities (prototype)
