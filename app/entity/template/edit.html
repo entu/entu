@@ -53,7 +53,7 @@
                                     {% if not v['id'] %}
                                         <div class="new-filenames" style="padding:0px;"></div>
                                         <img src="{{ static_url('images/spinner_white.gif') }}" style="display:none; padding:8px;" />
-                                        <iframe name="iframe_{{ p['keyname'] }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentWindow.document.body.innerHTML, '#upload-form-{{ p['keyname'] }}');" style="display:none;"></iframe>
+                                        <iframe name="iframe_{{ p['keyname'] }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentDocument.body.textContent, '#upload-form-{{ p['keyname'] }}');" style="display:none;"></iframe>
                                         <form id="upload-form-{{ p['keyname'] }}" method="post" action="/entity/save" target="iframe_{{ p['keyname'] }}" enctype="multipart/form-data" style="margin:0px; padding:0px;">
                                             <input type="hidden" name="is_file" value="true" />
                                             <input type="hidden" name="entity_id" class="file_entity_id" value="{{ entity.get('id', '') }}" />
@@ -109,7 +109,7 @@
 
     function showDocument(json_string, div){
         td = $(div).parent();
-        newvalue = jQuery.parseJSON(json_string.replace('<pre style="word-wrap: break-word; white-space: pre-wrap;">','').replace('</pre>',''))
+        newvalue = jQuery.parseJSON(json_string);
         $('#database').data('entity_id', newvalue.entity_id);
         {% if open_after_add %}$('#modal-box').data('open_entity_id', newvalue.entity_id);{% end %}
         $('.file_entity_id').val(newvalue.entity_id);

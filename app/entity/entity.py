@@ -329,13 +329,13 @@ class SaveEntity(myRequestHandler, Entity):
 
     @web.asynchronous
     def _printout(self):
-        self.write({
+        self.write(json.dumps({
             'entity_id': self.entity_id,
             'property_definition_keyname': self.property_definition_keyname,
             'value_id': self.new_property_id,
             'value': self.value if not self.is_file else None,
             'files': self.value if self.is_file else None,
-        })
+        }))
         self.finish()
 
 
