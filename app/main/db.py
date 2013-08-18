@@ -830,9 +830,12 @@ class Entity():
                 elif row.property_datatype == 'reference':
                     value = ''
                     if row.value_reference:
-                        reference = self.__get_properties(entity_id=row.value_reference)
-                        if reference:
-                            value = reference[0].get('displayname')
+                        if row.value_reference == row.entity_id:
+                            value = 'self'
+                        else:
+                            reference = self.__get_properties(entity_id=row.value_reference)
+                            if reference:
+                                value = reference[0].get('displayname')
                     db_value = row.value_reference
                 elif row.property_datatype == 'file':
                     db_value = row.value_file
