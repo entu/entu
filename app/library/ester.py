@@ -5,7 +5,6 @@ from tornado import web
 from tornado import httpclient
 from bs4 import BeautifulSoup
 
-import urllib
 import logging
 
 from HTMLParser import HTMLParser
@@ -78,9 +77,9 @@ class EsterSearch(myRequestHandler, Entity):
                 search_isbn = True
 
             if search_isbn == True:
-                url = 'http://tallinn.ester.ee/search*est/i?SEARCH=%s&searchscope=1&SUBMIT=OTSI' % urllib.quote(search_term)
+                url = 'http://tallinn.ester.ee/search*est/i?SEARCH=%s&searchscope=1&SUBMIT=OTSI' % search_term.replace(' ', '')
             else:
-                url = 'http://tallinn.ester.ee/search*est/X?SEARCH=%s&searchscope=1&SUBMIT=OTSI' % urllib.quote(search_term)
+                url = 'http://tallinn.ester.ee/search*est/X?SEARCH=%s&searchscope=1&SUBMIT=OTSI' % search_term.replace(' ', '+')
 
         response = httpclient.AsyncHTTPClient().fetch(url, callback=self._got_list, request_timeout=60)
 
