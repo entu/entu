@@ -1,3 +1,7 @@
+## 2013-08-23
+* Automatically fetch and save books, workbooks, etc images
+* Bugfixes
+
 ## 2013-08-01
 * Digital signage player enhancements
 * Link files directly from Google Drive and Google+ photos
