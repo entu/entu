@@ -979,6 +979,8 @@ class Entity():
             return '/entity/file-%s' % f.id
         elif entity_definition_keyname in ['audiovideo', 'book', 'methodical', 'periodical', 'textbook', 'workbook']:
             return '/photo-by-isbn-%s' % entity_id
+        elif entity_definition_keyname == 'person':
+            return 'https://secure.gravatar.com/avatar/%s?d=wavatar&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
         else:
             return 'https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
 

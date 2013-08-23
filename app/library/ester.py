@@ -55,6 +55,7 @@ AUTHORMAP = {
     u'kujundaja':        'designer',
     u'toimetaja':        'editor',
     u'tõlkija':          'translator',
+    u'tolkija':          'translator',
 }
 
 class EsterSearch(myRequestHandler, Entity):
