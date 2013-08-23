@@ -30,6 +30,7 @@ app_controllers = [
     'api.api',
     'entity.entity',
     'library.ester',
+    'library.photo',
     'public.public',
     'screenwerk.screenwerk',
     'update.update',

@@ -882,7 +882,7 @@ class Entity():
         for key, value in items.iteritems():
             if value.get('id', None):
                 items[key] = dict(items[key].items() + self.__get_displayfields(value).items())
-                items[key]['displaypicture'] = self.__get_picture_url(value['id'])
+                items[key]['displaypicture'] = self.__get_picture_url(value['id'], value['definition_keyname'])
 
             if full_definition:
                 for d in self.get_definition(entity_definition_keyname=value['definition_keyname']):
@@ -955,7 +955,7 @@ class Entity():
 
         return result
 
-    def __get_picture_url(self, entity_id):
+    def __get_picture_url(self, entity_id, entity_definition_keyname):
         """
         Returns Entity picture.
 
@@ -975,10 +975,13 @@ class Entity():
             LIMIT 1;
         """
         f = self.db.get(sql, entity_id)
-        if not f:
+        if f:
+            return '/entity/file-%s' % f.id
+        elif entity_definition_keyname in ['audiovideo', 'book', 'methodical', 'periodical', 'textbook', 'workbook']:
+            return '/photo-by-isbn-%s' % entity_id
+        else:
             return 'https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
 
-        return '/entity/file-%s' % f.id
 
     def get_definition(self, entity_definition_keyname):
         """

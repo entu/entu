@@ -91,7 +91,7 @@ class EsterSearch(myRequestHandler, Entity):
             self.finish()
             return
 
-        soup = BeautifulSoup(response.body.decode('utf-8','ignore'))
+        soup = BeautifulSoup(response.body.decode('utf-8', 'ignore'))
 
         items = []
         id = soup.find('a', attrs={'id': 'recordnum'})
