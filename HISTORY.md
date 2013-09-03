@@ -1,3 +1,8 @@
+## 2013-09-04
+* Add and delete Entity parents (relations only)
+* CSV importer now autodetects file encoding and separator
+* Other CSV importer fixes
+
 ## 2013-08-23
 * Automatically fetch and save books, workbooks, etc images
 * Bugfixes
