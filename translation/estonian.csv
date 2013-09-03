@@ -12,6 +12,7 @@ menu_edit,Muuda
 menu_relate,Seo teisega
 menu_rights,Õigused
 menu_share,Jaga meilitsi
+menu_parents,Kuuluvus
 menu_login,Sisene
 menu_exit,Välju
 menu_help,Abiinfo
@@ -58,6 +59,8 @@ share_by_email,Saada epostiga
 share_to,Kellele (email)
 share_message,Sõnum
 share_send,Saada
+
+confirm_parent_delete,Seos objektiga '%s' kustutatakse.
 
 rights_public,Public on the web
 rights_public_desc,Anyone on the Internet can access and view public properties. No sign-in required.

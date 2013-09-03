@@ -11,6 +11,7 @@ menu_edit,Edit
 menu_relate,Join relative
 menu_rights,Rights
 menu_share,Share
+menu_parents,Parents
 menu_login,Login
 menu_exit,Logout
 menu_help,Help
@@ -45,7 +46,7 @@ add_files_google,Link to Google Drive
 
 entity_delete,Delete
 confirm_entity_delete,'%s' and all its childs will be deleted.
-confirm_file_delete,File '%s' will be deleted
+confirm_file_delete,File '%s' will be deleted.
 edit_help_tabs,"Donec a metus tellus. Nullam vulputate, ligula a ornare eleifend, dolor quam ornare velit, a malesuada mauris mi vitae quam. Quisque auctor nulla faucibus sem elementum placerat."
 
 download_all_as_zip,Download all files
@@ -59,6 +60,8 @@ share_by_email,Share by email
 share_to,To (email)
 share_message,Message
 share_send,Send
+
+confirm_parent_delete,"Relation to '%s' will be deleted."
 
 rights_public,Public on the web
 rights_public_desc,Anyone on the Internet can access and view public properties. No sign-in required.

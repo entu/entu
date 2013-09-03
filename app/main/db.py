@@ -456,15 +456,26 @@ class Entity():
                             self.db.execute(sql)
                     else:
                         sql = """
-                            INSERT INTO relationship SET
-                                relationship_definition_keyname = '%s',
-                                entity_id = %s,
-                                related_entity_id = %s,
-                                created_by = %s,
-                                created = NOW();
-                        """ % (t, e, r, self.__user_id)
+                            SELECT id
+                            FROM relationship
+                            WHERE relationship_definition_keyname = '%s'
+                            AND entity_id = %s
+                            AND related_entity_id = %s
+                            AND is_deleted = 0;
+                        """ % (t, e, r)
+                        old = self.db.get(sql)
                         # logging.debug(sql)
-                        self.db.execute(sql)
+                        if not old:
+                            sql = """
+                                INSERT INTO relationship SET
+                                    relationship_definition_keyname = '%s',
+                                    entity_id = %s,
+                                    related_entity_id = %s,
+                                    created_by = %s,
+                                    created = NOW();
+                            """ % (t, e, r, self.__user_id)
+                            # logging.debug(sql)
+                            self.db.execute(sql)
 
     def get_rights(self, entity_id):
         if not entity_id:
@@ -1288,11 +1299,39 @@ class Entity():
                     relationship
                 WHERE relationship.related_entity_definition_keyname = entity_definition.keyname
                 AND relationship.relationship_definition_keyname = 'allowed-child'
-                AND relationship.entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s)
+                AND relationship.entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1)
                 AND relationship.is_deleted = 0
             """  % entity_id
             # logging.debug(sql)
             result = self.db.query(sql)
+
+        defs = []
+        for d in self.db.query(sql):
+            defs.append({
+                'keyname': d.keyname,
+                'label': self.__get_system_translation(field='label', entity_definition_keyname=d.keyname),
+                'label_plural': self.__get_system_translation(field='label_plural', entity_definition_keyname=d.keyname),
+                'description': self.__get_system_translation(field='description', entity_definition_keyname=d.keyname),
+                'menugroup': self.__get_system_translation(field='menu', entity_definition_keyname=d.keyname),
+            })
+
+        return defs
+
+    def get_allowed_parents(self, entity_id):
+        """
+        Returns allowed parent definitions.
+
+        """
+
+        sql = """
+            SELECT DISTINCT IF(entity_id, (SELECT entity_definition_keyname FROM entity WHERE id = relationship.entity_id LIMIT 1), entity_definition_keyname) AS keyname
+            FROM relationship
+            WHERE relationship_definition_keyname = 'allowed-child'
+            AND related_entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1)
+            AND is_deleted = 0;
+        """  % entity_id
+        # logging.debug(sql)
+        result = self.db.query(sql)
 
         defs = []
         for d in self.db.query(sql):

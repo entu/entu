@@ -1,0 +1,107 @@
+<div class="modal-header" style="border:none;">
+    <a href="javascript:showHelp();" class="btn btn-link pull-right no-underline" style="padding-right:0px; font-size:20px; color:grey;"><i class="icon-info-sign"></i></a>
+    <h3>{{ _('menu_parents') }}</h3>
+</div>
+<div class="modal-body" style="padding:0px;">
+    <table id="parents-table" class="edit-form table table-bordered">
+        <tbody>
+            {% if parents %}
+                {% for parentgroup in parents %}
+                    {% for parent in parentgroup %}
+                        <tr>
+                            <th>
+                                {{ parent.get('label', '') }}
+                            </th>
+                            <td style="padding:8px;">
+                                {{ parent.get('displayname', '') }}
+                                {% if parent.get('displayinfo') %}
+                                    <br />
+                                    <span style="font-style:italic; color:gray;">{{ parent.get('displayinfo', '') }}</span>
+                                {% end %}
+                            </td>
+                            <td style="width:10px; padding:8px; text-align:center; border-left:none;">
+                                <a href="javascript:void(0);" class="btn btn-link no-underline delete-parent" style="font-size:20px; color:grey; padding:0px 7px;" data-id="{{ parent.get('id') }}" data-name="{{ parent.get('displayname', '') }}"><i class="icon-minus-sign"></i></a>
+                            </td>
+                        </tr>
+                    {% end %}
+                {% end %}
+            {% end %}
+        </tbody>
+    </table>
+    {% if allowed_parents %}
+        <table class="edit-form table table-bordered" style="margin:30px 0px 50px 0px;">
+            <tbody>
+                <tr class="rights">
+                    <th style=" border-top:none;">
+                        {{ _('rights_add_user') }}
+                    </th>
+                    <td colspan="6" data-intro="{{ _('rights_help_add') }}" data-position="bottom">
+                        <input id="add-new-parent" style="width:100%;" />
+                    </td>
+            </tbody>
+        </table>
+    {% end %}
+</div>
+<div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">{{ _('close') }}</a>
+</div>
+
+<script>
+
+    $(document).ready(function(){
+
+        $('textarea').elastic();
+
+        $('#add-new-parent').select2({
+            placeholder: ' ',
+            minimumInputLength: 1,
+            ajax: {
+                url: '/entity/search',
+                dataType: 'json',
+                quietMillis: 1000,
+                data: function (term, page) {
+                    return {
+                        q: term,
+                        definition: '{{ ','.join([x.get('keyname') for x in allowed_parents]) }}',
+                        exclude_entity: '{{ entity_id }}',
+                    };
+                },
+                results: function (data, page) {
+                    return {results: data.entities};
+                }
+            },
+            formatResult: function (data) {
+                if(data.image) {
+                    image = '<img src="'+data.image+'" />';
+                } else {
+                    image = '';
+                };
+                if(data.info) {
+                    info = '<span>'+data.info+'</span>';
+                } else {
+                    info = '';
+                };
+                return '<div class="entity-list-item">'+image+data.title+info+'</div>';
+            },
+        });
+
+        $('#add-new-parent').change(function() {
+            var data = $(this).select2('data');
+            $.post('/entity-{{ entity_id }}/parents', { parent: data.id}, function() {
+                $('#parents-table').append('<tr><th>'+data.definition+'</th><td colspan="2" style="padding:8px;">'+data.title+'</td></tr>');
+            });
+        });
+
+        $('.delete-parent').click(function() {
+            if (confirm("{{ _('confirm_parent_delete').replace('\"', '\\\"') }}".replace('%s', $(this).data('name')))) {
+                var tr = $(this).parent().parent()
+                var parent = $(this).data('id');
+                $.post('/entity-{{ entity_id }}/parents', { parent: parent, delete: true}, function() {
+                    tr.hide();
+                });
+            }
+        });
+
+
+    });
+</script>

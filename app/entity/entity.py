@@ -98,14 +98,14 @@ class GetEntities(myRequestHandler, Entity):
         """
         """
         search = self.get_argument('q', None, True)
-        entity_definition_keyname = self.get_argument('definition', None, True)
+        entity_definition_keynames = StrToList(self.get_argument('definition', '', True))
         exclude_entity_id = self.get_argument('exclude_entity', '0', True)
         if not search:
             return self.missing()
 
 
         result = []
-        for e in self.get_entities(search=search, entity_definition_keyname=entity_definition_keyname, limit=303):
+        for e in self.get_entities(search=search, entity_definition_keyname=entity_definition_keynames, limit=303):
             if exclude_entity_id:
                 if e['id'] in [int(x) for x in exclude_entity_id.split(',')]:
                     continue
@@ -114,6 +114,7 @@ class GetEntities(myRequestHandler, Entity):
                 'title': e['displayname'],
                 'info':  e['displayinfo'],
                 'image': e['displaypicture'],
+                'definition': e['label']
             })
 
         self.write({'entities': result})
@@ -138,6 +139,7 @@ class ShowEntity(myRequestHandler, Entity):
         relatives = self.get_relatives(entity_id=item['id'], relationship_definition_keyname=['child'])
         parents = self.get_relatives(related_entity_id=item['id'], relationship_definition_keyname='child', reverse_relation=True)
         allowed_childs = self.get_allowed_childs(entity_id=item['id'])
+        allowed_parents = self.get_allowed_parents(entity_id=item['id'])
 
         self.render('entity/template/item.html',
             page_title = item['displayname'],
@@ -145,6 +147,7 @@ class ShowEntity(myRequestHandler, Entity):
             relatives = relatives,
             parents = parents.values() if parents else [],
             allowed_childs = allowed_childs,
+            allowed_parents = allowed_parents,
             add_definitions = self.get_definitions_with_default_parent(item.get('definition_keyname')) if item.get('definition_keyname') else None,
         )
 
@@ -480,6 +483,18 @@ class EntityParents(myRequestHandler, Entity):
             parents = parents.values() if parents else None,
             allowed_parents = allowed_parents,
         )
+
+    @web.authenticated
+    def post(self, entity_id=None):
+        parent = self.get_argument('parent', None)
+        delete = True if self.get_argument('delete', 'false', True).lower() == 'true' else False
+
+        if not entity_id or not parent:
+            return
+
+        self.set_relations(entity_id=parent, related_entity_id=entity_id, relationship_definition_keyname='child', delete=delete)
+
+        self.write('OK')
 
 
 class ShowHTMLproperty(myRequestHandler, Entity):
