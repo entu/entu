@@ -1,0 +1,71 @@
+<table id="default" class="edit-form table table-bordered tab-pane{% if actions[0] == 'default' %} active{% end %}">
+    <tbody>
+        {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
+            {% for idx, v in enumerate(p['values']) %}
+            <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
+                {% if idx == 0 %}
+                <th style="{%if not p['public'] %}color:gray;{% end %}" rowspan="{{ len(p['values']) }}">
+                    {%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}
+                </th>
+                {% end %}
+                <td>
+                    {% if p['readonly'] %}
+                        <span style="padding:8px; font-style:italic; color:gray;">{{ ', '.join(['%s' % v['value'] for v in p['values'] if v['value']]) }}</span>
+                    {% else %}
+                        {% if p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal'] %}
+                            {% if p.get('select', None) %}
+                                <select class="autosave classifier-select {% if p['can_add_new'] and idx+1 == len(p['values']) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" style="width:100%;">
+                                    <option value=""></option>
+                                    {% for s in sorted(p.get('select',''), key=itemgetter('label')) %}
+                                    <option value="{{ s['label'] }}" {% if s['label'] == v['value'] %} selected{% end %}>{{ s['label'] }}</option>
+                                    {% end %}
+                                </select>
+                            {% else %}
+                                <input type="text" class="autosave {% if p['can_add_new'] and idx+1 == len(p['values']) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" value="{{ v['db_value'] }}" />
+                            {% end %}
+                        {% elif p['datatype'] in ['text', 'html'] %}
+                            <textarea class="autosave {% if p['can_add_new'] and idx+1 == len(p['values']) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['value'] }}">{{ v['value'] }}</textarea>
+                        {% elif p['datatype'] == 'boolean' %}
+                            <input type="checkbox" class="autosave {% if p['can_add_new'] and idx+1 == len(p['values']) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" {% if v.get('db_value', 0) == 1 %} checked{% end %} />
+                        {% elif p['datatype'] == 'file' %}
+                            {% if not v['id'] %}
+                                <div class="new-filenames" style="padding:0px;"></div>
+                                <img src="{{ static_url('images/spinner_white.gif') }}" style="display:none; padding:8px;" />
+                                <iframe name="iframe_{{ p['keyname'] }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentDocument.body.textContent, '#upload-form-{{ p['keyname'] }}');" style="display:none;"></iframe>
+                                <form id="upload-form-{{ p['keyname'] }}" method="post" action="/entity/save" target="iframe_{{ p['keyname'] }}" enctype="multipart/form-data" style="margin:0px; padding:0px;">
+                                    <input type="hidden" name="is_file" value="true" />
+                                    <input type="hidden" name="entity_id" class="file_entity_id" value="{{ entity.get('id', '') }}" />
+                                    <input type="hidden" name="parent_entity_id" value="{{ parent_entity_id }}" />
+                                    <input type="hidden" name="entity_definition_keyname" value="{{ entity_definition_keyname }}" />
+                                    <input type="hidden" name="property_definition_keyname" value="{{ p['keyname'] }}" />
+                                    <input type="hidden" name="external_files" class="external-files" />
+                                    <input type="hidden" name="external_download" class="external-download" />
+                                    <div class="edit" style="height:23px;">
+                                        <input type="file" name="value" class="dtype-{{ p['datatype'] }}" data-form="#upload-form-{{ p['keyname'] }}" title="{{ _('add_files_computer') }}" multiple />
+                                        <div class="google-open btn btn-small pull-right" data-form="#upload-form-{{ p['keyname'] }}">{{ _('add_files_google') }}</div>
+                                        <div class="dropbox-open btn btn-small pull-right" data-form="#upload-form-{{ p['keyname'] }}" style="margin-right:10px;">{{ _('add_files_dropbox') }}</div>
+                                    </div>
+                                </form>
+                            {% else %}
+                                <div class="delete-file-row edit" style="padding:8px;"><a href="/entity/file-{{ v['db_value'] }}" target="_blank">{{ v['value'] }}</a> <a href="javascript:void(0);" data-property_id="{{ v['id'] }}" class="delete-file" style="float:right; display:none;"><i class="icon-trash" style="color:red;"></i></a></div>
+                            {% end %}
+                        {% elif p['datatype'] == 'counter-value' %}
+                            {% if v['value'] %}
+                                <span style="padding:8px;">{{ v['value'] }}</span>
+                            {% else %}
+                                <button data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" class="counter btn btn-warning btn-mini" style="margin:8px;">{{ _('counter_generate_value') }}...</button>
+                            {% end %}
+                        {% elif p['datatype'] == 'reference' %}
+                            <input type="hidden" class="autosave reference" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" {% if v['db_value'] %} data-value="{{ v['db_value'] }}"{% end %} value="{{ v['value'] }}" data-reference_definition="{{ p.get('reference_definition') }}" style="width:100%;" />
+                        {% elif p['datatype'] == 'dynamic' %}
+                            <input type="text" class="autosave {% if p['can_add_new'] and idx+1 == len(p['values']) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" value="{{ v['db_value'] }}" />
+                        {% else %}
+                            <span style="padding:8px; font-style:italic; color:gray;">{{ ', '.join(['%s' % v['value'] for v in p['values'] if v['value']]) }}</span>
+                        {% end %}
+                    {% end %}
+                </td>
+            </tr>
+            {% end %}
+        {% end %}
+    </tbody>
+</table>

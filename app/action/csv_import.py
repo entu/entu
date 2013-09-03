@@ -3,13 +3,14 @@ from tornado import web
 
 import csv
 import StringIO
+import chardet
 import logging
 
 from main.helper import *
 from main.db import *
 
 
-class UploadFile(myRequestHandler):
+class UploadFile(myRequestHandler, Entity):
     """
     """
     @web.authenticated
@@ -28,30 +29,43 @@ class UploadFile(myRequestHandler):
         self.write(str(file_id))
 
 
-class ReadFile(myRequestHandler):
+class ReadFile(myRequestHandler, Entity):
     """
     """
     @web.authenticated
     def post(self):
         file_id = self.get_argument('file_id', None)
-        delimiter = self.get_argument('delimiter', ',')
+        delimiter = self.get_argument('delimiter', None)
         first_row = self.get_argument('first_row', 1)
         parent_entity_id = self.get_argument('parent_entity_id', None)
         entity_definition_keyname = self.get_argument('entity_definition_keyname', None)
 
-        if not file_id or not delimiter or not parent_entity_id or not entity_definition_keyname:
+        if not file_id or not parent_entity_id or not entity_definition_keyname:
             return
 
         first_row = int(first_row)
 
-        tmp_file = self.db.get('SELECT * FROM tmp_file WHERE id = %s AND created_by = %s LIMIT 1;', file_id, self.current_user.id)
+        tmp = self.db.get('SELECT file, filename FROM tmp_file WHERE id = %s AND created_by = %s LIMIT 1;', file_id, self.current_user.id)
 
-        if not tmp_file:
+        if not tmp:
             return
+
+        if not tmp.file:
+            return
+
+        tmp_file = tmp.file
+
+        encoding = chardet.detect(tmp_file).get('encoding')
+
+        if encoding != 'utf-8':
+            tmp_file = tmp_file.decode(encoding).encode('utf-8')
+
+        if not delimiter:
+            delimiter = ',' if tmp_file.count(',') > tmp_file.count(';') else ';'
 
         csv_headers = None
         row_count = 0
-        for row in csv.reader(StringIO.StringIO(tmp_file.file), delimiter=str(delimiter)):
+        for row in csv.reader(StringIO.StringIO(tmp_file), delimiter=str(delimiter)):
             if not csv_headers:
                 csv_headers = row
             row_count += 1
@@ -59,12 +73,13 @@ class ReadFile(myRequestHandler):
 
         item = self.get_entities(entity_id=0, entity_definition_keyname=entity_definition_keyname, limit=1, full_definition=True)
 
-        self.render('action/csv_read.html',
+        self.render('action/template/csv_read.html',
             file_id = file_id,
-            file_name = tmp_file.filename,
+            file_name = tmp.filename,
             delimiter = delimiter,
             first_row = first_row,
             row_count = row_count,
+            encoding = encoding,
             csv_headers = csv_headers,
             properties = item.get('properties', {}).values(),
             parent_entity_id = parent_entity_id,
@@ -72,7 +87,7 @@ class ReadFile(myRequestHandler):
         )
 
 
-class ImportFile(myRequestHandler):
+class ImportFile(myRequestHandler, Entity):
     """
     """
     @web.authenticated
@@ -85,16 +100,26 @@ class ImportFile(myRequestHandler):
 
         first_row = int(first_row)
 
-        tmp_file = self.db.get('SELECT * FROM tmp_file WHERE id = %s AND created_by = %s LIMIT 1;', file_id, self.current_user.id)
+        tmp = self.db.get('SELECT file FROM tmp_file WHERE id = %s AND created_by = %s LIMIT 1;', file_id, self.current_user.id)
 
-        if not tmp_file:
+        if not tmp:
             return
+
+        if not tmp.file:
+            return
+
+        tmp_file = tmp.file
+
+        encoding = chardet.detect(tmp_file).get('encoding')
+
+        if encoding != 'utf8':
+            tmp_file = tmp_file.decode(encoding).encode('utf-8')
 
         item = self.get_entities(entity_id=0, entity_definition_keyname=entity_definition_keyname, limit=1, full_definition=True)
         properties = item.get('properties', {}).values()
 
         row_num = 0
-        for row in csv.reader(StringIO.StringIO(tmp_file.file), delimiter=str(delimiter)):
+        for row in csv.reader(StringIO.StringIO(tmp_file), delimiter=str(delimiter)):
             row_num += 1
             if row_num < first_row:
                 continue

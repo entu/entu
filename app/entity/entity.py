@@ -233,6 +233,8 @@ class ShowEntityAdd(myRequestHandler, Entity):
 
         entity_definition = self.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
         actions = StrToList(entity_definition[0].get('actions_add'))
+        if 'default' not in actions:
+            actions.append('default')
 
         self.render('entity/template/edit.html',
             entity = item,
@@ -462,6 +464,24 @@ class EntityRights(myRequestHandler, Entity):
             self.set_rights(entity_id=entity_id, related_entity_id=related_entity_id, right=right)
 
 
+class EntityParents(myRequestHandler, Entity):
+    @web.authenticated
+    def get(self, entity_id=None):
+        """
+        Shows Entitiy rights form.
+
+        """
+
+        parents = self.get_relatives(related_entity_id=entity_id, relationship_definition_keyname='child', reverse_relation=True)
+        allowed_parents = self.get_allowed_parents(entity_id=entity_id)
+
+        self.render('entity/template/parents.html',
+            entity_id = entity_id,
+            parents = parents.values() if parents else None,
+            allowed_parents = allowed_parents,
+        )
+
+
 class ShowHTMLproperty(myRequestHandler, Entity):
     @web.authenticated
     def get(self, entity_id, dataproperty):
@@ -571,6 +591,7 @@ handlers = [
     (r'/entity-(.*)/add/(.*)', ShowEntityAdd),
     (r'/entity-(.*)/share', ShareByEmail),
     (r'/entity-(.*)/rights', EntityRights),
+    (r'/entity-(.*)/parents', EntityParents),
     (r'/entity-(.*)/html-(.*)', ShowHTMLproperty),
     (r'/entity-(.*)/download', DownloadEntity),
     (r'/entity-(.*)', ShowEntity),

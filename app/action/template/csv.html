@@ -4,16 +4,16 @@
             <th>
                 {{ _('action_add_csv_file') }}
             </th>
-            <td>
+            <td style="padding:8px;">
                 <img id="csv-spinner" src="{{ static_url('images/spinner_white.gif') }}" style="display:none;" />
                 <form id="csv-form" method="post" action="/action/csv/upload" target="csv-iframe" enctype="multipart/form-data" style="margin:0px; padding:0px;">
-                    <input type="file" name="file" class="csv-file" title="{{ _('add_files_computer') }}" data-bfi-disabled />
+                    <input type="file" name="file" class="csv-file" title="{{ _('add_files_computer') }}"  style="margin:0px; padding:0px;" data-bfi-disabled />
                 </form>
             </td>
         <tr>
     </tbody>
 </table>
-<iframe name="csv-iframe" height="0" width="0" frameborder="0" scrolling="no" onLoad="showCSV(this.contentWindow.document.body.innerHTML);" style="display:none;"></iframe>
+<iframe name="csv-iframe" height="0" width="0" frameborder="0" scrolling="no" onLoad="showCSV(this.contentDocument.body.textContent);" style="display:none;"></iframe>
 
 <script>
     function showCSV(file_id){

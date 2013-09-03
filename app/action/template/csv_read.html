@@ -16,10 +16,18 @@
             <tr>
             <tr>
                 <th>
+                    {{ _('action_add_csv_encoding') }}
+                </th>
+                <td>
+                    <span style="padding:8px; font-style:italic; color:gray;">{{ encoding }}</span>
+                </td>
+            <tr>
+            <tr>
+                <th>
                     {{ _('action_add_csv_delimiter') }}
                 </th>
                 <td>
-                    <input type="text" id="delimiter" name="delimiter" maxlength="1" value="{{ delimiter }}" />
+                    <input type="text" id="delimiter" class="resubmit" name="delimiter" maxlength="1" value="{{ delimiter }}" />
                 </td>
             <tr>
             <tr>
@@ -30,6 +38,21 @@
                     <input type="text" id="first_row" name="first_row" maxlength="2" value="{{ first_row }}" />
                 </td>
             <tr>
+            <!--tr>
+                <th>
+                    {{ _('action_add_csv_encoding') }}
+                </th>
+                <td>
+                    <select type="text" id="encoding" class="resubmit" name="encoding" style="width:100%;">
+                        <option value="utf8"{% if encoding == 'utf8' %} selected{% end %}>UTF-8</option>
+                        <option value="Windows-1252"{% if encoding == 'Windows-1252' %} selected{% end %}>Western (Windows Latin 1)</option>
+                    </select>
+                </td-->
+            <tr>
+        </tbody>
+    </table>
+    <table class="edit-form table table-bordered" style="margin:30px 0px 50px 0px;">
+        <tbody>
             {% for p in sorted(properties, key=itemgetter('ordinal')) %}
             <tr>
                 <th>
@@ -63,7 +86,7 @@
 <script>
     $(document).ready(function(){
 
-        $('select.csv-field').select2();
+        $('select').select2();
 
         $('#first_row').change(function() {
             if ($(this).val() < 1) {
@@ -75,13 +98,13 @@
             $('#csv-submit').html('{{ _('action_add_csv_do_import') % '@@' }}'.replace('@@', {{ row_count }}-$(this).val()+1))
         });
 
-        $('#delimiter').change(function() {
-            delimiter = $(this).val();
+        $('.resubmit').change(function() {
             if(delimiter) {
                 $.post('/action/csv/read', {
                     file_id: {{ file_id }},
-                    delimiter: delimiter,
+                    delimiter: $('#delimiter').val(),
                     first_row: $('#first_row').val(),
+                    // encoding: $('#encoding').val(),
                     entity_definition_keyname: '{{ entity_definition_keyname }}',
                     parent_entity_id: {{ parent_entity_id }}
                 }, function(data) {

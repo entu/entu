@@ -90,6 +90,7 @@ action_add_csv_file,CSV file
 action_add_csv_delimiter,Delimiter
 action_add_csv_first_row,First row
 action_add_csv_do_import,Import %s rows
+action_add_csv_encoding,Encoding
 
 user_preferences,User preferences
 user_name,Name

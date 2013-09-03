@@ -89,6 +89,7 @@ action_add_csv_file,CSV fail
 action_add_csv_delimiter,Väljade eraldaja
 action_add_csv_first_row,Alusta reast
 action_add_csv_do_import,Impordi %s rida
+action_add_csv_encoding,Kooditabel
 
 user_preferences,Kasutaja seaded
 user_name,Nimi
