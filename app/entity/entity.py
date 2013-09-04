@@ -218,7 +218,7 @@ class ShowEntityEdit(myRequestHandler, Entity):
             entity = item,
             parent_entity_id = '',
             entity_definition_keyname = '',
-            actions = [],
+            actions = ['default'],
             open_after_add = False,
         )
 

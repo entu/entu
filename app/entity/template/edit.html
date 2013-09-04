@@ -5,7 +5,7 @@
     <h3>{{ entity.get('displayname', '') }}</h3>
 </div>
 <div class="modal-body">
-    {% if actions %}
+    {% if actions and actions != ['default'] %}
         <ul class="nav nav-tabs" data-intro="{{ _('edit_help_tabs') }}" data-position="left">
             {% for idx, action in enumerate(actions) %}
                 <li{% if idx == 0 %} class="active"{% end %}><a href="#{{ action }}" data-toggle="tab">{{ _('action_add_%s' % action) }}</a></li>
