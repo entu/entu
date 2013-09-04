@@ -6,7 +6,7 @@
 </div>
 <div class="modal-body">
     {% if actions and actions != ['default'] %}
-        <ul class="nav nav-tabs" data-intro="{{ _('edit_help_tabs') }}" data-position="left">
+        <ul class="nav nav-tabs" data-intro="{{ _('edit_help_tabs') }}" data-position="left" style="margin-top:0px !important; padding-top:0px; background: #f5f5f5;">
             {% for idx, action in enumerate(actions) %}
                 <li{% if idx == 0 %} class="active"{% end %}><a href="#{{ action }}" data-toggle="tab">{{ _('action_add_%s' % action) }}</a></li>
             {% end %}
