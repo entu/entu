@@ -1860,10 +1860,9 @@ def sortableInteger(s_integer):
 
 
 def sortableDecimal(s_decimal):
-    # logging.debug(s_decimal)
-    formatted_decimal = '%016.4f' % s_decimal
-    # logging.debug(formatted_decimal)
-    return formatted_decimal
+    if not s_decimal:
+        return ''
+    return '%016.4f' % s_decimal
 
 
 def formatDatetime(date, format='%(day)02d.%(month)02d.%(year)d %(hour)02d:%(minute)02d'):
