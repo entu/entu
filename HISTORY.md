@@ -1,3 +1,7 @@
+## 2013-09-05
+* Upload files by URL
+* Small fixes
+
 ## 2013-09-04
 * Add and delete Entity parents (relations only)
 * CSV importer now autodetects file encoding and separator
