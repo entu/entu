@@ -25,7 +25,7 @@ class PublicHandler(myRequestHandler, Entity):
 
 
         self.render('public/template/start.html',
-            paths = get_paths(self, self.get_user_locale()),
+            paths = self.get_public_paths(),
             path = path,
             search = '',
             entity_definitions = get_definitions(self, path)
@@ -72,7 +72,7 @@ class PublicSearchHandler(myRequestHandler, Entity):
         self.render('public/template/list.html',
             entities = sorted(items, key=itemgetter('name')) ,
             itemcount = itemcount,
-            paths = get_paths(self, self.get_user_locale()),
+            paths = self.get_public_paths(),
             path = path,
             search = urllib.unquote_plus(search),
         )
@@ -124,7 +124,7 @@ class PublicAdvancedSearchHandler(myRequestHandler, Entity):
                     sql += ' AND value_datetime <= \'%s\'' % self.get_argument('e%s' % p['keyname']).replace('\'', '\\\'')
 
             if sql:
-                sql = 'SELECT DISTINCT entity.id FROM property, entity WHERE entity.id = property.entity_id AND entity.entity_definition_keyname = \'%s\' AND property.property_definition_keyname = \'%s\' AND entity.public = 1 %s' % (entity_definition_keyname, p['keyname'], sql)
+                sql = 'SELECT DISTINCT entity.id FROM property, entity WHERE entity.id = property.entity_id AND entity.entity_definition_keyname = \'%s\' AND property.property_definition_keyname = \'%s\' AND entity.sharing = \'public\' %s' % (entity_definition_keyname, p['keyname'], sql)
                 logging.debug(sql)
                 ids = [x.id for x in self.db.query(sql)]
                 if entity_ids == None:
@@ -156,7 +156,7 @@ class PublicAdvancedSearchHandler(myRequestHandler, Entity):
         self.render('public/template/list.html',
             entities = sorted(items, key=itemgetter('name')) ,
             itemcount = itemcount,
-            paths = get_paths(self, self.get_user_locale()),
+            paths = self.get_public_paths(),
             path = path,
             search = '',
         )
@@ -180,7 +180,7 @@ class PublicEntityHandler(myRequestHandler, Entity):
         self.render('public/template/item.html',
             page_title = item['displayname'],
             entity = item,
-            paths = get_paths(self, self.get_user_locale()),
+            paths = self.get_public_paths(),
             path = path,
             search = '',
         )
@@ -210,10 +210,6 @@ class PublicFileHandler(myRequestHandler, Entity):
         self.add_header('Content-Type', mime)
         self.add_header('Content-Disposition', 'inline; filename="%s"' % file.filename)
         self.write(file.file)
-
-
-def get_paths(rh, user_locale):
-    return rh.db.query('SELECT DISTINCT public_path AS path, %s_public AS label FROM entity_definition WHERE public_path IS NOT NULL ORDER BY public_path;' % user_locale.code)
 
 
 def get_definitions(rh, path):

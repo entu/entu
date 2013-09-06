@@ -8,8 +8,8 @@
 
 {% block right_toolbar %}
     <ul class="nav pull-right">
-    {% for p in paths %}
-        <li class="{% if path == p.path %} active{% end %}"><a href="/public-{{ p.path }}{% if search %}/search/{{ search }}{% end %}">{{ p.label }}</a></li>
+    {% for p, l in paths.iteritems() %}
+        <li class="{% if path == p %} active{% end %}"><a href="/public-{{ p }}{% if search %}/search/{{ search }}{% end %}">{{ l }}</a></li>
     {% end %}
     </ul>
 {% end %}

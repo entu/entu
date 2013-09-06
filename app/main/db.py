@@ -1389,6 +1389,17 @@ class Entity():
 
         return defs
 
+    def get_public_paths(self):
+        """
+        Returns public paths with labels
+
+        """
+
+        paths = {}
+        for i in self.db.query('SELECT DISTINCT keyname, public_path FROM entity_definition WHERE public_path IS NOT NULL ORDER BY public_path;'):
+            paths[i.public_path] = self.__get_system_translation(field='public', entity_definition_keyname=i.keyname)
+        return paths
+
     def get_menu(self):
         """
         Returns user menu.
