@@ -580,7 +580,7 @@ class Entity():
 
         if search != None:
             i = 0
-            for s in search.split(' '):
+            for s in search.split(' ')[:5]:
                 if not s:
                     continue
                 i += 1
