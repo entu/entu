@@ -46,6 +46,19 @@ def updateFormulas(entity_id, user_locale, user_id):
         self.set_property(entity_id=entity_id, old_property_id = row.id, property_definition_keyname = row.property_definition_keyname, value = row.value_formula)
 
 
+class updateValueReferenceDisplayField(myRequestHandler, Entity):
+    @web.authenticated
+    def get(self):
+        if self.current_user.email not in ['argoroots@gmail.com', 'mihkel.putrinsh@gmail.com']:
+            return
+
+        for e in self.get_entities(entity_id = [x.get('value_reference') for x in self.db.query('SELECT DISTINCT value_reference FROM property WHERE value_reference IS NOT NULL;') if x.get('value_reference')]):
+            # logging.debug(e.get('displayname',''))
+            # logging.debug(e.get('id'))
+            self.db.execute('UPDATE property SET value_string = %s WHERE value_reference = %s', e.get('displayname',''), e.get('id'))
+
+
+
 def updateFormulasRecursive(entity_id, user_locale, user_id):
     updateFormulas(entity_id, user_locale, user_id)
     for e_id in self.get_relatives(ids_only=True, entity_id=entity_id, relationship_definition_keyname='child'):
@@ -53,6 +66,7 @@ def updateFormulasRecursive(entity_id, user_locale, user_id):
 
 
 handlers = [
+    (r'/update/display-refence', updateValueReferenceDisplayField),
     (r'/update/formula/(.*)', UpdateFormulasWeb),
     (r'/update/formulas/(.*)/(.*)', UpdateFormulasByDefinitionWeb),
     (r'/update/formulas-rec/(.*)', UpdateFormulasRecursiveWeb),
