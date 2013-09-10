@@ -35,6 +35,7 @@ app_controllers = [
     'screenwerk.screenwerk',
     'update.update',
     'main.config',
+    'main.status',
     'user.auth',
     'user.user',
 ]
@@ -54,44 +55,6 @@ class PageNotFound(myRequestHandler):
     """
     def get(self, page=None):
         self.missing()
-
-
-class ShowStatus(myRequestHandler):
-    @web.removeslash
-    def get(self, url):
-        self.add_header('Content-Type', 'text/plain; charset=utf-8')
-
-        status = {}
-        if url == '/database':
-            for s in self.settings['hosts'].values():
-                db_connection = torndb.Connection(
-                    host        = s['database']['host'],
-                    database    = s['database']['database'],
-                    user        = s['database']['user'],
-                    password    = s['database']['password'],
-                )
-                size = db_connection.get('SELECT SUM(table_rows) AS table_rows,  SUM(data_length) AS data_length, SUM(index_length) AS index_length FROM information_schema.TABLES;')
-                status.setdefault('Entu databases', {})[s['database']['database']] = {
-                    'data': GetHumanReadableBytes(size.data_length, 2),
-                    'index': GetHumanReadableBytes(size.index_length, 2),
-                    'total': GetHumanReadableBytes(size.data_length+size.index_length, 2),
-                }
-        else:
-            status = {
-                'Entu service %s' % self.settings['port']: {
-                    'uptime': str(datetime.timedelta(seconds=round(time.time() - self.settings['start_time']))),
-                    'requests': {
-                        'time': '%0.3fms' % round(float(self.settings['request_time'])/float(self.settings['request_count'])*1000, 3) if self.settings['request_count'] else 0,
-                        'count': self.settings['request_count'],
-                    },
-                    'slow_requests': {
-                        'time': '%0.3fs' % round(float(self.settings['slow_request_time'])/float(self.settings['slow_request_count']), 3) if self.settings['slow_request_count'] else 0,
-                        'count': self.settings['slow_request_count'],
-                    }
-                }
-            }
-
-        self.write(yaml.safe_dump(status, default_flow_style=False, allow_unicode=True))
 
 
 class myApplication(tornado.web.Application):
@@ -133,7 +96,6 @@ class myApplication(tornado.web.Application):
             handlers.extend(c.handlers)
             for h in c.handlers:
                 settings_static.setdefault('paths', {}).setdefault('%s.py' % controller, []).append(h[0])
-        handlers.append((r'/status(.*)', ShowStatus))
         handlers.append((r'(.*)', PageNotFound))
 
         # merge command line and static settings
