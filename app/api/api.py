@@ -15,7 +15,7 @@ from main.helper import *
 from main.db import *
 
 
-class GetEntityList (myRequestHandler):
+class GetEntityList(myRequestHandler, Entity):
     """
     API search for entities based on keywords,entity type and dataproperty.
 
@@ -148,7 +148,7 @@ class GetEntityList (myRequestHandler):
             self.write(json.dumps(result, cls=JSONDateFix))
 
 
-class GetEntity (myRequestHandler):
+class GetEntity(myRequestHandler, Entity):
     """
     Returns entity by entity_id.
 
@@ -221,7 +221,7 @@ class GetEntity (myRequestHandler):
 
         self.write(json.dumps(result, cls=JSONDateFix))
 
-class GetEntityDefinition(myRequestHandler):
+class GetEntityDefinition(myRequestHandler, Entity):
 
     """
     Returns all the properties as templates that an entity with a specified definition_keyname can possess.
@@ -277,7 +277,7 @@ class GetEntityDefinition(myRequestHandler):
         self.write(json.dumps(result, cls=JSONDateFix))
 
 
-class GetAllowedChildren(myRequestHandler):
+class GetAllowedChildren(myRequestHandler, Entity):
     """
     Returns allowed child-entity definitions, when entity_id is provided
 
@@ -350,7 +350,7 @@ class GetAllowedChildren(myRequestHandler):
         self.write(json.dumps(result, cls=JSONDateFix))
 
 
-class SaveEntity(myRequestHandler):
+class SaveEntity(myRequestHandler, Entity):
     """
     API save entity function.
     Needs entity ID and optionally parent ID.
@@ -431,7 +431,7 @@ class SaveEntity(myRequestHandler):
         else:
             raise web.HTTPError(400, 'To create a new Entity entity_definition_keyname is required.')
 
-class SaveProperty(myRequestHandler):
+class SaveProperty(myRequestHandler, Entity):
     """
     Add or edit property value.
     Creates new one if property_id = None, otherwise changes existing.
@@ -583,7 +583,7 @@ class SaveProperty(myRequestHandler):
             raise web.HTTPError(400, 'Entity ID and one of [property_definition_keyname,property_id] required')
 
 
-class SaveProperties(myRequestHandler):
+class SaveProperties(myRequestHandler, Entity):
 
     def get(self):
 
@@ -627,7 +627,7 @@ class SaveProperties(myRequestHandler):
         self.write(json.dumps(property_id_list, cls=JSONDateFix))
 
 
-class GetFile(myRequestHandler):
+class GetFile(myRequestHandler, Entity):
     @web.authenticated
     def get(self):
         """
@@ -669,7 +669,7 @@ class GetFile(myRequestHandler):
         self.write(file.file)
 
 
-class GetSession(myRequestHandler):
+class GetSession(myRequestHandler, Entity):
     """
 
     Creates new session for authenticated user.
@@ -682,10 +682,10 @@ class GetSession(myRequestHandler):
     @web.authenticated
     def get(self):
 
-        self.write(json.dumps({'session_key': self.session_key}, cls=JSONDateFix))
+        self.write(json.dumps({'session_key': self.current_user.get('session_key')}, cls=JSONDateFix))
 
 
-class Logout(myRequestHandler):
+class Logout(myRequestHandler, Entity):
     """
     Log out.
 
