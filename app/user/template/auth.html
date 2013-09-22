@@ -23,22 +23,22 @@
 {% block content %}
     <div class="container" style="">
         {% if mobileid %}
-            <div id="mobileid-check" class="well span3 offset4" style="margin-top:150px; text-align:center; display:none;">
+            <div id="login-mid" class="login-box" style="display:none;">
                 <h2 id="mobileid-code"></h2>
-                Kontrollige, et näete oma mobiiltelefoni ekraanil täpselt sama numbrit ning seejärel sisestage Mobiil-ID PIN1.<br />
+                <span style="padding: 0px 20px;">{{ _('log_in_mid_message') }}</span>
                 <h2><i class="icon-spinner icon-spin"></i></h2>
                 <button id="mobileid-cancel" class="btn btn-link" type="button">{{ _('log_in_mid_cancel') }}</button>
             </div>
         {% end %}
-        <div id="authenticators" class="well span3 offset4" style="margin-top:150px; text-align:center;">
+        <div id="login-authenticators" class="login-box">
             <h2>{{ _('log_in') }}</h2>
-            <table class="table table-bordered table-condensed" style="width:100%; background-color:white; margin-top:20px;">
+            <table class="table" style="width:100%; margin-top:20px; background:white;">
                 {% if mobileid %}
                     <tr class="mobileid">
-                        <td style="vertical-align:middle;">
+                        <td style="vertical-align:middle; border-top: none;">
                             <a class="no-underline" href="javascript:void(0);" style="display:block; text-align:right;"><i class="icon-mobile-phone" style="padding-right:5px; font-size:24px; line-height:24px; color:#F04822;"></i></a>
                         </td>
-                        <td style="vertical-align:middle; border-left:none;">
+                        <td style="vertical-align:middle; border-left:none; border-top: none;">
                             <a class="no-underline" href="javascript:void(0);" style="display:block; color:black; font-weight:bold;">Mobiil-ID</a>
                         </td>
                     </tr>
@@ -92,7 +92,7 @@
                     </tr>
                 {% end %}
             </table>
-            <div class="muted" style="text-align:justify;">
+            <div class="muted" style="position:absolute; text-align:center; bottom:0px; padding:20px;">
                 <small>{{ _('log_in_info') }}</small>
             </div>
         </div>
@@ -106,16 +106,16 @@
 
                 $('.mobileid').click(function() {
                     $('#mobileid-input').toggle();
-                    $('#mobileid-input').addClass('success');
+                    $('#mobileid-input').addClass('info');
                     $('#mobileid-phone').focus();
                 });
 
                 $('.mobileid').hover(function() {
-                    $('#mobileid-input').addClass('success');
+                    $('#mobileid-input').addClass('info');
                 });
 
                 $('#mobileid-input').hover(function() {
-                    $(this).prev().addClass('success');
+                    $(this).prev().addClass('info');
                 });
 
                 mobile_id_inprogress = false;
@@ -131,8 +131,8 @@
                                 $('#mobileid-code').html(data.code);
                                 $('#mobileid-code').data('session', data.session);
                                 $('#mobileid-code').data('file', data.file);
-                                $('#authenticators').hide();
-                                $('#mobileid-check').show();
+                                $('#login-authenticators').hide();
+                                $('#login-mid').show();
                                 setTimeout(mobile_id_check, 5000);
                             } else {
                                 $('#mobileid-phone').select();
@@ -164,16 +164,16 @@
                     $('#mobileid-phone').val('')
                     $('#mobileid-input').hide();
                     $('#mobileid-code').html('');
-                    $('#mobileid-check').hide();
-                    $('#authenticators').show();
+                    $('#login-mid').hide();
+                    $('#login-authenticators').show();
                 });
 
             {% end %}
 
             $('tr').hover(function() {
-                $(this).addClass('success');
+                $(this).addClass('info');
             }, function() {
-                $('tr').removeClass('success');
+                $('tr').removeClass('info');
             });
 
         });
