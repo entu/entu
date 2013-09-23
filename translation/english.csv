@@ -86,7 +86,7 @@ rights_help_add,"Quisque turpis tortor, cursus in feugiat vel, aliquet vitae ero
 
 action_add_default,Manually
 action_add_ester,Import from Ester
-action_add_ester_search_placeholder,"Title, ISBN or URL"
+action_add_ester_search_placeholder,"Title, ISBN or Ester's permalink"
 action_add_ester_add,Add
 action_add_ester_open,Open
 action_add_ester_help_search,"Donec pharetra, sem quis pellentesque convallis, ligula neque dignissim tellus, non laoreet dolor neque nec felis. Etiam id eleifend nunc."

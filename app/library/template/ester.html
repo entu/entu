@@ -6,18 +6,18 @@
 <div class="row" style="text-align:center; margin-bottom:10px; margin-top:20px;">
     <img src="{{ static_url('images/spinner_white.gif') }}" id="search-spinner" style="padding:40px; display:none; " />
 </div>
-<table id="search-results" class="table" style="margin:0px;">
+<table id="search-results" class="table" style="margin:0px 0px 50px 0px;">
 </table>
 
 <script>
 
-    function importItem(ester_id, parent_entity_id, entity_definition_keyname) {
+    function importItem(file_id, parent_entity_id, entity_definition_keyname) {
         $('#modal-box').modal('hide');
         $('#modal-box').html('');
         $.post('/action/ester/import', {
-            ester_id: ester_id,
-            parent_entity_id: parent_entity_id,
-            entity_definition_keyname: entity_definition_keyname,
+            'file_id': file_id,
+            'parent_entity_id': parent_entity_id,
+            'entity_definition_keyname': entity_definition_keyname,
         },
         function(new_id) {
             window.location = '/entity/{{ entity_definition_keyname }}/'+new_id;
@@ -52,11 +52,17 @@
                 		for (i in list.items) {
                             var item = list.items[i];
                             var tr = '<tr>';
-                            tr += '<td style="width:100%;"><b>'+item.title[0]+'</b><br />'+item.publishing_date[0]+'<br /><i>'+item.isbn[0]+'</i></td>';
+                            tr += '<td style="width:100%;">';
+                            if(item.title) tr += '<b>'+item.title.join('<br />')+'</b><br />';
+                            if(item.subtitle) tr += '<i>'+item.subtitle.join(', ')+'</i></td>';
+                            if(item.author) tr += '<b>'+item.author.join(', ')+'</b><br />';
+                            if(item.year) tr += item.year.join(', ')+'<br />';
+                            if(item.isbn) tr += '<i>'+item.isbn.join(', ')+'</i>';
+                            tr += '</td>';
                             if(item.entity_id) {
                                 tr += '<td><a href="javascript:openItem(\''+item.entity_definition_keyname+'\','+item.entity_id+');" class="btn btn-info">{{ _('action_add_ester_open') }}</a></td>';
                             } else {
-                                tr += '<td><a href="javascript:importItem(\''+item.id+'\',{{ parent_entity_id }},\'{{ entity_definition_keyname }}\');" class="btn btn-success">{{ _('action_add_ester_add') }}</a></td>';
+                                tr += '<td><a href="javascript:importItem('+item.file_id+',{{ parent_entity_id }},\'{{ entity_definition_keyname }}\');" class="btn btn-success">{{ _('action_add_ester_add') }}</a></td>';
                             }
                             tr += '</tr>';
                             $('#search-results').append(tr);

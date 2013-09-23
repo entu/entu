@@ -2,49 +2,50 @@
 
 from tornado import auth
 from tornado import web
-from tornado import httpclient
-from bs4 import BeautifulSoup
+from operator import itemgetter
+from PyZ3950 import zoom
 
 import logging
+import json
 
-from HTMLParser import HTMLParser
 
 from main.helper import *
 from main.db import *
 
 #http://www.loc.gov/marc/bibliographic/
 MARCMAP = {
-    '020':  'isn',
-    '022':  'isn',
-    '041':  'language',
-    '041h': 'original-language',
-    '072':  'udc',
-    '080':  'udc',
-    '100':  'author',
-    '245':  'title',
+     '20a': 'isn',
+     '22a': 'isn',
+     '41a': 'language',
+     '41h': 'original-language',
+     '72a': 'udc',
+     '80a': 'udc',
+    '100a': 'author',
+    '245a': 'title',
     '245b': 'subtitle',
     '245p': 'subtitle',
     '245n': 'number',
-    '250':  'edition',
-    '260':  'publishing-place',
+    '250a': 'edition',
+    '260a': 'publishing-place',
     '260b': 'publisher',
     '260c': 'publishing-date',
-    '300':  'pages',
+    '300a': 'pages',
     '300c': 'dimensions',
-    '440':  'series',
+    '440a': 'series',
     '440p': 'series',
     '440n': 'series-number',
     '440v': 'series-number',
-    '500':  'notes',
-    '501':  'notes',
-    '502':  'notes',
-    '504':  'notes',
-    '505':  'notes',
-    '520':  'notes',
-    '525':  'notes',
-    '530':  'notes',
-    '650':  'tag',
-    '655':  'tag',
+    '500a': 'notes',
+    '501a': 'notes',
+    '502a': 'notes',
+    '504a': 'notes',
+    '505a': 'notes',
+    '520a': 'notes',
+    '525a': 'notes',
+    '530a': 'notes',
+    '650a': 'tag',
+    '655a': 'tag',
+    '907a': 'ester-id',
 }
 
 AUTHORMAP = {
@@ -62,85 +63,48 @@ class EsterSearch(myRequestHandler, Entity):
     """
     """
     @web.authenticated
-    @web.asynchronous
     def post(self):
         search_term = self.get_argument('query', default='', strip=True)
         if not search_term:
             return
 
-        if search_term[:24] == 'http://tallinn.ester.ee/':
-            url = search_term
-        else:
-            search_isbn = False
-            if len(search_term) == 10 and search_term[:9].isdigit():
-                search_isbn = True
-            if len(search_term) == 13 and search_term.isdigit():
-                search_isbn = True
+        search_term = search_term.encode('utf-8').replace('http://tallinn.ester.ee/record=', '').replace('~S1*est', '')
 
-            if search_isbn == True:
-                url = 'http://tallinn.ester.ee/search*est/i?SEARCH=%s&searchscope=1&SUBMIT=OTSI' % search_term.replace(' ', '')
-            else:
-                url = 'http://tallinn.ester.ee/search*est/X?SEARCH=%s&searchscope=1&SUBMIT=OTSI' % search_term.replace(' ', '+')
+        logging.debug(search_term)
 
-        response = httpclient.AsyncHTTPClient().fetch(url, callback=self._got_list, request_timeout=60)
+        conn = zoom.Connection('tallinn.ester.ee', 212)
+        conn.databaseName = 'INNOPAC'
+        conn.preferredRecordSyntax = 'USMARC'
 
-    @web.asynchronous
-    def _got_list(self, response):
-        if not response.body:
-            self.write({'items': []})
-            self.finish()
-            return
+        query = zoom.Query('PQF', '@or @attr 1=4 "%(st)s" @or @attr 1=7 "%(st)s" @attr 1=12 "%(st)s"' % {'st': search_term})
+        res = conn.search(query)
 
-        soup = BeautifulSoup(response.body.decode('utf-8', 'ignore'))
+        results = []
+        for r in res:
+            results.append('%s' % r)
+        results = list(set(results))
 
         items = []
-        id = soup.find('a', attrs={'id': 'recordnum'})
-        if id:
-            id = id['href'].replace('http://tallinn.ester.ee/record=', '').replace('~S1', '').replace('*est', '').strip()
-            httpclient.AsyncHTTPClient().fetch('http://tallinn.ester.ee/search~S1?/.'+id+'/.'+id+'/1,1,1,B/marc~'+id, callback=self._got_one)
-        else:
-            for i in soup.find_all('table', class_='browseList'):
-                cells = i.find_all('td')
-                ester_id = cells[0].input['value'].strip()
-                title = cells[1].span.a.contents[0].strip()
-                isbn = cells[1].find(text='ISBN/ISSN').next.strip(':&nbsp;\n ').strip()
-                year = cells[4].contents[0].strip().strip('c')
-                entity = GetExistingID(self, ester_id)
-                items.append({
-                    'id': ester_id,
-                    'entity_id': entity.get('entity_id'),
-                    'entity_definition_keyname': entity.get('entity_definition_keyname'),
-                    'isbn': [isbn],
-                    'title': [title],
-                    'publishing_date': [year],
-                })
-            self.write({'items': items})
-            self.finish()
+        for i in results:
+            item = ParseMARC(i)
 
-    @web.asynchronous
-    def _got_one(self, response):
-        if not response.body:
-            self.write({'items': []})
-            self.finish()
-            return
+            file_name = 'ester-%s' % item.get('ester-id', [''])[0]
+            file_id = self.db.execute_lastrowid('INSERT INTO tmp_file SET filename = %s, file = %s, created_by = %s, created = NOW();', file_name, json.dumps(item), self.current_user.id)
 
-        marc = response.body.split('<pre>')[1].split('</pre>')[0].strip()
-        item = ParseMARC(marc)
-        ester_id = response.effective_url.split('/marc~')[1]
-        entity = GetExistingID(self, ester_id)
+            entity = GetExistingID(self, item.get('ester-id', [''])[0])
 
-        items = []
-        items.append({
-            'id': ester_id,
-            'entity_id': entity.get('entity_id'),
-            'entity_definition_keyname': entity.get('entity_definition_keyname'),
-            'isbn': item.get('isn', []),
-            'title': ['%s / %s' % (item.get('title', [''])[0], item.get('author', [''])[0])],
-            'publishing_date': item.get('publishing-date', []),
-        })
+            items.append({
+                'file_id': file_id,
+                'entity_id': entity.get('entity_id'),
+                'entity_definition_keyname': entity.get('entity_definition_keyname'),
+                'title': item.get('title'),
+                'subtitle': item.get('subtitle'),
+                'author': item.get('author'),
+                'year': item.get('publishing-date'),
+                'isbn': item.get('isn'),
+            })
 
-        self.write({'items': items})
-        self.finish()
+        self.write({'items': sorted(items, key=itemgetter('title', 'year'))})
 
 
 class EsterImport(myRequestHandler, Entity):
@@ -148,27 +112,25 @@ class EsterImport(myRequestHandler, Entity):
     """
     @web.authenticated
     def post(self):
-        ester_id                  = self.get_argument('ester_id', default=None, strip=True)
+        file_id                   = self.get_argument('file_id', default=None, strip=True)
         parent_entity_id          = self.get_argument('parent_entity_id', default=None, strip=True)
         entity_definition_keyname = self.get_argument('entity_definition_keyname', default=None, strip=True)
-        if not ester_id or not parent_entity_id or not entity_definition_keyname:
+
+        if not file_id or not parent_entity_id or not entity_definition_keyname:
             return
 
-        entity = GetExistingID(self, ester_id)
+        tmp_file = self.db.get('SELECT file FROM tmp_file WHERE id = %s LIMIT 1;', file_id)
+        if not tmp_file:
+            return
+
+        if not tmp_file.file:
+            return
+
+        item = json.loads(tmp_file.file)
+        entity = GetExistingID(self, item.get('ester-id', [''])[0])
+
         if entity.get('entity_id'):
             return self.write(str(entity.get('entity_id')))
-
-        response = httpclient.HTTPClient().fetch('http://tallinn.ester.ee/search~S1?/.'+ester_id+'/.'+ester_id+'/1,1,1,B/marc~'+ester_id)
-
-        marc = response.body.split('<pre>')[1].split('</pre>')[0].strip()
-        # item = ParseMARC(HTMLParser().unescape((marc))
-        item = ParseMARC(marc)
-        if not item:
-            return
-
-        item['ester-id'] = ester_id
-
-        # logging.debug(str(item))
 
         entity_id = self.create_entity(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
 
@@ -188,17 +150,6 @@ class EsterImport(myRequestHandler, Entity):
         self.write(str(entity_id))
 
 
-class EsterTest(myRequestHandler):
-    """
-    """
-    @web.authenticated
-    def get(self, ester_id):
-        response = httpclient.HTTPClient().fetch('http://tallinn.ester.ee/search~S1?/.'+ester_id+'/.'+ester_id+'/1,1,1,B/marc~'+ester_id)
-
-        marc = response.body.split('<pre>')[1].split('</pre>')[0].strip()
-        self.write(ParseMARC(marc))
-
-
 def GetExistingID(rh, ester_id):
     entity = rh.db.get('SELECT property.entity_id, entity.entity_definition_keyname FROM property, entity, property_definition WHERE entity.id = property.entity_id AND property_definition.keyname = property.property_definition_keyname AND property_definition.dataproperty = \'ester-id\' AND property.value_string = %s AND property.is_deleted = 0 AND entity.is_deleted = 0 LIMIT 1', ester_id)
     if not entity:
@@ -208,49 +159,32 @@ def GetExistingID(rh, ester_id):
 
 
 def ParseMARC(data):
+    marc = {}
     result = {}
-    rows = []
-    rownum = 0
-    for row in data.strip().split('\n'):
-        if row[:7].strip():
-            rownum += 1
-            rows.append(row)
-        else:
-            rows[rownum-1] += row[7:]
+    for row in data.strip().split('\n')[1:]:
+        key = row.split(' ')[0]
+        start = row.find('$')
+        if start < 0:
+            continue
+        values = row[start+1:].split('$')
 
-    for row in rows:
-        key = row[:3]
-        values = row[7:].split('|')
+        kv = {}
+        for v in values:
+            if not v:
+                continue
+            kv.setdefault(v[0], []).append(CleanData(v[1:], key+v[0]))
+        marc.setdefault(key, []).append(kv)
 
-        if key in ['700']:
-            if values[0]:
-                tag = 'author'
-                tag_value = CleanData(values[0])
-                for v in values[1:]:
-                    if v:
-                        if v[0] == 'e':
-                            tag = CleanData(v[1:])
-                            if tag in AUTHORMAP:
-                                tag = AUTHORMAP[tag]
-                            else:
-                                tag = toURL(tag)
-                if tag not in result:
-                    result[tag] = []
-                result[tag].append(tag_value)
-        else:
-            if values[0]:
-                if key in MARCMAP:
-                    tag = MARCMAP[key]
-                    if tag not in result:
-                        result[tag] = []
-                    result[tag].append(CleanData(values[0], tag))
-            for v in values[1:]:
-                if v:
-                    if key+v[0] in MARCMAP:
-                        tag = MARCMAP[key+v[0]]
-                        if tag not in result:
-                            result[tag] = []
-                        result[tag].append(CleanData(v[1:], tag))
+    for k1, ml in marc.iteritems():
+        for m in ml:
+            if k1 == '700' and m.get('a'):
+                result.setdefault(AUTHORMAP.get(m.get('e', [''])[0], m.get('e', ['author'])[0]), []).append(m.get('a', [''])[0])
+            else:
+                for k2, v in m.iteritems():
+                    if not MARCMAP.get(k1+k2):
+                        continue
+                    for i in v:
+                        result.setdefault(MARCMAP.get(k1+k2), []).append(i)
     return result
 
 
@@ -258,66 +192,14 @@ def CleanData(value, tag=None):
     value = value.decode('utf-8').strip(' /,;:')
     if value[0:1] == '[' and value[-1] == ']':
         value = value[1:][:-1]
-    if tag == 'publishing-date' and not value[0:1].isdigit():
+    if tag == '260c' and not value[0:1].isdigit():
         value = value[1:]
+    if tag == '907a':
+        value = value.strip('.')
     return value
-
-
-def unescape(text):
-    def fixup(m):
-        text = m.group(0)
-        if text[:2] == "&#":
-            # character reference
-            try:
-                if text[:3] == "&#x":
-                    return unichr(int(text[3:-1], 16))
-                else:
-                    return unichr(int(text[2:-1]))
-            except ValueError:
-                pass
-        else:
-            # named entity
-            try:
-                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
-            except KeyError:
-                pass
-        return text # leave as is
-    return re.sub("&#?\w+;", fixup, text)
-
-
-def GetType(record):
-
-    if '000' in record:
-        a = record['000'][0]['a'][6:7]
-        b = record['000'][0]['a'][7:8]
-
-        if a == 'a':
-            if 'acdm'.find(b) > 0:
-                return 'book'
-            if 'bis'.find(b) > 0:
-                return 'series'
-
-        if a == 't':
-            return 'book'
-
-        if a == 'p':
-            return 'mixed'
-
-        if a == 'm':
-            return 'file'
-
-        if 'ef'.find(a) > 0:
-            return 'map'
-
-        if 'gkor'.find(a) > 0:
-            return 'visual'
-
-        if 'sdij'.find(a) > 0:
-            return 'music'
 
 
 handlers = [
     ('/action/ester/search', EsterSearch),
     ('/action/ester/import', EsterImport),
-    ('/action/ester/test/(.*)', EsterTest),
 ]

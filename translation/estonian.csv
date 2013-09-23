@@ -85,7 +85,7 @@ rights_help_add,"Quisque turpis tortor, cursus in feugiat vel, aliquet vitae ero
 
 action_add_default,Käsitsi
 action_add_ester,Impordi Estrist
-action_add_ester_search_placeholder,"Pealkiri, ISBN või URL"
+action_add_ester_search_placeholder,"Pealkiri, ISBN või Estri püsilink"
 action_add_ester_add,Lisa
 action_add_ester_open,Ava
 action_add_ester_help_search,"Donec pharetra, sem quis pellentesque convallis, ligula neque dignissim tellus, non laoreet dolor neque nec felis. Etiam id eleifend nunc."

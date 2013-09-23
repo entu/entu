@@ -58,7 +58,7 @@
                     <div class="pull-right span4">
                         <h3 style="margin:20px 0px 10px -20px;">{{ _('quota') }}</h3>
                         {{ _('quota_entities') % (quota_entities_used, quota_entities) }}
-                        <div class="progress" style="margin-right:20px; height:10px;">
+                        <div class="progress" style="margin-right:20px; height:7px;">
                             {% if quota_entities_used > quota_entities %}
                             <div class="bar bar-success" style="width: {{ round(quota_entities * 100 / quota_entities_used) }}%;"></div>
                             <div class="bar bar-danger" style="width: {{ 100 - round(quota_entities * 100 / quota_entities_used) }}%;"></div>
@@ -67,7 +67,7 @@
                             {% end %}
                         </div>
                         {{ _('quota_files') % (quota_size_used_human, quota_size_human) }}
-                        <div class="progress" style="margin-right:20px; height:10px;">
+                        <div class="progress" style="margin-right:20px; height:7px;">
                             {% if quota_size_used > quota_size %}
                             <div class="bar bar-success" style="width: {{ round(quota_size * 100 / quota_size_used) }}%;"></div>
                             <div class="bar bar-danger" style="width: {{ 100 - round(quota_size * 100 / quota_size_used) }}%;"></div>
