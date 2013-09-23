@@ -46,6 +46,7 @@ _Futuristic Data Management System_
     * [xmltodict](https://github.com/martinblech/xmltodict)
     * [Beautiful Soup](http://www.crummy.com/software/BeautifulSoup)
     * [PyYAML](http://pyyaml.org)
+    * [PyZ3950](http://www.panix.com/~asl2/software/PyZ3950/)
 
 
 ## Used libraries/add-ons

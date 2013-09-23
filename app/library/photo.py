@@ -15,23 +15,34 @@ class ShowPhoto(myRequestHandler, Entity):
     isbn = None
 
     @web.asynchronous
-    def get(self, entity_id=None):
+    def get(self):
 
-        if not entity_id:
+        entity_id = self.get_argument('entity', default=None, strip=True)
+        ester_file_id = self.get_argument('ester_file', default=None, strip=True)
+
+        if not entity_id and not ester_file_id:
             return self.missing()
 
-        item = self.get_entities(entity_id=entity_id, full_definition=True, limit=1)
+        if entity_id:
+            item = self.get_entities(entity_id=entity_id, full_definition=True, limit=1)
+            if not item:
+                return self.missing()
+            self.entity_id = entity_id
+            self.photo_property = [x.get('keyname') for x in item.get('properties', {}).values() if x.get('dataproperty') == 'photo'][0]
+            self.isbn = [x.get('value', '').split(' ')[0] for x in item.get('properties', {}).get('isn', {}).get('values', [])][0]
+            if not self.isbn:
+                return self.redirect('https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5('%s' % self.entity_id).hexdigest()))
 
-        if not item:
-            return self.missing()
-
-        self.entity_id = entity_id
-
-        self.photo_property = [x.get('keyname') for x in item.get('properties', {}).values() if x.get('dataproperty') == 'photo'][0]
-
-        self.isbn = [x.get('value', '').split(' ')[0] for x in item.get('properties', {}).get('isn', {}).get('values', [])][0]
-        if not self.isbn:
-            return self.redirect('https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(self.entity_id).hexdigest()))
+        if ester_file_id:
+            tmp_file = self.db.get('SELECT file FROM tmp_file WHERE id = %s LIMIT 1;', ester_file_id)
+            if not tmp_file:
+                return self.missing()
+            if not tmp_file.file:
+                return self.missing()
+            item = json.loads(tmp_file.file)
+            self.isbn = [x.split(' ')[0] for x in item.get('isn', [''])][0]
+            if not self.isbn:
+                return self.redirect('/static/images/blank.png')
 
         url = 'http://pood.rahvaraamat.ee/otsing?frst=1&page=1&q=%s&t=1' % self.isbn
         httpclient.AsyncHTTPClient().fetch(url, callback=self._got_rahvaraamat_list, request_timeout=60)
@@ -100,7 +111,10 @@ class ShowPhoto(myRequestHandler, Entity):
                 httpclient.AsyncHTTPClient().fetch(url, callback=self._got_photo, request_timeout=60)
 
         if not url:
-            return self.redirect('https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(self.entity_id).hexdigest()))
+            if self.entity_id:
+                return self.redirect('https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5('%s' % self.entity_id).hexdigest()))
+            else:
+                return self.redirect('/static/images/blank.png')
 
     @web.asynchronous
     def _got_photo(self, response):
@@ -117,5 +131,5 @@ class ShowPhoto(myRequestHandler, Entity):
 
 
 handlers = [
-    (r'/photo-by-isbn-(.*)', ShowPhoto),
+    ('/photo-by-isbn', ShowPhoto),
 ]

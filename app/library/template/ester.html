@@ -52,7 +52,12 @@
                 		for (i in list.items) {
                             var item = list.items[i];
                             var tr = '<tr>';
-                            tr += '<td style="width:100%;">';
+                            if(item.entity_id) {
+                                tr += '<td style="width:50px;"><img src="/photo-by-isbn?entity='+item.entity_id+'" style="width:50px; height:50px;" /></td>';
+                            } else {
+                                tr += '<td style="width:50px;"><img src="/photo-by-isbn?ester_file='+item.file_id+'" style="width:50px; height:50px;" /></td>';
+                            }
+                            tr += '<td>';
                             if(item.title) tr += '<b>'+item.title.join('<br />')+'</b><br />';
                             if(item.subtitle) tr += '<i>'+item.subtitle.join(', ')+'</i></td>';
                             if(item.author) tr += '<b>'+item.author.join(', ')+'</b><br />';
@@ -60,9 +65,9 @@
                             if(item.isbn) tr += '<i>'+item.isbn.join(', ')+'</i>';
                             tr += '</td>';
                             if(item.entity_id) {
-                                tr += '<td><a href="javascript:openItem(\''+item.entity_definition_keyname+'\','+item.entity_id+');" class="btn btn-info">{{ _('action_add_ester_open') }}</a></td>';
+                                tr += '<td><a href="javascript:openItem(\''+item.entity_definition_keyname+'\','+item.entity_id+');" class="btn btn-info pull-right">{{ _('action_add_ester_open') }}</a></td>';
                             } else {
-                                tr += '<td><a href="javascript:importItem('+item.file_id+',{{ parent_entity_id }},\'{{ entity_definition_keyname }}\');" class="btn btn-success">{{ _('action_add_ester_add') }}</a></td>';
+                                tr += '<td><a href="javascript:importItem('+item.file_id+',{{ parent_entity_id }},\'{{ entity_definition_keyname }}\');" class="btn btn-success pull-right">{{ _('action_add_ester_add') }}</a></td>';
                             }
                             tr += '</tr>';
                             $('#search-results').append(tr);
