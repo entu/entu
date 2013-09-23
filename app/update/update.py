@@ -52,10 +52,13 @@ class updateValueReferenceDisplayField(myRequestHandler, Entity):
         if self.current_user.email not in ['argoroots@gmail.com', 'mihkel.putrinsh@gmail.com']:
             return
 
-        for e in self.get_entities(entity_id = [x.get('value_reference') for x in self.db.query('SELECT DISTINCT value_reference FROM property WHERE value_reference IS NOT NULL;') if x.get('value_reference')]):
-            # logging.debug(e.get('displayname',''))
-            # logging.debug(e.get('id'))
-            self.db.execute('UPDATE property SET value_string = %s WHERE value_reference = %s', e.get('displayname',''), e.get('id'))
+        entities = self.get_entities(entity_id = [x.get('value_reference') for x in self.db.query('SELECT DISTINCT value_reference FROM property WHERE value_reference IS NOT NULL AND value_string IS NULL;') if x.get('value_reference')])
+
+        if entities:
+            for e in entities:
+                # logging.debug(e.get('displayname',''))
+                # logging.debug(e.get('id'))
+                self.db.execute('UPDATE property SET value_string = %s WHERE value_reference = %s', e.get('displayname',''), e.get('id'))
 
 
 
