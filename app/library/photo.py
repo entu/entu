@@ -27,9 +27,13 @@ class ShowPhoto(myRequestHandler, Entity):
             item = self.get_entities(entity_id=entity_id, full_definition=True, limit=1)
             if not item:
                 return self.missing()
+            self.photo_property = [x.get('db_value', '') for x in item.get('properties', {}).get('photo', {}).get('values', [])][0]
+            if self.photo_property:
+                return self.redirect('/entity/file-%s' % self.photo_property)
             self.entity_id = entity_id
-            self.photo_property = [x.get('keyname') for x in item.get('properties', {}).values() if x.get('dataproperty') == 'photo'][0]
             self.isbn = [x.get('value', '').split(' ')[0] for x in item.get('properties', {}).get('isn', {}).get('values', [])][0]
+            self.photo_file = [x.get('keyname') for x in item.get('properties', {}).values() if x.get('dataproperty') == 'photo'][0]
+
             if not self.isbn:
                 return self.redirect('https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5('%s' % self.entity_id).hexdigest()))
 
