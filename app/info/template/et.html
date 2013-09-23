@@ -291,6 +291,18 @@
         $('#header').css('background-position', '0px ' + (($(window).scrollTop() * 0.3) - 150) + 'px');
       });
 
+      $('#join-submit').click(function() {
+        $.post('/info/register', {
+          company: $('#join-company').val(),
+          domain: $('#join-domain').val(),
+          name: $('#join-name').val(),
+          email: $('#join-email').val(),
+        }, function( data ) {
+          $('#join-submit').hide();
+          $('#join-form').html('<b>Liitumine õnnestus.</b> Teiega võetakse peatselt ühendust.');
+        });
+      });
+
     });
   </script>
 
@@ -563,7 +575,7 @@
                 </div>
               </span>
             </div>
-            <a class="btn btn-success btn-large span3 offset4" id="join-submit" href="mailto:info@entu.ee?subject=Liitumine&body=Nimi:%0A%0A%0AAsutus:%0A%0A%0AE-post:%0A%0A%0ADomeen:%0A%0A%0A%0A">Liitu</a>
+            <a class="btn btn-success btn-large span3 offset4" id="join-submit" href="javascript:void(0);">Liitu</a>
           </span>
         </div>
       </div>
