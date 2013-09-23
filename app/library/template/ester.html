@@ -59,8 +59,8 @@
                             }
                             tr += '<td>';
                             if(item.title) tr += '<b>'+item.title.join('<br />')+'</b><br />';
-                            if(item.subtitle) tr += '<i>'+item.subtitle.join(', ')+'</i></td>';
-                            if(item.author) tr += '<b>'+item.author.join(', ')+'</b><br />';
+                            if(item.subtitle) tr += '<i>'+item.subtitle.join(', ')+'</i><br />';
+                            if(item.author) tr += '<b>'+item.author.join(' / ')+'</b><br />';
                             if(item.year) tr += item.year.join(', ')+'<br />';
                             if(item.isbn) tr += '<i>'+item.isbn.join(', ')+'</i>';
                             tr += '</td>';

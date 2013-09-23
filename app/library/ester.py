@@ -87,7 +87,8 @@ class EsterSearch(myRequestHandler, Entity):
             item = ParseMARC(i)
 
             file_name = 'ester-%s' % item.get('ester-id', [''])[0]
-            file_id = self.db.execute_lastrowid('INSERT INTO tmp_file SET filename = %s, file = %s, created_by = %s, created = NOW();', file_name, json.dumps(item), self.current_user.id)
+            file_json = json.dumps(item)
+            file_id = self.db.execute_lastrowid('INSERT INTO tmp_file SET filename = %s, filesize = %s, file = %s, created_by = %s, created = NOW();', file_name, len(file_json), file_json, self.current_user.id)
 
             entity = GetExistingID(self, item.get('ester-id', [''])[0])
 
