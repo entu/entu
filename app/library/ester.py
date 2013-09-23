@@ -70,8 +70,6 @@ class EsterSearch(myRequestHandler, Entity):
 
         search_term = search_term.encode('utf-8').replace('http://tallinn.ester.ee/record=', '').replace('~S1*est', '')
 
-        logging.debug(search_term)
-
         conn = zoom.Connection('tallinn.ester.ee', 212)
         conn.databaseName = 'INNOPAC'
         conn.preferredRecordSyntax = 'USMARC'
@@ -135,7 +133,7 @@ class EsterImport(myRequestHandler, Entity):
         entity_id = self.create_entity(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
 
         for field, values in item.iteritems():
-            sql = 'SELECT keyname FROM property_definition WHERE dataproperty = \'%s\' AND entity_definition_keyname = \'%s\' LIMIT 1;' % (field, entity_definition_keyname)
+            sql = 'SELECT keyname FROM property_definition WHERE dataproperty = \'%s\' COLLATE utf8_general_ci AND entity_definition_keyname = \'%s\' LIMIT 1;' % (field, entity_definition_keyname)
 
             property_definition = self.db.get(sql)
             if not property_definition:
