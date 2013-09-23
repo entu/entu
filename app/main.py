@@ -38,6 +38,7 @@ app_controllers = [
     'main.status',
     'user.auth',
     'user.user',
+    'info.info',
 ]
 
 
