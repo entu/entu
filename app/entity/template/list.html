@@ -44,7 +44,11 @@
         items = [];
 
         get_list();
-        open_item(window.location.pathname.replace('/entity/{{ entity_definition_keyname }}', '').replace('/', ''));
+        if(window.location.hash.substring(1)) {
+            open_item(window.location.hash.substring(1));
+        } else {
+            open_item(window.location.pathname.replace('/entity/{{ entity_definition_keyname }}', '').replace('/', ''));
+        }
 
         window.onpopstate = function(e){
             if(e.state) {
