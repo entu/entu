@@ -1,3 +1,5 @@
+import socket
+
 from main.helper import *
 from main.db import *
 
@@ -20,11 +22,14 @@ class RegisterNewCusomer(myRequestHandler, Entity):
         domain = self.get_argument('domain', default='', strip=True)
         name = self.get_argument('name', default='name', strip=True)
         email = self.get_argument('email', default='', strip=True)
+        ip = self.request.remote_ip
+        host = socket.gethostbyaddr(self.request.remote_ip)[0]
+        remote_addr = '%s\n%s' % (ip, host) if host else ip
 
         self.mail_send(
             to = 'info@entu.ee',
             subject = 'Registreerumine',
-            message = 'Asutus:\n%s\n\nDomeen:\n%s\n\nNimi:\n%s\n\nE-post:\n%s' % (company, domain, name, email)
+            message = 'Asutus:\n%s\n\nDomeen:\n%s\n\nNimi:\n%s\n\nE-post:\n%s\n\nIP:\n%s' % (company, domain, name, email, remote_addr)
         )
 
         # customer_id = self.create_entity(entity_definition_keyname='customer')
