@@ -66,13 +66,13 @@
         <li class="dropdown">
             <a href="#" class="dropdown-toggle header-menu-item toolbar-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="icon-plus"></i></a>
             <ul class="dropdown-menu">
-                {% for c in add_definitions %}
+                {% for c in sorted(add_definitions, key=itemgetter('label')) %}
                     <li><a href="javascript:void(0);" class="open-modal-box" data-url="/entity-{{ c['related_entity_id'] }}/add/{{ c['keyname'] }}">{{ c['label'] }}</a></li>
                 {% end %}
                 {% if allowed_childs and add_definitions %}
                     <li class="divider"></li>
                 {% end %}
-                {% for c in allowed_childs %}
+                {% for c in sorted(allowed_childs, key=itemgetter('label')) %}
                     <li><a href="javascript:void(0);" class="open-modal-box" data-url="/entity-{{ entity['id'] }}/add/{{ c['keyname'] }}">{{ c['label'] }}</a></li>
                 {% end %}
             </ul>
@@ -108,7 +108,7 @@
     <div class="tab-pane" id="settings">...</div>
 </div-->
 
-{% for k, v in relatives.iteritems() %}
+{% for k, v in sorted(relatives.iteritems()) %}
     <table class="table table-condensed table-bordered" style="clear:both; margin-top:20px;">
         <thead class="toggle-table">
             <tr>
