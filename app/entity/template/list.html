@@ -129,12 +129,22 @@
             });
         };
 
+        var delay = (function(){
+            var timer = 0;
+            return function(callback, ms){
+                clearTimeout (timer);
+                timer = setTimeout(callback, ms);
+            };
+        })();
+
         old_search = $('#searchbox').val();
         $('#searchbox').keyup(function(e) {
-            if(old_search != $('#searchbox').val()) {
-                old_search = $('#searchbox').val();
-                get_list();
-            };
+            delay(function(){
+                if(old_search != $('#searchbox').val()) {
+                    old_search = $('#searchbox').val();
+                    get_list();
+                };
+            }, 1000 );
         });
 
         $('#list').scroll(function() {
