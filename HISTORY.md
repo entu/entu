@@ -1,3 +1,6 @@
+## 2013-10-09
+* Bugfixes
+
 ## 2013-09-23
 * Ester search/import uses now Z39.50 protocol
 * Ester search shows coverart (if found)
