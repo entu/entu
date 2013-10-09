@@ -604,7 +604,7 @@ class Entity():
         if self.__user_id and only_public == False:
             where_parts.append('r.is_deleted = 0')
             join_parts.append('RIGHT JOIN relationship AS r  ON r.entity_id  = e.id')
-            where_parts.append('(r.related_entity_id = %s AND r.relationship_definition_keyname IN (\'viewer\', \'expander\', \'editor\', \'owner\') OR e.sharing = \'domain\')' % self.__user_id)
+            where_parts.append('(r.related_entity_id = %s AND r.relationship_definition_keyname IN (\'viewer\', \'expander\', \'editor\', \'owner\') OR e.sharing IN (\'domain\', \'public\'))' % self.__user_id)
         else:
             where_parts.append('e.sharing = \'public\'')
             i = 0
@@ -734,7 +734,7 @@ class Entity():
             for row in self.db.query(sql):
                 if row.entity_sharing == 'private' and not row.entity_right:
                     continue
-                if row.entity_sharing == 'domain' and row.entity_right not in ['viewer', 'expander', 'editor', 'owner'] and row.property_public != 1:
+                if row.entity_sharing in ['domain', 'public'] and row.entity_right not in ['viewer', 'expander', 'editor', 'owner'] and row.property_public != 1:
                     continue
 
                 #Entity
@@ -1189,7 +1189,7 @@ class Entity():
             sql += ' AND r.related_entity_id IN (%s)' % ','.join(map(str, related_entity_id))
 
         if self.__user_id and only_public == False:
-            sql += ' AND (rights.related_entity_id = %s AND rights.relationship_definition_keyname IN (\'viewer\', \'expander\', \'editor\', \'owner\') OR e.sharing = \'domain\')' % self.__user_id
+            sql += ' AND (rights.related_entity_id = %s AND rights.relationship_definition_keyname IN (\'viewer\', \'expander\', \'editor\', \'owner\') OR e.sharing  IN (\'domain\', \'public\'))' % self.__user_id
         else:
             sql += ' AND e.sharing = \'public\''
 
@@ -1206,7 +1206,7 @@ class Entity():
                 sql += ' AND up.value_reference IN (%s)' % ','.join(map(str, entity_id))
 
             if self.__user_id and only_public == False:
-                sql += ' AND (urights.related_entity_id = %s AND urights.relationship_definition_keyname IN (\'viewer\', \'expander\', \'editor\', \'owner\') OR ue.sharing = \'domain\')' % self.__user_id
+                sql += ' AND (urights.related_entity_id = %s AND urights.relationship_definition_keyname IN (\'viewer\', \'expander\', \'editor\', \'owner\') OR ue.sharing  IN (\'domain\', \'public\'))' % self.__user_id
             else:
                 sql += ' AND ue.sharing = \'public\''
 
@@ -1415,10 +1415,9 @@ class Entity():
                 relationship
             WHERE entity.entity_definition_keyname = entity_definition.keyname
             AND relationship.entity_id = entity.id
-            AND relationship.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
-            AND relationship.related_entity_id = %s
+            AND ((relationship.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner') AND relationship.is_deleted = 0 AND relationship.related_entity_id = %s) OR entity.sharing IN ('domain', 'public'))
             AND entity.is_deleted = 0
-            AND relationship.is_deleted = 0
+
         """ % self.__user_id
         # logging.debug(sql)
 
