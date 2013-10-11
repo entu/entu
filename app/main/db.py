@@ -584,7 +584,7 @@ class Entity():
                 if not s:
                     continue
                 i += 1
-                join_parts.append('RIGHT JOIN property AS p%i ON p%i.entity_id = e.id' % (i, i))
+                join_parts.append('RIGHT JOIN property AS p%(idx)i ON p%(idx)i.entity_id = e.id RIGHT JOIN property_definition AS pd%(idx)i ON pd%(idx)i.keyname = p%(idx)i.property_definition_keyname AND pd%(idx)i.search = 1 AND pd%(idx)i.visible = 1' % {'idx': i})
                 if not self.__user_id or only_public == True:
                     join_parts.append('LEFT JOIN property_definition AS pd%i ON pd%i.keyname = p%i.property_definition_keyname' % (i, i, i))
 
