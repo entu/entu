@@ -127,7 +127,7 @@ class GetEntityList(myRequestHandler, Entity):
             only_public = True
 
 
-        result = entity.get_entities(ids_only=False, search=keywords, entity_definition_keyname=entity_definition, dataproperty=dataproperty, limit=limit, full_definition=full_definition, only_public=only_public)
+        result = self.get_entities(ids_only=False, search=keywords, entity_definition_keyname=entity_definition, dataproperty=dataproperty, limit=limit, full_definition=full_definition, only_public=only_public)
 
         if not result:
             return self.missing()

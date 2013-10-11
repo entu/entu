@@ -285,6 +285,8 @@ class JSONDateFix(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
             return time.strftime('%Y-%m-%d %H:%M:%S', obj.timetuple())
+        if not isinstance(obj, (basestring, bool)):
+            return '%s' % obj
         return json.JSONEncoder.default(self, obj)
 
 
