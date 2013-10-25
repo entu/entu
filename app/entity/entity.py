@@ -236,8 +236,10 @@ class ShowEntityAdd(myRequestHandler, Entity):
 
         entity_definition = self.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
         actions = StrToList(entity_definition[0].get('actions_add'))
-        if 'default' not in actions:
+        if 'default' not in actions and '-default' not in actions:
             actions.append('default')
+        if '-default' in actions:
+            actions.remove('-default')
 
         self.render('entity/template/edit.html',
             entity = item,
