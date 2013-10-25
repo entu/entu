@@ -60,7 +60,7 @@
                                 {% elif p['datatype'] == 'reference' %}
                                     {% if not v['id'] %}
                                         <div class="new-references" style="padding:0px;"></div>
-                                        <div><input multiple type="hidden" class="autosave reference" data-property_definition_keyname="{{ p['keyname'] }}" data-reference_definition="{{ p.get('reference_definition') }}" data-multiplicity="{%if p['multiplicity'] == 0 %}X{% else %}{{ p['multiplicity'] - len(p['values']) + 1 }}{% end %}" style="width:100%;" /></div>
+                                        <div><input multiple type="hidden" class="autosave reference" data-property_definition_keyname="{{ p['keyname'] }}" data-reference_definition="{{ p.get('reference_definition') }}" data-multiplicity="{%if p['multiplicity'] %}{{ p['multiplicity'] - len(p['values']) + 1 }}{% else %}X{% end %}" style="width:100%;" /></div>
                                     {% else %}
                                         <div class="delete-reference-row edit" style="padding:8px;"><a href="#{{ v['db_value'] }}" target="_blank">{{ v['value'] }}</a> <a href="javascript:void(0);" data-property_id="{{ v['id'] }}" class="delete-reference" style="float:right; display:none;"><i class="icon-trash" style="color:red;"></i></a></div>
                                     {% end %}
