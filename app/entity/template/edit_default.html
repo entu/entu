@@ -58,7 +58,12 @@
                                         <button data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" class="counter btn btn-warning btn-mini" style="margin:8px;">{{ _('counter_generate_value') }}...</button>
                                     {% end %}
                                 {% elif p['datatype'] == 'reference' %}
-                                    <input type="hidden" class="autosave reference" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" {% if v['db_value'] %} data-value="{{ v['db_value'] }}"{% end %} value="{{ v['value'] }}" data-reference_definition="{{ p.get('reference_definition') }}" style="width:100%;" />
+                                    {% if not v['id'] %}
+                                        <div class="new-references" style="padding:0px;"></div>
+                                        <div><input multiple type="hidden" class="autosave reference" data-property_definition_keyname="{{ p['keyname'] }}" data-reference_definition="{{ p.get('reference_definition') }}" data-multiplicity="{%if p['multiplicity'] == 0 %}X{% else %}{{ p['multiplicity'] - len(p['values']) + 1 }}{% end %}" style="width:100%;" /></div>
+                                    {% else %}
+                                        <div class="delete-reference-row edit" style="padding:8px;"><a href="#{{ v['db_value'] }}" target="_blank">{{ v['value'] }}</a> <a href="javascript:void(0);" data-property_id="{{ v['id'] }}" class="delete-reference" style="float:right; display:none;"><i class="icon-trash" style="color:red;"></i></a></div>
+                                    {% end %}
                                 {% elif p['datatype'] == 'dynamic' %}
                                     <input type="text" class="autosave {% if p['can_add_new'] and idx+1 == len(p['values']) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" value="{{ v['db_value'] }}" />
                                 {% else %}
@@ -72,3 +77,314 @@
         {% end %}
     </tbody>
 </table>
+
+<script type="text/javascript" src="{{ static_url('javascript/bootstrap.file-input.js') }}"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+<script>
+
+
+    function showDocument(json_string, div){
+        td = $(div).parent();
+        newvalue = jQuery.parseJSON(json_string);
+        $('#database').data('entity_id', newvalue.entity_id);
+        {% if open_after_add %}$('#modal-box').data('open_entity_id', newvalue.entity_id);{% end %}
+        $('.file_entity_id').val(newvalue.entity_id);
+        for(i in newvalue.files) {
+            td.children('.new-filenames').append('<div class="new-input" style="padding:8px; color:gray;">'+newvalue.files[i]+'</div>');
+        }
+        td.children('img').hide();
+        td.children('form').children('.dtype-file').val('');
+        td.children('form').show();
+        td.children('form').children('.external-files').val('');
+        td.children('form').children('.external-download').val('');
+    };
+
+    $(document).ready(function(){
+
+        $('textarea').elastic();
+
+        $('input[type=file]').bootstrapFileInput();
+
+        $('.classifier-select').select2({
+            placeholder: ' ',
+            allowClear: true,
+        })
+
+        $('.reference').each( function() {
+            var box = $(this);
+            box.select2({
+                placeholder: ' ',
+                minimumInputLength: 1,
+                multiple: true,
+                allowClear: true,
+                ajax: {
+                    url: '/entity/search',
+                    dataType: 'json',
+                    quietMillis: 1000,
+                    data: function (term, page) {
+                        return {
+                            q: term,
+                            definition: box.data('reference_definition'),
+                            exclude_entity: $('#database').data('entity_id'),
+                        };
+                    },
+                    results: function (data, page) {
+                        return {results: data.entities};
+                    }
+                },
+                formatResult: function (data) {
+                    if(data.image) {
+                        image = '<img src="'+data.image+'" />';
+                    } else {
+                        image = '';
+                    };
+                    if(data.info) {
+                        info = '<span>'+data.info+'</span>';
+                    } else {
+                        info = '';
+                    };
+                    return '<div class="select2-result-item">'+image+data.title+info+'<div>';
+                },
+                formatSelection: function (data) {
+                    return data.title;
+                }
+            });
+        });
+
+        $('.dtype-datetime').change(function() {
+            $(this).val(format_date($(this).val(), 'yyyy-MM-dd HH:mm'));
+        });
+        $('.dtype-date').change(function() {
+            $(this).val(format_date($(this).val(), 'yyyy-MM-dd'));
+        });
+        function format_date(dinput, format) {
+            var result = ''
+            dvalue = Date.parse(dinput);
+            if(dvalue) {
+                result = dvalue.toString(format);
+            }
+            return result;
+        }
+
+        $('.can_add_new').keypress(function() {
+            var inputbox = $(this);
+            var newinput = inputbox.clone(true);
+            newinput.val('');
+            newinput.removeData('id');
+            newinput.removeData('value');
+            inputbox.after(newinput);
+            inputbox.removeClass('can_add_new');
+            inputbox.addClass('new-input');
+            inputbox.unbind('keypress');
+        });
+
+        $('.counter').click(function() {
+            var inputbox = $(this);
+            var inputbox_parent = $(this).parent();
+            inputbox_parent.html('<img src="{{ static_url('images/spinner_white.gif') }}" class="spinner" />');
+            $.post('/entity/save', {
+                counter: 'true',
+                entity_id: $('#database').data('entity_id'),
+                parent_entity_id: '{{ parent_entity_id }}',
+                entity_definition_keyname: '{{ entity_definition_keyname }}',
+                property_definition_keyname: inputbox.data('property'),
+            },
+            function(newvalue) {
+                //alert(JSON.stringify(newvalue));
+                $('#database').data('entity_id', newvalue.entity_id);
+                {% if open_after_add %}$('#modal-box').data('open_entity_id', newvalue.entity_id);{% end %}
+                $('.file_entity_id').val(newvalue.entity_id);
+                inputbox_parent.html('<span style="padding:8px;">'+newvalue.value+'</span>');
+            }, 'json');
+        });
+
+        $('.autosave').change(function(e) {
+            var inputbox = $(this);
+            if (inputbox.attr('type') == 'checkbox') {
+                value = inputbox.is(':checked');
+            } else {
+                value = inputbox.val();
+            }
+            if (inputbox.hasClass('reference')) {
+                $(this).select2('val', '');
+                $(this).parent('div').parent('td').children('.new-references').append('<div class="new-input" style="padding:8px; color:gray;">'+e.added.title+'</div>');
+                value = e.added.id;
+                if($(this).data('multiplicity') != 'X') {
+                    $(this).data('multiplicity', $(this).data('multiplicity') - 1);
+                    if($(this).data('multiplicity') < 1) {
+                        $(this).parent('div').hide();
+                    }
+                }
+            }
+            if (String(value) !== String(inputbox.data('value'))) {
+                $.post('/entity/save', {
+                    entity_id: $('#database').data('entity_id'),
+                    parent_entity_id: '{{ parent_entity_id }}',
+                    entity_definition_keyname: '{{ entity_definition_keyname }}',
+                    property_definition_keyname: inputbox.data('property_definition_keyname'),
+                    value_id: inputbox.data('id'),
+                    value: value
+                },
+                function(newvalue) {
+                    //alert(JSON.stringify(newvalue));
+                    $('#database').data('entity_id', newvalue.entity_id);
+                    {% if open_after_add %}$('#modal-box').data('open_entity_id', newvalue.entity_id);{% end %}
+                    $('.file_entity_id').val(newvalue.entity_id);
+                    if (!inputbox.hasClass('reference')) {
+                        inputbox.data('id', newvalue.value_id);
+                        inputbox.data('value', value)
+                    }
+                }, 'json');
+            }
+        });
+
+        $('.delete-reference').click(function() {
+            var inputbox = $(this);
+            $.post('/entity/save', {
+                entity_id: $('#database').data('entity_id'),
+                parent_entity_id: '{{ parent_entity_id }}',
+                entity_definition_keyname: '{{ entity_definition_keyname }}',
+                property_definition_keyname: inputbox.data('property_definition_keyname'),
+                value_id: inputbox.data('property_id'),
+            },
+            function(newvalue) {
+                inputbox.parent().remove();
+            }, 'json');
+        });
+
+        $('.is_public').change(function() {
+            var inputbox = $(this);
+            value = inputbox.is(':checked');
+            $.post('/entity/save', {
+                entity_id: $('#database').data('entity_id'),
+                parent_entity_id: '{{ parent_entity_id }}',
+                entity_definition_keyname: '{{ entity_definition_keyname }}',
+                is_public: 'true',
+                value: value
+            },
+            function(newvalue) {
+                //alert(JSON.stringify(newvalue));
+                $('#database').data('entity_id', newvalue.entity_id);
+                $('.file_entity_id').val(newvalue.entity_id);
+            }, 'json');
+        });
+
+        $('.dtype-file').change(function() {
+            form = $($(this).data('form'));
+            form.hide();
+            form.parent().children('img').show();
+            form.submit();
+        });
+
+        $('.delete-file-row').hover(
+            function() {
+                $(this).children('.delete-file').show();
+            },
+            function() {
+                $('.delete-file').hide();
+            }
+        );
+
+        $('.delete-reference-row').hover(
+            function() {
+                $(this).children('.delete-reference').show();
+            },
+            function() {
+                $('.delete-reference').hide();
+            }
+        );
+
+        $('.dropbox-open').click(function() {
+            form = $($(this).data('form'));
+            Dropbox.choose({
+                linkType: 'direct',
+                multiselect: true,
+                success: function(files) {
+                    var links = new Object();
+                    for(i in files) {
+                        links[files[i].link] = files[i].name;
+                    }
+                    submitExternalFile(form, links, true);
+                }
+            });
+        });
+
+        $('.google-open').click(function() {
+            var form = $($(this).data('form'));
+
+            google.load('picker', '1', {'callback': function() {
+                var picker = new google.picker.PickerBuilder()
+                    .addView(google.picker.ViewId.DOCS)
+                    .addView(google.picker.ViewId.PHOTOS)
+                    .addView(google.picker.ViewId.YOUTUBE)
+                    .addView(google.picker.ViewId.WEBCAM)
+                    .addView(google.picker.ViewId.RECENTLY_PICKED)
+                    .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
+                    .setCallback(function(data) {
+                        if (data[google.picker.Response.ACTION] == google.picker.Action.PICKED) {
+                            var files = data[google.picker.Response.DOCUMENTS];
+                            var links = new Object();
+                            for(i in files) {
+                                links[files[i][google.picker.Document.URL]] = files[i][google.picker.Document.NAME];
+                            }
+                            submitExternalFile(form, links, false);
+                        }
+                    })
+                    .build();
+                picker.setVisible(true);
+                $('iframe.picker').css('z-index', '7777');
+                $('div.picker-dialog-bg').css('z-index', '8888');
+                $('div.picker-dialog').css('z-index', '9999');
+            }});
+        });
+
+        $('.url-open').click(function() {
+            var form = $($(this).data('form'));
+            var url = $.trim(window.prompt('{{ _('add_files_url_prompt') }}'));
+            var links = new Object();
+            if(url) {
+                links[url] = url.split('/').slice(-1)[0];
+                submitExternalFile(form, links, true);
+            }
+        });
+
+        function submitExternalFile(form, links, download) {
+            form.children('.external-files').val(JSON.stringify(links));
+            form.children('.external-download').val(download);
+            form.hide();
+            form.parent().children('img').show();
+            form.submit();
+        }
+
+        $('.delete-file').click(function() {
+
+            link = $(this);
+            if (confirm("{{ _('confirm_file_delete').replace('\"', '\\\"') }}".replace('%s',link.prev().html()))) {
+                $.post('/entity/delete-file', {
+                    property_id: $(this).data('property_id'),
+                    entity_id: '{{ entity.get('id', '') }}',
+                },
+                function(newvalue) {
+                    link.parent().hide();
+                }, 'json');
+            };
+        });
+
+        $('#delete-entity').click(function() {
+
+            link = $(this);
+            if (confirm('{{ _('confirm_entity_delete').replace('\'', '\\\'') }}'.replace('%s','{{ entity.get('displayname', '').replace('\'', '\\\'') }}'))) {
+                $.post('/entity/delete-entity', {
+                    entity_id: '{{ entity.get('id', '') }}',
+                },
+                function(newvalue) {
+                    window.location.hash = '';
+                    window.location.reload(true);
+                }, 'json');
+            };
+        });
+
+
+    });
+</script>

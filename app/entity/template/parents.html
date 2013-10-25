@@ -55,6 +55,7 @@
         $('#add-new-parent').select2({
             placeholder: ' ',
             minimumInputLength: 1,
+            multiple: true,
             ajax: {
                 url: '/entity/search',
                 dataType: 'json',
@@ -81,14 +82,15 @@
                 } else {
                     info = '';
                 };
-                return '<div class="entity-list-item">'+image+data.title+info+'</div>';
+                return '<div class="select2-result-item">'+image+data.title+info+'</div>';
             },
         });
 
-        $('#add-new-parent').change(function() {
-            var data = $(this).select2('data');
-            $.post('/entity-{{ entity_id }}/parents', { parent: data.id}, function() {
-                $('#parents-table').append('<tr><th>'+data.definition+'</th><td colspan="2" style="padding:8px;">'+data.title+'</td></tr>');
+        $('#add-new-parent').change(function(e) {
+            var value = e.added;
+            $(this).select2('val', '');
+            $.post('/entity-{{ entity_id }}/parents', { parent: value.id}, function() {
+                $('#parents-table').append('<tr><th>'+value.definition+'</th><td colspan="2" style="padding:8px;">'+value.title+'</td></tr>');
             });
         });
 

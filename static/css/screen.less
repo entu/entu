@@ -186,7 +186,7 @@ ul.nav li.dropdown:hover ul.dropdown-menu{
 
 #list {
     position: fixed;
-    top: @toolbar_height * 2px + 6px;
+    top: @toolbar_height + 3px;
     bottom: 0px;
     left: @nav_width + 1px;
     overflow-x: hidden;
@@ -247,6 +247,10 @@ ul.nav li.dropdown:hover ul.dropdown-menu{
         margin: 100px auto 0px auto;
     }
 
+}
+
+#list_items {
+    margin-top: 52px;
 }
 
 .modal {
@@ -353,27 +357,79 @@ table.edit-form {
         .new-input {
             border-bottom: solid 1px #dddddd;
         }
-        .select2-choice, select2-container {
-            padding: 5px 8px !important;
+        .select2-choices {
             border: none !important;
+            background: none !important;
+        }
+        .select2-search-choice {
+            display: block !important;
+            margin: 0px !important;
+            padding: 0px !important;
+            width: 100% !important;
+            border: none !important;
+            border-bottom: 1px solid #dddddd !important;
             border-radius: 0px !important;
             background: none !important;
 
+            .select2-search-choice-close {
+                margin: 8px 3px !important;
+            }
+
             div {
-                border: none !important;
-                border-radius: 0px !important;
-                background: none !important;
+                margin-left: 16px !important;
+                padding: 8px !important;
+                line-height: 20px !important;
+                color: @text_color !important;
             }
         }
+        .select2-input {
+            padding: 8px !important;
+        }
+
     }
 }
 
 .select2-drop {
-    margin: -37px -2px -20px 0px !important;
-    padding-top: 4px;
-    border-top: 1px solid #aaa !important;
+    /*margin: -36px 0px -20px 0px !important;*/
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: 1px solid @bordercolor !important;
     border-radius: 0px;
 }
+.select2-results, .select2-result-label {
+    margin: 0px !important;
+    padding: 0px !important;
+}
+.select2-no-results, .select2-searching, .select2-selection-limit {
+    margin: 0px 8px !important;
+    background: none !important;
+    border: none !important;
+    color: @text_color !important;
+    font-size: 12px;
+}
+
+
+.select2-result-item {
+    min-height: 32px;
+    padding: 6px;
+    font-weight: bold;
+    border-top: solid 1px #ececec;
+
+    img {
+        height: 32px;
+        width: 32px;
+        margin: 0px 8px 0px 0px;
+        float: left;
+    }
+    span {
+        font-size: 12px;
+        line-height: 12px;
+        display: block;
+        font-weight: normal;
+    }
+}
+
 
 .file-input-name {
     display: none;

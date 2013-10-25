@@ -141,6 +141,7 @@
         $('#add-new-person').select2({
             placeholder: ' ',
             minimumInputLength: 1,
+            multiple: true,
             ajax: {
                 url: '/entity/search',
                 dataType: 'json',
@@ -156,35 +157,34 @@
                     return {results: data.entities};
                 }
             },
-            formatResult: formatSelectBoxResult,
+            formatResult: function (data) {
+                if(data.image) {
+                    image = '<img src="'+data.image+'" />';
+                } else {
+                    image = '';
+                };
+                if(data.info) {
+                    info = '<span>'+data.info+'</span>';
+                } else {
+                    info = '';
+                };
+                return '<div class="select2-result-item">'+image+data.title+info+'</div>';
+            },
         });
 
-        $('#add-new-person').change(function() {
-            var data = $(this).select2('data');
-            set_right(data.id, 'viewer');
+        $('#add-new-person').change(function(e) {
+            var value = e.added;
+            $(this).select2('val', '');
+            set_right(value.id, 'viewer');
             var newrow_template = $('#rights-new');
             var newrow = newrow_template.clone(true);
             newrow.removeAttr('id');
-            newrow.children('.rights-name').html(data.title);
-            newrow.data('id', data.id)
+            newrow.children('.rights-name').html(value.title);
+            newrow.data('id', value.id)
             select_right(newrow.children(".rights-icon[data-value='viewer']"));
             newrow_template.before(newrow);
             newrow.show();
         });
-
-        function formatSelectBoxResult(data) {
-            if(data.image) {
-                image = '<img src="'+data.image+'" />';
-            } else {
-                image = '';
-            };
-            if(data.info) {
-                info = '<span>'+data.info+'</span>';
-            } else {
-                info = '';
-            };
-            return '<div class="entity-list-item">'+image+data.title+info+'</div>';
-        }
 
     });
 </script>
