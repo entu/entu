@@ -959,9 +959,11 @@ class Entity():
                     result[displayfield] = result[displayfield].replace('@%s@' % data_property, ', '.join(['%s' % x['value'] for x in dataproperty_dict.get('values', {}).values()]))
                 result[displayfield] = result[displayfield].replace('\n', ' ')
 
-        result['displaytable_labels'] = entity_dict.get('displaytable', '') if entity_dict.get('displaytable', '') else None
-        for data_property in findTags(entity_dict.get('displaytable', ''), '@', '@'):
-            result['displaytable_labels'] = result['displaytable_labels'].replace('@%s@' % data_property, entity_dict.get('properties', {}).get(data_property, {}).get('label', ''))
+        result['displaytable_labels'] = self.__get_system_translation(field='displaytableheader', entity_definition_keyname=entity_dict.get('definition_keyname'))
+        if not result['displaytable_labels']:
+            result['displaytable_labels'] = entity_dict.get('displaytable', '') if entity_dict.get('displaytable', '') else None
+            for data_property in findTags(entity_dict.get('displaytable', ''), '@', '@'):
+                result['displaytable_labels'] = result['displaytable_labels'].replace('@%s@' % data_property, entity_dict.get('properties', {}).get(data_property, {}).get('label', ''))
 
         result['displaytable'] = result['displaytable'].split('|') if result['displaytable'] else None
         result['displaytable_labels'] = result['displaytable_labels'].split('|') if result['displaytable_labels'] else None
