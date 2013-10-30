@@ -16,18 +16,19 @@ class UpdateFormulasWeb(myRequestHandler):
         updateFormulas(entity_id=entity_id, user_locale=self.get_user_locale(), user_id=self.current_user.id)
 
 
-class UpdateFormulasByDefinitionWeb(myRequestHandler):
+class UpdateFormulasByDefinitionWeb(myRequestHandler, Entity):
     @web.authenticated
     def get(self, entity_definition_keyname, dataproperty):
         if self.current_user.email != 'mihkel.putrinsh@gmail.com':
             return
 
-        for row in db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(entity_definition_keyname=entity_definition_keyname, dataproperty=dataproperty):
+        # for row in db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(entity_definition_keyname=entity_definition_keyname, dataproperty=dataproperty):
+        for row in self.get_entities(entity_definition_keyname=entity_definition_keyname, dataproperty=dataproperty):
             logging.debug('ID: %s', str(row['id']))
             logging.debug('properties: %s', row['properties'])
             for p in row['properties'][dataproperty]['values']:
                 logging.debug(p)
-                db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).set_property(entity_id=row['id'], old_property_id = p['id'], property_definition_keyname = row['properties'][dataproperty]['keyname'], value = p['db_value'])
+                self.set_property(entity_id=row['id'], old_property_id = p['id'], property_definition_keyname = row['properties'][dataproperty]['keyname'], value = p['db_value'])
 
 
 class UpdateFormulasRecursiveWeb(myRequestHandler):
