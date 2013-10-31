@@ -26,6 +26,8 @@
 <script src="{{ static_url('javascript/bootstrap-sortable.js') }}"></script>
 <script>
     $(document).ready(function() {
+        $.bootstrapSortable(true, 'reversed');
+
         $('tbody tr').click(function () {
             window.open($(this).data('url'),'_blank');
         });

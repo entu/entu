@@ -109,24 +109,20 @@
 </div-->
 
 {% for k, v in sorted(relatives.iteritems()) %}
-    <table class="table table-condensed table-bordered" style="clear:both; margin-top:20px;">
-        <thead class="toggle-table">
-            <tr>
-                <th {% if v[0].get('displaytable', None) %}colspan="{{ len(v[0].get('displaytable', '')) }}"{% end %}>
-                    {{ k }}<span style="float:right; font-weight:normal;">{{ len(v) }}</span>
-                </th>
-            </tr>
-        </thead>
+    <h4 class="toggle-table" style="clear:both; margin:20px 0px 5px 0px;">{{ k }}<span style="float:right; font-weight:normal; font-size:14px;">{{ len(v) }}</span></h4>
+    <table class="table table-condensed sortable">
+        {% if v[0].get('displaytable') %}
+            <thead>
+                <tr>
+                    {% for l in v[0].get('displaytable_labels', '') %}
+                    <th style="min-width:100px;">
+                        {{ l }}
+                    </th>
+                    {% end %}
+                </tr>
+            </thead>
+        {% end %}
         <tbody style="1display:none;">
-            {% if v[0].get('displaytable', None) %}
-            <tr>
-                {% for l in v[0].get('displaytable_labels', '') %}
-                <th style="min-width:100px;">
-                    {{ l }}
-                </th>
-                {% end %}
-            </tr>
-            {% end %}
             {% for i in v %}
             <tr>
                 {% if i.get('displaytable', None) %}
@@ -146,6 +142,7 @@
     </table>
 {% end%}
 
+<script src="{{ static_url('javascript/bootstrap-sortable.js') }}"></script>
 <script>
     $(document).ready(function(){
 
@@ -154,12 +151,15 @@
         $('#list_items a.active').removeClass('active');
         $('#listitem_{{ entity.get('id') }}').addClass('active');
 
+        $('.toggle-table').css('cursor', 'pointer');
         $('.toggle-table').click(function() {
-            $(this).parent().children('tbody').toggle();
+            $(this).next('table').toggle();
         });
 
         $('#toolbar').html($('#toolbar_template').html());
         $('#toolbar_template').html('')
+
+        $.bootstrapSortable(true, 'reversed');
 
         change_fullscreen_icon();
 
