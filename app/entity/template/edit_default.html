@@ -2,7 +2,7 @@
     <tbody>
         {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
             {% for idx, v in enumerate(p['values']) %}
-                {% if p['visible'] %}
+                {% if p['visible'] and p['keyname'][:2] != 'x_' %}
                     <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
                         {% if idx == 0 %}
                         <th style="{%if not p['public'] %}color:gray;{% end %}" rowspan="{{ len(p['values']) }}">
