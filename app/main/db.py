@@ -773,55 +773,53 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['visible'] = bool(row.property_visible)
 
                 #X properties
-                if row.entity_created:
-                    items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {})['x_created'] = {
-                        'keyname' : 'x_created',
-                        'fieldset' : 'X',
-                        'label' : self.get_user_locale().translate('created'),
-                        'label_plural' : self.get_user_locale().translate('created'),
-                        'description' : '',
-                        'datatype': 'datetime',
-                        'dataproperty' : 'x_created',
-                        'multilingual' : False,
-                        'multiplicity' : 1,
-                        'ordinal' : 100000,
-                        'formula' : False,
-                        'executable' : False,
-                        'public' : False,
-                        'readonly' : True,
-                        'visible' : True,
-                        'values': {'value_0': {
-                            'id': 0,
-                            'ordinal': 0,
-                            'value': formatDatetime(row.entity_created),
-                            'db_value': row.entity_created
-                        }}
-                    }
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {})['x_created'] = {
+                    'keyname' : 'x_created',
+                    'fieldset' : 'X',
+                    'label' : self.get_user_locale().translate('created'),
+                    'label_plural' : self.get_user_locale().translate('created'),
+                    'description' : '',
+                    'datatype': 'datetime',
+                    'dataproperty' : 'x_created',
+                    'multilingual' : False,
+                    'multiplicity' : 1,
+                    'ordinal' : 100000,
+                    'formula' : False,
+                    'executable' : False,
+                    'public' : False,
+                    'readonly' : True,
+                    'visible' : True,
+                    'values': {'value_0': {
+                        'id': 0,
+                        'ordinal': 0,
+                        'value': formatDatetime(row.entity_created) if row.entity_created else '',
+                        'db_value': row.entity_created if row.entity_created else None
+                    }}
+                }
 
-                if row.entity_changed:
-                    items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {})['x_changed'] = {
-                        'keyname' : 'x_changed',
-                        'fieldset' : 'X',
-                        'label' : self.get_user_locale().translate('changed'),
-                        'label_plural' : self.get_user_locale().translate('changed'),
-                        'description' : '',
-                        'datatype': 'datetime',
-                        'dataproperty' : 'x_changed',
-                        'multilingual' : False,
-                        'multiplicity' : 1,
-                        'ordinal' : 100001,
-                        'formula' : False,
-                        'executable' : False,
-                        'public' : False,
-                        'readonly' : True,
-                        'visible' : True,
-                        'values': {'value_0': {
-                            'id': 0,
-                            'ordinal': 0,
-                            'value': formatDatetime(row.entity_changed),
-                            'db_value': row.entity_created
-                        }}
-                    }
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {})['x_changed'] = {
+                    'keyname' : 'x_changed',
+                    'fieldset' : 'X',
+                    'label' : self.get_user_locale().translate('changed'),
+                    'label_plural' : self.get_user_locale().translate('changed'),
+                    'description' : '',
+                    'datatype': 'datetime',
+                    'dataproperty' : 'x_changed',
+                    'multilingual' : False,
+                    'multiplicity' : 1,
+                    'ordinal' : 100001,
+                    'formula' : False,
+                    'executable' : False,
+                    'public' : False,
+                    'readonly' : True,
+                    'visible' : True,
+                    'values': {'value_0': {
+                        'id': 0,
+                        'ordinal': 0,
+                        'value': formatDatetime(row.entity_changed) if row.entity_changed else '',
+                        'db_value': row.entity_created if row.entity_changed else None
+                    }}
+                }
 
                 #Value
                 if row.property_datatype in ['string', 'select']:

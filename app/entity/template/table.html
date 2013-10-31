@@ -1,0 +1,45 @@
+{% autoescape None %}
+{% extends '../../main/template/index.html' %}
+
+{% block head %}
+    <script src="{{ static_url('javascript/bootstrap-sortable.js') }}"></script>
+    <link href="{{ static_url('css/bootstrap-sortable.css') }}" rel="stylesheet" />
+{% end %}
+
+{% block navbar %}
+{% end %}
+
+{% block content %}
+{% from operator import itemgetter %}
+
+<table id="tableview" class="table table-condensed table-striped table-bordered table-hover sortable" style="margin:50px 0px 0px 0px; border:none;">
+    <thead>
+        <tr>
+            {% for p in sorted(entities[0].get('properties', {}).values(), key=itemgetter('ordinal')) %}
+                <th style="font-size:12px; white-space:nowrap; vertical-align:middle;">
+                    {{ p['label'] }}
+                </th>
+            {% end %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for entity in entities %}
+        <tr data-url="/entity/{{ entity['definition_keyname'] }}/{{ entity['id'] }}">
+            {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
+                <td style="font-size:12px; white-space:nowrap;">
+                    {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
+                </td>
+            {% end %}
+        </tr>
+        {% end %}
+    </tbody>
+</table>
+<script>
+    $(document).ready(function() {
+        $('tbody tr').click(function () {
+            window.open($(this).data('url'),'_blank');
+        });
+        $('tbody tr').css('cursor', 'pointer');
+    } );
+</script>
+{% end %}

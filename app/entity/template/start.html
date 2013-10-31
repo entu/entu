@@ -48,6 +48,9 @@
             {% include 'list.html'%}
             <div id="content">
             </div>
+            <div id="tableview" style="display:none; text-align:center;">
+                <img src="{{ static_url('images/spinner_white.gif') }}" class="spinner" style="margin-top:200px;" />
+            </div>
         {% else %}
             <div id="content-wide">
                 <div class="pull-right span4">

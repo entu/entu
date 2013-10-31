@@ -15,6 +15,7 @@
             </ul>
         </li>
     {% end %}
+    <li><a href="javascript:void(0);" id="toolbar-item-tableview" class="toolbar-item " title="{{ _('menu_tableview') }}"><i class="icon-table"></i></a></li>
 </ul>
 
 
@@ -182,5 +183,52 @@
                 open_item(window.location.pathname.replace('/entity/{{ entity_definition_keyname }}', '').replace('/', ''), false);
             }
         })
+
+        function change_tableview_icon() {
+            if($('#tableview').hasClass('fullscreen')) {
+                $('#toolbar-item-tableview').children('i').removeClass('icon-table');
+                $('#toolbar-item-tableview').children('i').addClass('icon-list');
+            } else {
+                $('#toolbar-item-tableview').children('i').removeClass('icon-list');
+                $('#toolbar-item-tableview').children('i').addClass('icon-table');
+            }
+        }
+
+        $('#toolbar-item-tableview').click(function() {
+            if($('#tableview').hasClass('fullscreen')) {
+                if($('#tableview').hasClass('menu-hidden')) {
+                    $('#menu_hidden').show();
+                } else {
+                    $('#menu').show();
+                };
+                $('#list').show();
+                $('#list_search').show();
+                $('#content').show();
+                $('#tableview').hide();
+                $('#tableview').html('<img src="{{ static_url('images/spinner_white.gif') }}" class="spinner" style="margin-top:200px;" />');
+                $('#tableview').css('left', parseInt($('#list').css('left'))+parseInt($('#list').css('width'))+'px');
+                $('#tableview').removeClass('fullscreen');
+            } else {
+                if($('#tableview').hasClass('menu-hidden')) {
+                    $('#menu_hidden').hide();
+                } else {
+                    $('#menu').hide();
+                };
+                $('#list').hide();
+                $('#list_search').hide();
+                $('#content').hide();
+                $('#tableview').show();
+                $('#tableview').css('left', '0px');
+                $('#tableview').addClass('fullscreen');
+                $.post('/entity/table/{{ entity_definition_keyname }}', { 'q': $('#searchbox').val() },
+                    function(html) {
+                        $('#tableview').html(html);
+                    }
+                );
+            }
+            change_tableview_icon();
+        });
+
+
     });
 </script>

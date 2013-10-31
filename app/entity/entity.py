@@ -62,11 +62,22 @@ class ShowGroup(myRequestHandler, Entity):
         """
         entity_definition_keyname = entity_definition_keyname.strip('/').split('/')[0]
         search = self.get_argument('search', None, True)
-        limit = 500
+        limit = 501
         self.write({
             'items': self.get_entities(ids_only=True, search=search, entity_definition_keyname=entity_definition_keyname, limit=limit+1),
             'limit': limit,
         })
+
+
+class ShowTableView(myRequestHandler, Entity):
+    @web.authenticated
+    def post(self, entity_definition_keyname=None):
+        search = self.get_argument('q', None, True)
+        entities = self.get_entities(search=search, entity_definition_keyname=entity_definition_keyname, full_definition=True, limit=101)
+
+        self.render('entity/template/table.html',
+            entities = entities,
+        )
 
 
 class ShowListinfo(myRequestHandler, Entity):
@@ -601,6 +612,7 @@ handlers = [
     ('/entity/delete-file', DeleteFile),
     ('/entity/delete-entity', DeleteEntity),
     ('/entity/search', GetEntities),
+    (r'/entity/table/(.*)', ShowTableView),
     (r'/entity/file-(.*)', DownloadFile),
     (r'/entity-(.*)/listinfo', ShowListinfo),
     (r'/entity-(.*)/edit', ShowEntityEdit),
