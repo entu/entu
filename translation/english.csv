@@ -58,6 +58,7 @@ counter_generate_value,Generate number
 
 created,Created
 changed,Changed
+complete,Complete
 
 share_by_email,Share by email
 share_to,To (email)

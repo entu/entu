@@ -691,6 +691,7 @@ class Entity():
                     property_definition.executable                  AS property_executable,
                     property_definition.datatype                    AS property_datatype,
                     property_definition.dataproperty                AS property_dataproperty,
+                    property_definition.mandatory                   AS property_mandatory,
                     property_definition.multilingual                AS property_multilingual,
                     property_definition.multiplicity                AS property_multiplicity,
                     property_definition.public                      AS property_public,
@@ -763,6 +764,7 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['description'] = self.__get_system_translation(field='description', property_definition_keyname=row.property_keyname)
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['datatype'] = row.property_datatype
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['dataproperty'] = row.property_dataproperty
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['mandatory'] = bool(row.property_mandatory)
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multilingual'] = bool(row.property_multilingual)
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multiplicity'] = row.property_multiplicity
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['ordinal'] = row.property_ordinal
@@ -781,6 +783,7 @@ class Entity():
                     'description' : '',
                     'datatype': 'datetime',
                     'dataproperty' : 'x_created',
+                    'mandatory' : False,
                     'multilingual' : False,
                     'multiplicity' : 1,
                     'ordinal' : 100000,
@@ -805,6 +808,7 @@ class Entity():
                     'description' : '',
                     'datatype': 'datetime',
                     'dataproperty' : 'x_changed',
+                    'mandatory' : False,
                     'multilingual' : False,
                     'multiplicity' : 1,
                     'ordinal' : 100001,
@@ -908,6 +912,7 @@ class Entity():
                     items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['description'] = d['property_description']
                     items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['datatype'] = d['property_datatype']
                     items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['dataproperty'] = d['property_dataproperty']
+                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['mandatory'] = d['property_mandatory']
                     items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['multilingual'] = d['property_multilingual']
                     items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['multiplicity'] = d['property_multiplicity']
                     items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['ordinal'] = d['property_ordinal']
@@ -1018,6 +1023,7 @@ class Entity():
                 property_definition.keyname AS property_keyname,
                 property_definition.datatype AS property_datatype,
                 property_definition.dataproperty AS property_dataproperty,
+                property_definition.mandatory AS property_mandatory,
                 property_definition.multilingual AS property_multilingual,
                 property_definition.multiplicity AS property_multiplicity,
                 property_definition.ordinal AS property_ordinal,
