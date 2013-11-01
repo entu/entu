@@ -142,6 +142,7 @@ class Entity():
                 value_boolean,
                 value_datetime,
                 value_entity,
+                value_reference,
                 value_file,
                 value_counter,
                 created_by,
@@ -157,25 +158,23 @@ class Entity():
                 p.value_boolean,
                 p.value_datetime,
                 p.value_entity,
+                p.value_reference,
                 p.value_file,
                 p.value_counter,
                 %s,
                 NOW()
             FROM
                 relationship AS r,
-                property_definition AS pd,
                 property AS p
-            WHERE pd.keyname = r.property_definition_keyname
-            AND p.property_definition_keyname = pd.keyname
-            AND pd.entity_definition_keyname = %s
+            WHERE p.property_definition_keyname = r.property_definition_keyname
             AND p.entity_id = %s
             AND r.relationship_definition_keyname = 'propagated-property'
             AND p.is_deleted = 0
             AND r.is_deleted = 0
             ;
         """
-        # logging.debug(sql)
-        self.db.execute(sql, entity_id, self.__user_id, entity_definition_keyname, parent_entity_id)
+        logging.debug(sql)
+        self.db.execute(sql, entity_id, self.__user_id, parent_entity_id)
 
         return entity_id
 
