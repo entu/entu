@@ -1,4 +1,7 @@
 .DS_Store
 *.pyc
 *.log
+*.yaml
+*.yaml
+
 app/config.yaml

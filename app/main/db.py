@@ -1056,6 +1056,7 @@ class Entity():
                 'property_description': self.__get_system_translation(field='description', property_definition_keyname=r.property_keyname),
                 'property_datatype': r.property_datatype,
                 'property_dataproperty': r.property_dataproperty,
+                'property_mandatory': bool(r.property_mandatory),
                 'property_multilingual': bool(r.property_multilingual),
                 'property_multiplicity': r.property_multiplicity,
                 'property_ordinal': r.property_ordinal,
