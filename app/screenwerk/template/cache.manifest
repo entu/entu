@@ -4,8 +4,11 @@ CACHE MANIFEST
 CACHE:
 {{ static_url('javascript/jquery.min.js') }}
 {{ static_url('images/spinner_pacman.gif') }}
-{% for f in files %}
-{% if f.get('type') in ['audio', 'video', 'image'] %}{{ f.get('src') }} #{{ f.get('filename') }}{% end %}{% end %}
+
+{% for f in files %}{% if f.get('type') in ['audio', 'video', 'image'] %}
+# {{ f.get('filename') }}
+{{ f.get('src') }}
+{% end %}{% end %}
 
 NETWORK:
 *
