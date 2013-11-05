@@ -46,7 +46,6 @@ add_files_google,Link to Google Drive
 add_files_url,Add from URL
 add_files_url_prompt,Enter URL
 
-
 entity_delete,Delete
 confirm_entity_delete,'%s' and all its childs will be deleted.
 confirm_file_delete,File '%s' will be deleted.

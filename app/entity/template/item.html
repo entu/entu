@@ -109,13 +109,13 @@
 </div-->
 
 {% for k, v in sorted(relatives.iteritems()) %}
-    <h4 class="toggle-table" style="clear:both; margin:20px 0px 5px 0px;">{{ k }}<span style="float:right; font-weight:normal; font-size:14px;">{{ len(v) }}</span></h4>
+    <h5 class="toggle-table" style="clear:both; margin:40px 0px 0px 0px; padding:5px 10px; background: #F0F0F0;">{{ k }}<span style="float:right; font-weight:normal;">{{ len(v) }}</span></h5>
     <table class="table table-condensed sortable">
         {% if v[0].get('displaytable') %}
             <thead>
                 <tr>
                     {% for l in v[0].get('displaytable_labels', '') %}
-                    <th style="min-width:100px;">
+                    <th style="min-width:100px; font-size:13px; vertical-align:middle; border-top: 1px solid #DDDDDD;">
                         {{ l }}
                     </th>
                     {% end %}
@@ -127,7 +127,7 @@
             <tr>
                 {% if i.get('displaytable', None) %}
                     {% for x in i.get('displaytable', '') %}
-                    <td style="min-width:100px;">
+                    <td style="min-width:100px; font-size:13px;">
                         <a href="#{{ i.get('id', '') }}" class="open_child" style="display:block;">{% if x %}{{ x }}{% else %}&nbsp;{% end %}</a>
                     </td>
                     {% end %}
