@@ -57,3 +57,9 @@ _Futuristic Data Management System_
 * [Datejs](http://www.datejs.com/)
 * [Bootstrap File Input](https://github.com/grevory/bootstrap-file-input)
 * [Select2](http://ivaynberg.github.com/select2)
+* [bootstrap-sortable](https://github.com/drvic10k/bootstrap-sortable)
+
+
+## License
+
+Entu is open source and available under the [MIT license](LICENSE.md).
