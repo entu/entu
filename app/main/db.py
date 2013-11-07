@@ -1048,6 +1048,7 @@ class Entity():
                 if full_definition:
                     if not d['property_multiplicity'] or d['property_multiplicity'] > len(value.get('properties', {}).get('%s' % d['property_dataproperty'], {}).get('values', {}).values()):
                         items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {}).setdefault('values', {})['value_new'] = {'id': '', 'ordinal': 'X', 'value': '', 'db_value': ''}
+                    if not d['property_multiplicity'] or d['property_multiplicity'] > len(value.get('properties', {}).get('%s' % d['property_dataproperty'], {}).get('values', {}).values()):
                         items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['can_add_new'] = True
                     else:
                         items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['can_add_new'] = False
@@ -1490,6 +1491,8 @@ class Entity():
         Returns allowed entity definitions what have default parent.
 
         """
+        if not entity_definition_keyname:
+            return {}
 
         if entity_definition_keyname:
             if type(entity_definition_keyname) is not list:
