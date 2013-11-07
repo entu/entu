@@ -1,3 +1,13 @@
+## 2013-11-08
+* Show entity search results as table
+* Sorting for entity childs table
+* Option to set entity displaytable headers
+* Duplicate Entities
+* Lots of formula field enhancements
+* Highlight mandatory fields and not completed entities
+* Edit form improvements
+* Bugfixes
+
 ## 2013-10-09
 * Bugfixes
 
