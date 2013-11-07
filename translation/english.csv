@@ -20,6 +20,8 @@ menu_download,Download
 menu_print,Print
 menu_fullscreen,Fullscreen
 menu_preferences,Preferences
+menu_add_under,Add under %s
+menu_add_under_this,Add under this entity
 
 
 version_history,Change Log

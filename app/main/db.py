@@ -1358,7 +1358,7 @@ class Entity():
 
         return defs
 
-    def get_definitions_with_default_parent(self, entity_definition_keyname):
+    def get_definitions_with_optional_parent(self, entity_definition_keyname):
         """
         Returns allowed entity definitions what have default parent.
 
@@ -1374,23 +1374,30 @@ class Entity():
                 relationship.related_entity_id
             FROM
                 entity_definition,
-                relationship
+                relationship,
+                relationship AS rights
             WHERE relationship.entity_definition_keyname = entity_definition.keyname
-            AND relationship.relationship_definition_keyname = 'default-parent'
+            AND rights.entity_id = relationship.related_entity_id
+            AND relationship.relationship_definition_keyname = 'optional-parent'
+            AND rights.relationship_definition_keyname iN ('expander', 'editor', 'owner')
+            AND rights.related_entity_id = %s
+            AND rights.is_deleted = 0
             AND entity_definition.keyname IN (%s)
             AND relationship.is_deleted = 0
-        """  % ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])
+        """  % (self.__user_id, ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)]))
         # logging.debug(sql)
 
         defs = []
         for d in self.db.query(sql):
+            related_entity = self.get_entities(entity_id=d.related_entity_id, limit=1)
             defs.append({
                 'keyname': d.keyname,
                 'label': self.__get_system_translation(field='label', entity_definition_keyname=d.keyname),
                 'label_plural': self.__get_system_translation(field='label_plural', entity_definition_keyname=d.keyname),
                 'description': self.__get_system_translation(field='description', entity_definition_keyname=d.keyname),
                 'menugroup': self.__get_system_translation(field='menu', entity_definition_keyname=d.keyname),
-                'related_entity_id': d.related_entity_id
+                'related_entity_id': d.related_entity_id,
+                'related_entity_label': related_entity.get('displayname') if related_entity else '',
             })
 
         return defs

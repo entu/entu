@@ -9,8 +9,11 @@
         <li class="dropdown">
             <a href="#" class="toolbar-item dropdown-toggle header-menu-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="icon-plus"></i></a>
             <ul class="dropdown-menu">
-                {% for c in add_definitions %}
-                <li><a href="javascript:void(0);" class="open-modal-box" data-url="/entity-{{ c['related_entity_id'] }}/add/{{ c['keyname'] }}">{{ c['label'] }}</a></li>
+                {% for ck, cv in add_definitions.iteritems() %}
+                    <li class="dropdown-header">{{ _('menu_add_under').replace('%s', ck) }}</li>
+                    {% for c in sorted(cv, key=itemgetter('label')) %}
+                        <li><a href="javascript:void(0);" class="open-modal-box" data-url="/entity-{{ c['related_entity_id'] }}/add/{{ c['keyname'] }}">{{ c['label'] }}</a></li>
+                    {% end %}
                 {% end %}
             </ul>
         </li>

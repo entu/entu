@@ -38,13 +38,17 @@ class ShowGroup(myRequestHandler, Entity):
         except:
             history = ''
 
+        add_definitions = {}
+        for ad in self.get_definitions_with_optional_parent(entity_definition_keyname):
+            add_definitions.setdefault(ad.get('related_entity_label'), []).append(ad)
+
         self.render('entity/template/start.html',
             page_title = entity_definition[0]['label_plural'] if entity_definition else '',
             menu = self.get_menu(),
             show_list = True if entity_definition_keyname else False,
             entity_definition_label = entity_definition[0]['label_plural'] if entity_definition else '',
             entity_definition_keyname = entity_definition_keyname,
-            add_definitions = self.get_definitions_with_default_parent(entity_definition_keyname) if entity_definition_keyname else None,
+            add_definitions = add_definitions,
             history = history,
             quota_entities = int(self.app_settings['quota_entities']),
             quota_entities_used = int(quota_entities_used),
@@ -155,6 +159,10 @@ class ShowEntity(myRequestHandler, Entity):
         allowed_childs = self.get_allowed_childs(entity_id=item['id'])
         allowed_parents = self.get_allowed_parents(entity_id=item['id'])
 
+        add_definitions = {}
+        for ad in self.get_definitions_with_optional_parent(item.get('definition_keyname')):
+            add_definitions.setdefault(ad.get('related_entity_label'), []).append(ad)
+
         self.render('entity/template/item.html',
             page_title = item['displayname'],
             entity = item,
@@ -162,7 +170,7 @@ class ShowEntity(myRequestHandler, Entity):
             parents = parents.values() if parents else [],
             allowed_childs = allowed_childs,
             allowed_parents = allowed_parents,
-            add_definitions = self.get_definitions_with_default_parent(item.get('definition_keyname')) if item.get('definition_keyname') else None,
+            add_definitions = add_definitions,
         )
 
 
