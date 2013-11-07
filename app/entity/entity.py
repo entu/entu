@@ -102,6 +102,7 @@ class ShowListinfo(myRequestHandler, Entity):
             'title': item['displayname'],
             'info': item['displayinfo'],
             'image': item['displaypicture'],
+            'completed': item['completed'],
         })
 
 

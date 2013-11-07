@@ -900,27 +900,31 @@ class Entity():
                 items[key] = dict(items[key].items() + self.__get_displayfields(value).items())
                 items[key]['displaypicture'] = self.__get_picture_url(value['id'], value['definition_keyname'])
 
-            if full_definition:
-                for d in self.get_definition(entity_definition_keyname=value['definition_keyname']):
-                    if not value.get('id', None):
-                        items[key]['displayname'] = d['entity_label']
-                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['keyname'] = d['property_keyname']
-                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['fieldset'] = d['property_fieldset']
-                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['label'] = d['property_label']
-                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['label_plural'] = d['property_label_plural']
-                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['description'] = d['property_description']
-                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['datatype'] = d['property_datatype']
-                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['dataproperty'] = d['property_dataproperty']
-                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['mandatory'] = d['property_mandatory']
-                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['multilingual'] = d['property_multilingual']
-                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['multiplicity'] = d['property_multiplicity']
-                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['ordinal'] = d['property_ordinal']
-                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['public'] = d['property_public']
-                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['readonly'] = d['property_readonly']
-                    items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['visible'] = d['property_visible']
+            items[key]['completed'] = True
+            for d in self.get_definition(entity_definition_keyname=value['definition_keyname']):
+                if not value.get('id', None):
+                    items[key]['displayname'] = d['entity_label']
+                items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['keyname'] = d['property_keyname']
+                items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['fieldset'] = d['property_fieldset']
+                items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['label'] = d['property_label']
+                items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['label_plural'] = d['property_label_plural']
+                items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['description'] = d['property_description']
+                items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['datatype'] = d['property_datatype']
+                items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['dataproperty'] = d['property_dataproperty']
+                items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['mandatory'] = d['property_mandatory']
+                items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['multilingual'] = d['property_multilingual']
+                items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['multiplicity'] = d['property_multiplicity']
+                items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['ordinal'] = d['property_ordinal']
+                items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['public'] = d['property_public']
+                items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['readonly'] = d['property_readonly']
+                items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['visible'] = d['property_visible']
+
+                if d['property_mandatory'] and len(value.get('properties', {}).get('%s' % d['property_dataproperty'], {}).get('values', {}).values()) < 1:
+                    items[key]['completed'] = False
+
+                if full_definition:
                     if not d['property_multiplicity'] or d['property_multiplicity'] > len(value.get('properties', {}).get('%s' % d['property_dataproperty'], {}).get('values', {}).values()):
                         items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {}).setdefault('values', {})['value_new'] = {'id': '', 'ordinal': 'X', 'value': '', 'db_value': ''}
-                    if not d['property_multiplicity'] or d['property_multiplicity'] > len(value.get('properties', {}).get('%s' % d['property_dataproperty'], {}).get('values', {}).values()):
                         items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['can_add_new'] = True
                     else:
                         items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['can_add_new'] = False

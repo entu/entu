@@ -31,7 +31,7 @@
     <table class="table table-condensed">
         <tbody>
             {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
-                {% if p['visible'] %}
+                {% if p['visible'] and (p['values'] or p['mandatory']) %}
                     <tr>
                         <th style="text-align:right; min-width:200px;{%if not p['public'] %} color:gray;{% end %}">
                             {{ p['label'] }}

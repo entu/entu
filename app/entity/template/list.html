@@ -114,13 +114,11 @@
                             } else {
                                 info = '';
                             };
-                            if(entity_json.count) {
-                                count = '<div>'+entity_json.count+'</div>';
-                            } else {
-                                count = '';
+                            if(!entity_json.completed) {
+                                $('#listitem_'+id).addClass('not-completed');
                             };
 
-                            $('#listitem_'+id).html(count+image+entity_json.title+info);
+                            $('#listitem_'+id).html(image+entity_json.title+info);
                             $('#listitem_'+id).removeClass('empty_item');
                             if('#'+entity_json.id == window.location.hash) {
                                 $('#listitem_'+id).addClass('active');
