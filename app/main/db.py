@@ -44,7 +44,7 @@ class Entity():
         Creates new Entity and returns its ID.
 
         """
-        logging.debug('creating %s under entity %s' % (entity_definition_keyname, parent_entity_id))
+        # logging.debug('creating %s under entity %s' % (entity_definition_keyname, parent_entity_id))
         if not entity_definition_keyname:
             return
 
@@ -174,7 +174,7 @@ class Entity():
             AND r.is_deleted = 0
             ;
         """
-        logging.debug(sql)
+        # logging.debug(sql)
         self.db.execute(sql, entity_id, self.__user_id, parent_entity_id)
 
         return entity_id
@@ -305,31 +305,31 @@ class Entity():
             return
 
         # property_definition_keyname is preferred because it could change for existing property
-        logging.debug("Set property %s." % old_property_id)
-        if property_definition_keyname:
-            definition = self.db.get('SELECT datatype, formula FROM property_definition WHERE keyname = %s LIMIT 1;', property_definition_keyname)
-        elif old_property_id:
+        # logging.debug("Set property %s." % old_property_id)
+        if old_property_id:
             definition = self.db.get('SELECT pd.datatype, pd.keyname, pd.formula, p.value_string, p.value_formula FROM property p LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname WHERE p.id = %s;', old_property_id)
             property_definition_keyname = definition.keyname
+        elif property_definition_keyname:
+            definition = self.db.get('SELECT datatype, formula FROM property_definition WHERE keyname = %s LIMIT 1;', property_definition_keyname)
         else:
-            logging.debug("Dont set property %s." % old_property_id)
+            # logging.debug("Dont set property %s." % old_property_id)
             return
 
-        logging.debug(definition)
+        # logging.debug(definition)
 
         if not definition:
             return
 
-        logging.debug(old_property_id)
+        # logging.debug(old_property_id)
         if old_property_id:
-            logging.debug(definition)
+            # logging.debug(definition)
             if definition.formula == 1:
-                fval = ''.join(Formula(self.db, user_locale=self.get_user_locale(), created_by=self.__user_id, entity_id=entity_id, property_id=old_property_id, formula=definition.value_formula).evaluate())
-                logging.debug((fval,definition.value_string))
+                fval = ''.join(Formula(self.db, user_locale=self.get_user_locale(), created_by=self.__user_id, entity_id=entity_id, property_id=old_property_id, formula=definition.value_formula).evaluate()).decode('utf-8')
+                # logging.debug((fval,definition.value_string))
                 if definition.value_string == fval:
                     return
 
-            logging.debug('UPDATE property SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;' % (self.__user_id, old_property_id) )
+            # logging.debug('UPDATE property SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;' % (self.__user_id, old_property_id) )
             self.db.execute('UPDATE property SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', self.__user_id, old_property_id )
 
         # If no value, then property is deleted, return
@@ -382,10 +382,10 @@ class Entity():
 
 
         if value_string:
-            logging.debug('UPDATE property SET %s = %s, value_string = %s WHERE id = %s;' % (field, value, value_string, new_property_id) )
+            # logging.debug('UPDATE property SET %s = %s, value_string = %s WHERE id = %s;' % (field, value, value_string, new_property_id) )
             self.db.execute('UPDATE property SET %s = %%s, value_string = %%s WHERE id = %%s;' % field, value, value_string, new_property_id )
         else:
-            logging.debug('UPDATE property SET %s = %s WHERE id = %s;' % (field, value, new_property_id) )
+            # logging.debug('UPDATE property SET %s = %s WHERE id = %s;' % (field, value, new_property_id) )
             self.db.execute('UPDATE property SET %s = %%s WHERE id = %%s;' % field, value, new_property_id )
 
         if definition.formula == 1:
@@ -996,8 +996,8 @@ class Entity():
                 if row.property_formula == 1:
                     # value = '%s (%s)' % (value, row.value_formula)
                     self.set_property(entity_id = row.entity_id, old_property_id = row.value_id, value = row.value_formula)
-                    logging.debug(row.value_id)
-                    logging.debug(row.value_formula)
+                    # logging.debug(row.value_id)
+                    # logging.debug(row.value_formula)
                     db_value = row.value_formula
 
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['id'] = row.value_id
@@ -1584,7 +1584,6 @@ class Formula():
         self.formula                = formula
         self.entity_id              = entity_id
         self.value                  = []
-        self.dependencies           = []
         self.user_locale            = user_locale
         self.created_by             = created_by
 
@@ -1693,17 +1692,14 @@ class FExpression():
         if len(tokens) < 2:
             return []
 
+        if len(tokens) > 4:
+            return []
+
         if tokens[0] == 'self':
             tokens[0] = self.formula.entity_id
 
-        # Prepare formula dependencies
-        dependency = {'entity_id': tokens[0]}
-
         # Entity id:{self.id} is called {self.name}; and id:{6.id} description is {6.description}
         if len(tokens) == 2:
-            if tokens[1] == '':
-                tokens[1] = 'id'
-
             sql = 'SELECT ifnull(p.value_decimal, ifnull(p.value_string, ifnull(p.value_text, ifnull(p.value_integer, ifnull(p.value_datetime, ifnull(p.value_boolean, p.value_file)))))) as value'
             if tokens[1] == 'id':
                 sql = 'SELECT e.id as value'
@@ -1733,20 +1729,69 @@ class FExpression():
 
             result = self.db.query(sql)
 
-            # Prepare formula dependencies
             # Entity {self.id} is called {self.name}, but {12.id} is called {12.name}
-            if tokens[1] != 'id':
-                dependency['dataproperty'] = tokens[1]
 
-            self.formula.dependencies.append(dependency)
             return result
+
+        # If second token is not one of relationship definition names,
+        # then it has to be name of reference property
+        # and third token has to be property name of referenced entity (entities);
+        if tokens[1] not in ('child', 'viewer', 'expander', 'editor', 'owner', '-child', '-viewer', '-expander', '-editor', '-owner'):
+            # also there should be exactly three tokens.
+            if len(tokens) != 3:
+                return []
+
+            sql = 'SELECT ifnull(rep.value_decimal, ifnull(rep.value_string, ifnull(rep.value_text, ifnull(rep.value_integer, ifnull(rep.value_datetime, ifnull(rep.value_boolean, rep.value_file)))))) as value'
+            if tokens[2] == 'id':
+                sql = 'SELECT re.id as value'
+
+            if tokens[1][:1] == '-':
+                sql += """
+                    FROM entity e
+                    LEFT JOIN property p ON p.value_reference = e.id
+                    LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+                    LEFT JOIN entity re ON re.id = p.entity_id
+                """
+                tokens[1] = tokens[1][1:]
+            else:
+                sql += """
+                    FROM entity e
+                    LEFT JOIN property p ON p.entity_id = e.id
+                    LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+                    LEFT JOIN entity re ON re.id = p.value_reference
+                """
+
+            if tokens[2] != 'id':
+                sql += """
+                    LEFT JOIN property rep ON rep.entity_id = re.id
+                    LEFT JOIN property_definition repd ON repd.keyname = rep.property_definition_keyname
+                """
+
+            sql += """
+                WHERE e.id = %(entity_id)s
+                AND e.is_deleted = 0
+                AND p.is_deleted = 0
+                AND pd.is_deleted = 0
+                AND re.is_deleted = 0
+                AND pd.dataproperty = '%(pdk)s'
+            """  % {'entity_id': self.formula.entity_id, 'pdk': tokens[1]}
+
+            if tokens[2] != 'id':
+                sql += """
+                    AND rep.is_deleted = 0
+                    AND repd.is_deleted = 0
+                    AND repd.dataproperty = '%(repdk)s'
+                """  % {'repdk': tokens[2]}
+
+            # logging.debug(sql)
+
+            # There are {COUNT(self.child.folder.id)} folders called {self.child.folder.name}
+
+            return self.db.query(sql)
 
 
         if len(tokens) != 4:
             return []
-
-        if tokens[3] == '':
-            tokens[3] = 'id'
 
         sql = 'SELECT ifnull(p.value_decimal, ifnull(p.value_string, ifnull(p.value_text, ifnull(p.value_integer, ifnull(p.value_datetime, ifnull(p.value_boolean, p.value_file)))))) as value'
         if tokens[3] == 'id':
@@ -1792,20 +1837,7 @@ class FExpression():
 
         # logging.debug(sql)
 
-        # Prepare formula dependencies
         # There are {COUNT(self.child.folder.id)} folders called {self.child.folder.name}
-
-        dependency['relationship_definition_keyname'] = tokens[1]
-        if _entity == 'related_entity':
-            dependency['reverse_relationship'] = 1
-
-        if tokens[2] != '*':
-            dependency['entity_definition_keyname'] = tokens[2]
-
-        if tokens[3] != 'id':
-            dependency['dataproperty'] = tokens[3]
-
-        self.formula.dependencies.append(dependency)
 
         return self.db.query(sql)
 
