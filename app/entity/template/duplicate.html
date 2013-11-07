@@ -11,7 +11,7 @@
                     {{ _('duplicate_count') }}
                 </th>
                 <td style="width:100%;">
-                <input type="text" id="duplicate-count" />
+                    <input type="text" id="duplicate-count" maxlength="2" />
                 </td>
             </tr>
             {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
@@ -20,8 +20,11 @@
                         <th style="text-align:right; min-width:200px;{%if not p['public'] %} color:gray;{% end %}">
                             {{ p['label'] }}
                         </th>
-                        <td style="width:100%; padding:8px;">
-                            <input type="checkbox" data-property_definition_keyname="{{ p['keyname'] }}" checked />
+                        <td style="padding:8px;">
+                            <label for="{{ p['keyname'] }}" style="font-size:12px; color:grey;">
+                                <input type="checkbox" class="duplicate-property" id="{{ p['keyname'] }}" value="{{ p['keyname'] }}" checked  style="margin-right:8px;" />
+                                {{ ', '.join(['%s' % v['value'] for v in p['values']]) }}
+                            </label>
                         </td>
                     </tr>
                 {% end %}
@@ -31,18 +34,46 @@
 </div>
 <div class="modal-footer">
     <a href="#" class="btn" data-dismiss="modal">{{ _('close') }}</a>
-    <a href="#" id="duplicate" class="btn btn-success disabled">{{ _('duplicate') }}</a>
+    <a href="javascript:void(0);" id="duplicate" class="btn btn-success disabled">{{ _('duplicate_create_duplicates1') }}</a>
 </div>
 
 <script>
     $(document).ready(function(){
 
         $('#duplicate-count').keyup(function() {
-            if($.isNumeric($('#duplicate-count').val())) {
+            check_status();
+        });
+
+        $('.duplicate-property').change(function() {
+            check_status();
+        });
+
+        function check_status() {
+            if($('.duplicate-property:checked').length > 0 && $.isNumeric($('#duplicate-count').val())) {
                 $('#duplicate').removeClass('disabled');
+                if($('#duplicate-count').val() == 1) {
+                    $('#duplicate').html('{{ _('duplicate_create_duplicates1') }}');
+                } else {
+                    $('#duplicate').html('{{ _('duplicate_create_duplicates2') }}'.replace('%s', $('#duplicate-count').val()));
+                }
             } else {
                 $('#duplicate').addClass('disabled');
+                $('#duplicate').html('{{ _('duplicate_create_duplicates1') }}');
+            }
+        }
+
+        $('#duplicate').click(function() {
+            if($.isNumeric($('#duplicate-count').val())) {
+                $('#duplicate').addClass('disabled');
+                var data = { 'count': $('#duplicate-count').val(), 'properties[]' : []};
+                $('.duplicate-property').each(function() {
+                    if(!$(this).is(':checked')) data['properties[]'].push($(this).val());
+                });
+                $.post('/entity-{{ entity.get('id') }}/duplicate', data);
+                $('#modal-box').modal('hide');
+                $('#modal-box').html('');
             }
         });
+
     });
 </script>

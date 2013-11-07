@@ -56,7 +56,8 @@ edit_help_tabs,"Donec a metus tellus. Nullam vulputate, ligula a ornare eleifend
 counter_generate_value,Genereeri number
 
 duplicate_count,Koopiate arv
-duplicate,Dubleeri
+duplicate_create_duplicates1,Loo üks koopia
+duplicate_create_duplicates2,Loo %s koopiat
 
 download_all_as_zip,Lae alla kõik failid
 

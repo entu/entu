@@ -58,7 +58,8 @@ download_all_as_zip,Download all files
 counter_generate_value,Generate number
 
 duplicate_count,Count of duplicates
-duplicate,Duplicate
+duplicate_create_duplicates1,Create one copy
+duplicate_create_duplicates2,create %s copies
 
 created,Created
 changed,Changed

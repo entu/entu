@@ -361,11 +361,13 @@ table.edit-form {
         div.edit, input, textarea, select {
             margin: 0px 2px 1px 0px;
             padding: 8px;
-            width: @modal-width - 235px !important;
             border: none;
             border-radius: 0px;
             -webkit-box-shadow: none;
             box-shadow: none;
+        }
+        div.edit, input[type=text], textarea, select {
+            width: @modal-width - 235px !important;
         }
         .new-input {
             border-bottom: solid 1px #dddddd;

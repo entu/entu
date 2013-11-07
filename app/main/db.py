@@ -179,6 +179,114 @@ class Entity():
 
         return entity_id
 
+    def duplicate_entity(self, entity_id, copies=1, skip_property_definition_keyname=None):
+        if not entity_id:
+            return
+
+        if skip_property_definition_keyname:
+            if type(skip_property_definition_keyname) is not list:
+                skip_property_definition_keyname = [skip_property_definition_keyname]
+            properties_sql = 'AND property_definition_keyname NOT IN (%s)' % ','.join(['\'%s\'' % x for x in map(str, skip_property_definition_keyname)])
+        else:
+            properties_sql = ''
+
+        for x in range(int(copies)):
+            new_entity_id = self.db.execute_lastrowid("""
+                INSERT INTO entity (
+                    definition_id,
+                    entity_definition_keyname,
+                    sharing,
+                    created,
+                    created_by
+                ) SELECT
+                    definition_id,
+                    entity_definition_keyname,
+                    sharing,
+                    NOW(),
+                    %s
+                FROM entity
+                WHERE id = %s;
+            """ , self.__user_id, entity_id)
+            self.db.execute("""
+                INSERT INTO property (
+                    definition_id,
+                    property_definition_keyname,
+                    entity_id,
+                    ordinal,
+                    language,
+                    value_formula,
+                    value_string,
+                    value_text,
+                    value_integer,
+                    value_decimal,
+                    value_boolean,
+                    value_datetime,
+                    value_entity,
+                    value_reference,
+                    value_file,
+                    value_counter,
+                    created,
+                    created_by
+                ) SELECT
+                    definition_id,
+                    property_definition_keyname,
+                    %s,
+                    ordinal,
+                    language,
+                    value_formula,
+                    value_string,
+                    value_text,
+                    value_integer,
+                    value_decimal,
+                    value_boolean,
+                    value_datetime,
+                    value_entity,
+                    value_reference,
+                    value_file,
+                    value_counter,
+                    NOW(),
+                    %s
+                    FROM property
+                    WHERE entity_id = %s
+                    %s
+                    AND is_deleted = 0;
+            """ % (new_entity_id, self.__user_id, entity_id, properties_sql))
+            self.db.execute("""
+                INSERT INTO relationship (
+                    relationship_definition_keyname,
+                    entity_id,
+                    related_entity_id,
+                    created,
+                    created_by
+                ) SELECT
+                    relationship_definition_keyname,
+                    %s,
+                    related_entity_id,
+                    NOW(),
+                    %s
+                FROM relationship
+                WHERE entity_id = %s
+                AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
+                AND is_deleted = 0;
+            """, new_entity_id, self.__user_id, entity_id)
+            self.db.execute("""
+                INSERT INTO relationship (
+                    relationship_definition_keyname,
+                    entity_id,
+                    related_entity_id,
+                    created,
+                    created_by
+                ) SELECT
+                    relationship_definition_keyname,
+                    entity_id,
+                    %s,
+                    NOW(),
+                    %s
+                FROM relationship
+                WHERE related_entity_id = %s
+                AND is_deleted = 0;
+            """, new_entity_id, self.__user_id, entity_id)
+
     def delete_entity(self, entity_id):
         for child_id in self.get_relatives(ids_only=True, entity_id=entity_id, relationship_definition_keyname='child'):
             self.delete_entity(child_id)

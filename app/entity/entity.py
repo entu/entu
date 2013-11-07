@@ -536,6 +536,18 @@ class EntityDuplicate(myRequestHandler, Entity):
             entity = entity,
         )
 
+    @web.authenticated
+    def post(self, entity_id=None):
+        copies = self.get_argument('count', None, True)
+        skip_property_definition_keyname = self.get_arguments('properties[]', True)
+
+        if not entity_id or not copies:
+            return
+
+        self.duplicate_entity(entity_id=entity_id, copies=copies, skip_property_definition_keyname=skip_property_definition_keyname)
+
+        self.write('OK')
+
 
 class ShowHTMLproperty(myRequestHandler, Entity):
     @web.authenticated
