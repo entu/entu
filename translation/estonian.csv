@@ -22,6 +22,7 @@ menu_fullscreen,Täisekraan
 menu_preferences,Seaded
 menu_add_under,Lisa %s alla
 menu_add_under_this,Lisa selle objekti alla
+menu_duplicate,Dubleeri
 
 version_history,Viimased muudatused
 quota,Kasutus ja limiit
@@ -53,6 +54,9 @@ confirm_file_delete,Fail '%s' kustutatakse.
 edit_help_tabs,"Donec a metus tellus. Nullam vulputate, ligula a ornare eleifend, dolor quam ornare velit, a malesuada mauris mi vitae quam. Quisque auctor nulla faucibus sem elementum placerat."
 
 counter_generate_value,Genereeri number
+
+duplicate_count,Koopiate arv
+duplicate,Dubleeri
 
 download_all_as_zip,Lae alla kõik failid
 

@@ -87,6 +87,7 @@
         <!--li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/relate" title="{{ _('menu_relate') }}"><i class="icon-link"></i></a></li-->
     {% end %}
     {% if entity['right'] in ['editor', 'owner'] and allowed_parents %}
+        <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/duplicate" title="{{ _('menu_duplicate') }}"><i class="icon-copy"></i></a></li>
         <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/parents" title="{{ _('menu_parents') }}"><i class="icon-arrow-up"></i></a></li>
     {% end %}
     {% if entity['right'] == 'owner' %}

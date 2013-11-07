@@ -22,7 +22,7 @@ menu_fullscreen,Fullscreen
 menu_preferences,Preferences
 menu_add_under,Add under %s
 menu_add_under_this,Add under this entity
-
+menu_duplicate,Duplicate
 
 version_history,Change Log
 quota,Usage and Quota
@@ -56,6 +56,9 @@ edit_help_tabs,"Donec a metus tellus. Nullam vulputate, ligula a ornare eleifend
 download_all_as_zip,Download all files
 
 counter_generate_value,Generate number
+
+duplicate_count,Count of duplicates
+duplicate,Duplicate
 
 created,Created
 changed,Changed

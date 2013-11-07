@@ -522,6 +522,21 @@ class EntityParents(myRequestHandler, Entity):
         self.write('OK')
 
 
+class EntityDuplicate(myRequestHandler, Entity):
+    @web.authenticated
+    def get(self, entity_id=None):
+        """
+        Shows Entitiy duplication form.
+
+        """
+
+        entity = self.get_entities(entity_id=entity_id, limit=1)
+
+        self.render('entity/template/duplicate.html',
+            entity = entity,
+        )
+
+
 class ShowHTMLproperty(myRequestHandler, Entity):
     @web.authenticated
     def get(self, entity_id, dataproperty):
@@ -633,6 +648,7 @@ handlers = [
     (r'/entity-(.*)/share', ShareByEmail),
     (r'/entity-(.*)/rights', EntityRights),
     (r'/entity-(.*)/parents', EntityParents),
+    (r'/entity-(.*)/duplicate', EntityDuplicate),
     (r'/entity-(.*)/html-(.*)', ShowHTMLproperty),
     (r'/entity-(.*)/download', DownloadEntity),
     (r'/entity-(.*)', ShowEntity),

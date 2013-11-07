@@ -1,0 +1,48 @@
+{% from operator import itemgetter %}
+<div class="modal-header" style="border:none;">
+    <a href="javascript:showHelp();" class="btn btn-link pull-right no-underline" style="padding-right:0px; font-size:20px; color:grey;"><i class="icon-info-sign"></i></a>
+    <h3>{{ _('menu_duplicate') }}</h3>
+</div>
+<div class="modal-body" style="padding:0px;">
+    <table id="parents-table" class="edit-form table table-bordered">
+        <tbody>
+            <tr>
+                <th>
+                    {{ _('duplicate_count') }}
+                </th>
+                <td style="width:100%;">
+                <input type="text" id="duplicate-count" />
+                </td>
+            </tr>
+            {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
+                {% if p['visible'] and p['keyname'][:2] != 'x_' and p['values'] %}
+                    <tr>
+                        <th style="text-align:right; min-width:200px;{%if not p['public'] %} color:gray;{% end %}">
+                            {{ p['label'] }}
+                        </th>
+                        <td style="width:100%; padding:8px;">
+                            <input type="checkbox" data-property_definition_keyname="{{ p['keyname'] }}" checked />
+                        </td>
+                    </tr>
+                {% end %}
+            {% end %}
+        </tbody>
+    </table>
+</div>
+<div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">{{ _('close') }}</a>
+    <a href="#" id="duplicate" class="btn btn-success disabled">{{ _('duplicate') }}</a>
+</div>
+
+<script>
+    $(document).ready(function(){
+
+        $('#duplicate-count').keyup(function() {
+            if($.isNumeric($('#duplicate-count').val())) {
+                $('#duplicate').removeClass('disabled');
+            } else {
+                $('#duplicate').addClass('disabled');
+            }
+        });
+    });
+</script>
