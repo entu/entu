@@ -15,7 +15,7 @@
         {% for entity in entities %}
         <tr data-url="/entity/{{ entity['definition_keyname'] }}/{{ entity['id'] }}">
             {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
-                <td style="font-size:11px; white-space:nowrap;" {% if p['datatype'] in ['datetime', 'date'] %}data-value="{{ ' '.join(['%s' % v['db_value'] for v in p['values'] if v['db_value']]) }}"{% end %}>
+                <td style="font-size:11px; max-width:25%;" {% if p['datatype'] in ['datetime', 'date'] %}data-value="{{ ' '.join(['%s' % v['db_value'] for v in p['values'] if v['db_value']]) }}"{% end %}>
                     {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
                 </td>
             {% end %}

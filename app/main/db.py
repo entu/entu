@@ -284,6 +284,7 @@ class Entity():
                     %s
                 FROM relationship
                 WHERE related_entity_id = %s
+                AND relationship_definition_keyname IN ('child', 'viewer', 'expander', 'editor', 'owner')
                 AND is_deleted = 0;
             """, new_entity_id, self.__user_id, entity_id)
 

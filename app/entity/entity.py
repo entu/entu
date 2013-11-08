@@ -24,23 +24,26 @@ class ShowGroup(myRequestHandler, Entity):
 
         """
         entity_definition_keyname = entity_definition_keyname.strip('/').split('/')[0]
+
         entity_definition = None
+        quota_entities_used = 0
+        quota_size_used = 0
+        add_definitions = {}
+        history = ''
+
         if entity_definition_keyname:
             entity_definition = self.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
+            for ad in self.get_definitions_with_optional_parent(entity_definition_keyname):
+                add_definitions.setdefault(ad.get('related_entity_label'), []).append(ad)
+        else:
+            quota_entities_used = self.db.get('SELECT COUNT(*) AS entities FROM entity WHERE is_deleted = 0;').entities
+            quota_size_used = self.db.get('SELECT SUM(filesize) AS size FROM file;').size
+            try:
+                f = open('../HISTORY.md', 'r')
+                history = markdown2.markdown('## '.join(f.read().split('## ')[:4]).replace('## ', '#### '))
+            except:
+                history = ''
 
-        quota_entities_used = self.db.get('SELECT COUNT(*) AS entities FROM entity WHERE is_deleted = 0;').entities
-        # quota_size_used = self.db.get('SELECT SUM(data_length + index_length) AS size FROM information_schema.TABLES;').size
-        quota_size_used = self.db.get('SELECT SUM(filesize) AS size FROM file;').size
-
-        try:
-            f = open('../HISTORY.md', 'r')
-            history = markdown2.markdown('## '.join(f.read().split('## ')[:4]).replace('## ', '#### '))
-        except:
-            history = ''
-
-        add_definitions = {}
-        for ad in self.get_definitions_with_optional_parent(entity_definition_keyname):
-            add_definitions.setdefault(ad.get('related_entity_label'), []).append(ad)
 
         self.render('entity/template/start.html',
             page_title = entity_definition[0]['label_plural'] if entity_definition else '',

@@ -9,18 +9,20 @@
     <table class="table table-condensed">
         <tbody>
             {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
-            <tr>
-                <th style="text-align:right; min-width:200px;">
-                    {{ p['label'] }}
-                </th>
-                <td style="width:100%;">
-                    {% if p['datatype'] == 'file' %}
-                        {{ '<br />'.join(['<a href="/public/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
-                    {% else %}
-                        {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
-                    {% end %}
-                </td>
-            </tr>
+                {% if p['visible'] and p['values'] %}
+                    <tr>
+                        <th style="text-align:right; min-width:200px;">
+                            {{ p['label'] }}
+                        </th>
+                        <td style="width:100%;">
+                            {% if p['datatype'] == 'file' %}
+                                {{ '<br />'.join(['<a href="/public/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
+                            {% else %}
+                                {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
+                            {% end %}
+                        </td>
+                    </tr>
+                {% end %}
             {% end %}
         </tbody>
     </table>
