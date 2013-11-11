@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import torndb
 from tornado import web
 from tornado import locale
 
@@ -25,6 +26,16 @@ class myDatabase():
         Returns DB connection.
 
         """
+        try:
+            x = self.settings['databases'][self.request.host].get('SELECT 1 FROM DUAL;')
+        except Exception:
+            logging.warning('Database connected for %s' % self.request.host)
+            self.settings['databases'][self.request.host] = torndb.Connection(
+                host     = self.settings['hosts'][self.request.host]['database']['host'],
+                database = self.settings['hosts'][self.request.host]['database']['database'],
+                user     = self.settings['hosts'][self.request.host]['database']['user'],
+                password = self.settings['hosts'][self.request.host]['database']['password'],
+            )
         return self.settings['databases'][self.request.host]
 
     @property
