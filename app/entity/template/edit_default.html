@@ -1,33 +1,33 @@
 <table id="default" class="edit-form table table-bordered tab-pane{% if actions[0] == 'default' %} active{% end %}">
     <tbody>
         {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
-            {% for idx, v in enumerate(p['values']) %}
+            {% for idx, v in enumerate(p.get('values')) %}
                 {% if p['visible'] and p['keyname'][:2] != 'x_' %}
                     <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
                         {% if idx == 0 %}
-                        <th style="{%if not p['public'] %}color:gray;{% end %}{%if p['mandatory'] %}border-right:1px solid red;{% end %}" rowspan="{{ len(p['values']) }}">
+                        <th style="{%if not p['public'] %}color:gray;{% end %}{%if p['mandatory'] %}border-right:1px solid red;{% end %}" rowspan="{{ len(p.get('values')) }}">
                             {%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}
                         </th>
                         {% end %}
                         <td>
                             {% if p['readonly'] %}
-                                <span style="padding:8px; font-style:italic; color:gray;">{{ ', '.join(['%s' % v['value'] for v in p['values'] if v['value']]) }}</span>
+                                <span style="padding:8px; font-style:italic; color:gray;">{{ ', '.join(['%s' % v['value'] for v in p.get('values') if v['value']]) }}</span>
                             {% else %}
                                 {% if p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal'] %}
                                     {% if p.get('select', None) %}
-                                        <select class="autosave classifier-select {% if p['can_add_new'] and idx+1 == len(p['values']) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" style="width:100%;">
+                                        <select class="autosave classifier-select {% if p['can_add_new'] and idx+1 == len(p.get('values')) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" style="width:100%;">
                                             <option value=""></option>
                                             {% for s in sorted(p.get('select',''), key=itemgetter('label')) %}
                                             <option value="{{ s['label'] }}" {% if s['label'] == v['value'] %} selected{% end %}>{{ s['label'] }}</option>
                                             {% end %}
                                         </select>
                                     {% else %}
-                                        <input type="text" class="autosave {% if p['can_add_new'] and idx+1 == len(p['values']) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" value="{{ v['db_value'] }}" />
+                                        <input type="text" class="autosave {% if p['can_add_new'] and idx+1 == len(p.get('values')) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" value="{{ v['db_value'] }}" />
                                     {% end %}
                                 {% elif p['datatype'] in ['text', 'html'] %}
-                                    <textarea class="autosave {% if p['can_add_new'] and idx+1 == len(p['values']) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['value'] }}">{{ v['value'] }}</textarea>
+                                    <textarea class="autosave {% if p['can_add_new'] and idx+1 == len(p.get('values')) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['value'] }}">{{ v['value'] }}</textarea>
                                 {% elif p['datatype'] == 'boolean' %}
-                                    <input type="checkbox" class="autosave {% if p['can_add_new'] and idx+1 == len(p['values']) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" {% if v.get('db_value', 0) == 1 %} checked{% end %} />
+                                    <input type="checkbox" class="autosave {% if p['can_add_new'] and idx+1 == len(p.get('values')) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" {% if v.get('db_value', 0) == 1 %} checked{% end %} />
                                 {% elif p['datatype'] == 'file' %}
                                     {% if not v['id'] %}
                                         <div class="new-filenames" style="padding:0px;"></div>
@@ -60,14 +60,14 @@
                                 {% elif p['datatype'] == 'reference' %}
                                     {% if not v['id'] %}
                                         <div class="new-references" style="padding:0px;"></div>
-                                        <div><input multiple type="hidden" class="autosave reference" data-property_definition_keyname="{{ p['keyname'] }}" data-reference_definition="{{ p.get('reference_definition') }}" data-multiplicity="{%if p['multiplicity'] %}{{ p['multiplicity'] - len(p['values']) + 1 }}{% else %}X{% end %}" style="width:100%;" /></div>
+                                        <div><input multiple type="hidden" class="autosave reference" data-property_definition_keyname="{{ p['keyname'] }}" data-reference_definition="{{ p.get('reference_definition') }}" data-multiplicity="{%if p['multiplicity'] %}{{ p['multiplicity'] - len(p.get('values')) + 1 }}{% else %}X{% end %}" style="width:100%;" /></div>
                                     {% else %}
                                         <div class="delete-reference-row edit" style="padding:8px;"><a href="#{{ v['db_value'] }}" target="_blank">{{ v['value'] }}</a> <a href="javascript:void(0);" data-property_id="{{ v['id'] }}" class="delete-reference" style="float:right; display:none;"><i class="icon-trash" style="color:red;"></i></a></div>
                                     {% end %}
                                 {% elif p['datatype'] == 'dynamic' %}
-                                    <input type="text" class="autosave {% if p['can_add_new'] and idx+1 == len(p['values']) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" value="{{ v['db_value'] }}" />
+                                    <input type="text" class="autosave {% if p['can_add_new'] and idx+1 == len(p.get('values')) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" value="{{ v['db_value'] }}" />
                                 {% else %}
-                                    <span style="padding:8px; font-style:italic; color:gray;">{{ ', '.join(['%s' % v['value'] for v in p['values'] if v['value']]) }}</span>
+                                    <span style="padding:8px; font-style:italic; color:gray;">{{ ', '.join(['%s' % v['value'] for v in p.get('values') if v['value']]) }}</span>
                                 {% end %}
                             {% end %}
                         </td>

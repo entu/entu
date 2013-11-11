@@ -31,27 +31,27 @@
     <table class="table table-condensed">
         <tbody>
             {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
-                {% if p['visible'] and (p['values'] or p['mandatory']) %}
+                {% if p['visible'] and (p.get('values') or p['mandatory']) %}
                     <tr>
                         <th style="text-align:right; min-width:200px;{%if not p['public'] %} color:gray;{% end %}">
                             {{ p['label'] }}
                         </th>
                         <td style="width:100%;{%if not p['public'] %} color:gray;{% end %}">
                             {% if p['datatype'] == 'file' %}
-                                {{ '<br />'.join(['<a href="/entity/file-%s" target="_blank">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
-                                {% if len(p['values']) > 1 %}
-                                    <a href="/entity/file-{{ ','.join(['%s' % v['db_value'] for v in p['values']]) }}" style="font-size:11px; font-style:italic; float:right;">{{ _('download_all_as_zip') }}</a>
+                                {{ '<br />'.join(['<a href="/entity/file-%s" target="_blank">%s</a>' % (v['db_value'], v['value']) for v in p.get('values')]) }}
+                                {% if len(p.get('values')) > 1 %}
+                                    <a href="/entity/file-{{ ','.join(['%s' % v['db_value'] for v in p.get('values')]) }}" style="font-size:11px; font-style:italic; float:right;">{{ _('download_all_as_zip') }}</a>
                                 {% end %}
                             {% elif p['datatype'] == 'html' %}
                                 <div class="html-property" data-property="{{ p['dataproperty'] }}" style="display:block; width:100%;"><img src="{{ static_url('images/spinner_white.gif') }}" id="search-spinner" /></div>
                             {% elif p['datatype'] == 'text' %}
-                                {{ markdown2.markdown('   \n'.join(['%s' % v['value'].replace('\n', '   \n') for v in p['values']])) }}
+                                {{ markdown2.markdown('   \n'.join(['%s' % v['value'].replace('\n', '   \n') for v in p.get('values')])) }}
                             {% elif p['datatype'] == 'reference' %}
-                                {{ '<br />'.join(['<a href="#%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
+                                {{ '<br />'.join(['<a href="#%s">%s</a>' % (v['db_value'], v['value']) for v in p.get('values')]) }}
                             {% elif p['datatype'] == 'string' %}
-                                {{ '<br />'.join(['%s' % linkify(v['value'], shorten=True, extra_params='target="_blank"') for v in p['values']]) }}
+                                {{ '<br />'.join(['%s' % linkify(v['value'], shorten=True, extra_params='target="_blank"') for v in p.get('values')]) }}
                             {% else %}
-                                {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
+                                {{ '<br />'.join(['%s' % v['value'] for v in p.get('values')]) }}
                             {% end %}
                         </td>
                     </tr>

@@ -1060,7 +1060,8 @@ class Entity():
                                 items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {}).setdefault('select', []).append({'id': c.get('id', ''), 'label': c.get('displayname', '')})
 
             for p_key, p_value in value.get('properties', {}).iteritems():
-                items[key]['properties'][p_key]['values'] = sorted(p_value.get('values', {}).values(), key=itemgetter('ordinal'))
+                if p_value.get('values'):
+                    items[key]['properties'][p_key]['values'] = sorted(p_value.get('values', {}).values(), key=itemgetter('ordinal'))
                 if p_value['datatype'] == 'reference':
                     reference_definition = self.db.get('SELECT classifying_entity_definition_keyname FROM property_definition WHERE keyname = %s LIMIT 1;', p_value['keyname'])
                     if reference_definition:
