@@ -325,7 +325,10 @@ class Entity():
         if old_property_id:
             # logging.debug(definition)
             if definition.formula == 1:
-                fval = ''.join([x.encode('utf-8') for x in Formula(self.db, user_locale=self.get_user_locale(), created_by=self.__user_id, entity_id=entity_id, property_id=old_property_id, formula=definition.value_formula).evaluate()]).decode('utf-8')
+                try:
+                    fval = ''.join([x for x in Formula(self.db, user_locale=self.get_user_locale(), created_by=self.__user_id, entity_id=entity_id, property_id=old_property_id, formula=definition.value_formula).evaluate()]).decode('utf-8')
+                except Exception:
+                    fval = ''.join([x.encode('utf-8') for x in Formula(self.db, user_locale=self.get_user_locale(), created_by=self.__user_id, entity_id=entity_id, property_id=old_property_id, formula=definition.value_formula).evaluate()]).decode('utf-8')
                 # logging.error((fval, definition.value_string))
                 if definition.value_string == fval:
                     return
