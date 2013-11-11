@@ -325,8 +325,8 @@ class Entity():
         if old_property_id:
             # logging.debug(definition)
             if definition.formula == 1:
-                fval = u''.join(Formula(self.db, user_locale=self.get_user_locale(), created_by=self.__user_id, entity_id=entity_id, property_id=old_property_id, formula=definition.value_formula).evaluate())
-                # logging.debug((fval,definition.value_string))
+                fval = u''.join([x.decode('utf-8') for x in Formula(self.db, user_locale=self.get_user_locale(), created_by=self.__user_id, entity_id=entity_id, property_id=old_property_id, formula=definition.value_formula).evaluate()])
+                # logging.debug((fval, definition.value_string))
                 if definition.value_string == fval:
                     return
 
