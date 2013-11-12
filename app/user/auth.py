@@ -26,11 +26,11 @@ class ShowAuthPage(myRequestHandler):
 
         self.clear_cookie('session')
         self.render('user/template/auth.html',
-            mobileid = True if self.app_settings['mobileid_service_name'] and self.app_settings['mobileid_url'] else False,
-            google = True if self.app_settings['google_client_key'] and self.app_settings['google_client_secret'] else False,
-            facebook = True if self.app_settings['facebook_api_key'] and self.app_settings['facebook_secret'] else False,
-            twitter = True if self.app_settings['twitter_consumer_key'] and self.app_settings['twitter_consumer_secret'] else False,
-            live = True if self.app_settings['live_client_key'] and self.app_settings['live_client_secret'] else False,
+            mobileid = True if self.app_settings.get('auth-mobileid') else False,
+            google = True if self.app_settings.get('auth-google') else False,
+            facebook = True if self.app_settings.get('auth-facebook') else False,
+            twitter = True if self.app_settings.get('auth-twitter') else False,
+            live = True if self.app_settings.get('auth-live') else False,
         )
 
 
@@ -47,7 +47,7 @@ class Exit(myRequestHandler):
             elif self.current_user.provider == 'facebook':
                 redirect_url = 'https://www.facebook.com/logout.php?access_token=%s&confirm=1&next=%s://%s/status' % (self.current_user.access_token, self.request.protocol, self.request.host)
             elif self.current_user.provider == 'live':
-                redirect_url = 'https://login.live.com/oauth20_logout.srf?client_id=%s&redirect_uri=%s://%s/status' % (self.app_settings['live_client_key'], self.request.protocol, self.request.host)
+                redirect_url = 'https://login.live.com/oauth20_logout.srf?client_id=%s&redirect_uri=%s://%s/status' % (self.app_settings.get('auth-live', '\n').split('\n')[0], self.request.protocol, self.request.host)
 
             self.user_logout()
 
@@ -64,12 +64,12 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
         set_redirect(self)
         self.oauth2_provider = None
 
-        if provider == 'facebook' and 'facebook_api_key' in self.app_settings and 'facebook_secret' in self.app_settings:
+        if provider == 'facebook' and self.app_settings.get('auth-facebook'):
             # https://developers.facebook.com/apps
             self.oauth2_provider = {
                 'provider':     'facebook',
-                'key':          self.app_settings['facebook_api_key'],
-                'secret':       self.app_settings['facebook_secret'],
+                'key':          self.app_settings.get('auth-facebook', '\n').split('\n')[0],
+                'secret':       self.app_settings.get('auth-facebook', '\n').split('\n')[1],
                 'auth_url':     'https://www.facebook.com/dialog/oauth?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s',
                 'token_url':    'https://graph.facebook.com/oauth/access_token',
                 'info_url':     'https://graph.facebook.com/me?access_token=%(token)s',
@@ -80,12 +80,12 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 'user_picture': 'http://graph.facebook.com/%(id)s/picture?type=large',
             }
 
-        if provider == 'google' and 'google_client_key' in self.app_settings and 'google_client_secret' in self.app_settings:
+        if provider == 'google' and self.app_settings.get('auth-google'):
             # https://code.google.com/apis/console
             self.oauth2_provider = {
                 'provider':     'google',
-                'key':          self.app_settings['google_client_key'],
-                'secret':       self.app_settings['google_client_secret'],
+                'key':          self.app_settings.get('auth-google', '\n').split('\n')[0],
+                'secret':       self.app_settings.get('auth-google', '\n').split('\n')[1],
                 'auth_url':     'https://accounts.google.com/o/oauth2/auth?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s&response_type=code&approval_prompt=auto&access_type=online',
                 'token_url':    'https://accounts.google.com/o/oauth2/token',
                 'info_url':     'https://www.googleapis.com/oauth2/v2/userinfo?access_token=%(token)s',
@@ -95,12 +95,12 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 'user_name':    '%(name)s',
                 'user_picture': '%(picture)s',
             }
-        if provider == 'live' and 'live_client_key' in self.app_settings and 'live_client_secret' in self.app_settings:
+        if provider == 'live' and self.app_settings.get('auth-live'):
             # https://manage.dev.live.com/Applications/Index
             self.oauth2_provider = {
                 'provider':     'live',
-                'key':          self.app_settings['live_client_key'],
-                'secret':       self.app_settings['live_client_secret'],
+                'key':          self.app_settings.get('auth-live', '\n').split('\n')[0],
+                'secret':       self.app_settings.get('auth-live', '\n').split('\n')[1],
                 'auth_url':     'https://login.live.com/oauth20_authorize.srf?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s&response_type=code',
                 'token_url':    'https://login.live.com/oauth20_token.srf',
                 'info_url':     'https://apis.live.net/v5.0/me?access_token=%(token)s',
@@ -215,7 +215,9 @@ class AuthMobileID(myRequestHandler):
 
     """
     def post(self):
-        url = self.app_settings['mobileid_url']
+        service = self.app_settings.get('auth-mobileid', '\n').split('\n')[0]
+        url = self.app_settings.get('auth-mobileid', '\n').split('\n')[1]
+
         client = Client(url)
 
         mobile = re.sub(r'[^0-9:]', '', self.get_argument('mobile', '', True))
@@ -242,7 +244,6 @@ class AuthMobileID(myRequestHandler):
             if not person:
                 return
 
-            service = self.app_settings['mobileid_service_name']
             text = self.request.host
             rnd = ''.join(random.choice(string.digits) for x in range(20))
 

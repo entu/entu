@@ -20,8 +20,13 @@ from main.db import *
 
 
 # Command line options
-define('debug', help='run on debug mode',     type=str, default='False')
-define('port',  help='run on the given port', type=int, default=8000)
+define('debug',         help='run on debug mode',     type=str, default='False')
+define('port',          help='run on the given port', type=int, default=8000)
+define('host',          help='database host',         type=str)
+define('database',      help='database name',         type=str)
+define('user',          help='database user',         type=str)
+define('password',      help='database password',     type=str)
+define('customergroup', help='customergroup',         type=str, default=0)
 
 
 # List of controllers to load.
@@ -48,7 +53,7 @@ class MainPage(myRequestHandler):
 
     """
     def get(self):
-        self.redirect(self.app_settings['default_path'])
+        self.redirect(self.app_settings.get('path'))
 
 
 class PageNotFound(myRequestHandler):
@@ -65,21 +70,27 @@ class myApplication(tornado.web.Application):
     """
     def __init__(self):
         # load settings
-        settings_static = {
+        settings = {
             'port':                 options.port,
             'debug':                True if str(options.debug).lower() == 'true' else False,
             'template_path':        path.join(path.dirname(__file__), '..', 'app'),
             'static_path':          path.join(path.dirname(__file__), '..', 'static'),
             'xsrf_coocies':         True,
+            'cookie_secret':        '8Et6q9ragAtuVevu3UPraqepr6maqaFreXess6ujukawreph9ch4huj6de3ezAcU',
             'login_url':            '/auth',
             'start_time':           time.time(),
             'request_count':        0,
             'request_time':         0,
             'slow_request_count':   0,
             'slow_request_time':    0,
+            'slow_request_ms':      1000,
+            'database-host':        options.host,
+            'database-database':    options.database,
+            'database-user':        options.user,
+            'database-password':    options.password,
+            'customergroup':        options.customergroup,
             'databases':            {},
         }
-        settings_yaml = yaml.safe_load(open('config.yaml', 'r'))
 
         # load handlers
         handlers = [(r'/', MainPage)]
@@ -87,11 +98,8 @@ class myApplication(tornado.web.Application):
             c = __import__ (controller, globals(), locals(), ['*'], -1)
             handlers.extend(c.handlers)
             for h in c.handlers:
-                settings_static.setdefault('paths', {}).setdefault('%s.py' % controller, []).append(h[0])
+                settings.setdefault('paths', {}).setdefault('%s.py' % controller, []).append(h[0])
         handlers.append((r'(.*)', PageNotFound))
-
-        # merge command line and static settings
-        settings = dict(settings_static.items() + settings_yaml.items())
 
         # init application
         # logging.debug('App settings:\n%s' % yaml.safe_dump(settings, default_flow_style=False, allow_unicode=True))

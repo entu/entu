@@ -31,27 +31,74 @@ class myDatabase():
         except Exception:
             logging.warning('Database connected for %s' % self.request.host)
             self.settings['databases'][self.request.host] = torndb.Connection(
-                host     = self.settings['hosts'][self.request.host]['database']['host'],
-                database = self.settings['hosts'][self.request.host]['database']['database'],
-                user     = self.settings['hosts'][self.request.host]['database']['user'],
-                password = self.settings['hosts'][self.request.host]['database']['password'],
+                host     = self.app_settings.get('database-host'),
+                database = self.app_settings.get('database-name'),
+                user     = self.app_settings.get('database-user'),
+                password = self.app_settings.get('database-password'),
             )
         return self.settings['databases'][self.request.host]
 
     @property
     def app_settings(self):
+        return self.get_app_settings()
+
+    def get_app_settings(self, host=None):
+        if not host:
+            host = self.request.host
         if self.__app_settings:
-            return self.__app_settings
+            return self.__app_settings.get(host, {})
 
-        settings = {}
-        for preference in self.db.query('SELECT keyname, value FROM app_settings;'):
-            settings[preference.keyname] = preference.value
+        logging.debug('Loaded app_settings for %s.' % host)
 
-        settings['database'] = self.settings['hosts'][self.request.host]['database']['database']
-        self.__app_settings = settings
-        logging.debug('Loaded app_settings for %s.' % self.request.host)
+        db = torndb.Connection(
+            host     = self.settings['database-host'],
+            database = self.settings['database-database'],
+            user     = self.settings['database-user'],
+            password = self.settings['database-password'],
+        )
+        sql = """
+            SELECT DISTINCT
+                e.id AS entity,
+                property_definition.dataproperty AS property,
+                IF(
+                    property_definition.datatype='decimal',
+                    property.value_decimal,
+                    IF(
+                        property_definition.datatype='integer',
+                        property.value_integer,
+                        IF(
+                            property_definition.datatype='file',
+                            property.value_file,
+                            property.value_string
+                        )
+                    )
+                ) AS value
+            FROM (
+                SELECT
+                    entity.id,
+                    entity.entity_definition_keyname
+                FROM
+                    entity,
+                    relationship
+                WHERE relationship.related_entity_id = entity.id
+                AND entity.is_deleted = 0
+                AND relationship.is_deleted = 0
+                AND relationship.relationship_definition_keyname = 'child'
+                AND relationship.entity_id IN (%s)
+            ) AS e
+            LEFT JOIN property_definition ON property_definition.entity_definition_keyname = e.entity_definition_keyname AND property_definition.is_deleted = 0
+            LEFT JOIN property ON property.property_definition_keyname = property_definition.keyname AND property.entity_id = e.id AND property.is_deleted = 0;
+        """ % self.settings['customergroup']
+        customers = {}
+        for c in db.query(sql):
+            customers.setdefault(c.entity, {})[c.property] = c.value
+        hosts = {}
+        for c in customers.values():
+            hosts[c.get('domain', '')] = c
 
-        return settings
+        self.__app_settings = hosts
+
+        return hosts.get(self.request.host, {})
 
 
 class myUser():
@@ -133,7 +180,7 @@ class myUser():
                 email,
                 name,
                 picture,
-                self.app_settings['default_language'],
+                self.app_settings.get('language', 'english'),
                 session_key+user_key,
                 access_token,
                 # update
@@ -215,18 +262,18 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
         if self.current_user:
             return locale.get(self.current_user['language'])
         else:
-            return locale.get(self.app_settings['default_language'])
+            return locale.get(self.app_settings.get('language', 'english'))
 
     def render(self, template_name, **kwargs):
         """
         Includes app title, logo etc to template and renders it.
 
         """
-        kwargs['app_title'] = self.app_settings['app_title']
-        kwargs['app_organisation'] = self.app_settings['app_organisation']
-        kwargs['app_logo_big'] = self.app_settings['app_logo_big']
-        kwargs['page_title'] = '%s - %s' % (self.app_settings['app_title'], kwargs['page_title']) if kwargs.get('page_title', None) else self.app_settings['app_title']
-        kwargs['google_analytics_code'] = self.app_settings['google_analytics_code'] if self.app_settings.get('google_analytics_code') else None
+        kwargs['app_title'] = 'Entu'
+        kwargs['app_organisation'] = self.app_settings.get('name', '')
+        kwargs['app_logo'] = 'https://www.entu.ee/public/file-%s' % self.app_settings.get('photo') if self.app_settings.get('photo') else '/static/favicon/apple-touch-icon-144-precomposed.png'
+        kwargs['page_title'] = '%s - %s' % (kwargs['app_title'], kwargs['page_title']) if kwargs.get('page_title') else '%s - %s' % (kwargs['app_title'], self.app_settings.get('name', ''))
+        kwargs['google_analytics_code'] = self.app_settings.get('analytics-code')
 
         web.RequestHandler.render(self, template_name, **kwargs)
 
@@ -263,7 +310,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
         message = EmailMessage(
             subject = subject,
             body = message,
-            from_email = self.app_settings['email_address'],
+            from_email = self.app_settings.get('email_address'),
             to = to,
             cc = cc,
             bcc = bcc,
@@ -280,11 +327,11 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
     @property
     def __mail_connection(self):
         return EmailBackend(
-            self.app_settings['email_smtp_server'],
-            int(self.app_settings['email_smtp_port']),
-            self.app_settings['email_address'],
-            swapCrypt(self.app_settings['email_secret']),
-            True
+            self.app_settings.get('email_smtp_server'),
+            int(self.app_settings.get('email_smtp_port')),
+            self.app_settings.get('email_address'),
+            swapCrypt(self.app_settings.get('email_secret')),
+            True,
         )
 
 
