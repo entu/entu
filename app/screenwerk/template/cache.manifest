@@ -2,12 +2,12 @@ CACHE MANIFEST
 # Expires: {{ expires }}
 
 CACHE:
-{{ static_url('javascript/jquery.min.js') }}
-{{ static_url('images/spinner_pacman.gif') }}
+{{ static_url('javascript/jquery.min.js', include_host=True) }}
+{{ static_url('images/spinner_pacman.gif', include_host=True) }}
 
 {% for f in files %}{% if f.get('type') in ['audio', 'video', 'image'] %}
 # {{ f.get('filename') }}
-{{ f.get('src') }}
+{{ static_url(f.get('src'), include_host=True, include_version=False) }}
 {% end %}{% end %}
 
 NETWORK:

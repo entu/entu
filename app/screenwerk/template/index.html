@@ -239,7 +239,7 @@
             if(box.data('type') != 'audio') box.show();
             if(box.data('type') == 'audio' || box.data('type') == 'video') {
               // play audio/video and mute it if set
-              if(box.data('type') == 'video') box.get(0).muted = !box.data('audio');
+              if(box.data('type') == 'video') box.get(0).muted = box.data('mute');
               box.get(0).load();
               box.get(0).play();
             } else if(box.data('duration')) {

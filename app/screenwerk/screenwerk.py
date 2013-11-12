@@ -133,8 +133,7 @@ class Schedule():
                         continue
 
                     media_type = media.get('properties', {}).get('type', {}).get('values', [{}])[0].get('value', '').lower()
-                    # media_file = '%s://%s/screenwerk/file-%s' % (self.request.protocol, self.request.host, media.get('properties', {}).get('file', {}).get('values', [{}])[0].get('db_value')) if media.get('properties', {}).get('file', {}).get('values', [{}])[0].get('db_value', '') else media.get('properties', {}).get('url', {}).get('values', [{}])[0].get('value')
-                    media_file = '/screenwerk/file-%s' % media.get('properties', {}).get('file', {}).get('values', [{}])[0].get('db_value') if media.get('properties', {}).get('file', {}).get('values', [{}])[0].get('db_value', '') else media.get('properties', {}).get('url', {}).get('values', [{}])[0].get('value')
+                    media_file = 'screenwerk/file-%s' % media.get('properties', {}).get('file', {}).get('values', [{}])[0].get('db_value') if media.get('properties', {}).get('file', {}).get('values', [{}])[0].get('db_value', '') else media.get('properties', {}).get('url', {}).get('values', [{}])[0].get('value')
                     media_ratio = float(media.get('properties', {}).get('width', {}).get('values', [{}])[0].get('db_value', 1)) / float(media.get('properties', {}).get('height', {}).get('values', [{}])[0].get('db_value', 1))
 
                     media_delay = playlist.get('properties', {}).get('delay', {}).get('values', [{}])[0].get('value')
