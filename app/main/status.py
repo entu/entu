@@ -44,7 +44,7 @@ class ShowLastErrors(myRequestHandler):
                 user        = s['database']['user'],
                 password    = s['database']['password'],
             )
-            for r in db_connection.query('SELECT date, port, IFNULL(status, \'   \') AS status, method, url FROM app_requests WHERE (status = 500 OR time IS NULL) AND date > CURDATE() ORDER BY id DESC;'):
+            for r in db_connection.query('SELECT date, port, IFNULL(status, \'   \') AS status, method, url FROM requestlog WHERE (status = 500 OR time IS NULL) AND date > CURDATE() ORDER BY id DESC;'):
                 status.setdefault(s['database']['database'], []).append(
                     '%s   %s   %s   %s %s' % (str(r.date), r.port, r.status, r.method, r.url)
                 )

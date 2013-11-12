@@ -216,7 +216,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
     __request_id = None
 
     def prepare(self):
-        self.__request_id = self.db.execute_lastrowid('INSERT INTO app_requests SET date = NOW(), port = %s, method = %s, url = %s, arguments = %s, user_id = %s, ip = %s, browser = %s;',
+        self.__request_id = self.db.execute_lastrowid('INSERT INTO requestlog SET date = NOW(), port = %s, method = %s, url = %s, arguments = %s, user_id = %s, ip = %s, browser = %s;',
             self.settings['port'],
             self.request.method,
             self.request.full_url(),
@@ -237,7 +237,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
             self.settings['request_time'] += request_time
 
         if self.__request_id:
-            self.db.execute('UPDATE app_requests SET time = %s, status = %s WHERE id = %s;',
+            self.db.execute('UPDATE requestlog SET time = %s, status = %s WHERE id = %s;',
                 request_time,
                 self.get_status(),
                 self.__request_id
