@@ -215,8 +215,8 @@ class AuthMobileID(myRequestHandler):
 
     """
     def post(self):
-        service = self.app_settings.get('auth-mobileid', '\n').split('\n')[0]
-        url = self.app_settings.get('auth-mobileid', '\n').split('\n')[1]
+        service = self.app_settings.get('auth-mobileid')
+        url = 'https://digidocservice.sk.ee/?wsdl'
 
         client = Client(url)
 

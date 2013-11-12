@@ -297,7 +297,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
     def mail_send(self, to, cc=None, bcc=None, subject='', message='', attachments=None):
         """
-        Sends email using GMail account. email_address and gmail_password application settings are required.
+        Sends email using GMail account.
 
         """
 
@@ -310,7 +310,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
         message = EmailMessage(
             subject = subject,
             body = message,
-            from_email = self.app_settings.get('email_address'),
+            from_email = self.app_settings.get('email-account', '\n').split('\n')[0],
             to = to,
             cc = cc,
             bcc = bcc,
@@ -327,10 +327,10 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
     @property
     def __mail_connection(self):
         return EmailBackend(
-            self.app_settings.get('email_smtp_server'),
-            int(self.app_settings.get('email_smtp_port')),
-            self.app_settings.get('email_address'),
-            swapCrypt(self.app_settings.get('email_secret')),
+            'smtp.gmail.com',
+            587,
+            self.app_settings.get('email-account', '\n').split('\n')[0],
+            swapCrypt(self.app_settings.get('email-account', '\n').split('\n')[1]),
             True,
         )
 
