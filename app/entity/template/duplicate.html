@@ -15,7 +15,7 @@
                 </td>
             </tr>
             {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
-                {% if p['visible'] and p['keyname'][:2] != 'x_' and p['values'] %}
+                {% if p['visible'] and p['keyname'][:2] != 'x_' and p.get('values') %}
                     <tr>
                         <th style="text-align:right; min-width:200px;{%if not p['public'] %} color:gray;{% end %}">
                             {{ p['label'] }}
@@ -23,7 +23,7 @@
                         <td style="padding:8px;">
                             <label for="{{ p['keyname'] }}" style="font-size:12px; color:grey;">
                                 <input type="checkbox" class="duplicate-property" id="{{ p['keyname'] }}" value="{{ p['keyname'] }}" checked  style="margin-right:8px;" />
-                                {{ ', '.join(['%s' % v['value'] for v in p['values']]) }}
+                                {{ ', '.join(['%s' % v.get('value') for v in p.get('values', [{}])]) }}
                             </label>
                         </td>
                     </tr>

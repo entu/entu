@@ -7,7 +7,7 @@ CACHE:
 
 {% for f in files %}{% if f.get('type') in ['audio', 'video', 'image'] %}
 # {{ f.get('filename') }}
-{{ static_url(f.get('src'), include_host=True, include_version=False) }}
+{{ f.get('src') }}
 {% end %}{% end %}
 
 NETWORK:
