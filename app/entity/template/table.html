@@ -5,9 +5,11 @@
     <thead>
         <tr>
             {% for p in sorted(entities[0].get('properties', {}).values(), key=itemgetter('ordinal')) %}
-                <th style="font-size:12px; white-space:nowrap; vertical-align:middle;">
-                    {{ p['label'] }}
-                </th>
+                {% if p['visible'] %}
+                    <th style="font-size:12px; white-space:nowrap; vertical-align:middle;">
+                        {{ p['label'] }}
+                    </th>
+                {% end %}
             {% end %}
         </tr>
     </thead>
@@ -15,9 +17,11 @@
         {% for entity in entities %}
         <tr data-url="/entity/{{ entity['definition_keyname'] }}/{{ entity['id'] }}">
             {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
-                <td style="font-size:11px; max-width:25%;" {% if p['datatype'] in ['datetime', 'date'] %}data-value="{{ ' '.join(['%s' % v['db_value'] for v in p['values'] if v['db_value']]) }}"{% end %}>
-                    {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
-                </td>
+                {% if p['visible'] %}
+                    <td style="font-size:11px; max-width:25%;" {% if p['datatype'] in ['datetime', 'date'] %}data-value="{{ ' '.join(['%s' % v['db_value'] for v in p['values'] if v['db_value']]) }}"{% end %}>
+                        {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
+                    </td>
+                {% end %}
             {% end %}
         </tr>
         {% end %}
