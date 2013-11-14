@@ -2,7 +2,7 @@
 
 1. Calculation (formula) fields
 * Show Entity.displaycount
-* Show all entities in search (not first 303)
+* Show all entities in search (not first 500)
 * Replace [tornadomail](https://github.com/equeny/tornadomail) with better email library
 * Custom Entity actions
 * Favorite entities
@@ -14,7 +14,7 @@
 * Relation definition based Entity.displaytable
 * Show search results in column (current) or tabular (all entities with all properties as table) view
 * Edit multiple entities at once
-* Custom labels for displaytabletable
 * Descending sort
 * Unique fields
+* CalDAV & CardDAV support
 * ...
