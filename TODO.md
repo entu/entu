@@ -12,8 +12,7 @@
 * Find duplicate Entities and propose merger
 * Option to ask permission (send message to owner) to Entity if access denied
 * Relation definition based Entity.displaytable
-* Show search results in column (current) or tabular (all entities with all properties as table) view
-* Edit multiple entities at once
+* Edit multiple entities at onceq
 * Descending sort
 * Unique fields
 * CalDAV & CardDAV support
