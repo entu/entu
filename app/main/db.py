@@ -1419,7 +1419,7 @@ class Entity():
 
         """
 
-        if not self.db.get('SELECT id FROM relationship WHERE relationship_definition_keyname iN (\'expander\', \'owner\') AND entity_id = %s AND related_entity_id = %s LIMIT 1;', entity_id, self.__user_id):
+        if not self.db.get('SELECT id FROM relationship WHERE relationship_definition_keyname iN (\'expander\', \'editor\', \'owner\') AND entity_id = %s AND related_entity_id = %s AND is_deleted = 0 LIMIT 1;', entity_id, self.__user_id):
             return []
 
         sql = """
