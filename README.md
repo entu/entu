@@ -49,6 +49,7 @@ _Futuristic Data Management System_
     * [PyZ3950](http://www.panix.com/~asl2/software/PyZ3950/)
     * [croniter](https://github.com/taichino/croniter)
     * [chardet](https://github.com/erikrose/chardet)
+    * [boto](https://github.com/boto/boto)
 
 
 ## Used libraries/add-ons
