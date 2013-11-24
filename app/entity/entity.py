@@ -217,10 +217,7 @@ class DownloadFile(myRequestHandler, Entity):
                 return self.missing()
             if file.is_link == 1:
                 return self.redirect(file.file)
-            ms = magic.open(magic.MAGIC_MIME)
-            ms.load()
-            mime = ms.buffer(file.file)
-            ms.close()
+            mime = magic.from_buffer(file.file, mime=True)
             filename = file.filename
             outfile = file.file
 

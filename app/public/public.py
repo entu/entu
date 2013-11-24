@@ -202,10 +202,7 @@ class PublicFileHandler(myRequestHandler, Entity):
             return self.missing()
 
         file = files[0]
-        ms = magic.open(magic.MAGIC_MIME)
-        ms.load()
-        mime = ms.buffer(file.file)
-        ms.close()
+        mime = magic.from_buffer(file.file, mime=True)
 
         self.add_header('Content-Type', mime)
         self.add_header('Content-Disposition', 'inline; filename="%s"' % file.filename)

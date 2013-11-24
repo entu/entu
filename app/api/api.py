@@ -659,10 +659,7 @@ class GetFile(myRequestHandler, Entity):
         if not file:
             return self.missing()
 
-        ms = magic.open(magic.MAGIC_MIME)
-        ms.load()
-        mime = ms.buffer(file.file)
-        ms.close()
+        mime = magic.from_buffer(file.file, mime=True)
 
         self.add_header('Content-Type', mime)
         self.add_header('Content-Disposition', 'attachment; filename="%s"' % file.filename)

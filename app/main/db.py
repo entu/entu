@@ -1393,7 +1393,7 @@ class Entity():
             public = 'AND pd.public = 1'
 
         sql = """
-            SELECT
+            SELECT DISTINCT
                 f.id,
                 f.created,
                 f.file,
