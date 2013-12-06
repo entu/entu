@@ -153,7 +153,7 @@
             append_list();
         });
 
-        $('.listitem').live('keyup', function(e){
+        $(document.body).on('keyup', '.listitem', function(e){
             if (e.keyCode == 38 && $(this).prev().attr('href')) {
                 window.location = $(this).prev().attr('href')
                 $(this).prev().focus()
