@@ -62,7 +62,7 @@
                     </div>
                     <div class="pull-right span4">
                         <h3 style="margin:20px 0px 10px -20px;">{{ _('quota') }}</h3>
-                        {{ _('quota_entities') % (quota_entities_used, quota_entities) }}
+                        {{ _('quota_entities') % ('{:,}'.format(quota_entities_used).replace(',', ' '), '{:,}'.format(quota_entities).replace(',', ' ')) }}
                         <div class="progress" style="margin-right:20px; height:7px;">
                             {% if quota_entities_used > quota_entities %}
                             <div class="bar bar-success" style="width: {{ round(quota_entities * 100 / quota_entities_used) }}%;"></div>
