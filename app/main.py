@@ -53,7 +53,7 @@ class MainPage(myRequestHandler):
 
     """
     def get(self):
-        self.redirect(self.app_settings.get('path'))
+        self.redirect(self.app_settings('path'))
 
 
 class PageNotFound(myRequestHandler):

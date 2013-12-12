@@ -1,5 +1,4 @@
 from tornado import locale
-from tornado.options import options
 
 from operator import itemgetter
 from datetime import datetime

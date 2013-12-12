@@ -12,6 +12,8 @@ import re
 import random
 import string
 import base64
+from SimpleAES import SimpleAES
+
 import logging
 import json
 import datetime, time
@@ -29,18 +31,22 @@ class myDatabase():
         try:
             x = self.settings['databases'][self.request.host].get('SELECT 1 FROM DUAL;')
         except Exception:
-            logging.warning('Database connected for %s' % self.request.host)
             self.settings['databases'][self.request.host] = torndb.Connection(
-                host     = self.app_settings.get('database-host'),
-                database = self.app_settings.get('database-name'),
-                user     = self.app_settings.get('database-user'),
-                password = self.app_settings.get('database-password'),
+                host     = self.app_settings('database-host'),
+                database = self.app_settings('database-name'),
+                user     = self.app_settings('database-user'),
+                password = self.app_settings('database-password', '', True),
             )
         return self.settings['databases'][self.request.host]
 
-    @property
-    def app_settings(self):
-        return self.get_app_settings()
+    def app_settings(self, key, default=None, do_something_fun=False):
+        if not do_something_fun:
+            return self.get_app_settings().get(key, default)
+        try:
+            s = self.get_app_settings().get(key)
+            return SimpleAES('%s/%s' % (self.app_settings('database-host'), self.app_settings('database-name'))).decrypt('\n'.join(s[pos:pos+64] for pos in xrange(0, len(s), 64))).strip()
+        except Exception:
+            return default
 
     def get_app_settings(self, host=None):
         if not host:
@@ -182,7 +188,7 @@ class myUser():
                 email,
                 name,
                 picture,
-                self.app_settings.get('language', 'english'),
+                self.app_settings('language', 'english'),
                 session_key+user_key,
                 access_token,
                 # update
@@ -264,7 +270,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
         if self.current_user:
             return locale.get(self.current_user['language'])
         else:
-            return locale.get(self.app_settings.get('language', 'english'))
+            return locale.get(self.app_settings('language', 'english'))
 
     def render(self, template_name, **kwargs):
         """
@@ -272,10 +278,10 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
         """
         kwargs['app_title'] = 'Entu'
-        kwargs['app_organisation'] = self.app_settings.get('name', '')
-        kwargs['app_logo'] = 'https://www.entu.ee/public/file-%s' % self.app_settings.get('photo') if self.app_settings.get('photo') else '/static/favicon/apple-touch-icon-144-precomposed.png'
-        kwargs['page_title'] = '%s - %s' % (kwargs['app_title'], kwargs['page_title']) if kwargs.get('page_title') else '%s - %s' % (kwargs['app_title'], self.app_settings.get('name', ''))
-        kwargs['google_analytics_code'] = self.app_settings.get('analytics-code')
+        kwargs['app_organisation'] = self.app_settings('name', '')
+        kwargs['app_logo'] = 'https://www.entu.ee/public/file-%s' % self.app_settings('photo') if self.app_settings('photo') else '/static/favicon/apple-touch-icon-144-precomposed.png'
+        kwargs['page_title'] = '%s - %s' % (kwargs['app_title'], kwargs['page_title']) if kwargs.get('page_title') else '%s - %s' % (kwargs['app_title'], self.app_settings('name', ''))
+        kwargs['google_analytics_code'] = self.app_settings('analytics-code')
 
         web.RequestHandler.render(self, template_name, **kwargs)
 
@@ -312,7 +318,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
         message = EmailMessage(
             subject = subject,
             body = message,
-            from_email = self.app_settings.get('email-account', '\n').split('\n')[0],
+            from_email = self.app_settings('email-account', '\n').split('\n')[0],
             to = to,
             cc = cc,
             bcc = bcc,
@@ -331,8 +337,8 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
         return EmailBackend(
             'smtp.gmail.com',
             587,
-            self.app_settings.get('email-account', '\n').split('\n')[0],
-            swapCrypt(self.app_settings.get('email-account', '\n').split('\n')[1]),
+            self.app_settings('email-account', '\n', True).split('\n')[0],
+            self.app_settings('email-account', '\n', True).split('\n')[1],
             True,
         )
 
@@ -348,22 +354,6 @@ class JSONDateFix(json.JSONEncoder):
         if not isinstance(obj, (basestring, bool)):
             return '%s' % obj
         return json.JSONEncoder.default(self, obj)
-
-
-def swapCrypt(s, encrypt=False):
-    """
-    This function will encrypt/decrypt a string.
-
-    """
-    if not encrypt:
-        s = base64.b64decode(s)
-    list1 = list(s)
-    for k in range(0, len(list1), 2):
-        if len(list1) > k + 1:
-            list1[k], list1[k+1] = list1[k+1], list1[k]
-    if not encrypt:
-        return ''.join(list1)
-    return base64.b64encode(''.join(list1))
 
 
 def toURL(s):

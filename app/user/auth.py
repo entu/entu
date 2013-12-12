@@ -26,11 +26,11 @@ class ShowAuthPage(myRequestHandler):
 
         self.clear_cookie('session')
         self.render('user/template/auth.html',
-            mobileid = True if self.app_settings.get('auth-mobileid') else False,
-            google = True if self.app_settings.get('auth-google') else False,
-            facebook = True if self.app_settings.get('auth-facebook') else False,
-            twitter = True if self.app_settings.get('auth-twitter') else False,
-            live = True if self.app_settings.get('auth-live') else False,
+            mobileid = True if self.app_settings('auth-mobileid') else False,
+            google = True if self.app_settings('auth-google') else False,
+            facebook = True if self.app_settings('auth-facebook') else False,
+            twitter = True if self.app_settings('auth-twitter') else False,
+            live = True if self.app_settings('auth-live') else False,
         )
 
 
@@ -47,7 +47,7 @@ class Exit(myRequestHandler):
             elif self.current_user.provider == 'facebook':
                 redirect_url = 'https://www.facebook.com/logout.php?access_token=%s&confirm=1&next=%s://%s/status' % (self.current_user.access_token, self.request.protocol, self.request.host)
             elif self.current_user.provider == 'live':
-                redirect_url = 'https://login.live.com/oauth20_logout.srf?client_id=%s&redirect_uri=%s://%s/status' % (self.app_settings.get('auth-live', '\n').split('\n')[0], self.request.protocol, self.request.host)
+                redirect_url = 'https://login.live.com/oauth20_logout.srf?client_id=%s&redirect_uri=%s://%s/status' % (self.app_settings('auth-live', '\n', True).split('\n')[0], self.request.protocol, self.request.host)
 
             self.user_logout()
 
@@ -64,12 +64,12 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
         set_redirect(self)
         self.oauth2_provider = None
 
-        if provider == 'facebook' and self.app_settings.get('auth-facebook'):
+        if provider == 'facebook' and self.app_settings('auth-facebook'):
             # https://developers.facebook.com/apps
             self.oauth2_provider = {
                 'provider':     'facebook',
-                'key':          self.app_settings.get('auth-facebook', '\n').split('\n')[0],
-                'secret':       self.app_settings.get('auth-facebook', '\n').split('\n')[1],
+                'key':          self.app_settings('auth-facebook', '\n', True).split('\n')[0],
+                'secret':       self.app_settings('auth-facebook', '\n', True).split('\n')[1],
                 'auth_url':     'https://www.facebook.com/dialog/oauth?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s',
                 'token_url':    'https://graph.facebook.com/oauth/access_token',
                 'info_url':     'https://graph.facebook.com/me?access_token=%(token)s',
@@ -80,12 +80,12 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 'user_picture': 'http://graph.facebook.com/%(id)s/picture?type=large',
             }
 
-        if provider == 'google' and self.app_settings.get('auth-google'):
+        if provider == 'google' and self.app_settings('auth-google'):
             # https://code.google.com/apis/console
             self.oauth2_provider = {
                 'provider':     'google',
-                'key':          self.app_settings.get('auth-google', '\n').split('\n')[0],
-                'secret':       self.app_settings.get('auth-google', '\n').split('\n')[1],
+                'key':          self.app_settings('auth-google', '\n', True).split('\n')[0],
+                'secret':       self.app_settings('auth-google', '\n', True).split('\n')[1],
                 'auth_url':     'https://accounts.google.com/o/oauth2/auth?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s&response_type=code&approval_prompt=auto&access_type=online',
                 'token_url':    'https://accounts.google.com/o/oauth2/token',
                 'info_url':     'https://www.googleapis.com/oauth2/v2/userinfo?access_token=%(token)s',
@@ -95,12 +95,12 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 'user_name':    '%(name)s',
                 'user_picture': '%(picture)s',
             }
-        if provider == 'live' and self.app_settings.get('auth-live'):
+        if provider == 'live' and self.app_settings('auth-live'):
             # https://manage.dev.live.com/Applications/Index
             self.oauth2_provider = {
                 'provider':     'live',
-                'key':          self.app_settings.get('auth-live', '\n').split('\n')[0],
-                'secret':       self.app_settings.get('auth-live', '\n').split('\n')[1],
+                'key':          self.app_settings('auth-live', '\n', True).split('\n')[0],
+                'secret':       self.app_settings('auth-live', '\n', True).split('\n')[1],
                 'auth_url':     'https://login.live.com/oauth20_authorize.srf?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s&response_type=code',
                 'token_url':    'https://login.live.com/oauth20_token.srf',
                 'info_url':     'https://apis.live.net/v5.0/me?access_token=%(token)s',
@@ -181,28 +181,28 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
         if self.oauth2_provider['provider'] == 'facebook':
             self.user_login(
                 provider        = self.oauth2_provider['provider'],
-                provider_id     = user.setdefault('id', None),
-                email           = user.setdefault('email', None),
-                name            = user.setdefault('name', None),
-                picture         = 'http://graph.facebook.com/%s/picture?type=large' % user.setdefault('id', ''),
+                provider_id     = user.get('id'),
+                email           = user.get('email'),
+                name            = user.get('name'),
+                picture         = 'http://graph.facebook.com/%s/picture?type=large' % user.get('id'),
                 access_token    = access_token
             )
         if self.oauth2_provider['provider'] == 'google':
             self.user_login(
                 provider        = self.oauth2_provider['provider'],
-                provider_id     = user.setdefault('id', None),
-                email           = user.setdefault('email', None),
-                name            = user.setdefault('name', None),
-                picture         = user.setdefault('picture', None),
+                provider_id     = user.get('id'),
+                email           = user.get('email'),
+                name            = user.get('name'),
+                picture         = user.get('picture'),
                 access_token    = access_token
             )
         if self.oauth2_provider['provider'] == 'live':
             self.user_login(
                 provider        = self.oauth2_provider['provider'],
-                provider_id     = user.setdefault('id', None),
-                email           = user.setdefault('emails', {}).setdefault('preferred', user.setdefault('emails', {}).setdefault('preferred', user.setdefault('personal', {}).setdefault('account', None))),
-                name            = user.setdefault('name', None),
-                picture         = 'https://apis.live.net/v5.0/%s/picture' % user.setdefault('id', ''),
+                provider_id     = user.get('id'),
+                email           = user.get('emails', {}).get('preferred', user.get('emails', {}).get('preferred', user.get('personal', {}).get('account'))),
+                name            = user.get('name'),
+                picture         = 'https://apis.live.net/v5.0/%s/picture' % user.get('id'),
                 access_token    = access_token
             )
 
@@ -215,7 +215,7 @@ class AuthMobileID(myRequestHandler):
 
     """
     def post(self):
-        service = self.app_settings.get('auth-mobileid')
+        service = self.app_settings('auth-mobileid')
         url = 'https://digidocservice.sk.ee/?wsdl'
 
         client = Client(url)
@@ -308,10 +308,10 @@ class AuthTwitter(myRequestHandler, auth.TwitterMixin):
 
         self.user_login(
             provider        = 'twitter',
-            provider_id     = '%s' % user.setdefault('id'),
+            provider_id     = '%s' % user.get('id'),
             email           = None,
-            name            = user.setdefault('name'),
-            picture         = user.setdefault('profile_image_url')
+            name            = user.get('name'),
+            picture         = user.get('profile_image_url')
         )
         self.redirect(get_redirect(self))
 
@@ -338,8 +338,8 @@ def get_redirect(rh):
 
 handlers = [
     ('/auth', ShowAuthPage),
-    ('/exit', Exit),
     ('/auth/mobileid', AuthMobileID),
     ('/auth/twitter', AuthTwitter),
     ('/auth/(.*)', AuthOAuth2),
+    ('/exit', Exit),
 ]

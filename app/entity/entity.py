@@ -53,10 +53,10 @@ class ShowGroup(myRequestHandler, Entity):
             entity_definition_keyname = entity_definition_keyname,
             add_definitions = add_definitions,
             history = history,
-            quota_entities = int(self.app_settings.get('quota-entities', 0)),
+            quota_entities = int(self.app_settings('quota-entities', 0)),
             quota_entities_used = int(quota_entities_used),
-            quota_size = float(self.app_settings.get('quota-data', 0))*1000000000.0,
-            quota_size_human = GetHumanReadableBytes(float(self.app_settings.get('quota-data', 0))*1000000000.0, 1),
+            quota_size = float(self.app_settings('quota-data', 0))*1000000000.0,
+            quota_size_human = GetHumanReadableBytes(float(self.app_settings('quota-data', 0))*1000000000.0, 1),
             quota_size_used = int(quota_size_used) if quota_size_used else 0,
             quota_size_used_human = GetHumanReadableBytes(quota_size_used, 1) if quota_size_used else '0B'
         )
