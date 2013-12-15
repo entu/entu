@@ -322,17 +322,6 @@ class Entity():
 
         # logging.debug(old_property_id)
         if old_property_id:
-            # logging.debug(definition)
-            if definition.formula == 1:
-                try:
-                    fval = ''.join([x for x in Formula(self.db, user_locale=self.get_user_locale(), created_by=self.__user_id, entity_id=entity_id, property_id=old_property_id, formula=definition.value_formula).evaluate()]).decode('utf-8')
-                except Exception:
-                    fval = ''.join([x.encode('utf-8') for x in Formula(self.db, user_locale=self.get_user_locale(), created_by=self.__user_id, entity_id=entity_id, property_id=old_property_id, formula=definition.value_formula).evaluate()]).decode('utf-8')
-                # logging.error((fval, definition.value_string))
-                if definition.value_string == fval:
-                    return
-
-            # logging.debug('UPDATE property SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;' % (self.__user_id, old_property_id) )
             self.db.execute('UPDATE property SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', self.__user_id, old_property_id )
 
         # If no value, then property is deleted, return
@@ -997,10 +986,9 @@ class Entity():
 
                 # Formula
                 if row.property_formula == 1:
-                    # value = '%s (%s)' % (value, row.value_formula)
-                    self.set_property(entity_id = row.entity_id, old_property_id = row.value_id, value = row.value_formula)
-                    # logging.debug(row.value_id)
-                    # logging.debug(row.value_formula)
+                    formula = Formula(self.db, user_locale=self.get_user_locale(), created_by=self.__user_id, entity_id=row.entity_id, property_id=row.value_id, formula=row.value_formula)
+                    value = ''.join(formula.evaluate())
+                    self.db.execute('UPDATE property SET value_string = %s WHERE id = %s;', value, row.value_id )
                     db_value = row.value_formula
 
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['id'] = row.value_id
@@ -1601,11 +1589,11 @@ class Formula():
 
         for m in re.findall(r"([^{]*){([^{}]*)}|(.*?)$",self.formula):
             if m[0]:
-                self.value.append(m[0].encode('utf8'))
+                self.value.append(u'%s' % m[0])
             if m[1]:
-                self.value.append('%s'.encode('utf8') % ','.join(['%s' % x for x in FExpression(self, m[1]).value]))
+                self.value.append(u'%s' % ','.join([u'%s' % x for x in FExpression(self, m[1]).value]))
             if m[2]:
-                self.value.append(m[2].encode('utf8'))
+                self.value.append(u'%s' % m[2])
 
         return self.value
 
