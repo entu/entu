@@ -35,7 +35,7 @@ _Futuristic Data Management System_
 ## Dependencies
 
 * [MySQL](http://www.mysql.com/)
-* [Python](http://www.python.org/)
+* [Python 2.7](http://www.python.org/)
     * [Tornado](http://www.tornadoweb.org)
     * [python-mysqldb](http://mysql-python.sourceforge.net)
     * [python-magic](https://github.com/ahupp/python-magic)
