@@ -50,6 +50,7 @@ _Futuristic Data Management System_
     * [croniter](https://github.com/taichino/croniter)
     * [chardet](https://github.com/erikrose/chardet)
     * [boto](https://github.com/boto/boto)
+    * [SimpleAES](https://github.com/nvie/SimpleAES)
 
 
 ## Used libraries/add-ons
