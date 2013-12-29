@@ -6,9 +6,10 @@ apt-get upgrade
 apt-get install ufw
 apt-get install nginx  
 apt-get install python-dev  
-apt-get install python-mysqldb  
+apt-get install mysql-server mysql-client python-mysqldb  
 apt-get install python-pip  
 apt-get install supervisor  
+apt-get install ntp  
 
 ### 3. Install Python libraries
 pip install beautifulsoup4  
