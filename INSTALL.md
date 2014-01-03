@@ -3,6 +3,7 @@ apt-get update
 apt-get upgrade  
 
 ### 2. Install software
+apt-get install ufw
 apt-get install nginx  
 apt-get install python-dev  
 apt-get install python-mysqldb  
