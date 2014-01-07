@@ -113,6 +113,9 @@ Result code|Status|Description
 Argument|Type|Required|Default|Description
 :--|:-:|:-:|:-:|:--
 value||No||Property value. If value argument is not set or is empty then value will be deleted
+source|string|Yes||Define file source - *computer*, *url*, *googe* or *dropbox*
+url|string|No||File URL if file source is *url*, *googe* or *dropbox*
+filename|string|No||File name
 user|string|No||User ID
 policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (yyyy-mm-dd hh:mi:ss)
 signature|string|No||Base64 encoded HMAC signature of policy
@@ -157,3 +160,4 @@ Result code|Status|Description
 400|Bad Request|Returns error message
 403|Forbidden|User has no rights to access this file
 404|Not Found|File with given ID is not found
+
