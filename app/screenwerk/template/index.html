@@ -3,6 +3,7 @@
 <html manifest="{{ '%s/cache.manifest' % request.uri }}">
   <head>
     <title>ScreenWerk - {{ screen.get('displayname', '...')}}</title>
+    <meta http-equiv="refresh" content="3600" />
     <style type="text/css">
       html, body {
         background: black;
