@@ -27,23 +27,25 @@ define('database',      help='database name',         type=str)
 define('user',          help='database user',         type=str)
 define('password',      help='database password',     type=str)
 define('customergroup', help='customergroup',         type=str, default=0)
+define('secret',        help='secret key',            type=str, default='ABC123')
 
 
 # List of controllers to load.
 app_controllers = [
     'action.csv_import',
     'api.api',
+    'api.api2',
     'entity.entity',
+    'info.info',
     'library.ester',
     'library.photo',
+    'main.config',
+    'main.status',
     'public.public',
     'screenwerk.screenwerk',
     'update.update',
-    'main.config',
-    'main.status',
     'user.auth',
     'user.user',
-    'info.info',
 ]
 
 
@@ -89,6 +91,7 @@ class myApplication(tornado.web.Application):
             'database-user':        options.user,
             'database-password':    options.password,
             'customergroup':        options.customergroup,
+            'secret':               options.secret,
             'databases':            {},
         }
 

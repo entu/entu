@@ -44,7 +44,7 @@ class myDatabase():
             return self.get_app_settings().get(key, default)
         try:
             s = self.get_app_settings().get(key)
-            return SimpleAES('%s/%s' % (self.app_settings('database-host'), self.app_settings('database-name'))).decrypt('\n'.join(s[pos:pos+64] for pos in xrange(0, len(s), 64))).strip()
+            return SimpleAES('%s.%s' % (self.settings['secret'], self.app_settings('database-name'))).decrypt('\n'.join(s[pos:pos+64] for pos in xrange(0, len(s), 64))).strip()
         except Exception:
             return default
 

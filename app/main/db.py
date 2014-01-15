@@ -1124,7 +1124,6 @@ class Entity():
         else:
             return 'https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
 
-
     def get_definition(self, entity_definition_keyname):
         """
         Returns Entity definition (with property definitions).
@@ -1222,7 +1221,6 @@ class Entity():
             })
 
         return defs
-
 
     def get_relatives(self, ids_only=False, relationship_ids_only=False, entity_id=None, related_entity_id=None, relationship_definition_keyname=None, reverse_relation=False, entity_definition_keyname=None, full_definition=False, limit=None, only_public=False):
         """
