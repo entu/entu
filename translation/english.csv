@@ -26,7 +26,7 @@ menu_duplicate,Duplicate
 
 version_history,Change Log
 quota,Usage and Quota
-quota_entities,Entities: %s of %s
+quota_entities,Entities: %s
 quota_files,Files: %s of %s
 
 search,Search
