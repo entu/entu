@@ -3,7 +3,6 @@
 1. Calculation (formula) fields
 * Show Entity.displaycount
 * Show all entities in search (not first 500)
-* Replace [tornadomail](https://github.com/equeny/tornadomail) with better email library
 * Custom Entity actions
 * Favorite entities
 * Recently viewed/changed entities

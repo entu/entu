@@ -10,6 +10,7 @@ apt-get install mysql-server mysql-client python-mysqldb
 apt-get install python-pip  
 apt-get install supervisor  
 apt-get install ntp  
+apt-get install postfix  
 
 ### 3. Install Python libraries
 pip install beautifulsoup4  

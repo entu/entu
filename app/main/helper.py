@@ -309,20 +309,17 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
         """
 
-        def _finish(num):
-            logging.debug('_finish %s' % num)
-
         if type(to) is not list:
             to = StrToList(to)
 
         message = EmailMessage(
             subject = subject,
             body = message,
-            from_email = self.app_settings('email-account', '\n').split('\n')[0],
+            from_email = '%s <%s>' % (self.current_user.get('name', ''), self.current_user.get('email', '')),
             to = to,
             cc = cc,
             bcc = bcc,
-            connection = self.__mail_connection
+            connection = EmailBackend(host='localhost')
         )
 
         # message.attach(
@@ -330,17 +327,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
         #     content = ''
         # )
 
-        message.send(callback=_finish)
-
-    @property
-    def __mail_connection(self):
-        return EmailBackend(
-            'smtp.gmail.com',
-            587,
-            self.app_settings('email-account', '\n', True).split('\n')[0],
-            self.app_settings('email-account', '\n', True).split('\n')[1],
-            True,
-        )
+        message.send()
 
 
 class JSONDateFix(json.JSONEncoder):
