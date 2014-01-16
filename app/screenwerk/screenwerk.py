@@ -1,6 +1,6 @@
 import logging
 import json
-import magic
+import mimetypes
 from operator import itemgetter
 from datetime import datetime
 from croniter import croniter
@@ -193,22 +193,23 @@ class Schedule():
                             schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {}).setdefault('media', {}).setdefault(pm.get('id'), {})['ratio'] = media_ratio
                             schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {}).setdefault('media', {}).setdefault(pm.get('id'), {})['mute'] = bool(pm.get('properties', {}).get('mute', {}).get('values', [{}])[0].get('db_value', 0))
 
-            delete_keys_from_dict(schedule_dict)
+        delete_keys_from_dict(schedule_dict)
 
-            for s in schedule_dict.keys():
-                for p in schedule_dict[s]['playlists'].keys():
-                    schedule_dict.setdefault(s, {}).setdefault('playlists', {}).setdefault(p, {})['media'] = schedule_dict.get(s, {}).get('playlists', {}).get(p, {}).get('media', {}).values()
-                    for m in schedule_dict.get(s, {}).get('playlists', {}).get(p, {}).get('media', {}):
-                        files_dict.setdefault(m.get('id'), {})['id'] = m.get('id')
-                        files_dict.setdefault(m.get('id'), {})['type'] = m.get('type')
-                        files_dict.setdefault(m.get('id'), {})['src'] = m.get('src')
-                        files_dict.setdefault(m.get('id'), {})['filename'] = m.get('filename')
-                schedule_dict.setdefault(s, {})['playlists'] = schedule_dict.get(s, {}).get('playlists', {}).values()
+        for s in schedule_dict.keys():
+            for p in schedule_dict[s]['playlists'].keys():
+                schedule_dict.setdefault(s, {}).setdefault('playlists', {}).setdefault(p, {})['media'] = schedule_dict.get(s, {}).get('playlists', {}).get(p, {}).get('media', {}).values()
+                for m in schedule_dict.get(s, {}).get('playlists', {}).get(p, {}).get('media', {}):
+                    files_dict.setdefault(m.get('id'), {})['id'] = m.get('id')
+                    files_dict.setdefault(m.get('id'), {})['type'] = m.get('type')
+                    files_dict.setdefault(m.get('id'), {})['src'] = m.get('src')
+                    files_dict.setdefault(m.get('id'), {})['filename'] = m.get('filename')
+            schedule_dict.setdefault(s, {})['playlists'] = schedule_dict.get(s, {}).get('playlists', {}).values()
 
-            return {
-                'schedule': sorted(schedule_dict.values(), key=itemgetter('start')),
-                'files': sorted(files_dict.values(), key=itemgetter('id'))
-            }
+        return {
+            'generated': str(now),
+            'schedule': sorted(schedule_dict.values(), key=itemgetter('start')),
+            'files': sorted(files_dict.values(), key=itemgetter('id'))
+        }
 
 
 class ShowPlayer(myRequestHandler, Entity, Schedule):
@@ -251,12 +252,14 @@ class ShowFile(myRequestHandler, Entity):
         if not files:
             return self.missing()
 
-        file = files[0]
-        mime = magic.from_buffer(file.file, mime=True)
+        mediafile = files[0]
+
+        mimetypes.init()
+        mime = mimetypes.types_map['.%s' % mediafile.filename.split('.')[-1]]
 
         self.add_header('Content-Type', mime)
-        self.add_header('Content-Disposition', 'inline; filename="%s"' % file.filename)
-        self.write(file.file)
+        self.add_header('Content-Disposition', 'inline; filename="%s"' % mediafile.filename)
+        self.write(mediafile.file)
 
 
 def delete_keys_from_dict(dict_del):
