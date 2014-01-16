@@ -167,7 +167,8 @@ class Schedule():
                         # schedule
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {})['start'] = int(time.mktime(t.timetuple()))
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {})['start_dt'] = str(t)
-                        schedule_dict.setdefault(int(time.mktime(t.timetuple())), {})['cleanup'] = bool(s.get('properties', {}).get('cleanup', {}).get('values', [{}])[0].get('db_value', False))
+                        if not schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).get('cleanup', False):
+                            schedule_dict.setdefault(int(time.mktime(t.timetuple())), {})['cleanup'] = bool(s.get('properties', {}).get('cleanup', {}).get('values', [{}])[0].get('db_value', False))
                         # playlist
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {})['id'] = lp.get('id')
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {})['top'] = lp.get('properties', {}).get('top', {}).get('values', [{}])[0].get('value', 0)
