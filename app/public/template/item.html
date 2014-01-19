@@ -5,25 +5,30 @@
 
 {% block public_content %}
     {% from operator import itemgetter %}
-    <h3 style="margin:0px 0px 8px 0px; line-height:23px;">{{ entity['displayname'] }}</h3>
-    <table class="table table-condensed">
-        <tbody>
-            {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
-                {% if p['visible'] and p['values'] %}
-                    <tr>
-                        <th style="text-align:right; min-width:200px;">
-                            {{ p['label'] }}
-                        </th>
-                        <td style="width:100%;">
-                            {% if p['datatype'] == 'file' %}
-                                {{ '<br />'.join(['<a href="/public/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
-                            {% else %}
-                                {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
-                            {% end %}
-                        </td>
-                    </tr>
+    <div class="pull-right" style="margin:0px 0px 20px 0px; width:120px; text-align:center; text-transform:uppercase; color:#B9B9B9; font-weight:bold;">
+        <img src="{{ entity['displaypicture'] }}" id="entity_picture" class="" width="120" style="width:120px;" />
+    </div>
+    <h3 style="margin:0px 140px 8px 0px; line-height:23px;">{{ entity['displayname'] }}</h3>
+    <div style="margin-right:140px;">
+        <table class="table table-condensed">
+            <tbody>
+                {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
+                    {% if p.get('visible') and p.get('values') %}
+                        <tr>
+                            <th style="text-align:right; min-width:200px;">
+                                {{ p['label'] }}
+                            </th>
+                            <td style="width:100%;">
+                                {% if p['datatype'] == 'file' %}
+                                    {{ '<br />'.join(['<a href="/public/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
+                                {% else %}
+                                    {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
+                                {% end %}
+                            </td>
+                        </tr>
+                    {% end %}
                 {% end %}
-            {% end %}
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
 {% end %}

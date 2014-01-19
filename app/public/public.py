@@ -57,6 +57,7 @@ class PublicSearchHandler(myRequestHandler, Entity):
                         'url': '/public-%s/entity-%s/%s' % (path, item.get('id', ''), toURL(item.get('displayname', ''))),
                         'name': item.get('displayname', ''),
                         'date': item.get('created'),
+                        'picture': item.get('displaypicture', ''),
                         'file': item.get('file_count', 0),
                     })
 
@@ -142,6 +143,7 @@ class PublicAdvancedSearchHandler(myRequestHandler, Entity):
                     items.append({
                         'url': '/public-%s/entity-%s/%s' % (path, item.get('id', ''), toURL(item.get('displayname', ''))),
                         'name': item.get('displayname', ''),
+                        'picture': item.get('displaypicture', ''),
                         'date': item.get('created'),
                         'file': item.get('file_count', 0),
                     })
