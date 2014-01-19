@@ -312,10 +312,15 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
         if type(to) is not list:
             to = StrToList(to)
 
+        if self.current_user:
+            from_email = '%s <%s>' % (self.current_user.get('name', ''), self.current_user.get('email', ''))
+        else:
+            from_email = 'no-reply@entu.ee'
+
         message = EmailMessage(
             subject = subject,
             body = message,
-            from_email = '%s <%s>' % (self.current_user.get('name', ''), self.current_user.get('email', '')),
+            from_email = from_email,
             to = to,
             cc = cc,
             bcc = bcc,
