@@ -26,6 +26,9 @@
     </ul>
     <ul id="toolbar" class="nav pull-right">
     </ul>
+    <ul id="spinner" class="nav pull-right" style="display:none;">
+        <li><a class="toolbar-item" style="border-left:none;"><i class="icon-gear icon-spin"></i></a></li>
+    </ul>
 {% end %}
 
 {% block content %}
@@ -78,39 +81,48 @@
     </div>
 
     <script>
+
+        function spinner(turn_on) {
+            if(turn_on) {
+                $('#spinner').show();
+            } else {
+                $('#spinner').hide();
+            }
+        }
+
         $(document).ready(function(){
 
-        {% if show_list and current_user.hide_menu == True %}
-            menu_hide();
-
-            $('#menu, #menu_hidden').hover(function() {
-                menu_show();
-            }, function() {
+            {% if show_list and current_user.hide_menu == True %}
                 menu_hide();
-            });
 
-            $('#menu_hidden').click(function() {
-                menu_show();
-            });
+                $('#menu, #menu_hidden').hover(function() {
+                    menu_show();
+                }, function() {
+                    menu_hide();
+                });
 
-            function menu_show() {
-                $('#menu').show();
-                $('#menu_hidden').hide();
-                $('#list').css('left', parseInt($('#menu').css('width'))+1+'px');
-                $('#list_search').css('left', parseInt($('#menu').css('width'))+1+'px');
-                $('#content').css('left', parseInt($('#list').css('left'))+parseInt($('#list').css('width'))+'px');
-                $('#content').removeClass('menu-hidden');
-                $('#menu_accordion').accordion('refresh');
-            };
-            function menu_hide(){
-                $('#menu').hide();
-                $('#menu_hidden').show();
-                $('#list').css('left', parseInt($('#menu_hidden').css('width'))+1+'px');
-                $('#list_search').css('left', parseInt($('#menu_hidden').css('width'))+1+'px');
-                $('#content').css('left', parseInt($('#list').css('left'))+parseInt($('#list').css('width'))+'px');
-                $('#content').addClass('menu-hidden');
-            };
-        {% end %}
+                $('#menu_hidden').click(function() {
+                    menu_show();
+                });
+
+                function menu_show() {
+                    $('#menu').show();
+                    $('#menu_hidden').hide();
+                    $('#list').css('left', parseInt($('#menu').css('width'))+1+'px');
+                    $('#list_search').css('left', parseInt($('#menu').css('width'))+1+'px');
+                    $('#content').css('left', parseInt($('#list').css('left'))+parseInt($('#list').css('width'))+'px');
+                    $('#content').removeClass('menu-hidden');
+                    $('#menu_accordion').accordion('refresh');
+                };
+                function menu_hide(){
+                    $('#menu').hide();
+                    $('#menu_hidden').show();
+                    $('#list').css('left', parseInt($('#menu_hidden').css('width'))+1+'px');
+                    $('#list_search').css('left', parseInt($('#menu_hidden').css('width'))+1+'px');
+                    $('#content').css('left', parseInt($('#list').css('left'))+parseInt($('#list').css('width'))+'px');
+                    $('#content').addClass('menu-hidden');
+                };
+            {% end %}
 
             $('.open-modal-box').click(function() {
                 url = $(this).data('url');

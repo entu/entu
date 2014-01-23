@@ -1,7 +1,6 @@
 <div id="list">
     <div id="list_search"><input type="search" id="searchbox" class="search-query" placeholder="{{ _('search_placeholder') }}" /><span></span></div>
     <div id="list_items"></div>
-    <img src="{{ static_url('images/spinner_white.gif') }}" class="spinner" />
 </div>
 
 <ul id="list_toolbar_template" style="display:none;">
@@ -25,12 +24,15 @@
 <script>
 
     function open_item(id, skip_push_state) {
+        spinner(1);
         $('#content').html('');
+        $('#toolbar').html('');
         $('#list_items a.active').removeClass('active');
         if(id) {
             $('#listitem_'+id).addClass('active');
             $.get('/entity-'+id, function(html) {
                 $('#content').html(html);
+                spinner();
             });
             if(!skip_push_state) {
                 window.history.replaceState('entity-'+id, '', '/entity/{{ entity_definition_keyname }}/' + id);
@@ -66,7 +68,7 @@
 
         function get_list() {
             items = [];
-            $('#list .spinner').show();
+            spinner(1);
             $('#list_items').html('');
             $.post(window.location.pathname, {'search': $('#searchbox').val()}, function(list) {
                 items = list.items;
@@ -90,7 +92,7 @@
                             break;
                     };
                 }
-                $('#list .spinner').hide();
+                spinner();
 
                 append_list();
             }, 'json');
