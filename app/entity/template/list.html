@@ -92,24 +92,23 @@
                     $element.show();
                 }
 
-                count = data.result.length;
-                if(count > limit) {
+                if(data.result.length > limit) {
                     $('#list_end').data('page', page+1);
-                    $('#list_search span').html('{{ _('search_result_over_limit') }}'.replace('%s', page*limit));
                 } else {
                     $('#list_end').data('page', -1);
-                    switch(data.result.count) {
-                        case 0:
-                            $('#list_search span').html("{{ _('search_noresult') }}");
-                            break;
-                        case 1:
-                            $('#list_search span').html("{{ _('search_result_count1') }}".replace('%s', page*limit+count));
-                            break;
-                        default:
-                            $('#list_search span').html("{{ _('search_result_count2') }}".replace('%s', page*limit+count));
-                            break;
-                    };
                 }
+                switch(data.count) {
+                    case 0:
+                        $('#list_search span').html("{{ _('search_noresult') }}");
+                        break;
+                    case 1:
+                        $('#list_search span').html("{{ _('search_result_count1') }}".replace('%s', data.count));
+                        break;
+                    default:
+                        $('#list_search span').html("{{ _('search_result_count2') }}".replace('%s', data.count));
+                        break;
+                }
+
                 spinner('list');
             }, 'json');
         }

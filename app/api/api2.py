@@ -18,12 +18,13 @@ class API2EntityList(myRequestHandler, Entity2):
     @web.authenticated
     def get(self):
         result = {}
-        for e in self.get_entities_info(
+        db_result = self.get_entities_info(
                 definition=self.get_argument('definition', default=None, strip=True),
                 query=self.get_argument('query', default=None, strip=True),
                 limit=self.get_argument('limit', default=None, strip=True),
                 page=self.get_argument('page', default=None, strip=True)
-            ):
+            )
+        for e in db_result.get('entities', []):
             result.setdefault(e.get('id'), {}).setdefault('definition', {})['definition'] = e.get('definition') if e.get('definition') else None
             result.setdefault(e.get('id'), {}).setdefault('definition', {})['label'] = e.get('label') if e.get('label') else None
             result.setdefault(e.get('id'), {}).setdefault('definition', {})['label_plural'] = e.get('label_plural') if e.get('label_plural') else None
@@ -37,7 +38,7 @@ class API2EntityList(myRequestHandler, Entity2):
         self.write({
             'result': sorted(result.values(), key=itemgetter('sort')),
             'time': self.request.request_time(),
-            'page': self.get_argument('page', default=None, strip=True),
+            'count': db_result.get('count', 0)
         })
 
 
@@ -46,7 +47,8 @@ class API2EntityChilds(myRequestHandler, Entity2):
     @web.authenticated
     def get(self, entity_id=None):
         result = {}
-        for e in self.get_entities_info(parent_entity_id=entity_id):
+        db_result = self.get_entities_info(parent_entity_id=entity_id)
+        for e in db_result.get('entities', []):
             result.setdefault(e.get('definition'), {})['definition'] = e.get('definition') if e.get('definition') else None
             result.setdefault(e.get('definition'), {})['label'] = e.get('label') if e.get('label') else None
             result.setdefault(e.get('definition'), {})['label_plural'] = e.get('label_plural') if e.get('label_plural') else None
@@ -70,7 +72,8 @@ class API2EntityReferrals(myRequestHandler, Entity2):
     @web.authenticated
     def get(self, entity_id=None):
         result = {}
-        for e in self.get_entities_info(referred_to_entity_id=entity_id):
+        db_result = self.get_entities_info(referred_to_entity_id=entity_id)
+        for e in db_result.get('entities', []):
             result.setdefault(e.get('definition'), {})['definition'] = e.get('definition') if e.get('definition') else None
             result.setdefault(e.get('definition'), {})['label'] = e.get('label') if e.get('label') else None
             result.setdefault(e.get('definition'), {})['label_plural'] = e.get('label_plural') if e.get('label_plural') else None

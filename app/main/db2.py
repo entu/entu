@@ -106,7 +106,10 @@ class Entity2():
                 AND r.related_entity_id = %(user)s
             """ % {'definition_where': definition_where, 'parent_where': parent_where, 'referrer_where': referrer_where, 'query_where': query_where, 'user': self.__user_id, 'limit': limit}
 
+        entity_count = None
         if limit:
+            entity_count = self.db.query('SELECT COUNT(*) AS entity_count FROM (%s) AS x' % entity_sql)[0].entity_count
+
             limit = int(limit) if int(limit) > 0 else 0
             if not page:
                 page = 1
@@ -155,4 +158,7 @@ class Entity2():
             entities.setdefault(r.get('id'), {})['sort'] = r.get('sort')
             entities.setdefault(r.get('id'), {})[r.get('field')] = r.get('val')
 
-        return entities.values()
+        return {
+            'entities': entities.values(),
+            'count': entity_count if entity_count else len(entities.values()),
+        }
