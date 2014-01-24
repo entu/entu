@@ -2,7 +2,6 @@
 
 1. Calculation (formula) fields
 * Show Entity.displaycount
-* Show all entities in search (not first 500)
 * Custom Entity actions
 * Favorite entities
 * Recently viewed/changed entities
