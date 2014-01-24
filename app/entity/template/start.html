@@ -147,14 +147,15 @@
             });
 
             $('.accordion').accordion({
-                heightStyle: 'fill'
+                navigation: true,
+                fillSpace: true
             });
             $('#menu').find("a[href='"+window.location.pathname+"']").each(function(){
                 $(this).addClass('active')
             })
 
             $(window).resize(function(){
-                $('#menu_accordion').accordion('refresh');
+                $('#menu_accordion').accordion('resize');
             });
 
         });
