@@ -1,5 +1,7 @@
 import logging
 
+from main.helper import *
+
 class Entity2():
     @property
     def __user_id(self):
@@ -15,9 +17,7 @@ class Entity2():
         return self.get_user_locale().code
 
 
-    def get_entities_info(self, entity_id=None, definition=None, parent_entity_id=None, referred_to_entity_id=None, limit=None, page=1):
-        logging.warning(self.__language)
-
+    def get_entities_info(self, entity_id=None, definition=None, parent_entity_id=None, referred_to_entity_id=None, query=None, limit=None, page=None):
         #generate numbers subselect
         fields_count = self.db.query("""
             SELECT MAX(LENGTH(value) - LENGTH(REPLACE(value, '@', '')) + 1) AS fields
@@ -30,6 +30,13 @@ class Entity2():
         numbers_sql = ' UNION '.join(numbers_list)
 
         #generate entity select
+        definition_where = ''
+        if definition:
+            definition_where = """
+                AND e.entity_definition_keyname = '%s'
+            """ % definition
+
+        parent_where = ''
         if parent_entity_id:
             if type(parent_entity_id) is not list:
                 parent_entity_id = [parent_entity_id]
@@ -42,9 +49,8 @@ class Entity2():
                     AND relationship_definition_keyname = 'child'
                 )
                 """ % ', '.join(parent_entity_id)
-        else:
-            parent_where = ''
 
+        referrer_where = ''
         if referred_to_entity_id:
             if type(referred_to_entity_id) is not list:
                 referred_to_entity_id = [referred_to_entity_id]
@@ -56,15 +62,23 @@ class Entity2():
                     AND is_deleted = 0
                 )
                 """ % ', '.join(referred_to_entity_id)
-        else:
-            referrer_where = ''
 
-        if definition:
-            definition_where = """
-                AND e.entity_definition_keyname = '%s'
-            """ % definition
-        else:
-            definition_where = ''
+        query_where = ''
+        if query:
+            for q in StrToList(query):
+                query_where += """
+                    AND e.id IN (
+                        SELECT p.entity_id
+                        FROM
+                            property AS p,
+                            property_definition AS pd
+                        WHERE pd.keyname = p.property_definition_keyname
+                        AND pd.search = 1
+                        AND p.is_deleted = 0
+                        AND pd.is_deleted = 0
+                        and p.value_string LIKE '%%%%%s%%%%'
+                    )
+                    """ % q
 
         entity_sql = """
             SELECT e.id, e.entity_definition_keyname, IFNULL(e.sort, CONCAT('   ', 1000000000000 - e.id)) AS sort
@@ -74,7 +88,8 @@ class Entity2():
             %(definition_where)s
             %(parent_where)s
             %(referrer_where)s
-        """ % {'definition_where': definition_where, 'parent_where': parent_where, 'referrer_where': referrer_where}
+            %(query_where)s
+        """ % {'definition_where': definition_where, 'parent_where': parent_where, 'referrer_where': referrer_where, 'query_where': query_where}
 
         if self.current_user:
             entity_sql += """
@@ -85,16 +100,23 @@ class Entity2():
                 %(definition_where)s
                 %(parent_where)s
                 %(referrer_where)s
+                %(query_where)s
                 AND r.is_deleted = 0
                 AND r.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
                 AND r.related_entity_id = %(user)s
-            """ % {'definition_where': definition_where, 'parent_where': parent_where, 'referrer_where': referrer_where, 'user': self.__user_id, 'limit': limit}
+            """ % {'definition_where': definition_where, 'parent_where': parent_where, 'referrer_where': referrer_where, 'query_where': query_where, 'user': self.__user_id, 'limit': limit}
 
         if limit:
-            entity_sql += ' ORDER BY sort '
+            limit = int(limit) if int(limit) > 0 else 0
+            if not page:
+                page = 1
+            page = int(page) if int(page) > 1 else 1
+            offset = (page - 1) * limit
 
-        if limit:
-            entity_sql += 'LIMIT %s ' % limit
+            entity_sql += """
+                ORDER BY sort
+                LIMIT %s, %s
+            """ % (offset, limit)
 
         #get info
         sql = """

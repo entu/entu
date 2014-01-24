@@ -12,17 +12,39 @@ from boto.s3.key import Key
 from main.helper import *
 from main.db2 import *
 
-def get_entity_info(language, limit):
 
-    return entities.values()
+class API2EntityList(myRequestHandler, Entity2):
+    @web.removeslash
+    @web.authenticated
+    def get(self):
+        result = {}
+        for e in self.get_entities_info(
+                definition=self.get_argument('definition', default=None, strip=True),
+                query=self.get_argument('query', default=None, strip=True),
+                limit=self.get_argument('limit', default=None, strip=True),
+                page=self.get_argument('page', default=None, strip=True)
+            ):
+            result.setdefault(e.get('id'), {}).setdefault('definition', {})['definition'] = e.get('definition') if e.get('definition') else None
+            result.setdefault(e.get('id'), {}).setdefault('definition', {})['label'] = e.get('label') if e.get('label') else None
+            result.setdefault(e.get('id'), {}).setdefault('definition', {})['label_plural'] = e.get('label_plural') if e.get('label_plural') else None
+            result.setdefault(e.get('id'), {}).setdefault('definition', {})['table_header'] = e.get('displaytableheader').split('|') if e.get('displaytableheader') else None
+            result.setdefault(e.get('id'), {})['id'] = e.get('id') if e.get('id') else None
+            result.setdefault(e.get('id'), {})['sort'] = e.get('sort') if e.get('sort') else None
+            result.setdefault(e.get('id'), {})['name'] = e.get('displayname') if e.get('displayname') else None
+            result.setdefault(e.get('id'), {})['info'] = e.get('displayinfo') if e.get('displayinfo') else None
+            result.setdefault(e.get('id'), {})['table'] = e.get('displaytable').split('|') if e.get('displaytable') else None
+
+        self.write({
+            'result': sorted(result.values(), key=itemgetter('sort')),
+            'time': self.request.request_time(),
+            'page': self.get_argument('page', default=None, strip=True),
+        })
 
 
 class API2EntityChilds(myRequestHandler, Entity2):
     @web.removeslash
     @web.authenticated
     def get(self, entity_id=None):
-        language = self.get_user_locale().code
-
         result = {}
         for e in self.get_entities_info(parent_entity_id=entity_id):
             result.setdefault(e.get('definition'), {})['definition'] = e.get('definition') if e.get('definition') else None
@@ -47,8 +69,6 @@ class API2EntityReferrals(myRequestHandler, Entity2):
     @web.removeslash
     @web.authenticated
     def get(self, entity_id=None):
-        language = self.get_user_locale().code
-
         result = {}
         for e in self.get_entities_info(referred_to_entity_id=entity_id):
             result.setdefault(e.get('definition'), {})['definition'] = e.get('definition') if e.get('definition') else None
@@ -67,6 +87,13 @@ class API2EntityReferrals(myRequestHandler, Entity2):
             'result': result.values(),
             'time': self.request.request_time()
         })
+
+
+class API2EntityPicture(myRequestHandler, Entity2):
+    @web.removeslash
+    @web.authenticated
+    def get(self, entity_id=None):
+        self.redirect('https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest()))
 
 
 class S3FileUpload(myRequestHandler):
@@ -129,7 +156,9 @@ class S3FileUpload(myRequestHandler):
 
 
 handlers = [
+    (r'/api2/entity', API2EntityList),
     (r'/api2/entity-(.*)/childs', API2EntityChilds),
     (r'/api2/entity-(.*)/referrals', API2EntityReferrals),
+    (r'/api2/entity-(.*)/picture', API2EntityPicture),
     (r'/api2/s3upload', S3FileUpload),
 ]

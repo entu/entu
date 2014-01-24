@@ -53,27 +53,12 @@ class ShowGroup(myRequestHandler, Entity):
             entity_definition_keyname = entity_definition_keyname,
             add_definitions = add_definitions,
             history = history,
-            quota_entities = int(self.app_settings('quota-entities', 0)),
             quota_entities_used = int(quota_entities_used),
             quota_size = float(self.app_settings('quota-data', 0))*1000000000.0,
             quota_size_human = GetHumanReadableBytes(float(self.app_settings('quota-data', 0))*1000000000.0, 1),
             quota_size_used = int(quota_size_used) if quota_size_used else 0,
             quota_size_used_human = GetHumanReadableBytes(quota_size_used, 1) if quota_size_used else '0B'
         )
-
-    @web.authenticated
-    def post(self, entity_definition_keyname=None):
-        """
-        Returns searched Entitiy IDs as JSON.
-
-        """
-        entity_definition_keyname = entity_definition_keyname.strip('/').split('/')[0]
-        search = self.get_argument('search', None, True)
-        limit = 501
-        self.write({
-            'items': self.get_entities(ids_only=True, search=search, entity_definition_keyname=entity_definition_keyname, limit=limit+1),
-            'limit': limit,
-        })
 
 
 class ShowTableView(myRequestHandler, Entity):
@@ -85,28 +70,6 @@ class ShowTableView(myRequestHandler, Entity):
         self.render('entity/template/table.html',
             entities = entities,
         )
-
-
-class ShowListinfo(myRequestHandler, Entity):
-    """
-    """
-    @web.authenticated
-    def post(self, entity_id=None):
-        """
-        Returns Entitiy info for list as JSON.
-
-        """
-        item = self.get_entities(entity_id=entity_id, limit=1)
-        if not item:
-            return self.missing()
-
-        self.write({
-            'id': item['id'],
-            'title': item['displayname'],
-            'info': item['displayinfo'],
-            'image': item['displaypicture'],
-            'completed': item['completed'],
-        })
 
 
 class GetEntities(myRequestHandler, Entity):
@@ -651,7 +614,6 @@ handlers = [
     ('/entity/search', GetEntities),
     (r'/entity/table/(.*)', ShowTableView),
     (r'/entity/file-(.*)', DownloadFile),
-    (r'/entity-(.*)/listinfo', ShowListinfo),
     (r'/entity-(.*)/edit', ShowEntityEdit),
     (r'/entity-(.*)/relate', ShowEntityRelate),
     (r'/entity-(.*)/add/(.*)', ShowEntityAdd),

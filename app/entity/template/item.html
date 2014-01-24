@@ -134,17 +134,16 @@
                 for (var d_key in data.result){
                     var definition     = data.result[d_key];
                     var entities       = definition.entities;
-                    var entities_count = Object.keys(entities).length;
 
                     var $element       = $('.childs-template').clone(true).removeClass('childs-template').appendTo(div);
 
                     // make section header
-                    if(entities_count > 1) {
+                    if(entities.length > 1) {
                         $element.children('h5').prepend(definition.label_plural);
                     } else {
                         $element.children('h5').prepend(definition.label);
                     }
-                    $element.children('h5').children('span').html(entities_count);
+                    $element.children('h5').children('span').html(entities.length);
 
                     // make table header
                     if(definition.table_header) {

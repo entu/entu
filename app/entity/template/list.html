@@ -1,7 +1,9 @@
 <div id="list">
     <div id="list_search"><input type="search" id="searchbox" class="search-query" placeholder="{{ _('search_placeholder') }}" /><span></span></div>
     <div id="list_items"></div>
+    <div id="list_end"></div>
 </div>
+<a class="listitem listitem-template" tabindex="0" style="display:none;"><img /><span></span></a>
 
 <ul id="list_toolbar_template" style="display:none;">
     {% if add_definitions %}
@@ -67,71 +69,50 @@
         });
 
         function get_list() {
-            items = [];
+            if($('#list_end').data('page') < 0) return;
+
             spinner('list');
-            $('#list_items').html('');
-            $.post(window.location.pathname, {'search': $('#searchbox').val()}, function(list) {
-                items = list.items;
-                count = items.length;
-                for (i in items) {
-                    var id = items[i];
-                    $('#list_items').append('<a id="listitem_'+id+'" class="listitem empty_item" href="#'+id+'" data-item="'+id+'" tabindex="0"></a>');
-                };
-                if(count > list.limit) {
-                    $('#list_search span').html('{{ _('search_result_over_limit') }}'.replace('%s', list.limit));
+            var limit = 25;
+            var page = 1;
+            if($('#list_end').data('page') > 0) {
+                var page = $('#list_end').data('page');
+            } else {
+                $('#list_items').html('');
+            }
+            $('#list_end').data('page', -1);
+
+            $.get('/api2/entity', {'query': $('#searchbox').val(), 'definition': '{{ entity_definition_keyname }}', 'limit': limit+1, 'page': page}, function(data) {
+                for (var e_key in data.result){
+                    var $element = $('.listitem-template').clone(true).removeClass('listitem-template').appendTo('#list_items');
+                    $element.attr('id', 'listitem_'+data.result[e_key].id);
+                    $element.attr('href', '#'+data.result[e_key].id);
+                    $element.children('span').before(data.result[e_key].name);
+                    $element.children('span').html(data.result[e_key].info);
+                    $element.children('img').attr('src', '/api2/entity-'+data.result[e_key].id+'/picture');
+                    $element.show();
+                }
+
+                count = data.result.length;
+                if(count > limit) {
+                    $('#list_end').data('page', page+1);
+                    $('#list_search span').html('{{ _('search_result_over_limit') }}'.replace('%s', page*limit));
                 } else {
-                    switch(count) {
+                    $('#list_end').data('page', -1);
+                    switch(data.result.count) {
                         case 0:
                             $('#list_search span').html("{{ _('search_noresult') }}");
                             break;
                         case 1:
-                            $('#list_search span').html("{{ _('search_result_count1') }}".replace('%s', count));
+                            $('#list_search span').html("{{ _('search_result_count1') }}".replace('%s', page*limit+count));
                             break;
                         default:
-                            $('#list_search span').html("{{ _('search_result_count2') }}".replace('%s', count));
+                            $('#list_search span').html("{{ _('search_result_count2') }}".replace('%s', page*limit+count));
                             break;
                     };
                 }
                 spinner('list');
-
-                append_list();
             }, 'json');
         }
-
-        function append_list() {
-            $('.empty_item').each(function() {
-                var listitem = $(this);
-                var id = listitem.data('item');
-                if (items.indexOf(id) != -1) {
-                    position = listitem.position();
-                    if ((position.top - $(document).height()) < 100) {
-                        $.post('/entity-'+id+'/listinfo', function(entity_json) {
-                            if(entity_json.image) {
-                                image = '<img src="'+entity_json.image+'" />';
-                            } else {
-                                image = '';
-                            };
-                            if(entity_json.info) {
-                                info = '<span>'+entity_json.info+'</span>';
-                            } else {
-                                info = '';
-                            };
-                            if(!entity_json.completed) {
-                                $('#listitem_'+id).addClass('not-completed');
-                            };
-
-                            $('#listitem_'+id).html(image+entity_json.title+info);
-                            $('#listitem_'+id).removeClass('empty_item');
-                            if('#'+entity_json.id == window.location.hash) {
-                                $('#listitem_'+id).addClass('active');
-                            };
-                        }, 'json');
-                        var idx = items.indexOf(id);
-                        if(idx != -1) items.splice(idx, 1);
-                    };
-                };
-            });
-        };
 
         var delay = (function(){
             var timer = 0;
@@ -146,13 +127,17 @@
             delay(function(){
                 if(old_search != $('#searchbox').val()) {
                     old_search = $('#searchbox').val();
+                    $('#list_end').data('page', false);
                     get_list();
                 };
             }, 1000 );
         });
 
         $('#list').scroll(function() {
-            append_list();
+            position = $('#list_end').position();
+            if ((position.top - $(document).height()) < 200) {
+                get_list();
+            }
         });
 
         $(document.body).on('keyup', '.listitem', function(e){
