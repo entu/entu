@@ -81,7 +81,7 @@
             }
             $('#list_end').data('page', -1);
 
-            $.get('/api2/entity', {'query': $('#searchbox').val(), 'definition': '{{ entity_definition_keyname }}', 'limit': limit+1, 'page': page}, function(data) {
+            $.get('/api2/entity', {'query': $('#searchbox').val(), 'definition': '{{ entity_definition_keyname }}', 'limit': limit, 'page': page}, function(data) {
                 for (var e_key in data.result){
                     var $element = $('.listitem-template').clone(true).removeClass('listitem-template').appendTo('#list_items');
                     $element.attr('id', 'listitem_'+data.result[e_key].id);
@@ -92,10 +92,10 @@
                     $element.show();
                 }
 
-                if(data.result.length > limit) {
-                    $('#list_end').data('page', page+1);
-                } else {
+                if(data.result.length < limit) {
                     $('#list_end').data('page', -1);
+                } else {
+                    $('#list_end').data('page', page+1);
                 }
                 switch(data.count) {
                     case 0:
@@ -134,7 +134,7 @@
 
         $('#list').scroll(function() {
             position = $('#list_end').position();
-            if ((position.top - $(document).height()) < 200) {
+            if ((position.top - $(document).height()) < 250) {
                 get_list();
             }
         });

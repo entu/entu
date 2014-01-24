@@ -108,7 +108,7 @@ class Entity2():
 
         entity_count = None
         if limit:
-            entity_count = self.db.query('SELECT COUNT(*) AS entity_count FROM (%s) AS x' % entity_sql)[0].entity_count
+            entity_count = self.db.get('SELECT COUNT(*) AS entity_count FROM (%s) AS x' % entity_sql).entity_count
 
             limit = int(limit) if int(limit) > 0 else 0
             if not page:
@@ -162,3 +162,38 @@ class Entity2():
             'entities': entities.values(),
             'count': entity_count if entity_count else len(entities.values()),
         }
+
+
+    def get_entity_picture_url(self, entity_id):
+        f = self.db.get("""
+            SELECT
+                e.entity_definition_keyname AS definition,
+                (
+                    SELECT p.value_file
+                    FROM
+                        property AS p,
+                        property_definition AS pd
+                    WHERE pd.keyname = p.property_definition_keyname
+                    AND p.is_deleted = 0
+                    AND p.value_file > 0
+                    AND p.entity_id = e.id
+                    AND pd.entity_definition_keyname = e.entity_definition_keyname
+                    AND pd.is_deleted = 0
+                    AND pd.dataproperty = 'photo'
+                ) AS value_file
+            FROM entity AS e
+            WHERE e.id = %s
+            AND e.is_deleted = 0
+            LIMIT 1;
+        """, entity_id)
+        if not f:
+            return
+        if f.value_file:
+            return '/entity/file-%s' % f.value_file
+        elif f.definition in ['audiovideo', 'book', 'methodical', 'periodical', 'textbook', 'workbook']:
+            return '/photo-by-isbn?entity=%s' % entity_id
+        elif f.definition == 'person':
+            return 'https://secure.gravatar.com/avatar/%s?d=wavatar&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
+        else:
+            return 'https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
+

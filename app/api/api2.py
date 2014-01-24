@@ -38,7 +38,7 @@ class API2EntityList(myRequestHandler, Entity2):
         self.write({
             'result': sorted(result.values(), key=itemgetter('sort')),
             'time': self.request.request_time(),
-            'count': db_result.get('count', 0)
+            'count': db_result.get('count', 0),
         })
 
 
@@ -63,7 +63,8 @@ class API2EntityChilds(myRequestHandler, Entity2):
             r['entities'] = sorted(r.get('entities', {}).values(), key=itemgetter('sort'))
         self.write({
             'result': result.values(),
-            'time': self.request.request_time()
+            'time': self.request.request_time(),
+            'count': db_result.get('count', 0),
         })
 
 
@@ -88,7 +89,8 @@ class API2EntityReferrals(myRequestHandler, Entity2):
             r['entities'] = sorted(r.get('entities', {}).values(), key=itemgetter('sort'))
         self.write({
             'result': result.values(),
-            'time': self.request.request_time()
+            'time': self.request.request_time(),
+            'count': db_result.get('count', 0),
         })
 
 
@@ -96,7 +98,12 @@ class API2EntityPicture(myRequestHandler, Entity2):
     @web.removeslash
     @web.authenticated
     def get(self, entity_id=None):
-        self.redirect('https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest()))
+        url = self.get_entity_picture_url(entity_id)
+
+        if not url:
+            return self.missing()
+
+        self.redirect(url)
 
 
 class S3FileUpload(myRequestHandler):
