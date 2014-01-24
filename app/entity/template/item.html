@@ -23,7 +23,7 @@
 {% end %}
 
 <div class="pull-right" style="margin:0px 0px 20px 0px; width:120px; text-align:center; text-transform:uppercase; color:#B9B9B9; font-weight:bold;">
-    <img src="{{ entity['displaypicture'] }}" id="entity_picture" class="" width="120" style="padding-bottom:4px; width:120px;" /><br />
+    <img src="/api2/entity-{{ entity.get('id') }}/picture" id="entity_picture" class="" width="120" style="padding-bottom:4px; width:120px;" /><br />
     {{ entity['label'] }}
 </div>
 <h3 style="margin:0px 140px 8px 0px; line-height:23px;">{{ entity['displayname'] }}</h3>

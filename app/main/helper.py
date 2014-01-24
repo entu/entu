@@ -129,7 +129,6 @@ class myUser():
                 user.language,
                 user.hide_menu,
                 user.email,
-                IF(user.picture, user.picture, CONCAT('https://secure.gravatar.com/avatar/', MD5(user.email), '?d=wavatar&s=100')) AS picture,
                 user.provider,
                 user.access_token,
                 %s AS session_key

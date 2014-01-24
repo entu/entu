@@ -16,7 +16,7 @@
 {% block right_toolbar %}
     <ul class="nav pull-right">
         <li class="dropdown">
-            <a href="#" class="dropdown-toggle header-menu-item toolbar-item">{{ current_user.name }}<img src="{{ current_user.picture }}" style="margin: -8px -8px -8px 10px;height:36px; width:36px;" ></a>
+            <a href="#" class="dropdown-toggle header-menu-item toolbar-item">{{ current_user.name }}<img src="/api2/entity-{{ current_user.id }}/picture" style="margin: -8px -8px -8px 10px;height:36px; width:36px;" ></a>
             <ul class="dropdown-menu" style="margin-right:5px; mrgin-top:0px;">
                 <li><a href="javascript:void(0);" class="open-modal-box" data-url="/user/preferences"><i class="icon-cog"></i> {{ _('menu_preferences') }}</a></li>
                 <li class="divider"></li>
