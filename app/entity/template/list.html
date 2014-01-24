@@ -24,15 +24,15 @@
 <script>
 
     function open_item(id, skip_push_state) {
-        spinner(1);
+        spinner(true);
         $('#content').html('');
         $('#toolbar').html('');
         $('#list_items a.active').removeClass('active');
         if(id) {
             $('#listitem_'+id).addClass('active');
             $.get('/entity-'+id, function(html) {
-                $('#content').html(html);
                 spinner();
+                $('#content').html(html);
             });
             if(!skip_push_state) {
                 window.history.replaceState('entity-'+id, '', '/entity/{{ entity_definition_keyname }}/' + id);
@@ -68,7 +68,7 @@
 
         function get_list() {
             items = [];
-            spinner(1);
+            spinner(true);
             $('#list_items').html('');
             $.post(window.location.pathname, {'search': $('#searchbox').val()}, function(list) {
                 items = list.items;
