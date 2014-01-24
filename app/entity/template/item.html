@@ -129,7 +129,7 @@
 
         function make_tables(url, div) {
             // get and show entity childs
-            spinner(true);
+            spinner(div);
             $.get(url, function(data) {
                 for (var d_key in data.result){
                     var definition     = data.result[d_key];
@@ -182,7 +182,7 @@
                     //show it
                     $element.show();
                 }
-                spinner();
+                spinner(div);
             }, 'json');
         }
 
