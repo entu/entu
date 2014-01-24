@@ -3,16 +3,73 @@ import json
 import datetime
 import logging
 from hashlib import sha1
+from operator import itemgetter
 
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 
 
 from main.helper import *
-from main.db import *
+from main.db2 import *
+
+def get_entity_info(language, limit):
+
+    return entities.values()
 
 
-class S3FileUpload(myRequestHandler, Entity):
+class API2EntityChilds(myRequestHandler, Entity2):
+    @web.removeslash
+    @web.authenticated
+    def get(self, entity_id=None):
+        language = self.get_user_locale().code
+
+        result = {}
+        for e in self.get_entities_info(parent_entity_id=entity_id):
+            result.setdefault(e.get('definition'), {})['definition'] = e.get('definition') if e.get('definition') else None
+            result.setdefault(e.get('definition'), {})['label'] = e.get('label') if e.get('label') else None
+            result.setdefault(e.get('definition'), {})['label_plural'] = e.get('label_plural') if e.get('label_plural') else None
+            result.setdefault(e.get('definition'), {})['table_header'] = e.get('displaytableheader').split('|') if e.get('displaytableheader') else None
+            result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['id'] = e.get('id') if e.get('id') else None
+            result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['sort'] = e.get('sort') if e.get('sort') else None
+            result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['name'] = e.get('displayname') if e.get('displayname') else None
+            result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['info'] = e.get('displayinfo') if e.get('displayinfo') else None
+            result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['table'] = e.get('displaytable').split('|') if e.get('displaytable') else None
+
+        for r in result.values():
+            r['entities'] = sorted(r.get('entities', {}).values(), key=itemgetter('sort'))
+        self.write({
+            'result': result.values(),
+            'time': self.request.request_time()
+        })
+
+
+class API2EntityReferrals(myRequestHandler, Entity2):
+    @web.removeslash
+    @web.authenticated
+    def get(self, entity_id=None):
+        language = self.get_user_locale().code
+
+        result = {}
+        for e in self.get_entities_info(referred_to_entity_id=entity_id):
+            result.setdefault(e.get('definition'), {})['definition'] = e.get('definition') if e.get('definition') else None
+            result.setdefault(e.get('definition'), {})['label'] = e.get('label') if e.get('label') else None
+            result.setdefault(e.get('definition'), {})['label_plural'] = e.get('label_plural') if e.get('label_plural') else None
+            result.setdefault(e.get('definition'), {})['table_header'] = e.get('displaytableheader').split('|') if e.get('displaytableheader') else None
+            result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['id'] = e.get('id') if e.get('id') else None
+            result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['sort'] = e.get('sort') if e.get('sort') else None
+            result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['name'] = e.get('displayname') if e.get('displayname') else None
+            result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['info'] = e.get('displayinfo') if e.get('displayinfo') else None
+            result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['table'] = e.get('displaytable').split('|') if e.get('displaytable') else None
+
+        for r in result.values():
+            r['entities'] = sorted(r.get('entities', {}).values(), key=itemgetter('sort'))
+        self.write({
+            'result': result.values(),
+            'time': self.request.request_time()
+        })
+
+
+class S3FileUpload(myRequestHandler):
     def get(self, entity_id=None, property_id=None):
         AWS_BUCKET     = self.app_settings('auth-s3', '\n', True).split('\n')[0]
         AWS_ACCESS_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[1]
@@ -72,5 +129,7 @@ class S3FileUpload(myRequestHandler, Entity):
 
 
 handlers = [
+    (r'/api2/entity-(.*)/childs', API2EntityChilds),
+    (r'/api2/entity-(.*)/referrals', API2EntityReferrals),
     (r'/api2/s3upload', S3FileUpload),
 ]

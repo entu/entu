@@ -158,7 +158,6 @@ class ShowEntity(myRequestHandler, Entity):
         if self.request.headers.get('X-Requested-With', '').lower() != 'xmlhttprequest':
             self.redirect('/entity/%s/%s' % (item.get('definition_keyname'), entity_id))
 
-        relatives = self.get_relatives(entity_id=item['id'], relationship_definition_keyname=['child'])
         parents = self.get_relatives(related_entity_id=item['id'], relationship_definition_keyname='child', reverse_relation=True)
         allowed_childs = self.get_allowed_childs(entity_id=item['id'])
         allowed_parents = self.get_allowed_parents(entity_id=item['id'])
@@ -170,7 +169,6 @@ class ShowEntity(myRequestHandler, Entity):
         self.render('entity/template/item.html',
             page_title = item['displayname'],
             entity = item,
-            relatives = relatives,
             parents = parents.values() if parents else [],
             allowed_childs = allowed_childs,
             allowed_parents = allowed_parents,

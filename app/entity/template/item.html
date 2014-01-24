@@ -99,61 +99,92 @@
     <li><a href="javascript:void(0);" id="toolbar-item-fullscreen" class="toolbar-item " title="{{ _('menu_fullscreen') }}"><i class="icon-resize-full"></i></a></li>
 </ul>
 
-<!--ul class="nav nav-tabs" id="myTab" style="clear:both;">
-    <li class="active"><a href="#home">Home</a></li>
-    <li><a href="#profile">Alamullid</a></li>
-    <li><a href="#messages">Messages</a></li>
-    <li><a href="#settings">Settings</a></li>
-</ul>
-
-<div class="tab-content">
-    <div class="tab-pane active" id="home">...</div>
-    <div class="tab-pane" id="profile">...</div>
-    <div class="tab-pane" id="messages">...</div>
-    <div class="tab-pane" id="settings">...</div>
-</div-->
-
-{% for k, v in sorted(relatives.iteritems()) %}
-    <h5 class="toggle-table" style="clear:both; margin:40px 0px 0px 0px; padding:5px 10px; background: #F0F0F0;">{{ k }}<span style="float:right; font-weight:normal;">{{ len(v) }}</span></h5>
+<div id="childs"></div>
+<div id="referrals"></div>
+<div class="childs-template" style="display:none;">
+    <h5 class="toggle-table" style="clear:both; margin:40px 0px 0px 0px; padding:5px 10px; background: #F0F0F0;"><span style="float:right; font-weight:normal;"></span></h5>
     <table class="table table-condensed sortable">
-        {% if v[0].get('displaytable') %}
-            <thead>
-                <tr>
-                    {% for l in v[0].get('displaytable_labels', '') %}
-                    <th style="min-width:100px; font-size:13px; vertical-align:middle; border-top: 1px solid #DDDDDD;">
-                        {{ l }}
-                    </th>
-                    {% end %}
-                </tr>
-            </thead>
-        {% end %}
-        <tbody style="1display:none;">
-            {% for i in v %}
+        <thead>
             <tr>
-                {% if i.get('displaytable', None) %}
-                    {% for x in i.get('displaytable', '') %}
-                    <td style="min-width:100px; font-size:13px;">
-                        <a href="#{{ i.get('id', '') }}" class="open_child" style="display:block;">{% if x %}{{ x }}{% else %}&nbsp;{% end %}</a>
-                    </td>
-                    {% end %}
-                {% else %}
-                <td style="">
-                    <a href="#{{ i.get('id', '') }}" class="open_child" style="display:block;">{% if i.get('displayname', '') %}{{ i.get('displayname', '') }}{% else %}&nbsp;{% end %}</a>
-                </td>
-                {% end %}
+                <th class="childs-th-template" style="min-width:100px; font-size:13px; vertical-align:middle; border-top: 1px solid #DDDDDD;"></th>
             </tr>
-            {% end %}
+        </thead>
+        <tbody>
+            <tr class="childs-tr-template">
+                <td class="childs-td-template" style="min-width:100px; font-size:13px;">
+                    <a class="open_child" style="display:block;"></a>
+                </td>
+            </tr>
         </tbody>
     </table>
-{% end%}
+</div>
 
 <script>
     $(document).ready(function(){
 
         document.title = "{{ page_title.replace('\"', '\\\"') }}";
 
-        $('#list_items a.active').removeClass('active');
-        $('#listitem_{{ entity.get('id') }}').addClass('active');
+        make_tables('/api2/entity-{{ entity.get('id') }}/childs', '#childs');
+        make_tables('/api2/entity-{{ entity.get('id') }}/referrals', '#referrals');
+
+        function make_tables(url, div) {
+            // get and show entity childs
+            spinner(true);
+            $.get(url, function(data) {
+                for (var d_key in data.result){
+                    var definition     = data.result[d_key];
+                    var entities       = definition.entities;
+                    var entities_count = Object.keys(entities).length;
+
+                    var $element       = $('.childs-template').clone(true).removeClass('childs-template').appendTo(div);
+
+                    // make section header
+                    if(entities_count > 1) {
+                        $element.children('h5').prepend(definition.label_plural);
+                    } else {
+                        $element.children('h5').prepend(definition.label);
+                    }
+                    $element.children('h5').children('span').html(entities_count);
+
+                    // make table header
+                    if(definition.table_header) {
+                        for(th_key in definition.table_header) {
+                            var $th = $element.find('.childs-th-template').clone(true).removeClass('childs-th-template').appendTo($element.children('table').children('thead').children('tr'));
+                            $th.html(definition.table_header[th_key]);
+                            $th.show();
+                        }
+                        $element.find('.childs-th-template').remove();
+                    } else {
+                        $element.find('thead').remove();
+                    }
+
+                    //make table rows
+                    for(tr_key in definition.entities) {
+                        var $tr = $element.find('.childs-tr-template').clone(true).removeClass('childs-tr-template').appendTo($element.children('table').children('tbody'));
+
+                        //make table cells
+                        if(definition.entities[tr_key].table) {
+                            for(td_key in definition.entities[tr_key].table) {
+                                var $td = $tr.children('.childs-td-template').clone(true).removeClass('childs-td-template').appendTo($tr);
+                                $td.children('a').html(definition.entities[tr_key].table[td_key]);
+                                $td.children('a').attr('href', '#'+definition.entities[tr_key].id);
+                            }
+                        } else {
+                            var $td = $tr.children('.childs-td-template').clone(true).removeClass('childs-td-template').appendTo($tr);
+                            $td.children('a').html(definition.entities[tr_key].name);
+                            $td.children('a').attr('href', '#'+definition.entities[tr_key].id);
+                        }
+
+                        $tr.children('.childs-td-template').remove();
+                    }
+                    $element.find('.childs-tr-template').remove();
+
+                    //show it
+                    $element.show();
+                }
+                spinner();
+            }, 'json');
+        }
 
         $('.toggle-table').css('cursor', 'pointer');
         $('.toggle-table').click(function() {
