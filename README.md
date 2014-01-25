@@ -38,7 +38,6 @@ _Futuristic Data Management System_
 * [Python 2.7](http://www.python.org/)
     * [Tornado](http://www.tornadoweb.org)
     * [python-mysqldb](http://mysql-python.sourceforge.net)
-    * [python-magic](https://github.com/ahupp/python-magic)
     * [python-suds](https://fedorahosted.org/suds/)
     * [python-markdown2](https://github.com/trentm/python-markdown2)
     * [tornadomail](https://github.com/equeny/tornadomail)

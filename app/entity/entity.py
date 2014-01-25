@@ -2,7 +2,7 @@ from tornado import auth, web, httpclient
 from StringIO import StringIO
 from operator import itemgetter
 import logging
-import magic
+import mimetypes
 import zipfile
 import yaml
 import json
@@ -178,7 +178,10 @@ class DownloadFile(myRequestHandler, Entity):
                 return self.missing()
             if file.is_link == 1:
                 return self.redirect(file.file)
-            mime = magic.from_buffer(file.file, mime=True)
+
+            mimetypes.init()
+            mime = mimetypes.types_map.get('.%s' % file.filename.split('.')[-1], 'application/octet-stream')
+
             filename = file.filename
             outfile = file.file
 

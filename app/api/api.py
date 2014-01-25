@@ -9,7 +9,7 @@ import string
 import hashlib
 import random
 import time
-import magic
+import mimetypes
 
 from main.helper import *
 from main.db import *
@@ -659,7 +659,8 @@ class GetFile(myRequestHandler, Entity):
         if not file:
             return self.missing()
 
-        mime = magic.from_buffer(file.file, mime=True)
+        mimetypes.init()
+        mime = mimetypes.types_map.get('.%s' % file.filename.split('.')[-1], 'application/octet-stream')
 
         self.add_header('Content-Type', mime)
         self.add_header('Content-Disposition', 'attachment; filename="%s"' % file.filename)

@@ -19,7 +19,6 @@ pip install chardet
 pip install croniter  
 pip install markdown2  
 pip install ply  
-pip install python-magic  
 pip install PyYAML  
 pip install PyZ3950  
 pip install SimpleAES  
