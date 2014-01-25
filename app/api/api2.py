@@ -17,13 +17,14 @@ class API2EntityList(myRequestHandler, Entity2):
     @web.removeslash
     @web.authenticated
     def get(self):
-        result = {}
         db_result = self.get_entities_info(
                 definition=self.get_argument('definition', default=None, strip=True),
                 query=self.get_argument('query', default=None, strip=True),
                 limit=self.get_argument('limit', default=None, strip=True),
                 page=self.get_argument('page', default=None, strip=True)
             )
+
+        result = {}
         for e in db_result.get('entities', []):
             result.setdefault(e.get('id'), {}).setdefault('definition', {})['definition'] = e.get('definition') if e.get('definition') else None
             result.setdefault(e.get('id'), {}).setdefault('definition', {})['label'] = e.get('label') if e.get('label') else None
@@ -46,8 +47,9 @@ class API2EntityChilds(myRequestHandler, Entity2):
     @web.removeslash
     @web.authenticated
     def get(self, entity_id=None):
-        result = {}
         db_result = self.get_entities_info(parent_entity_id=entity_id)
+
+        result = {}
         for e in db_result.get('entities', []):
             result.setdefault(e.get('definition'), {})['definition'] = e.get('definition') if e.get('definition') else None
             result.setdefault(e.get('definition'), {})['label'] = e.get('label') if e.get('label') else None
@@ -58,9 +60,9 @@ class API2EntityChilds(myRequestHandler, Entity2):
             result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['name'] = e.get('displayname') if e.get('displayname') else None
             result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['info'] = e.get('displayinfo') if e.get('displayinfo') else None
             result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['table'] = e.get('displaytable').split('|') if e.get('displaytable') else None
-
         for r in result.values():
             r['entities'] = sorted(r.get('entities', {}).values(), key=itemgetter('sort'))
+
         self.write({
             'result': result.values(),
             'time': self.request.request_time(),
@@ -72,8 +74,9 @@ class API2EntityReferrals(myRequestHandler, Entity2):
     @web.removeslash
     @web.authenticated
     def get(self, entity_id=None):
-        result = {}
         db_result = self.get_entities_info(referred_to_entity_id=entity_id)
+
+        result = {}
         for e in db_result.get('entities', []):
             result.setdefault(e.get('definition'), {})['definition'] = e.get('definition') if e.get('definition') else None
             result.setdefault(e.get('definition'), {})['label'] = e.get('label') if e.get('label') else None
@@ -84,9 +87,9 @@ class API2EntityReferrals(myRequestHandler, Entity2):
             result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['name'] = e.get('displayname') if e.get('displayname') else None
             result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['info'] = e.get('displayinfo') if e.get('displayinfo') else None
             result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['table'] = e.get('displaytable').split('|') if e.get('displaytable') else None
-
         for r in result.values():
             r['entities'] = sorted(r.get('entities', {}).values(), key=itemgetter('sort'))
+
         self.write({
             'result': result.values(),
             'time': self.request.request_time(),
