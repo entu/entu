@@ -47,55 +47,8 @@ class ShowPhoto(myRequestHandler, Entity):
             if not self.isbn:
                 return self.redirect('/static/images/blank.png')
 
-        url = 'http://pood.rahvaraamat.ee/otsing?frst=1&page=1&q=%s&t=1' % self.isbn
-        httpclient.AsyncHTTPClient().fetch(url, callback=self._got_rahvaraamat_list, request_timeout=60)
-
-    @web.asynchronous
-    def _got_rahvaraamat_list(self, response):
-        if not response.body:
-            self.finish()
-            return
-
-        soup = BeautifulSoup(response.body.decode('utf-8', 'ignore'))
-        url = None
-
-        div = soup.find(id='product_thumbnail')
-        if div:
-            a = div.find('a')
-            if a:
-                url = a.get('href')
-                httpclient.AsyncHTTPClient().fetch(url, callback=self._got_photo, request_timeout=60)
-        else:
-            div = soup.find('div', class_='list_product_title')
-            if div:
-                a = div.find('a')
-                if a:
-                    url = 'http://pood.rahvaraamat.ee%s' % a.get('href')
-                    httpclient.AsyncHTTPClient().fetch(url, callback=self._got_rahvaraamat_item, request_timeout=60)
-
-        if not url:
-            url = 'https://www.raamatukoi.ee/cgi-bin/index?valik=isbn&paring=%s' % self.isbn
-            httpclient.AsyncHTTPClient().fetch(url, callback=self._got_raamatukoi_item, request_timeout=60)
-
-    @web.asynchronous
-    def _got_rahvaraamat_item(self, response):
-        if not response.body:
-            self.finish()
-            return
-
-        soup = BeautifulSoup(response.body.decode('utf-8', 'ignore'))
-        url = None
-
-        div = soup.find(id='product_thumbnail')
-        if div:
-            a = div.find('a')
-            if a:
-                url = a.get('href')
-                httpclient.AsyncHTTPClient().fetch(url, callback=self._got_photo, request_timeout=60)
-
-        if not url:
-            url = 'https://www.raamatukoi.ee/cgi-bin/index?valik=isbn&paring=%s' % self.isbn
-            httpclient.AsyncHTTPClient().fetch(url, callback=self._got_raamatukoi_item, request_timeout=60)
+        url = 'https://www.raamatukoi.ee/cgi-bin/index?valik=isbn&paring=%s' % self.isbn
+        httpclient.AsyncHTTPClient().fetch(url, callback=self._got_raamatukoi_item, request_timeout=60)
 
     @web.asynchronous
     def _got_raamatukoi_item(self, response):

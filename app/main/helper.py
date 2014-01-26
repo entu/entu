@@ -40,13 +40,14 @@ class myDatabase():
         return self.settings['databases'][self.request.host]
 
     def app_settings(self, key, default=None, do_something_fun=False):
-        if not do_something_fun:
-            return self.get_app_settings().get(key, default)
-        try:
-            s = self.get_app_settings().get(key)
-            return SimpleAES('%s.%s' % (self.settings['secret'], self.app_settings('database-name'))).decrypt('\n'.join(s[pos:pos+64] for pos in xrange(0, len(s), 64))).strip()
-        except Exception:
-            return default
+        return self.get_app_settings().get(key, default)
+        # if not do_something_fun:
+        #     return self.get_app_settings().get(key, default)
+        # try:
+        #     s = self.get_app_settings().get(key)
+        #     return SimpleAES('%s.%s' % (self.settings['secret'], self.app_settings('database-name'))).decrypt('\n'.join(s[pos:pos+64] for pos in xrange(0, len(s), 64))).strip()
+        # except Exception:
+        #     return default
 
     def get_app_settings(self, host=None):
         if not host:
