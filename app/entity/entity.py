@@ -355,6 +355,7 @@ class DeleteFile(myRequestHandler, Entity):
             return self.missing()
 
         self.set_property(entity_id=entity_id, old_property_id=property_id)
+        self.write({'response': 'OK'})
 
 
 class DeleteEntity(myRequestHandler, Entity):
