@@ -1,3 +1,9 @@
+## 2014-01-26
+* Show all Entities (not just first 500) in search result
+* API 2.0 first methods
+* Major speed boost as we are moving to API 2.0
+* Lots and lots and lots of bugfixes and enhancements
+
 ## 2013-11-08
 * Show entity search results as table
 * Sorting for entity childs table
