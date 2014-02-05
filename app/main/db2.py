@@ -180,6 +180,8 @@ class Entity2():
                     AND pd.entity_definition_keyname = e.entity_definition_keyname
                     AND pd.is_deleted = 0
                     AND pd.dataproperty = 'photo'
+                    ORDER BY p.id
+                    LIMIT 1
                 ) AS value_file
             FROM entity AS e
             WHERE e.id = %s
