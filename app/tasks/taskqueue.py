@@ -110,7 +110,7 @@ while True:
             # time.sleep(0.1)
             continue
 
-        sys.stdout.write("== %s: %s. Checking %3i properties... " % (datetime.now(), customer_row.get('domain'), properties_to_check))
+        sys.stdout.write("== %s: %25s. Checking %3i properties... " % (datetime.now(), customer_row.get('domain'), properties_to_check))
         sys.stdout.flush()
 
         for property_row in db.query(sql):
@@ -193,7 +193,7 @@ while True:
         last_checked['_tq:metrics']['properties_checked'] += properties_to_check
         last_checked['_tq:metrics']['time_spent'] = last_checked['_tq:metrics']['time_spent'] + customer_time_spent.microseconds + (customer_time_spent.seconds + customer_time_spent.days * 86400) * 1000000
         # print last_checked
-        print "Lifetime average: {0} properties / second.".format(1000000.00*last_checked['_tq:metrics']['properties_checked']/last_checked['_tq:metrics']['time_spent'])
+        print "Lifetime average properties/second: %3.5f." % (1000000.00*last_checked['_tq:metrics']['properties_checked']/last_checked['_tq:metrics']['time_spent'])
         with open(timestamp_file, 'w+') as f:
             f.write(json.dumps(last_checked, sort_keys=True, indent=4, separators=(',', ': ')))
 
