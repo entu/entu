@@ -206,7 +206,7 @@ class PublicFileHandler(myRequestHandler, Entity):
         file = files[0]
 
         mimetypes.init()
-        mime = mimetypes.types_map.get('.%s' % file.filename.split('.')[-1], 'application/octet-stream')
+        mime = mimetypes.types_map.get('.%s' % file.filename.lower().split('.')[-1], 'application/octet-stream')
 
         self.add_header('Content-Type', mime)
         self.add_header('Content-Disposition', 'inline; filename="%s"' % file.filename)

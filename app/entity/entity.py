@@ -180,7 +180,7 @@ class DownloadFile(myRequestHandler, Entity):
                 return self.redirect(file.file)
 
             mimetypes.init()
-            mime = mimetypes.types_map.get('.%s' % file.filename.split('.')[-1], 'application/octet-stream')
+            mime = mimetypes.types_map.get('.%s' % file.filename.lower().split('.')[-1], 'application/octet-stream')
 
             filename = file.filename
             outfile = file.file

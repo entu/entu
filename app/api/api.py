@@ -660,7 +660,7 @@ class GetFile(myRequestHandler, Entity):
             return self.missing()
 
         mimetypes.init()
-        mime = mimetypes.types_map.get('.%s' % file.filename.split('.')[-1], 'application/octet-stream')
+        mime = mimetypes.types_map.get('.%s' % file.filename.lower().split('.')[-1], 'application/octet-stream')
 
         self.add_header('Content-Type', mime)
         self.add_header('Content-Disposition', 'attachment; filename="%s"' % file.filename)
