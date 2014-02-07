@@ -119,35 +119,36 @@
                 multiple: true,
                 allowClear: true,
                 ajax: {
-                    url: '/entity/search',
+                    url: '/api2/entity',
                     dataType: 'json',
                     quietMillis: 1000,
                     data: function (term, page) {
                         return {
-                            q: term,
+                            query: term,
                             definition: box.data('reference_definition'),
-                            exclude_entity: $('#database').data('entity_id'),
+                            limit: 25,
+                            page: page,
                         };
                     },
                     results: function (data, page) {
-                        return {results: data.entities};
+                        console.log(data.count);
+                        console.log(page * 25);
+                        console.log(more);
+                        var more = (page * 25) < data.count;
+                        return {results: data.result, more: more};
                     }
                 },
                 formatResult: function (data) {
-                    if(data.image) {
-                        image = '<img src="'+data.image+'" />';
-                    } else {
-                        image = '';
-                    };
+                    if(data.id == $('#database').data('entity_id')) return;
                     if(data.info) {
                         info = '<span>'+data.info+'</span>';
                     } else {
                         info = '';
                     };
-                    return '<div class="select2-result-item">'+image+data.title+info+'<div>';
+                    return '<div class="select2-result-item"><img src="/api2/entity-'+data.id+'/picture" />'+data.name+info+'<div>';
                 },
                 formatSelection: function (data) {
-                    return data.title;
+                    return data.name;
                 }
             });
         });
