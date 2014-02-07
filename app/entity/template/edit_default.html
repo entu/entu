@@ -115,9 +115,10 @@
             var box = $(this);
             box.select2({
                 placeholder: ' ',
-                minimumInputLength: 1,
+                minimumInputLength: 2,
                 multiple: true,
                 allowClear: true,
+                loadMorePadding: 50,
                 ajax: {
                     url: '/api2/entity',
                     dataType: 'json',
@@ -131,9 +132,6 @@
                         };
                     },
                     results: function (data, page) {
-                        console.log(data.count);
-                        console.log(page * 25);
-                        console.log(more);
                         var more = (page * 25) < data.count;
                         return {results: data.result, more: more};
                     }
@@ -209,7 +207,7 @@
             }
             if (inputbox.hasClass('reference')) {
                 $(this).select2('val', '');
-                $(this).parent('div').parent('td').children('.new-references').append('<div class="new-input" style="padding:8px; color:gray;">'+e.added.title+'</div>');
+                $(this).parent('div').parent('td').children('.new-references').append('<div class="new-input" style="padding:8px; color:gray;">'+e.added.name+'</div>');
                 value = e.added.id;
                 if($(this).data('multiplicity') != 'X') {
                     $(this).data('multiplicity', $(this).data('multiplicity') - 1);
