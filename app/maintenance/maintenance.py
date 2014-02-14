@@ -7,10 +7,6 @@ import time
 
 from taskdb import *
 
-# lib_path = os.path.abspath('../main')
-# sys.path.append(lib_path)
-# from helper import myDatabase
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--database-host',     required = True)
 parser.add_argument('--database-name',     required = True)
@@ -30,7 +26,7 @@ cg_db = torndb.Connection(
 
 # Customer groups and customers in groups are reloaded on every iteration
 cg_sql = """
-SELECT  cge.id AS customergroup_id, cge.sort AS customergroup_name,
+SELECT DISTINCT
         cp.entity_id AS entity,
         cpd.dataproperty AS property,
         IF(
@@ -127,26 +123,24 @@ while True:
     processed_customers = []
 
     for c in cg_db.query(cg_sql):
-        customers.setdefault(c.customergroup_id, {})['name'] = c.customergroup_name
-        customers[c.customergroup_id].setdefault('customers', {}).setdefault(c.entity, {})[c.property] = c.value
+        customers.setdefault(c.entity, {})[c.property] = c.value
 
     # print json.dumps(customers, sort_keys=True, indent=4, separators=(',', ': '))
 
-    for custgroup_row in customers.values():
-        for customer_row in custgroup_row['customers'].values():
-            # print json.dumps(customers, sort_keys=True, indent=4, separators=(',', ': '))
-            if customer_row.get('database-name') not in known_customers:
-                print "New customer added to roundtrip: %s." % (customer_row.get('database-name'))
+    for customer_row in customers.values():
+        # print json.dumps(customers, sort_keys=True, indent=4, separators=(',', ': '))
+        if customer_row.get('database-name') not in known_customers:
+            print "New customer added to roundtrip: %s." % (customer_row.get('database-name'))
 
-            db = torndb.Connection(
-                host     = customer_row.get('database-host'),
-                database = customer_row.get('database-name'),
-                user     = customer_row.get('database-user'),
-                password = customer_row.get('database-password'),
-            )
-            db.execute(maintenance_sql)
+        db = torndb.Connection(
+            host     = customer_row.get('database-host'),
+            database = customer_row.get('database-name'),
+            user     = customer_row.get('database-user'),
+            password = customer_row.get('database-password'),
+        )
+        db.execute(maintenance_sql)
 
-            processed_customers.append(customer_row.get('database-name'))
+        processed_customers.append(customer_row.get('database-name'))
 
     known_customers = processed_customers
     maintenance_sql = speed_optimized_sql
