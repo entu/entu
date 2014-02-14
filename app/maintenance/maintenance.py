@@ -56,7 +56,7 @@ WHERE cge.entity_definition_keyname = 'customergroup'
 ORDER BY cp.entity_id, cpd.ordinal;
 """ % (args.customergroup, args.customergroup)
 
-print cg_sql
+# print cg_sql
 
 
 # First run is with slower query that takes less temporary filespace
@@ -116,7 +116,7 @@ AND p.is_deleted = 0
 
 
 known_customers = []
-maintenance_sql = filespace_optimized_sql
+i = 1
 
 while True:
     customers = {}
@@ -129,23 +129,33 @@ while True:
 
     for customer_row in customers.values():
         # print json.dumps(customers, sort_keys=True, indent=4, separators=(',', ': '))
-        if customer_row.get('database-name') not in known_customers:
-            print "New customer added to roundtrip: %s." % (customer_row.get('database-name'))
-
         db = torndb.Connection(
             host     = customer_row.get('database-host'),
             database = customer_row.get('database-name'),
             user     = customer_row.get('database-user'),
             password = customer_row.get('database-password'),
         )
-        db.execute(maintenance_sql)
+        if customer_row.get('database-name') not in known_customers:
+            print "%s: New customer added to roundtrip: %s." % (datetime.now(), customer_row.get('database-name'))
+            try:
+                db.execute(filespace_optimized_sql)
+            except:
+                print filespace_optimized_sql
+                print "%s: failed for %s." % (datetime.now(), customer_row.get('database-name'))
+        else:
+            try:
+                db.execute(speed_optimized_sql)
+            except:
+                print speed_optimized_sql
+                print "%s: failed for %s." % (datetime.now(), customer_row.get('database-name'))
 
         processed_customers.append(customer_row.get('database-name'))
 
     known_customers = processed_customers
-    maintenance_sql = speed_optimized_sql
 
     time.sleep(1)
+    print "%s: Finished run no.%s" % (datetime.now(), i)
+    i += 1
     # print json.dumps(customers, sort_keys=True, indent=4, separators=(',', ': '))
 
 
