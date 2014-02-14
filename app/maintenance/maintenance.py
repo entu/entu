@@ -16,54 +16,51 @@ parser.add_argument('--database-host',     required = True)
 parser.add_argument('--database-name',     required = True)
 parser.add_argument('--database-user',     required = True)
 parser.add_argument('--database-password', required = True)
+parser.add_argument('--customergroup',  required = False, default = '0')
 args = parser.parse_args()
 
 # print args
 
-mg_db = torndb.Connection(
+cg_db = torndb.Connection(
     host     = args.database_host,
     database = args.database_name,
     user     = args.database_user,
     password = args.database_password,
 )
 
-# Maintenance groups and customers in groups are reloaded on every iteration
-mg_sql = """
-SELECT DISTINCT mge.id AS maintenancegroup_id, mgp.value_string AS maintenancegroup_name,
-                cp.entity_id AS entity,
-                cpd.dataproperty AS property,
+# Customer groups and customers in groups are reloaded on every iteration
+cg_sql = """
+SELECT  cge.id AS customergroup_id, cge.sort AS customergroup_name,
+        cp.entity_id AS entity,
+        cpd.dataproperty AS property,
+        IF(
+            cpd.datatype='decimal',
+            cp.value_decimal,
+            IF(
+                cpd.datatype='integer',
+                cp.value_integer,
                 IF(
-                    cpd.datatype='decimal',
-                    cp.value_decimal,
-                    IF(
-                        cpd.datatype='integer',
-                        cp.value_integer,
-                        IF(
-                            cpd.datatype='file',
-                            cp.value_file,
-                            cp.value_string
-                        )
-                    )
-                ) AS value
-FROM entity mge
-LEFT JOIN property mgp ON mgp.entity_id = mge.id AND mgp.is_deleted = 0 AND mgp.property_definition_keyname = 'maintenancegroup-name'
-LEFT JOIN property rp ON rp.value_reference = mge.id AND rp.is_deleted = 0
-LEFT JOIN property cp ON cp.entity_id = rp.entity_id AND cp.is_deleted = 0
+                    cpd.datatype='file',
+                    cp.value_file,
+                    cp.value_string
+                )
+            )
+        ) AS value
+FROM entity cge
+LEFT JOIN relationship r ON r.entity_id = cge.id
+LEFT JOIN entity ce ON ce.id = r.related_entity_id
+LEFT JOIN property cp ON cp.entity_id = ce.id
 LEFT JOIN property_definition cpd ON cpd.keyname = cp.property_definition_keyname
-WHERE mge.is_deleted = 0
-AND cpd.is_deleted = 0
-AND mge.entity_definition_keyname = 'maintenancegroup'
+WHERE cge.entity_definition_keyname = 'customergroup'
+  AND cge.is_deleted = 0
+  AND ce.entity_definition_keyname = 'customer' AND ce.is_deleted = 0
+  AND r.relationship_definition_keyname = 'child' AND r.is_deleted = 0
+  AND cp.is_deleted = 0
+  AND ('%s' = '0' OR cge.id IN (%s))
 ORDER BY cp.entity_id, cpd.ordinal;
-"""
+""" % (args.customergroup, args.customergroup)
 
-# SQL for every maintenance group is also reloaded on each roundtrip
-mg_sql_sql = """
-SELECT mge.id, sqp.value_text
-FROM entity mge
-LEFT JOIN property mgp ON mgp.entity_id = mge.id AND mgp.is_deleted = 0 AND mgp.property_definition_keyname = 'maintenancegroup-sql'
-LEFT JOIN property sqp ON sqp.entity_id = mgp.value_reference AND sqp.is_deleted = 0 AND sqp.property_definition_keyname = 'sql-sequel'
-WHERE mge.entity_definition_keyname = 'maintenancegroup';
-"""
+print cg_sql
 
 
 # First run is with slower query that takes less temporary filespace
@@ -123,22 +120,20 @@ AND p.is_deleted = 0
 
 
 known_customers = []
+maintenance_sql = filespace_optimized_sql
 
 while True:
     customers = {}
     processed_customers = []
 
-    for c in mg_db.query(mg_sql):
-        customers.setdefault(c.maintenancegroup_id, {})['name'] = c.maintenancegroup_name
-        customers[c.maintenancegroup_id].setdefault('customers', {}).setdefault(c.entity, {})[c.property] = c.value
-    for s in mg_db.query(mg_sql_sql):
-        customers[s.id].setdefault('sql', []).append(s.value_text)
+    for c in cg_db.query(cg_sql):
+        customers.setdefault(c.customergroup_id, {})['name'] = c.customergroup_name
+        customers[c.customergroup_id].setdefault('customers', {}).setdefault(c.entity, {})[c.property] = c.value
 
     # print json.dumps(customers, sort_keys=True, indent=4, separators=(',', ': '))
 
-
-    for maintgroup_row in customers.values():
-        for customer_row in maintgroup_row['customers'].values():
+    for custgroup_row in customers.values():
+        for customer_row in custgroup_row['customers'].values():
             # print json.dumps(customers, sort_keys=True, indent=4, separators=(',', ': '))
             if customer_row.get('database-name') not in known_customers:
                 print "New customer added to roundtrip: %s." % (customer_row.get('database-name'))
@@ -149,13 +144,12 @@ while True:
                 user     = customer_row.get('database-user'),
                 password = customer_row.get('database-password'),
             )
-            for sql_row in maintgroup_row['sql']:
-                # print sql_row
-                db.execute(sql_row)
+            db.execute(maintenance_sql)
 
             processed_customers.append(customer_row.get('database-name'))
 
     known_customers = processed_customers
+    maintenance_sql = speed_optimized_sql
 
     time.sleep(1)
     # print json.dumps(customers, sort_keys=True, indent=4, separators=(',', ': '))
