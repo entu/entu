@@ -57,6 +57,74 @@ def revaluate_formulas(recordset):
         print 'Revaluation of {0} rows finished.\n=> {1} rows updated\n=> {2} rows were up to date.'.format(len(recordset), rows_updated, rows_up_to_date)
 
 
+def check_my_formulas(property_row):
+    # Parent formula properties with ".child." in its value_formula (SLQ is NOT tested)
+    sql = """
+        SELECT p_formula.*
+        FROM relationship r
+        LEFT JOIN entity e_formula ON e_formula.id = r.entity_id
+                  AND e_formula.is_deleted = 0
+        LEFT JOIN property p_formula ON p_formula.entity_id = e_formula.id
+                  AND p_formula.is_deleted = 0
+        RIGHT JOIN property_definition pd ON p_formula.property_definition_keyname = pd.keyname
+                  AND pd.formula = 1
+                  AND p_formula.value_formula LIKE concat('%%%%.child.',pd.entity_definition_keyname,'.%s}%%%%')
+        WHERE r.related_entity_id = %s
+          AND r.relationship_definition_keyname = 'child'
+          AND r.is_deleted = 0
+          AND ifnull(p_formula.changed, "%s") < "%s";
+    """ % (property_row.dataproperty, property_row.entity_id, datetime.min, property_row.created)
+    # print sql
+    if len(db.query(sql)) > 0:
+        # print "Have {0} matching parent formulas.".format(len(db.query(sql)))
+        # print property_row
+        revaluate_formulas(db.query(sql))
+
+    # Child formula properties (SLQ is NOT tested)
+    sql = """
+        SELECT p_formula.*
+        FROM relationship r
+        LEFT JOIN entity e_formula ON e_formula.id = r.related_entity_id
+                  AND e_formula.is_deleted = 0
+        LEFT JOIN property p_formula ON p_formula.entity_id = e_formula.id
+                  AND p_formula.is_deleted = 0
+        RIGHT JOIN property_definition pd ON p_formula.property_definition_keyname = pd.keyname
+                  AND pd.formula = 1
+                  AND p_formula.value_formula LIKE concat('%%%%.-child.',pd.entity_definition_keyname,'.%s}%%%%')
+        WHERE r.entity_id = %s
+          AND r.relationship_definition_keyname = 'child'
+          AND r.is_deleted = 0
+          AND ifnull(p_formula.changed, "%s") < "%s";
+    """ % (property_row.dataproperty, property_row.entity_id, datetime.min, property_row.created)
+    if len(db.query(sql)) > 0:
+        # print sql
+        # print "Have {0} matching child formulas.".format(len(db.query(sql)))
+        # print property_row
+        revaluate_formulas(db.query(sql))
+
+    # Back-referencing formula properties (SLQ is tested)
+    sql = """
+        SELECT p_formula.id, p_formula.entity_id, p_formula.value_formula, p_formula.value_string
+        FROM property p_reference
+        RIGHT JOIN property_definition pd_reference ON pd_reference.keyname = p_reference.property_definition_keyname
+                    AND pd_reference.datatype = 'reference'
+        LEFT JOIN entity e_formula ON e_formula.id = p_reference.value_reference
+                    AND e_formula.is_deleted = 0
+        LEFT JOIN property p_formula ON p_formula.entity_id = e_formula.id
+                    AND p_formula.is_deleted = 0
+                    AND p_formula.value_formula LIKE concat('%%%%.-', pd_reference.dataproperty, '.%%%%')
+        RIGHT JOIN property_definition pd2 ON pd2.keyname = p_formula.property_definition_keyname
+                    AND pd2.formula = 1
+        WHERE p_reference.is_deleted = 0
+          AND p_reference.entity_id = %s
+          AND ifnull(p_formula.changed, "%s") < "%s";
+    """ % (property_row.entity_id, datetime.min, property_row.created)
+    # print sql
+    if len(db.query(sql)) > 0:
+        # print "Have {0} matching back-referencing formulas.".format(len(db.query(sql)))
+        # print property_row
+        revaluate_formulas(db.query(sql))
+
 
 timestamp_file = 'taskqueue.time'
 # last_checked = datetime.min
@@ -116,72 +184,7 @@ while True:
         for property_row in db.query(sql):
             # print property_row
 
-            # Parent formula properties with ".child." in its value_formula (SLQ is NOT tested)
-            sql = """
-                SELECT p_formula.*
-                FROM relationship r
-                LEFT JOIN entity e_formula ON e_formula.id = r.entity_id
-                          AND e_formula.is_deleted = 0
-                LEFT JOIN property p_formula ON p_formula.entity_id = e_formula.id
-                          AND p_formula.is_deleted = 0
-                RIGHT JOIN property_definition pd ON p_formula.property_definition_keyname = pd.keyname
-                          AND pd.formula = 1
-                          AND p_formula.value_formula LIKE concat('%%%%.child.',pd.entity_definition_keyname,'.%s}%%%%')
-                WHERE r.related_entity_id = %s
-                  AND r.relationship_definition_keyname = 'child'
-                  AND r.is_deleted = 0
-                  AND ifnull(p_formula.changed, "%s") < "%s";
-            """ % (property_row.dataproperty, property_row.entity_id, datetime.min, property_row.created)
-            # print sql
-            if len(db.query(sql)) > 0:
-                # print "Have {0} matching parent formulas.".format(len(db.query(sql)))
-                # print property_row
-                revaluate_formulas(db.query(sql))
-
-            # Child formula properties (SLQ is NOT tested)
-            sql = """
-                SELECT p_formula.*
-                FROM relationship r
-                LEFT JOIN entity e_formula ON e_formula.id = r.related_entity_id
-                          AND e_formula.is_deleted = 0
-                LEFT JOIN property p_formula ON p_formula.entity_id = e_formula.id
-                          AND p_formula.is_deleted = 0
-                RIGHT JOIN property_definition pd ON p_formula.property_definition_keyname = pd.keyname
-                          AND pd.formula = 1
-                          AND p_formula.value_formula LIKE concat('%%%%.-child.',pd.entity_definition_keyname,'.%s}%%%%')
-                WHERE r.entity_id = %s
-                  AND r.relationship_definition_keyname = 'child'
-                  AND r.is_deleted = 0
-                  AND ifnull(p_formula.changed, "%s") < "%s";
-            """ % (property_row.dataproperty, property_row.entity_id, datetime.min, property_row.created)
-            if len(db.query(sql)) > 0:
-                # print sql
-                # print "Have {0} matching child formulas.".format(len(db.query(sql)))
-                # print property_row
-                revaluate_formulas(db.query(sql))
-
-            # Back-referencing formula properties (SLQ is tested)
-            sql = """
-                SELECT p_formula.id, p_formula.entity_id, p_formula.value_formula, p_formula.value_string
-                FROM property p_reference
-                RIGHT JOIN property_definition pd_reference ON pd_reference.keyname = p_reference.property_definition_keyname
-                            AND pd_reference.datatype = 'reference'
-                LEFT JOIN entity e_formula ON e_formula.id = p_reference.value_reference
-                            AND e_formula.is_deleted = 0
-                LEFT JOIN property p_formula ON p_formula.entity_id = e_formula.id
-                            AND p_formula.is_deleted = 0
-                            AND p_formula.value_formula LIKE concat('%%%%.-', pd_reference.dataproperty, '.%%%%')
-                RIGHT JOIN property_definition pd2 ON pd2.keyname = p_formula.property_definition_keyname
-                            AND pd2.formula = 1
-                WHERE p_reference.is_deleted = 0
-                  AND p_reference.entity_id = %s
-                  AND ifnull(p_formula.changed, "%s") < "%s";
-            """ % (property_row.entity_id, datetime.min, property_row.created)
-            # print sql
-            if len(db.query(sql)) > 0:
-                # print "Have {0} matching back-referencing formulas.".format(len(db.query(sql)))
-                # print property_row
-                revaluate_formulas(db.query(sql))
+            check_my_formulas(property_row)
 
             last_checked[customer_row.get('domain')] = property_row.id
 

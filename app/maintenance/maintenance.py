@@ -5,7 +5,8 @@ import argparse
 import json
 import time
 
-from taskdb import *
+from etask import *
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--database-host',     required = True)
@@ -17,117 +18,21 @@ args = parser.parse_args()
 
 # print args
 
-cg_db = torndb.Connection(
-    host     = args.database_host,
-    database = args.database_name,
-    user     = args.database_user,
-    password = args.database_password,
-)
-
-# Customer groups and customers in groups are reloaded on every iteration
-cg_sql = """
-SELECT DISTINCT
-        cp.entity_id AS entity,
-        cpd.dataproperty AS property,
-        IF(
-            cpd.datatype='decimal',
-            cp.value_decimal,
-            IF(
-                cpd.datatype='integer',
-                cp.value_integer,
-                IF(
-                    cpd.datatype='file',
-                    cp.value_file,
-                    cp.value_string
-                )
-            )
-        ) AS value
-FROM entity cge
-LEFT JOIN relationship r ON r.entity_id = cge.id
-LEFT JOIN entity ce ON ce.id = r.related_entity_id
-LEFT JOIN property cp ON cp.entity_id = ce.id
-LEFT JOIN property_definition cpd ON cpd.keyname = cp.property_definition_keyname
-WHERE cge.entity_definition_keyname = 'customergroup'
-  AND cge.is_deleted = 0
-  AND ce.entity_definition_keyname = 'customer' AND ce.is_deleted = 0
-  AND r.relationship_definition_keyname = 'child' AND r.is_deleted = 0
-  AND cp.is_deleted = 0
-  AND ('%s' = '0' OR cge.id IN (%s))
-ORDER BY cp.entity_id, cpd.ordinal;
-""" % (args.customergroup, args.customergroup)
-
-# print cg_sql
-
-
-# First run is with slower query that takes less temporary filespace
-filespace_optimized_sql = """
-INSERT INTO searchindex (entity_id, language, val, last_property_id) SELECT
-    p.entity_id,
-    ifnull(p.language,''),
-    @val := LEFT(GROUP_CONCAT(p.value_string ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000),
-    @max_id := MAX(p.id)
-FROM
-    entity AS e,
-    property AS p,
-    property_definition AS pd
-WHERE p.entity_id = e.id
-AND pd.keyname = p.property_definition_keyname
-AND e.is_deleted  = 0
-AND p.is_deleted = 0
-AND pd.is_deleted = 0
-AND pd.search = 1
-AND e.id IN (
-    SELECT entity_id
-    FROM property, property_definition
-    WHERE property_definition.keyname = property.property_definition_keyname
-    AND property.is_deleted = 0
-    AND property_definition.is_deleted = 0
-    AND property_definition.search = 1
-    AND property.id > (SELECT IFNULL(MAX(last_property_id), 0) FROM searchindex)
-)
-GROUP BY
-    p.language,
-    p.entity_id
-ON DUPLICATE KEY UPDATE
-    val = @val,
-    last_property_id = @max_id;
-"""
-
-# Next runs are incremental and optimized for speed rather than temporary disk usage.
-speed_optimized_sql = """
-INSERT INTO searchindex (entity_id, LANGUAGE, val, last_property_id)
-SELECT p.entity_id,
-     ifnull(p.language,''),
-     @val := LEFT(GROUP_CONCAT(ixp.value_string ORDER BY ixpd.ordinal, ixp.id SEPARATOR ' '), 2000),
-     @max_id := MAX(ixp.id)
-FROM property p
-RIGHT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname AND pd.search = 1 AND pd.is_deleted = 0
-LEFT JOIN property ixp ON ixp.entity_id = p.entity_id AND ixp.is_deleted = 0
-RIGHT JOIN property_definition ixpd ON ixpd.keyname = ixp.property_definition_keyname AND ixpd.search = 1 AND ixpd.is_deleted = 0
-WHERE p.id > (SELECT IFNULL(MAX(last_property_id), 0) FROM searchindex)
-AND p.is_deleted = 0
-    GROUP BY
-        ixp.language,
-        ixp.entity_id
-    ON DUPLICATE KEY UPDATE
-        val = @val,
-        last_property_id = @max_id;
-"""
-
+task = ETask(args)
 
 known_customers = []
 i = 1
+sleep = 1.12
 
 while True:
-    customers = {}
+    d_start = datetime.now()
+    sys.stdout.write("Run no. %s. %22s ." % (i, d_start))
+    sys.stdout.flush()
     processed_customers = []
 
-    for c in cg_db.query(cg_sql):
-        customers.setdefault(c.entity, {})[c.property] = c.value
+    # print json.dumps(task.customers, sort_keys=True, indent=4, separators=(',', ': '))
 
-    # print json.dumps(customers, sort_keys=True, indent=4, separators=(',', ': '))
-
-    for customer_row in customers.values():
+    for customer_row in task.customers.values():
         # print json.dumps(customers, sort_keys=True, indent=4, separators=(',', ': '))
         db = torndb.Connection(
             host     = customer_row.get('database-host'),
@@ -136,25 +41,29 @@ while True:
             password = customer_row.get('database-password'),
         )
         if customer_row.get('database-name') not in known_customers:
-            print "%s: New customer added to roundtrip: %s." % (datetime.now(), customer_row.get('database-name'))
+            # print "%s: New customer added to roundtrip: %s." % (datetime.now(), customer_row.get('database-name'))
             try:
-                db.execute(filespace_optimized_sql)
+                db.execute(EQuery().searchindex('slow'))
             except:
-                print filespace_optimized_sql
-                print "%s: failed for %s." % (datetime.now(), customer_row.get('database-name'))
+                print EQuery().searchindex('slow')
+                print "\n%s: failed for %s." % (datetime.now(), customer_row.get('database-name'))
         else:
             try:
-                db.execute(speed_optimized_sql)
+                db.execute(EQuery().searchindex('fast'))
             except:
-                print speed_optimized_sql
-                print "%s: failed for %s." % (datetime.now(), customer_row.get('database-name'))
+                print EQuery().searchindex('fast')
+                print "\n%s: failed for %s." % (datetime.now(), customer_row.get('database-name'))
 
         processed_customers.append(customer_row.get('database-name'))
 
     known_customers = processed_customers
 
-    time.sleep(1)
-    print "%s: Finished run no.%s" % (datetime.now(), i)
+    d_stop = datetime.now()
+    time_delta = d_stop - d_start
+    time_spent_sec = 1.0*time_delta.microseconds/1000000 + time_delta.seconds + time_delta.days*86400
+    sleep = time_spent_sec / 5
+    print ".. %22s (%2.2f seconds). Now sleeping for %2.2f seconds." % (d_stop, time_spent_sec, sleep)
+    time.sleep(sleep)
     i += 1
     # print json.dumps(customers, sort_keys=True, indent=4, separators=(',', ': '))
 
