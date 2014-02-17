@@ -64,7 +64,7 @@ class FExpression():
                 # logging.debug(row.value)
                 _values.append(row.value)
 
-            self.value = [', '.join(['%s' % x for x in _values])]
+            self.value = ['<->'.join(['%s' % x for x in _values])]
             # logging.debug(self.value)
 
         # logging.debug(re.findall(r"(.*?)([A-Z]+)\(([^\)]*)\)",self.xpr))
