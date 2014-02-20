@@ -67,44 +67,38 @@ class Entity2():
         if query:
             for q in StrToList(query):
                 query_where += """
-                    AND e.id IN (
-                        SELECT p.entity_id
-                        FROM
-                            property AS p,
-                            property_definition AS pd
-                        WHERE pd.keyname = p.property_definition_keyname
-                        AND pd.search = 1
-                        AND p.is_deleted = 0
-                        AND pd.is_deleted = 0
-                        and p.value_string LIKE '%%%%%s%%%%'
-                    )
-                    """ % q
+                    AND si.val LIKE '%%%%%s%%%%'
+                """ % q
 
         entity_sql = """
             SELECT e.id, e.entity_definition_keyname, IFNULL(e.sort, CONCAT('   ', 1000000000000 - e.id)) AS sort
-            FROM entity AS e
-            WHERE e.is_deleted = 0
+            FROM entity AS e, searchindex AS si
+            WHERE si.entity_id = e.id
+            AND e.is_deleted = 0
             AND e.sharing IN ('domain', 'public')
             %(definition_where)s
             %(parent_where)s
             %(referrer_where)s
             %(query_where)s
-        """ % {'definition_where': definition_where, 'parent_where': parent_where, 'referrer_where': referrer_where, 'query_where': query_where}
+            AND IF(si.language = '', '%(language)s', si.language) = '%(language)s'
+        """ % {'definition_where': definition_where, 'parent_where': parent_where, 'referrer_where': referrer_where, 'query_where': query_where, 'language': self.__language}
 
         if self.current_user:
             entity_sql += """
                 UNION SELECT e.id, e.entity_definition_keyname, IFNULL(e.sort, CONCAT('   ', 1000000000000 - e.id)) AS sort
-                FROM entity AS e, relationship AS r
+                FROM entity AS e, relationship AS r, searchindex AS si
                 WHERE r.entity_id = e.id
+                AND si.entity_id = e.id
                 AND e.is_deleted = 0
                 %(definition_where)s
                 %(parent_where)s
                 %(referrer_where)s
                 %(query_where)s
+            AND IF(si.language = '', '%(language)s', si.language) = '%(language)s'
                 AND r.is_deleted = 0
                 AND r.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
                 AND r.related_entity_id = %(user)s
-            """ % {'definition_where': definition_where, 'parent_where': parent_where, 'referrer_where': referrer_where, 'query_where': query_where, 'user': self.__user_id, 'limit': limit}
+            """ % {'definition_where': definition_where, 'parent_where': parent_where, 'referrer_where': referrer_where, 'query_where': query_where, 'language': self.__language, 'user': self.__user_id, 'limit': limit}
 
         entity_count = None
         if limit:
