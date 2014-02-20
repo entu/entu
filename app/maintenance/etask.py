@@ -53,25 +53,32 @@ class ETask():
         for formula_property_row in recordset:
             frm = Formula(db, formula_property_row.id, formula_property_row.entity_id, formula_property_row.value_formula)
             frm_value = ''.join(frm.evaluate())
-            # print "Old value is: %s" % (formula_property_row.value_string)
-            # print "Formula evaluated to: %s" % (frm_value)
+            print "Old value is: %s" % (formula_property_row.value_string)
+            print "Formula evaluated to: %s" % (frm_value)
             if frm_value != formula_property_row.value_string:
-                # print frm.evaluate()
                 print formula_property_row
                 rows_updated = rows_updated + 1
                 print "'%s' != '%s'. Updating..." % (frm_value, formula_property_row.value_string)
+
+                sql = """
+                INSERT INTO `property` (`property_definition_keyname`, `entity_id`, `ordinal`, `language`, `value_formula`, `value_string`, `value_text`, `value_integer`, `value_decimal`, `value_boolean`, `value_datetime`, `value_entity`, `value_reference`, `value_file`, `value_counter`, `created`, `created_by`, `changed`, `changed_by`)
+                SELECT `property_definition_keyname`, `entity_id`, `ordinal`, `language`, `value_formula`, '%s', `value_text`, `value_integer`, `value_decimal`, `value_boolean`, `value_datetime`, `value_entity`, `value_reference`, `value_file`, `value_counter`, `created`, `created_by`, now(), 'maintenance'
+                FROM `property` WHERE id = %s;
+                """ % (frm_value, formula_property_row.id)
+                db.execute(sql)
+
                 sql = """
                     UPDATE property
-                    SET value_string = "%s", changed = now(), changed_by = 'taskqueue' WHERE id = %s
-                """ % (frm_value, formula_property_row.id)
-                continue
+                    SET deleted = now(), deleted_by = 'maintenance', is_deleted = 1 WHERE id = %s
+                """ % (formula_property_row.id)
                 db.execute(sql)
+                continue
             else:
                 rows_up_to_date = rows_up_to_date + 1
-                # print "%s equals %s, updating changed and changed_by values" % (frm_value, formula_property_row.value_string)
+                print "%s equals %s, updating changed and changed_by values" % (frm_value, formula_property_row.value_string)
                 sql = """
                     UPDATE property
-                    SET changed = now(), changed_by = 'taskqueue' WHERE id = %s
+                    SET changed = now(), changed_by = 'maintenance' WHERE id = %s
                 """ % formula_property_row.id
                 db.execute(sql)
 
@@ -86,36 +93,65 @@ class ETask():
 class EQuery():
 
 
-    def fresh_properties(self, lim, date):
-        return """
-            SELECT *
-            FROM
-            (SELECT pd.dataproperty, p.created AS o_date, p.*
-              FROM property p
-              LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
-             WHERE p.created >= '%(date)s'
-             ORDER BY o_date
-             LIMIT %(limit)s
-            ) cr
-            UNION SELECT * FROM
-            (SELECT pd.dataproperty, p.changed AS o_date, p.*
-              FROM property p
-              LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
-             WHERE p.changed >= '%(date)s'
-             ORDER BY o_date
-             LIMIT %(limit)s
-            ) ch
-            UNION SELECT * FROM
-            (SELECT pd.dataproperty, p.deleted AS o_date, p.*
-              FROM property p
-              LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
-             WHERE p.deleted >= '%(date)s'
-             ORDER BY o_date
-             LIMIT %(limit)s
-            ) de
-            ORDER BY o_date
-             LIMIT %(limit)s
-            """ % {'limit': lim, 'date': date}
+    def fresh_properties(self, lim, date, dense = False):
+        #   These queries should be rewritten to retrieve specific columns only not select *
+        # and grouped for max(o_date)
+        if dense:
+            return """
+                SELECT *
+                FROM
+                (SELECT pd.dataproperty, p.created AS o_date, p.*
+                  FROM property p
+                  LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+                 WHERE p.created = '%(date)s'
+                 ORDER BY o_date
+                ) cr
+                UNION SELECT * FROM
+                (SELECT pd.dataproperty, p.changed AS o_date, p.*
+                  FROM property p
+                  LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+                 WHERE p.changed = '%(date)s'
+                 ORDER BY o_date
+                ) ch
+                UNION SELECT * FROM
+                (SELECT pd.dataproperty, p.deleted AS o_date, p.*
+                  FROM property p
+                  LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+                 WHERE p.deleted = '%(date)s'
+                 ORDER BY o_date
+                ) de
+                ORDER BY o_date
+                """ % {'date': date}
+        else:
+            return """
+                SELECT *
+                FROM
+                (SELECT pd.dataproperty, p.created AS o_date, p.*
+                  FROM property p
+                  LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+                 WHERE p.created > '%(date)s'
+                 ORDER BY o_date
+                 LIMIT %(limit)s
+                ) cr
+                UNION SELECT * FROM
+                (SELECT pd.dataproperty, p.changed AS o_date, p.*
+                  FROM property p
+                  LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+                 WHERE p.changed > '%(date)s'
+                 ORDER BY o_date
+                 LIMIT %(limit)s
+                ) ch
+                UNION SELECT * FROM
+                (SELECT pd.dataproperty, p.deleted AS o_date, p.*
+                  FROM property p
+                  LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+                 WHERE p.deleted > '%(date)s'
+                 ORDER BY o_date
+                 LIMIT %(limit)s
+                ) de
+                ORDER BY o_date
+                 LIMIT %(limit)s
+                """ % {'limit': lim, 'date': date}
 
 
     def customers(self, customergroup = '0'):
@@ -210,60 +246,102 @@ class EQuery():
         return sql[direction]
 
 
-    def searchindex(self, speed):
-        sql = {}
-        # First run is with slower query that takes less temporary filespace
-        sql['slow'] = """
-            INSERT INTO searchindex (entity_id, language, val, last_property_id) SELECT
+    def searchindex(self, entity_id = None):
+        if entity_id:
+            return """
+                INSERT INTO searchindex (entity_id, `language`, val)
+                 SELECT
+                    p.entity_id,
+                    ifnull(p.language,''),
+                    @val := LEFT(GROUP_CONCAT(p.value_string ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000)
+                FROM
+                    property AS p
+                    LEFT JOIN  property_definition AS pd ON pd.keyname = p.property_definition_keyname
+                WHERE p.entity_id = %i
+                AND p.is_deleted = 0
+                AND pd.is_deleted = 0
+                AND pd.search = 1
+                GROUP BY
+                    p.language,
+                    p.entity_id
+                ON DUPLICATE KEY UPDATE
+                    val = @val;
+            """ % (entity_id)
+
+        return """
+            INSERT INTO searchindex (entity_id, `language`, val)
+             SELECT
                 p.entity_id,
                 ifnull(p.language,''),
-                @val := LEFT(GROUP_CONCAT(p.value_string ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000),
-                @max_id := MAX(p.id)
+                @val := LEFT(GROUP_CONCAT(p.value_string ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000)
             FROM
-                entity AS e,
-                property AS p,
-                property_definition AS pd
-            WHERE p.entity_id = e.id
-            AND pd.keyname = p.property_definition_keyname
-            AND e.is_deleted  = 0
-            AND p.is_deleted = 0
+                property AS p
+                LEFT JOIN  property_definition AS pd ON pd.keyname = p.property_definition_keyname
+            WHERE p.is_deleted = 0
             AND pd.is_deleted = 0
             AND pd.search = 1
-            AND e.id IN (
-                SELECT entity_id
-                FROM property, property_definition
-                WHERE property_definition.keyname = property.property_definition_keyname
-                AND property.is_deleted = 0
-                AND property_definition.is_deleted = 0
-                AND property_definition.search = 1
-                AND property.id > (SELECT IFNULL(MAX(last_property_id), 0) FROM searchindex)
-            )
             GROUP BY
                 p.language,
                 p.entity_id
             ON DUPLICATE KEY UPDATE
-                val = @val,
-                last_property_id = @max_id;
-            """
-        # Next runs are incremental and optimized for speed rather than temporary disk usage.
-        sql['fast'] = """
-            INSERT INTO searchindex (entity_id, LANGUAGE, val, last_property_id)
-            SELECT p.entity_id,
-                 ifnull(p.language,''),
-                 @val := LEFT(GROUP_CONCAT(ixp.value_string ORDER BY ixpd.ordinal, ixp.id SEPARATOR ' '), 2000),
-                 @max_id := MAX(ixp.id)
-            FROM property p
-            RIGHT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname AND pd.search = 1 AND pd.is_deleted = 0
-            LEFT JOIN property ixp ON ixp.entity_id = p.entity_id AND ixp.is_deleted = 0
-            RIGHT JOIN property_definition ixpd ON ixpd.keyname = ixp.property_definition_keyname AND ixpd.search = 1 AND ixpd.is_deleted = 0
-            WHERE p.id > (SELECT IFNULL(MAX(last_property_id), 0) FROM searchindex)
-            AND p.is_deleted = 0
-                GROUP BY
-                    ixp.language,
-                    ixp.entity_id
-                ON DUPLICATE KEY UPDATE
-                    val = @val,
-                    last_property_id = @max_id;
-            """
-        return sql[speed]
+                val = @val;
+        """
+
+    # Obsolete
+    # def searchindex(self, speed):
+    #     sql = {}
+    #     # First run is with slower query that takes less temporary filespace
+    #     sql['slow'] = """
+    #         INSERT INTO searchindex (entity_id, language, val, last_property_id) SELECT
+    #             p.entity_id,
+    #             ifnull(p.language,''),
+    #             @val := LEFT(GROUP_CONCAT(p.value_string ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000),
+    #             @max_id := MAX(p.id)
+    #         FROM
+    #             entity AS e,
+    #             property AS p,
+    #             property_definition AS pd
+    #         WHERE p.entity_id = e.id
+    #         AND pd.keyname = p.property_definition_keyname
+    #         AND e.is_deleted  = 0
+    #         AND p.is_deleted = 0
+    #         AND pd.is_deleted = 0
+    #         AND pd.search = 1
+    #         AND e.id IN (
+    #             SELECT entity_id
+    #             FROM property, property_definition
+    #             WHERE property_definition.keyname = property.property_definition_keyname
+    #             AND property.is_deleted = 0
+    #             AND property_definition.is_deleted = 0
+    #             AND property_definition.search = 1
+    #             AND property.id > (SELECT IFNULL(MAX(last_property_id), 0) FROM searchindex)
+    #         )
+    #         GROUP BY
+    #             p.language,
+    #             p.entity_id
+    #         ON DUPLICATE KEY UPDATE
+    #             val = @val,
+    #             last_property_id = @max_id;
+    #         """
+    #     # Next runs are incremental and optimized for speed rather than temporary disk usage.
+    #     sql['fast'] = """
+    #         INSERT INTO searchindex (entity_id, LANGUAGE, val, last_property_id)
+    #         SELECT p.entity_id,
+    #              ifnull(p.language,''),
+    #              @val := LEFT(GROUP_CONCAT(ixp.value_string ORDER BY ixpd.ordinal, ixp.id SEPARATOR ' '), 2000),
+    #              @max_id := MAX(ixp.id)
+    #         FROM property p
+    #         RIGHT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname AND pd.search = 1 AND pd.is_deleted = 0
+    #         LEFT JOIN property ixp ON ixp.entity_id = p.entity_id AND ixp.is_deleted = 0
+    #         RIGHT JOIN property_definition ixpd ON ixpd.keyname = ixp.property_definition_keyname AND ixpd.search = 1 AND ixpd.is_deleted = 0
+    #         WHERE p.id > (SELECT IFNULL(MAX(last_property_id), 0) FROM searchindex)
+    #         AND p.is_deleted = 0
+    #             GROUP BY
+    #                 ixp.language,
+    #                 ixp.entity_id
+    #             ON DUPLICATE KEY UPDATE
+    #                 val = @val,
+    #                 last_property_id = @max_id;
+    #         """
+    #     return sql[speed]
 
