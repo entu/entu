@@ -11,7 +11,7 @@
                         {% end %}
                         <td>
                             {% if p['readonly'] %}
-                                <span style="padding:8px; font-style:italic; color:gray;">{{ ', '.join(['%s' % v['value'] for v in p.get('values') if v['value']]) }}</span>
+                                <span style="padding:8px !important; font-style:italic; color:gray;">{{ v['value'] }} </span>
                             {% else %}
                                 {% if p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal'] %}
                                     {% if p.get('select', None) %}

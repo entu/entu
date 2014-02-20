@@ -379,6 +379,7 @@ class DeleteEntity(myRequestHandler, Entity):
             return self.missing()
 
         self.delete_entity(entity_id)
+        self.write({'response': 'OK'})
 
 
 class ShareByEmail(myRequestHandler, Entity):
