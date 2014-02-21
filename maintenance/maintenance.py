@@ -13,8 +13,8 @@ parser.add_argument('--database-host',     required = True)
 parser.add_argument('--database-name',     required = True)
 parser.add_argument('--database-user',     required = True)
 parser.add_argument('--database-password', required = True)
-parser.add_argument('--customergroup',  required = False, default = '0')
-parser.add_argument('-v', '--verbose',  action = 'count')
+parser.add_argument('--customergroup',     required = False, default = '0')
+parser.add_argument('-v', '--verbose',     action = 'count')
 args = parser.parse_args()
 
 # Set verbosity level
@@ -35,7 +35,7 @@ task = ETask(args)
 i = 0
 # known_customers = {}
 processed_customers = {}
-sleepfactor = 0.05
+sleepfactor = 0.25
 mov_ave = 0.99
 chunk_size = 2500
 
@@ -71,17 +71,7 @@ while True:
 
         if customer_row.get('database-name') not in processed_customers.values():
             processed_customers.setdefault(customer_row.get('database-name'), customer_row.get('database-name'))
-            if verbose > 0: print "%s New customer added to roundtrip: %s. Indexing all entities." % (datetime.now()-d_start, customer_row.get('database-name'))
-
-            _sql = EQuery().searchindex()
-            if verbose > 2: print _sql
-            try:
-                db.execute(_sql)
-                if verbose > 0: print "%s All entities indexed." % (datetime.now()-d_start)
-            except Exception as e:
-                if verbose > 0: print "%s: failed for %s." % (datetime.now()-d_start, customer_row.get('database-name'))
-                if verbose > 0: print "%s: %s." % (datetime.now()-d_start, e)
-                exit(1)
+            if verbose > 0: print "%s New customer added to roundtrip: %s." % (datetime.now()-d_start, customer_row.get('database-name'))
 
 
         check_time = last_checked[customer_row.get('domain')]['latest_checked']
@@ -157,16 +147,6 @@ while True:
     print "Moving average (%1.2f) properties/second: %3.2f." % (mov_ave, 1000000.00*last_checked['_tq:metrics']['properties_checked']/last_checked['_tq:metrics']['time_spent'])
     time.sleep(sleep)
     # print json.dumps(customers, sort_keys=True, indent=4, separators=(',', ': '))
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -88,8 +88,6 @@ class ETask():
 
 
 
-
-
 class EQuery():
 
 
@@ -246,104 +244,24 @@ class EQuery():
         return sql[direction]
 
 
-    def searchindex(self, entity_id = None):
-        if not entity_id:
-            return """
-                INSERT INTO searchindex (entity_id, `language`, val)
-                 SELECT
-                    p.entity_id,
-                    ifnull(p.language,''),
-                    @val := LEFT(GROUP_CONCAT(p.value_string ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000)
-                FROM
-                    property AS p
-                    LEFT JOIN  property_definition AS pd ON pd.keyname = p.property_definition_keyname
-                WHERE p.is_deleted = 0
-                AND pd.is_deleted = 0
-                AND pd.search = 1
-                GROUP BY
-                    p.language,
-                    p.entity_id
-                ON DUPLICATE KEY UPDATE
-                    val = @val;
-            """
-
-        if entity_id:
-            return """
-                INSERT INTO searchindex (entity_id, `language`, val)
-                 SELECT
-                    p.entity_id,
-                    ifnull(p.language,''),
-                    @val := LEFT(GROUP_CONCAT(p.value_string ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000)
-                FROM
-                    property AS p
-                    LEFT JOIN  property_definition AS pd ON pd.keyname = p.property_definition_keyname
-                WHERE p.entity_id = %i
-                AND p.is_deleted = 0
-                AND pd.is_deleted = 0
-                AND pd.search = 1
-                GROUP BY
-                    p.language,
-                    p.entity_id
-                ON DUPLICATE KEY UPDATE
-                    val = @val;
-            """ % (entity_id)
-
-
-    # Obsolete
-    # def searchindex(self, speed):
-    #     sql = {}
-    #     # First run is with slower query that takes less temporary filespace
-    #     sql['slow'] = """
-    #         INSERT INTO searchindex (entity_id, language, val, last_property_id) SELECT
-    #             p.entity_id,
-    #             ifnull(p.language,''),
-    #             @val := LEFT(GROUP_CONCAT(p.value_string ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000),
-    #             @max_id := MAX(p.id)
-    #         FROM
-    #             entity AS e,
-    #             property AS p,
-    #             property_definition AS pd
-    #         WHERE p.entity_id = e.id
-    #         AND pd.keyname = p.property_definition_keyname
-    #         AND e.is_deleted  = 0
-    #         AND p.is_deleted = 0
-    #         AND pd.is_deleted = 0
-    #         AND pd.search = 1
-    #         AND e.id IN (
-    #             SELECT entity_id
-    #             FROM property, property_definition
-    #             WHERE property_definition.keyname = property.property_definition_keyname
-    #             AND property.is_deleted = 0
-    #             AND property_definition.is_deleted = 0
-    #             AND property_definition.search = 1
-    #             AND property.id > (SELECT IFNULL(MAX(last_property_id), 0) FROM searchindex)
-    #         )
-    #         GROUP BY
-    #             p.language,
-    #             p.entity_id
-    #         ON DUPLICATE KEY UPDATE
-    #             val = @val,
-    #             last_property_id = @max_id;
-    #         """
-    #     # Next runs are incremental and optimized for speed rather than temporary disk usage.
-    #     sql['fast'] = """
-    #         INSERT INTO searchindex (entity_id, LANGUAGE, val, last_property_id)
-    #         SELECT p.entity_id,
-    #              ifnull(p.language,''),
-    #              @val := LEFT(GROUP_CONCAT(ixp.value_string ORDER BY ixpd.ordinal, ixp.id SEPARATOR ' '), 2000),
-    #              @max_id := MAX(ixp.id)
-    #         FROM property p
-    #         RIGHT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname AND pd.search = 1 AND pd.is_deleted = 0
-    #         LEFT JOIN property ixp ON ixp.entity_id = p.entity_id AND ixp.is_deleted = 0
-    #         RIGHT JOIN property_definition ixpd ON ixpd.keyname = ixp.property_definition_keyname AND ixpd.search = 1 AND ixpd.is_deleted = 0
-    #         WHERE p.id > (SELECT IFNULL(MAX(last_property_id), 0) FROM searchindex)
-    #         AND p.is_deleted = 0
-    #             GROUP BY
-    #                 ixp.language,
-    #                 ixp.entity_id
-    #             ON DUPLICATE KEY UPDATE
-    #                 val = @val,
-    #                 last_property_id = @max_id;
-    #         """
-    #     return sql[speed]
+    def searchindex(self, entity_id):
+        return """
+            INSERT INTO searchindex (entity_id, `language`, val)
+             SELECT
+                p.entity_id,
+                ifnull(p.language,''),
+                @val := LEFT(GROUP_CONCAT(p.value_string ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000)
+            FROM
+                property AS p
+                LEFT JOIN  property_definition AS pd ON pd.keyname = p.property_definition_keyname
+            WHERE p.entity_id = %i
+            AND p.is_deleted = 0
+            AND pd.is_deleted = 0
+            AND pd.search = 1
+            GROUP BY
+                p.language,
+                p.entity_id
+            ON DUPLICATE KEY UPDATE
+                val = @val;
+        """ % (entity_id)
 
