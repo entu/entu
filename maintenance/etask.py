@@ -25,6 +25,12 @@ class ETask():
 
 
     def check_my_formulas(self, db, property_row):
+        if property_row.value_formula:
+            if property_row.is_deleted == 0:
+                # print property_row
+                self.revaluate_formulas(db, (property_row,))
+                # print EQuery().check_formula(property_row, 'referencing')
+
         qresult = db.query(EQuery().check_formula(property_row, 'parent'))
         if len(qresult) > 0:
             # print "Have {0} matching parent formulas.".format(len(qresult))
@@ -35,6 +41,12 @@ class ETask():
         if len(qresult) > 0:
             # print "Have {0} matching child formulas.".format(len(qresult))
             # print property_row
+            self.revaluate_formulas(db, qresult)
+
+        qresult = db.query(EQuery().check_formula(property_row, 'self'))
+        if len(qresult) > 0:
+            print "Have {0} matching self formulas.".format(len(qresult))
+            print property_row
             self.revaluate_formulas(db, qresult)
 
         qresult = db.query(EQuery().check_formula(property_row, 'back-referencing'))
@@ -75,16 +87,17 @@ class ETask():
                 continue
             else:
                 rows_up_to_date = rows_up_to_date + 1
-                print "%s equals %s, updating changed and changed_by values" % (frm_value, formula_property_row.value_string)
-                sql = """
-                    UPDATE property
-                    SET changed = now(), changed_by = 'maintenance' WHERE id = %s
-                """ % formula_property_row.id
-                db.execute(sql)
+                # print "%s equals %s, updating changed and changed_by values" % (frm_value, formula_property_row.value_string)
+                # sql = """
+                #     UPDATE property
+                #     SET changed = now(), changed_by = 'maintenance' WHERE id = %s
+                # """ % formula_property_row.id
+                # db.execute(sql)
 
         if rows_updated > 0:
             # raw_input('Revaluation of {0} rows finished.\n=> {1} rows updated\n=> {2} rows were up to date.\nPress a key...'.format(len(recordset), rows_updated, rows_up_to_date))
             print 'Revaluation of {0} rows finished.\n=> {1} rows updated\n=> {2} rows were up to date.'.format(len(recordset), rows_updated, rows_up_to_date)
+
 
 
 
@@ -220,6 +233,20 @@ class EQuery():
             WHERE r.entity_id = %s
               AND r.relationship_definition_keyname = 'child'
               AND r.is_deleted = 0
+              AND ifnull(p_formula.changed, "%s") < "%s";
+        """ % (property_row.dataproperty, property_row.entity_id, datetime.min, property_row.created)
+
+        # Self referencing formula properties (SLQ is NOT tested)
+        sql['self'] = """
+            SELECT p_formula.id, p_formula.entity_id, p_formula.value_formula, p_formula.value_string
+            FROM entity e_formula
+            LEFT JOIN property p_formula ON p_formula.entity_id = e_formula.id
+                        AND p_formula.is_deleted = 0
+                        AND p_formula.value_formula LIKE concat('%%%%{self.%s}%%%%')
+            RIGHT JOIN property_definition pd ON pd.keyname = p_formula.property_definition_keyname
+                        AND pd.formula = 1
+            WHERE e_formula.is_deleted = 0
+              AND e_formula.id = %s
               AND ifnull(p_formula.changed, "%s") < "%s";
         """ % (property_row.dataproperty, property_row.entity_id, datetime.min, property_row.created)
 

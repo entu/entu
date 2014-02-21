@@ -334,15 +334,14 @@ class Entity():
             self.__user_id
         )
 
-        if definition.formula == 1:
-            value = ''
-            # formula = Formula(self.db, user_locale=self.get_user_locale(), created_by=self.__user_id, entity_id=entity_id, property_id=new_property_id, formula=value)
-            # value = ''.join(formula.evaluate())
 
         if definition.datatype != 'file':
             value_string = value[:500]
 
-        if definition.datatype in ['text', 'html']:
+        if definition.formula == 1:
+            field = 'value_formula'
+            value_string = ''
+        elif definition.datatype in ['text', 'html']:
             field = 'value_text'
         elif definition.datatype == 'integer':
             field = 'value_integer'
@@ -986,11 +985,8 @@ class Entity():
                     value = 'X'
 
                 # Formula
-                # if row.property_formula == 1:
-                #     formula = Formula(self.db, user_locale=self.get_user_locale(), created_by=self.__user_id, entity_id=row.entity_id, property_id=row.value_id, formula=row.value_formula)
-                #     value = ''.join(formula.evaluate())
-                #     self.db.execute('UPDATE property SET value_string = %s WHERE id = %s;', value, row.value_id )
-                #     db_value = row.value_formula
+                if row.property_formula == 1:
+                    db_value = row.value_formula
 
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['id'] = row.value_id
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['ordinal'] = row.value_ordinal
