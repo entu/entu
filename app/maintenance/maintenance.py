@@ -33,7 +33,7 @@ except IOError as e:
 task = ETask(args)
 
 i = 0
-known_customers = {}
+# known_customers = {}
 processed_customers = {}
 sleepfactor = 0.05
 mov_ave = 0.99
@@ -69,6 +69,21 @@ while True:
         customer_started_at = datetime.now()
         if verbose > 1: print "%s Starting for --== %s ==--." % (datetime.now()-d_start, customer_row.get('domain'))
 
+        if customer_row.get('database-name') not in processed_customers.values():
+            processed_customers.setdefault(customer_row.get('database-name'), customer_row.get('database-name'))
+            if verbose > 0: print "%s New customer added to roundtrip: %s. Indexing all entities." % (datetime.now()-d_start, customer_row.get('database-name'))
+
+            _sql = EQuery().searchindex()
+            if verbose > 2: print _sql
+            try:
+                db.execute(_sql)
+                if verbose > 0: print "%s All entities indexed." % (datetime.now()-d_start)
+            except Exception as e:
+                if verbose > 0: print "%s: failed for %s." % (datetime.now()-d_start, customer_row.get('database-name'))
+                if verbose > 0: print "%s: %s." % (datetime.now()-d_start, e)
+                exit(1)
+
+
         check_time = last_checked[customer_row.get('domain')]['latest_checked']
         if verbose > 1: print "%s Looking for properties fresher than %s." % (datetime.now()-d_start, check_time)
         property_table = db.query(EQuery().fresh_properties(chunk_size, check_time, False))
@@ -76,12 +91,13 @@ while True:
         if verbose > 1: print "%s Got %s properties." % (datetime.now()-d_start, properties_to_check)
         # If chunk size of rows returned, then reload query with next second properties only.
         if properties_to_check == chunk_size:
-            single_second = property_table[0].o_date
-            if verbose > 1: print "%s Reloading properties with timestamp %s." % (datetime.now()-d_start, single_second)
+            first_second = property_table[0].o_date
+            last_second = property_table[chunk_size-1].o_date
+            if verbose > 1: print "%s Reloading properties with timestamp between %s and %s inclusive." % (datetime.now()-d_start, first_second, last_second)
             try:
-                property_table = db.query(EQuery().fresh_properties(chunk_size, single_second, True))
+                property_table = db.query(EQuery().fresh_properties(chunk_size, first_second, last_second))
             except:
-                print EQuery().fresh_properties(chunk_size, single_second, True)
+                print EQuery().fresh_properties(chunk_size, first_second, last_second)
                 print "\n%s: failed for %s." % (datetime.now(), customer_row.get('database-name'))
 
             properties_to_check = len(property_table)
@@ -101,22 +117,13 @@ while True:
         if verbose > 1: print "%s Formula check finished." % (datetime.now()-d_start)
 
 
-        if customer_row.get('database-name') not in known_customers.values():
-            if verbose > 0: print "%s New customer added to roundtrip: %s. Indexing all entities." % (datetime.now()-d_start, customer_row.get('database-name'))
-
-            try:
-                if verbose > 0: print EQuery().searchindex()
-                db.execute(EQuery().searchindex())
-            except:
-                if verbose > 0: print "%s: failed for %s." % (datetime.now(), customer_row.get('database-name'))
-        else:
-            if verbose > 1: print "%s Looking for entity id's." % (datetime.now()-d_start)
-            entities_to_index = {}
-            for property_row in property_table:
-                entities_to_index[property_row.entity_id] = {'id': property_row.entity_id}
-            if verbose > 1: print "%s There are %i unique entities to reindex." % (datetime.now()-d_start, len(entities_to_index))
-            for entity in entities_to_index.values():
-                db.execute(EQuery().searchindex(entity['id']))
+        if verbose > 1: print "%s Looking for entity id's." % (datetime.now()-d_start)
+        entities_to_index = {}
+        for property_row in property_table:
+            entities_to_index[property_row.entity_id] = {'id': property_row.entity_id}
+        if verbose > 1: print "%s There are %i unique entities to reindex." % (datetime.now()-d_start, len(entities_to_index))
+        for entity in entities_to_index.values():
+            db.execute(EQuery().searchindex(entity['id']))
 
         if verbose > 1: print "%s Entities reindexed." % (datetime.now()-d_start)
 

@@ -247,6 +247,26 @@ class EQuery():
 
 
     def searchindex(self, entity_id = None):
+        if not entity_id:
+            return """
+                INSERT INTO searchindex (entity_id, `language`, val)
+                 SELECT
+                    p.entity_id,
+                    ifnull(p.language,''),
+                    @val := LEFT(GROUP_CONCAT(p.value_string ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000)
+                FROM
+                    property AS p
+                    LEFT JOIN  property_definition AS pd ON pd.keyname = p.property_definition_keyname
+                WHERE p.is_deleted = 0
+                AND pd.is_deleted = 0
+                AND pd.search = 1
+                GROUP BY
+                    p.language,
+                    p.entity_id
+                ON DUPLICATE KEY UPDATE
+                    val = @val;
+            """
+
         if entity_id:
             return """
                 INSERT INTO searchindex (entity_id, `language`, val)
@@ -268,24 +288,6 @@ class EQuery():
                     val = @val;
             """ % (entity_id)
 
-        return """
-            INSERT INTO searchindex (entity_id, `language`, val)
-             SELECT
-                p.entity_id,
-                ifnull(p.language,''),
-                @val := LEFT(GROUP_CONCAT(p.value_string ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000)
-            FROM
-                property AS p
-                LEFT JOIN  property_definition AS pd ON pd.keyname = p.property_definition_keyname
-            WHERE p.is_deleted = 0
-            AND pd.is_deleted = 0
-            AND pd.search = 1
-            GROUP BY
-                p.language,
-                p.entity_id
-            ON DUPLICATE KEY UPDATE
-                val = @val;
-        """
 
     # Obsolete
     # def searchindex(self, speed):
