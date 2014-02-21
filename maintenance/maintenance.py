@@ -33,8 +33,6 @@ except IOError as e:
 task = ETask(args)
 
 i = 0
-# known_customers = {}
-processed_customers = {}
 sleepfactor = 0.25
 mov_ave = 0.99
 chunk_size = 2500
@@ -45,7 +43,6 @@ while True:
     i = last_checked.setdefault('_tq:metrics', {}).setdefault('run_id', 0)
     sys.stdout.write("-- Run no. %s. %22s.\n" % (i, d_start))
     sys.stdout.flush()
-
 
     task.reload_customers()
     # print json.dumps(task.customers, sort_keys=True, indent=4, separators=(',', ': '))
@@ -64,15 +61,8 @@ while True:
         last_checked.setdefault('_tq:metrics', {}).setdefault('properties_checked', 0.0000)
         last_checked.setdefault('_tq:metrics', {}).setdefault('time_spent', 0.0000)
 
-
-
         customer_started_at = datetime.now()
         if verbose > 1: print "%s Starting for --== %s ==--." % (datetime.now()-d_start, customer_row.get('domain'))
-
-        if customer_row.get('database-name') not in processed_customers.values():
-            processed_customers.setdefault(customer_row.get('database-name'), customer_row.get('database-name'))
-            if verbose > 0: print "%s New customer added to roundtrip: %s." % (datetime.now()-d_start, customer_row.get('database-name'))
-
 
         check_time = last_checked[customer_row.get('domain')]['latest_checked']
         if verbose > 1: print "%s Looking for properties fresher than %s." % (datetime.now()-d_start, check_time)
@@ -95,14 +85,11 @@ while True:
         if properties_to_check == 0:
             continue
 
-
         if verbose > 1: print "%s Checking formulas of %i properties." % (datetime.now()-d_start, properties_to_check)
-
         for property_row in property_table:
             task.check_my_formulas(db, property_row)
             last_checked[customer_row.get('domain')]['last_id'] = property_row.id
             last_checked[customer_row.get('domain')]['latest_checked'] = str(property_row.o_date)
-
         if verbose > 1: print "%s Formula check finished." % (datetime.now()-d_start)
 
         if verbose > 1: print "%s Looking for entity id's." % (datetime.now()-d_start)
@@ -112,13 +99,7 @@ while True:
         if verbose > 1: print "%s There are %i unique entities to reindex." % (datetime.now()-d_start, len(entities_to_index))
         for entity in entities_to_index.values():
             db.execute(EQuery().searchindex(entity['id']))
-
         if verbose > 1: print "%s Entities reindexed." % (datetime.now()-d_start)
-
-
-        processed_customers.setdefault(customer_row.get('database-name'), customer_row.get('database-name'))
-
-
 
         customer_finished_at = datetime.now()
         customer_time_spent = customer_finished_at - customer_started_at
@@ -126,16 +107,12 @@ while True:
         last_checked['_tq:metrics']['properties_checked'] = mov_ave * last_checked['_tq:metrics']['properties_checked'] + properties_to_check
         last_checked['_tq:metrics']['time_spent'] = mov_ave * last_checked['_tq:metrics']['time_spent'] + customer_time_spent.microseconds + (customer_time_spent.seconds + customer_time_spent.days * 86400) * 1000000
 
-
         with open(timestamp_file, 'w+') as f:
             f.write(json.dumps(last_checked, sort_keys=True, indent=4, separators=(',', ': ')))
 
     last_checked['_tq:metrics']['run_id'] = i + 1
     with open(timestamp_file, 'w+') as f:
         f.write(json.dumps(last_checked, sort_keys=True, indent=4, separators=(',', ': ')))
-
-
-    known_customers = processed_customers
 
     d_stop = datetime.now()
     time_delta = d_stop - d_start
