@@ -101,7 +101,7 @@ while True:
                 print "\n%s: failed for %s." % (datetime.now(), customer_row.get('database-name'))
 
             properties_to_check = len(property_table)
-            if verbose > 1: print "%s Got %s properties with timestamp of %s." % (datetime.now()-d_start, properties_to_check, single_second)
+            if verbose > 1: print "%s Got %s properties with timestamp between %s and %s inclusive." % (datetime.now()-d_start, properties_to_check, first_second, last_second)
         if properties_to_check == 0:
             continue
 

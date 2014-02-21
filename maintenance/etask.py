@@ -93,35 +93,35 @@ class ETask():
 class EQuery():
 
 
-    def fresh_properties(self, lim, date, dense = False):
+    def fresh_properties(self, lim, first_second, last_second = None):
         #   These queries should be rewritten to retrieve specific columns only not select *
         # and grouped for max(o_date)
-        if dense:
+        if last_second:
             return """
                 SELECT *
                 FROM
                 (SELECT pd.dataproperty, p.created AS o_date, p.*
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
-                 WHERE p.created = '%(date)s'
+                 WHERE p.created >= '%(first_second)s' and p.created <= '%(last_second)s'
                  ORDER BY o_date
                 ) cr
                 UNION SELECT * FROM
                 (SELECT pd.dataproperty, p.changed AS o_date, p.*
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
-                 WHERE p.changed = '%(date)s'
+                 WHERE p.changed >= '%(first_second)s' and p.created <= '%(last_second)s'
                  ORDER BY o_date
                 ) ch
                 UNION SELECT * FROM
                 (SELECT pd.dataproperty, p.deleted AS o_date, p.*
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
-                 WHERE p.deleted = '%(date)s'
+                 WHERE p.deleted >= '%(first_second)s' and p.created <= '%(last_second)s'
                  ORDER BY o_date
                 ) de
                 ORDER BY o_date
-                """ % {'date': date}
+                """ % {'first_second': first_second, 'last_second': last_second}
         else:
             return """
                 SELECT *
@@ -151,7 +151,7 @@ class EQuery():
                 ) de
                 ORDER BY o_date
                  LIMIT %(limit)s
-                """ % {'limit': lim, 'date': date}
+                """ % {'limit': lim, 'date': first_second}
 
 
     def customers(self, customergroup = '0'):
