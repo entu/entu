@@ -285,6 +285,10 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
         web.RequestHandler.render(self, template_name, **kwargs)
 
+    def json(self, dictionary):
+        self.add_header('Content-Type', 'application/json')
+        self.write(json.dumps(dictionary, cls=JSONDateFix))
+
     def forbidden(self):
         """
         Show 403 (forbidden) error to user.
