@@ -56,6 +56,37 @@ class ETask():
             self.revaluate_formulas(db, qresult)
 
 
+    def check_my_value_string(self, db, property_row):
+        if property_row.is_deleted == 1:
+            return
+
+        if property_row.datatype in ['string']:
+            None
+        elif property_row.datatype in ['text', 'html']:
+            value_string = property_row.value_text if property_row.value_text else ''
+        elif property_row.datatype == 'integer':
+            value_string = property_row.value_integer if property_row.value_integer else ''
+        elif property_row.datatype == 'decimal':
+            value_string = '%.2f' % property_row.value_decimal if property_row.value_decimal else ''
+        elif property_row.datatype == 'date':
+            value_string = formatDatetime(property_row.value_datetime, '%(day)02d.%(month)02d.%(year)d')
+        elif property_row.datatype == 'datetime':
+            value_string = formatDatetime(property_row.value_datetime) if property_row.value_datetime else ''
+        elif property_row.datatype == 'reference':
+            value_string = property_row.value_reference
+        elif property_row.datatype == 'file':
+            value_string = self.db.get('SELECT filename FROM file WHERE id=%s LIMIT 1', property_row.value_file)
+        elif property_row.datatype == 'boolean':
+            value_string = self.get_user_locale().translate('boolean_true') if property_row.value_boolean == 1 else self.get_user_locale().translate('boolean_false')
+        elif property_row.datatype == 'counter':
+            value_string = self.db.get('SELECT %(language)s_label AS label FROM counter WHERE id=%(id)s LIMIT 1' % {'language': self.get_user_locale().code, 'id': property_row.value_counter})
+        elif property_row.datatype == 'counter-value':
+            None
+
+        # print "====="
+        # print property_row
+
+
     def revaluate_formulas(self, db, recordset):
         rows_updated = 0
         rows_up_to_date = 0
@@ -65,12 +96,12 @@ class ETask():
         for formula_property_row in recordset:
             frm = Formula(db, formula_property_row.id, formula_property_row.entity_id, formula_property_row.value_formula)
             frm_value = ''.join(frm.evaluate())
-            print "Old value is: %s" % (formula_property_row.value_string)
-            print "Formula evaluated to: %s" % (frm_value)
+            # print "Old value is: %s" % (formula_property_row.value_string)
+            # print "Formula evaluated to: %s" % (frm_value)
             if frm_value != formula_property_row.value_string:
-                print formula_property_row
+                # print formula_property_row
                 rows_updated = rows_updated + 1
-                print "'%s' != '%s'. Updating..." % (frm_value, formula_property_row.value_string)
+                print "New: '%s' != Old: '%s'. Updating..." % (frm_value, formula_property_row.value_string)
 
                 sql = """
                 INSERT INTO `property` (`property_definition_keyname`, `entity_id`, `ordinal`, `language`, `value_formula`, `value_string`, `value_text`, `value_integer`, `value_decimal`, `value_boolean`, `value_datetime`, `value_entity`, `value_reference`, `value_file`, `value_counter`, `created`, `created_by`, `changed`, `changed_by`)
@@ -100,7 +131,6 @@ class ETask():
 
 
 
-
 class EQuery():
 
 
@@ -111,21 +141,21 @@ class EQuery():
             return """
                 SELECT *
                 FROM
-                (SELECT pd.dataproperty, p.created AS o_date, p.*
+                (SELECT pd.dataproperty, pd.datatype, p.created AS o_date, p.*
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
                  WHERE p.created >= '%(first_second)s' and p.created <= '%(last_second)s'
                  ORDER BY o_date
                 ) cr
                 UNION SELECT * FROM
-                (SELECT pd.dataproperty, p.changed AS o_date, p.*
+                (SELECT pd.dataproperty, pd.datatype, p.changed AS o_date, p.*
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
                  WHERE p.changed >= '%(first_second)s' and p.created <= '%(last_second)s'
                  ORDER BY o_date
                 ) ch
                 UNION SELECT * FROM
-                (SELECT pd.dataproperty, p.deleted AS o_date, p.*
+                (SELECT pd.dataproperty, pd.datatype, p.deleted AS o_date, p.*
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
                  WHERE p.deleted >= '%(first_second)s' and p.created <= '%(last_second)s'
@@ -137,7 +167,7 @@ class EQuery():
             return """
                 SELECT *
                 FROM
-                (SELECT pd.dataproperty, p.created AS o_date, p.*
+                (SELECT pd.dataproperty, pd.datatype, p.created AS o_date, p.*
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
                  WHERE p.created > '%(date)s'
@@ -145,7 +175,7 @@ class EQuery():
                  LIMIT %(limit)s
                 ) cr
                 UNION SELECT * FROM
-                (SELECT pd.dataproperty, p.changed AS o_date, p.*
+                (SELECT pd.dataproperty, pd.datatype, p.changed AS o_date, p.*
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
                  WHERE p.changed > '%(date)s'
@@ -153,7 +183,7 @@ class EQuery():
                  LIMIT %(limit)s
                 ) ch
                 UNION SELECT * FROM
-                (SELECT pd.dataproperty, p.deleted AS o_date, p.*
+                (SELECT pd.dataproperty, pd.datatype, p.deleted AS o_date, p.*
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
                  WHERE p.deleted > '%(date)s'
@@ -291,4 +321,16 @@ class EQuery():
             ON DUPLICATE KEY UPDATE
                 val = @val;
         """ % (entity_id)
+
+
+
+def formatDatetime(date, format='%(day)02d.%(month)02d.%(year)d %(hour)02d:%(minute)02d'):
+    """
+    Formats and returns date as string. Format tags are %(day)02d, %(month)02d, %(year)d, %(hour)02d and %(minute)02d.
+
+    """
+    if not date:
+        return ''
+    return format % {'year': date.year, 'month': date.month, 'day': date.day, 'hour': date.hour, 'minute': date.minute}
+
 

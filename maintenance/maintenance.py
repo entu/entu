@@ -85,13 +85,16 @@ while True:
         if properties_to_check == 0:
             continue
 
+        # Property revaluation
         if verbose > 1: print "%s Checking formulas of %i properties." % (datetime.now()-d_start, properties_to_check)
         for property_row in property_table:
             task.check_my_formulas(db, property_row)
+            task.check_my_value_string(db, property_row)
             last_checked[customer_row.get('domain')]['last_id'] = property_row.id
             last_checked[customer_row.get('domain')]['latest_checked'] = str(property_row.o_date)
         if verbose > 1: print "%s Formula check finished." % (datetime.now()-d_start)
 
+        # Searchindex refresh
         if verbose > 1: print "%s Looking for entity id's." % (datetime.now()-d_start)
         entities_to_index = {}
         for property_row in property_table:
