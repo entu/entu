@@ -79,6 +79,7 @@ class FExpression():
             'MAX' : self.FE_max,
             'COUNT' : self.FE_count,
             'AVERAGE' : self.FE_average,
+            'UNIQUE' : self.FE_unique,
         }
         # logging.debug(FFunc[fname](self.fetch_path_from_db(path)))
         return FFunc[fname](self.fetch_path_from_db(path))
@@ -110,6 +111,9 @@ class FExpression():
 
     def FE_count(self, items):
         return len(items)
+
+    def FE_unique(self, items):
+        return list(set(items))
 
     def fetch_path_from_db(self, path):
         """
