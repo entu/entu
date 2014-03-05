@@ -3,10 +3,11 @@
 * Calculation (formula) fields
   * Basic math +, -, *, /
   * Basic statistics SUM, AVERAGE, MAX, MEDIAN, COUNT
-* Invite person to become user
-* Option to ask permission (send message to owner) to Entity if access denied
+* Permissions
+  * Invite person to become user
+  * Option to ask permission (send message to owner) to Entity if access denied
+  * Recursive access rights propagation
 * Enable select users to make changes to data structures
-* Recursive access rights propagation
 * Send by Email autocompletes adresses
 * Indicate non-complete entities in search results
 * Data tables:
