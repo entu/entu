@@ -1,6 +1,4 @@
-### Entu v.1
-ETA 30 April 2014
----
+### 30 April 2014 - Entu v.1 
 
 * Calculation (formula) fields
   * Basic math +, -, *, /
@@ -18,9 +16,7 @@ ETA 30 April 2014
 * Resource-hungry processes (i.e. formula calculations, indexing) are moved from realtime to background
 
 
-### Entu v.1.1
-ETA 31 December 2014
----
+### 31 December 2014 - Entu v.1.1
 
 * Finalized API
 * Share entities between installations
