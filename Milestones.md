@@ -12,7 +12,7 @@
 * Data tables:
   * Show thumbnails in data table
   * Allow selecting rows and applying actions in data tables
-* All communication between frontend and database goes through (API)[https://github.com/argoroots/Entu/blob/develop/API.md]
+* All communication between frontend and database goes through [API](https://github.com/argoroots/Entu/blob/develop/API.md)
 * Resource-hungry processes (i.e. formula calculations, indexing) are moved from realtime to background
 
 
