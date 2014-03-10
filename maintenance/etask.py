@@ -77,9 +77,9 @@ class ETask():
         elif property_row.datatype == 'file':
             value_string = self.db.get('SELECT filename FROM file WHERE id=%s LIMIT 1', property_row.value_file)
         elif property_row.datatype == 'boolean':
-            value_string = self.get_user_locale().translate('boolean_true') if property_row.value_boolean == 1 else self.get_user_locale().translate('boolean_false')
+            value_string = str(bool(property_row.value_boolean))
         elif property_row.datatype == 'counter':
-            value_string = self.db.get('SELECT %(language)s_label AS label FROM counter WHERE id=%(id)s LIMIT 1' % {'language': self.get_user_locale().code, 'id': property_row.value_counter})
+            value_string = self.db.get('SELECT estonian_label AS label FROM counter WHERE id=%s LIMIT 1' % property_row.value_counter)
         elif property_row.datatype == 'counter-value':
             None
 
