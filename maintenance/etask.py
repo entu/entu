@@ -103,12 +103,11 @@ class ETask():
                 rows_updated = rows_updated + 1
                 # print "New: '%s' != Old: '%s'. Updating..." % (frm_value, formula_property_row.value_string)
 
-                sql = """
+                db.execute("""
                 INSERT INTO `property` (`property_definition_keyname`, `entity_id`, `ordinal`, `language`, `value_formula`, `value_string`, `value_text`, `value_integer`, `value_decimal`, `value_boolean`, `value_datetime`, `value_entity`, `value_reference`, `value_file`, `value_counter`, `created`, `created_by`, `changed`, `changed_by`)
-                SELECT `property_definition_keyname`, `entity_id`, `ordinal`, `language`, `value_formula`, '%s', `value_text`, `value_integer`, `value_decimal`, `value_boolean`, `value_datetime`, `value_entity`, `value_reference`, `value_file`, `value_counter`, `created`, `created_by`, now(), 'maintenance'
+                SELECT `property_definition_keyname`, `entity_id`, `ordinal`, `language`, `value_formula`, %s, `value_text`, `value_integer`, `value_decimal`, `value_boolean`, `value_datetime`, `value_entity`, `value_reference`, `value_file`, `value_counter`, `created`, `created_by`, now(), 'maintenance'
                 FROM `property` WHERE id = %s;
-                """ % (frm_value, formula_property_row.id)
-                db.execute(sql)
+                """, frm_value, formula_property_row.id)
 
                 sql = """
                     UPDATE property
