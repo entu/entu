@@ -2,7 +2,7 @@
 from datetime import datetime
 import os, sys
 import argparse
-import json
+import yaml
 import time
 
 from etask import *
@@ -22,11 +22,11 @@ verbose = 0
 if args.verbose:
     verbose = args.verbose
 
-timestamp_file = 'taskqueue.time'
+timestamp_file = 'maintenance.yaml'
 last_checked = {}
 try:
     with open(timestamp_file, 'r+') as f:
-        last_checked = json.loads(f.read())
+        last_checked = yaml.load(f.read())
 except IOError as e:
     print "No timestamp file {0}.".format(timestamp_file)
 
@@ -111,11 +111,11 @@ while True:
         last_checked['_tq:metrics']['time_spent'] = mov_ave * last_checked['_tq:metrics']['time_spent'] + customer_time_spent.microseconds + (customer_time_spent.seconds + customer_time_spent.days * 86400) * 1000000
 
         with open(timestamp_file, 'w+') as f:
-            f.write(json.dumps(last_checked, sort_keys=True, indent=4, separators=(',', ': ')))
+            f.write(yaml.safe_dump(last_checked, default_flow_style=False, allow_unicode=True))
 
     last_checked['_tq:metrics']['run_id'] = i + 1
     with open(timestamp_file, 'w+') as f:
-        f.write(json.dumps(last_checked, sort_keys=True, indent=4, separators=(',', ': ')))
+        f.write(yaml.safe_dump(last_checked, default_flow_style=False, allow_unicode=True))
 
     d_stop = datetime.now()
     time_delta = d_stop - d_start
