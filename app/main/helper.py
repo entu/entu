@@ -285,7 +285,9 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
         web.RequestHandler.render(self, template_name, **kwargs)
 
-    def json(self, dictionary):
+    def json(self, dictionary, status_code=None):
+        if status_code:
+            self.set_status(status_code)
         self.add_header('Content-Type', 'application/json')
         self.write(json.dumps(dictionary, cls=JSONDateFix))
 

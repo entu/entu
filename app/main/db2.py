@@ -17,6 +17,195 @@ class Entity2():
         return self.get_user_locale().code
 
 
+    def get_entity_definitions(self, definition_id=None):
+
+        definition_sql = ''
+        if definition_id:
+            definition_sql = 'AND e.id = %s' % definition_id
+
+        sql = """
+            SELECT
+                e.id AS entity_id,
+                NULL AS property_id,
+                p.property_definition_keyname AS pdk,
+                p.value_string,
+                p.value_integer,
+                p.value_boolean,
+                p.value_reference
+            FROM
+                entity AS e,
+                property AS p
+            WHERE p.entity_id = e.id
+            AND e.entity_definition_keyname = 'conf-entity'
+            AND e.is_deleted = 0
+            AND p.is_deleted = 0
+            %(definition)s
+            AND IFNULL(p.language, '%(language)s') = '%(language)s'
+            UNION SELECT
+                r.entity_id,
+                e.id AS property_id,
+                p.property_definition_keyname AS pdk,
+            p.value_string,
+            p.value_integer,
+            p.value_boolean,
+            p.value_reference
+            FROM
+            entity AS e,
+            property AS p,
+            relationship AS r
+            WHERE p.entity_id = e.id
+            AND r.related_entity_id = e.id
+            AND e.entity_definition_keyname = 'conf-property'
+            AND r.relationship_definition_keyname = 'child'
+            AND e.is_deleted = 0
+            AND p.is_deleted = 0
+            AND r.is_deleted = 0
+            %(definition)s
+            AND IFNULL(p.language, '%(language)s') = '%(language)s'
+        """ % {'definition': definition_sql, 'language': self.__language}
+        # logging.warning(sql)
+
+        entities = {}
+        entity_template = {
+            'id': None,
+            'keyname': None,
+            'ordinal': 0,
+            'label': None,
+            'label_plural': None,
+            'description': None,
+
+            'display_info': None,
+            'display_name': None,
+            'display_table': None,
+            'display_tableheader': None,
+            'sort': None,
+
+            'allowed_child_of': None,
+            'default_parent': None,
+            'optional_parent': None,
+
+            'add_plugin': None,
+            'edit_plugin': None,
+
+            'open_after_add': False,
+
+            'properties': [],
+        }
+        property_template = {
+            'classifier': None,
+            'createonly': None,
+            'keyname': None,
+            'datatype': None,
+            'defaultvalue': None,
+            'description': None,
+            'executable': False,
+            'fieldset': None,
+            'formula': None,
+            'label': None,
+            'label_plural': None,
+            'mandatory': False,
+            'multilingual': False,
+            'multiplicity': None,
+            'ordinal': 0,
+            'propagates': None,
+            'public': False,
+            'readonly': False,
+            'search': False,
+            'visible': False,
+        }
+        for r in self.db.query(sql):
+            if r.get('entity_id'):
+                entities.setdefault(r.get('entity_id'), {})['id'] = r.get('entity_id')
+            if r.get('pdk') == 'conf-entity-keyname':
+                entities.setdefault(r.get('entity_id'), {})['keyname'] = r.get('value_string')
+            if r.get('pdk') == 'conf-entity-ordinal':
+                entities.setdefault(r.get('entity_id'), {})['ordinal'] = r.get('value_integer')
+            if r.get('pdk') == 'conf-entity-label':
+                entities.setdefault(r.get('entity_id'), {})['label'] = r.get('value_string')
+            if r.get('pdk') == 'conf-entity-label-plural':
+                entities.setdefault(r.get('entity_id'), {})['label_plural'] = r.get('value_string')
+            if r.get('pdk') == 'conf-entity-description':
+                entities.setdefault(r.get('entity_id'), {})['description'] = r.get('value_string')
+
+            if r.get('pdk') == 'conf-entity-displayname':
+                entities.setdefault(r.get('entity_id'), {})['display_name'] = r.get('value_string')
+            if r.get('pdk') == 'conf-entity-displayinfo':
+                entities.setdefault(r.get('entity_id'), {})['display_info'] = r.get('value_string')
+            if r.get('pdk') == 'conf-entity-displaytable':
+                entities.setdefault(r.get('entity_id'), {})['display_table'] = r.get('value_string')
+            if r.get('pdk') == 'conf-entity-displaytableheader':
+                entities.setdefault(r.get('entity_id'), {})['display_tableheader'] = r.get('value_string')
+            if r.get('pdk') == 'conf-entity-sort':
+                entities.setdefault(r.get('entity_id'), {})['sort'] = r.get('value_string')
+
+            if r.get('pdk') == 'conf-entity-allowed-child-of':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('allowed_child_of', []).append(r.get('value_reference'))
+            if r.get('pdk') == 'conf-entity-default-parent':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('default_parent', []).append(r.get('value_reference'))
+            if r.get('pdk') == 'conf-entity-optional-parent':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('optional_parent', []).append(r.get('value_reference'))
+
+            if r.get('pdk') == 'conf-entity-add-plugin':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('add_plugin', []).append(r.get('value_string'))
+            if r.get('pdk') == 'conf-entity-edit-plugin':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('edit_plugin', []).append(r.get('value_string'))
+
+            if r.get('pdk') == 'conf-entity-open-after-add':
+                entities.setdefault(r.get('entity_id'), {})['open_after_add'] = bool(r.get('value_boolean'))
+
+
+
+            if r.get('property_id'):
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['id'] = r.get('property_id')
+            if r.get('pdk') == 'conf-property-classifier':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['classifier'] = r.get('value_string')
+            if r.get('pdk') == 'conf-property-dataproperty':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['keyname'] = r.get('value_string')
+            if r.get('pdk') == 'conf-property-datatype':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['datatype'] = r.get('value_string')
+            if r.get('pdk') == 'conf-property-defaultvalue':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['defaultvalue'] = r.get('value_string')
+            if r.get('pdk') == 'conf-property-description':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['description'] = r.get('value_string')
+            if r.get('pdk') == 'conf-property-executable':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['executable'] = bool(r.get('value_boolean'))
+            if r.get('pdk') == 'conf-property-fieldset':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['fieldset'] = r.get('value_string')
+            if r.get('pdk') == 'conf-property-formula':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['formula'] = bool(r.get('value_boolean'))
+            if r.get('pdk') == 'conf-property-label':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['label'] = r.get('value_string')
+            if r.get('pdk') == 'conf-property-label-plural':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['label_plural'] = r.get('value_string')
+            if r.get('pdk') == 'conf-property-mandatory':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['mandatory'] = bool(r.get('value_boolean'))
+            if r.get('pdk') == 'conf-property-multilingual':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['multilingual'] = bool(r.get('value_boolean'))
+            if r.get('pdk') == 'conf-property-multiplicity':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['multiplicity'] = r.get('value_integer')
+            if r.get('pdk') == 'conf-property-ordinal':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['ordinal'] = r.get('value_integer')
+            if r.get('pdk') == 'conf-property-propagates':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['propagates'] = r.get('value_string')
+            if r.get('pdk') == 'conf-property-public':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['public'] = bool(r.get('value_boolean'))
+            if r.get('pdk') == 'conf-property-readonly':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['readonly'] = bool(r.get('value_boolean'))
+            if r.get('pdk') == 'conf-property-search':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['search'] = bool(r.get('value_boolean'))
+            if r.get('pdk') == 'conf-property-visible':
+                entities.setdefault(r.get('entity_id'), {}).setdefault('properties', {}).setdefault(r.get('property_id'), {})['visible'] = bool(r.get('value_boolean'))
+
+        entities2 = {}
+        for e_id, e in entities.iteritems():
+            properties2 = {}
+            for p_id, p in e.get('properties', {}).iteritems():
+                properties2[p.get('keyname', p_id)] = dict(property_template.items() + p.items())
+            e['properties'] = properties2
+            entities2[e.get('keyname', e_id)] = dict(entity_template.items() + e.items())
+        return entities2
+
+
     def get_entities_info(self, entity_id=None, definition=None, parent_entity_id=None, referred_to_entity_id=None, query=None, limit=None, page=None):
         #generate numbers subselect
         fields_count = self.db.query("""
@@ -70,21 +259,18 @@ class Entity2():
                     AND si.val LIKE '%%%%%s%%%%'
                 """ % q
 
-        entity_sql = """
-            SELECT e.id, e.entity_definition_keyname, IFNULL(e.sort, CONCAT('   ', 1000000000000 - e.id)) AS sort
-            FROM entity AS e, searchindex AS si
-            WHERE si.entity_id = e.id
-            AND e.is_deleted = 0
-            AND e.sharing IN ('domain', 'public')
-            %(definition_where)s
-            %(parent_where)s
-            %(referrer_where)s
-            %(query_where)s
-            AND IF(si.language = '', '%(language)s', si.language) = '%(language)s'
-        """ % {'definition_where': definition_where, 'parent_where': parent_where, 'referrer_where': referrer_where, 'query_where': query_where, 'language': self.__language}
-
-        if self.current_user:
-            entity_sql += """
+        if self.__user_id:
+            entity_sql = """
+                SELECT e.id, e.entity_definition_keyname, IFNULL(e.sort, CONCAT('   ', 1000000000000 - e.id)) AS sort
+                FROM entity AS e, searchindex AS si
+                WHERE si.entity_id = e.id
+                AND e.is_deleted = 0
+                AND e.sharing IN ('domain', 'public')
+                %(definition_where)s
+                %(parent_where)s
+                %(referrer_where)s
+                %(query_where)s
+                AND IF(si.language = '', '%(language)s', si.language) = '%(language)s'
                 UNION SELECT e.id, e.entity_definition_keyname, IFNULL(e.sort, CONCAT('   ', 1000000000000 - e.id)) AS sort
                 FROM entity AS e, relationship AS r, searchindex AS si
                 WHERE r.entity_id = e.id
@@ -94,11 +280,24 @@ class Entity2():
                 %(parent_where)s
                 %(referrer_where)s
                 %(query_where)s
-            AND IF(si.language = '', '%(language)s', si.language) = '%(language)s'
+                AND IF(si.language = '', '%(language)s', si.language) = '%(language)s'
                 AND r.is_deleted = 0
                 AND r.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
                 AND r.related_entity_id = %(user)s
-            """ % {'definition_where': definition_where, 'parent_where': parent_where, 'referrer_where': referrer_where, 'query_where': query_where, 'language': self.__language, 'user': self.__user_id, 'limit': limit}
+            """ % {'definition_where': definition_where, 'parent_where': parent_where, 'referrer_where': referrer_where, 'query_where': query_where, 'language': self.__language, 'user': self.__user_id}
+        else:
+            entity_sql = """
+                SELECT e.id, e.entity_definition_keyname, IFNULL(e.sort, CONCAT('   ', 1000000000000 - e.id)) AS sort
+                FROM entity AS e, searchindex AS si
+                WHERE si.entity_id = e.id
+                AND e.is_deleted = 0
+                AND e.sharing = 'public'
+                %(definition_where)s
+                %(parent_where)s
+                %(referrer_where)s
+                %(query_where)s
+                AND IF(si.language = '', '%(language)s', si.language) = '%(language)s'
+            """ % {'definition_where': definition_where, 'parent_where': parent_where, 'referrer_where': referrer_where, 'query_where': query_where, 'language': self.__language}
 
         entity_count = None
         if limit:
@@ -139,7 +338,6 @@ class Entity2():
             ) AS x
             GROUP BY x.id, x.sort, x.definition, x.field;
         """ % {'numbers_sql': numbers_sql, 'entity_sql': entity_sql, 'language': self.__language}
-
         # logging.warning(sql)
 
         entities = {}

@@ -15,7 +15,6 @@ from main.db2 import *
 
 class API2EntityList(myRequestHandler, Entity2):
     @web.removeslash
-    @web.authenticated
     def get(self):
         db_result = self.get_entities_info(
                 definition=self.get_argument('definition', default=None, strip=True),
@@ -38,14 +37,13 @@ class API2EntityList(myRequestHandler, Entity2):
 
         self.write({
             'result': sorted(result.values(), key=itemgetter('sort')),
-            'time': self.request.request_time(),
+            'time': round(self.request.request_time(), 3),
             'count': db_result.get('count', 0),
         })
 
 
 class API2EntityChilds(myRequestHandler, Entity2):
     @web.removeslash
-    @web.authenticated
     def get(self, entity_id=None):
         db_result = self.get_entities_info(parent_entity_id=entity_id)
 
@@ -65,14 +63,13 @@ class API2EntityChilds(myRequestHandler, Entity2):
 
         self.write({
             'result': result.values(),
-            'time': self.request.request_time(),
+            'time': round(self.request.request_time(), 3),
             'count': db_result.get('count', 0),
         })
 
 
 class API2EntityReferrals(myRequestHandler, Entity2):
     @web.removeslash
-    @web.authenticated
     def get(self, entity_id=None):
         db_result = self.get_entities_info(referred_to_entity_id=entity_id)
 
@@ -92,7 +89,7 @@ class API2EntityReferrals(myRequestHandler, Entity2):
 
         self.write({
             'result': result.values(),
-            'time': self.request.request_time(),
+            'time': round(self.request.request_time(), 3),
             'count': db_result.get('count', 0),
         })
 
@@ -107,6 +104,24 @@ class API2EntityPicture(myRequestHandler, Entity2):
             return self.missing()
 
         self.redirect(url)
+
+
+class API2Definition(myRequestHandler, Entity2):
+    @web.removeslash
+    def get(self):
+        definitions = self.get_entity_definitions()
+
+        self.json({
+            'result': definitions,
+            'time': round(self.request.request_time(), 3),
+        })
+
+
+
+
+
+
+
 
 
 class S3FileUpload(myRequestHandler):
@@ -173,5 +188,6 @@ handlers = [
     (r'/api2/entity-(.*)/childs', API2EntityChilds),
     (r'/api2/entity-(.*)/referrals', API2EntityReferrals),
     (r'/api2/entity-(.*)/picture', API2EntityPicture),
+    (r'/api2/definition', API2Definition),
     (r'/api2/s3upload', S3FileUpload),
 ]
