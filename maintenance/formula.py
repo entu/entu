@@ -3,7 +3,6 @@
 
 import logging
 import re
-import string
 from decimal import Decimal
 
 class Formula():
@@ -87,27 +86,27 @@ class FExpression():
     def FE_sum(self, items):
         # [{'value': 'A'}, {'value': 'SS'}, {'value': 'E'}]
         try:
-            return sum([Decimal(v.value) for v in items])
+            return sum([Decimal(v.value) for v in items if v.value != None])
         except Exception, e:
-            return string([Decimal(v.value) for v in items])
+            return '%s' % [Decimal(v.value) for v in items if v.value != None]
 
     def FE_min(self, items):
         try:
-            return min([Decimal(v.value) for v in items])
+            return min([Decimal(v.value) for v in items if v.value != None])
         except Exception, e:
-            return string([Decimal(v.value) for v in items])
+            return '%s' % [Decimal(v.value) for v in items if v.value != None]
 
     def FE_max(self, items):
         try:
-            return max([Decimal(v.value) for v in items])
+            return max([Decimal(v.value) for v in items if v.value != None])
         except Exception, e:
-            return string([Decimal(v.value) for v in items])
+            return '%s' % [Decimal(v.value) for v in items if v.value != None]
 
     def FE_average(self, items):
         try:
-            return Decimal(sum([Decimal(v.value) for v in items]) / len(items))
+            return Decimal(sum([Decimal(v.value) for v in items if v.value != None]) / len(items))
         except Exception, e:
-            return string([Decimal(v.value) for v in items])
+            return '%s' % [Decimal(v.value) for v in items if v.value != None]
 
     def FE_count(self, items):
         return len(items)
