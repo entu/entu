@@ -45,8 +45,8 @@ class ETask():
 
         qresult = db.query(EQuery().check_formula(property_row, 'self'))
         if len(qresult) > 0:
-            print "Have {0} matching self formulas.".format(len(qresult))
-            print property_row
+            # print "Have {0} matching self formulas.".format(len(qresult))
+            # print property_row
             self.revaluate_formulas(db, qresult)
 
         qresult = db.query(EQuery().check_formula(property_row, 'back-referencing'))
@@ -101,7 +101,7 @@ class ETask():
             if frm_value != formula_property_row.value_string:
                 # print formula_property_row
                 rows_updated = rows_updated + 1
-                print "New: '%s' != Old: '%s'. Updating..." % (frm_value, formula_property_row.value_string)
+                # print "New: '%s' != Old: '%s'. Updating..." % (frm_value, formula_property_row.value_string)
 
                 sql = """
                 INSERT INTO `property` (`property_definition_keyname`, `entity_id`, `ordinal`, `language`, `value_formula`, `value_string`, `value_text`, `value_integer`, `value_decimal`, `value_boolean`, `value_datetime`, `value_entity`, `value_reference`, `value_file`, `value_counter`, `created`, `created_by`, `changed`, `changed_by`)
