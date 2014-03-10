@@ -40,7 +40,7 @@ chunk_size = 2500
 
 while True:
     d_start = datetime.now()
-    i = last_checked.setdefault('_tq:metrics', {}).setdefault('run_id', 0)
+    i = last_checked.setdefault('_metrics', {}).setdefault('run_id', 0)
     sys.stdout.write("-- Run no. %s. %22s.\n" % (i, d_start))
     sys.stdout.flush()
 
@@ -58,8 +58,8 @@ while True:
 
         last_checked.setdefault(customer_row.get('domain'), {}).setdefault('last_id', 0)
         last_checked.setdefault(customer_row.get('domain'), {}).setdefault('latest_checked', '1001-01-01 00:00:00')
-        last_checked.setdefault('_tq:metrics', {}).setdefault('properties_checked', 0.0000)
-        last_checked.setdefault('_tq:metrics', {}).setdefault('time_spent', 0.0000)
+        last_checked.setdefault('_metrics', {}).setdefault('properties_checked', 0.0000)
+        last_checked.setdefault('_metrics', {}).setdefault('time_spent', 0.0000)
 
         customer_started_at = datetime.now()
         if verbose > 1: print "%s Starting for --== %s ==--." % (datetime.now()-d_start, customer_row.get('domain'))
@@ -107,13 +107,13 @@ while True:
         customer_finished_at = datetime.now()
         customer_time_spent = customer_finished_at - customer_started_at
 
-        last_checked['_tq:metrics']['properties_checked'] = mov_ave * last_checked['_tq:metrics']['properties_checked'] + properties_to_check
-        last_checked['_tq:metrics']['time_spent'] = mov_ave * last_checked['_tq:metrics']['time_spent'] + customer_time_spent.microseconds + (customer_time_spent.seconds + customer_time_spent.days * 86400) * 1000000
+        last_checked['_metrics']['properties_checked'] = mov_ave * last_checked['_metrics']['properties_checked'] + properties_to_check
+        last_checked['_metrics']['time_spent'] = mov_ave * last_checked['_metrics']['time_spent'] + customer_time_spent.microseconds + (customer_time_spent.seconds + customer_time_spent.days * 86400) * 1000000
 
         with open(timestamp_file, 'w+') as f:
             f.write(yaml.safe_dump(last_checked, default_flow_style=False, allow_unicode=True))
 
-    last_checked['_tq:metrics']['run_id'] = i + 1
+    last_checked['_metrics']['run_id'] = i + 1
     with open(timestamp_file, 'w+') as f:
         f.write(yaml.safe_dump(last_checked, default_flow_style=False, allow_unicode=True))
 
@@ -122,7 +122,7 @@ while True:
     time_spent_sec = 0.000001*time_delta.microseconds + time_delta.seconds + time_delta.days*86400
     sleep = time_spent_sec * sleepfactor + sleepfactor * 1
     print ".. %22s (%2.2f seconds). Now sleeping for %2.2f seconds." % (d_stop, time_spent_sec, sleep)
-    print "Moving average (%1.2f) properties/second: %3.2f." % (mov_ave, 1000000.00*last_checked['_tq:metrics']['properties_checked']/last_checked['_tq:metrics']['time_spent'])
+    print "Moving average (%1.2f) properties/second: %3.2f." % (mov_ave, 1000000.00*last_checked['_metrics']['properties_checked']/last_checked['_metrics']['time_spent'])
     time.sleep(sleep)
     # print json.dumps(customers, sort_keys=True, indent=4, separators=(',', ': '))
 
