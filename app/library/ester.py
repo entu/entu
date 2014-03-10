@@ -224,14 +224,14 @@ class EsterSearch(myRequestHandler, Entity):
                 'file_id': file_id,
                 'entity_id': entity.get('entity_id'),
                 'entity_definition_keyname': entity.get('entity_definition_keyname'),
-                'title': item.get('title'),
-                'subtitle': item.get('subtitle'),
-                'author': item.get('author'),
-                'publishing-date': item.get('publishing-date'),
-                'isn': item.get('isn'),
+                'title': item.get('title') if not item.get('title') or type(item.get('title')) is list else [item.get('title')],
+                'subtitle': item.get('subtitle') if not item.get('subtitle') or type(item.get('subtitle')) is list else [item.get('subtitle')],
+                'author': item.get('author') if not item.get('author') or type(item.get('author')) is list else [item.get('author')],
+                'year': item.get('publishing-date') if not item.get('publishing-date') or type(item.get('publishing-date')) is list else [item.get('publishing-date')],
+                'isbn': item.get('isn') if not item.get('isn') or type(item.get('isn')) is list else [item.get('isn')],
             })
 
-        self.json({'items': sorted(items, key=itemgetter('title', 'publishing-date'))})
+        self.json({'items': sorted(items, key=itemgetter('title', 'year'))})
 
 
 class EsterImport(myRequestHandler, Entity):
@@ -289,13 +289,13 @@ def GetExistingID(rh, ester_id):
         WHERE entity.id = property.entity_id
         AND property_definition.keyname = property.property_definition_keyname
         AND property_definition.dataproperty = 'ester-id'
-        AND LEFT(REPLACE(property.value_string, 'b', ''), 7) = '%s'
+        AND LEFT(REPLACE(REPLACE(REPLACE(property.value_string, '.', ''), 'b', ''), ' ', ''), 7) = '%s'
         AND property.is_deleted = 0
         AND entity.is_deleted = 0
         AND property_definition.is_deleted = 0
         LIMIT 1;
     """ % ester_id.strip('bx. ')[:7]
-    logging.warning(sql)
+    # logging.warning(sql)
 
     entity = rh.db.get(sql)
     if not entity:

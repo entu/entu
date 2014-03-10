@@ -43,7 +43,7 @@ class ShowPhoto(myRequestHandler, Entity):
             if not tmp_file.file:
                 return self.missing()
             item = json.loads(tmp_file.file)
-            self.isbn = [x.split(' ')[0] for x in item.get('isn', [''])][0]
+            self.isbn = item.get('isn', '').split(' ')[0] if type(item.get('isn', '')) is not list else [x.split(' ')[0] for x in item.get('isn', [''])][0]
             if not self.isbn:
                 return self.redirect('/static/images/blank.png')
 
