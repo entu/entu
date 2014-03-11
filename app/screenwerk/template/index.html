@@ -217,6 +217,7 @@
                 if(media['width'] != null) { $box.data('width', media['width']) } else { $box.data('width', playlist['width']) };
                 if(media['height'] != null) { $box.data('height', media['height']) } else { $box.data('height', playlist['height']) };
                 if(media['zindex'] != null) { $box.data('zindex', media['zindex']) } else { $box.data('zindex', playlist['zindex']) };
+                if(media['pixels'] != null) { $box.data('pixels', media['pixels']) } else { $box.data('pixels', playlist['pixels']) };
 
                 // resize boxes
                 resizeBox($box);
@@ -269,13 +270,23 @@
 
           function resizeBox(box) {
             // resize and set box position
-            box.css({
-              'top':      getHeight(box.data('top')) + 'px',
-              'left':     getWidth(box.data('left')) + 'px',
-              'width':    getWidth(box.data('width')) + 'px',
-              'height':   getHeight(box.data('height')) + 'px',
-              'z-index':  box.data('zindex')
-            });
+            if(box.data('pixels') == true) {
+              box.css({
+                'top':      box.data('top') + 'px',
+                'left':     box.data('left') + 'px',
+                'width':    box.data('width') + 'px',
+                'height':   box.data('height') + 'px',
+                'z-index':  box.data('zindex')
+              });
+            } else {
+              box.css({
+                'top':      getHeight(box.data('top')) + 'px',
+                'left':     getWidth(box.data('left')) + 'px',
+                'width':    getWidth(box.data('width')) + 'px',
+                'height':   getHeight(box.data('height')) + 'px',
+                'z-index':  box.data('zindex')
+              });
+            }
 
             if(box.data('type') == 'image' && box.data('stretch') == true) {
               box.css('background-size', '100% 100%');
@@ -285,9 +296,15 @@
 
             //additional sizing parameters for video
             if(box.data('type') == 'video' && box.data('stretch') == true) {
-              var scale = box.data('ratio') / (getWidth(box.data('width')) / getHeight(box.data('height')));
+              if(box.data('pixels') == true) {
+                var scale = box.data('ratio') / (box.data('width') / box.data('height'));
+                var height = box.data('height') / scale;
+              } else {
+                var scale = box.data('ratio') / (getWidth(box.data('width')) / getHeight(box.data('height')));
+                var height = getHeight(box.data('height')) / scale;
+              }
               box.css({
-                'height':                   getHeight(box.data('height')) / scale + 'px',
+                'height':                   height + 'px',
                 'transform-origin':         '0% 0%',
                 '-webkit-transform-origin': '0% 0%',
                 'transform':                'scaleY(' + scale + ')',

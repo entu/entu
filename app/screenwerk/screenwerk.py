@@ -176,6 +176,7 @@ class Schedule():
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {})['width'] = lp.get('properties', {}).get('width', {}).get('values', [{}])[0].get('value', 100)
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {})['height'] = lp.get('properties', {}).get('height', {}).get('values', [{}])[0].get('value', 100)
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {})['zindex'] = lp.get('properties', {}).get('zindex', {}).get('values', [{}])[0].get('value', 1)
+                        schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {})['pixels'] = bool(lp.get('properties', {}).get('in-pixels', {}).get('values', [{}])[0].get('value', False))
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {})['loop'] = bool(lp.get('properties', {}).get('loop', {}).get('values', [{}])[0].get('db_value', False))
                         # media
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {}).setdefault('media', {}).setdefault(pm.get('id'), {})['id'] = pm.get('id')
