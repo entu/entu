@@ -3,7 +3,7 @@
 <html manifest="{{ '%s/cache.manifest' % request.uri }}">
   <head>
     <title>ScreenWerk - {{ screen.get('displayname', '...')}}</title>
-    <meta http-equiv="refresh" content="3600" />
+    <meta http-equiv="refresh" content="{{ refresh_time }}" />
     <style type="text/css">
       * {
         cursor: none;

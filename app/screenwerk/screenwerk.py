@@ -220,11 +220,15 @@ class ShowPlayer(myRequestHandler, Entity, Schedule):
         if not screen:
             return self.missing()
 
+        now = datetime.datetime.now()
+        tomorrow = datetime.datetime(now.year, now.month, now.day) + datetime.timedelta(1)
+
         schedule = self.get_schedule(entity_id=entity_id)
 
         self.render('screenwerk/template/index.html',
             screen = screen,
             json = json.dumps(schedule),
+            refresh_time = (tomorrow - now).seconds
         )
 
 
