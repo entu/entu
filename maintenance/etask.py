@@ -61,7 +61,9 @@ class ETask():
             return
 
         if property_row.datatype in ['string']:
-            None
+            return
+        elif property_row.datatype == 'counter-value':
+            return
         elif property_row.datatype in ['text', 'html']:
             value_string = property_row.value_text if property_row.value_text else ''
         elif property_row.datatype == 'integer':
@@ -73,16 +75,22 @@ class ETask():
         elif property_row.datatype == 'datetime':
             value_string = formatDatetime(property_row.value_datetime) if property_row.value_datetime else ''
         elif property_row.datatype == 'reference':
-            value_string = property_row.value_reference
+            qresult = db.query(EQuery().get_displayname(property_row))
+            if len(qresult) > 0:
+                value_string = qresult[0].displayname
+                print qresult
         elif property_row.datatype == 'file':
             value_string = self.db.get('SELECT filename FROM file WHERE id=%s LIMIT 1', property_row.value_file)
         elif property_row.datatype == 'boolean':
             value_string = str(bool(property_row.value_boolean))
         elif property_row.datatype == 'counter':
             value_string = self.db.get('SELECT estonian_label AS label FROM counter WHERE id=%s LIMIT 1' % property_row.value_counter)
-        elif property_row.datatype == 'counter-value':
-            None
 
+        sql = """
+            UPDATE property
+            SET value_string = '%(value_string)s' WHERE id = %(property_id)s
+        """ % (value_string, property_row.id)
+        db.execute(sql)
         # print "====="
         # print property_row
 
@@ -131,6 +139,42 @@ class ETask():
 
 
 class EQuery():
+
+
+    def get_displayname(self, property_row):
+        return """
+        SELECT e.id AS entity_id, GROUP_CONCAT(IF (numbers.n MOD 2 = 1, SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1), ifnull(p.value_string,''))  ORDER BY p.value_string SEPARATOR '') AS displayname
+        FROM
+        (
+        SELECT 1 AS n
+        UNION SELECT 2 AS n
+        UNION SELECT 3 AS n
+        UNION SELECT 4 AS n
+        UNION SELECT 5 AS n
+        UNION SELECT 6 AS n
+        UNION SELECT 7 AS n
+        UNION SELECT 8 AS n
+        UNION SELECT 9 AS n
+        UNION SELECT 10 AS n
+        UNION SELECT 11 AS n
+        UNION SELECT 12 AS n
+        UNION SELECT 13 AS n
+        UNION SELECT 14 AS n
+        UNION SELECT 15 AS n
+        UNION SELECT 16 AS n
+        UNION SELECT 17 AS n
+        UNION SELECT 18 AS n
+        ) AS numbers
+        INNER JOIN translation t ON CHAR_LENGTH(t.value)-CHAR_LENGTH(REPLACE(t.value, '@', '')) >= numbers.n-1
+        INNER JOIN entity e ON t.entity_definition_keyname = e.entity_definition_keyname
+         LEFT JOIN property p ON p.entity_id = e.id AND p.property_definition_keyname = concat(e.entity_definition_keyname, '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1))
+        WHERE e.id = %(entity_id)s
+        AND e.is_deleted = 0
+        AND ifnull(p.is_deleted,0) = 0
+        AND t.field = 'displayname'
+        AND ifnull(t.`language`,'%(language)s') = '%(language)s'
+        ORDER BY e.sort, e.id, t.field, numbers.n
+        """ % {'entity_id': property_row.value_reference, 'language': property_row.language}
 
 
     def fresh_properties(self, lim, first_second, last_second = None):
