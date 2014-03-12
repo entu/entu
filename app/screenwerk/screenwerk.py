@@ -176,7 +176,7 @@ class Schedule():
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {})['width'] = lp.get('properties', {}).get('width', {}).get('values', [{}])[0].get('value', 100)
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {})['height'] = lp.get('properties', {}).get('height', {}).get('values', [{}])[0].get('value', 100)
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {})['zindex'] = lp.get('properties', {}).get('zindex', {}).get('values', [{}])[0].get('value', 1)
-                        schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {})['pixels'] = bool(lp.get('properties', {}).get('in-pixels', {}).get('values', [{}])[0].get('value', False))
+                        schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {})['pixels'] = bool(lp.get('properties', {}).get('in-pixels', {}).get('values', [{}])[0].get('db_value', False))
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {})['loop'] = bool(lp.get('properties', {}).get('loop', {}).get('values', [{}])[0].get('db_value', False))
                         # media
                         schedule_dict.setdefault(int(time.mktime(t.timetuple())), {}).setdefault('playlists', {}).setdefault(lp.get('id'), {}).setdefault('media', {}).setdefault(pm.get('id'), {})['id'] = pm.get('id')
@@ -199,7 +199,7 @@ class Schedule():
 
         for s in schedule_dict.keys():
             for p in schedule_dict[s]['playlists'].keys():
-                schedule_dict.setdefault(s, {}).setdefault('playlists', {}).setdefault(p, {})['media'] = schedule_dict.get(s, {}).get('playlists', {}).get(p, {}).get('media', {}).values()
+                schedule_dict.setdefault(s, {}).setdefault('playlists', {}).setdefault(p, {})['media'] = sorted(schedule_dict.get(s, {}).get('playlists', {}).get(p, {}).get('media', {}).values(), key=itemgetter('ordinal'))
                 for m in schedule_dict.get(s, {}).get('playlists', {}).get(p, {}).get('media', {}):
                     files_dict.setdefault(m.get('id'), {})['id'] = m.get('id')
                     files_dict.setdefault(m.get('id'), {})['type'] = m.get('type')
@@ -249,7 +249,7 @@ class ShowCacheManifest(myRequestHandler, Entity, Schedule):
 class ShowPlayerJSON(myRequestHandler, Entity, Schedule):
     def get(self, entity_id):
         schedule = self.get_schedule(entity_id=entity_id)
-        self.write(schedule)
+        self.json(schedule)
 
 
 class ShowFile(myRequestHandler, Entity):

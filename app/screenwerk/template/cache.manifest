@@ -5,7 +5,7 @@ CACHE:
 {{ static_url('javascript/jquery.min.js', include_host=True) }}
 {{ static_url('images/spinner_pacman.gif', include_host=True) }}
 
-{% for f in files %}{% if f.get('type') in ['audio', 'video', 'image'] %}
+{% for f in files %}{% if f.get('type') in ['audio', 'video', 'image', 'flash'] %}
 # {{ f.get('filename') }}
 {{ f.get('src') }}
 {% end %}{% end %}

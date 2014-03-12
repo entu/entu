@@ -15,7 +15,7 @@
         padding: 0px;
         overflow: hidden;
       }
-      div, video, iframe {
+      div, video, iframe, object {
         position: absolute;
         display: none;
         border: none;
@@ -39,7 +39,7 @@
         display: inline;
       }
     </style>
-    <script src="{{ static_url('javascript/jquery.min.js') }}"></script>
+    <script src="{{ static_url('javascript/jquery-2.1.0.min.js') }}"></script>
     <script>
       $(document).ready(function(){
 
@@ -121,24 +121,13 @@
           function checkSchedule() {
             document.title = 'ScreenWerk - {{ screen.get('displayname', '...')}} - ' + (getTime() - start);
 
-            // delete obsolete layouts
-            // var layout = schedule.filter(getObsoleteLayout)[0];
-            // if(layout) {
-            //   alert(JSON.stringify(layout));
-            //   var playlists = layout['playlists'];
-            //   for(p in playlists) {
-            //     var playlist = playlists[p];
-            //     $('.playlist' + playlist['id']).remove();
-            //   }
-            // }
-
             // create current layout
             var layouts = schedule.filter(getCurrentLayout);
             if(layouts) {
               for(l in layouts) {
                 var layout = layouts[l];
                 if(layout['cleanup'] == true) {
-                  $('div, audio, video, iframe').remove();
+                  $('div, audio, video, iframe, object').remove();
                 }
                 createScreen(layout['start'], layout['playlists']);
               }
@@ -174,6 +163,8 @@
                 // create media box
                 if(media['type'] == 'image') {
                   var $box = $(document.createElement('div'));
+                } else if(media['type'] == 'flash') {
+                  var $box = $(document.createElement('object'));
                 } else if(media['type'] == 'video') {
                   var $box = $(document.createElement('video'));
                   $box.bind('ended', function() {showNext($(this)); });
@@ -194,6 +185,9 @@
                 // set source
                 if(media['type'] == 'image') {
                   $box.css('background-image', 'url(\'' + media['src'] + '\')');
+                } else if(media['type'] == 'flash') {
+                  $box.attr('data', media['src']);
+                  $box.attr('type', 'application/x-shockwave-flash');
                 } else {
                   $box.attr('src', media['src']);
                 }
@@ -248,7 +242,7 @@
               box.get(0).load();
               box.get(0).play();
             } else if(box.data('duration')) {
-              // set image/url timer
+              // set image/url/flash timer
               setTimeout(function() {showNext(box)}, box.data('duration') * 1000);
             }
           }
@@ -288,10 +282,13 @@
               });
             }
 
-            if(box.data('type') == 'image' && box.data('stretch') == true) {
-              box.css('background-size', '100% 100%');
-            } else {
-              box.css('background-size', 'contain');
+            //stretch/fill for image
+            if(box.data('type') == 'image') {
+              if(box.data('stretch') == true) {
+                box.css('background-size', '100% 100%');
+              } else {
+                box.css('background-size', 'contain');
+              }
             }
 
             //additional sizing parameters for video
