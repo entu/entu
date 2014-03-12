@@ -240,6 +240,8 @@ class ShowCacheManifest(myRequestHandler, Entity, Schedule):
 
         expires = utils.formatdate(time.mktime(datetime.datetime.now().timetuple()) + int(schedule['update_interval']))
 
+        self.set_property(entity_id=entity_id, property_definition_keyname='sw-screen-last-check', value='%s' % datetime.datetime.now())
+
         self.add_header('Content-Type', 'text/cache-manifest')
         self.add_header('Cache-Control', 'public,max-age=%d' % int(schedule['update_interval']))
         self.add_header('Expires', expires)
@@ -254,6 +256,9 @@ class ShowCacheManifest(myRequestHandler, Entity, Schedule):
 class ShowPlayerJSON(myRequestHandler, Entity, Schedule):
     def get(self, entity_id):
         schedule = self.get_schedule(entity_id=entity_id)
+
+        self.set_property(entity_id=entity_id, property_definition_keyname='sw-screen-last-update', value='%s' % datetime.datetime.now())
+
         self.json(schedule)
 
 
