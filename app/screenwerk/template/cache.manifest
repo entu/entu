@@ -2,7 +2,8 @@ CACHE MANIFEST
 # Expires: {{ expires }}
 
 CACHE:
-{{ static_url('javascript/jquery.min.js', include_host=True) }}
+# Static files
+{{ static_url('javascript/jquery-2.1.0.min.js', include_host=True) }}
 {{ static_url('images/spinner_pacman.gif', include_host=True) }}
 
 {% for f in files %}{% if f.get('type') in ['audio', 'video', 'image', 'flash'] %}
