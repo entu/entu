@@ -45,6 +45,14 @@
     <script>
       $(document).ready(function(){
 
+          // GLOBAL VARIABLES
+          var start           = getTime();
+          var timeouts        = Array();
+          var update_interval = 300;
+          var schedule        = Array();
+          var first_run       = true;
+
+
           // CACHE
           window.applicationCache.onchecking = function (e) {
             updateCacheStatus('Checking for new files...<br /><img src="{{ static_url('images/spinner_pacman.gif') }}" />');
@@ -52,41 +60,44 @@
           window.applicationCache.ondownloading = function (e) {
             updateCacheStatus('Downloading new files...<br /><img src="{{ static_url('images/spinner_pacman.gif') }}" />');
           };
-          window.applicationCache.oncached = function (e) {
-            updateCacheStatus('All files are available offline. Starting...');
-            runApp();
-          };
-          window.applicationCache.onerror = function (e) {
-            if(window.applicationCache.status == 1) {
-              updateCacheStatus('We are offline! Starting anyway...');
-              runApp();
-            } else {
-              updateCacheStatus('Something went wrong while downloading files!');
-              setTimeout(function() {
-                window.location = '/screenwerk/screen-{{ screen.get('id') }}';
-              }, 2000);
-            }
-          };
-          window.applicationCache.onupdateready = function (e) {
-            window.applicationCache.swapCache();
-            updateCacheStatus('Some files are updated. Restarting...');
-            setTimeout(function() {
-              window.location = '/screenwerk/screen-{{ screen.get('id') }}';
-            }, 2000);
-          };
-          window.applicationCache.onnoupdate = function (e) {
-            updateCacheStatus('No new files are available. Starting...');
-            runApp();
-          };
-          window.applicationCache.onobsolete = function (e) {
-            updateCacheStatus('Manifest file was not found!');
-          };
           window.applicationCache.onprogress = function (e) {
             if (e.lengthComputable) {
               updateCacheStatus('Downloading file ' + e.loaded + ' of ' + e.total + '. Please wait...<br /><img src="{{ static_url('images/spinner_pacman.gif') }}" />');
             } else {
               updateCacheStatus('Downloading files. Please wait...<br /><img src="{{ static_url('images/spinner_pacman.gif') }}" />');
             };
+          };
+
+          window.applicationCache.oncached = function (e) {
+            updateCacheStatus('All files are available offline. Starting...');
+            startApp();
+          };
+          window.applicationCache.onnoupdate = function (e) {
+            updateCacheStatus('No new files are available. Starting...');
+            updateApp();
+          };
+          window.applicationCache.onupdateready = function (e) {
+            updateCacheStatus('Some files are updated. Restarting...');
+            window.applicationCache.swapCache();
+            startApp();
+          };
+          window.applicationCache.onobsolete = function (e) {
+            updateCacheStatus('Manifest file was not found!');
+            restartApp();
+          };
+
+          window.applicationCache.onerror = function (e) {
+            if(window.applicationCache.status == 1) {
+              updateCacheStatus('We are offline! Starting anyway...');
+              if(first_run == true) {
+                startApp();
+              } else {
+                updateApp();
+              }
+            } else {
+              updateCacheStatus('Something went wrong while downloading files!');
+              restartApp();
+            }
           };
 
 
@@ -113,25 +124,38 @@
           }
 
 
-          // TIMER
-          var start = getTime();
+          function startApp() {
+            first_run = false;
+            console.log('Player started');
 
-          var schedule = Array();
-
-          function runApp() {
             $.get('/screenwerk/screen-{{ screen.get('id') }}/json', function(data) {
-              console.log('Starting application (next update will be in '+data.update_interval+' seconds)');
+              console.log('Got JSON');
+              update_interval = data.update_interval;
               schedule = data.schedule;
-              setTimeout(function() {
-                window.applicationCache.update();
-              }, data.update_interval * 1000);
-            }, 'json');
 
-            $('#cache-progress').html('');
-            $('#cache-progress').hide();
-            start = getTime();
-            var t = setInterval(checkSchedule, 100);
+              $('#cache-progress').html('');
+              $('#cache-progress').hide();
+
+              start = getTime();
+              setInterval(checkSchedule, 100);
+
+              updateApp();
+            }, 'json');
           }
+
+          function updateApp() {
+            console.log('Next update in '+update_interval+' seconds');
+            setTimeout(function() {
+              window.applicationCache.update();
+            }, update_interval * 1000);
+          }
+
+          function restartApp() {
+            setTimeout(function() {
+              window.location = '/screenwerk/screen-{{ screen.get('id') }}';
+            }, 2000);
+          }
+
 
           function checkSchedule() {
             document.title = 'ScreenWerk - {{ screen.get('displayname', '...')}} - ' + (getTime() - start);
