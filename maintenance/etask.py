@@ -60,39 +60,44 @@ class ETask():
         if property_row.is_deleted == 1:
             return
 
+        value_display = ''
+
         if property_row.datatype in ['string']:
             return
         elif property_row.datatype == 'counter-value':
             return
         elif property_row.datatype in ['text', 'html']:
-            value_string = property_row.value_text if property_row.value_text else ''
+            value_display = property_row.value_text if property_row.value_text else ''
         elif property_row.datatype == 'integer':
-            value_string = property_row.value_integer if property_row.value_integer else ''
+            value_display = property_row.value_integer if property_row.value_integer else ''
         elif property_row.datatype == 'decimal':
-            value_string = '%.2f' % property_row.value_decimal if property_row.value_decimal else ''
+            value_display = '%.2f' % property_row.value_decimal if property_row.value_decimal else ''
         elif property_row.datatype == 'date':
-            value_string = formatDatetime(property_row.value_datetime, '%(day)02d.%(month)02d.%(year)d')
+            value_display = formatDatetime(property_row.value_datetime, '%(day)02d.%(month)02d.%(year)d')
         elif property_row.datatype == 'datetime':
-            value_string = formatDatetime(property_row.value_datetime) if property_row.value_datetime else ''
+            value_display = formatDatetime(property_row.value_datetime) if property_row.value_datetime else ''
         elif property_row.datatype == 'reference':
             qresult = db.query(EQuery().get_displayname(property_row))
             if len(qresult) > 0:
-                value_string = qresult[0].displayname
+                value_display = qresult[0].displayname
                 print qresult
         elif property_row.datatype == 'file':
-            value_string = self.db.get('SELECT filename FROM file WHERE id=%s LIMIT 1', property_row.value_file)
+            qresult = db.query('SELECT filename FROM file WHERE id=%s LIMIT 1', property_row.value_file)
+            if len(qresult) > 0:
+                value_display = qresult[0].filename
         elif property_row.datatype == 'boolean':
-            value_string = str(bool(property_row.value_boolean))
+            value_display = str(bool(property_row.value_boolean))
         elif property_row.datatype == 'counter':
-            value_string = self.db.get('SELECT estonian_label AS label FROM counter WHERE id=%s LIMIT 1' % property_row.value_counter)
+            value_display = self.db.get('SELECT estonian_label AS label FROM counter WHERE id=%s LIMIT 1' % property_row.value_counter)
 
         sql = """
             UPDATE property
-            SET value_string = '%(value_string)s' WHERE id = %(property_id)s
-        """ % (value_string, property_row.id)
-        db.execute(sql)
-        # print "====="
-        # print property_row
+            SET value_display = '%(value_display)s' WHERE id = %(property_id)i
+        """ % {'value_display': value_display, 'property_id': property_row.id}
+        try:
+            db.execute(sql)
+        except:
+            print sql
 
 
     def revaluate_formulas(self, db, recordset):
@@ -143,7 +148,7 @@ class EQuery():
 
     def get_displayname(self, property_row):
         return """
-        SELECT e.id AS entity_id, GROUP_CONCAT(IF (numbers.n MOD 2 = 1, SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1), ifnull(p.value_string,''))  ORDER BY p.value_string SEPARATOR '') AS displayname
+        SELECT e.id AS entity_id, GROUP_CONCAT(IF (numbers.n MOD 2 = 1, SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1), ifnull(p.value_string,''))  ORDER BY numbers.n SEPARATOR '') AS displayname
         FROM
         (
         SELECT 1 AS n
@@ -349,17 +354,17 @@ class EQuery():
             INSERT INTO searchindex (entity_id, `language`, val)
              SELECT
                 p.entity_id,
-                ifnull(p.language,''),
+                l.language,
                 @val := LEFT(GROUP_CONCAT(p.value_string ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000)
-            FROM
-                property AS p
-                LEFT JOIN  property_definition AS pd ON pd.keyname = p.property_definition_keyname
+            FROM (SELECT DISTINCT t.language FROM translation t WHERE t.language IS NOT NULL) AS l
+            LEFT JOIN  property AS p ON ifnull(p.language,l.language) = l.language
+            LEFT JOIN  property_definition AS pd ON pd.keyname = p.property_definition_keyname
             WHERE p.entity_id = %i
             AND p.is_deleted = 0
             AND pd.is_deleted = 0
             AND pd.search = 1
             GROUP BY
-                p.language,
+                l.language,
                 p.entity_id
             ON DUPLICATE KEY UPDATE
                 val = @val;
