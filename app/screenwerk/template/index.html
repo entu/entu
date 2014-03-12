@@ -14,6 +14,8 @@
         margin: 0px;
         padding: 0px;
         overflow: hidden;
+        height: 100%;
+        width: 100%;
       }
       div, video, iframe, object {
         position: absolute;
@@ -45,10 +47,10 @@
 
           // CACHE
           window.applicationCache.onchecking = function (e) {
-            updateCacheStatus('Checking for new files...');
+            updateCacheStatus('Checking for new files...<br /><img src="{{ static_url('images/spinner_pacman.gif') }}" />');
           };
           window.applicationCache.ondownloading = function (e) {
-            updateCacheStatus('Downloading new files...');
+            updateCacheStatus('Downloading new files...<br /><img src="{{ static_url('images/spinner_pacman.gif') }}" />');
           };
           window.applicationCache.oncached = function (e) {
             updateCacheStatus('All files are available offline. Starting...');
@@ -60,12 +62,17 @@
               runApp();
             } else {
               updateCacheStatus('Something went wrong while downloading files!');
+              setTimeout(function() {
+                window.location = '/screenwerk/screen-{{ screen.get('id') }}';
+              }, 2000);
             }
           };
           window.applicationCache.onupdateready = function (e) {
             window.applicationCache.swapCache();
             updateCacheStatus('Some files are updated. Restarting...');
-            window.location = '';
+            setTimeout(function() {
+              window.location = '/screenwerk/screen-{{ screen.get('id') }}';
+            }, 2000);
           };
           window.applicationCache.onnoupdate = function (e) {
             updateCacheStatus('No new files are available. Starting...');
@@ -81,14 +88,6 @@
               updateCacheStatus('Downloading files. Please wait...<br /><img src="{{ static_url('images/spinner_pacman.gif') }}" />');
             };
           };
-
-          function updateCacheStatus(msg) {
-            $('body').html('<div id="cache-progress">' + msg + '</div>');
-          }
-
-          var schedule = jQuery.parseJSON('{{ json }}').schedule;
-
-          // runApp();
 
 
           // GENERAL FUNCTIONS
@@ -108,12 +107,28 @@
             return $(window).height() * percent / 100
           }
 
+          function updateCacheStatus(msg) {
+            document.title = msg;
+            $('#cache-progress').html(msg);
+          }
+
 
           // TIMER
           var start = getTime();
 
+          var schedule = Array();
+
           function runApp() {
-            $('#cache-progress').remove();
+            $.get('/screenwerk/screen-{{ screen.get('id') }}/json', function(data) {
+              console.log('Starting application (next update will be in '+data.update_interval+' seconds)');
+              schedule = data.schedule;
+              setTimeout(function() {
+                window.applicationCache.update();
+              }, data.update_interval * 1000);
+            }, 'json');
+
+            $('#cache-progress').html('');
+            $('#cache-progress').hide();
             start = getTime();
             var t = setInterval(checkSchedule, 100);
           }
@@ -315,5 +330,6 @@
     </script>
   </head>
   <body>
+    <div id="cache-progress"></div>
   </body>
 </html>

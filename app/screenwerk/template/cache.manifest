@@ -1,11 +1,14 @@
 CACHE MANIFEST
-# Expires: {{ expires }}
+# Update interval is {{ update_interval }} seconds
+# Schedule MD5 is {{ schedule_md5 }}
 
 CACHE:
 # Static files
 {{ static_url('javascript/jquery-2.1.0.min.js', include_host=True) }}
 {{ static_url('images/spinner_pacman.gif', include_host=True) }}
 
+# Schedule JSON
+{{ json_url }}
 {% for f in files %}{% if f.get('type') in ['audio', 'video', 'image', 'flash'] %}
 # {{ f.get('filename') }}
 {{ f.get('src') }}

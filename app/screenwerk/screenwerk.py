@@ -1,5 +1,6 @@
 import logging
 import json
+import hashlib
 import mimetypes
 from operator import itemgetter
 from datetime import datetime
@@ -38,6 +39,8 @@ class Schedule():
         configuration = self.get_entities(entity_id=configuration_id, limit=1, only_public=True)
         if not configuration:
             return {}
+
+        update_interval = configuration.get('properties', {}).get('update-interval', {}).get('values', [{}])[0].get('value')
 
         # get schedules
         schedule_ids = self.get_relatives(ids_only=True, entity_id=configuration_id, relationship_definition_keyname='child', entity_definition_keyname='sw-schedule', only_public=True)
@@ -209,6 +212,7 @@ class Schedule():
 
         return {
             'generated': str(now),
+            'update_interval': update_interval,
             'schedule': sorted(schedule_dict.values(), key=itemgetter('start')),
             'files': sorted(files_dict.values(), key=itemgetter('id'))
         }
@@ -223,11 +227,8 @@ class ShowPlayer(myRequestHandler, Entity, Schedule):
         now = datetime.datetime.now()
         tomorrow = datetime.datetime(now.year, now.month, now.day) + datetime.timedelta(1)
 
-        schedule = self.get_schedule(entity_id=entity_id)
-
         self.render('screenwerk/template/index.html',
             screen = screen,
-            json = json.dumps(schedule),
             refresh_time = (tomorrow - now).seconds
         )
 
@@ -235,14 +236,18 @@ class ShowPlayer(myRequestHandler, Entity, Schedule):
 class ShowCacheManifest(myRequestHandler, Entity, Schedule):
     def get(self, entity_id):
         schedule = self.get_schedule(entity_id=entity_id)
-        expires = utils.formatdate((int(time.mktime(datetime.datetime.now().timetuple()) / 300) + 1) * 300)
+        schedule_md5 = hashlib.md5(json.dumps(schedule['schedule'], sort_keys=True)).hexdigest()
+
+        expires = utils.formatdate(time.mktime(datetime.datetime.now().timetuple()) + int(schedule['update_interval']))
 
         self.add_header('Content-Type', 'text/cache-manifest')
-        self.add_header('Cache-Control', 'public,max-age=%d' % int(300))
+        self.add_header('Cache-Control', 'public,max-age=%d' % int(schedule['update_interval']))
         self.add_header('Expires', expires)
         self.render('screenwerk/template/cache.manifest',
-            files = schedule.get('files', {}),
-            expires = expires,
+            files = list({v['src']:v for v in schedule.get('files', {})}.values()),
+            update_interval = int(schedule['update_interval']),
+            schedule_md5 = schedule_md5,
+            json_url = '%s://%s/screenwerk/screen-%s/json' % (self.request.protocol, self.request.host, entity_id)
         )
 
 
