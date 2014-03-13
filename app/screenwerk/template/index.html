@@ -48,37 +48,49 @@
           // GLOBAL VARIABLES
           var start           = getTime();
           var timeouts        = Array();
-          var update_interval = 300;
+          var update_interval = 5;
           var schedule        = Array();
           var first_run       = true;
 
 
           // CACHE
           window.applicationCache.onchecking = function (e) {
-            updateCacheStatus('Checking for new files...<br /><img src="{{ static_url('images/spinner_pacman.gif') }}" />');
+            updateCacheStatus('Checking for new files...');
           };
           window.applicationCache.ondownloading = function (e) {
-            updateCacheStatus('Downloading new files...<br /><img src="{{ static_url('images/spinner_pacman.gif') }}" />');
+            updateCacheStatus('Downloading new files...');
           };
           window.applicationCache.onprogress = function (e) {
             if (e.lengthComputable) {
-              updateCacheStatus('Downloading file ' + e.loaded + ' of ' + e.total + '. Please wait...<br /><img src="{{ static_url('images/spinner_pacman.gif') }}" />');
+              updateCacheStatus('Downloading file ' + e.loaded + ' of ' + e.total + '. Please wait...');
             } else {
-              updateCacheStatus('Downloading files. Please wait...<br /><img src="{{ static_url('images/spinner_pacman.gif') }}" />');
+              updateCacheStatus('Downloading files. Please wait...');
             };
           };
 
           window.applicationCache.oncached = function (e) {
             updateCacheStatus('All files are available offline. Starting...');
-            startApp();
+            if(first_run == true) {
+              startApp();
+            } else {
+              updateApp();
+            }
           };
           window.applicationCache.onnoupdate = function (e) {
             updateCacheStatus('No new files are available. Starting...');
-            updateApp();
+            if(first_run == true) {
+              startApp();
+            } else {
+              updateApp();
+            }
           };
           window.applicationCache.onupdateready = function (e) {
+            try {
+              window.applicationCache.swapCache();
+            } catch(err) {
+              restartApp();
+            }
             updateCacheStatus('Some files are updated. Restarting...');
-            window.applicationCache.swapCache();
             startApp();
           };
           window.applicationCache.onobsolete = function (e) {
@@ -120,7 +132,7 @@
 
           function updateCacheStatus(msg) {
             document.title = msg;
-            $('#cache-progress').html(msg);
+            $('#cache-progress').html(msg+'<br /><img src="{{ static_url('images/spinner_pacman.gif') }}" />');
           }
 
 
@@ -144,15 +156,15 @@
           }
 
           function updateApp() {
-            console.log('Next update in '+update_interval+' seconds');
+            console.log('Next update in '+update_interval+'min');
             setTimeout(function() {
               window.applicationCache.update();
-            }, update_interval * 1000);
+            }, update_interval * 60000);
           }
 
           function restartApp() {
             setTimeout(function() {
-              window.location = '/screenwerk/screen-{{ screen.get('id') }}';
+              window.location.reload();;
             }, 2000);
           }
 

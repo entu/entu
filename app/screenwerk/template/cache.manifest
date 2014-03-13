@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# Update interval is {{ update_interval }} seconds
+# Update interval is {{ update_interval }} minutes
 # Schedule MD5 is {{ schedule_md5 }}
 
 CACHE:
