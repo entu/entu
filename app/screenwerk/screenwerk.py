@@ -238,17 +238,10 @@ class ShowCacheManifest(myRequestHandler, Entity, Schedule):
         schedule = self.get_schedule(entity_id=entity_id)
         schedule_md5 = hashlib.md5(json.dumps(schedule['schedule'], sort_keys=True)).hexdigest()
 
-        now = datetime.datetime.now()
-        now_plus_10 = now + datetime.timedelta(minutes = 10)
-
-        expires = utils.formatdate(time.mktime((datetime.datetime.now() + datetime.timedelta(minutes = int(schedule['update_interval']))).timetuple()))
-        # return self.write(expires)
-
         self.set_property(entity_id=entity_id, property_definition_keyname='sw-screen-last-check', value='%s' % datetime.datetime.now())
 
         self.add_header('Content-Type', 'text/cache-manifest')
-        self.add_header('Cache-Control', 'public,max-age=%d' % int(schedule['update_interval']) * 60)
-        self.add_header('Expires', expires)
+        self.add_header('Cache-Control', 'private,max-age=0')
         self.render('screenwerk/template/cache.manifest',
             files = list({v['src']:v for v in schedule.get('files', {})}.values()),
             update_interval = int(schedule['update_interval']),
@@ -278,6 +271,7 @@ class ShowFile(myRequestHandler, Entity):
         mime = mimetypes.types_map.get('.%s' % mediafile.filename.lower().split('.')[-1], 'application/octet-stream')
 
         self.add_header('Content-Type', mime)
+        self.add_header('Cache-Control', 'private,max-age=31536000')
         self.add_header('Content-Disposition', 'inline; filename="%s"' % mediafile.filename)
         self.write(mediafile.file)
 
