@@ -2,6 +2,7 @@
 from datetime import datetime
 import argparse
 import yaml
+import json
 import time
 
 from etask import *
@@ -32,9 +33,9 @@ except IOError as e:
 task = ETask(args)
 
 i = 0
-sleepfactor = 0.25
+sleepfactor = 0.025
 mov_ave = 0.99
-chunk_size = 2500
+chunk_size = 3500
 
 
 while True:
@@ -49,21 +50,21 @@ while True:
     for customer_row in task.customers.values():
         # print json.dumps(customers, sort_keys=True, indent=4, separators=(',', ': '))
         db = torndb.Connection(
-            host     = customer_row.get('database-host'),
-            database = customer_row.get('database-name'),
-            user     = customer_row.get('database-user'),
-            password = customer_row.get('database-password'),
+            host     = customer_row.get('database-host')[0],
+            database = customer_row.get('database-name')[0],
+            user     = customer_row.get('database-user')[0],
+            password = customer_row.get('database-password')[0],
         )
 
-        last_checked.setdefault(customer_row.get('domain'), {}).setdefault('last_id', 0)
-        last_checked.setdefault(customer_row.get('domain'), {}).setdefault('latest_checked', '1001-01-01 00:00:00')
+        last_checked.setdefault(customer_row.get('domain')[0], {}).setdefault('last_id', 0)
+        last_checked.setdefault(customer_row.get('domain')[0], {}).setdefault('latest_checked', '1001-01-01 00:00:00')
         last_checked.setdefault('_metrics', {}).setdefault('properties_checked', 0.0000)
         last_checked.setdefault('_metrics', {}).setdefault('time_spent', 0.0000)
 
         customer_started_at = datetime.now()
-        if verbose > 1: print "\n%s Starting for --== %s ==--." % (datetime.now(), customer_row.get('domain'))
+        if verbose > 1: print "\n%s Starting for --== %s (%s) ==--." % (datetime.now(), customer_row.get('name')[0], customer_row.get('domain')[0])
 
-        check_time = last_checked[customer_row.get('domain')]['latest_checked']
+        check_time = last_checked[customer_row.get('domain')[0]]['latest_checked']
         if verbose > 1: print "%s Looking for properties fresher than %s." % (datetime.now(), check_time)
         property_table = db.query(EQuery().fresh_properties(chunk_size, check_time, False))
         properties_to_check = len(property_table)
@@ -74,10 +75,12 @@ while True:
             last_second = property_table[chunk_size-1].o_date
             if verbose > 1: print "%s Reloading properties with timestamp between %s and %s inclusive." % (datetime.now(), first_second, last_second)
             try:
+                # print EQuery().fresh_properties(chunk_size, first_second, last_second)
                 property_table = db.query(EQuery().fresh_properties(chunk_size, first_second, last_second))
-            except:
+            except Exception as e:
                 print EQuery().fresh_properties(chunk_size, first_second, last_second)
-                print "\n%s: failed for %s." % (datetime.now(), customer_row.get('database-name'))
+                print "\n%s: failed for %s." % (datetime.now(), customer_row.get('database-name')[0])
+                raise e
 
             properties_to_check = len(property_table)
             if verbose > 1: print "%s Got %s properties with timestamp between %s and %s inclusive." % (datetime.now(), properties_to_check, first_second, last_second)
@@ -88,19 +91,20 @@ while True:
         if verbose > 1: print "%s Checking formulas of %i properties." % (datetime.now(), properties_to_check)
         for property_row in property_table:
             task.check_my_formulas(db, property_row)
-            task.check_my_value_string(db, property_row)
-            last_checked[customer_row.get('domain')]['last_id'] = property_row.id
-            last_checked[customer_row.get('domain')]['latest_checked'] = str(property_row.o_date)
+            task.check_my_value_display(db, property_row)
+            last_checked[customer_row.get('domain')[0]]['last_id'] = property_row.id
+            last_checked[customer_row.get('domain')[0]]['latest_checked'] = str(property_row.o_date)
         if verbose > 1: print "%s Formula check finished." % (datetime.now())
 
-        # Searchindex refresh
+        # Entity info refresh
         if verbose > 1: print "%s Looking for entity id's." % (datetime.now())
         entities_to_index = {}
         for property_row in property_table:
             entities_to_index[property_row.entity_id] = {'id': property_row.entity_id}
         if verbose > 1: print "%s There are %i unique entities to reindex." % (datetime.now(), len(entities_to_index))
         for entity in entities_to_index.values():
-            db.execute(EQuery().searchindex(entity['id']))
+            task.refresh_entity_info(db, entity['id'], customer_row.get('language-ref'))
+            # db.execute(EQuery().searchindex(entity['id']))
         if verbose > 1: print "%s Entities reindexed." % (datetime.now())
 
         customer_finished_at = datetime.now()

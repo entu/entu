@@ -1,5 +1,6 @@
 # task.py
 import torndb
+import json
 from datetime import datetime
 from formula import *
 
@@ -21,7 +22,8 @@ class ETask():
     def reload_customers(self):
         self.customers = {}
         for c in self.db.query(self.cg_sql):
-            self.customers.setdefault(c.entity, {})[c.property] = c.value
+            # self.customers.setdefault(c.entity, {})[c.property] = c.value
+            self.customers.setdefault(c.entity, {}).setdefault(c.property, []).append(c.value)
 
 
     def check_my_formulas(self, db, property_row):
@@ -56,20 +58,20 @@ class ETask():
             self.revaluate_formulas(db, qresult)
 
 
-    def check_my_value_string(self, db, property_row):
+    def check_my_value_display(self, db, property_row):
         if property_row.is_deleted == 1:
             return
 
         value_display = ''
 
         if property_row.datatype in ['string']:
-            return
+            value_display = property_row.value_string if property_row.value_string else ''
         elif property_row.datatype == 'counter-value':
             return
         elif property_row.datatype in ['text', 'html']:
             value_display = property_row.value_text if property_row.value_text else ''
         elif property_row.datatype == 'integer':
-            value_display = property_row.value_integer if property_row.value_integer else ''
+            value_display = property_row.value_integer if property_row.value_integer else 0 if property_row.value_integer == 0 else ''
         elif property_row.datatype == 'decimal':
             value_display = '%.2f' % property_row.value_decimal if property_row.value_decimal else ''
         elif property_row.datatype == 'date':
@@ -77,11 +79,15 @@ class ETask():
         elif property_row.datatype == 'datetime':
             value_display = formatDatetime(property_row.value_datetime) if property_row.value_datetime else ''
         elif property_row.datatype == 'reference':
-            qresult = db.query(EQuery().get_displayname(property_row))
+            qresult = db.query(EQuery().get_displayfields(property_row.value_reference, property_row.language))
+            value_display = 'N/A'
             if len(qresult) > 0:
-                value_display = qresult[0].displayname
-                print qresult
+                for row in qresult:
+                    if row.field == 'displayname':
+                        value_display = row.displayfield
+                        continue
         elif property_row.datatype == 'file':
+            value_display = property_row.value_file
             qresult = db.query('SELECT filename FROM file WHERE id=%s LIMIT 1', property_row.value_file)
             if len(qresult) > 0:
                 value_display = qresult[0].filename
@@ -95,7 +101,7 @@ class ETask():
             SET value_display = '%(value_display)s' WHERE id = %(property_id)i
         """ % {'value_display': value_display, 'property_id': property_row.id}
         try:
-            db.execute(sql)
+            db.execute("UPDATE property SET value_display = %s WHERE id = %s", value_display, property_row.id)
         except:
             print sql
 
@@ -142,13 +148,117 @@ class ETask():
             print 'Revaluation of {0} rows finished.\n=> {1} rows updated\n=> {2} rows were up to date.'.format(len(recordset), rows_updated, rows_up_to_date)
 
 
+    def refresh_entity_info(self, db, entity_id, languages):
+        for language in languages:
+
+            search_it = db.query(EQuery().search_it(entity_id, language))[0].value
+
+            displayfields = {}
+            for row in db.query(EQuery().get_displayfields(entity_id, language)):
+                displayfields[row.field] = row.displayfield
+            # print displayfields
+
+            # print EQuery().get_displaytable(entity_id, language)
+            displaytable = {}
+            for row in db.query(EQuery().get_displaytable(entity_id, language)):
+                displaytable.setdefault(row.k, []).append(row.v)
+
+            displayproperties = {}
+            for row in db.query(EQuery().get_displayproperties(entity_id, language)):
+                displayproperties.setdefault(row.k, []).append(row.v)
+
+            sql = """
+                INSERT INTO `entity_info` (`entity_id`, `language`, `search_it`, `sort_it`, `displayname`, `displayinfo`, `displaytable`, `displayproperties`)
+                VALUES (%s,
+                        %s,
+                        %s,
+                        %s,
+                        %s,
+                        %s,
+                        %s,
+                        %s
+                        )
+                ON DUPLICATE KEY UPDATE
+                `search_it`=         %s,
+                `sort_it`=           %s,
+                `displayname`=       %s,
+                `displayinfo`=       %s,
+                `displaytable`=      %s,
+                `displayproperties`= %s;
+                """
+            db.execute(sql
+                , entity_id
+                , language
+                , search_it
+                , displayfields.setdefault('sort', '')
+                , displayfields.setdefault('displayname', '')
+                , displayfields.setdefault('displayinfo', '')
+                , json.dumps(displaytable, indent=4, separators=(',', ': '))
+                , json.dumps(displayproperties, indent=4, separators=(',', ': '))
+                , search_it
+                , displayfields.setdefault('sort', '')
+                , displayfields.setdefault('displayname', '')
+                , displayfields.setdefault('displayinfo', '')
+                , json.dumps(displaytable, indent=4, separators=(',', ': '))
+                , json.dumps(displayproperties, indent=4, separators=(',', ': '))
+                )
+
+
 
 class EQuery():
 
 
-    def get_displayname(self, property_row):
+    def get_displayproperties(self, entity_id, language):
         return """
-        SELECT e.id AS entity_id, GROUP_CONCAT(IF (numbers.n MOD 2 = 1, SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1), ifnull(p.value_string,''))  ORDER BY numbers.n SEPARATOR '') AS displayname
+        SELECT pd.dataproperty k, p.value_display v
+        FROM property p
+        LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+        WHERE p.entity_id = %(entity_id)s
+        AND p.is_deleted = 0
+        AND ifnull(p.language,'%(language)s') = '%(language)s'
+        ORDER BY pd.ordinal, p.id;
+        """ % {'entity_id': entity_id, 'language': language}
+
+    def get_displaytable(self, entity_id, language):
+        return """
+        SELECT SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1) AS k, p.value_string AS v
+        FROM
+        (
+        SELECT 1 AS n
+        UNION SELECT 2 AS n
+        UNION SELECT 3 AS n
+        UNION SELECT 4 AS n
+        UNION SELECT 5 AS n
+        UNION SELECT 6 AS n
+        UNION SELECT 7 AS n
+        UNION SELECT 8 AS n
+        UNION SELECT 9 AS n
+        UNION SELECT 10 AS n
+        UNION SELECT 11 AS n
+        UNION SELECT 12 AS n
+        UNION SELECT 13 AS n
+        UNION SELECT 14 AS n
+        UNION SELECT 15 AS n
+        UNION SELECT 16 AS n
+        UNION SELECT 17 AS n
+        UNION SELECT 18 AS n
+        ) AS numbers
+        INNER JOIN translation t ON CHAR_LENGTH(t.value)-CHAR_LENGTH(REPLACE(t.value, '@', '')) >= numbers.n-1
+        INNER JOIN entity e ON t.entity_definition_keyname = e.entity_definition_keyname
+         LEFT JOIN property p ON p.entity_id = e.id AND p.property_definition_keyname = concat(e.entity_definition_keyname, '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1))
+        WHERE e.id = %(entity_id)s
+        AND e.is_deleted = 0
+        AND p.is_deleted = 0
+        AND t.field = 'displaytable'
+        AND ifnull(t.`language`,'%(language)s') = '%(language)s'
+        GROUP BY t.field, t.value, p.value_string
+        ORDER BY e.sort, e.id, t.field, numbers.n
+        """ % {'entity_id': entity_id, 'language': language}
+
+
+    def get_displayfields(self, entity_id, language):
+        return """
+        SELECT t.field, GROUP_CONCAT(IF (numbers.n MOD 2 = 1, SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1), ifnull(p.value_string,''))  ORDER BY numbers.n SEPARATOR '') AS displayfield
         FROM
         (
         SELECT 1 AS n
@@ -176,10 +286,11 @@ class EQuery():
         WHERE e.id = %(entity_id)s
         AND e.is_deleted = 0
         AND ifnull(p.is_deleted,0) = 0
-        AND t.field = 'displayname'
+        AND t.field IN ('displayname','displayinfo','sort')
         AND ifnull(t.`language`,'%(language)s') = '%(language)s'
+        GROUP BY t.field
         ORDER BY e.sort, e.id, t.field, numbers.n
-        """ % {'entity_id': property_row.value_reference, 'language': property_row.language}
+        """ % {'entity_id': entity_id, 'language': language}
 
 
     def fresh_properties(self, lim, first_second, last_second = None):
@@ -193,20 +304,23 @@ class EQuery():
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
                  WHERE p.created >= '%(first_second)s' and p.created <= '%(last_second)s'
+                 AND p.is_deleted = 0
                  ORDER BY o_date
                 ) cr
                 UNION SELECT * FROM
                 (SELECT pd.dataproperty, pd.datatype, p.changed AS o_date, p.*
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
-                 WHERE p.changed >= '%(first_second)s' and p.created <= '%(last_second)s'
+                 WHERE p.changed >= '%(first_second)s' and p.changed <= '%(last_second)s'
+                 AND p.is_deleted = 0
                  ORDER BY o_date
                 ) ch
                 UNION SELECT * FROM
                 (SELECT pd.dataproperty, pd.datatype, p.deleted AS o_date, p.*
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
-                 WHERE p.deleted >= '%(first_second)s' and p.created <= '%(last_second)s'
+                 WHERE p.deleted >= '%(first_second)s' and p.deleted <= '%(last_second)s'
+                 AND p.is_deleted = 1
                  ORDER BY o_date
                 ) de
                 ORDER BY o_date
@@ -219,6 +333,7 @@ class EQuery():
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
                  WHERE p.created > '%(date)s'
+                 AND p.is_deleted = 0
                  ORDER BY o_date
                  LIMIT %(limit)s
                 ) cr
@@ -227,6 +342,7 @@ class EQuery():
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
                  WHERE p.changed > '%(date)s'
+                 AND p.is_deleted = 0
                  ORDER BY o_date
                  LIMIT %(limit)s
                 ) ch
@@ -235,6 +351,7 @@ class EQuery():
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
                  WHERE p.deleted > '%(date)s'
+                 AND p.is_deleted = 1
                  ORDER BY o_date
                  LIMIT %(limit)s
                 ) de
@@ -349,26 +466,19 @@ class EQuery():
         return sql[direction]
 
 
-    def searchindex(self, entity_id):
+    def search_it(self, entity_id, language):
         return """
-            INSERT INTO searchindex (entity_id, `language`, val)
-             SELECT
-                p.entity_id,
-                l.language,
-                @val := LEFT(GROUP_CONCAT(p.value_string ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000)
-            FROM (SELECT DISTINCT t.language FROM translation t WHERE t.language IS NOT NULL) AS l
-            LEFT JOIN  property AS p ON ifnull(p.language,l.language) = l.language
+            SELECT LEFT(GROUP_CONCAT(p.value_string ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000) as "value"
+            FROM property AS p
             LEFT JOIN  property_definition AS pd ON pd.keyname = p.property_definition_keyname
-            WHERE p.entity_id = %i
+            WHERE p.entity_id = %(entity_id)i
+            AND ifnull(p.language, '%(language)s') = '%(language)s'
             AND p.is_deleted = 0
             AND pd.is_deleted = 0
-            AND pd.search = 1
-            GROUP BY
-                l.language,
-                p.entity_id
-            ON DUPLICATE KEY UPDATE
-                val = @val;
-        """ % (entity_id)
+            AND pd.search = 1;
+        """ % {'entity_id': entity_id, 'language': language}
+
+
 
 
 
