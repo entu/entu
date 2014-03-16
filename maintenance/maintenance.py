@@ -63,56 +63,56 @@ while True:
         last_checked.setdefault('_metrics', {}).setdefault('time_spent', 0.0000)
 
         customer_started_at = datetime.now()
-        if verbose > 1: print "\n%s Starting for --== %s (%s) ==--." % (datetime.now(), customer_row.get('name')[0], customer_row.get('domain')[0])
+        if verbose > 0: print "\n%s Starting for --== %s (%s) ==--." % (datetime.now(), customer_row.get('name')[0], customer_row.get('domain')[0])
 
         check_time = last_checked[customer_row.get('domain')[0]]['latest_checked']
-        if verbose > 1: print "%s Looking for properties fresher than %s." % (datetime.now(), check_time)
+        if verbose > 1: print "%s Looking for properties fresher than %s." % (datetime.now()-customer_started_at, check_time)
         property_table = db.query(EQuery().fresh_properties(chunk_size, check_time, False))
         properties_to_check = len(property_table)
-        if verbose > 1: print "%s Got %s properties." % (datetime.now(), properties_to_check)
+        if verbose > 2: print "%s Got %s properties." % (datetime.now()-customer_started_at, properties_to_check)
         # If chunk size of rows returned, then reload query with next second properties only.
         if properties_to_check == chunk_size:
             first_second = property_table[0].o_date
             last_second = property_table[chunk_size-1].o_date
-            if verbose > 1: print "%s Reloading properties with timestamp between %s and %s inclusive." % (datetime.now(), first_second, last_second)
+            if verbose > 2: print "%s Reloading properties with timestamp between %s and %s inclusive." % (datetime.now()-customer_started_at, first_second, last_second)
             try:
                 # print EQuery().fresh_properties(chunk_size, first_second, last_second)
                 property_table = db.query(EQuery().fresh_properties(chunk_size, first_second, last_second))
             except Exception as e:
                 print EQuery().fresh_properties(chunk_size, first_second, last_second)
-                print "\n%s: failed for %s." % (datetime.now(), customer_row.get('database-name')[0])
+                print "\n%s: failed for %s." % (datetime.now()-customer_started_at, customer_row.get('database-name')[0])
                 raise e
 
             properties_to_check = len(property_table)
-            if verbose > 1: print "%s Got %s properties with timestamp between %s and %s inclusive." % (datetime.now(), properties_to_check, first_second, last_second)
+            if verbose > 2: print "%s Got %s properties with timestamp between %s and %s inclusive." % (datetime.now()-customer_started_at, properties_to_check, first_second, last_second)
         if properties_to_check == 0:
             continue
 
         # Property revaluation
-        if verbose > 1: print "%s Checking formulas of %i properties." % (datetime.now(), properties_to_check)
+        if verbose > 0: print "%s Checking formulas of %i properties." % (datetime.now()-customer_started_at, properties_to_check)
         for property_row in property_table:
             task.check_my_formulas(db, property_row)
             task.check_my_value_display(db, property_row)
             last_checked[customer_row.get('domain')[0]]['last_id'] = property_row.id
             last_checked[customer_row.get('domain')[0]]['latest_checked'] = str(property_row.o_date)
-        if verbose > 1: print "%s Formula check finished." % (datetime.now())
+        if verbose > 2: print "%s Formula check finished." % (datetime.now()-customer_started_at)
 
         # Entity info refresh
-        if verbose > 1: print "%s Looking for entity id's." % (datetime.now())
+        if verbose > 2: print "%s Looking for entity id's." % (datetime.now()-customer_started_at)
         entities_to_index = {}
         for property_row in property_table:
             entities_to_index[property_row.entity_id] = {'id': property_row.entity_id}
-        if verbose > 1: print "%s There are %i unique entities to reindex." % (datetime.now(), len(entities_to_index))
+        if verbose > 2: print "%s There are %i unique entities to reindex." % (datetime.now()-customer_started_at, len(entities_to_index))
         for entity in entities_to_index.values():
             task.refresh_entity_info(db, entity['id'], customer_row.get('language-ref'))
             # db.execute(EQuery().searchindex(entity['id']))
-        if verbose > 1: print "%s Entities reindexed." % (datetime.now())
+        if verbose > 1: print "%s %i entities reindexed." % (datetime.now()-customer_started_at, len(entities_to_index))
 
         customer_finished_at = datetime.now()
         customer_time_spent = customer_finished_at - customer_started_at
 
         last_checked['_metrics']['properties_checked'] = mov_ave * last_checked['_metrics']['properties_checked'] + properties_to_check
-        last_checked['_metrics']['entities_checked'] = mov_ave * last_checked['_metrics']['entities_checked'] + entities_to_index
+        last_checked['_metrics']['entities_checked'] = mov_ave * last_checked['_metrics']['entities_checked'] + len(entities_to_index)
         last_checked['_metrics']['time_spent'] = mov_ave * last_checked['_metrics']['time_spent'] + customer_time_spent.microseconds + (customer_time_spent.seconds + customer_time_spent.days * 86400) * 1000000
 
         with open(timestamp_file, 'w+') as f:
@@ -127,7 +127,10 @@ while True:
     time_spent_sec = 0.000001*time_delta.microseconds + time_delta.seconds + time_delta.days*86400
     sleep = time_spent_sec * sleepfactor + sleepfactor * 1
     print "%s (%2.2f seconds). Now sleeping for %2.2f seconds." % (d_stop, time_spent_sec, sleep)
-    print "Moving average (%1.2f) properties/second: %3.2f; entities/second: %3.2f." % (mov_ave, 1000000.00*last_checked['_metrics']['properties_checked']/last_checked['_metrics']['time_spent'], 1000000.00*last_checked['_metrics']['entities_checked']/last_checked['_metrics']['time_spent'])
+    print "Moving average (%1.2f) properties/second: %3.2f; entities/second: %3.2f." % (
+        mov_ave,
+        1000000.00*last_checked['_metrics']['properties_checked']/last_checked['_metrics']['time_spent'],
+        1000000.00*last_checked['_metrics']['entities_checked']/last_checked['_metrics']['time_spent'])
     time.sleep(sleep)
     # print json.dumps(customers, sort_keys=True, indent=4, separators=(',', ': '))
 
