@@ -143,9 +143,9 @@ class ETask():
                 # """ % formula_property_row.id
                 # db.execute(sql)
 
-        if rows_updated > 0:
+        # if rows_updated > 0:
             # raw_input('Revaluation of {0} rows finished.\n=> {1} rows updated\n=> {2} rows were up to date.\nPress a key...'.format(len(recordset), rows_updated, rows_up_to_date))
-            print 'Revaluation of {0} rows finished.\n=> {1} rows updated\n=> {2} rows were up to date.'.format(len(recordset), rows_updated, rows_up_to_date)
+            # print 'Revaluation of {0} rows finished.\n=> {1} rows updated\n=> {2} rows were up to date.'.format(len(recordset), rows_updated, rows_up_to_date)
 
 
     def refresh_entity_info(self, db, entity_id, languages):
@@ -303,24 +303,30 @@ class EQuery():
                 (SELECT pd.dataproperty, pd.datatype, p.created AS o_date, p.*
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+                  LEFT JOIN entity e on e.id = p.entity_id
                  WHERE p.created >= '%(first_second)s' and p.created <= '%(last_second)s'
                  AND p.is_deleted = 0
+                 AND e.is_deleted = 0
                  ORDER BY o_date
                 ) cr
                 UNION SELECT * FROM
                 (SELECT pd.dataproperty, pd.datatype, p.changed AS o_date, p.*
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+                  LEFT JOIN entity e on e.id = p.entity_id
                  WHERE p.changed >= '%(first_second)s' and p.changed <= '%(last_second)s'
                  AND p.is_deleted = 0
+                 AND e.is_deleted = 0
                  ORDER BY o_date
                 ) ch
                 UNION SELECT * FROM
                 (SELECT pd.dataproperty, pd.datatype, p.deleted AS o_date, p.*
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+                  LEFT JOIN entity e on e.id = p.entity_id
                  WHERE p.deleted >= '%(first_second)s' and p.deleted <= '%(last_second)s'
                  AND p.is_deleted = 1
+                 AND e.is_deleted = 0
                  ORDER BY o_date
                 ) de
                 ORDER BY o_date
@@ -332,8 +338,10 @@ class EQuery():
                 (SELECT pd.dataproperty, pd.datatype, p.created AS o_date, p.*
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+                  LEFT JOIN entity e on e.id = p.entity_id
                  WHERE p.created > '%(date)s'
                  AND p.is_deleted = 0
+                 AND e.is_deleted = 0
                  ORDER BY o_date
                  LIMIT %(limit)s
                 ) cr
@@ -341,8 +349,10 @@ class EQuery():
                 (SELECT pd.dataproperty, pd.datatype, p.changed AS o_date, p.*
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+                  LEFT JOIN entity e on e.id = p.entity_id
                  WHERE p.changed > '%(date)s'
                  AND p.is_deleted = 0
+                 AND e.is_deleted = 0
                  ORDER BY o_date
                  LIMIT %(limit)s
                 ) ch
@@ -350,8 +360,10 @@ class EQuery():
                 (SELECT pd.dataproperty, pd.datatype, p.deleted AS o_date, p.*
                   FROM property p
                   LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+                  LEFT JOIN entity e on e.id = p.entity_id
                  WHERE p.deleted > '%(date)s'
                  AND p.is_deleted = 1
+                 AND e.is_deleted = 0
                  ORDER BY o_date
                  LIMIT %(limit)s
                 ) de
