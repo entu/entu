@@ -1,4 +1,16 @@
 # maintenance.py
+
+# - Get chunk of newly created or deleted properties
+# - Revaluate formulas
+#   - For new formula property calculate it's value
+#   - For any parent entity recalculate formulas affected by property
+#   - For any child entity recalculate formulas affected by property
+#   - For "self" entity recalculate formulas affected by property
+#   - For back-referencing entity recalculate formulas affected by property
+# - Populate value_display
+# - Get entities for affected properties
+# - Reindex entity_info
+
 from datetime import datetime
 import argparse
 import yaml
@@ -89,20 +101,20 @@ while True:
             continue
 
         # Property revaluation
-        if verbose > 0: print "%s Checking formulas of %i properties." % (datetime.now()-customer_started_at, properties_to_check)
+        if verbose > 0: print "%s Checking %i properties." % (datetime.now()-customer_started_at, properties_to_check)
         for property_row in property_table:
             task.check_my_formulas(db, property_row)
             task.check_my_value_display(db, property_row)
             last_checked[customer_row.get('domain')[0]]['last_id'] = property_row.id
             last_checked[customer_row.get('domain')[0]]['latest_checked'] = str(property_row.o_date)
-        if verbose > 2: print "%s Formula check finished." % (datetime.now()-customer_started_at)
+        if verbose > 2: print "%s Property check finished." % (datetime.now()-customer_started_at)
 
         # Entity info refresh
         if verbose > 2: print "%s Looking for entity id's." % (datetime.now()-customer_started_at)
         entities_to_index = {}
         for property_row in property_table:
             entities_to_index[property_row.entity_id] = {'id': property_row.entity_id}
-        if verbose > 2: print "%s There are %i unique entities to reindex." % (datetime.now()-customer_started_at, len(entities_to_index))
+        if verbose > 0: print "%s There are %i unique entities to reindex." % (datetime.now()-customer_started_at, len(entities_to_index))
         for entity in entities_to_index.values():
             task.refresh_entity_info(db, entity['id'], customer_row.get('language-ref'))
             # db.execute(EQuery().searchindex(entity['id']))
