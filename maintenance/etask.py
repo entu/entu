@@ -124,16 +124,16 @@ class ETask():
         for formula_property_row in recordset:
             frm = Formula(db, formula_property_row.id, formula_property_row.entity_id, formula_property_row.value_formula)
             frm_value = ''.join(frm.evaluate())
-            # print "Old value is: %s" % (formula_property_row.value_string)
+            # print "Old value is: %s" % (formula_property_row.value_display)
             # print "Formula evaluated to: %s" % (frm_value)
-            if frm_value != formula_property_row.value_string:
+            if frm_value != formula_property_row.value_display:
                 # print formula_property_row
                 rows_updated = rows_updated + 1
-                # print "New: '%s' != Old: '%s'. Updating..." % (frm_value, formula_property_row.value_string)
+                # print "New: '%s' != Old: '%s'. Updating..." % (frm_value, formula_property_row.value_display)
 
                 db.execute("""
-                INSERT INTO `property` (`property_definition_keyname`, `entity_id`, `ordinal`, `language`, `value_formula`, `value_string`, `value_text`, `value_integer`, `value_decimal`, `value_boolean`, `value_datetime`, `value_entity`, `value_reference`, `value_file`, `value_counter`, `created`, `created_by`, `changed`, `changed_by`)
-                SELECT `property_definition_keyname`, `entity_id`, `ordinal`, `language`, `value_formula`, %s, `value_text`, `value_integer`, `value_decimal`, `value_boolean`, `value_datetime`, `value_entity`, `value_reference`, `value_file`, `value_counter`, `created`, `created_by`, now(), 'maintenance'
+                INSERT INTO `property` (`property_definition_keyname`, `entity_id`, `ordinal`, `language`, `value_formula`, `value_display`, `value_string`, `value_text`, `value_integer`, `value_decimal`, `value_boolean`, `value_datetime`, `value_entity`, `value_reference`, `value_file`, `value_counter`, `created`, `created_by`, `changed`, `changed_by`)
+                SELECT `property_definition_keyname`, `entity_id`, `ordinal`, `language`, `value_formula`, %s, `value_string`, `value_text`, `value_integer`, `value_decimal`, `value_boolean`, `value_datetime`, `value_entity`, `value_reference`, `value_file`, `value_counter`, `created`, `created_by`, now(), 'maintenance'
                 FROM `property` WHERE id = %s;
                 """, frm_value, formula_property_row.id)
 
@@ -145,16 +145,6 @@ class ETask():
                 continue
             else:
                 rows_up_to_date = rows_up_to_date + 1
-                # print "%s equals %s, updating changed and changed_by values" % (frm_value, formula_property_row.value_string)
-                # sql = """
-                #     UPDATE property
-                #     SET changed = now(), changed_by = 'maintenance' WHERE id = %s
-                # """ % formula_property_row.id
-                # db.execute(sql)
-
-        # if rows_updated > 0:
-            # raw_input('Revaluation of {0} rows finished.\n=> {1} rows updated\n=> {2} rows were up to date.\nPress a key...'.format(len(recordset), rows_updated, rows_up_to_date))
-            # print 'Revaluation of {0} rows finished.\n=> {1} rows updated\n=> {2} rows were up to date.'.format(len(recordset), rows_updated, rows_up_to_date)
 
 
     def refresh_entity_info(self, db, entity_id, languages):
@@ -230,7 +220,7 @@ class EQuery():
 
     def get_displaytable(self, entity_id, language):
         return """
-        SELECT SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1) AS k, p.value_string AS v, p.value_file AS f, p.value_reference AS r
+        SELECT SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1) AS k, p.value_display AS v, p.value_file AS f, p.value_reference AS r
         FROM
         (
         SELECT 1 AS n
@@ -260,14 +250,14 @@ class EQuery():
         AND p.is_deleted = 0
         AND t.field = 'displaytable'
         AND ifnull(t.`language`,'%(language)s') = '%(language)s'
-        GROUP BY t.field, t.value, p.value_string, p.value_file, p.value_reference
+        GROUP BY t.field, t.value, p.value_display, p.value_file, p.value_reference
         ORDER BY e.sort, e.id, t.field, numbers.n
         """ % {'entity_id': entity_id, 'language': language}
 
 
     def get_displayfields(self, entity_id, language):
         return """
-        SELECT t.field, GROUP_CONCAT(IF (numbers.n MOD 2 = 1, SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1), ifnull(p.value_string,''))  ORDER BY numbers.n SEPARATOR '') AS displayfield
+        SELECT t.field, GROUP_CONCAT(IF (numbers.n MOD 2 = 1, SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1), ifnull(p.value_display,''))  ORDER BY numbers.n SEPARATOR '') AS displayfield
         FROM
         (
         SELECT 1 AS n
@@ -454,7 +444,7 @@ class EQuery():
 
         # Self referencing formula properties (SLQ is NOT tested)
         sql['self'] = """
-            SELECT p_formula.id, p_formula.entity_id, p_formula.value_formula, p_formula.value_string
+            SELECT p_formula.id, p_formula.entity_id, p_formula.value_formula, p_formula.value_display
             FROM entity e_formula
             LEFT JOIN property p_formula ON p_formula.entity_id = e_formula.id
                         AND p_formula.is_deleted = 0
@@ -468,7 +458,7 @@ class EQuery():
 
         # Back-referencing formula properties (SLQ is tested)
         sql['back-referencing'] = """
-            SELECT p_formula.id, p_formula.entity_id, p_formula.value_formula, p_formula.value_string
+            SELECT p_formula.id, p_formula.entity_id, p_formula.value_formula, p_formula.value_display
             FROM property p_reference
             RIGHT JOIN property_definition pd_reference ON pd_reference.keyname = p_reference.property_definition_keyname
                         AND pd_reference.datatype = 'reference'
@@ -489,7 +479,7 @@ class EQuery():
 
     def search_it(self, entity_id, language):
         return """
-            SELECT LEFT(GROUP_CONCAT(p.value_string ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000) as "value"
+            SELECT LEFT(GROUP_CONCAT(p.value_display ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000) as "value"
             FROM property AS p
             LEFT JOIN  property_definition AS pd ON pd.keyname = p.property_definition_keyname
             WHERE p.entity_id = %(entity_id)i
