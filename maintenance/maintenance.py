@@ -63,7 +63,7 @@ while True:
         last_checked.setdefault('_metrics', {}).setdefault('time_spent', 0.0000)
 
         customer_started_at = datetime.now()
-        if verbose > 0: print "\n%s Starting for --== %s (%s) ==--." % (datetime.now(), customer_row.get('name')[0], customer_row.get('domain')[0])
+        if verbose > 0: print "\n%s Starting for --== %s ==--." % (datetime.now(), customer_row.get('domain')[0])
 
         check_time = last_checked[customer_row.get('domain')[0]]['latest_checked']
         if verbose > 1: print "%s Looking for properties fresher than %s." % (datetime.now()-customer_started_at, check_time)
