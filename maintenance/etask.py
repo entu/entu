@@ -170,11 +170,11 @@ class ETask():
             # print EQuery().get_displaytable(entity_id, language)
             displaytable = {}
             for row in db.query(EQuery().get_displaytable(entity_id, language)):
-                displaytable.setdefault(row.k, []).append(row.v)
+                displaytable.setdefault(row.k, []).append({'v':row.v, 'f':row.f, 'r':row.r})
 
             displayproperties = {}
             for row in db.query(EQuery().get_displayproperties(entity_id, language)):
-                displayproperties.setdefault(row.k, []).append(row.v)
+                displayproperties.setdefault(row.k, []).append({'v':row.v, 'f':row.f, 'r':row.r})
 
             sql = """
                 INSERT INTO `entity_info` (`entity_id`, `language`, `search_it`, `sort_it`, `displayname`, `displayinfo`, `displaytable`, `displayproperties`)
@@ -219,7 +219,7 @@ class EQuery():
 
     def get_displayproperties(self, entity_id, language):
         return """
-        SELECT pd.dataproperty k, p.value_display v
+        SELECT pd.dataproperty k, p.value_display v, p.value_file AS f, p.value_reference AS r
         FROM property p
         LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
         WHERE p.entity_id = %(entity_id)s
@@ -230,7 +230,7 @@ class EQuery():
 
     def get_displaytable(self, entity_id, language):
         return """
-        SELECT SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1) AS k, p.value_string AS v
+        SELECT SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1) AS k, p.value_string AS v, p.value_file AS f, p.value_reference AS r
         FROM
         (
         SELECT 1 AS n
@@ -260,7 +260,7 @@ class EQuery():
         AND p.is_deleted = 0
         AND t.field = 'displaytable'
         AND ifnull(t.`language`,'%(language)s') = '%(language)s'
-        GROUP BY t.field, t.value, p.value_string
+        GROUP BY t.field, t.value, p.value_string, p.value_file, p.value_reference
         ORDER BY e.sort, e.id, t.field, numbers.n
         """ % {'entity_id': entity_id, 'language': language}
 
