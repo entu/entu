@@ -209,7 +209,7 @@ class EQuery():
 
     def get_displayproperties(self, entity_id, language):
         return """
-        SELECT pd.dataproperty k, p.value_display v, p.value_file AS f, p.value_reference AS r
+        SELECT pd.dataproperty k, p.value_display v, ifnull(p.value_file,'') AS f, ifnull(p.value_reference,'') AS r
         FROM property p
         LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
         WHERE p.entity_id = %(entity_id)s
@@ -220,7 +220,7 @@ class EQuery():
 
     def get_displaytable(self, entity_id, language):
         return """
-        SELECT SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1) AS k, p.value_display AS v, p.value_file AS f, p.value_reference AS r
+        SELECT SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1) AS k, p.value_display AS v, ifnull(p.value_file,'') AS f, ifnull(p.value_reference,'') AS r
         FROM
         (
         SELECT 1 AS n
