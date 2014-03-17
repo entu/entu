@@ -35,7 +35,7 @@ task = ETask(args)
 i = 0
 sleepfactor = 0.025
 mov_ave = 0.99
-chunk_size = 3500
+chunk_size = 300
 
 
 while True:

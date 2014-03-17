@@ -79,13 +79,21 @@ class ETask():
         elif property_row.datatype == 'datetime':
             value_display = formatDatetime(property_row.value_datetime) if property_row.value_datetime else ''
         elif property_row.datatype == 'reference':
-            qresult = db.query(EQuery().get_displayfields(property_row.value_reference, property_row.language))
-            value_display = 'N/A'
-            if len(qresult) > 0:
-                for row in qresult:
-                    if row.field == 'displayname':
-                        value_display = row.displayfield
-                        continue
+            if property_row.value_reference > 0:
+                try:
+                    qresult = db.query(EQuery().get_displayfields(property_row.value_reference, property_row.language))
+                except Exception as e:
+                    print property_row
+                    print EQuery().get_displayfields(property_row.value_reference, property_row.language)
+                    raise e
+                value_display = 'N/A'
+                if len(qresult) > 0:
+                    for row in qresult:
+                        if row.field == 'displayname':
+                            value_display = row.displayfield
+                            continue
+            else:
+                value_display = 'N/A'
         elif property_row.datatype == 'file':
             value_display = property_row.value_file
             qresult = db.query('SELECT filename FROM file WHERE id=%s LIMIT 1', property_row.value_file)
@@ -102,8 +110,9 @@ class ETask():
         """ % {'value_display': value_display, 'property_id': property_row.id}
         try:
             db.execute("UPDATE property SET value_display = %s WHERE id = %s", value_display, property_row.id)
-        except:
+        except Exception as e:
             print sql
+            raise e
 
 
     def revaluate_formulas(self, db, recordset):
