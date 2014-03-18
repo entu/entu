@@ -294,7 +294,7 @@
               box.get(0).play();
             } else if(box.data('duration')) {
               // set image/url/flash timer
-              setTimeout(function() {showNext(box)}, box.data('duration') * 1000);
+              timeouts[box.attr('id')+'-duration'] = setTimeout(function() {showNext(box)}, box.data('duration') * 1000);
             }
           }
 
@@ -306,7 +306,7 @@
               // show next box in playlist (if set)
               var next = $('#' + box.data('next'));
               if(next.data('delay')) {
-                setTimeout(function() { showBox(next) }, next.data('delay') * 1000);
+                timeouts[box.attr('id')+'-delay'] = setTimeout(function() { showBox(next) }, next.data('delay') * 1000);
               } else {
                 showBox(next);
               }
