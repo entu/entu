@@ -1,3 +1,13 @@
+## 2014-03-18
+* Get public Entities from API 2.0
+* Digital signage (ScreenWerk) player enhancements:
+  * Background update with preset interval
+  * Play flash media
+  * Set layout in pixels
+  * Restart player at midnight
+* New ESTER importer
+* Bugfixes
+
 ## 2014-01-26
 * Show all Entities (not just first 500) in search result
 * API 2.0 first methods
