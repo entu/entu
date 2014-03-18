@@ -121,16 +121,17 @@ while True:
         if verbose > 2: print "%s Property check finished." % (datetime.now()-customer_started_at)
 
         # Entity info refresh
-        entities_to_index = {}
+        entities_to_index = []
         if last_checked[customer_row.get('domain')[0]]['property_status'] == 'In real time':
             if verbose > 2: print "%s Looking for entity id's." % (datetime.now()-customer_started_at)
             if last_checked[customer_row.get('domain')[0]]['entity_status'] == 'In real time':
                 for property_row in property_table:
-                    entities_to_index[property_row.entity_id] = {'id': property_row.entity_id}
+                    entities_to_index.append({'id': property_row.entity_id})
             else:
                 entities_to_index = db.query("SELECT id FROM entity WHERE is_deleted = 0")
+                # print entities_to_index
             if verbose > 0: print "%s There are %i unique entities to reindex." % (datetime.now()-customer_started_at, len(entities_to_index))
-            for entity in entities_to_index.values():
+            for entity in entities_to_index:
                 profiling = task.refresh_entity_info(db, entity['id'], customer_row.get('language-ref'))
                 if verbose > 3:
                     profiling_sum['displayfields'] = profiling_sum['displayfields'] + profiling['displayfields']
