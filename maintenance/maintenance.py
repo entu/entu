@@ -47,7 +47,7 @@ task = ETask(args)
 i = 0
 sleepfactor = 0.025
 mov_ave = 0.99
-chunk_size = 5000
+chunk_size = 100
 
 if verbose > 3:
     profiling_sum = {'search_it': 0.00

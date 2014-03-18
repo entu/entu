@@ -155,13 +155,15 @@ class ETask():
                    , 'INSERT': 0.00
         }
         for language in languages:
-            # Fetch search values
-            d_start = datetime.now()
-            search_it = db.query(EQuery().search_it(entity_id, language))[0].value
-            time_delta = datetime.now() - d_start
-            profiling['search_it'] = profiling['search_it'] + (0.000001*time_delta.microseconds + time_delta.seconds + time_delta.days*86400)
+            # # Fetch search values
+            # print EQuery().search_it(entity_id, language)
+            # d_start = datetime.now()
+            # search_it = db.query(EQuery().search_it(entity_id, language))[0].value
+            # time_delta = datetime.now() - d_start
+            # profiling['search_it'] = profiling['search_it'] + (0.000001*time_delta.microseconds + time_delta.seconds + time_delta.days*86400)
 
             # Fetch displayfields
+            # print EQuery().get_displayfields(entity_id, language)
             d_start = datetime.now()
             displayfields = {}
             for row in db.query(EQuery().get_displayfields(entity_id, language)):
@@ -169,15 +171,17 @@ class ETask():
             time_delta = datetime.now() - d_start
             profiling['displayfields'] = profiling['displayfields'] + (0.000001*time_delta.microseconds + time_delta.seconds + time_delta.days*86400)
 
-            # Fetch displaytable
-            d_start = datetime.now()
-            displaytable = {}
-            for row in db.query(EQuery().get_displaytable(entity_id, language)):
-                displaytable.setdefault(row.k, []).append({'v':row.v, 'f':row.f, 'r':row.r})
-            time_delta = datetime.now() - d_start
-            profiling['displaytable'] = profiling['displaytable'] + (0.000001*time_delta.microseconds + time_delta.seconds + time_delta.days*86400)
+            # # Fetch displaytable
+            # # print EQuery().get_displaytable(entity_id, language)
+            # d_start = datetime.now()
+            # displaytable = {}
+            # for row in db.query(EQuery().get_displaytable(entity_id, language)):
+            #     displaytable.setdefault(row.k, []).append({'v':row.v, 'f':row.f, 'r':row.r})
+            # time_delta = datetime.now() - d_start
+            # profiling['displaytable'] = profiling['displaytable'] + (0.000001*time_delta.microseconds + time_delta.seconds + time_delta.days*86400)
 
             # Fetch all properties
+            # print EQuery().get_displayproperties(entity_id, language)
             d_start = datetime.now()
             displayproperties = {}
             for row in db.query(EQuery().get_displayproperties(entity_id, language)):
@@ -188,9 +192,8 @@ class ETask():
             # Insert
             d_start = datetime.now()
             sql = """
-                INSERT DELAYED INTO `entity_info` (`entity_id`, `language`, `search_it`, `sort_it`, `displayname`, `displayinfo`, `displaytable`, `displayproperties`)
+                INSERT DELAYED INTO `entity_info` (`entity_id`, `language`, `search_it`, `sort_it`, `displayname`, `displayinfo`, `displayproperties`)
                 VALUES (%s,
-                        %s,
                         %s,
                         %s,
                         %s,
@@ -203,23 +206,20 @@ class ETask():
                 `sort_it`=           %s,
                 `displayname`=       %s,
                 `displayinfo`=       %s,
-                `displaytable`=      %s,
                 `displayproperties`= %s;
                 """
             db.execute(sql
                 , entity_id
                 , language
-                , search_it
+                , displayfields.setdefault('search', '')
                 , displayfields.setdefault('sort', '')
                 , displayfields.setdefault('displayname', '')
                 , displayfields.setdefault('displayinfo', '')
-                , json.dumps(displaytable, indent=4, separators=(',', ': '))
                 , json.dumps(displayproperties, indent=4, separators=(',', ': '))
-                , search_it
+                , displayfields.setdefault('search', '')
                 , displayfields.setdefault('sort', '')
                 , displayfields.setdefault('displayname', '')
                 , displayfields.setdefault('displayinfo', '')
-                , json.dumps(displaytable, indent=4, separators=(',', ': '))
                 , json.dumps(displayproperties, indent=4, separators=(',', ': '))
                 )
             time_delta = datetime.now() - d_start
@@ -234,54 +234,64 @@ class EQuery():
 
     def get_displayproperties(self, entity_id, language):
         return """
-        SELECT pd.dataproperty k, p.value_display v, ifnull(p.value_file,'') AS f, ifnull(p.value_reference,'') AS r
+        SELECT pd.dataproperty k, p.value_display v, ifnull(p.value_file,'') AS f, ifnull(p.value_reference,'') AS r, IF(t.value IS NULL, '', '1') AS t
         FROM property p
         LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+        LEFT JOIN translation t ON pd.entity_definition_keyname = t.entity_definition_keyname AND t.field = 'displaytable' AND t.value LIKE concat('%%%%@',pd.dataproperty,'@%%%%')
         WHERE p.entity_id = %(entity_id)s
         AND p.is_deleted = 0
         AND ifnull(p.language,'%(language)s') = '%(language)s'
         ORDER BY pd.ordinal, p.id;
         """ % {'entity_id': entity_id, 'language': language}
 
-    def get_displaytable(self, entity_id, language):
-        return """
-        SELECT SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1) AS k, p.value_display AS v, ifnull(p.value_file,'') AS f, ifnull(p.value_reference,'') AS r
-        FROM
-        (
-        SELECT 1 AS n
-        UNION SELECT 2 AS n
-        UNION SELECT 3 AS n
-        UNION SELECT 4 AS n
-        UNION SELECT 5 AS n
-        UNION SELECT 6 AS n
-        UNION SELECT 7 AS n
-        UNION SELECT 8 AS n
-        UNION SELECT 9 AS n
-        UNION SELECT 10 AS n
-        UNION SELECT 11 AS n
-        UNION SELECT 12 AS n
-        UNION SELECT 13 AS n
-        UNION SELECT 14 AS n
-        UNION SELECT 15 AS n
-        UNION SELECT 16 AS n
-        UNION SELECT 17 AS n
-        UNION SELECT 18 AS n
-        ) AS numbers
-        INNER JOIN translation t ON CHAR_LENGTH(t.value)-CHAR_LENGTH(REPLACE(t.value, '@', '')) >= numbers.n-1
-        INNER JOIN entity e ON t.entity_definition_keyname = e.entity_definition_keyname
-         LEFT JOIN property p ON p.entity_id = e.id AND p.property_definition_keyname = concat(e.entity_definition_keyname, '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1))
-        WHERE e.id = %(entity_id)s
-        AND e.is_deleted = 0
-        AND p.is_deleted = 0
-        AND t.field = 'displaytable'
-        AND ifnull(t.`language`,'%(language)s') = '%(language)s'
-        GROUP BY t.field, t.value, p.value_display, p.value_file, p.value_reference
-        ORDER BY e.sort, e.id, t.field, numbers.n
-        """ % {'entity_id': entity_id, 'language': language}
+    # def get_displaytable(self, entity_id, language):
+    #     return """
+    #     SELECT SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1) AS k, p.value_display AS v, ifnull(p.value_file,'') AS f, ifnull(p.value_reference,'') AS r
+    #     FROM
+    #     (
+    #     SELECT 1 AS n
+    #     UNION SELECT 2 AS n
+    #     UNION SELECT 3 AS n
+    #     UNION SELECT 4 AS n
+    #     UNION SELECT 5 AS n
+    #     UNION SELECT 6 AS n
+    #     UNION SELECT 7 AS n
+    #     UNION SELECT 8 AS n
+    #     UNION SELECT 9 AS n
+    #     UNION SELECT 10 AS n
+    #     UNION SELECT 11 AS n
+    #     UNION SELECT 12 AS n
+    #     UNION SELECT 13 AS n
+    #     UNION SELECT 14 AS n
+    #     UNION SELECT 15 AS n
+    #     UNION SELECT 16 AS n
+    #     UNION SELECT 17 AS n
+    #     UNION SELECT 18 AS n
+    #     ) AS numbers
+    #     INNER JOIN translation t ON CHAR_LENGTH(t.value)-CHAR_LENGTH(REPLACE(t.value, '@', '')) >= numbers.n-1
+    #     INNER JOIN entity e ON t.entity_definition_keyname = e.entity_definition_keyname
+    #      LEFT JOIN property p ON p.entity_id = e.id AND p.property_definition_keyname = concat(e.entity_definition_keyname, '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1))
+    #     WHERE e.id = %(entity_id)s
+    #     AND e.is_deleted = 0
+    #     AND p.is_deleted = 0
+    #     AND t.field = 'displaytable'
+    #     AND ifnull(t.`language`,'%(language)s') = '%(language)s'
+    #     GROUP BY t.field, t.value, p.value_display, p.value_file, p.value_reference
+    #     ORDER BY e.sort, e.id, t.field, numbers.n
+    #     """ % {'entity_id': entity_id, 'language': language}
 
 
     def get_displayfields(self, entity_id, language):
         return """
+        SELECT "search" AS field, LEFT(GROUP_CONCAT(p.value_display ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000) AS "displayfield"
+        FROM property AS p
+        LEFT JOIN  property_definition AS pd ON pd.keyname = p.property_definition_keyname
+        WHERE p.entity_id = %(entity_id)s
+        AND ifnull(p.language, '%(language)s') = '%(language)s'
+        AND p.is_deleted = 0
+        AND pd.is_deleted = 0
+        AND pd.search = 1
+    UNION
         SELECT t.field, GROUP_CONCAT(IF (numbers.n MOD 2 = 1, SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1), ifnull(p.value_display,''))  ORDER BY numbers.n SEPARATOR '') AS displayfield
         FROM
         (
@@ -313,7 +323,6 @@ class EQuery():
         AND t.field IN ('displayname','displayinfo','sort')
         AND ifnull(t.`language`,'%(language)s') = '%(language)s'
         GROUP BY t.field
-        ORDER BY e.sort, e.id, t.field, numbers.n
         """ % {'entity_id': entity_id, 'language': language}
 
 
@@ -502,17 +511,17 @@ class EQuery():
         return sql[direction]
 
 
-    def search_it(self, entity_id, language):
-        return """
-            SELECT LEFT(GROUP_CONCAT(p.value_display ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000) as "value"
-            FROM property AS p
-            LEFT JOIN  property_definition AS pd ON pd.keyname = p.property_definition_keyname
-            WHERE p.entity_id = %(entity_id)i
-            AND ifnull(p.language, '%(language)s') = '%(language)s'
-            AND p.is_deleted = 0
-            AND pd.is_deleted = 0
-            AND pd.search = 1;
-        """ % {'entity_id': entity_id, 'language': language}
+    # def search_it(self, entity_id, language):
+    #     return """
+    #         SELECT LEFT(GROUP_CONCAT(p.value_display ORDER BY pd.ordinal, p.id SEPARATOR ' '), 2000) as "value"
+    #         FROM property AS p
+    #         LEFT JOIN  property_definition AS pd ON pd.keyname = p.property_definition_keyname
+    #         WHERE p.entity_id = %(entity_id)i
+    #         AND ifnull(p.language, '%(language)s') = '%(language)s'
+    #         AND p.is_deleted = 0
+    #         AND pd.is_deleted = 0
+    #         AND pd.search = 1;
+    #     """ % {'entity_id': entity_id, 'language': language}
 
 
 
