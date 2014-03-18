@@ -49,6 +49,13 @@ sleepfactor = 0.025
 mov_ave = 0.99
 chunk_size = 5000
 
+if verbose > 3:
+    profiling_sum = {'search_it': 0.00
+                   , 'displayfields': 0.00
+                   , 'displaytable': 0.00
+                   , 'displayproperties': 0.00
+                   , 'INSERT': 0.00
+    }
 
 while True:
     d_start = datetime.now()
@@ -81,6 +88,8 @@ while True:
         if verbose > 1: print "%s Looking for properties fresher than %s." % (datetime.now()-customer_started_at, check_time)
         property_table = db.query(EQuery().fresh_properties(chunk_size, check_time, False))
         properties_to_check = len(property_table)
+        if properties_to_check == 0:
+            continue
         if verbose > 2: print "%s Got %s properties." % (datetime.now()-customer_started_at, properties_to_check)
         # If chunk size of rows returned, then reload query with next second properties only.
         if properties_to_check == chunk_size:
@@ -97,8 +106,6 @@ while True:
 
             properties_to_check = len(property_table)
             if verbose > 2: print "%s Got %s properties with timestamp between %s and %s inclusive." % (datetime.now()-customer_started_at, properties_to_check, first_second, last_second)
-        if properties_to_check == 0:
-            continue
 
         # Property revaluation
         if verbose > 0: print "%s Checking %i properties." % (datetime.now()-customer_started_at, properties_to_check)
@@ -116,9 +123,15 @@ while True:
             entities_to_index[property_row.entity_id] = {'id': property_row.entity_id}
         if verbose > 0: print "%s There are %i unique entities to reindex." % (datetime.now()-customer_started_at, len(entities_to_index))
         for entity in entities_to_index.values():
-            task.refresh_entity_info(db, entity['id'], customer_row.get('language-ref'))
-            # db.execute(EQuery().searchindex(entity['id']))
+            profiling = task.refresh_entity_info(db, entity['id'], customer_row.get('language-ref'))
+            if verbose > 3:
+                profiling_sum['search_it'] = profiling_sum['search_it'] + profiling['search_it']
+                profiling_sum['displayfields'] = profiling_sum['displayfields'] + profiling['displayfields']
+                profiling_sum['displaytable'] = profiling_sum['displaytable'] + profiling['displaytable']
+                profiling_sum['displayproperties'] = profiling_sum['displayproperties'] + profiling['displayproperties']
+                profiling_sum['INSERT'] = profiling_sum['INSERT'] + profiling['INSERT']
         if verbose > 1: print "%s %i entities reindexed." % (datetime.now()-customer_started_at, len(entities_to_index))
+        if verbose > 3: print json.dumps(profiling_sum, indent=4, separators=(',', ': '))
 
         customer_finished_at = datetime.now()
         customer_time_spent = customer_finished_at - customer_started_at
@@ -144,9 +157,4 @@ while True:
         1000000.00*last_checked['_metrics']['properties_checked']/last_checked['_metrics']['time_spent'],
         1000000.00*last_checked['_metrics']['entities_checked']/last_checked['_metrics']['time_spent'])
     time.sleep(sleep)
-    # print json.dumps(customers, sort_keys=True, indent=4, separators=(',', ': '))
-
-
-
-
-
+    if verbose > 4: raw_input('Press enter')

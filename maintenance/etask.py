@@ -148,26 +148,47 @@ class ETask():
 
 
     def refresh_entity_info(self, db, entity_id, languages):
+        profiling = {'search_it': 0.00
+                   , 'displayfields': 0.00
+                   , 'displaytable': 0.00
+                   , 'displayproperties': 0.00
+                   , 'INSERT': 0.00
+        }
         for language in languages:
-
+            # Fetch search values
+            d_start = datetime.now()
             search_it = db.query(EQuery().search_it(entity_id, language))[0].value
+            time_delta = datetime.now() - d_start
+            profiling['search_it'] = profiling['search_it'] + (0.000001*time_delta.microseconds + time_delta.seconds + time_delta.days*86400)
 
+            # Fetch displayfields
+            d_start = datetime.now()
             displayfields = {}
             for row in db.query(EQuery().get_displayfields(entity_id, language)):
                 displayfields[row.field] = row.displayfield
-            # print displayfields
+            time_delta = datetime.now() - d_start
+            profiling['displayfields'] = profiling['displayfields'] + (0.000001*time_delta.microseconds + time_delta.seconds + time_delta.days*86400)
 
-            # print EQuery().get_displaytable(entity_id, language)
+            # Fetch displaytable
+            d_start = datetime.now()
             displaytable = {}
             for row in db.query(EQuery().get_displaytable(entity_id, language)):
                 displaytable.setdefault(row.k, []).append({'v':row.v, 'f':row.f, 'r':row.r})
+            time_delta = datetime.now() - d_start
+            profiling['displaytable'] = profiling['displaytable'] + (0.000001*time_delta.microseconds + time_delta.seconds + time_delta.days*86400)
 
+            # Fetch all properties
+            d_start = datetime.now()
             displayproperties = {}
             for row in db.query(EQuery().get_displayproperties(entity_id, language)):
                 displayproperties.setdefault(row.k, []).append({'v':row.v, 'f':row.f, 'r':row.r})
+            time_delta = datetime.now() - d_start
+            profiling['displayproperties'] = profiling['displayproperties'] + (0.000001*time_delta.microseconds + time_delta.seconds + time_delta.days*86400)
 
+            # Insert
+            d_start = datetime.now()
             sql = """
-                INSERT INTO `entity_info` (`entity_id`, `language`, `search_it`, `sort_it`, `displayname`, `displayinfo`, `displaytable`, `displayproperties`)
+                INSERT DELAYED INTO `entity_info` (`entity_id`, `language`, `search_it`, `sort_it`, `displayname`, `displayinfo`, `displaytable`, `displayproperties`)
                 VALUES (%s,
                         %s,
                         %s,
@@ -201,6 +222,10 @@ class ETask():
                 , json.dumps(displaytable, indent=4, separators=(',', ': '))
                 , json.dumps(displayproperties, indent=4, separators=(',', ': '))
                 )
+            time_delta = datetime.now() - d_start
+            profiling['INSERT'] = profiling['INSERT'] + (0.000001*time_delta.microseconds + time_delta.seconds + time_delta.days*86400)
+
+        return profiling
 
 
 
