@@ -148,21 +148,12 @@ class ETask():
 
 
     def refresh_entity_info(self, db, entity_id, languages):
-        profiling = {'search_it': 0.00
-                   , 'displayfields': 0.00
-                   , 'displaytable': 0.00
+        profiling = {'displayfields': 0.00
                    , 'displayproperties': 0.00
                    , 'INSERT': 0.00
         }
         for language in languages:
-            # # Fetch search values
-            # print EQuery().search_it(entity_id, language)
-            # d_start = datetime.now()
-            # search_it = db.query(EQuery().search_it(entity_id, language))[0].value
-            # time_delta = datetime.now() - d_start
-            # profiling['search_it'] = profiling['search_it'] + (0.000001*time_delta.microseconds + time_delta.seconds + time_delta.days*86400)
-
-            # Fetch displayfields
+            # Fetch displayfields and search values
             # print EQuery().get_displayfields(entity_id, language)
             d_start = datetime.now()
             displayfields = {}
@@ -170,15 +161,6 @@ class ETask():
                 displayfields[row.field] = row.displayfield
             time_delta = datetime.now() - d_start
             profiling['displayfields'] = profiling['displayfields'] + (0.000001*time_delta.microseconds + time_delta.seconds + time_delta.days*86400)
-
-            # # Fetch displaytable
-            # # print EQuery().get_displaytable(entity_id, language)
-            # d_start = datetime.now()
-            # displaytable = {}
-            # for row in db.query(EQuery().get_displaytable(entity_id, language)):
-            #     displaytable.setdefault(row.k, []).append({'v':row.v, 'f':row.f, 'r':row.r})
-            # time_delta = datetime.now() - d_start
-            # profiling['displaytable'] = profiling['displaytable'] + (0.000001*time_delta.microseconds + time_delta.seconds + time_delta.days*86400)
 
             # Fetch all properties
             # print EQuery().get_displayproperties(entity_id, language)
@@ -234,7 +216,7 @@ class EQuery():
 
     def get_displayproperties(self, entity_id, language):
         return """
-        SELECT pd.dataproperty k, p.value_display v, ifnull(p.value_file,'') AS f, ifnull(p.value_reference,'') AS r, IF(t.value IS NULL, '', '1') AS t
+        SELECT pd.dataproperty k, p.value_display v, ifnull(p.value_file,'') AS f, ifnull(p.value_reference,'') AS r, IF(t.value IS NULL, '', 1 + length(substring_index(t.value, concat('@',pd.dataproperty,'@'),1)) - length(REPLACE(substring_index(t.value, concat('@',pd.dataproperty,'@'),1),'|',''))) AS t
         FROM property p
         LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
         LEFT JOIN translation t ON pd.entity_definition_keyname = t.entity_definition_keyname AND t.field = 'displaytable' AND t.value LIKE concat('%%%%@',pd.dataproperty,'@%%%%')
@@ -243,42 +225,6 @@ class EQuery():
         AND ifnull(p.language,'%(language)s') = '%(language)s'
         ORDER BY pd.ordinal, p.id;
         """ % {'entity_id': entity_id, 'language': language}
-
-    # def get_displaytable(self, entity_id, language):
-    #     return """
-    #     SELECT SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1) AS k, p.value_display AS v, ifnull(p.value_file,'') AS f, ifnull(p.value_reference,'') AS r
-    #     FROM
-    #     (
-    #     SELECT 1 AS n
-    #     UNION SELECT 2 AS n
-    #     UNION SELECT 3 AS n
-    #     UNION SELECT 4 AS n
-    #     UNION SELECT 5 AS n
-    #     UNION SELECT 6 AS n
-    #     UNION SELECT 7 AS n
-    #     UNION SELECT 8 AS n
-    #     UNION SELECT 9 AS n
-    #     UNION SELECT 10 AS n
-    #     UNION SELECT 11 AS n
-    #     UNION SELECT 12 AS n
-    #     UNION SELECT 13 AS n
-    #     UNION SELECT 14 AS n
-    #     UNION SELECT 15 AS n
-    #     UNION SELECT 16 AS n
-    #     UNION SELECT 17 AS n
-    #     UNION SELECT 18 AS n
-    #     ) AS numbers
-    #     INNER JOIN translation t ON CHAR_LENGTH(t.value)-CHAR_LENGTH(REPLACE(t.value, '@', '')) >= numbers.n-1
-    #     INNER JOIN entity e ON t.entity_definition_keyname = e.entity_definition_keyname
-    #      LEFT JOIN property p ON p.entity_id = e.id AND p.property_definition_keyname = concat(e.entity_definition_keyname, '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', numbers.n), '@', -1))
-    #     WHERE e.id = %(entity_id)s
-    #     AND e.is_deleted = 0
-    #     AND p.is_deleted = 0
-    #     AND t.field = 'displaytable'
-    #     AND ifnull(t.`language`,'%(language)s') = '%(language)s'
-    #     GROUP BY t.field, t.value, p.value_display, p.value_file, p.value_reference
-    #     ORDER BY e.sort, e.id, t.field, numbers.n
-    #     """ % {'entity_id': entity_id, 'language': language}
 
 
     def get_displayfields(self, entity_id, language):
