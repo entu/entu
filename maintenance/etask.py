@@ -40,9 +40,10 @@ class ETask():
             self.revaluate_formulas(db, qresult)
 
         qresult = db.query(EQuery().check_formula(property_row, 'child'))
+        print EQuery().check_formula(property_row, 'child')
         if len(qresult) > 0:
-            # print "Have {0} matching child formulas.".format(len(qresult))
-            # print property_row
+            print "Have {0} matching child formulas.".format(len(qresult))
+            print property_row
             self.revaluate_formulas(db, qresult)
 
         qresult = db.query(EQuery().check_formula(property_row, 'self'))
@@ -109,7 +110,8 @@ class ETask():
             SET value_display = '%(value_display)s' WHERE id = %(property_id)i
         """ % {'value_display': value_display, 'property_id': property_row.id}
         try:
-            db.execute("UPDATE property SET value_display = %s WHERE id = %s", value_display, property_row.id)
+            db.execute("UPDATE property SET value_display = value_string, value_string = %s WHERE id = %s", value_display, property_row.id)
+            # db.execute("UPDATE property SET value_display = %s WHERE id = %s", value_display, property_row.id)
         except Exception as e:
             print sql
             raise e
@@ -133,13 +135,13 @@ class ETask():
 
                 db.execute("""
                 INSERT INTO `property` (`property_definition_keyname`, `entity_id`, `ordinal`, `language`, `value_formula`, `value_display`, `value_string`, `value_text`, `value_integer`, `value_decimal`, `value_boolean`, `value_datetime`, `value_entity`, `value_reference`, `value_file`, `value_counter`, `created`, `created_by`, `changed`, `changed_by`)
-                SELECT `property_definition_keyname`, `entity_id`, `ordinal`, `language`, `value_formula`, %s, `value_string`, `value_text`, `value_integer`, `value_decimal`, `value_boolean`, `value_datetime`, `value_entity`, `value_reference`, `value_file`, `value_counter`, `created`, `created_by`, now(), 'maintenance'
+                SELECT `property_definition_keyname`, `entity_id`, `ordinal`, `language`, `value_formula`, `value_string`, %s, `value_text`, `value_integer`, `value_decimal`, `value_boolean`, `value_datetime`, `value_entity`, `value_reference`, `value_file`, `value_counter`, `created`, `created_by`, now(), 'formula maintenance'
                 FROM `property` WHERE id = %s;
                 """, frm_value, formula_property_row.id)
 
                 sql = """
                     UPDATE property
-                    SET deleted = now(), deleted_by = 'maintenance', is_deleted = 1 WHERE id = %s
+                    SET deleted = now(), deleted_by = 'formula maintenance', is_deleted = 1 WHERE id = %s
                 """ % (formula_property_row.id)
                 db.execute(sql)
                 continue
@@ -398,12 +400,14 @@ class EQuery():
                       AND p_formula.is_deleted = 0
             RIGHT JOIN property_definition pd ON p_formula.property_definition_keyname = pd.keyname
                       AND pd.formula = 1
-                      AND p_formula.value_formula LIKE concat('%%%%.child.',pd.entity_definition_keyname,'.%s}%%%%')
+                      AND ( p_formula.value_formula LIKE concat('%%%%.child.',pd.entity_definition_keyname,'.%s}%%%%')
+                        OR  p_formula.value_formula LIKE '%%%%.child.*.%s}%%%%'
+                          )
             WHERE r.related_entity_id = %s
               AND r.relationship_definition_keyname = 'child'
               AND r.is_deleted = 0
               AND ifnull(p_formula.changed, "%s") < "%s";
-        """ % (property_row.dataproperty, property_row.entity_id, datetime.min, property_row.created)
+        """ % (property_row.dataproperty, property_row.dataproperty, property_row.entity_id, datetime.min, property_row.created)
 
         # Child formula properties (SLQ is NOT tested)
         sql['child'] = """
@@ -415,12 +419,14 @@ class EQuery():
                       AND p_formula.is_deleted = 0
             RIGHT JOIN property_definition pd ON p_formula.property_definition_keyname = pd.keyname
                       AND pd.formula = 1
-                      AND p_formula.value_formula LIKE concat('%%%%.-child.',pd.entity_definition_keyname,'.%s}%%%%')
+                      AND ( p_formula.value_formula LIKE concat('%%%%.-child.',pd.entity_definition_keyname,'.%s}%%%%')
+                        OR  p_formula.value_formula LIKE '%%%%.-child.*.%s}%%%%'
+                          )
             WHERE r.entity_id = %s
               AND r.relationship_definition_keyname = 'child'
               AND r.is_deleted = 0
               AND ifnull(p_formula.changed, "%s") < "%s";
-        """ % (property_row.dataproperty, property_row.entity_id, datetime.min, property_row.created)
+        """ % (property_row.dataproperty, property_row.dataproperty, property_row.entity_id, datetime.min, property_row.created)
 
         # Self referencing formula properties (SLQ is NOT tested)
         sql['self'] = """

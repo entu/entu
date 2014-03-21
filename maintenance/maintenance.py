@@ -50,9 +50,9 @@ except IOError as e:
 task = ETask(args)
 
 i = 0
-sleepfactor = 0.025
+sleepfactor = 0.25
 mov_ave = 0.99
-chunk_size = 100
+chunk_size = 1000
 
 if verbose > 3:
     profiling_sum = {'displayfields': 0.00
@@ -125,9 +125,9 @@ while True:
             last_checked[customer_row.get('domain')[0]]['latest_checked'] = str(property_row.o_date)
         if verbose > 2: print "%s Property check finished." % (datetime.now()-customer_started_at)
 
-        if skipentities == False
+        entities_to_index = []
+        if skipentities == False:
             # Entity info refresh
-            entities_to_index = []
             if last_checked[customer_row.get('domain')[0]]['property_status'] == 'In real time':
                 if verbose > 2: print "%s Looking for entity id's." % (datetime.now()-customer_started_at)
                 if last_checked[customer_row.get('domain')[0]]['entity_status'] == 'In real time':
