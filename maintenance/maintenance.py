@@ -26,6 +26,7 @@ parser.add_argument('--database-name',     required = True)
 parser.add_argument('--database-user',     required = True)
 parser.add_argument('--database-password', required = True)
 parser.add_argument('--customergroup',     required = False, default = '0')
+parser.add_argument('--skipentities',      action = 'count')
 parser.add_argument('-v', '--verbose',     action = 'count')
 args = parser.parse_args()
 
@@ -33,6 +34,10 @@ args = parser.parse_args()
 verbose = 0
 if args.verbose:
     verbose = args.verbose
+
+skipentities = False
+if args.skipentities:
+    skipentities = True
 
 timestamp_file = 'maintenance.yaml'
 last_checked = {}
@@ -120,26 +125,27 @@ while True:
             last_checked[customer_row.get('domain')[0]]['latest_checked'] = str(property_row.o_date)
         if verbose > 2: print "%s Property check finished." % (datetime.now()-customer_started_at)
 
-        # Entity info refresh
-        entities_to_index = []
-        if last_checked[customer_row.get('domain')[0]]['property_status'] == 'In real time':
-            if verbose > 2: print "%s Looking for entity id's." % (datetime.now()-customer_started_at)
-            if last_checked[customer_row.get('domain')[0]]['entity_status'] == 'In real time':
-                for property_row in property_table:
-                    entities_to_index.append({'id': property_row.entity_id})
-            else:
-                entities_to_index = db.query("SELECT id FROM entity WHERE is_deleted = 0")
-                # print entities_to_index
-            if verbose > 0: print "%s There are %i unique entities to reindex." % (datetime.now()-customer_started_at, len(entities_to_index))
-            for entity in entities_to_index:
-                profiling = task.refresh_entity_info(db, entity['id'], customer_row.get('language-ref'))
-                if verbose > 3:
-                    profiling_sum['displayfields'] = profiling_sum['displayfields'] + profiling['displayfields']
-                    profiling_sum['displayproperties'] = profiling_sum['displayproperties'] + profiling['displayproperties']
-                    profiling_sum['INSERT'] = profiling_sum['INSERT'] + profiling['INSERT']
-            last_checked[customer_row.get('domain')[0]]['entity_status'] = 'In real time'
-            if verbose > 2: print "%s %i entities reindexed." % (datetime.now()-customer_started_at, len(entities_to_index))
-            if verbose > 3: print json.dumps(profiling_sum, indent=4, separators=(',', ': '))
+        if skipentities == False
+            # Entity info refresh
+            entities_to_index = []
+            if last_checked[customer_row.get('domain')[0]]['property_status'] == 'In real time':
+                if verbose > 2: print "%s Looking for entity id's." % (datetime.now()-customer_started_at)
+                if last_checked[customer_row.get('domain')[0]]['entity_status'] == 'In real time':
+                    for property_row in property_table:
+                        entities_to_index.append({'id': property_row.entity_id})
+                else:
+                    entities_to_index = db.query("SELECT id FROM entity WHERE is_deleted = 0")
+                    # print entities_to_index
+                if verbose > 0: print "%s There are %i unique entities to reindex." % (datetime.now()-customer_started_at, len(entities_to_index))
+                for entity in entities_to_index:
+                    profiling = task.refresh_entity_info(db, entity['id'], customer_row.get('language-ref'))
+                    if verbose > 3:
+                        profiling_sum['displayfields'] = profiling_sum['displayfields'] + profiling['displayfields']
+                        profiling_sum['displayproperties'] = profiling_sum['displayproperties'] + profiling['displayproperties']
+                        profiling_sum['INSERT'] = profiling_sum['INSERT'] + profiling['INSERT']
+                last_checked[customer_row.get('domain')[0]]['entity_status'] = 'In real time'
+                if verbose > 2: print "%s %i entities reindexed." % (datetime.now()-customer_started_at, len(entities_to_index))
+                if verbose > 3: print json.dumps(profiling_sum, indent=4, separators=(',', ': '))
 
         customer_finished_at = datetime.now()
         customer_time_spent = customer_finished_at - customer_started_at
