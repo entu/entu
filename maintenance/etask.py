@@ -42,8 +42,8 @@ class ETask():
         qresult = db.query(EQuery().check_formula(property_row, 'child'))
         print EQuery().check_formula(property_row, 'child')
         if len(qresult) > 0:
-            print "Have {0} matching child formulas.".format(len(qresult))
-            print property_row
+            # print "Have {0} matching child formulas.".format(len(qresult))
+            # print property_row
             self.revaluate_formulas(db, qresult)
 
         qresult = db.query(EQuery().check_formula(property_row, 'self'))
