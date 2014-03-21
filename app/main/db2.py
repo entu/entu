@@ -45,10 +45,10 @@ class Entity2():
                 r.entity_id,
                 e.id AS property_id,
                 p.property_definition_keyname AS pdk,
-            p.value_string,
-            p.value_integer,
-            p.value_boolean,
-            p.value_reference
+                p.value_string,
+                p.value_integer,
+                p.value_boolean,
+                p.value_reference
             FROM
             entity AS e,
             property AS p,
@@ -394,4 +394,3 @@ class Entity2():
             return 'https://secure.gravatar.com/avatar/%s?d=wavatar&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
         else:
             return 'https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
-
