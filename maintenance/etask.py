@@ -40,7 +40,7 @@ class ETask():
             self.revaluate_formulas(db, qresult)
 
         qresult = db.query(EQuery().check_formula(property_row, 'child'))
-        print EQuery().check_formula(property_row, 'child')
+        # print EQuery().check_formula(property_row, 'child')
         if len(qresult) > 0:
             # print "Have {0} matching child formulas.".format(len(qresult))
             # print property_row
@@ -105,16 +105,16 @@ class ETask():
         elif property_row.datatype == 'counter':
             value_display = self.db.get('SELECT estonian_label AS label FROM counter WHERE id=%s LIMIT 1' % property_row.value_counter)
 
-        sql = """
-            UPDATE property
-            SET value_display = '%(value_display)s' WHERE id = %(property_id)i
-        """ % {'value_display': value_display, 'property_id': property_row.id}
-        try:
-            db.execute("UPDATE property SET value_display = value_string, value_string = %s WHERE id = %s", value_display, property_row.id)
+        # sql = """
+        #     UPDATE property
+        #     SET value_display = '%(value_display)s' WHERE id = %(property_id)i
+        # """ % {'value_display': value_display, 'property_id': property_row.id}
+        # try:
+        db.execute("UPDATE property SET value_display = value_string, value_string = LEFT(%s, 500) WHERE id = %s", u'%s' % value_display, property_row.id)
             # db.execute("UPDATE property SET value_display = %s WHERE id = %s", value_display, property_row.id)
-        except Exception as e:
-            print sql
-            raise e
+        # except Exception as e:
+        #     print json.dumps([value_display, property_row.id])
+        #     raise e
 
 
     def revaluate_formulas(self, db, recordset):

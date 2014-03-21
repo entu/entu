@@ -88,25 +88,25 @@ class FExpression():
         try:
             return sum([Decimal(v.value) for v in items if v.value != None])
         except Exception, e:
-            return '%s' % [Decimal(v.value) for v in items if v.value != None]
+            return '%s' % [Decimal(v.value) for v in items if v.value]
 
     def FE_min(self, items):
         try:
             return min([Decimal(v.value) for v in items if v.value != None])
         except Exception, e:
-            return '%s' % [Decimal(v.value) for v in items if v.value != None]
+            return '%s' % [Decimal(v.value) for v in items if v.value]
 
     def FE_max(self, items):
         try:
             return max([Decimal(v.value) for v in items if v.value != None])
         except Exception, e:
-            return '%s' % [Decimal(v.value) for v in items if v.value != None]
+            return '%s' % [Decimal(v.value) for v in items if v.value]
 
     def FE_average(self, items):
         try:
             return Decimal(sum([Decimal(v.value) for v in items if v.value != None]) / len(items))
         except Exception, e:
-            return '%s' % [Decimal(v.value) for v in items if v.value != None]
+            return '%s' % [Decimal(v.value) for v in items if v.value]
 
     def FE_count(self, items):
         return len(items)
