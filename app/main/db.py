@@ -322,7 +322,7 @@ class Entity():
         if definition.formula == 1:
             field = 'value_formula'
             value_display = None
-        elif definition.datatype = 'text':
+        elif definition.datatype == 'text':
             field = 'value_text'
             value_display = '%s' % value
         elif definition.datatype == 'integer':
