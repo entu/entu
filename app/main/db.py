@@ -305,83 +305,78 @@ class Entity():
             return
 
         # property_definition_keyname is preferred because it could change for existing property
-        # logging.debug("Set property %s." % old_property_id)
         if old_property_id:
-            definition = self.db.get('SELECT pd.datatype, pd.keyname, pd.formula, p.value_string, p.value_formula FROM property p LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname WHERE p.id = %s;', old_property_id)
-            property_definition_keyname = definition.keyname
+            definition = self.db.get('SELECT pd.keyname, pd.datatype, pd.formula FROM property p, property_definition pd WHERE pd.keyname = p.property_definition_keyname AND p.id = %s LIMIT 1;', old_property_id)
         elif property_definition_keyname:
-            definition = self.db.get('SELECT datatype, formula FROM property_definition WHERE keyname = %s LIMIT 1;', property_definition_keyname)
+            definition = self.db.get('SELECT keyname, datatype, formula FROM property_definition WHERE keyname = %s LIMIT 1;', property_definition_keyname)
         else:
-            # logging.debug("Dont set property %s." % old_property_id)
             return
-
-        # logging.debug(definition)
 
         if not definition:
             return
-
-        # logging.debug(old_property_id)
-        if old_property_id:
-            self.db.execute('UPDATE property SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', self.__user_id, old_property_id )
 
         # If no value, then property is deleted, return
         if not value:
             return
 
-        new_property_id = self.db.execute_lastrowid('INSERT INTO property SET entity_id = %s, property_definition_keyname = %s, created = NOW(), created_by = %s;',
-            entity_id,
-            property_definition_keyname,
-            self.__user_id
-        )
-
-
-        if definition.datatype != 'file':
-            value_string = value[:500]
-
         if definition.formula == 1:
             field = 'value_formula'
-            value_string = ''
-        elif definition.datatype in ['text', 'html']:
+            value_display = None
+        elif definition.datatype = 'text':
             field = 'value_text'
+            value_display = '%s' % value
         elif definition.datatype == 'integer':
             field = 'value_integer'
+            value_display = '%s' % value
         elif definition.datatype == 'decimal':
             field = 'value_decimal'
             value = value.replace(',', '.')
-            value = re.sub(r'[^\.0-9:]', '', value)
-            value_string = '%s'[:500] % (value)
+            value = float(re.sub(r'[^\.0-9:]', '', value))
+            value_display = round(value, 2)
         elif definition.datatype == 'date':
             field = 'value_datetime'
+            value_display = '%s' % value
         elif definition.datatype == 'datetime':
             field = 'value_datetime'
+            value_display = '%s' % value
         elif definition.datatype == 'reference':
             field = 'value_reference'
-            value_string = self.__get_properties(value)[0]['displayname']
+            value_display = self.__get_properties(value)[0]['displayname']
         elif definition.datatype == 'file':
             uploaded_file = value
             value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, filesize = %s, file = %s, is_link = %s, created_by = %s, created = NOW();', uploaded_file.get('filename', ''), len(uploaded_file.get('body', '')), uploaded_file.get('body', ''), uploaded_file.get('is_link', 0), self.__user_id)
             field = 'value_file'
-            value_string = uploaded_file['filename'][:500]
+            value_display = uploaded_file['filename'][:500]
         elif definition.datatype == 'boolean':
             field = 'value_boolean'
             value = 1 if value.lower() == 'true' else 0
+            value_display = '%s' % bool(value)
         elif definition.datatype == 'counter':
             field = 'value_counter'
+            value_display = '%s' % value
         else:
             field = 'value_string'
             value = value[:500]
-            value_string = ''
+            value_display = '%s' % value
 
+        if old_property_id:
+            self.db.execute('UPDATE property SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', self.__user_id, old_property_id)
 
-        if value_string:
-            # logging.debug('UPDATE property SET %s = %s, value_string = %s WHERE id = %s;' % (field, value, value_string, new_property_id) )
-            self.db.execute('UPDATE property SET %s = %%s, value_string = %%s WHERE id = %%s;' % field, value, value_string, new_property_id )
-        else:
-            # logging.debug('UPDATE property SET %s = %s WHERE id = %s;' % (field, value, new_property_id) )
-            self.db.execute('UPDATE property SET %s = %%s WHERE id = %%s;' % field, value, new_property_id )
-
-        # if definition.formula == 1:
-        #     formula.save_property(new_property_id=new_property_id, old_property_id=old_property_id)
+        new_property_id = self.db.execute_lastrowid("""
+            INSERT INTO property SET
+                entity_id = %%s,
+                property_definition_keyname = %%s,
+                %s = %%s,
+                value_display = %%s,
+                created = NOW(),
+                created_by = %%s;
+            """ % field,
+            entity_id,
+            definition.keyname,
+            value,
+            value_display,
+            self.__user_id
+        )
 
         self.db.execute('UPDATE entity SET changed = NOW(), changed_by = %s WHERE id = %s;',
             self.__user_id,

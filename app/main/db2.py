@@ -265,7 +265,7 @@ class Entity2():
                         AND pd.search = 1
                         AND p.is_deleted = 0
                         AND pd.is_deleted = 0
-                        and p.value_string LIKE '%%%%%s%%%%'
+                        and p.value_display LIKE '%%%%%s%%%%'
                     )
                 """ % q
 
@@ -333,7 +333,7 @@ class Entity2():
                     e.entity_definition_keyname AS definition,
                     t.field,
                     n.n,
-                    GROUP_CONCAT(IF(n.n MOD 2 = 1, SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', n.n), '@', -1), IFNULL(p.value_string, '')) ORDER BY p.value_string SEPARATOR '; ') AS val
+                    GROUP_CONCAT(IF(n.n MOD 2 = 1, SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', n.n), '@', -1), IFNULL(p.value_display, '')) ORDER BY p.value_display SEPARATOR '; ') AS val
                 FROM (%(numbers_sql)s) AS n
                 INNER JOIN translation AS t ON CHAR_LENGTH(t.value) - CHAR_LENGTH(REPLACE(t.value, '@', '')) >= n.n - 1 AND IFNULL(t.language, '%(language)s') = '%(language)s'
                 INNER JOIN (%(entity_sql)s) AS e ON e.entity_definition_keyname = t.entity_definition_keyname
