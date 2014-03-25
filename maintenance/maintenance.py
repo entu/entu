@@ -68,7 +68,7 @@ while True:
         customer_languages = customer_row.get('language-ref')
 
         last_checked.setdefault(customer_row.get('domain')[0], {}).setdefault('last_id', 0)
-        last_checked.setdefault(customer_row.get('domain')[0], {}).setdefault('latest_checked', '1001-01-01 00:00:00')
+        last_checked.setdefault(customer_row.get('domain')[0], {}).setdefault('latest_checked', '1900-01-01 00:00:00')
         last_checked.setdefault('_metrics', {}).setdefault('properties_checked', 0.0000)
         last_checked.setdefault('_metrics', {}).setdefault('time_spent', 0.0000)
 

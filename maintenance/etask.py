@@ -27,7 +27,7 @@ class ETask():
         frm = Formula(db, formula_property_row.id, formula_property_row.entity_id, formula_property_row.value_formula)
         frm_value = ''.join(frm.evaluate())
         if frm_value != formula_property_row.value_display:
-            sql = "UPDATE property SET value_display = %s WHERE id = %s;"
+            sql = "UPDATE property SET value_display = LEFT(%s, 500) WHERE id = %s;"
             db.execute(sql, frm_value, formula_property_row.id)
 
     def update_related_formulas(self, db, property_row, parent_path):
