@@ -140,7 +140,7 @@ while True:
         customer_finished_at = datetime.now()
         customer_time_spent = customer_finished_at - customer_started_at
 
-        last_checked['_metrics']['properties_checked'] = mov_ave * last_checked['_metrics']['properties_checked'] + properties_to_check
+        last_checked['_metrics']['properties_checked'] = mov_ave * last_checked['_metrics']['properties_checked'] + len(property_table)
         last_checked['_metrics']['time_spent'] = mov_ave * last_checked['_metrics']['time_spent'] + customer_time_spent.microseconds + (customer_time_spent.seconds + customer_time_spent.days * 86400) * 1000000
 
         with open(timestamp_file, 'w+') as f:
