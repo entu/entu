@@ -78,34 +78,36 @@ while True:
         if verbose > 0: log_messages.append("\n%s Starting for --== %s ==--." % (datetime.now(), customer_row.get('domain')[0]))
 
         check_time = last_checked[customer_row.get('domain')[0]]['latest_checked']
+        initial_run = False
         if check_time == min_date:
+            initial_run = True
             if verbose > 0: log_messages.append("%s Initial run - evaluating all formulas." % (datetime.now()-customer_started_at))
             print "\n".join(log_messages)
             property_table = cdb.query(EQuery().all_formula_properties())
+            if len(property_table) == 0:
+                continue
         else:
             if verbose > 1: log_messages.append("%s Looking for properties fresher than %s." % (datetime.now()-customer_started_at, check_time))
             property_table = cdb.query(EQuery().fresh_properties(chunk_size, check_time, False))
-            properties_to_check = len(property_table)
-            if properties_to_check == 0:
+            if len(property_table) == 0:
                 continue
             print "\n".join(log_messages)
-            if properties_to_check < chunk_size:
-                if verbose > 2: print "%s Got %s properties." % (datetime.now()-customer_started_at, properties_to_check)
+            if len(property_table) < chunk_size:
+                if verbose > 2: print "%s Got %s properties." % (datetime.now()-customer_started_at, len(property_table))
             else: # If chunk size of rows returned, then reload query with next second properties only.
                 first_second = property_table[0].o_date
                 last_second = property_table[chunk_size-1].o_date
                 if verbose > 2: print "%s Reloading properties with timestamp between %s and %s inclusive." % (datetime.now()-customer_started_at, first_second, last_second)
                 property_table = cdb.query(EQuery().fresh_properties(chunk_size, first_second, last_second))
-                properties_to_check = len(property_table)
-                if verbose > 2: print "%s Got %s properties with timestamp between %s and %s inclusive." % (datetime.now()-customer_started_at, properties_to_check, first_second, last_second)
+                if verbose > 2: print "%s Got %s properties with timestamp between %s and %s inclusive." % (datetime.now()-customer_started_at, len(property_table), first_second, last_second)
 
         # Property revaluation
         if verbose > 0: print "%s Checking %i properties." % (datetime.now()-customer_started_at, len(property_table))
-        if verbose > 3:
-            i = 0
-            j = 0
-            k = 0
-            for property_row in property_table:
+        i = 0
+        j = 0
+        k = 0
+        for property_row in property_table:
+            if verbose > 3:
                 i = i + 1
                 if i == 100:
                     i = 0
@@ -120,11 +122,10 @@ while True:
                     else:
                         sys.stdout.write('.')
                     sys.stdout.flush()
-            # raw_input('Press enter 1')
             if property_row.value_formula:
-                # raw_input('Press enter 2')
                 task.evaluate_formula(cdb, property_row)
-            task.update_related_formulas(cdb, property_row, [])
+            if not initial_run:
+                task.update_related_formulas(cdb, property_row, [])
         if verbose > 3: print "%s %i properties checked." % (datetime.now()-customer_started_at, len(property_table))
 
         # Deleted entities
