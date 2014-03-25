@@ -48,25 +48,25 @@ class ETask():
         if len(qresult) > 0:
             for formula_property_row in qresult:
                 self.evaluate_formula(db, formula_property_row)
-                self.update_related_formulas(db, formula_property_row, fpath=fpath)
+                self.update_related_formulas(db, formula_property_row, parent_path=fpath)
 
         qresult = db.query(EQuery().related_formulas(property_row, 'child'))
         if len(qresult) > 0:
             for formula_property_row in qresult:
                 self.evaluate_formula(db, formula_property_row)
-                self.update_related_formulas(db, formula_property_row, fpath=fpath)
+                self.update_related_formulas(db, formula_property_row, parent_path=fpath)
 
         qresult = db.query(EQuery().related_formulas(property_row, 'self'))
         if len(qresult) > 0:
             for formula_property_row in qresult:
                 self.evaluate_formula(db, formula_property_row)
-                self.update_related_formulas(db, formula_property_row, fpath=fpath)
+                self.update_related_formulas(db, formula_property_row, parent_path=fpath)
 
         qresult = db.query(EQuery().related_formulas(property_row, 'back-referencing'))
         if len(qresult) > 0:
             for formula_property_row in qresult:
                 self.evaluate_formula(db, formula_property_row)
-                self.update_related_formulas(db, formula_property_row, fpath=fpath)
+                self.update_related_formulas(db, formula_property_row, parent_path=fpath)
 
 class EQuery():
 
