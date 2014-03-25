@@ -16,6 +16,7 @@ import argparse
 import yaml
 import json
 import time
+import sys
 
 from etask import *
 
@@ -100,7 +101,25 @@ while True:
 
         # Property revaluation
         if verbose > 0: print "%s Checking %i properties." % (datetime.now()-customer_started_at, len(property_table))
-        for property_row in property_table:
+        if verbose > 3:
+            i = 0
+            j = 0
+            k = 0
+            for property_row in property_table:
+                i = i + 1
+                if i == 100:
+                    i = 0
+                    j = j + 1
+                    if j == 10:
+                        j = 0
+                        k = k + 1
+                        sys.stdout.write('|')
+                        if k == 10:
+                            k = 0
+                            sys.stdout.write('\n')
+                    else:
+                        sys.stdout.write('.')
+                    sys.stdout.flush()
             # raw_input('Press enter 1')
             if property_row.value_formula:
                 # raw_input('Press enter 2')
