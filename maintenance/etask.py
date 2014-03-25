@@ -108,6 +108,18 @@ class EQuery():
         ORDER BY cp.entity_id, cpd.ordinal;
         """ % (customergroup, customergroup)
 
+    def all_formula_properties(self):
+        return """
+            SELECT pd.dataproperty, pd.datatype, p.created AS o_date, p.*
+              FROM property p
+              LEFT JOIN property_definition pd ON pd.keyname = p.property_definition_keyname
+              LEFT JOIN entity e on e.id = p.entity_id
+             WHERE pd.formula = 1
+             AND p.is_deleted = 0
+             AND e.is_deleted = 0
+            ORDER BY p.created
+            """
+
     def fresh_properties(self, lim, first_second, last_second = None):
         #   These queries should be rewritten to retrieve specific columns only not select *
         # and grouped for max(o_date)
