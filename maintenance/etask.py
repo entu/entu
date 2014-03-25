@@ -30,18 +30,19 @@ class ETask():
             sql = "UPDATE property SET value_display = %s WHERE id = %s;"
             db.execute(sql, frm_value, formula_property_row.id)
 
-    def update_related_formulas(self, db, property_row, fpath):
+    def update_related_formulas(self, db, property_row, parent_path):
         # print property_row
-        if property_row.id in fpath:
+        if property_row.id in parent_path:
             print "Recursion detected"
             print property_row
-            print json.dumps(fpath)
+            print json.dumps(parent_path)
             sys.exit("Recursion error")
 
-        # if len(fpath)>4:
+        # if len(parent_path)>4:
         #     print property_row
-        #     print json.dumps(fpath)
+        #     print json.dumps(parent_path)
         #     raw_input('Press enter')
+        fpath = parent_path
         fpath.append(property_row.id)
         qresult = db.query(EQuery().related_formulas(property_row, 'parent'))
         if len(qresult) > 0:
