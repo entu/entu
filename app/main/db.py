@@ -192,13 +192,11 @@ class Entity():
         for x in range(int(copies)):
             new_entity_id = self.db.execute_lastrowid("""
                 INSERT INTO entity (
-                    definition_id,
                     entity_definition_keyname,
                     sharing,
                     created,
                     created_by
                 ) SELECT
-                    definition_id,
                     entity_definition_keyname,
                     sharing,
                     NOW(),
@@ -208,11 +206,11 @@ class Entity():
             """ , self.__user_id, entity_id)
             self.db.execute("""
                 INSERT INTO property (
-                    definition_id,
                     property_definition_keyname,
                     entity_id,
                     ordinal,
                     language,
+                    value_display,
                     value_formula,
                     value_string,
                     value_text,
@@ -227,11 +225,11 @@ class Entity():
                     created,
                     created_by
                 ) SELECT
-                    definition_id,
                     property_definition_keyname,
                     %s,
                     ordinal,
                     language,
+                    value_display,
                     value_formula,
                     value_string,
                     value_text,
