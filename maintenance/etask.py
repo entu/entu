@@ -36,8 +36,8 @@ class ETask():
             print "Recursion detected"
             print property_row
             print json.dumps(fpath)
-            raw_input('Press enter')
-            return
+            sys.exit("Recursion error")
+
         # if len(fpath)>4:
         #     print property_row
         #     print json.dumps(fpath)
