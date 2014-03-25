@@ -45,24 +45,28 @@ class ETask():
         fpath = parent_path
         fpath.append(property_row.id)
         qresult = db.query(EQuery().related_formulas(property_row, 'parent'))
+        # print "parent " + str(len(qresult)) + " " + json.dumps(fpath)
         if len(qresult) > 0:
             for formula_property_row in qresult:
                 self.evaluate_formula(db, formula_property_row)
                 self.update_related_formulas(db, formula_property_row, parent_path=fpath)
 
         qresult = db.query(EQuery().related_formulas(property_row, 'child'))
+        # print "child " + str(len(qresult)) + " " + json.dumps(fpath)
         if len(qresult) > 0:
             for formula_property_row in qresult:
                 self.evaluate_formula(db, formula_property_row)
                 self.update_related_formulas(db, formula_property_row, parent_path=fpath)
 
         qresult = db.query(EQuery().related_formulas(property_row, 'self'))
+        # print "self " + str(len(qresult)) + " " + json.dumps(fpath)
         if len(qresult) > 0:
             for formula_property_row in qresult:
                 self.evaluate_formula(db, formula_property_row)
                 self.update_related_formulas(db, formula_property_row, parent_path=fpath)
 
         qresult = db.query(EQuery().related_formulas(property_row, 'back-referencing'))
+        # print "back-referencing " + str(len(qresult)) + " " + json.dumps(fpath)
         if len(qresult) > 0:
             for formula_property_row in qresult:
                 self.evaluate_formula(db, formula_property_row)
@@ -169,9 +173,7 @@ class EQuery():
             SELECT pd.dataproperty, p_formula.*
             FROM relationship r
             LEFT JOIN entity e_formula ON e_formula.id = r.entity_id
-                      AND e_formula.is_deleted = 0
             LEFT JOIN property p_formula ON p_formula.entity_id = e_formula.id
-                      AND p_formula.is_deleted = 0
             RIGHT JOIN property_definition pd ON p_formula.property_definition_keyname = pd.keyname
                       AND ( p_formula.value_formula LIKE concat('%%%%.child.',pd.entity_definition_keyname,'.%s}%%%%')
                         OR  p_formula.value_formula LIKE '%%%%.child.*.%s}%%%%'
@@ -179,18 +181,17 @@ class EQuery():
             WHERE r.related_entity_id = %s
               AND r.relationship_definition_keyname = 'child'
               AND pd.formula = 1
-              AND r.is_deleted = 0
-              AND ifnull(p_formula.changed, "%s") < "%s";
-        """ % (property_row.dataproperty, property_row.dataproperty, property_row.entity_id, datetime.min, property_row.created)
+              AND e_formula.is_deleted = 0
+              AND p_formula.is_deleted = 0
+              AND r.is_deleted = 0;
+        """ % (property_row.dataproperty, property_row.dataproperty, property_row.entity_id)
 
         # Child formula properties (SLQ is NOT tested)
         sql['child'] = """
             SELECT pd.dataproperty, p_formula.*
             FROM relationship r
             LEFT JOIN entity e_formula ON e_formula.id = r.related_entity_id
-                      AND e_formula.is_deleted = 0
             LEFT JOIN property p_formula ON p_formula.entity_id = e_formula.id
-                      AND p_formula.is_deleted = 0
             RIGHT JOIN property_definition pd ON p_formula.property_definition_keyname = pd.keyname
                       AND ( p_formula.value_formula LIKE concat('%%%%.-child.',pd.entity_definition_keyname,'.%s}%%%%')
                         OR  p_formula.value_formula LIKE '%%%%.-child.*.%s}%%%%'
@@ -198,41 +199,40 @@ class EQuery():
             WHERE r.entity_id = %s
               AND r.relationship_definition_keyname = 'child'
               AND pd.formula = 1
-              AND r.is_deleted = 0
-              AND ifnull(p_formula.changed, "%s") < "%s";
-        """ % (property_row.dataproperty, property_row.dataproperty, property_row.entity_id, datetime.min, property_row.created)
+              AND e_formula.is_deleted = 0
+              AND p_formula.is_deleted = 0
+              AND r.is_deleted = 0;
+        """ % (property_row.dataproperty, property_row.dataproperty, property_row.entity_id)
 
         # Self referencing formula properties (SLQ is NOT tested)
         sql['self'] = """
             SELECT pd.dataproperty, p_formula.*
             FROM entity e_formula
             LEFT JOIN property p_formula ON p_formula.entity_id = e_formula.id
-                        AND p_formula.is_deleted = 0
                         AND p_formula.value_formula LIKE concat('%%%%{self.%s}%%%%')
             RIGHT JOIN property_definition pd ON pd.keyname = p_formula.property_definition_keyname
             WHERE e_formula.is_deleted = 0
+              AND p_formula.is_deleted = 0
               AND pd.formula = 1
-              AND e_formula.id = %s
-              AND ifnull(p_formula.changed, "%s") < "%s";
-        """ % (property_row.dataproperty, property_row.entity_id, datetime.min, property_row.created)
+              AND e_formula.id = %s;
+        """ % (property_row.dataproperty, property_row.entity_id)
 
         # Back-referencing formula properties (SLQ is tested)
         sql['back-referencing'] = """
             SELECT pd2.dataproperty, p_formula.*
             FROM property p_reference
             RIGHT JOIN property_definition pd_reference ON pd_reference.keyname = p_reference.property_definition_keyname
-                        AND pd_reference.datatype = 'reference'
             LEFT JOIN entity e_formula ON e_formula.id = p_reference.value_reference
-                        AND e_formula.is_deleted = 0
             LEFT JOIN property p_formula ON p_formula.entity_id = e_formula.id
-                        AND p_formula.is_deleted = 0
                         AND p_formula.value_formula LIKE concat('%%%%.-', pd_reference.dataproperty, '.%%%%')
             RIGHT JOIN property_definition pd2 ON pd2.keyname = p_formula.property_definition_keyname
             WHERE p_reference.is_deleted = 0
               AND pd2.formula = 1
-              AND p_reference.entity_id = %s
-              AND ifnull(p_formula.changed, "%s") < "%s";
-        """ % (property_row.entity_id, datetime.min, property_row.created)
+              AND pd_reference.datatype = 'reference'
+              AND e_formula.is_deleted = 0
+              AND p_formula.is_deleted = 0
+              AND p_reference.entity_id = %s;
+        """ % (property_row.entity_id)
 
         return sql[direction]
 
