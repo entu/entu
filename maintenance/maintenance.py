@@ -100,6 +100,15 @@ while True:
                 task.evaluate_formula(cdb, property_row)
             task.update_related_formulas(cdb, property_row, [])
 
+        # Deleted entities
+        cdb.execute(EQuery().delete_referencing_properties(), first_second, last_second)
+        # for property_row in cdb.execute(EQuery().delete_referencing_properties(), first_second, last_second):
+        #     task.evaluate_formula(cdb, property_row)
+        #     task.update_related_formulas(cdb, property_row, [])
+
+
+
+        # wrap it up
         last_checked[customer_row.get('domain')[0]]['latest_checked'] = property_table[len(property_table)-1].o_date
         customer_finished_at = datetime.now()
         customer_time_spent = customer_finished_at - customer_started_at

@@ -38,7 +38,7 @@ class ETask():
             print json.dumps(fpath)
             raw_input('Press enter')
             return
-        # if len(fpath)>0:
+        # if len(fpath)>4:
         #     print property_row
         #     print json.dumps(fpath)
         #     raw_input('Press enter')
@@ -203,7 +203,7 @@ class EQuery():
 
         # Self referencing formula properties (SLQ is NOT tested)
         sql['self'] = """
-            SELECT pd.dataproperty, p_formula.id, p_formula.entity_id, p_formula.value_formula, p_formula.value_display
+            SELECT pd.dataproperty, p_formula.*
             FROM entity e_formula
             LEFT JOIN property p_formula ON p_formula.entity_id = e_formula.id
                         AND p_formula.is_deleted = 0
@@ -217,7 +217,7 @@ class EQuery():
 
         # Back-referencing formula properties (SLQ is tested)
         sql['back-referencing'] = """
-            SELECT pd2.dataproperty, p_formula.id, p_formula.entity_id, p_formula.value_formula, p_formula.value_display
+            SELECT pd2.dataproperty, p_formula.*
             FROM property p_reference
             RIGHT JOIN property_definition pd_reference ON pd_reference.keyname = p_reference.property_definition_keyname
                         AND pd_reference.datatype = 'reference'
@@ -235,6 +235,16 @@ class EQuery():
 
         return sql[direction]
 
+    def delete_referencing_properties(self):
+        return """
+        UPDATE property p
+        LEFT JOIN entity e ON p.value_reference = e.id
+        SET p.is_deleted = 1, p.deleted = now(), p.deleted_by = 'maintenance'
+        WHERE e.deleted >= %s
+        and e.deleted <= %s
+        AND e.is_deleted = 1
+        AND p.is_deleted = 0;
+        """
 
     # def get_displayproperties(self, entity_id, language):
     #     return """
