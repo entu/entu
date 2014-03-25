@@ -101,7 +101,7 @@ while True:
             task.update_related_formulas(cdb, property_row, [])
 
         # Deleted entities
-        cdb.execute(EQuery().delete_referencing_properties(), first_second, last_second)
+        cdb.execute(EQuery().delete_referencing_properties(), property_table[0].o_date, property_table[len(property_table)-1].o_date)
         # for property_row in cdb.execute(EQuery().delete_referencing_properties(), first_second, last_second):
         #     task.evaluate_formula(cdb, property_row)
         #     task.update_related_formulas(cdb, property_row, [])
