@@ -50,10 +50,10 @@ sleepfactor = 0.25
 mov_ave = 0.99
 chunk_size = 1000
 min_date = '1900-01-01 00:00:00'
+min_date_plus = '1900-01-01 00:00:01'
 
 while True:
     d_start = datetime.now()
-    i = last_checked.setdefault('_metrics', {}).setdefault('run_id', 0)
 
     print "\n\n%s" % (d_start)
 
@@ -69,7 +69,6 @@ while True:
         )
         customer_languages = customer_row.get('language-ref')
 
-        # last_checked.setdefault(customer_row.get('domain')[0], {}).setdefault('last_id', 0)
         last_checked.setdefault(customer_row.get('domain')[0], {}).setdefault('latest_checked', min_date)
         last_checked.setdefault('_metrics', {}).setdefault('properties_checked', 0.0000)
         last_checked.setdefault('_metrics', {}).setdefault('time_spent', 0.0000)
@@ -85,6 +84,7 @@ while True:
             print "\n".join(log_messages)
             property_table = cdb.query(EQuery().all_formula_properties())
             if len(property_table) == 0:
+                last_checked[customer_row.get('domain')[0]]['latest_checked'] = min_date_plus
                 continue
         else:
             if verbose > 1: log_messages.append("%s Looking for properties fresher than %s." % (datetime.now()-customer_started_at, check_time))
@@ -112,13 +112,14 @@ while True:
                 if i == 100:
                     i = 0
                     j = j + 1
-                    if j == 10:
+                    if j % 10 == 0:
                         j = 0
                         k = k + 1
-                        sys.stdout.write('|')
-                        if k == 10:
-                            k = 0
-                            sys.stdout.write('\n')
+                        k_mod = k%10
+                        if k_mod == 0:
+                            sys.stdout.write('| %iK\n' % k)
+                        else:
+                            sys.stdout.write('%i' % k_mod)
                     else:
                         sys.stdout.write('.')
                     sys.stdout.flush()
@@ -126,7 +127,7 @@ while True:
                 task.evaluate_formula(cdb, property_row)
             if not initial_run:
                 task.update_related_formulas(cdb, property_row, [])
-        if verbose > 3: print "%s %i properties checked." % (datetime.now()-customer_started_at, len(property_table))
+        if verbose > 3: print "\n%s %i properties checked." % (datetime.now()-customer_started_at, len(property_table))
 
         # Deleted entities
         cdb.execute(EQuery().delete_referencing_properties(), property_table[0].o_date, property_table[len(property_table)-1].o_date)
