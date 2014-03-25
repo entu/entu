@@ -45,7 +45,7 @@ except IOError as e:
 task = ETask(args)
 
 i = 0
-sleepfactor = 0.25
+sleepfactor = 2.25
 mov_ave = 0.99
 chunk_size = 1000
 
@@ -67,7 +67,7 @@ while True:
         )
         customer_languages = customer_row.get('language-ref')
 
-        last_checked.setdefault(customer_row.get('domain')[0], {}).setdefault('last_id', 0)
+        # last_checked.setdefault(customer_row.get('domain')[0], {}).setdefault('last_id', 0)
         last_checked.setdefault(customer_row.get('domain')[0], {}).setdefault('latest_checked', '1900-01-01 00:00:00')
         last_checked.setdefault('_metrics', {}).setdefault('properties_checked', 0.0000)
         last_checked.setdefault('_metrics', {}).setdefault('time_spent', 0.0000)
@@ -96,7 +96,9 @@ while True:
         # Property revaluation
         if verbose > 0: print "%s Checking %i properties." % (datetime.now()-customer_started_at, properties_to_check)
         for property_row in property_table:
+            # raw_input('Press enter 1')
             if property_row.value_formula:
+                # raw_input('Press enter 2')
                 task.evaluate_formula(cdb, property_row)
             task.update_related_formulas(cdb, property_row, [])
 
