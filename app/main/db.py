@@ -313,6 +313,9 @@ class Entity():
         if not definition:
             return
 
+        if old_property_id:
+            self.db.execute('UPDATE property SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', self.__user_id, old_property_id)
+
         # If no value, then property is deleted, return
         if not value:
             return
@@ -356,9 +359,6 @@ class Entity():
             field = 'value_string'
             value = value[:500]
             value_display = '%s' % value
-
-        if old_property_id:
-            self.db.execute('UPDATE property SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', self.__user_id, old_property_id)
 
         new_property_id = self.db.execute_lastrowid("""
             INSERT INTO property SET
@@ -1471,9 +1471,6 @@ class Entity():
             menu.setdefault(group, {}).setdefault('items', []).append({'keyname': m.keyname, 'title': self.__get_system_translation(field='label_plural', entity_definition_keyname=m.keyname)})
 
         return sorted(menu.values(), key=itemgetter('label'))
-
-
-
 
 
 def findTags(s, beginning, end):
