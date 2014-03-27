@@ -89,7 +89,9 @@ class Maintenance():
         self.formulas = 0
 
     def echo(self, msg='', level=0):
-        if args.verbose >= level: print '%s -%s- %s' % (datetime.now(), self.db_name, msg)
+        if args.verbose >= level:
+            msg = '%s -%s- %s' % (datetime.now(), self.db_name, msg)
+            print msg.encode('UTF-8')
 
 
     def set_reference_properties(self):
