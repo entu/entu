@@ -502,6 +502,9 @@ class Entity():
         # logging.debug(sql)
 
         property_id = self.db.execute_lastrowid(sql)
+
+        self.db.execute('UPDATE property SET value_display = value_string WHERE id = %s', property_id)
+
         return self.db.get('SELECT value_string FROM property WHERE id = %s', property_id).value_string
 
     def set_relations(self, entity_id, related_entity_id, relationship_definition_keyname, delete=False, update=False):
