@@ -372,7 +372,7 @@ class Entity():
             entity_id,
             definition.keyname,
             value,
-            value_display,
+            value_display[:500],
             self.__user_id
         )
 
