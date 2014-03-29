@@ -72,7 +72,7 @@ def customers():
 
 
 class Maintenance():
-    def __init__(self, db_host, db_name, db_user, db_pass, language, speed):
+    def __init__(self, db_host, db_name, db_user, db_pass, language, hours, speed):
         self.db_host = db_host
         self.db_name = db_name
         self.db_user = db_user
@@ -83,10 +83,32 @@ class Maintenance():
             user     = db_user,
             password = db_pass,
         )
+
         self.language = language
         self.speed = speed
         self.time = 0
         self.formulas = 0
+
+        self.hours = hours
+        self.changed_entities = []
+
+        # get changed entities
+        sql = """
+                  SELECT id AS id FROM entity WHERE deleted >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
+            UNION SELECT id AS id FROM entity WHERE created >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
+            UNION SELECT entity_id AS id FROM property WHERE deleted >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
+            UNION SELECT entity_id AS id FROM property WHERE created >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
+            UNION SELECT entity_id AS id FROM relationship WHERE deleted >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
+            UNION SELECT entity_id AS id FROM relationship WHERE created >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
+            UNION SELECT related_entity_id AS id FROM relationship WHERE deleted >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
+            UNION SELECT related_entity_id AS id FROM relationship WHERE created >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
+        """ % { 'hours': self.hours }
+
+        for r in self.db.query(sql):
+            self.changed_entities.append(r.id)
+
+        self.changed_entities = list(set([x for x in self.changed_entities if x]))
+
 
     def echo(self, msg='', level=0):
         if args.verbose >= level:
@@ -126,23 +148,14 @@ class Maintenance():
                     WHERE e.id IN (
                         SELECT value_reference
                         FROM property
-                        WHERE value_reference IN (
-                                  SELECT id FROM entity WHERE deleted >= %(date_sql)s
-                            UNION SELECT id FROM entity WHERE created >= %(date_sql)s
-                            UNION SELECT entity_id FROM property WHERE deleted >= %(date_sql)s
-                            UNION SELECT entity_id FROM property WHERE created >= %(date_sql)s
-                            UNION SELECT entity_id FROM relationship WHERE deleted >= %(date_sql)s
-                            UNION SELECT entity_id FROM relationship WHERE created >= %(date_sql)s
-                            UNION SELECT related_entity_id FROM relationship WHERE deleted >= %(date_sql)s
-                            UNION SELECT related_entity_id FROM relationship WHERE created >= %(date_sql)s
-                        )
+                        WHERE value_reference IN (%(changed_entities)s)
                     )
                 ) AS e ON e.entity_definition_keyname = t.entity_definition_keyname
                 LEFT JOIN property AS p ON p.entity_id = e.id AND p.is_deleted = 0 AND p.property_definition_keyname = CONCAT(e.entity_definition_keyname, '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', n.n), '@', -1)) AND IFNULL(p.language, '%(language)s') = '%(language)s'
                 GROUP BY id, n
             ) AS x
             GROUP BY x.id;
-        """ % {'numbers_sql': numbers_sql, 'language': self.language, 'date_sql': date_sql}
+        """ % {'numbers_sql': numbers_sql, 'language': self.language, 'changed_entities': ','.join(map(str, self.changed_entities))}
 
         rows = self.db.query(sql)
 
@@ -157,10 +170,11 @@ class Maintenance():
         for r in rows:
             if not r.id:
                 continue
-            if not self.db.get('SELECT id FROM property WHERE value_display = LEFT(%s, 500) AND value_reference = %s AND is_deleted = 0 LIMIT 1;', r.val, r.id):
+            if not self.db.get('SELECT id FROM property WHERE LEFT(IFNULL(value_display, \'\'), 500) <> LEFT(%s, 500) AND value_reference = %s AND is_deleted = 0 LIMIT 1;', r.val, r.id):
                 continue
             i += 1
-            self.db.execute('UPDATE property SET value_display = LEFT(%s, 500) WHERE value_display != LEFT(%s, 500) AND value_reference = %s AND is_deleted = 0;', r.val, r.val, r.id)
+            self.echo('#%s %s' % (r.id, r.val), 2)
+            self.db.execute('UPDATE property SET value_display = LEFT(%s, 500) WHERE IFNULL(value_display, \'\') <> LEFT(%s, 500) AND value_reference = %s AND is_deleted = 0;', r.val, r.val, r.id)
 
         self.echo('updated %s reference properties' % i, 2)
 
@@ -172,35 +186,15 @@ class Maintenance():
 
         changed_entities_sql = ''
         if date_sql:
-            sql = """
-                      SELECT id FROM entity WHERE deleted >= %(date_sql)s
-                UNION SELECT id FROM entity WHERE created >= %(date_sql)s
-                UNION SELECT entity_id AS id FROM property WHERE deleted >= %(date_sql)s
-                UNION SELECT entity_id AS id FROM property WHERE created >= %(date_sql)s
-                UNION SELECT entity_id AS id FROM relationship WHERE deleted >= %(date_sql)s
-                UNION SELECT entity_id AS id FROM relationship WHERE created >= %(date_sql)s
-                UNION SELECT related_entity_id AS id FROM relationship WHERE deleted >= %(date_sql)s
-                UNION SELECT related_entity_id AS id FROM relationship WHERE created >= %(date_sql)s;
-            """ % {'date_sql': date_sql}
-
-            id_list = []
-            rows = self.db.query(sql)
-            if not rows:
-                self.echo('no changed entities', 1)
-                return
-
-            for r in rows:
-                id_list.append(r.id)
-
             changed_entities_sql = """
                 AND e.id IN (
-                    SELECT id FROM entity WHERE is_deleted = 0 AND id IN (%(id_list)s)
-                    UNION SELECT entity_id FROM property WHERE is_deleted = 0 AND value_reference IN (%(id_list)s)
-                    UNION SELECT value_reference FROM property WHERE is_deleted = 0 AND entity_id IN (%(id_list)s) AND value_reference > 0
-                    UNION SELECT entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND related_entity_id IN (%(id_list)s)
-                    UNION SELECT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND entity_id IN (%(id_list)s)
+                    SELECT id FROM entity WHERE is_deleted = 0 AND id IN (%(changed_entities)s)
+                    UNION SELECT entity_id FROM property WHERE is_deleted = 0 AND value_reference IN (%(changed_entities)s)
+                    UNION SELECT value_reference FROM property WHERE is_deleted = 0 AND entity_id IN (%(changed_entities)s) AND value_reference > 0
+                    UNION SELECT entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND related_entity_id IN (%(changed_entities)s)
+                    UNION SELECT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND entity_id IN (%(changed_entities)s)
                 )
-            """ % {'id_list': ','.join(map(str, list(set(id_list))))}
+            """ % {'changed_entities': ','.join(map(str, self.changed_entities))}
 
         sql = """
             SELECT
@@ -232,7 +226,7 @@ class Maintenance():
         i = 0
         for r in rows:
             formula = self.__calculate_formula(r.id)
-            if r.value_display == formula:
+            if r.value_display[:500] == formula[:500]:
                 continue
             i += 1
             if r.value_display:
@@ -426,7 +420,7 @@ while True:
     for c in customers():
         start = time.time()
 
-        # if c.get('database-name') != 'polvayg':
+        # if c.get('database-name') != 'ww':
         #     continue
 
         m = Maintenance(
@@ -435,13 +429,17 @@ while True:
             db_user = c.get('database-user'),
             db_pass = c.get('database-password'),
             language = c.get('language'),
+            hours = 1,
             speed = total_time / total_count
         )
 
         m.echo('start', 1)
 
-        m.set_formula_properties()
-        m.set_reference_properties()
+        if m.changed_entities:
+            m.set_formula_properties()
+            m.set_reference_properties()
+        else:
+            m.echo('entities not changed', 1)
 
         m.echo('end (%ss)\n' % round(time.time() - start, 1), 1)
 
