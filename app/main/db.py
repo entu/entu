@@ -325,7 +325,7 @@ class Entity():
             value_display = None
         elif definition.datatype == 'text':
             field = 'value_text'
-            value_display = '%s' % value
+            value_display = '%s'[:500] % value
         elif definition.datatype == 'integer':
             field = 'value_integer'
             value_display = '%s' % value
@@ -372,7 +372,7 @@ class Entity():
             entity_id,
             definition.keyname,
             value,
-            value_display[:500],
+            value_display,
             self.__user_id
         )
 
