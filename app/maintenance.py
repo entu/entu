@@ -116,6 +116,74 @@ class Maintenance():
             print msg.encode('UTF-8')
 
 
+    def set_sort(self):
+        #remove unused sort string
+        self.db.execute("""
+            UPDATE entity
+            SET sort = NULL
+            WHERE entity_definition_keyname NOT IN (
+                SELECT entity_definition_keyname
+                FROM translation
+                WHERE field = 'sort'
+            )
+        """)
+
+        #generate numbers subselect
+        fields_count = self.db.query("""
+            SELECT MAX(LENGTH(value) - LENGTH(REPLACE(value, '@', '')) + 1) AS fields
+            FROM translation
+            WHERE IFNULL(language, %s) = %s;
+        """, self.language, self.language)[0].fields
+        numbers_list = []
+        for f in range(1, fields_count + 1):
+            numbers_list.append('SELECT %s AS n' % f)
+        numbers_sql = ' UNION '.join(numbers_list)
+
+        #generate entity select
+        sql = """
+            SELECT
+                x.id,
+                GROUP_CONCAT(x.val ORDER BY n SEPARATOR '') AS val
+            FROM (
+                SELECT
+                    e.id,
+                    n.n,
+                    GROUP_CONCAT(IF(n.n MOD 2 = 1, SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', n.n), '@', -1), IFNULL(p.value_display, '')) ORDER BY p.value_display SEPARATOR '; ') AS val
+                FROM (%(numbers_sql)s) AS n
+                INNER JOIN translation AS t ON t.field = 'sort' AND CHAR_LENGTH(t.value) - CHAR_LENGTH(REPLACE(t.value, '@', '')) >= n.n - 1 AND IFNULL(t.language, '%(language)s') = '%(language)s'
+                INNER JOIN (
+                    SELECT e.id, e.entity_definition_keyname
+                    FROM entity AS e
+                    WHERE e.id IN (%(changed_entities)s)
+                ) AS e ON e.entity_definition_keyname = t.entity_definition_keyname
+                LEFT JOIN property AS p ON p.entity_id = e.id AND p.is_deleted = 0 AND p.property_definition_keyname = CONCAT(e.entity_definition_keyname, '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', n.n), '@', -1)) AND IFNULL(p.language, '%(language)s') = '%(language)s'
+                GROUP BY id, n
+            ) AS x
+            GROUP BY x.id;
+        """ % {'numbers_sql': numbers_sql, 'language': self.language, 'changed_entities': ','.join(map(str, self.changed_entities))}
+
+        rows = self.db.query(sql)
+
+        count = len(rows)
+        if not rows:
+            self.echo('no changed entities', 1)
+            return
+
+        self.echo('checking %s entities for sort' % count, 2)
+
+        i = 0
+        for r in rows:
+            if not r.id:
+                continue
+            if not self.db.get('SELECT id FROM entity WHERE LEFT(IFNULL(sort, \'\'), 100) <> LEFT(%s, 100) AND id = %s AND is_deleted = 0 LIMIT 1;', r.val, r.id):
+                continue
+            i += 1
+            self.echo('#%s %s' % (r.id, r.val), 2)
+            self.db.execute('UPDATE entity SET sort = LEFT(%s, 100) WHERE IFNULL(sort, \'\') <> LEFT(%s, 100) AND id = %s AND is_deleted = 0;', r.val, r.val, r.id)
+
+        self.echo('updated %s entities for sort' % i, 2)
+
+
     def set_reference_properties(self):
         date_sql = 'DATE_SUB(NOW(), INTERVAL 1 HOUR)'
 
@@ -226,7 +294,7 @@ class Maintenance():
         i = 0
         for r in rows:
             formula = self.__calculate_formula(r.id)
-            if r.value_display[:500] == formula[:500]:
+            if r.value_display == formula:
                 continue
             i += 1
             if r.value_display:
@@ -420,7 +488,7 @@ while True:
     for c in customers():
         start = time.time()
 
-        # if c.get('database-name') != 'ww':
+        # if c.get('database-name') != 'saksa':
         #     continue
 
         m = Maintenance(
@@ -429,7 +497,7 @@ while True:
             db_user = c.get('database-user'),
             db_pass = c.get('database-password'),
             language = c.get('language'),
-            hours = 1,
+            hours = 2,
             speed = total_time / total_count
         )
 
@@ -438,6 +506,7 @@ while True:
         if m.changed_entities:
             m.set_formula_properties()
             m.set_reference_properties()
+            m.set_sort()
         else:
             m.echo('entities not changed', 1)
 
