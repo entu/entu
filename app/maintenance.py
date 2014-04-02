@@ -119,14 +119,20 @@ class Maintenance():
     def set_sort(self):
         #remove unused sort string
         self.db.execute("""
-            UPDATE entity
-            SET sort = NULL
-            WHERE entity_definition_keyname NOT IN (
-                SELECT entity_definition_keyname
-                FROM translation
-                WHERE field = 'sort'
-            )
+UPDATE entity e
+LEFT JOIN translation t ON t.entity_definition_keyname = e.entity_definition_keyname AND t.field = 'sort'
+SET e.sort = NULL
+WHERE t.field IS NULL
         """)
+        # self.db.execute("""
+        #     UPDATE entity
+        #     SET sort = NULL
+        #     WHERE entity_definition_keyname NOT IN (
+        #         SELECT entity_definition_keyname
+        #         FROM translation
+        #         WHERE field = 'sort'
+        #     )
+        # """)
 
         #generate numbers subselect
         fields_count = self.db.query("""
