@@ -122,7 +122,8 @@ class Maintenance():
 UPDATE entity e
 LEFT JOIN translation t ON t.entity_definition_keyname = e.entity_definition_keyname AND t.field = 'sort'
 SET e.sort = NULL
-WHERE t.field IS NULL
+WHERE e.sort IS NOT NULL
+AND t.field IS NULL
         """)
         # self.db.execute("""
         #     UPDATE entity
