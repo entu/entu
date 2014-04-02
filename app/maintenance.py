@@ -449,14 +449,17 @@ class Maintenance():
                 sql_where.append('pd.dataproperty = \'%s\'' % dataproperty)
                 sql_where.append('repd.dataproperty = \'%s\'' % reference_entity_field)
             else:
-                sql_select = 'p.value_display'
-                sql_from.append('property AS p')
-                sql_from.append('property_definition AS pd')
-                sql_where.append('p.entity_id = e.id')
-                sql_where.append('pd.keyname = p.property_definition_keyname')
-                sql_where.append('p.is_deleted = 0')
-                sql_where.append('pd.is_deleted = 0')
-                sql_where.append('pd.dataproperty = \'%s\'' % dataproperty)
+                if formula_fields[1] == '_created':
+                    sql_select = 'e.created as value_display'
+                else:
+                    sql_select = 'p.value_display'
+                    sql_from.append('property AS p')
+                    sql_from.append('property_definition AS pd')
+                    sql_where.append('p.entity_id = e.id')
+                    sql_where.append('pd.keyname = p.property_definition_keyname')
+                    sql_where.append('p.is_deleted = 0')
+                    sql_where.append('pd.is_deleted = 0')
+                    sql_where.append('pd.dataproperty = \'%s\'' % dataproperty)
 
         sql = """
             SELECT %(sql_select)s
