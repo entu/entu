@@ -192,8 +192,6 @@ AND t.field IS NULL
 
 
     def set_reference_properties(self):
-        date_sql = 'DATE_SUB(NOW(), INTERVAL 1 HOUR)'
-
         #generate numbers subselect
         fields_count = self.db.query("""
             SELECT MAX(LENGTH(value) - LENGTH(REPLACE(value, '@', '')) + 1) AS fields
@@ -255,21 +253,7 @@ AND t.field IS NULL
 
 
     def set_formula_properties(self):
-        date_sql = 'DATE_SUB(NOW(), INTERVAL 1 HOUR)'
-
         start = time.time()
-
-        changed_entities_sql = ''
-        if date_sql:
-            changed_entities_sql = """
-                AND e.id IN (
-                    SELECT id FROM entity WHERE is_deleted = 0 AND id IN (%(changed_entities)s)
-                    UNION SELECT entity_id FROM property WHERE is_deleted = 0 AND value_reference IN (%(changed_entities)s)
-                    UNION SELECT value_reference FROM property WHERE is_deleted = 0 AND entity_id IN (%(changed_entities)s) AND value_reference > 0
-                    UNION SELECT entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND related_entity_id IN (%(changed_entities)s)
-                    UNION SELECT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND entity_id IN (%(changed_entities)s)
-                )
-            """ % {'changed_entities': ','.join(map(str, self.changed_entities))}
 
         sql = """
             SELECT
@@ -282,13 +266,19 @@ AND t.field IS NULL
                 property_definition AS pd
             WHERE p.entity_id = e.id
             AND pd.keyname = p.property_definition_keyname
+            AND e.id IN (
+                SELECT id FROM entity WHERE is_deleted = 0 AND id IN (%(changed_entities)s)
+                UNION SELECT entity_id FROM property WHERE is_deleted = 0 AND value_reference IN (%(changed_entities)s)
+                UNION SELECT value_reference FROM property WHERE is_deleted = 0 AND entity_id IN (%(changed_entities)s) AND value_reference > 0
+                UNION SELECT entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND related_entity_id IN (%(changed_entities)s)
+                UNION SELECT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND entity_id IN (%(changed_entities)s)
+            )
             AND e.is_deleted = 0
             AND p.is_deleted = 0
             AND pd.is_deleted = 0
             AND pd.formula = 1
-            %s
             ORDER BY p.id;
-        """ % changed_entities_sql
+        """ % {'changed_entities': ','.join(map(str, self.changed_entities))}
 
         rows = self.db.query(sql)
         count = len(rows)
