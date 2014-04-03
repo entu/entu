@@ -23,7 +23,10 @@ class RegisterNewCusomer(myRequestHandler, Entity):
         name = self.get_argument('name', default='name', strip=True)
         email = self.get_argument('email', default='', strip=True)
         ip = self.request.remote_ip
-        host = socket.gethostbyaddr(self.request.remote_ip)[0]
+        try:
+            host = socket.gethostbyaddr(self.request.remote_ip)[0]
+        except Exception, e:
+            host = ''
         remote_addr = '%s\n%s' % (ip, host) if host else ip
 
         self.mail_send(
