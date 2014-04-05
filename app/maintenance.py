@@ -417,7 +417,7 @@ class Maintenance():
             sql_where.append('e.id = %s' % entity_id)
             dataproperty = formula_fields[1]
             if len(formula_fields) > 2:
-                            reference_entity_field = formula_fields[2]
+                reference_entity_field = formula_fields[2]
 
         if dataproperty != 'id':
             if reference_entity_field:
