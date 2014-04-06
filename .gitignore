@@ -2,7 +2,4 @@
 *.pyc
 *.log
 *.yaml
-*.yaml
 *.sh
-
-app/config.yaml
