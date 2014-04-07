@@ -309,6 +309,8 @@
             });
         });
 
+        {% if google_auth_api_id %}
+
         $('.google-open').click(function() {
             var form = $($(this).data('form'));
 
@@ -356,6 +358,11 @@
             }});
 
         });
+
+        {% else %}
+        $('.google-open').hide();
+        {% end %}
+
 
         $('.url-open').click(function() {
             var form = $($(this).data('form'));
