@@ -21,7 +21,6 @@ class ShowAuthPage(myRequestHandler):
 
     """
     def get(self):
-
         set_redirect(self)
 
         self.clear_cookie('session')
@@ -61,7 +60,6 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
     """
     @web.asynchronous
     def get(self, provider):
-        set_redirect(self)
         self.oauth2_provider = None
 
         if provider == 'facebook' and self.app_settings('auth-facebook'):
@@ -209,7 +207,8 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 redirect_url    = get_redirect(self),
             )
 
-        self.redirect('https://%(host)s/auth/redirect?key=%(redirect_key)s&user=%(id)s' % session_dict)
+        if session_dict:
+            self.redirect('https://%(host)s/auth/redirect?user=%(id)s&key=%(redirect_key)s' % session_dict)
 
 
 class AuthMobileID(myRequestHandler):
@@ -309,6 +308,7 @@ def set_redirect(rh):
 
     """
     if rh.get_argument('next', None, strip=True):
+        rh.clear_cookie('auth_redirect')
         rh.set_secure_cookie('auth_redirect', rh.get_argument('next', default='/', strip=True), 1)
 
 

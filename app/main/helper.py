@@ -38,11 +38,12 @@ class myDatabase():
         try:
             x = self.settings['databases'][host].get('SELECT 1 FROM DUAL;')
         except Exception:
+            settings = self.get_app_settings(host)
             self.settings['databases'][host] = torndb.Connection(
-                host     = self.app_settings('database-host'),
-                database = self.app_settings('database-name'),
-                user     = self.app_settings('database-user'),
-                password = self.app_settings('database-password', '', True),
+                host     = settings.get('database-host'),
+                database = settings.get('database-name'),
+                user     = settings.get('database-user'),
+                password = settings.get('database-password'),
             )
         return self.settings['databases'][host]
 
@@ -116,11 +117,11 @@ class myDatabase():
             for c in customers.values():
                 self.__app_settings[c.get('domain', '')] = c
 
-        if not self.__app_settings.get(self.request.host):
+        if not self.__app_settings.get(host):
             self.redirect('https://www.entu.ee')
             return
 
-        return self.__app_settings.get(self.request.host, {})
+        return self.__app_settings.get(host, {})
 
 
 class myUser():
@@ -201,10 +202,8 @@ class myUser():
 
         if host:
             db = self.get_db(host)
-            logging.debug('User authenticated for hots %s' % host)
         else:
             db = self.db
-            logging.debug('User authenticated for hots %s' % None)
 
         profile_id = db.execute_lastrowid('INSERT INTO user SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, session_key = %s, user_key = %s, access_token = %s, redirect_url = %s, redirect_key = %s, login_count = 0, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session_key = %s, user_key = %s, access_token = %s, redirect_url = %s, redirect_key = %s, login_count = login_count + 1, changed = NOW();',
                 # insert
@@ -240,8 +239,9 @@ class myUser():
         if not user:
             return self.redirect('/')
 
-        self.db.execute('UPDATE user SET redirect_key = NULL WHERE id = %s AND redirect_key = %s LIMIT 1;', profile_id, redirect_key)
+        self.db.execute('UPDATE user SET redirect_url = NULL, redirect_key = NULL WHERE id = %s AND redirect_key = %s;', profile_id, redirect_key)
 
+        self.clear_cookie('session')
         self.set_secure_cookie('session', user.session_key)
         self.redirect(user.redirect_url)
 
@@ -252,7 +252,7 @@ class myUser():
 
         """
         if self.current_user:
-            self.db.execute('UPDATE user SET session = NULL, access_token = NULL, redirect_url = NULL WHERE id = %s;', self.current_user.user_id)
+            self.db.execute('UPDATE user SET session_key = NULL, user_key = NULL, access_token = NULL, redirect_url = NULL, redirect_key = NULL WHERE id = %s;', self.current_user.user_id)
 
         self.clear_cookie('session')
 
