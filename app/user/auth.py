@@ -295,6 +295,12 @@ class AuthTwitter(myRequestHandler, auth.TwitterMixin):
     Twitter authentication.
 
     """
+    def _oauth_consumer_token(self):
+        return {
+            'key':    self.app_settings('auth-twitter', '\n', True).split('\n')[0],
+            'secret': self.app_settings('auth-twitter', '\n', True).split('\n')[1],
+        }
+
     @web.asynchronous
     def get(self):
         set_redirect(self)
