@@ -234,11 +234,11 @@ class myUser():
 
     def user_login_redirect(self, profile_id=None, redirect_key=None):
         if not redirect_key or not profile_id:
-            return self.redirct('/')
+            return self.redirect('/')
 
         user = self.db.get('SELECT session_key, redirect_url FROM user WHERE id = %s AND redirect_key = %s LIMIT 1;', profile_id, redirect_key)
         if not user:
-            return self.redirct('/')
+            return self.redirect('/')
 
         self.db.execute('UPDATE user SET redirect_key = NULL WHERE id = %s AND redirect_key = %s LIMIT 1;', profile_id, redirect_key)
 
