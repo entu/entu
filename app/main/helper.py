@@ -145,7 +145,7 @@ class myUser():
                 user.email,
                 user.provider,
                 user.access_token,
-                %s AS session_key
+                user.session_key
             FROM
                 property_definition,
                 property,
@@ -157,9 +157,10 @@ class myUser():
             AND entity.is_deleted = 0
             AND user.email = property.value_string
             AND property_definition.dataproperty = 'user'
-            AND user.session = %s
+            AND user.session_key = %s
+            AND user.user_key = %s
             LIMIT 1;
-        """, session_key, session_key+user_key)
+        """, session_key, user_key)
 
         if not user:
             logging.debug('No current user!')
@@ -185,21 +186,27 @@ class myUser():
                 value = False
             self.db.execute('UPDATE user SET hide_menu = %s WHERE id = %s;', value, self.get_current_user().user_id)
 
-    def user_login(self, session_key=None, provider=None, provider_id=None, email=None, name=None, picture=None, access_token=None, host=None):
+    def user_login(self, provider=None, provider_id=None, email=None, name=None, picture=None, access_token=None, redirect_url=None):
         """
         Starts session. Creates new (or updates old) user.
 
         """
-        if not session_key:
-            session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
+        redirect_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
+        session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
         user_key = hashlib.md5(self.request.remote_ip + self.request.headers.get('User-Agent', None)).hexdigest()
+        host = None
+
+        if redirect_url:
+            host = redirect_url.replace('http://', '').replace('https://', '').split('/')[0]
 
         if host:
             db = self.get_db(host)
+            logging.debug('User authenticated for hots %s' % host)
         else:
             db = self.db
+            logging.debug('User authenticated for hots %s' % None)
 
-        profile_id = db.execute_lastrowid('INSERT INTO user SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, session = %s, access_token = %s, login_count = 0, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, access_token = %s, login_count = login_count + 1, changed = NOW();',
+        profile_id = db.execute_lastrowid('INSERT INTO user SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, session_key = %s, user_key = %s, access_token = %s, redirect_url = %s, redirect_key = %s, login_count = 0, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session_key = %s, user_key = %s, access_token = %s, redirect_url = %s, redirect_key = %s, login_count = login_count + 1, changed = NOW();',
                 # insert
                 provider,
                 provider_id,
@@ -207,19 +214,37 @@ class myUser():
                 name,
                 picture,
                 self.app_settings('language', 'english'),
-                session_key+user_key,
+                session_key,
+                user_key,
                 access_token,
+                redirect_url,
+                redirect_key,
                 # update
                 email,
                 name,
                 picture,
-                session_key+user_key,
-                access_token
+                session_key,
+                user_key,
+                access_token,
+                redirect_url,
+                redirect_key
             )
 
-        self.set_secure_cookie('session', session_key)
+        return {'id': profile_id, 'host': host, 'redirect_key': redirect_key}
 
-        return session_key
+    def user_login_redirect(self, profile_id=None, redirect_key=None):
+        if not redirect_key or not profile_id:
+            return self.redirct('/')
+
+        user = self.db.get('SELECT session_key, redirect_url FROM user WHERE id = %s AND redirect_key = %s LIMIT 1;', profile_id, redirect_key)
+        if not user:
+            return self.redirct('/')
+
+        self.db.execute('UPDATE user SET redirect_key = NULL WHERE id = %s AND redirect_key = %s LIMIT 1;', profile_id, redirect_key)
+
+        self.set_secure_cookie('session', user.session_key)
+        self.redirect(user.redirect_url)
+
 
     def user_logout(self, session_key=None):
         """
@@ -227,7 +252,7 @@ class myUser():
 
         """
         if self.current_user:
-            self.db.execute('UPDATE user SET session = NULL, access_token = NULL WHERE id = %s;', self.current_user.user_id)
+            self.db.execute('UPDATE user SET session = NULL, access_token = NULL, redirect_url = NULL WHERE id = %s;', self.current_user.user_id)
 
         self.clear_cookie('session')
 

@@ -179,37 +179,37 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
             return
 
         if self.oauth2_provider['provider'] == 'facebook':
-            self.user_login(
+            session_dict = self.user_login(
                 provider        = self.oauth2_provider['provider'],
                 provider_id     = user.get('id'),
                 email           = user.get('email'),
                 name            = user.get('name'),
                 picture         = 'http://graph.facebook.com/%s/picture?type=large' % user.get('id'),
                 access_token    = access_token,
-                host            = get_host(self),
+                redirect_url    = get_redirect(self),
             )
         if self.oauth2_provider['provider'] == 'google':
-            self.user_login(
+            session_dict = self.user_login(
                 provider        = self.oauth2_provider['provider'],
                 provider_id     = user.get('id'),
                 email           = user.get('email'),
                 name            = user.get('name'),
                 picture         = user.get('picture'),
                 access_token    = access_token,
-                host            = get_host(self),
+                redirect_url    = get_redirect(self),
             )
         if self.oauth2_provider['provider'] == 'live':
-            self.user_login(
+            session_dict = self.user_login(
                 provider        = self.oauth2_provider['provider'],
                 provider_id     = user.get('id'),
                 email           = user.get('emails', {}).get('preferred', user.get('emails', {}).get('preferred', user.get('personal', {}).get('account'))),
                 name            = user.get('name'),
                 picture         = 'https://apis.live.net/v5.0/%s/picture' % user.get('id'),
                 access_token    = access_token,
-                host            = get_host(self),
+                redirect_url    = get_redirect(self),
             )
 
-        self.redirect(get_redirect(self))
+        self.redirect('https://%(host)s/auth/redirect?key=%(redirect_key)s&user=%(id)s' % session_dict)
 
 
 class AuthMobileID(myRequestHandler):
@@ -282,49 +282,25 @@ class AuthMobileID(myRequestHandler):
             if user_file:
                 if user_file.file:
                     user = json.loads(user_file.file)
-                    self.user_login(
+                    session_key = self.user_login(
                         provider        = 'mobileid',
                         provider_id     = user['id'],
                         email           = '%s@eesti.ee' % user['id'],
                         name            = user['name'],
                         picture         = None,
-                        host            = get_host(self),
+                        redirect_url    = get_redirect(self),
                     )
 
             return self.write({'url': get_redirect(self)})
 
 
-class AuthTwitter(myRequestHandler, auth.TwitterMixin):
+class AuthRedirect(myRequestHandler):
     """
-    Twitter authentication.
+    Redirect.
 
     """
-    def _oauth_consumer_token(self):
-        return {
-            'key':    self.app_settings('auth-twitter', '\n', True).split('\n')[0],
-            'secret': self.app_settings('auth-twitter', '\n', True).split('\n')[1],
-        }
-
-    @web.asynchronous
     def get(self):
-        set_redirect(self)
-        if not self.get_argument('oauth_token', None):
-            return self.authenticate_redirect()
-        self.get_authenticated_user(self.async_callback(self._got_user))
-
-    def _got_user(self, user):
-        if not user:
-            raise web.HTTPError(500, 'Twitter auth failed')
-
-        self.user_login(
-            provider        = 'twitter',
-            provider_id     = '%s' % user.get('id'),
-            email           = None,
-            name            = user.get('name'),
-            picture         = user.get('profile_image_url'),
-            host            = get_host(self),
-        )
-        self.redirect(get_redirect(self))
+        self.user_login_redirect(profile_id=self.get_argument('user', None, True), redirect_key=self.get_argument('key', None, True))
 
 
 def set_redirect(rh):
@@ -347,22 +323,10 @@ def get_redirect(rh):
     return '/'
 
 
-def get_host(rh):
-    """
-    Returns requested host from cookie.
-
-    """
-    redirect_url = rh.get_secure_cookie('auth_redirect')
-    if redirect_url:
-        redirect_url = redirect_url.replace('http://', '').replace('https://', '').split('/')
-        if redirect_url:
-            return redirect_url[0]
-
-
 handlers = [
     ('/auth', ShowAuthPage),
+    ('/auth/redirect', AuthRedirect),
     ('/auth/mobileid', AuthMobileID),
-    ('/auth/twitter', AuthTwitter),
     ('/auth/(.*)', AuthOAuth2),
     ('/exit', Exit),
 ]
