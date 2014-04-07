@@ -79,7 +79,7 @@ class myApplication(tornado.web.Application):
             'static_path':          path.join(path.dirname(__file__), '..', 'static'),
             'xsrf_coocies':         True,
             'cookie_secret':        '8Et6q9ragAtuVevu3UPraqepr6maqaFreXess6ujukawreph9ch4huj6de3ezAcU',
-            'login_url':            '/auth',
+            'login_url':            'https://www.entu.ee/auth',
             'start_time':           time.time(),
             'request_count':        0,
             'request_time':         0,

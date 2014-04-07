@@ -25,22 +25,31 @@ class myDatabase():
     @property
     def db(self):
         """
+        Returns current hosts DB connection.
+
+        """
+        return self.get_db(self.request.host)
+
+    def get_db(self, host):
+        """
         Returns DB connection.
 
         """
         try:
-            x = self.settings['databases'][self.request.host].get('SELECT 1 FROM DUAL;')
+            x = self.settings['databases'][host].get('SELECT 1 FROM DUAL;')
         except Exception:
-            self.settings['databases'][self.request.host] = torndb.Connection(
+            self.settings['databases'][host] = torndb.Connection(
                 host     = self.app_settings('database-host'),
                 database = self.app_settings('database-name'),
                 user     = self.app_settings('database-user'),
                 password = self.app_settings('database-password', '', True),
             )
-        return self.settings['databases'][self.request.host]
+        return self.settings['databases'][host]
 
     def app_settings(self, key, default=None, do_something_fun=False):
-        return self.get_app_settings().get(key, default)
+        if self.get_app_settings():
+            return self.get_app_settings().get(key, default)
+
         # if not do_something_fun:
         #     return self.get_app_settings().get(key, default)
         # try:
@@ -75,7 +84,11 @@ class myDatabase():
                             IF(
                                 property_definition.datatype='file',
                                 property.value_file,
-                                property.value_string
+                                IF(
+                                    property_definition.datatype='text',
+                                    property.value_text,
+                                    property.value_string
+                                )
                             )
                         )
                     ) AS value
@@ -172,7 +185,7 @@ class myUser():
                 value = False
             self.db.execute('UPDATE user SET hide_menu = %s WHERE id = %s;', value, self.get_current_user().user_id)
 
-    def user_login(self, session_key=None, provider=None, provider_id=None, email=None, name=None, picture=None, access_token=None):
+    def user_login(self, session_key=None, provider=None, provider_id=None, email=None, name=None, picture=None, access_token=None, host=None):
         """
         Starts session. Creates new (or updates old) user.
 
@@ -181,7 +194,12 @@ class myUser():
             session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
         user_key = hashlib.md5(self.request.remote_ip + self.request.headers.get('User-Agent', None)).hexdigest()
 
-        profile_id = self.db.execute_lastrowid('INSERT INTO user SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, session = %s, access_token = %s, login_count = 0, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, access_token = %s, login_count = login_count + 1, changed = NOW();',
+        if host:
+            db = self.get_db(host)
+        else:
+            db = self.db
+
+        profile_id = db.execute_lastrowid('INSERT INTO user SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, session = %s, access_token = %s, login_count = 0, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session = %s, access_token = %s, login_count = login_count + 1, changed = NOW();',
                 # insert
                 provider,
                 provider_id,

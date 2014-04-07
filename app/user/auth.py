@@ -185,7 +185,8 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 email           = user.get('email'),
                 name            = user.get('name'),
                 picture         = 'http://graph.facebook.com/%s/picture?type=large' % user.get('id'),
-                access_token    = access_token
+                access_token    = access_token,
+                host            = get_host(self),
             )
         if self.oauth2_provider['provider'] == 'google':
             self.user_login(
@@ -194,7 +195,8 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 email           = user.get('email'),
                 name            = user.get('name'),
                 picture         = user.get('picture'),
-                access_token    = access_token
+                access_token    = access_token,
+                host            = get_host(self),
             )
         if self.oauth2_provider['provider'] == 'live':
             self.user_login(
@@ -203,7 +205,8 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 email           = user.get('emails', {}).get('preferred', user.get('emails', {}).get('preferred', user.get('personal', {}).get('account'))),
                 name            = user.get('name'),
                 picture         = 'https://apis.live.net/v5.0/%s/picture' % user.get('id'),
-                access_token    = access_token
+                access_token    = access_token,
+                host            = get_host(self),
             )
 
         self.redirect(get_redirect(self))
@@ -284,7 +287,8 @@ class AuthMobileID(myRequestHandler):
                         provider_id     = user['id'],
                         email           = '%s@eesti.ee' % user['id'],
                         name            = user['name'],
-                        picture         = None
+                        picture         = None,
+                        host            = get_host(self),
                     )
 
             return self.write({'url': get_redirect(self)})
@@ -317,7 +321,8 @@ class AuthTwitter(myRequestHandler, auth.TwitterMixin):
             provider_id     = '%s' % user.get('id'),
             email           = None,
             name            = user.get('name'),
-            picture         = user.get('profile_image_url')
+            picture         = user.get('profile_image_url'),
+            host            = get_host(self),
         )
         self.redirect(get_redirect(self))
 
@@ -336,10 +341,22 @@ def get_redirect(rh):
     Returns requested URL (or / if not set) from cookie.
 
     """
-    next = rh.get_secure_cookie('auth_redirect')
-    if next:
-        return next
+    redirect_url = rh.get_secure_cookie('auth_redirect')
+    if redirect_url:
+        return redirect_url
     return '/'
+
+
+def get_host(rh):
+    """
+    Returns requested host from cookie.
+
+    """
+    redirect_url = rh.get_secure_cookie('auth_redirect')
+    if redirect_url:
+        redirect_url = redirect_url.replace('http://', '').replace('https://', '').split('/')
+        if redirect_url:
+            return redirect_url[0]
 
 
 handlers = [
