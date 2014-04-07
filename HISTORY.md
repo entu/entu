@@ -1,3 +1,8 @@
+## 2014-04-07
+* Authenticate all users via www.entu.ee
+* Background maintenance for sorting, formulas etc
+* Some bugs got fixed
+
 ## 2014-03-18
 * Get public Entities from API 2.0
 * Digital signage (ScreenWerk) player enhancements:
