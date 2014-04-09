@@ -117,6 +117,14 @@ class API2Definition(myRequestHandler, Entity2):
         })
 
 
+class API2NotFound(myRequestHandler, Entity2):
+    def get(self, url):
+        self.json({
+            'error': '\'%s\' not found' % url,
+            'time': round(self.request.request_time(), 3),
+        }, 404)
+
+
 
 
 
@@ -190,4 +198,5 @@ handlers = [
     (r'/api2/entity-(.*)/picture', API2EntityPicture),
     (r'/api2/definition', API2Definition),
     (r'/api2/s3upload', S3FileUpload),
+    (r'/api2(.*)', API2NotFound),
 ]
