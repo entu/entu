@@ -10,10 +10,10 @@
                         </th>
                         {% end %}
                         <td>
-                            {% if p['readonly'] %}
+                            {% if p['readonly'] and p['datatype'] != 'counter-value' %}
                                 <span style="padding:8px !important; font-style:italic; color:gray;">{{ v['value'] }} </span>
                             {% else %}
-                                {% if p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal'] %}
+                                {% if p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal'] or (p['datatype'] == 'counter-value' and v['value'] and not p['readonly']) %}
                                     {% if p.get('select', None) %}
                                         <select class="autosave classifier-select {% if p['can_add_new'] and idx+1 == len(p.get('values')) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" style="width:100%;">
                                             <option value=""></option>
