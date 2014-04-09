@@ -7,12 +7,13 @@ from tornado import locale
 from tornadomail.message import EmailMessage, EmailMultiAlternatives
 from tornadomail.backends.smtp import EmailBackend
 
+import hmac
 import hashlib
 import re
 import random
 import string
-import base64
 from SimpleAES import SimpleAES
+import time
 
 import logging
 import json
@@ -125,8 +126,11 @@ class myDatabase():
 
 
 class myUser():
-    __user = None
+    __user        = None
     __session_key = None
+    __user_id     = None
+    __policy      = None
+    __signature   = None
 
     def get_user_by_session_key(self, session_key):
         if not session_key:
@@ -146,7 +150,8 @@ class myUser():
                 user.email,
                 user.provider,
                 user.access_token,
-                user.session_key
+                user.session_key,
+                NULL AS api_key
             FROM
                 property_definition,
                 property,
@@ -168,13 +173,93 @@ class myUser():
             return
 
         if not user.id:
-            logging.debug('No current user!')
+            logging.debug('No user id!')
             return
 
         self.__user = user
         self.__session_key = session_key
 
-        logging.debug('Loaded user #%s' % user.user_id)
+        logging.debug('Loaded user #%s' % user.id)
+        return user
+
+    def get_user_by_signature(self):
+        user_id = self.get_argument('user', default=None, strip=True)
+        policy = self.get_argument('policy', default=None, strip=True)
+        signature = self.get_argument('signature', default=None, strip=True)
+
+        if self.__user and self.__user_id == user_id and self.__policy == policy and  self.__signature == signature:
+            return self.__user
+
+        # encoded_policy = json.dumps({
+        #     'expiration': (datetime.datetime.utcnow()+datetime.timedelta(minutes=5)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+        #     'conditions': []
+        # }).encode('utf-8').encode('base64').replace('\n','')
+        # logging.debug(encoded_policy)
+
+        try:
+            policy_dict = json.loads(policy.decode('base64').decode('utf-8'))
+        except Exception:
+            logging.debug('Invalid policy!')
+            return
+
+        if 'expiration' not in policy_dict:
+            logging.debug('No expiration date!')
+            return
+
+        try:
+            expiration_time = time.mktime(time.strptime(policy_dict['expiration'], '%Y-%m-%dT%H:%M:%SZ'))
+        except Exception:
+            logging.debug('Invalid expiration date!')
+            return
+
+        if time.time() > expiration_time:
+            logging.debug('URL is expired!')
+            return
+
+        user = self.db.get("""
+            SELECT
+                entity.id,
+                NULL AS user_id,
+                NULL AS name,
+                NULL AS language,
+                NULL AS hide_menu,
+                NULL AS email,
+                NULL AS provider,
+                NULL AS access_token,
+                NULL AS session_key,
+                property.value_string AS api_key
+            FROM
+                property_definition,
+                property,
+                entity
+            WHERE property.property_definition_keyname = property_definition.keyname
+            AND entity.id = property.entity_id
+            AND property.is_deleted = 0
+            AND entity.is_deleted = 0
+            AND property_definition.dataproperty = 'entu-api-key'
+            AND entity.id = %s
+            LIMIT 1;
+        """, user_id)
+
+        if not user:
+            logging.debug('No current user!')
+            return
+
+        if not user.api_key:
+            logging.debug('No user API key!')
+            return
+
+        correct_signature = hmac.new(user.api_key.encode('utf-8'), policy.encode('utf-8'), hashlib.sha1).digest().encode('base64').replace('\n','')
+        if signature != correct_signature:
+            logging.debug('Wrong signature!')
+            return
+
+        self.__user = user
+        self.__user_id = user_id
+        self.__policy = policy
+        self.__signature = signature
+
+        logging.debug('Loaded user #%s' % user.id)
         return user
 
     def set_preferences(self, key, value):
@@ -303,7 +388,12 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
         Sets and returns logged in user. Properties are, id (Entity ID!), name, language, email, picture. If picture is not set returns gravatar.com picture url.
 
         """
-        return self.get_user_by_session_key(self.get_secure_cookie('session'))
+        if self.get_argument('user', default=None) and self.get_argument('policy', default=None) and self.get_argument('signature', default=None):
+            logging.debug('User/signature auth')
+            return self.get_user_by_signature()
+        else:
+            logging.debug('Session auth')
+            return self.get_user_by_session_key(self.get_secure_cookie('session'))
 
     def get_user_locale(self):
         """
