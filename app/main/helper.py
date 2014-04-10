@@ -13,7 +13,6 @@ import re
 import random
 import string
 from SimpleAES import SimpleAES
-import time
 
 import logging
 import json
@@ -214,6 +213,10 @@ class myUser():
 
         if time.time() > expiration_time:
             logging.debug('URL is expired!')
+            return
+
+        if time.time() - expiration_time > 3600:
+            logging.debug('Expiration time must be less than 1 hour!')
             return
 
         user = self.db.get("""
