@@ -15,7 +15,7 @@ page|integer|No|1|
 changelog|boolean|No|False|Return properties changelog
 deleted|boolean|No|False|Return also deleted entities
 user|string|No||User ID
-policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (python format is '%Y-%m-%dT%H:%M:%SZ')
+policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
 signature|string|No||Base64 encoded HMAC signature of policy
 
 Result code|Status|Description
@@ -34,7 +34,7 @@ Argument|Type|Required|Default|Description
 changelog|boolean|No|False|Return properties changelog
 deleted|boolean|No|False|Return entity even if it's deleted
 user|string|No||User ID
-policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (python format is '%Y-%m-%dT%H:%M:%SZ')
+policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
 signature|string|No||Base64 encoded HMAC signature of policy
 
 Result code|Status|Description
@@ -49,7 +49,7 @@ Argument|Type|Required|Default|Description
 :--|:-:|:-:|:--|:--
 property_definition||Yes||
 user|string|No||User ID
-policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (python format is '%Y-%m-%dT%H:%M:%SZ')
+policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
 signature|string|No||Base64 encoded HMAC signature of policy
 
 Result code|Status|Description
@@ -64,7 +64,7 @@ Argument|Type|Required|Default|Description
 :--|:-:|:-:|:--|:--
 definition|string|Yes||Definition ID of the new entity
 user|string|No||User ID
-policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (python format is '%Y-%m-%dT%H:%M:%SZ')
+policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
 signature|string|No||Base64 encoded HMAC signature of policy
 
 Result code|Status|Description
@@ -78,7 +78,7 @@ Result code|Status|Description
 Argument|Type|Required|Default|Description
 :--|:-:|:-:|:-:|:--
 user|string|No||User ID
-policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (python format is '%Y-%m-%dT%H:%M:%SZ')
+policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
 signature|string|No||Base64 encoded HMAC signature of policy
 
 Result code|Status|Description
@@ -97,7 +97,7 @@ Argument|Type|Required|Default|Description
 :--|:-:|:-:|:-:|:--
 deleted|boolean|No|False|Return file even if entity or file is deleted
 user|string|No||User ID
-policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (python format is '%Y-%m-%dT%H:%M:%SZ')
+policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
 signature|string|No||Base64 encoded HMAC signature of policy
 
 Result code|Status|Description
