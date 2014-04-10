@@ -249,6 +249,7 @@ handlers = [
     (r'/api2/entity-(.*)/childs', API2EntityChilds),
     (r'/api2/entity-(.*)/referrals', API2EntityReferrals),
     (r'/api2/entity-(.*)/picture', API2EntityPicture),
+    (r'/api2/entity-(.*)', API2Entity),
     (r'/api2/definition', API2Definition),
     (r'/api2/s3upload', S3FileUpload),
     (r'/api2(.*)', API2NotFound),
