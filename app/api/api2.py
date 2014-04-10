@@ -95,6 +95,43 @@ class API2Entity(myRequestHandler, Entity):
         }, 201)
 
 
+    @web.removeslash
+    def put(self, entity_id):
+        if not self.current_user:
+            return self.json({
+                'error': 'Forbidden!',
+                'time': round(self.request.request_time(), 3),
+            }, 403)
+
+        if not entity_id:
+            return self.json({
+                'error': 'No entity ID!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        # entity = self.get_entities(entity_id=entity_id, limit=1)
+        # if not entity:
+        #     return self.json({
+        #         'error': 'Entity with given ID is not found!',
+        #         'time': round(self.request.request_time(), 3),
+        #     }, 404)
+
+        properties = self.get_arguments('properties', strip=True)
+        logging.debug(self.request)
+        # if not definition:
+        #     return self.json({
+        #         'error': 'No definition!',
+        #         'time': round(self.request.request_time(), 3),
+        #     }, 400)
+
+        # entity_id = self.create_entity(entity_definition_keyname=definition, parent_entity_id=entity_id)
+
+        self.json({
+            # 'entity_id': entity_id,
+            'time': round(self.request.request_time(), 3),
+        }, 201)
+
+
 class API2EntityChilds(myRequestHandler, Entity2):
     @web.removeslash
     def get(self, entity_id=None):

@@ -215,7 +215,7 @@ class myUser():
             logging.debug('URL is expired!')
             return
 
-        if time.time() - expiration_time > 3600:
+        if expiration_time - time.time() > 3600:
             logging.debug('Expiration time must be less than 1 hour!')
             return
 
@@ -224,7 +224,7 @@ class myUser():
                 entity.id,
                 NULL AS user_id,
                 NULL AS name,
-                NULL AS language,
+                'estonian' AS language,
                 NULL AS hide_menu,
                 NULL AS email,
                 NULL AS provider,
