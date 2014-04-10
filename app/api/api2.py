@@ -10,6 +10,7 @@ from boto.s3.key import Key
 
 
 from main.helper import *
+from main.db import *
 from main.db2 import *
 
 
@@ -39,6 +40,22 @@ class API2EntityList(myRequestHandler, Entity2):
             'result': sorted(result.values(), key=itemgetter('sort')),
             'time': round(self.request.request_time(), 3),
             'count': db_result.get('count', 0),
+        })
+
+
+class API2Entity(myRequestHandler, Entity):
+    @web.removeslash
+    def get(self, entity_id):
+        entity = self.get_entities(entity_id=entity_id, limit=1)
+        if not entity:
+            return self.json({
+                'error': 'Entity with given ID is not found!',
+                'time': round(self.request.request_time(), 3),
+            }, 404)
+
+        self.json({
+            'entity': entity,
+            'time': round(self.request.request_time(), 3),
         })
 
 
