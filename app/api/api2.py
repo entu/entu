@@ -35,7 +35,7 @@ class API2EntityList(myRequestHandler, Entity2):
             result.setdefault(e.get('id'), {})['info'] = e.get('displayinfo') if e.get('displayinfo') else None
             result.setdefault(e.get('id'), {})['table'] = e.get('displaytable').split('|') if e.get('displaytable') else None
 
-        self.write({
+        self.json({
             'result': sorted(result.values(), key=itemgetter('sort')),
             'time': round(self.request.request_time(), 3),
             'count': db_result.get('count', 0),
@@ -61,7 +61,7 @@ class API2EntityChilds(myRequestHandler, Entity2):
         for r in result.values():
             r['entities'] = sorted(r.get('entities', {}).values(), key=itemgetter('sort'))
 
-        self.write({
+        self.json({
             'result': result.values(),
             'time': round(self.request.request_time(), 3),
             'count': db_result.get('count', 0),
@@ -87,7 +87,7 @@ class API2EntityReferrals(myRequestHandler, Entity2):
         for r in result.values():
             r['entities'] = sorted(r.get('entities', {}).values(), key=itemgetter('sort'))
 
-        self.write({
+        self.json({
             'result': result.values(),
             'time': round(self.request.request_time(), 3),
             'count': db_result.get('count', 0),
@@ -149,7 +149,7 @@ class S3FileUpload(myRequestHandler):
             s3_key = s3_bucket.get_key(key)
             s3_url = s3_key.generate_url(expires_in=10, query_auth=True)
 
-            self.write({
+            self.json({
                 'bucket': bucket,
                 'key': key,
                 'etag': etag,
@@ -176,7 +176,7 @@ class S3FileUpload(myRequestHandler):
             encoded_policy = json.dumps(policy).encode('utf-8').encode('base64').replace('\n','')
             signature = hmac.new(AWS_SECRET_KEY, encoded_policy, sha1).digest().encode('base64').replace('\n','')
 
-            self.write({
+            self.json({
                 'url': 'https://%s.s3.amazonaws.com/' % AWS_BUCKET,
                 'data': {
                     'key':                          '%s/${filename}' % key,
