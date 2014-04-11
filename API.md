@@ -102,6 +102,7 @@ Argument|Type|Required|Default|Description
 :--|:-:|:-:|:--|:--
 entity|integer|Yes||ID of the entity where to but this file
 property|string|Yes||Property definition of the new file property
+filename|string|Yes||File name
 user|string|No||User ID
 policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
 signature|string|No||Base64 encoded HMAC signature of policy
