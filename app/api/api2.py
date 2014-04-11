@@ -17,6 +17,9 @@ from main.db2 import *
 class API2EntityList(myRequestHandler, Entity2):
     @web.removeslash
     def get(self):
+        """
+        Get entity list
+        """
         db_result = self.get_entities_info(
                 definition=self.get_argument('definition', default=None, strip=True),
                 query=self.get_argument('query', default=None, strip=True),
@@ -50,6 +53,12 @@ class API2Entity(myRequestHandler, Entity):
         Get entity (with given ID)
 
         """
+        if not entity_id:
+            return self.json({
+                'error': 'No entity ID!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
         entity = self.get_entities(entity_id=entity_id, limit=1)
         if not entity:
             return self.json({
