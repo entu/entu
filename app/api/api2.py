@@ -145,6 +145,14 @@ class API2Entity(myRequestHandler, Entity):
 
         entity_id = self.create_entity(entity_definition_keyname=definition, parent_entity_id=entity_id)
 
+        for dataproperty, value in self.request.arguments.iteritems():
+            if dataproperty in ['user', 'policy', 'signature', 'definition']:
+                continue
+            if type(value) is not list:
+                value = [value]
+            for v in value:
+                new_property_id = self.set_property(entity_id=entity_id, property_definition_keyname=dataproperty, value=v)
+
         self.json({
             'entity_id': entity_id,
             'time': round(self.request.request_time(), 3),

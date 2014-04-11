@@ -63,6 +63,7 @@ Result code|Status|Description
 Argument|Type|Required|Default|Description
 :--|:-:|:-:|:--|:--
 definition|string|Yes||Definition ID of the new entity
+property_definition||No||
 user|string|No||User ID
 policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
 signature|string|No||Base64 encoded HMAC signature of policy
