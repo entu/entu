@@ -90,6 +90,31 @@ Result code|Status|Description
 
 
 
+## /api2/file
+
+### POST - upload/create file
+All arguments must 
+
+**Note:** Since the entire POST body will be treated as the file, any parameters must be passed as part of the request URL. 
+**Note 2:** Providing a Content-Length header set to the size of the uploaded file is required so that the server can verify that it has received the entire file contents.
+
+Argument|Type|Required|Default|Description
+:--|:-:|:-:|:--|:--
+entity|integer|Yes||ID of the entity where to but this file
+property|string|Yes||Property definition of the new file property
+user|string|No||User ID
+policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
+signature|string|No||Base64 encoded HMAC signature of policy
+
+Result code|Status|Description
+:-:|:--|:--
+201|Created|Returns new file ID
+400|Bad Request|Returns error message
+403|Forbidden|User has no rights to access or change this entity
+404|Not Found|Entity with given ID is not found
+
+
+
 ## /api2/file-{id}
 
 ### GET - get file (with given ID)
@@ -108,3 +133,16 @@ Result code|Status|Description
 403|Forbidden|User has no rights to access this file
 404|Not Found|File with given ID is not found
 
+### DELETE - delete file (with given ID)
+Argument|Type|Required|Default|Description
+:--|:-:|:-:|:-:|:--
+user|string|No||User ID
+policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
+signature|string|No||Base64 encoded HMAC signature of policy
+
+Result code|Status|Description
+:-:|:--|:--
+200|OK|File is deleted
+400|Bad Request|Returns error message
+403|Forbidden|User has no rights to access or delete this file or entity
+404|Not Found|Entity with given ID is not found
