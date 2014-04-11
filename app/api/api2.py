@@ -48,7 +48,7 @@ class API2EntityList(myRequestHandler, Entity2):
 
 class API2Entity(myRequestHandler, Entity):
     @web.removeslash
-    def get(self, entity_id):
+    def get(self, entity_id=None):
         """
         Get entity (with given ID)
 
@@ -73,7 +73,7 @@ class API2Entity(myRequestHandler, Entity):
 
 
     @web.removeslash
-    def put(self, entity_id):
+    def put(self, entity_id=None):
         """
         Change entity (with given ID) properties
 
@@ -112,7 +112,7 @@ class API2Entity(myRequestHandler, Entity):
 
 
     @web.removeslash
-    def post(self, entity_id):
+    def post(self, entity_id=None):
         """
         Create new child entity (under entity with given ID)
 
@@ -160,7 +160,7 @@ class API2Entity(myRequestHandler, Entity):
 
 
     @web.removeslash
-    def delete(self, entity_id):
+    def delete(self, entity_id=None):
         """
         Delete entity (with given ID)
         """
@@ -170,6 +170,12 @@ class API2Entity(myRequestHandler, Entity):
 class API2EntityChilds(myRequestHandler, Entity2):
     @web.removeslash
     def get(self, entity_id=None):
+        if not entity_id:
+            return self.json({
+                'error': 'No entity ID!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
         db_result = self.get_entities_info(parent_entity_id=entity_id)
 
         result = {}
@@ -196,6 +202,12 @@ class API2EntityChilds(myRequestHandler, Entity2):
 class API2EntityReferrals(myRequestHandler, Entity2):
     @web.removeslash
     def get(self, entity_id=None):
+        if not entity_id:
+            return self.json({
+                'error': 'No entity ID!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
         db_result = self.get_entities_info(referred_to_entity_id=entity_id)
 
         result = {}
