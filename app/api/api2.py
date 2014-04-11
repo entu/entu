@@ -2,6 +2,7 @@ import hmac
 import json
 import datetime
 import logging
+import mimetypes
 from hashlib import sha1
 from operator import itemgetter
 
@@ -231,6 +232,51 @@ class API2EntityReferrals(myRequestHandler, Entity2):
         })
 
 
+class API2File(myRequestHandler, Entity):
+    @web.removeslash
+    def get(self, file_id=None):
+        """
+        Get file (with given ID)
+        """
+        if not file_id:
+            return self.json({
+                'error': 'No file ID!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        files = self.get_file(file_id)
+        if not files:
+            return self.json({
+                'error': 'File with given ID is not found!',
+                'time': round(self.request.request_time(), 3),
+            }, 404)
+
+        if not files[0].file:
+            return self.json({
+                'error': 'No file!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        if files[0].is_link == 1:
+            return self.redirect(files[0].file)
+
+        mimetypes.init()
+        mime = mimetypes.types_map.get('.%s' % files[0].filename.lower().split('.')[-1], 'application/octet-stream')
+
+        filename = files[0].filename
+
+        self.add_header('Content-Type', mime)
+        self.add_header('Content-Disposition', 'inline; filename="%s"' % filename)
+        self.write(files[0].file)
+
+    @web.removeslash
+    def delete(self, file_id=None):
+        """
+        Delete file (with given ID)
+        """
+        pass
+
+
 class API2FileUpload(myRequestHandler, Entity):
     @web.removeslash
     def post(self):
@@ -293,7 +339,11 @@ class API2FileUpload(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        self.new_property_id = self.set_property(entity_id=entity_id, property_definition_keyname=dataproperty, value={'filename': filename, 'body': uploaded_file, 'is_link': 0})
+        new_property_id = self.set_property(entity_id=entity_id, property_definition_keyname=dataproperty, value={'filename': filename, 'body': uploaded_file, 'is_link': 0})
+
+        self.json({
+            'time': round(self.request.request_time(), 3),
+        })
 
 
 class API2EntityPicture(myRequestHandler, Entity2):
@@ -413,7 +463,7 @@ handlers = [
     (r'/api2/entity-(.*)/picture', API2EntityPicture),
     (r'/api2/entity-(.*)', API2Entity),
     (r'/api2/file', API2FileUpload),
-    # (r'/api2/file-(.*)', API2File),
+    (r'/api2/file-(.*)', API2File),
     (r'/api2/definition', API2Definition),
     (r'/api2/s3upload', S3FileUpload),
     (r'/api2(.*)', API2NotFound),
