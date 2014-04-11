@@ -18,9 +18,9 @@ from main.db2 import *
 class API2EntityList(myRequestHandler, Entity2):
     @web.removeslash
     def get(self):
-        """
-        Get entity list
-        """
+        #
+        # Get entity list
+        #
         db_result = self.get_entities_info(
                 definition=self.get_argument('definition', default=None, strip=True),
                 query=self.get_argument('query', default=None, strip=True),
@@ -50,10 +50,9 @@ class API2EntityList(myRequestHandler, Entity2):
 class API2Entity(myRequestHandler, Entity):
     @web.removeslash
     def get(self, entity_id=None):
-        """
-        Get entity (with given ID)
-
-        """
+        #
+        # Get entity (with given ID)
+        #
         if not entity_id:
             return self.json({
                 'error': 'No entity ID!',
@@ -75,10 +74,9 @@ class API2Entity(myRequestHandler, Entity):
 
     @web.removeslash
     def put(self, entity_id=None):
-        """
-        Change entity (with given ID) properties
-
-        """
+        #
+        # Change entity (with given ID) properties
+        #
         if not self.current_user:
             return self.json({
                 'error': 'Forbidden!',
@@ -114,10 +112,9 @@ class API2Entity(myRequestHandler, Entity):
 
     @web.removeslash
     def post(self, entity_id=None):
-        """
-        Create new child entity (under entity with given ID)
-
-        """
+        #
+        # Create new child entity (under entity with given ID)
+        #
         if not self.current_user:
             return self.json({
                 'error': 'Forbidden!',
@@ -162,9 +159,9 @@ class API2Entity(myRequestHandler, Entity):
 
     @web.removeslash
     def delete(self, entity_id=None):
-        """
-        Delete entity (with given ID)
-        """
+        #
+        # Delete entity (with given ID)
+        #
         pass
 
 
@@ -235,9 +232,9 @@ class API2EntityReferrals(myRequestHandler, Entity2):
 class API2File(myRequestHandler, Entity):
     @web.removeslash
     def get(self, file_id=None):
-        """
-        Get file (with given ID)
-        """
+        #
+        # Get file (with given ID)
+        #
         if not file_id:
             return self.json({
                 'error': 'No file ID!',
@@ -271,18 +268,18 @@ class API2File(myRequestHandler, Entity):
 
     @web.removeslash
     def delete(self, file_id=None):
-        """
-        Delete file (with given ID)
-        """
+        #
+        # Delete file (with given ID)
+        #
         pass
 
 
 class API2FileUpload(myRequestHandler, Entity):
     @web.removeslash
     def post(self):
-        """
-        Upload/create file
-        """
+        #
+        # Upload/create file
+        #
         if not self.current_user:
             return self.json({
                 'error': 'Forbidden!',
@@ -348,7 +345,6 @@ class API2FileUpload(myRequestHandler, Entity):
 
 class API2EntityPicture(myRequestHandler, Entity2):
     @web.removeslash
-    @web.authenticated
     def get(self, entity_id=None):
         url = self.get_entity_picture_url(entity_id)
 
@@ -370,9 +366,9 @@ class API2Definition(myRequestHandler, Entity2):
 
 
 class API2NotFound(myRequestHandler, Entity2):
-    """
-    Nice error if API method not found
-    """
+    #
+    # Nice error if API method not found
+    #
     def get(self, url):
         self.json({
             'error': '\'%s\' not found' % url,
