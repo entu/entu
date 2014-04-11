@@ -15,6 +15,8 @@ from main.db import *
 from main.db2 import *
 
 
+
+
 class API2EntityList(myRequestHandler, Entity2):
     @web.removeslash
     def get(self):
@@ -45,6 +47,8 @@ class API2EntityList(myRequestHandler, Entity2):
             'time': round(self.request.request_time(), 3),
             'count': db_result.get('count', 0),
         })
+
+
 
 
 class API2Entity(myRequestHandler, Entity):
@@ -165,6 +169,8 @@ class API2Entity(myRequestHandler, Entity):
         pass
 
 
+
+
 class API2EntityChilds(myRequestHandler, Entity2):
     @web.removeslash
     def get(self, entity_id=None):
@@ -197,6 +203,8 @@ class API2EntityChilds(myRequestHandler, Entity2):
         })
 
 
+
+
 class API2EntityReferrals(myRequestHandler, Entity2):
     @web.removeslash
     def get(self, entity_id=None):
@@ -227,6 +235,8 @@ class API2EntityReferrals(myRequestHandler, Entity2):
             'time': round(self.request.request_time(), 3),
             'count': db_result.get('count', 0),
         })
+
+
 
 
 class API2File(myRequestHandler, Entity):
@@ -272,6 +282,8 @@ class API2File(myRequestHandler, Entity):
         # Delete file (with given ID)
         #
         pass
+
+
 
 
 class API2FileUpload(myRequestHandler, Entity):
@@ -343,6 +355,8 @@ class API2FileUpload(myRequestHandler, Entity):
         })
 
 
+
+
 class API2EntityPicture(myRequestHandler, Entity2):
     @web.removeslash
     def get(self, entity_id=None):
@@ -354,6 +368,8 @@ class API2EntityPicture(myRequestHandler, Entity2):
         self.redirect(url)
 
 
+
+
 class API2Definition(myRequestHandler, Entity2):
     @web.removeslash
     def get(self):
@@ -363,6 +379,8 @@ class API2Definition(myRequestHandler, Entity2):
             'result': definitions,
             'time': round(self.request.request_time(), 3),
         })
+
+
 
 
 class API2NotFound(myRequestHandler, Entity2):
@@ -450,6 +468,8 @@ class S3FileUpload(myRequestHandler):
                     'Content-Type':                 file_type,
                 }
             })
+
+
 
 
 handlers = [
