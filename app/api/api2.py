@@ -291,11 +291,24 @@ class API2Definition(myRequestHandler, Entity2):
 
 
 class API2NotFound(myRequestHandler, Entity2):
+    """
+    Nice error if API method not found
+    """
     def get(self, url):
         self.json({
             'error': '\'%s\' not found' % url,
             'time': round(self.request.request_time(), 3),
         }, 404)
+
+    def put(self, url):
+        self.get(url)
+
+    def post(self, url):
+        self.get(url)
+
+    def delete(self, url):
+        self.get(url)
+
 
 
 
