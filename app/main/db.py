@@ -1031,7 +1031,7 @@ class Entity():
         """
         f = self.db.get(sql, entity_id)
         if f:
-            return '/entity/file-%s' % f.id
+            return '/api2/file-%s' % f.id
         elif entity_definition_keyname in ['audiovideo', 'book', 'methodical', 'periodical', 'textbook', 'workbook']:
             return '/photo-by-isbn?entity=%s' % entity_id
         elif entity_definition_keyname == 'person':

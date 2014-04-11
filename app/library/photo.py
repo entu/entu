@@ -29,7 +29,7 @@ class ShowPhoto(myRequestHandler, Entity):
                 return self.missing()
             self.photo_file = [x.get('db_value', '') for x in item.get('properties', {}).get('photo', {}).get('values', [])][0]
             if self.photo_file:
-                return self.redirect('/entity/file-%s' % self.photo_file)
+                return self.redirect('/api2/file-%s' % self.photo_file)
             self.entity_id = entity_id
             self.photo_property = [x.get('keyname') for x in item.get('properties', {}).values() if x.get('dataproperty') == 'photo'][0]
             self.isbn = [x.get('value', '').split(' ')[0] for x in item.get('properties', {}).get('isn', {}).get('values', [])][0]

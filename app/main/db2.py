@@ -387,7 +387,7 @@ class Entity2():
         if not f:
             return
         if f.value_file:
-            return '/entity/file-%s' % f.value_file
+            return '/api2/file-%s' % f.value_file
         elif f.definition in ['audiovideo', 'book', 'methodical', 'periodical', 'textbook', 'workbook']:
             return '/photo-by-isbn?entity=%s' % entity_id
         elif f.definition == 'person':
