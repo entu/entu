@@ -43,6 +43,9 @@ class Entity():
         Creates new Entity and returns its ID.
 
         """
+        if not self.__user_id:
+            return
+
         # logging.debug('creating %s under entity %s' % (entity_definition_keyname, parent_entity_id))
         if not entity_definition_keyname:
             return
@@ -1285,9 +1288,21 @@ class Entity():
             file_id = [file_id]
 
         if self.__user_id:
-            public = ''
+            user_where = """
+                AND p.entity_id IN (
+                    SELECT entity_id
+                    FROM relationship
+                    WHERE relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
+                    AND is_deleted = 0
+                    AND related_entity_id = %s
+                    UNION SELECT id
+                    FROM entity
+                    WHERE sharing IN ('domain', 'public')
+                    AND is_deleted = 0
+                )
+            """ % self.__user_id
         else:
-            public = 'AND pd.public = 1'
+            user_where = 'AND pd.public = 1'
 
         sql = """
             SELECT DISTINCT
@@ -1303,9 +1318,9 @@ class Entity():
             WHERE p.value_file = f.id
             AND pd.keyname = p.property_definition_keyname
             AND f.id IN (%(file_id)s)
-            %(public)s
+            %(user_where)s
             AND p.is_deleted = 0
-            """ % {'file_id': ','.join(map(str, file_id)), 'public': public}
+            """ % {'file_id': ','.join(map(str, file_id)), 'user_where': user_where}
         # logging.debug(sql)
 
         return self.db.query(sql)
