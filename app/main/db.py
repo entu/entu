@@ -768,7 +768,7 @@ class Entity():
         * full_definition - All metadata for entity and properties is fetched, if True
         """
         items = None
-        if entity_id:
+        if entity_id is not None:
             if type(entity_id) is not list:
                 entity_id = [entity_id]
 
