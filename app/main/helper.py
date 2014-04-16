@@ -359,7 +359,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
             self.settings['port'],
             self.request.method,
             self.request.full_url(),
-            str(self.request.arguments) if self.request.arguments else None,
+            str(self.request.arguments)[:1000] if self.request.arguments else None,
             self.get_current_user().id if self.get_current_user() else None,
             self.request.remote_ip,
             self.request.headers.get('User-Agent', None)
