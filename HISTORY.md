@@ -1,3 +1,11 @@
+## 2014-04-22
+* API2 enhancements:
+  * authentication with user, policy and signature
+  * create and show Entity
+  * upload and get file
+  * updated [documentation](https://github.com/argoroots/Entu/blob/develop/API.md)
+* Bugfixes as usual
+
 ## 2014-04-07
 * Authenticate all users via www.entu.ee
 * Background maintenance for sorting, formulas etc
@@ -6,10 +14,10 @@
 ## 2014-03-18
 * Get public Entities from API 2.0
 * Digital signage (ScreenWerk) player enhancements:
-  * Background update with preset interval
-  * Play flash media
-  * Set layout in pixels
-  * Restart player at midnight
+  * background update with preset interval
+  * play flash media
+  * set layout in pixels
+  * restart player at midnight
 * New ESTER importer
 * Bugfixes
 
