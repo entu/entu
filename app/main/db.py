@@ -346,12 +346,9 @@ class Entity():
             value_display = '%s' % value
         elif definition.datatype == 'reference':
             field = 'value_reference'
-            try:
-                value = int(value)
-                value_display = self.__get_properties(value)[0]['displayname']
-            except:
-                logging.warning( 'Entity.set_property: Invalid reference property value detected: %s; %s' % (type(value), value))
-                return
+            r = self.__get_properties(entity_id=value)
+            if r:
+                value_display = self.__get_properties(entity_id=value)[0]['displayname']
         elif definition.datatype == 'file':
             uploaded_file = value
             value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, filesize = %s, file = %s, is_link = %s, created_by = %s, created = NOW();', uploaded_file.get('filename', ''), len(uploaded_file.get('body', '')), uploaded_file.get('body', ''), uploaded_file.get('is_link', 0), self.__user_id)
@@ -773,14 +770,7 @@ class Entity():
         * full_definition - All metadata for entity and properties is fetched, if True
         """
         items = None
-
-        if entity_id is None:
-            logging.warning( 'Entity.__get_properties: Invalid entity_id detected: %s; %s' % (type(entity_id), entity_id))
-            return
-        elif entity_id == [None]:
-            logging.warning( 'Entity.__get_properties: Invalid entity_id detected: %s; %s' % (type(entity_id), entity_id))
-            return
-        elif entity_id:
+        if entity_id:
             if type(entity_id) is not list:
                 entity_id = [entity_id]
 
@@ -931,11 +921,6 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['ordinal'] = row.value_ordinal
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['value'] = value
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['db_value'] = db_value
-        elif entity_id == []:
-            logging.debug( 'Entity.__get_properties: entity_id is empty list' )
-        else:
-            logging.warning( 'Entity.__get_properties: Invalid entity_id detected: %s; %s' % (type(entity_id), entity_id))
-            return
 
         if not items:
             if not full_definition:
