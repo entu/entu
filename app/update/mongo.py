@@ -122,10 +122,10 @@ class MySQL2MongoDB():
         if args.verbose > 0: print '%s transfer %s entities' % (datetime.now(), len(rows))
 
         for r in rows:
-            mysql_id = '%s' % r.get('entity_id')
+            mysql_id = r.get('entity_id')
 
-            if self.mongo_collection.find_one({'mysql.id': mysql_id, 'mysql.db': self.db_name}):
-                continue
+            # if self.mongo_collection.find_one({'mysql.id': mysql_id, 'mysql.db': self.db_name}):
+            #     continue
 
             e = {}
             e.setdefault('mysql', {})['db'] = self.db_name
@@ -151,19 +151,19 @@ class MySQL2MongoDB():
             if r.get('entity_is_deleted') and r.get('entity_deleted_by'):
                 e.setdefault('deleted', {})['by'] = '%s' % r.get('entity_deleted_by')
 
-            viewers = self.__get_right(mysql_id, 'viewer')
+            viewers = self.__get_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'])
             if viewers:
                 e['viewer'] = viewers
 
-            expanders = self.__get_right(mysql_id, 'expander')
+            expanders = self.__get_right(mysql_id, ['expander', 'editor', 'owner'])
             if expanders:
                 e['expander'] = expanders
 
-            editors = self.__get_right(mysql_id, 'editor')
+            editors = self.__get_right(mysql_id, ['editor', 'owner'])
             if editors:
                 e['editor'] = editors
 
-            owners = self.__get_right(mysql_id, 'owner')
+            owners = self.__get_right(mysql_id, ['owner'])
             if owners:
                 e['owner'] = owners
 
@@ -181,10 +181,12 @@ class MySQL2MongoDB():
                     REPLACE(REPLACE(pd.dataproperty, '_', '-'), '.', '-')  AS property_dataproperty,
                     pd.datatype  AS property_datatype,
                     pd.formula   AS property_formula,
+                    pd.search    AS property_search,
                     IF(pd.multilingual = 1, IF(p.language = 'english', 'en', 'et'), NULL) AS property_language,
                     TRIM(p.value_formula) AS value_formula,
                     TRIM(p.value_string) AS value_string,
                     TRIM(p.value_text) AS value_text,
+                    p.value_display,
                     p.value_integer,
                     p.value_decimal,
                     p.value_boolean,
@@ -204,43 +206,58 @@ class MySQL2MongoDB():
             properties = {}
             for r2 in self.db.query(sql):
 
-                if r2.get('property_language'):
-                    p = properties.setdefault(r2.get('property_dataproperty'), {}).setdefault(r2.get('property_language'), [])
-                else:
-                    p = properties.setdefault(r2.get('property_dataproperty'), [])
+                e['_reference_property'] = ['parent', 'ancestor', 'viewer', 'expander', 'editor', 'owner']
 
+                value = None
                 if r2.get('property_formula') == 1 and r2.get('value_formula'):
-                    p.append(r2.get('value_formula'))
+                    value = r2.get('value_formula')
                 elif r2.get('property_datatype') == 'string' and r2.get('value_string'):
-                    p.append(r2.get('value_string'))
+                    value = r2.get('value_string')
                 elif r2.get('property_datatype') == 'text' and r2.get('value_text'):
-                    p.append(r2.get('value_text'))
+                    value = r2.get('value_text')
                 elif r2.get('property_datatype') == 'integer' and r2.get('value_integer') != None:
-                    p.append(r2.get('value_integer'))
+                    value = r2.get('value_integer')
                 elif r2.get('property_datatype') == 'decimal' and r2.get('value_decimal') != None:
-                    p.append(float(r2.get('value_decimal')))
+                    value = float(r2.get('value_decimal'))
                 elif r2.get('property_datatype') == 'boolean' and r2.get('value_boolean') != None:
-                    p.append(bool(r2.get('value_boolean')))
+                    value = bool(r2.get('value_boolean'))
                 elif r2.get('property_datatype') in ['date', 'datetime'] and r2.get('value_datetime') != None:
-                    p.append(r2.get('value_datetime'))
+                    value = r2.get('value_datetime')
                 elif r2.get('property_datatype') == 'reference' and r2.get('value_reference'):
-                    p.append('%s' % r2.get('value_reference'))
-                    e.setdefault('reference_property', []).append(r2.get('property_dataproperty'))
+                    value = r2.get('value_reference')
+                    e.setdefault('_reference_property', []).append(r2.get('property_dataproperty'))
                 elif r2.get('property_datatype') == 'file' and r2.get('value_file'):
-                    p.append('%s' % r2.get('value_file'))
-                    e.setdefault('file_property', []).append(r2.get('property_dataproperty'))
+                    value = r2.get('value_file')
+                    e.setdefault('_file_property', []).append(r2.get('property_dataproperty'))
                 elif r2.get('property_datatype') == 'counter' and r2.get('value_string'):
-                    p.append(r2.get('value_counter'))
+                    value = r2.get('value_counter')
                     e.setdefault('counter_property', []).append(r2.get('property_dataproperty'))
                 elif r2.get('property_datatype') == 'counter-value' and r2.get('value_string'):
-                    p.append(r2.get('value_string'))
+                    value = r2.get('value_string')
 
-                for p_key, p_value in properties.iteritems():
-                    if type(p_value) is dict:
-                        for v_key, v_value in p_value.iteritems():
-                            e.setdefault('property', {}).setdefault(p_key, {})[v_key] = list(set(v_value))
+                if r2.get('property_language'):
+                    properties.setdefault(r2.get('property_dataproperty'), {}).setdefault(r2.get('property_language'), []).append(value)
+                else:
+                    properties.setdefault(r2.get('property_dataproperty'), []).append(value)
+
+                if r2.get('property_search') == 1:
+                    if r2.get('property_language'):
+                        e.setdefault('_search', {}).setdefault(r2.get('property_language'), []).append(r2.get('value_display'))
                     else:
-                        e.setdefault('property', {})[p_key] = list(set(p_value))
+                        e.setdefault('_search', {}).setdefault('et', []).append(r2.get('value_display'))
+                        e.setdefault('_search', {}).setdefault('en', []).append(r2.get('value_display'))
+
+            for p_key, p_value in properties.iteritems():
+                if type(p_value) is dict:
+                    for v_key, v_value in p_value.iteritems():
+                        e.setdefault(p_key, {})[v_key] = list(set(v_value))
+                else:
+                    e[p_key] = list(set(p_value))
+
+            if e.get('_search', {}).get('et'):
+                e['_search']['et'] = list(set(e['_search']['et']))
+            if e.get('_search', {}).get('en'):
+                e['_search']['en'] = list(set(e['_search']['en']))
 
             #Create or replace Mongo object
             mongo_entity = self.mongo_collection.find_one({'mysql.id': mysql_id, 'mysql.db': self.db_name})
@@ -277,38 +294,32 @@ class MySQL2MongoDB():
                         id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {'%s.by' % x: mongo_entity.get('_id')}})
                         if args.verbose > 2: print '    %s.by %s to %s' % (x, mysql_id, mongo_entity.get('_id'))
 
-            # parents, ancestors and viewers, expanders, editors, owners
-            for x in ['parent', 'ancestor', 'viewer', 'expander', 'editor', 'owner']:
-                mongo_id_list = []
-                for mysql_id in list(set(e.get(x, []))):
-                    mongo_entity = self.mongo_collection.find_one({'mysql.id': mysql_id, 'mysql.db': db_name}, {'_id': 1})
-                    if mongo_entity:
-                        mongo_id_list.append(mongo_entity.get('_id'))
-                        if args.verbose > 2: print '    %s %s to %s' % (x, mysql_id, mongo_entity.get('_id'))
-                if mongo_id_list:
-                    id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {x: mongo_id_list}})
-
             # reference properties
-            for p in e.get('reference_property', []):
-                if type(e.get('property', {}).get(p)) is dict:
-                    for p_key, p_values in e.get('property', {}).get(p).iteritems():
+            for p in e.get('_reference_property', []):
+                if type(e.get(p)) is dict:
+                    for p_key, p_values in e.get(p, {}).iteritems():
                         mongo_references = []
                         for v in list(set(p_values)):
                             mongo_entity = self.mongo_collection.find_one({'mysql.id': v, 'mysql.db': db_name}, {'_id': 1})
                             if mongo_entity:
                                 mongo_references.append(mongo_entity.get('_id'))
                                 if args.verbose > 2: print '    %s reference %s.%s to %s' % (p, p_key, v, mongo_entity.get('_id'))
+                        mongo_references = list(set(mongo_references))
                         if mongo_references:
-                            id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {'property.%s.%s' % (p, p_key): mongo_references}})
+                            id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {'%s.%s' % (p, p_key): mongo_references}})
                 else:
                     mongo_references = []
-                    for v in list(set(e.get('property', {}).get(p))):
+                    for v in list(set(e.get(p, []))):
                         mongo_entity = self.mongo_collection.find_one({'mysql.id': v, 'mysql.db': db_name}, {'_id': 1})
                         if mongo_entity:
                             mongo_references.append(mongo_entity.get('_id'))
                             if args.verbose > 2: print '    %s reference %s to %s' % (p, v, mongo_entity.get('_id'))
+                    mongo_references = list(set(mongo_references))
                     if mongo_references:
-                        id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {'property.%s' % p: mongo_references}})
+                        id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {'%s' % p: mongo_references}})
+
+            self.mongo_collection.update({'_id': e.get('_id')}, {'$unset': {'_reference_property': 1}})
+            # self.mongo_collection.update({'_id': e.get('_id')}, {'$unset': {'_file_property': 1}})
 
         self.stats['updates_time'] = round((time.time() - t) / 60, 2)
         self.stats['updates_speed'] = round(rows.count() / (time.time() - t), 2)
@@ -323,33 +334,31 @@ class MySQL2MongoDB():
             AND entity_id IS NOT NULL
             AND related_entity_id = %s
         """ % entity_id
-        # logging.warning(sql)
 
         entities = []
         for r in self.db.query(sql):
-            entities.append('%s' % r.get('entity_id'))
+            entities.append(r.get('entity_id'))
             if recursive:
                 entities = entities + self.__get_parent(entity_id=r.get('entity_id'), recursive=True)
 
         return entities
 
 
-    def __get_right(self, entity_id, right):
+    def __get_right(self, entity_id, rights):
         sql = """
             SELECT related_entity_id
             FROM relationship
-            WHERE relationship_definition_keyname = '%s'
+            WHERE relationship_definition_keyname IN (%s)
             AND is_deleted = 0
             AND related_entity_id IS NOT NULL
             AND entity_id = %s
-        """ % (right, entity_id)
-        # logging.warning(sql)
+        """ % (', '.join(['\'%s\'' % x for x in rights]), entity_id)
 
         entities = []
         for r in self.db.query(sql):
-            entities.append('%s' % r.get('related_entity_id'))
+            entities.append(r.get('related_entity_id'))
 
-        return entities
+        return list(set(entities))
 
 
 
