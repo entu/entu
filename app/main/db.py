@@ -31,6 +31,10 @@ class Entity():
             return None
         return self.current_user.id
 
+    @property
+    def __language(self):
+        return self.get_user_locale().code
+
     def __get_system_translation(self, field, entity_definition_keyname='', property_definition_keyname=''):
         if not self.__translation:
             self.__translation = {}
@@ -1468,28 +1472,89 @@ class Entity():
 
         """
 
-        sql = """
-            SELECT DISTINCT
-                entity_definition.keyname
-            FROM
-                entity_definition,
-                entity,
-                relationship
-            WHERE entity.entity_definition_keyname = entity_definition.keyname
-            AND relationship.entity_id = entity.id
-            AND ((relationship.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner') AND relationship.is_deleted = 0 AND relationship.related_entity_id = %s) OR entity.sharing IN ('domain', 'public'))
-            AND entity.is_deleted = 0
+        if self.__user_id:
+            user_select = """
+                SELECT
+                    t.entity_definition_keyname,
+                    t.field,
+                    t.value,
+                    (
+                        SELECT entity.id
+                        FROM entity
+                        WHERE entity.entity_definition_keyname = t.entity_definition_keyname
+                        AND entity.is_deleted = 0
+                        AND entity.sharing IN ('domain', 'public')
+                        LIMIT 1
+                    ) AS x
+                FROM
+                    translation AS t
+                WHERE t.field IN ('menu', 'label', 'label_plural')
+                AND IFNULL(t.language, '%(language)s') = '%(language)s'
+                HAVING x IS NOT NULL
+                UNION SELECT
+                    t.entity_definition_keyname,
+                    t.field,
+                    t.value,
+                    (
+                        SELECT entity.id
+                        FROM entity, relationship
+                        WHERE relationship.entity_id = entity.id
+                        AND entity.entity_definition_keyname = t.entity_definition_keyname
+                        AND entity.is_deleted = 0
+                        AND relationship.is_deleted = 0
+                        AND relationship.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
+                        AND relationship.related_entity_id = %(user_id)s
+                        LIMIT 1
+                    ) AS x
+                FROM
+                    translation AS t
+                WHERE t.field IN ('menu', 'label', 'label_plural')
+                AND IFNULL(t.language, '%(language)s') = '%(language)s'
+                HAVING x IS NOT NULL
+            """ % {'user_id': self.__user_id, 'language': self.__language}
+        else:
+            user_select = """
+                SELECT
+                    t.entity_definition_keyname,
+                    t.field,
+                    t.value,
+                    (
+                        SELECT entity.id
+                        FROM entity
+                        WHERE entity.entity_definition_keyname = t.entity_definition_keyname
+                        AND entity.is_deleted = 0
+                        AND entity.sharing = 'public'
+                        LIMIT 1
+                    ) AS x
+                FROM
+                    translation AS t
+                WHERE t.field IN ('menu', 'label', 'label_plural')
+                AND IFNULL(t.language, '%(language)s') = '%(language)s'
+                HAVING x IS NOT NULL
+            """ % {'language': self.__language}
 
-        """ % self.__user_id
+
+        sql = """
+            SELECT
+                entity_definition_keyname AS definition,
+                MAX(IF(field='menu', value, NULL)) AS menu,
+                MAX(IF(field='label', value, NULL)) AS label,
+                MAX(IF(field='label_plural', value, NULL)) AS label_plural
+            FROM (
+                %s
+            ) AS x
+            GROUP BY definition
+            HAVING menu IS NOT NULL
+            ORDER BY
+                menu,
+                label_plural;
+        """ % user_select
         # logging.debug(sql)
 
         menu = {}
         for m in self.db.query(sql):
-            group = self.__get_system_translation(field='menu', entity_definition_keyname=m.keyname)
-            if not group:
-                continue
-            menu.setdefault(group, {})['label'] = group
-            menu.setdefault(group, {}).setdefault('items', []).append({'keyname': m.keyname, 'title': self.__get_system_translation(field='label_plural', entity_definition_keyname=m.keyname)})
+            menu.setdefault(m.menu, {})['label'] = m.menu
+            menu.setdefault(m.menu, {}).setdefault('items', []).append({'keyname': m.definition, 'title': m.label_plural})
 
         return sorted(menu.values(), key=itemgetter('label'))
 
