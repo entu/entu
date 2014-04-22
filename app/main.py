@@ -46,6 +46,7 @@ app_controllers = [
     'update.update',
     'user.auth',
     'user.user',
+    'poll.poll',
 ]
 
 
