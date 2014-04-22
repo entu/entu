@@ -1,6 +1,10 @@
+from operator import itemgetter
+
 import logging
 
+
 from main.helper import *
+
 
 class Entity2():
     @property
@@ -21,7 +25,7 @@ class Entity2():
 
         definition_sql = ''
         if definition_id:
-            definition_sql = 'AND e.id = %s' % definition_id
+            definition_sql = 'AND e.id = \'%s\'' % definition_id
 
         sql = """
             SELECT
@@ -394,3 +398,100 @@ class Entity2():
             return 'https://secure.gravatar.com/avatar/%s?d=wavatar&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
         else:
             return 'https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
+
+
+    def get_menu(self):
+        """
+        Returns user menu.
+
+        """
+
+        if self.__user_id:
+            user_select = """
+                SELECT
+                    t.entity_definition_keyname,
+                    t.field,
+                    t.value,
+                    (
+                        SELECT entity.id
+                        FROM entity
+                        WHERE entity.entity_definition_keyname = t.entity_definition_keyname
+                        AND entity.is_deleted = 0
+                        AND entity.sharing IN ('domain', 'public')
+                        LIMIT 1
+                    ) AS x
+                FROM
+                    translation AS t
+                WHERE t.field IN ('menu', 'label', 'label_plural')
+                AND IFNULL(t.language, '%(language)s') = '%(language)s'
+                HAVING x IS NOT NULL
+                UNION SELECT
+                    t.entity_definition_keyname,
+                    t.field,
+                    t.value,
+                    (
+                        SELECT entity.id
+                        FROM entity, relationship
+                        WHERE relationship.entity_id = entity.id
+                        AND entity.entity_definition_keyname = t.entity_definition_keyname
+                        AND entity.is_deleted = 0
+                        AND relationship.is_deleted = 0
+                        AND relationship.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
+                        AND relationship.related_entity_id = %(user_id)s
+                        LIMIT 1
+                    ) AS x
+                FROM
+                    translation AS t
+                WHERE t.field IN ('menu', 'label', 'label_plural')
+                AND IFNULL(t.language, '%(language)s') = '%(language)s'
+                HAVING x IS NOT NULL
+            """ % {'user_id': self.__user_id, 'language': self.__language}
+        else:
+            user_select = """
+                SELECT
+                    t.entity_definition_keyname,
+                    t.field,
+                    t.value,
+                    (
+                        SELECT entity.id
+                        FROM entity
+                        WHERE entity.entity_definition_keyname = t.entity_definition_keyname
+                        AND entity.is_deleted = 0
+                        AND entity.sharing = 'public'
+                        LIMIT 1
+                    ) AS x
+                FROM
+                    translation AS t
+                WHERE t.field IN ('menu', 'label', 'label_plural')
+                AND IFNULL(t.language, '%(language)s') = '%(language)s'
+                HAVING x IS NOT NULL
+            """ % {'language': self.__language}
+
+
+        sql = """
+            SELECT
+                entity_definition_keyname AS definition,
+                MAX(IF(field='menu', value, NULL)) AS menu,
+                MAX(IF(field='label', value, NULL)) AS label,
+                MAX(IF(field='label_plural', value, NULL)) AS label_plural
+            FROM (
+                %s
+            ) AS x
+            GROUP BY definition
+            HAVING menu IS NOT NULL
+            ORDER BY
+                menu,
+                label_plural;
+        """ % user_select
+        # logging.debug(sql)
+
+        definitions = {}
+        for m in self.db.query(sql):
+            definitions.setdefault(m.menu, {})['label'] = m.menu
+            definitions.setdefault(m.menu, {}).setdefault('definitions', []).append({
+                'keyname': m.definition,
+                'label': m.label,
+                'label_plural': m.label_plural,
+            })
+
+        return sorted(definitions.values(), key=itemgetter('label'))

@@ -370,10 +370,34 @@ class API2EntityPicture(myRequestHandler, Entity2):
 
 
 
-class API2Definition(myRequestHandler, Entity2):
+class API2DefinitionList(myRequestHandler, Entity2):
     @web.removeslash
     def get(self):
-        definitions = self.get_entity_definitions()
+        menu = self.get_menu()
+
+        self.json({
+            'result': menu,
+            'time': round(self.request.request_time(), 3),
+        })
+
+
+
+
+class API2Definition(myRequestHandler, Entity2):
+    @web.removeslash
+    def get(self, definition_id=None):
+        if not definition_id:
+            return self.json({
+                'error': 'No definition ID!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        definitions = self.get_entity_definitions(definition_id=definition_id)
+        if not definitions:
+            return self.json({
+                'error': 'Definition with given ID is not found!',
+                'time': round(self.request.request_time(), 3),
+            }, 404)
 
         self.json({
             'result': definitions,
@@ -480,7 +504,8 @@ handlers = [
     (r'/api2/entity-(.*)', API2Entity),
     (r'/api2/file', API2FileUpload),
     (r'/api2/file-(.*)', API2File),
-    (r'/api2/definition', API2Definition),
+    (r'/api2/definition', API2DefinitionList),
+    (r'/api2/definition-(.*)', API2Definition),
     (r'/api2/s3upload', S3FileUpload),
     (r'/api2(.*)', API2NotFound),
 ]
