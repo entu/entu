@@ -8,7 +8,25 @@ from main.helper import *
 from main.db import *
 
 
-class PublicHandler(myRequestHandler, Entity):
+class ShowPoll(myRequestHandler, Entity):
+    @web.authenticated
+    def get(self, poll_id=1):
+        logging.debug(poll_id)
+        poll = self.get_entities(entity_id=poll_id, limit=1)
+        logging.debug(poll)
+        if not poll:
+            return self.missing()
+
+        now = datetime.datetime.now()
+        tomorrow = datetime.datetime(now.year, now.month, now.day) + datetime.timedelta(1)
+
+        self.render('poll/template/start.html',
+            poll = poll,
+            refresh_time = (tomorrow - now).seconds
+        )
+
+
+class PollHandler(myRequestHandler, Entity):
     """
     Show public startpage.
 
@@ -221,9 +239,10 @@ def get_definitions(rh, path):
 
 
 handlers = [
-    (r'/public-(.*)/search2', PublicAdvancedSearchHandler),
-    (r'/public-(.*)/search(.*)', PublicSearchHandler),
-    (r'/public-(.*)/entity-(.*)', PublicEntityHandler),
-    (r'/public/file-(.*)', PublicFileHandler),
-    (r'/public(.*)', PublicHandler),
+    # (r'/public-(.*)/search2', PublicAdvancedSearchHandler),
+    # (r'/public-(.*)/search(.*)', PublicSearchHandler),
+    # (r'/public-(.*)/entity-(.*)', PublicEntityHandler),
+    # (r'/public/file-(.*)', PublicFileHandler),
+    # ('/poll', ShowPoll),
+    ('/poll-(.*)', ShowPoll),
 ]
