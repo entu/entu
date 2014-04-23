@@ -69,9 +69,9 @@ class API2Entity(myRequestHandler, Entity):
                 'error': 'Entity with given ID is not found!',
                 'time': round(self.request.request_time(), 3),
             }, 404)
-
+        entity['definition'] = {'keyname': entity['definition_keyname']}
         self.json({
-            'entity': entity,
+            'result': entity,
             'time': round(self.request.request_time(), 3),
         })
 

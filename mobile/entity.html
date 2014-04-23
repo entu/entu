@@ -1,0 +1,19 @@
+<header class="bar bar-nav">
+    <h1 class="title">{{ entity.result.displayname | cut:false:20:' ...' }}</h1>
+    <a class="icon icon-left-nav pull-left" data-transition="slide-out" href="#/{{ entity.result.definition.keyname }}"></a>
+</header>
+<div class="content">
+    <div class="content-padded">
+        <a class="pull-right" href=""><img style="width:70px;" ng-src="/api2/entity-{{ entity.result.id }}/picture" /></a>
+        <div ng-repeat="property in entity.result.properties">
+            <div ng-show="property.values">
+                <h4>{{ property.label }}</h4>
+                <p>
+                    <span ng-repeat="value in property.values">
+                        {{ value.value }}<br />
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

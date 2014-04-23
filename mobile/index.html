@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html ng-app="entuApp">
+    <head>
+        <meta charset="utf-8">
+
+        <title>Entu</title>
+
+        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+        <link rel="apple-touch-icon" href="images/favicon-ios.png?v=1">
+        <link rel="stylesheet" href="ratchet/css/ratchet.min.css?v=1">
+        <link rel="stylesheet" href="ratchet/css/ratchet-theme-ios.min.css?v=1">
+
+        <script src="ratchet/js/ratchet.min.js?v=1"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular-route.min.js"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular-resource.min.js"></script>
+        <script>
+            angular.module('ng').filter('cut', function () {
+                return function (value, wordwise, max, tail) {
+                    if (!value) return '';
+
+                    max = parseInt(max, 10);
+                    if (!max) return value;
+                    if (value.length <= max) return value;
+
+                    value = value.substr(0, max);
+                    if (wordwise) {
+                        var lastspace = value.lastIndexOf(' ');
+                        if (lastspace != -1) {
+                            value = value.substr(0, lastspace);
+                        }
+                    }
+
+                    return value + (tail || ' …');
+                };
+            });
+
+            var entuApp = angular.module('entuApp', ['ngRoute', 'ngResource']);
+            entuApp.config(function($routeProvider, $locationProvider) {
+                // $locationProvider.html5Mode(true);
+                $routeProvider.
+                    when('/', {
+                        templateUrl: 'menu.html',
+                        controller: 'menuCtrl'
+                    }).
+                    when('/:definition', {
+                        templateUrl: 'list.html',
+                        controller: 'listCtrl'
+                    }).
+                    when('/:definition/:entity', {
+                        templateUrl: 'entity.html',
+                        controller: 'entityCtrl'
+                    }).
+                    otherwise({
+                        redirectTo: '/'
+                    });
+            });
+
+            entuApp.controller('appCtrl', ['$scope', function($scope) {
+                $scope.goBack = function() {
+                    window.history.back();
+                };
+            }]);
+
+            entuApp.controller('menuCtrl', function($scope, $resource) {
+                $scope.definitions = $resource('/api2/definition').get();
+            });
+
+            entuApp.controller('listCtrl', function ($scope, $rootScope, $resource, $routeParams, $timeout){
+                $scope.entities = $resource('/api2/entity', {definition: $routeParams.definition, limit:101}).get();
+
+                var timer = false;
+                $scope.searchEntities = function () {
+                    if(timer) $timeout.cancel(timer);
+                    timer = $timeout(function () {
+                        $scope.entities = $resource('/api2/entity', {definition: $routeParams.definition, limit:101, query:$scope.query}).get();
+                    }, 1000)
+                };
+            });
+
+            entuApp.controller('entityCtrl', function ($scope, $rootScope, $resource, $routeParams){
+                $scope.entity = $resource('/api2/entity-:entity', {entity: $routeParams.entity}).get();
+            });
+        </script>
+    </head>
+    <body ng-controller="appCtrl">
+        <div ng-view></div>
+    </body>
+</html>
