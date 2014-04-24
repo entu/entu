@@ -32,7 +32,7 @@ class API2EntityList(myRequestHandler, Entity2):
 
         result = {}
         for e in db_result.get('entities', []):
-            result.setdefault(e.get('id'), {}).setdefault('definition', {})['definition'] = e.get('definition') if e.get('definition') else None
+            result.setdefault(e.get('id'), {}).setdefault('definition', {})['keyname'] = e.get('definition') if e.get('definition') else None
             result.setdefault(e.get('id'), {}).setdefault('definition', {})['label'] = e.get('label') if e.get('label') else None
             result.setdefault(e.get('id'), {}).setdefault('definition', {})['label_plural'] = e.get('label_plural') if e.get('label_plural') else None
             result.setdefault(e.get('id'), {}).setdefault('definition', {})['table_header'] = e.get('displaytableheader').split('|') if e.get('displaytableheader') else None
