@@ -1,0 +1,15 @@
+<ion-view title="{{ entity.result.displayname }}">
+    <ion-nav-page>
+        <ion-content has-header="true" padding="true">
+            <div class="row">
+                <div class="col col-30"></div>
+                <img class="col col-40" ng-src="{{ entu_url }}entity-{{ entity.result.id }}/picture" />
+                <div class="col col-30"></div>
+            </div>
+            <dl ng-show="property.values" ng-repeat="property in entity.result.properties">
+                <dt>{{ property.label }}:</dt>
+                <dd ng-repeat="value in property.values">{{ value.value }}</dd>
+            </dl>
+        </ion-content>
+    </ion-nav-page>
+</ion-view>

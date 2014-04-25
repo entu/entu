@@ -1,0 +1,27 @@
+<ion-side-menus>
+
+    <ion-side-menu side="left">
+        <ion-content>
+            <div class="list">
+                <div ng-repeat="group in definitions.result">
+                <span class="item item-divider">{{ group.label }}</span>
+                <a class="item nav-clear menu-close" ng-repeat="definition in group.definitions" href="#/{{ definition.keyname }}">{{ definition.label_plural }}</a>
+                </div>
+            </div>
+        </ion-content>
+    </ion-side-menu>
+
+    <ion-side-menu-content>
+        <ion-nav-bar class="bar-calm nav-title-slide-ios7">
+            <ion-nav-back-button class="button-icon ion-ios7-arrow-left">
+        </ion-nav-bar>
+
+        <ion-nav-view name="menuContent">
+        </ion-nav-view>
+
+        <ion-nav-buttons side="left">
+            <button menu-toggle="left" class="button button-icon icon ion-navicon"></button>
+        </ion-nav-buttons>
+    </ion-side-menu-content>
+
+</ion-side-menus>
