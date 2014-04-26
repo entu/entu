@@ -1,6 +1,7 @@
 <ion-view title="{{ entity.result.displayname }}">
     <ion-nav-page>
         <ion-content has-header="true">
+            <ion-refresher on-refresh="loadEntity()"></ion-refresher>
             <div class="list card">
                 <div class="item item-avatar">
                     <img ng-src="{{ entu_url }}entity-{{ entity.result.id }}/picture">
@@ -17,6 +18,7 @@
             <div class="card list" ng-repeat="child in childs.result">
                 <div class="item item-divider">
                     {{ child.label_plural }}
+                    <p style="float:right; color:gray;">{{ child.entities.length }}</p>
                 </div>
                 <a class="item" ng-repeat="entity in child.entities" href="#/{{ child.definition }}/{{ entity.id }}" >
                     {{ entity.name }}
@@ -25,6 +27,7 @@
             <div class="card list" ng-repeat="referrer in referrers.result">
                 <div class="item item-divider">
                     {{ referrer.label_plural }}
+                    <p style="float:right; color:gray;">{{ referrer.entities.length }}</p>
                 </div>
                 <a class="item" ng-repeat="entity in referrer.entities" href="#/{{ referrer.definition }}/{{ entity.id }}" >
                     {{ entity.name }}
