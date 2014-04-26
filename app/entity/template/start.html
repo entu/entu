@@ -100,6 +100,7 @@
         }
 
         $(document).ready(function(){
+            redirectToMobile();
 
             {% if show_list and current_user.hide_menu == True %}
                 menu_hide();
@@ -150,7 +151,7 @@
                 newwindow = window.open('/exit', 'do_entu_logout', 'height=200,width=150');
                 close = setInterval(function() {
                     newwindow.close();
-                    window.location.href=window.location.href;
+                    window.location.href = window.location.href;
                     clearInterval(close)
                 }, 3000);
             });
@@ -165,8 +166,12 @@
 
             $(window).resize(function(){
                 $('#menu_accordion').accordion('resize');
+                redirectToMobile();
             });
 
+            function redirectToMobile() {
+                if($(window).width() < 700) window.location.href = window.location.href.replace('/entity', '/mobile/#')
+            }
         });
     </script>
 {% end %}
