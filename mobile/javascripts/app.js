@@ -92,4 +92,6 @@ entuApp.controller('listCtrl', function ($scope, $http, $stateParams, $timeout){
 
 entuApp.controller('entityCtrl', function ($scope, $resource, $stateParams){
     $scope.entity = $resource(entuAPI+'entity-'+$stateParams.entity).get();
+    $scope.childs = $resource(entuAPI+'entity-'+$stateParams.entity+'/childs').get();
+    $scope.referrers = $resource(entuAPI+'entity-'+$stateParams.entity+'/referrals').get();
 });

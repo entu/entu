@@ -1,15 +1,35 @@
 <ion-view title="{{ entity.result.displayname }}">
     <ion-nav-page>
-        <ion-content has-header="true" padding="true">
-            <div class="row">
-                <div class="col col-30"></div>
-                <img class="col col-40" ng-src="{{ entu_url }}entity-{{ entity.result.id }}/picture">
-                <div class="col col-30"></div>
+        <ion-content has-header="true">
+            <div class="list card">
+                <div class="item item-avatar">
+                    <img ng-src="{{ entu_url }}entity-{{ entity.result.id }}/picture">
+                    <h2>{{ entity.result.displayname }}</h2>
+                    <p>{{ entity.result.displayinfo }}</p>
+                </div>
+                <div class="item item-text-wrap">
+                    <dl ng-show="property.values" ng-repeat="property in entity.result.properties">
+                        <dt>{{ property.label }}:</dt>
+                        <dd ng-repeat="value in property.values">{{ value.value }}</dd>
+                    </dl>
+                </div>
             </div>
-            <dl ng-show="property.values" ng-repeat="property in entity.result.properties">
-                <dt>{{ property.label }}:</dt>
-                <dd ng-repeat="value in property.values">{{ value.value }}</dd>
-            </dl>
+            <div class="card list" ng-repeat="child in childs.result">
+                <div class="item item-divider">
+                    {{ child.label_plural }}
+                </div>
+                <a class="item" ng-repeat="entity in child.entities" href="#/{{ child.definition }}/{{ entity.id }}" >
+                    {{ entity.name }}
+                </a>
+            </div>
+            <div class="card list" ng-repeat="referrer in referrers.result">
+                <div class="item item-divider">
+                    {{ referrer.label_plural }}
+                </div>
+                <a class="item" ng-repeat="entity in referrer.entities" href="#/{{ referrer.definition }}/{{ entity.id }}" >
+                    {{ entity.name }}
+                </a>
+            </div>
         </ion-content>
     </ion-nav-page>
 </ion-view>
