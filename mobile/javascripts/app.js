@@ -91,5 +91,5 @@ entuApp.controller('listCtrl', function ($scope, $http, $stateParams, $timeout){
 });
 
 entuApp.controller('entityCtrl', function ($scope, $resource, $stateParams){
-    $scope.entity = $resource(entuAPI, {action: 'entity-' + $stateParams.entity}).get();
+    $scope.entity = $resource(entuAPI+'entity-'+$stateParams.entity).get();
 });
