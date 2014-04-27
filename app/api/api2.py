@@ -197,7 +197,7 @@ class API2EntityChilds(myRequestHandler, Entity2):
             r['entities'] = sorted(r.get('entities', {}).values(), key=itemgetter('sort'))
 
         self.json({
-            'result': result.values(),
+            'result': result,
             'time': round(self.request.request_time(), 3),
             'count': db_result.get('count', 0),
         })
@@ -231,7 +231,7 @@ class API2EntityReferrals(myRequestHandler, Entity2):
             r['entities'] = sorted(r.get('entities', {}).values(), key=itemgetter('sort'))
 
         self.json({
-            'result': result.values(),
+            'result': result,
             'time': round(self.request.request_time(), 3),
             'count': db_result.get('count', 0),
         })
