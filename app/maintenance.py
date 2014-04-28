@@ -387,7 +387,10 @@ class Maintenance():
         formula_fields = formula.split('.')
 
         if formula_fields[0] != 'self':
-            entity_id = formula_fields[0]
+            try:
+                entity_id = int(formula_fields[0])
+            except Exception, e:
+                return []
 
         sql_select = 'e.id AS value_display'
         sql_from   = ['entity AS e']
