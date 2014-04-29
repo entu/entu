@@ -32,21 +32,21 @@ define('secret',        help='secret key',            type=str, default='ABC123'
 
 # List of controllers to load.
 app_controllers = [
-    'action.csv_import',
     'api.api',
     'api.api2',
+    'entity.csv_import',
     'entity.entity',
     'info.info',
     'library.ester',
     'library.photo',
     'main.config',
     'main.status',
+    'poll.poll',
     'public.public',
     'screenwerk.screenwerk',
     'update.update',
     'user.auth',
     'user.user',
-    'poll.poll',
 ]
 
 
@@ -111,7 +111,7 @@ class myApplication(tornado.web.Application):
 
 
 if __name__ == '__main__':
-    tornado.locale.load_translations(path.join(path.dirname(__file__), '..', 'translation'))
+    tornado.locale.load_translations(path.join(path.dirname(__file__), 'main', 'translation'))
     tornado.options.parse_command_line()
     tornado.httpserver.HTTPServer(myApplication(), xheaders=True).listen(options.port)
     tornado.ioloop.IOLoop.instance().start()

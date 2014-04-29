@@ -73,7 +73,7 @@ class ReadFile(myRequestHandler, Entity):
 
         item = self.get_entities(entity_id=0, entity_definition_keyname=entity_definition_keyname, limit=1, full_definition=True)
 
-        self.render('action/template/csv_read.html',
+        self.render('entity/template/csv_read.html',
             file_id = file_id,
             file_name = tmp.filename,
             delimiter = delimiter,
