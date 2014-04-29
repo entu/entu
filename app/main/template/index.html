@@ -2,11 +2,12 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <title>{{ page_title }}</title>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content="" />
         <meta name="author" content="Argo Roots" />
+
+        <title>{{ page_title }}</title>
 
         <link rel="shortcut icon" href="{{ static_url('favicon/favicon.png') }}" />
         <link rel="apple-touch-icon-precomposed" sizes="144x144" href="{{ static_url('favicon/apple-touch-icon-144-precomposed.png') }}">
@@ -14,30 +15,36 @@
         <link rel="apple-touch-icon-precomposed" sizes="72x72" href="{{ static_url('favicon/apple-touch-icon-72-precomposed.png') }}">
         <link rel="apple-touch-icon-precomposed" href="{{ static_url('favicon/apple-touch-icon-57-precomposed.png') }}">
 
-        <link href="{{ static_url('bootstrap/bootstrap.css') }}" rel="stylesheet" />
-        <link href="{{ static_url('bootstrap/responsive.css') }}" rel="stylesheet" />
-        <link href="{{ static_url('css/select2.css') }}" rel="stylesheet" />
+        <!-- jQuery & jQuery UI -->
+        <script src="{{ static_url('frameworks/jquery/jquery-2.1.0.min.js') }}"></script>
+        <script src="{{ static_url('frameworks/jquery/jquery-ui-1.9.2.min.js') }}"></script>
+
+        <!-- Bootstrap -->
+        <link  href="{{ static_url('frameworks/bootstrap/bootstrap.css') }}" rel="stylesheet" />
+        <link  href="{{ static_url('frameworks/bootstrap/responsive.css') }}" rel="stylesheet" />
+        <script src="{{ static_url('frameworks/bootstrap/bootstrap.min.js') }}"></script>
+
+        <!-- Other JS libraries -->
+        <link  href="{{ static_url('css/select2.css') }}" rel="stylesheet" />
+        <script src="{{ static_url('javascript/select2.min.js') }}"></script>
+        <link  href="{{ static_url('css/chardinjs.css') }}" rel="stylesheet" />
+        <script src="{{ static_url('javascript/chardinjs.min.js') }}"></script>
+        <script src="{{ static_url('javascript/jquery.elastic.source.js') }}"></script>
+        <script src="{{ static_url('javascript/date-et-EE.js') }}"></script>
+
+        <!-- Dropbox -->
+        <script src="https://www.dropbox.com/static/api/1/dropbox.js" id="dropboxjs" data-app-key="h14c0u5pcjcdppt"></script>
+
+        <!-- Entu CSS -->
         <link href="{{ static_url('css/screen.css') }}" rel="stylesheet" />
         <link href="{{ static_url('css/print.css') }}" rel="stylesheet" media="print" />
-        <link href="{{ static_url('css/chardinjs.css') }}" rel="stylesheet" />
 
+        <!-- View CSS -->
         <style type="text/css">
         {% block style %}{% end %}
         </style>
 
-        <!--[if lt IE 9]>
-        <script src="https://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-        <![endif]-->
-
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.24/jquery-ui.min.js"></script>
-        <script src="https://www.dropbox.com/static/api/1/dropbox.js" id="dropboxjs" data-app-key="h14c0u5pcjcdppt"></script>
-        <script src="{{ static_url('bootstrap/bootstrap.min.js') }}"></script>
-        <script src="{{ static_url('javascript/jquery.elastic.source.js') }}"></script>
-        <script src="{{ static_url('javascript/date-et-EE.js') }}"></script>
-        <script src="{{ static_url('javascript/select2.min.js') }}"></script>
-        <script src="{{ static_url('javascript/chardinjs.min.js') }}"></script>
-
+        <!-- Google Analytics -->
         {% if google_analytics_code %}
             <script type="text/javascript">
                 var _gaq = _gaq || [];
