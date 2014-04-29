@@ -41,7 +41,6 @@ app_controllers = [
     'library.photo',
     'main.config',
     'main.status',
-    'poll.poll',
     'public.public',
     'screenwerk.screenwerk',
     'update.update',
