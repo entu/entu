@@ -20,8 +20,9 @@
                     {{ child.label_plural }}
                     <p style="float:right; color:gray;">{{ child.entities.length }}</p>
                 </div>
-                <a class="item" ng-repeat="entity in child.entities" href="#/{{ child.definition }}/{{ entity.id }}" >
+                <a class="item item-icon-right" ng-repeat="entity in child.entities" href="#/{{ child.definition }}/{{ entity.id }}" >
                     {{ entity.name }}
+                    <i class="icon ion-chevron-right icon-accessory"></i>
                 </a>
             </div>
             <div class="card list" ng-repeat="referrer in referrers.result">
@@ -29,8 +30,9 @@
                     {{ referrer.label_plural }}
                     <p style="float:right; color:gray;">{{ referrer.entities.length }}</p>
                 </div>
-                <a class="item" ng-repeat="entity in referrer.entities" href="#/{{ referrer.definition }}/{{ entity.id }}" >
+                <a class="item item-icon-right" ng-repeat="entity in referrer.entities" href="#/{{ referrer.definition }}/{{ entity.id }}" >
                     {{ entity.name }}
+                    <i class="icon ion-chevron-right icon-accessory"></i>
                 </a>
             </div>
         </ion-content>

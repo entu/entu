@@ -2,7 +2,7 @@
  * Copyright 2014 Drifty Co.
  * http://drifty.com/
  *
- * Ionic, v1.0.0-beta.1-nightly-1839
+ * Ionic, v1.0.0-beta.2
  * A powerful HTML5 mobile app framework.
  * http://ionicframework.com/
  *
@@ -630,14 +630,13 @@ function($rootScope, $timeout) {
     this.dataSource = options.dataSource;
     this.element = options.element;
     this.scrollView = options.scrollView;
-    this.itemSizePrimary = options.itemSizePrimary;
-    this.itemSizeSecondary = options.itemSizeSecondary;
 
     this.isVertical = !!this.scrollView.options.scrollingY;
     this.renderedItems = {};
 
     this.lastRenderScrollValue = this.bufferTransformOffset = this.hasBufferStartIndex =
       this.hasBufferEndIndex = this.bufferItemsLength = 0;
+    this.setCurrentIndex(0);
 
     this.scrollView.__$callback = this.scrollView.__callback;
     this.scrollView.__callback = angular.bind(this, this.renderScroll);
@@ -655,11 +654,17 @@ function($rootScope, $timeout) {
       this.scrollSize = function() {
         return this.scrollView.__clientHeight;
       };
-      this.getSecondaryScrollSize = function() {
+      this.secondaryScrollSize = function() {
         return this.scrollView.__clientWidth;
       };
       this.transformString = function(y, x) {
         return 'translate3d('+x+'px,'+y+'px,0)';
+      };
+      this.primaryDimension = function(dim) {
+        return dim.height;
+      };
+      this.secondaryDimension = function(dim) {
+        return dim.width;
       };
     } else {
       this.scrollView.options.getContentWidth = getViewportSize;
@@ -673,11 +678,17 @@ function($rootScope, $timeout) {
       this.scrollSize = function() {
         return this.scrollView.__clientWidth;
       };
-      this.getSecondaryScrollSize = function() {
+      this.secondaryScrollSize = function() {
         return this.scrollView.__clientHeight;
       };
       this.transformString = function(x, y) {
         return 'translate3d('+x+'px,'+y+'px,0)';
+      };
+      this.primaryDimension = function(dim) {
+        return dim.width;
+      };
+      this.secondaryDimension = function(dim) {
+        return dim.height;
       };
     }
   }
@@ -688,36 +699,41 @@ function($rootScope, $timeout) {
         this.removeItem(i);
       }
     },
-    resize: function() {
+    calculateDimensions: function() {
       var primaryPos = 0;
       var secondaryPos = 0;
-      var itemsPerSpace = 0;
       var len = this.dataSource.dimensions.length;
-      this.dimensions = this.dataSource.dimensions.map(function(dimensions, index) {
+      var secondaryScrollSize = this.secondaryScrollSize();
+      var previous;
+
+      return this.dataSource.dimensions.map(function(dim) {
         var rect = {
-          primarySize: this.isVertical ? dimensions.height : dimensions.width,
-          secondarySize: this.isVertical ? dimensions.width : dimensions.height,
-          primaryPos: primaryPos,
-          secondaryPos: secondaryPos
+          primarySize: this.primaryDimension(dim),
+          secondarySize: Math.min(this.secondaryDimension(dim), secondaryScrollSize)
         };
 
-        itemsPerSpace++;
-        secondaryPos += rect.secondarySize;
-        if (secondaryPos >= this.getSecondaryScrollSize()) {
-          secondaryPos = 0;
-          primaryPos += rect.primarySize;
-
-          if (!this.itemsPerSpace) {
-            this.itemsPerSpace = itemsPerSpace;
+        if (previous) {
+          secondaryPos += previous.secondarySize;
+          if (previous.primaryPos === primaryPos &&
+              secondaryPos + rect.secondarySize > secondaryScrollSize) {
+            secondaryPos = 0;
+            primaryPos += previous.primarySize;
+          } else {
           }
         }
 
+        rect.primaryPos = primaryPos;
+        rect.secondaryPos = secondaryPos;
+
+        previous = rect;
         return rect;
       }, this);
-
-      this.viewportSize = primaryPos;
+    },
+    resize: function() {
+      this.dimensions = this.calculateDimensions();
+      var last = this.dimensions[this.dimensions.length - 1];
+      this.viewportSize = last ? last.primaryPos + last.primarySize : 0;
       this.setCurrentIndex(0);
-      this.lastRenderScrollValue = 0;
       this.render(true);
     },
     setCurrentIndex: function(index, height) {
@@ -750,40 +766,45 @@ function($rootScope, $timeout) {
     },
     getIndexForScrollValue: function(i, scrollValue) {
       var rect;
-      //Scrolling down
+      //Scrolling up
       if (scrollValue <= this.dimensions[i].primaryPos) {
         while ( (rect = this.dimensions[i - 1]) && rect.primaryPos > scrollValue) {
-          i -= this.itemsPerSpace;
+          i--;
         }
-      //Scrolling up
+      //Scrolling down
       } else {
         while ( (rect = this.dimensions[i + 1]) && rect.primaryPos < scrollValue) {
-          i += this.itemsPerSpace;
+          i++;
         }
       }
       return i;
     },
     render: function(shouldRedrawAll) {
-      if (this.currentIndex >= this.dataSource.getLength()) {
-        return;
-      }
-
       var i;
-      if (shouldRedrawAll) {
+      if (this.currentIndex >= this.dataSource.getLength() || shouldRedrawAll) {
         for (i in this.renderedItems) {
           this.removeItem(i);
         }
+        if (this.currentIndex >= this.dataSource.getLength()) return null;
       }
+
+      var rect;
       var scrollValue = this.scrollValue();
       var scrollDelta = scrollValue - this.lastRenderScrollValue;
       var scrollSize = this.scrollSize();
       var scrollSizeEnd = scrollSize + scrollValue;
       var startIndex = this.getIndexForScrollValue(this.currentIndex, scrollValue);
-      var bufferStartIndex = Math.max(0, startIndex - this.itemsPerSpace);
+
+      //Make buffer start on previous row
+      var bufferStartIndex = Math.max(startIndex - 1, 0);
+      while (bufferStartIndex > 0 &&
+         (rect = this.dimensions[bufferStartIndex]) &&
+         rect.primaryPos === this.dimensions[startIndex - 1].primaryPos) {
+        bufferStartIndex--;
+      }
       var startPos = this.dimensions[bufferStartIndex].primaryPos;
 
       i = bufferStartIndex;
-      var rect;
       while ((rect = this.dimensions[i]) && (rect.primaryPos - rect.primarySize < scrollSizeEnd)) {
         this.renderItem(i, rect.primaryPos - startPos, rect.secondaryPos);
         i++;
@@ -804,7 +825,6 @@ function($rootScope, $timeout) {
       }
     },
     renderItem: function(dataIndex, primaryPos, secondaryPos) {
-      var self = this;
       var item = this.dataSource.getItem(dataIndex);
       if (item) {
         this.dataSource.attachItem(item);
@@ -2214,7 +2234,7 @@ IonicModule
   'anchorScroll',
   /**
    * @ngdoc method
-   * @name $ionicScrollDelegate.#getScrollView
+   * @name $ionicScrollDelegate#getScrollView
    * @returns {object} The scrollView associated with this delegate.
    */
   'getScrollView',
@@ -3928,6 +3948,135 @@ IonicModule
   };
 });
 
+/**
+ * @ngdoc directive
+ * @module ionic
+ * @name collectionRepeat
+ * @restrict A
+ * @codepen mFygh
+ * @description
+ * `collection-repeat` is a directive that allows you to render lists with
+ * thousands of items in them, and experience little to no performance penalty.
+ *
+ * Demo:
+ *
+ * The directive renders onto the screen only the items that should be currently visible.
+ * So if you have 1,000 items in your list but only ten fit on your screen,
+ * collection-repeat will only render into the DOM the ten that are in the current
+ * scroll position.
+ *
+ * Here are a few things to keep in mind while using collection-repeat:
+ *
+ * 1. The data supplied to collection-repeat must be an array.
+ * 2. You must explicitly tell the directive what size your items will be in the DOM
+ * (pixel amount or percentage), using directive attributes (see below).
+ * 3. The elements rendered will be absolutely positioned: be sure to let your CSS work with this (see below).
+ * 4. Keep the HTML of your repeated elements as simple as possible. As the user scrolls down, elements
+ * will be lazily compiled. Resultingly, the more complicated your elements, the more likely it is that
+ * the on-demand compilation will cause jankiness in the user's scrolling.
+ * 5. The more elements you render on the screen at a time, the slower the scrolling will be.
+ * It is recommended to keep grids of collection-repeat list elements at 3-wide or less.
+ * 6. Each collection-repeat list will take up all of its parent scrollView's space.
+ * If you wish to have multiple lists on one page, put each list within its own
+ * {@link ionic.directive:ionScroll ionScroll} container.
+ *
+ *
+ *
+ * @usage
+ *
+ * #### Basic Usage (single rows of items)
+ *
+ * Notice two things here: we use ng-style to set the height of the item to match
+ * what the repeater thinks our item height is.  Additionally, we add a css rule
+ * to make our item stretch to fit the full screen (since it will be absolutely
+ * positioned).
+ *
+ * ```html
+ * <ion-content ng-controller="ContentCtrl">
+ *   <div class="list">
+ *     <div class="item my-item"
+ *       collection-repeat="item in items"
+ *       collection-item-width="100%"
+ *       collection-item-height="getItemHeight(item, $index)"
+ *       ng-style="{height: getItemHeight(item, $index)}">
+ *       {% raw %}{{item}}{% endraw %}
+ *     </div>
+ *   </div>
+ * </div>
+ * ```
+ * ```js
+ * function ContentCtrl($scope) {
+ *   $scope.items = [];
+ *   for (var i = 0; i < 1000; i++) {
+ *     $scope.items.push('Item ' + i);
+ *   }
+ *
+ *   $scope.getItemHeight = function(item, index) {
+ *     //Make evenly indexed items be 10px taller, for the sake of example
+ *     return (index % 2) === 0 ? 50 : 60;
+ *   };
+ * }
+ * ```
+ * ```css
+ * .my-item {
+ *   left: 0;
+ *   right: 0;
+ * }
+ * ```
+ *
+ * #### Grid Usage (three items per row)
+ *
+ * ```html
+ * <ion-content>
+ *   <div class="item item-avatar my-image-item"
+ *     collection-repeat="image in images"
+ *     collection-item-width="33%"
+ *     collection-item-height="33%">
+ *     <img ng-src="{{image.src}}">
+ *   </div>
+ * </ion-content>
+ * ```
+ * ```css
+ * .my-image-item {
+ *   height: 33%;
+ *   width: 33%;
+ * }
+ * ```
+ *
+ * @param {expression} collection-repeat The expression indicating how to enumerate a collection. These
+ *   formats are currently supported:
+ *
+ *   * `variable in expression` – where variable is the user defined loop variable and `expression`
+ *     is a scope expression giving the collection to enumerate.
+ *
+ *     For example: `album in artist.albums`.
+ *
+ *   * `variable in expression track by tracking_expression` – You can also provide an optional tracking function
+ *     which can be used to associate the objects in the collection with the DOM elements. If no tracking function
+ *     is specified the collection-repeat associates elements by identity in the collection. It is an error to have
+ *     more than one tracking function to resolve to the same key. (This would mean that two distinct objects are
+ *     mapped to the same DOM element, which is not possible.)  Filters should be applied to the expression,
+ *     before specifying a tracking expression.
+ *
+ *     For example: `item in items` is equivalent to `item in items track by $id(item)'. This implies that the DOM elements
+ *     will be associated by item identity in the array.
+ *
+ *     For example: `item in items track by $id(item)`. A built in `$id()` function can be used to assign a unique
+ *     `$$hashKey` property to each item in the array. This property is then used as a key to associated DOM elements
+ *     with the corresponding item in the array by identity. Moving the same object in array would move the DOM
+ *     element in the same way in the DOM.
+ *
+ *     For example: `item in items track by item.id` is a typical pattern when the items come from the database. In this
+ *     case the object identity does not matter. Two objects are considered equivalent as long as their `id`
+ *     property is same.
+ *
+ *     For example: `item in items | filter:searchText track by item.id` is a pattern that might be used to apply a filter
+ *     to items in conjunction with a tracking expression.
+ *
+ * @param {expression} collection-item-width The width of the repeated element.  Can be a number (in pixels) or a percentage.
+ * @param {expression} collection-item-height The height of the repeated element.  Can be a number (in pixels), or a percentage.
+ *
+ */
 IonicModule
 .directive('collectionRepeat', [
   '$collectionRepeatManager',
@@ -3952,16 +4101,30 @@ function($collectionRepeatManager, $collectionDataSource, $parse) {
       } else if (!isVertical && !$attr.collectionItemWidth) {
         throw new Error("collection-repeat expected attribute collection-item-width to be a an expression that returns a number.");
       }
-      var heightGetter = $attr.collectionItemHeight ?
+      $attr.collectionItemHeight = $attr.collectionItemHeight || '100%';
+      $attr.collectionItemWidth = $attr.collectionItemWidth || '100%';
+
+      var heightParsed = $attr.collectionItemHeight ?
         $parse($attr.collectionItemHeight) :
         function() { return scrollView.__clientHeight; };
-      var widthGetter = $attr.collectionItemWidth ?
+      var widthParsed = $attr.collectionItemWidth ?
         $parse($attr.collectionItemWidth) :
         function() { return scrollView.__clientWidth; };
-      void 0;
-      setTimeout(function() {
-      void 0;
-      });
+
+      var heightGetter = function(scope, locals) {
+        var result = heightParsed(scope, locals);
+        if (angular.isString(result) && result.indexOf('%') > -1) {
+          return Math.floor(parseInt(result, 10) / 100 * scrollView.__clientHeight);
+        }
+        return result;
+      };
+      var widthGetter = function(scope, locals) {
+        var result = widthParsed(scope, locals);
+        if (angular.isString(result) && result.indexOf('%') > -1) {
+          return Math.floor(parseInt(result, 10) / 100 * scrollView.__clientWidth);
+        }
+        return result;
+      };
 
       var match = $attr.collectionRepeat.match(/^\s*([\s\S]+?)\s+in\s+([\s\S]+?)(?:\s+track\s+by\s+([\s\S]+?))?\s*$/);
       if (!match) {
@@ -4980,8 +5143,8 @@ IonicModule
  *
  * ```html
  * <ion-nav-bar>
- *   <ion-nav-back-button class="button-icon">
- *     <i class="ion-arrow-left-c"></i> Back!
+ *   <ion-nav-back-button class="button-clear">
+ *     <i class="ion-arrow-left-c"></i> Back
  *   </ion-nav-back-button>
  * </ion-nav-bar>
  * ```
@@ -4990,7 +5153,7 @@ IonicModule
  *
  * ```html
  * <ion-nav-bar ng-controller="MyCtrl">
- *   <ion-nav-back-button class="button-icon"
+ *   <ion-nav-back-button class="button-clear"
  *     ng-click="canGoBack && goBack()">
  *     <i class="ion-arrow-left-c"></i> Back
  *   </ion-nav-back-button>
@@ -5009,8 +5172,8 @@ IonicModule
  *
  * ```html
  * <ion-nav-bar ng-controller="MyCtrl">
- *   <ion-nav-back-button class="button button-icon ion-arrow-left-c">
- *     {% raw %}{{getPreviousTitle() || 'Back'}}{% endraw %}
+ *   <ion-nav-back-button class="button-icon">
+ *     <i class="icon ion-arrow-left-c"></i>{% raw %}{{getPreviousTitle() || 'Back'}}{% endraw %}
  *   </ion-nav-back-button>
  * </ion-nav-bar>
  * ```
@@ -5215,7 +5378,9 @@ IonicModule
         $compile(buttons)($scope);
 
         //Append buttons to navbar
-        $animate.enter(buttons, navElement);
+        ionic.requestAnimationFrame(function() {
+          $animate.enter(buttons, navElement);
+        });
 
         //When our ion-nav-buttons container is destroyed,
         //destroy everything in the navbar
@@ -6532,11 +6697,11 @@ function($ionicGesture, $timeout) {
       ngDisabled: '=?'
     },
     transclude: true,
-    template: '<div class="item item-toggle disable-pointer-events">' +
+    template: '<div class="item item-toggle">' +
                 '<div ng-transclude></div>' +
-                '<label class="toggle enable-pointer-events">' +
+                '<label class="toggle">' +
                   '<input type="checkbox" ng-model="ngModel" ng-value="ngValue" ng-change="ngChange()" ng-disabled="ngDisabled">' +
-                  '<div class="track disable-pointer-events">' +
+                  '<div class="track">' +
                     '<div class="handle"></div>' +
                   '</div>' +
                 '</label>' +
