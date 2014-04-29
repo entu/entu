@@ -10,9 +10,9 @@
                     {% for parent in parentgroup %}
                         <td style="text-align:center;">
                             <a class="no-underline" href="#{{ parent.get('id', '') }}" style="display:block; padding:0px 8px;">
-                                <i class="divider icon-arrow-up pull-left" style="padding-left:0px; padding-top:2px;"></i>
+                                <i class="divider fa fa-arrow-up pull-left" style="padding-left:0px; padding-top:2px;"></i>
                                 <b>{{ parent.get('label', '') }}:</b> {{ parent.get('displayname', '') }}
-                                <i class="divider icon-arrow-up pull-right" style="padding-right:0px; padding-top:2px;"></i>
+                                <i class="divider fa fa-arrow-up pull-right" style="padding-right:0px; padding-top:2px;"></i>
                             </a>
                         </td>
                     {% end %}
@@ -64,7 +64,7 @@
 <ul id="toolbar_template" style="display:none;">
     {% if allowed_childs or add_definitions %}
         <li class="dropdown">
-            <a href="#" class="dropdown-toggle header-menu-item toolbar-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="icon-plus"></i></a>
+            <a href="#" class="dropdown-toggle header-menu-item toolbar-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="fa fa-plus"></i></a>
             <ul class="dropdown-menu">
                 {% for ck, cv in add_definitions.iteritems() %}
                     <li class="dropdown-header">{{ _('menu_add_under').replace('%s', ck) }}</li>
@@ -83,20 +83,20 @@
         </li>
     {% end %}
     {% if entity['right'] in ['editor', 'owner'] %}
-        <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/edit" title="{{ _('menu_edit') }}"><i class="icon-pencil"></i></a></li>
-        <!--li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/relate" title="{{ _('menu_relate') }}"><i class="icon-link"></i></a></li-->
+        <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/edit" title="{{ _('menu_edit') }}"><i class="fa fa-pencil"></i></a></li>
+        <!--li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/relate" title="{{ _('menu_relate') }}"><i class="fa fa-link"></i></a></li-->
     {% end %}
     {% if entity['right'] in ['editor', 'owner'] and allowed_parents %}
-        <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/duplicate" title="{{ _('menu_duplicate') }}"><i class="icon-copy"></i></a></li>
-        <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/parents" title="{{ _('menu_parents') }}"><i class="icon-arrow-up"></i></a></li>
+        <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/duplicate" title="{{ _('menu_duplicate') }}"><i class="fa fa-copy"></i></a></li>
+        <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/parents" title="{{ _('menu_parents') }}"><i class="fa fa-arrow-up"></i></a></li>
     {% end %}
     {% if entity['right'] == 'owner' %}
-        <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/rights" title="{{ _('menu_rights') }}"><i class="icon-lock"></i></a></li>
+        <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/rights" title="{{ _('menu_rights') }}"><i class="fa fa-lock"></i></a></li>
     {% end %}
-    <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/share" title="{{ _('menu_share') }}"><i class="icon-envelope"></i></a></li>
-    <!--li><a href="/entity-{{ entity['id'] }}/download" class="toolbar-item" title="{{ _('menu_download') }}"><i class="icon-cloud-download"></i></a></li-->
-    <li><a href="javascript:javascript:window.print();" class="toolbar-item " title="{{ _('menu_print') }}"><i class="icon-print"></i></a></li>
-    <li><a href="javascript:void(0);" id="toolbar-item-fullscreen" class="toolbar-item " title="{{ _('menu_fullscreen') }}"><i class="icon-resize-full"></i></a></li>
+    <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/share" title="{{ _('menu_share') }}"><i class="fa fa-envelope"></i></a></li>
+    <!--li><a href="/entity-{{ entity['id'] }}/download" class="toolbar-item" title="{{ _('menu_download') }}"><i class="fa fa-cloud-download"></i></a></li-->
+    <li><a href="javascript:javascript:window.print();" class="toolbar-item " title="{{ _('menu_print') }}"><i class="fa fa-print"></i></a></li>
+    <li><a href="javascript:void(0);" id="toolbar-item-fullscreen" class="toolbar-item " title="{{ _('menu_fullscreen') }}"><i class="fa fa-expand"></i></a></li>
 </ul>
 
 <div id="childs"></div>
@@ -199,11 +199,11 @@
 
         function change_fullscreen_icon() {
             if($('#content').hasClass('fullscreen')) {
-                $('#toolbar-item-fullscreen').children('i').removeClass('icon-resize-full');
-                $('#toolbar-item-fullscreen').children('i').addClass('icon-resize-small');
+                $('#toolbar-item-fullscreen').children('i').removeClass('fa-expand');
+                $('#toolbar-item-fullscreen').children('i').addClass('fa-compress');
             } else {
-                $('#toolbar-item-fullscreen').children('i').removeClass('icon-resize-small');
-                $('#toolbar-item-fullscreen').children('i').addClass('icon-resize-full');
+                $('#toolbar-item-fullscreen').children('i').removeClass('fa-compress');
+                $('#toolbar-item-fullscreen').children('i').addClass('fa-expand');
             }
         }
 

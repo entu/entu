@@ -1,41 +1,40 @@
 <div class="modal-header" style="border:none;">
-    <a href="javascript:showHelp();" class="btn btn-link pull-right no-underline" style="padding-right:0px; font-size:20px; color:grey;"><i class="icon-info-sign"></i></a>
     <h3>{{ _('menu_rights') }}</h3>
 </div>
 <div class="modal-body" style="padding:0px;">
     <table class="table" style="margin:15px auto 20px auto; width:560px;" data-intro="{{ _('rights_help_share') }}" data-position="left">
         <tbody>
             <tr class="share{% if sharing == 'public' %} share-selected{% end %}" data-value="public" style="cursor:pointer;">
-                <td class="share-icon" style="vertical-align:middle; border:none; font-size:30px; color:gray;"><i class="icon-globe"></i></td>
+                <td class="share-icon" style="vertical-align:middle; border:none; font-size:30px; color:gray;"><i class="fa fa-globe"></i></td>
                 <td class="share-name" style="width:100%; vertical-align:middle; padding: 8px; border:none;">
                     {{ _('rights_public') }}<br />
                     <span style="font-size:12px; font-weight:normal; color:gray;">{{ _('rights_public_desc') }}</span>
                 </td>
-                <td class="share-cb" style="vertical-align:middle; border:none; font-size:24px; color:#F5F5F5;"><i class="icon-ok"></i></td>
+                <td class="share-cb" style="vertical-align:middle; border:none; font-size:24px; color:#F5F5F5;"><i class="fa fa-check"></i></td>
             </tr>
             <!--tr class="share{% if sharing == 'link' %} share-selected{% end %}" data-value="link" style="cursor:pointer;">
-                <td class="share-icon" style="vertical-align:middle; font-size:30px; color:gray;"><i class="icon-link"></i></td>
+                <td class="share-icon" style="vertical-align:middle; font-size:30px; color:gray;"><i class="fa fa-link"></i></td>
                 <td class="share-name" style="width:100%; vertical-align:middle; padding: 8px;">
                     {{ _('rights_link') }}<br />
                     <span style="font-size:12px; font-weight:normal; color:gray;">{{ _('rights_link_desc') }}</span>
                 </td>
-                <td class="share-cb" style="vertical-align:middle; font-size:24px; color:#F5F5F5;"><i class="icon-ok"></i></td>
+                <td class="share-cb" style="vertical-align:middle; font-size:24px; color:#F5F5F5;"><i class="fa fa-check"></i></td>
             </tr-->
             <tr class="share{% if sharing == 'domain' %} share-selected{% end %}" data-value="domain" style="cursor:pointer;">
-                <td class="share-icon" style="vertical-align:middle; font-size:30px; color:gray;"><i class="icon-home"></i></td>
+                <td class="share-icon" style="vertical-align:middle; font-size:30px; color:gray;"><i class="fa fa-home"></i></td>
                 <td class="share-name" style="width:100%; vertical-align:middle; padding: 8px;">
                     {{ _('rights_domain') % app_organisation }}<br />
                     <span style="font-size:12px; font-weight:normal; color:gray;">{{ _('rights_domain_desc') % app_organisation }}</span>
                 </td>
-                <td class="share-cb" style="vertical-align:middle; font-size:24px; color:#F5F5F5;"><i class="icon-ok"></i></td>
+                <td class="share-cb" style="vertical-align:middle; font-size:24px; color:#F5F5F5;"><i class="fa fa-check"></i></td>
             </tr>
             <tr class="share{% if sharing == 'private' %} share-selected{% end %}" data-value="private" style="cursor:pointer;">
-                <td class="share-icon" style="vertical-align:middle; font-size:30px; color:gray;"><i class="icon-user" style="font-size:30px;"></i></td>
+                <td class="share-icon" style="vertical-align:middle; font-size:30px; color:gray;"><i class="fa fa-user" style="font-size:30px;"></i></td>
                 <td class="share-name" style="width:100%; vertical-align:middle; padding: 8px;">
                     {{ _('rights_private') }}<br />
                     <span style="font-size:12px; font-weight:normal; color:gray;">{{ _('rights_private_desc') }}</span>
                 </td>
-                <td class="share-cb" style="vertical-align:middle; font-size:24px; color:#F5F5F5;"><i class="icon-ok"></i></td>
+                <td class="share-cb" style="vertical-align:middle; font-size:24px; color:#F5F5F5;"><i class="fa fa-check"></i></td>
             </tr>
         </tbody>
     </table>
@@ -46,11 +45,11 @@
                 <th class="rights-name" {% if r['id'] == current_user.id %} style="color:grey;"{% end %}>
                     {{ r['name'] }}
                 </th>
-                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}" data-value="" data-title="{{ _('rights_no_access') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-ban-circle"></i></td>
-                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}{% if r['right'] == 'viewer' %} rights-selected{% end %}" data-value="viewer" data-title="{{ _('rights_can_view') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-eye-open"></i></td>
-                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}{% if r['right'] == 'expander' %} rights-selected{% end %}" data-value="expander" data-title="{{ _('rights_can_add_child') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-plus"></i></td>
-                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}{% if r['right'] == 'editor' %} rights-selected{% end %}" data-value="editor" data-title="{{ _('rights_can_edit') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-pencil"></i></td>
-                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}{% if r['right'] == 'owner' %} rights-selected{% end %}" data-value="owner" data-title="{{ _('rights_owner') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="icon-unlock"></i></td>
+                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}" data-value="" data-title="{{ _('rights_no_access') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="fa fa-ban"></i></td>
+                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}{% if r['right'] == 'viewer' %} rights-selected{% end %}" data-value="viewer" data-title="{{ _('rights_can_view') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="fa fa-eye"></i></td>
+                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}{% if r['right'] == 'expander' %} rights-selected{% end %}" data-value="expander" data-title="{{ _('rights_can_add_child') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="fa fa-plus"></i></td>
+                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}{% if r['right'] == 'editor' %} rights-selected{% end %}" data-value="editor" data-title="{{ _('rights_can_edit') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="fa fa-pencil"></i></td>
+                <td class="{% if r['id'] != current_user.id %}rights-icon{% end %}{% if r['right'] == 'owner' %} rights-selected{% end %}" data-value="owner" data-title="{{ _('rights_owner') }}" style="width:50px; text-align:center; vertical-align:middle; font-size:20px; color:#F5F5F5; cursor:pointer;"><i class="fa fa-unlock"></i></td>
                 <td class="rights-title" style="padding:8px; vertical-align:middle; font-size:12px;"></td>
             </tr>
             {% end %}

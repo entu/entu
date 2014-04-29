@@ -8,7 +8,7 @@
 <ul id="list_toolbar_template" style="display:none;">
     {% if add_definitions %}
         <li class="dropdown">
-            <a href="#" class="toolbar-item dropdown-toggle header-menu-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="icon-plus"></i></a>
+            <a href="#" class="toolbar-item dropdown-toggle header-menu-item" data-toggle="dropdown" title="{{ _('menu_add') }}"><i class="fa fa-plus"></i></a>
             <ul class="dropdown-menu">
                 {% for ck, cv in add_definitions.iteritems() %}
                     <li class="dropdown-header">{{ _('menu_add_under').replace('%s', ck) }}</li>
@@ -19,7 +19,7 @@
             </ul>
         </li>
     {% end %}
-    <li><a href="javascript:void(0);" id="toolbar-item-tableview" class="toolbar-item " title="{{ _('menu_tableview') }}"><i class="icon-table"></i></a></li>
+    <li><a href="javascript:void(0);" id="toolbar-item-tableview" class="toolbar-item " title="{{ _('menu_tableview') }}"><i class="fa fa-table"></i></a></li>
 </ul>
 
 
@@ -173,11 +173,11 @@
 
         function change_tableview_icon() {
             if($('#tableview').hasClass('fullscreen')) {
-                $('#toolbar-item-tableview').children('i').removeClass('icon-table');
-                $('#toolbar-item-tableview').children('i').addClass('icon-columns');
+                $('#toolbar-item-tableview').children('i').removeClass('fa-table');
+                $('#toolbar-item-tableview').children('i').addClass('fa-columns');
             } else {
-                $('#toolbar-item-tableview').children('i').removeClass('icon-columns');
-                $('#toolbar-item-tableview').children('i').addClass('icon-table');
+                $('#toolbar-item-tableview').children('i').removeClass('fa-columns');
+                $('#toolbar-item-tableview').children('i').addClass('fa-table');
             }
         }
 

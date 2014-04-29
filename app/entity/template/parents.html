@@ -1,5 +1,4 @@
 <div class="modal-header" style="border:none;">
-    <a href="javascript:showHelp();" class="btn btn-link pull-right no-underline" style="padding-right:0px; font-size:20px; color:grey;"><i class="icon-info-sign"></i></a>
     <h3>{{ _('menu_parents') }}</h3>
 </div>
 <div class="modal-body" style="padding:0px;">
@@ -20,7 +19,7 @@
                                 {% end %}
                             </td>
                             <td style="width:10px; padding:8px; text-align:center; border-left:none;">
-                                <a href="javascript:void(0);" class="btn btn-link no-underline delete-parent" style="font-size:20px; color:grey; padding:0px 7px;" data-id="{{ parent.get('id') }}" data-name="{{ parent.get('displayname', '') }}"><i class="icon-minus-sign"></i></a>
+                                <a href="javascript:void(0);" class="btn btn-link no-underline delete-parent" style="font-size:20px; color:grey; padding:0px 7px;" data-id="{{ parent.get('id') }}" data-name="{{ parent.get('displayname', '') }}"><i class="fa fa-minus-circle"></i></a>
                             </td>
                         </tr>
                     {% end %}
