@@ -1,3 +1,7 @@
+## 2014-04-29
+* Smartphone optimised version to view Entities
+* No bugfixes
+
 ## 2014-04-22
 * API2 enhancements:
   * authentication with user, policy and signature
