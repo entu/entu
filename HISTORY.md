@@ -1,3 +1,7 @@
+## 2014-04-30
+* Reorganized and deleted obsolete JS and CSS libraries
+* Small fixes
+
 ## 2014-04-29
 * Smartphone optimised version to view Entities
 * No bugfixes
