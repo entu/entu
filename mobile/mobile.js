@@ -9,7 +9,7 @@ entuApp.config(function($stateProvider, $urlRouterProvider) {
             templateUrl: 'templates/menu.html'
         })
         .state('eventmenu.home', {
-            url: '/',
+            url: '/home',
             views: {
                 'menuContent' :{
                     templateUrl: 'templates/home.html'
@@ -34,7 +34,7 @@ entuApp.config(function($stateProvider, $urlRouterProvider) {
                 }
             }
         })
-    $urlRouterProvider.otherwise('/');
+    $urlRouterProvider.otherwise('/home');
 });
 
 entuApp.controller('MainCtrl', function($scope, $resource, $ionicSideMenuDelegate) {
