@@ -1,7 +1,7 @@
 <ion-view title="{{ entities.result[0].definition.label_plural }}">
     <ion-nav-page>
         <ion-content has-header="true">
-            <ion-refresher on-refresh="loadEntities(true)"></ion-refresher>
+            <ion-refresher on-refresh="loadEntities(true)" refreshing-icon="ion-refreshing"></ion-refresher>
             <ion-list>
                 <ion-item class="item-avatar item-icon-right" ng-repeat="entity in entities.result" href="#/{{ entity.definition.keyname }}/{{ entity.id }}">
                     <img ng-src="{{ entu_url }}entity-{{ entity.id }}/picture">
