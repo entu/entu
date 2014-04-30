@@ -4,7 +4,7 @@
             <ion-refresher on-refresh="loadEntity()" refreshing-icon="ion-refreshing"></ion-refresher>
             <div class="list card">
                 <div class="item item-avatar">
-                    <img ng-src="{{ entu_url }}entity-{{ entity.result.id }}/picture">
+                    <img ng-if="entity.result.id" ng-src="{{ entu_url }}entity-{{ entity.result.id }}/picture">
                     <h2>{{ entity.result.displayname }}</h2>
                     <p>{{ entity.result.displayinfo }}</p>
                 </div>

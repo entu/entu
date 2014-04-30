@@ -74,10 +74,12 @@ entuApp.controller('listCtrl', function ($scope, $http, $stateParams, $timeout){
                 }
                 $scope.loading = false;
                 $scope.$broadcast('scroll.infiniteScrollComplete');
+                $scope.$broadcast('scroll.refreshComplete');
             });
         } else {
             $scope.noMoreItems = true;
             $scope.$broadcast('scroll.infiniteScrollComplete');
+            $scope.$broadcast('scroll.refreshComplete');
         }
     };
     $scope.loadEntities();
@@ -91,12 +93,14 @@ entuApp.controller('listCtrl', function ($scope, $http, $stateParams, $timeout){
     // };
 });
 
-entuApp.controller('entityCtrl', function ($scope, $resource, $stateParams){
+entuApp.controller('entityCtrl', function ($scope, $http, $resource, $stateParams){
     $scope.loadEntity = function() {
-        $scope.entity = $resource(entuAPI+'entity-'+$stateParams.entity).get();
+        $http({method: 'GET', url: entuAPI+'entity-'+$stateParams.entity}).success(function(data) {
+            $scope.entity = data;
+            $scope.$broadcast('scroll.refreshComplete');
+        });
         $scope.childs = $resource(entuAPI+'entity-'+$stateParams.entity+'/childs').get();
         $scope.referrers = $resource(entuAPI+'entity-'+$stateParams.entity+'/referrals').get();
-        $scope.$broadcast('scroll.infiniteScrollComplete');
     };
     $scope.loadEntity();
 });
