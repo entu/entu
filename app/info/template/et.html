@@ -6,7 +6,7 @@
     body {
       padding-right: 0;
       padding-left: 0;
-      font-family: "museo-sans";
+      font-family: 'Roboto', sans-serif;
       text-align: justify;
       font-size: 16px;
       line-height: 20px;
@@ -30,7 +30,7 @@
     }
 
     h1 {
-      font-family: "museo-slab";
+      font-family: 'Roboto Slab', serif;
       font-size: 64px;
       line-height: 64px;
     }
@@ -38,7 +38,7 @@
     h2 {
       margin: 0px;
       padding: 0px 0px 20px 0px;
-      font-family: "museo-slab";
+      font-family: 'Roboto Slab', serif;
       font-size: 29px;
       line-height: 29px;
     }
@@ -105,7 +105,7 @@
        margin: 200px 0px 0px 0px;
        border: none;
        font-weight: bold;
-       font-family: "museo-slab";
+       font-family: 'Roboto Slab', serif;
        -webkit-box-shadow: none;
        -moz-box-shadow: none;
        box-shadow: none;
@@ -183,10 +183,10 @@
   <link  href="{{ static_url('frameworks/bootstrap2/css/bootstrap-responsive.min.css') }}" rel="stylesheet" />
   <link  href="{{ static_url('frameworks/fancybox/jquery.fancybox.css') }}" media="screen" rel="stylesheet" />
   <script src="{{ static_url('frameworks/fancybox/jquery.fancybox.pack.js') }}"></script>
-  <script src="https://use.typekit.net/rjh8jde.js"></script>
-  <script type="text/javascript">
-    try{Typekit.load();}catch(e){}
 
+  <link  href='http://fonts.googleapis.com/css?family=Roboto+Slab:400,700|Roboto:300,700' rel='stylesheet' />
+
+  <script type="text/javascript">
     $(document).ready(function() {
 
       $('a[href^="#"]').click(function() {
