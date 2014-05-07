@@ -17,21 +17,21 @@
             <div class="item item-text-wrap" ng-repeat="q in questions | filter:{ assessee_id: current_assessee } | orderBy : 'ordinal'">
                 <div class="row range range-calm">
                     <div class="col question">
-                        {{ q.title }}
+                        {{ q.ordinal }} {{ q.title }}
                     </div>
                     <i class="icon ion-minus-circled assertive" ng-show="q.rating"></i>
-                    <input class="col col-33" type="range" name="rating-{{ q.assessee_id }}-{{ q.id }}" min="1" max="100" value="50" ng-model="q.range_value" ng-show="q.rating">
+                    <input class="col col-33" type="range" name="rating-{{ q.assessee_id }}-{{ q.id }}" min="1" max="100" value="50" ng-model="q.rating_value" ng-show="q.rating" ng-change="saveRating(q.id, q.rating_value)" ng-disabled="is_loading > 0">
                     <i class="icon ion-plus-circled balanced" ng-show="q.rating"></i>
                 </div>
                 <div class="row" ng-show="q.text">
                     <div class="col">
-                        <textarea rows="4" placeholder="Kommenteeri..." name="text-{{ q.assessee_id }}-{{ q.id }}"  ng-model="q.text_value"></textarea>
+                        <textarea rows="4" placeholder="Kommenteeri..." name="text-{{ q.assessee_id }}-{{ q.id }}"  ng-model="q.text_value" ng-change="saveText(q.id, q.text_value)" ng-disabled="is_loading > 0"></textarea>
                     </div>
                 </div>
             </div>
         </div>
     </ion-content>
-    <ion-footer-bar align-title="left" class="bar-stable" ng-if="is_loading > 0">
-        Laen andmeid...
+    <ion-footer-bar class="bar-stable" ng-show="is_loading > 0">
+        Laen andmeid{{ loadingProgress() }}
     </ion-footer-bar>
 </ion-view>
