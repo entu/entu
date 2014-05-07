@@ -17,6 +17,7 @@ from SimpleAES import SimpleAES
 import logging
 import json
 import datetime, time
+import dateutil.parser
 
 
 class myDatabase():
@@ -206,7 +207,7 @@ class myUser():
             return
 
         try:
-            expiration_time = time.mktime(time.strptime(policy_dict['expiration'], '%Y-%m-%dT%H:%M:%SZ'))
+            expiration_time = time.mktime(dateutil.parser.parse(policy_dict['expiration']).timetuple())
         except Exception:
             logging.debug('Invalid expiration date!')
             return
