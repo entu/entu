@@ -17,7 +17,7 @@
             <div class="item item-text-wrap" ng-repeat="q in questions | filter:{ assessee_id: current_assessee } | orderBy : 'ordinal'">
                 <div class="row range range-calm">
                     <div class="col question">
-                        {{ q.question }}
+                        {{ q.title }}
                     </div>
                     <i class="icon ion-minus-circled assertive" ng-show="q.rating"></i>
                     <input class="col col-33" type="range" name="rating-{{ q.assessee_id }}-{{ q.id }}" min="1" max="100" value="50" ng-model="q.range_value" ng-show="q.rating">

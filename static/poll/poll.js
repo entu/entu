@@ -87,8 +87,10 @@ angular.module('entuApp', ['ionic'])
                             catch(err) { var assessee_id = 0; }
                             try        { var assessee = data.result.properties.assessee.values[0].value; }
                             catch(err) { var assessee = 0; }
-                            try        { var question = data.result.properties.question.values[0].value; }
-                            catch(err) { var question = ''; }
+                            try        { var title = data.result.properties.title.values[0].value; }
+                            catch(err) { var title = ''; }
+                            try        { var selftitle = data.result.properties.selftitle.values[0].value; }
+                            catch(err) { var selftitle = ''; }
                             try        { var text = data.result.properties.text.values[0].id; }
                             catch(err) { var text = false; }
                             try        { var rating = data.result.properties.rating.values[0].id; }
@@ -111,7 +113,7 @@ angular.module('entuApp', ['ionic'])
                                 $scope.questions.push({
                                     id          : data.result.id,
                                     assessee_id : assessee_id,
-                                    question    : question,
+                                    title       : (assessee_id == $stateParams.user_id) ? selftitle : title,
                                     text        : text,
                                     rating      : rating,
                                     ordinal     : ordinal,
