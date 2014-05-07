@@ -1,97 +1,22 @@
 <!DOCTYPE html>
-<html ng-app="entuApp" ng-controller="pollCtrl">
+<html ng-app="entuApp">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width, minimal-ui">
+        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
-        <title>{{ title }}</title>
+        <title>poll.entu.ee</title>
 
         <link  href="/static/frameworks/ionic/css/ionic.min.css?v=1" rel="stylesheet">
-        <script src="/static/frameworks/ionic/js/ionic.bundle.js?v=1"></script>
-        <script>
-            var entuApp = angular.module('entuApp', ['ionic']);
-            var entuURL = '/api2/'
-            var pollID  = 46374;
+        <script src="/static/frameworks/ionic/js/ionic.bundle.min.js?v=1"></script>
+        <script src="/static/frameworks/crypto-js/aes.js?v=1"></script>
+        <script src="/static/frameworks/crypto-js/hmac-sha1.js?v=1"></script>
 
-            entuApp.controller('pollCtrl', function ($scope, $http, $stateParams, $timeout){
-                $http({method: 'GET', url: entuURL+'entity-'+pollID}).success(function(data) {
-                    $scope.title = data.result.displayname;
-                    try {
-                        $scope.description = data.result.properties.pollheader.values[0].db_value;
-                    } catch(err) {
-                        $scope.description = '';
-                    }
-                });
-                $scope.questions = [];
-                $http({method: 'GET', url: entuURL+'entity-'+pollID+'/childs'}).success(function(data) {
-                    for (var x in data.result.question.entities) {
-                        var id = data.result.question.entities[x].id;
-                        $http({method: 'GET', url: entuURL+'entity-'+id}).success(function(data) {
-                            try {
-                                var title = data.result.properties.title.values[0].db_value;
-                            } catch(err) {
-                                var title = '';
-                            }
-                            try {
-                                var range = data.result.properties.continuous.values[0].db_value;
-                            } catch(err) {
-                                var range = 0;
-                            }
-                            try {
-                                var text = data.result.properties.text.values[0].db_value;
-                            } catch(err) {
-                                var text = 0;
-                            }
-                            try {
-                                var ordinal = data.result.properties.ordinal.values[0].db_value;
-                            } catch(err) {
-                                var ordinal = 0;
-                            }
-                            $scope.questions.push({
-                                ordinal: ordinal,
-                                title: title,
-                                text: text,
-                                range: range,
-                                data: data.result,
-                                // range_value: 50,
-                            });
-                        });
-                    }
-                });
-            });
-        </script>
+        <link  href="poll.css?v=1" rel="stylesheet">
+        <script src="poll.js?v=1"></script>
     </head>
-    <body>
-        <ion-nav-bar class="bar-calm nav-title-slide-ios7">
-        </ion-nav-bar>
-        <ion-view title="{{ title }}">
-            <ion-content padding="true" has-bouncing="false" overflow-scroll="true">
-                <div class="card">
-                    <div class="item item-text-wrap" style="text-align:justify;">
-                        {{ description }}
-                    </div>
-                </div>
-                <div class="list list-inset">
-                    <div class="item item-text-wrap" ng-repeat="q in questions | orderBy:'ordinal'">
-                        <div class="row range range-calm">
-                            <div class="col" style="text-align:justify;">
-                                {{ q.title }}
-                            </div>
-                            <i class="icon ion-minus-circled assertive" ng-show="q.range == 1"></i>
-                            <input class="col col-25" type="range" name="volume" min="0" max="100" value="50" ng-model="q.range_value" ng-show="q.range == 1">
-                            <i class="icon ion-plus-circled balanced" ng-show="q.range == 1"></i>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                <textarea rows="4" placeholder="Write some comment here..." ng-show="q.text == 1" ng-model="q.text_value"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </ion-content>
-        </ion-view>
-
+    <body ng-controller="pollCtrl" nav-router>
+        <ion-nav-view></ion-nav-view>
     </body>
 </html>

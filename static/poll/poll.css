@@ -1,0 +1,23 @@
+.description {
+    padding: 40px 15% !important;
+    text-align: justify !important;
+}
+.question {
+    text-align: justify !important;
+}
+.selected {
+    font-weight: bold !important;
+}
+.button-light {
+    color: #FFFFFF !important;
+}
+.ion-minus-circled {
+    margin-left: 20px !important;
+}
+ion-content {
+    margin-top: 87px !important;
+}
+ion-footer-bar {
+    height: 30px !important;
+    padding-left: 10px !important;
+}

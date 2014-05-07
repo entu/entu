@@ -1,0 +1,37 @@
+<ion-view title="{{ title }}">
+    <div class="bar bar-header bar-calm">
+        <button class="button button-clear button-light">{{ person }}</button>
+        <h1 class="title">{{ title }}</h1>
+        <button class="button button-clear button-light">{{ assessee_titles[current_assessee] }}</button>
+    </div>
+    <div class="bar bar-subheader">
+        <div class="button-bar">
+            <a class="button button-clear button-calm" ng-repeat="(a_id, a) in assessees | orderBy : ['ordinal', 'title']" ng-click="showQuestions(a.id)" ng-class="currentStyle(a.id)" title="{{ a.title }}">{{ a.title }}</a>
+        </div>
+    </div>
+    <ion-content padding="false" has-bouncing="true" overflow-scroll="true">
+        <div class="item-text-wrap description" ng-hide="current_assessee">
+            {{ description }}
+        </div>
+        <div class="list" ng-show="current_assessee">
+            <div class="item item-text-wrap" ng-repeat="q in questions | filter:{ assessee_id: current_assessee } | orderBy : 'ordinal'">
+                <div class="row range range-calm">
+                    <div class="col question">
+                        {{ q.question }}
+                    </div>
+                    <i class="icon ion-minus-circled assertive" ng-show="q.rating"></i>
+                    <input class="col col-33" type="range" name="rating-{{ q.assessee_id }}-{{ q.id }}" min="1" max="100" value="50" ng-model="q.range_value" ng-show="q.rating">
+                    <i class="icon ion-plus-circled balanced" ng-show="q.rating"></i>
+                </div>
+                <div class="row" ng-show="q.text">
+                    <div class="col">
+                        <textarea rows="4" placeholder="Kommenteeri..." name="text-{{ q.assessee_id }}-{{ q.id }}"  ng-model="q.text_value"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ion-content>
+    <ion-footer-bar align-title="left" class="bar-stable" ng-if="is_loading > 0">
+        Laen andmeid...
+    </ion-footer-bar>
+</ion-view>
