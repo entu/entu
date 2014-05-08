@@ -19,7 +19,7 @@ function getSignedData(user, key, data) {
 
 
 
-angular.module('entuApp', ['ionic'])
+angular.module('entuApp', ['ionic', 'angular.markdown'])
     .config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider) {
             // $urlRouterProvider.otherwise('/');
             $stateProvider.state('poll', {
@@ -36,7 +36,6 @@ angular.module('entuApp', ['ionic'])
         $scope.assessees = [];
         $scope.assessee_titles = {};
         $scope.questions = [];
-        $scope.question_answers = {};
 
         // Get questionary
         $http({
@@ -50,6 +49,8 @@ angular.module('entuApp', ['ionic'])
                 catch(err) { $scope.title = ''; }
                 try        { $scope.description = data.result.properties.pollheader.values[0].value; }
                 catch(err) { $scope.description = ''; }
+                try        { $scope.howto = data.result.properties.pollhowto.values[0].value; }
+                catch(err) { $scope.howto = ''; }
             });
 
         // Get person
@@ -114,19 +115,16 @@ angular.module('entuApp', ['ionic'])
                                         ordinal : (assessee_id == $stateParams.user_id) ? 0 : 1
                                     });
                                 }
-                                $scope.question_answers[data.result.id] = {
-                                    text   : text_value,
-                                    rating : rating_value
-                                }
 
                                 $scope.questions.push({
                                     id           : data.result.id,
                                     assessee_id  : assessee_id,
                                     title        : (assessee_id == $stateParams.user_id) ? selftitle : title,
                                     text         : text,
-                                    text_value   : text_value,
+                                    text_value   : (text_value.replace('.', '').replace(' ', '') == '') ? '' : text_value,
                                     rating       : rating,
-                                    rating_value : rating_value,
+                                    rating_value : (rating_value == -1) ? 50 : rating_value,
+                                    no_rating    : (rating_value == -1) ? true : false,
                                     ordinal      : ordinal
                                 });
 
@@ -137,33 +135,8 @@ angular.module('entuApp', ['ionic'])
                 $scope.is_loading -= 1;
             });
 
-        $scope.saveText = function(question_id, text_value) {
-            if(!text_value) text_value = '...';
-            if($scope.question_answers[question_id].text_value == text_value) return;
-            $scope.question_answers[question_id].text_value = text_value;
-            $http({
-                method : 'PUT',
-                url    : '/api2/entity-' + question_id,
-                params : getSignedData($stateParams.user_id, $stateParams.key, {'answer-text': text_value})
-            });
-        }
-
-        $scope.saveRating = function(question_id, rating_value) {
-            if($scope.question_answers[question_id].rating_value == rating_value) return;
-            $scope.question_answers[question_id].rating_value = rating_value;
-            $http({
-                method : 'PUT',
-                url    : '/api2/entity-' + question_id,
-                params : getSignedData($stateParams.user_id, $stateParams.key, {'answer-rating': rating_value})
-            });
-        }
-
         $scope.showQuestions = function(id) {
             $scope.current_assessee = id;
-        }
-
-        $scope.currentStyle = function(id) {
-            return ($scope.current_assessee == id) ? 'selected' : '';
         }
 
         $scope.loadingProgress = function() {
@@ -172,18 +145,31 @@ angular.module('entuApp', ['ionic'])
             return s;
         }
 
-        $scope.rangeColor = function(value) {
-            if(!value) return;
-            if(value < 50) {
-                var r = 255;
-                var g = Math.floor(value * 5.1);
-                var b = 0;
-            } else {
-                var r = Math.floor(255 - ((value - 50) * 5.1));
-                var g = 255;
-                var b = 0;
-            }
-            return {color: 'rgb('+r+','+g+','+b+')'};
+        $scope.saveNoRating = function(row) {
+            row.no_rating = true;
+            row.rating_value = 50;
+            $http({
+                method : 'PUT',
+                url    : '/api2/entity-' + row.id,
+                params : getSignedData($stateParams.user_id, $stateParams.key, {'answer-rating': -1})
+            });
+        }
+
+        $scope.saveRating = function(row) {
+            row.no_rating = false;
+            $http({
+                method : 'PUT',
+                url    : '/api2/entity-' + row.id,
+                params : getSignedData($stateParams.user_id, $stateParams.key, {'answer-rating': row.rating_value})
+            });
+        }
+
+        $scope.saveText = function(row) {
+            $http({
+                method : 'PUT',
+                url    : '/api2/entity-' + row.id,
+                params : getSignedData($stateParams.user_id, $stateParams.key, {'answer-text': (row.text_value) ? row.text_value : '.'})
+            });
         }
 
     }]);

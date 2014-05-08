@@ -1,6 +1,18 @@
-.description {
-    padding: 40px 15% !important;
+markdown {
+    padding: 40px 20% !important;
     text-align: justify !important;
+}
+markdown ol {
+    margin: 0px 0px 10px 25px !important;
+    color: #666666 !important;
+    font-size: 14px !important;
+    list-style: decimal outside none !important;
+}
+markdown ul {
+    margin: 0px 0px 10px 25px !important;
+    color: #666666 !important;
+    font-size: 14px !important;
+    list-style: disc outside none !important;
 }
 .question {
     text-align: justify !important;
@@ -11,8 +23,18 @@
 .button-light {
     color: #FFFFFF !important;
 }
+.no-rating {
+    margin-left: 20px !important;
+}
 .ion-minus-circled {
     margin-left: 20px !important;
+}
+.col {
+    margin: 0px !important;
+    padding: 0px !important;
+}
+textarea:disabled {
+    background: #FFFFFF !important;
 }
 ion-content {
     margin-top: 87px !important;
