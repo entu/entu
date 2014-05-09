@@ -8,7 +8,6 @@ import string
 import hashlib
 import time
 import logging
-import hashlib
 import re
 import math
 from decimal import Decimal
@@ -664,18 +663,42 @@ class Entity():
 
         self.db.execute(sql, sharing, self.__user_id)
 
-    def get_entities(self, ids_only=False, entity_id=None, search=None, entity_definition_keyname=None, dataproperty=None, limit=None, full_definition=False, only_public=False):
+    def set_sharing_key(self, entity_id, generate=False):
+        if not entity_id:
+            return
+
+        if generate:
+            sharing_key = ''.join(random.choice(string.ascii_letters + string.digits) for x in range(64))
+        else:
+            sharing_key = None
+
+        if type(entity_id) is not list:
+            entity_id = [entity_id]
+
+        sql = """
+            UPDATE entity SET
+                sharing_key = %%s,
+                changed = NOW(),
+                changed_by = %%s
+            WHERE id IN (%s);
+        """ % ','.join(map(str, entity_id))
+
+        self.db.execute(sql, sharing_key, self.__user_id)
+
+        return sharing_key
+
+    def get_entities(self, ids_only=False, entity_id=None, search=None, entity_definition_keyname=None, dataproperty=None, limit=None, full_definition=False, only_public=False, sharing_key=None):
         """
         If ids_only = True, then returns list of Entity IDs. Else returns list of Entities (with properties) as dictionary. entity_id, entity_definition and dataproperty can be single value or list of values.
         If limit = 1, then returns Entity (not list).
         If full_definition = True ,then returns also empty properties.
 
         """
-        ids = self.__get_id_list(entity_id=entity_id, search=search, entity_definition_keyname=entity_definition_keyname, limit=limit, only_public=only_public)
+        ids = self.__get_id_list(entity_id=entity_id, search=search, entity_definition_keyname=entity_definition_keyname, limit=limit, only_public=only_public, sharing_key=sharing_key)
         if ids_only == True:
             return ids
 
-        entities = self.__get_properties(entity_id=ids, entity_definition_keyname=entity_definition_keyname, dataproperty=dataproperty, full_definition=full_definition, only_public=only_public)
+        entities = self.__get_properties(entity_id=ids, entity_definition_keyname=entity_definition_keyname, dataproperty=dataproperty, full_definition=full_definition, only_public=only_public, sharing_key=sharing_key)
         if not entities and full_definition == False and entity_definition_keyname == None:
             return
 
@@ -684,7 +707,7 @@ class Entity():
 
         return entities
 
-    def __get_id_list(self, entity_id=None, search=None, entity_definition_keyname=None, limit=None, only_public=False):
+    def __get_id_list(self, entity_id=None, search=None, entity_definition_keyname=None, limit=None, only_public=False, sharing_key=None):
         """
         Get list of Entity IDs. entity_id, entity_definition_keyname and user_id can be single ID or list of IDs.
 
@@ -702,6 +725,7 @@ class Entity():
                     continue
                 i += 1
                 join_parts.append('RIGHT JOIN property AS p%(idx)i ON p%(idx)i.entity_id = e.id RIGHT JOIN property_definition AS ppd%(idx)i ON ppd%(idx)i.keyname = p%(idx)i.property_definition_keyname AND ppd%(idx)i.search = 1' % {'idx': i})
+
                 if not self.__user_id or only_public == True:
                     join_parts.append('LEFT JOIN property_definition AS pd%i ON pd%i.keyname = p%i.property_definition_keyname' % (i, i, i))
 
@@ -722,6 +746,8 @@ class Entity():
             where_parts.append('r.is_deleted = 0')
             join_parts.append('RIGHT JOIN relationship AS r  ON r.entity_id  = e.id')
             where_parts.append('(r.related_entity_id = %s AND r.relationship_definition_keyname IN (\'viewer\', \'expander\', \'editor\', \'owner\') OR e.sharing IN (\'domain\', \'public\'))' % self.__user_id)
+        elif sharing_key:
+            where_parts.append('e.sharing_key = \'%s\'' % sharing_key)
         else:
             where_parts.append('e.sharing = \'public\'')
             i = 0
@@ -768,7 +794,7 @@ class Entity():
     #     # logging.debug(sql)
     #     return self.db.query(sql)
 
-    def __get_properties(self, entity_id=None, entity_definition_keyname=None, dataproperty=None, full_definition=False, only_public=False):
+    def __get_properties(self, entity_id=None, entity_definition_keyname=None, dataproperty=None, full_definition=False, only_public=False, sharing_key=None):
         """
         Get Entity properties. entity_id can be single ID or list of IDs.
         * full_definition - All metadata for entity and properties is fetched, if True
@@ -781,6 +807,9 @@ class Entity():
             if self.__user_id and only_public == False:
                 rights = '(SELECT relationship_definition_keyname FROM relationship WHERE entity_id = entity.id AND is_deleted = 0 AND related_entity_id = %s AND relationship_definition_keyname IN (\'viewer\', \'expander\', \'editor\', \'owner\') LIMIT 1)' % self.__user_id
                 public = ''
+            elif sharing_key:
+                rights = 'FALSE'
+                public = 'AND entity.sharing_key = \'%s\'' % sharing_key
             else:
                 rights = 'FALSE'
                 public = 'AND entity.sharing = \'public\' AND property_definition.public = 1'
@@ -798,7 +827,8 @@ class Entity():
                     entity.created                                  AS entity_created,
                     entity.changed                                  AS entity_changed,
                     entity.sharing                                  AS entity_sharing,
-                    %(rights)s                               AS entity_right,
+                    entity.sharing_key                              AS entity_sharing_key,
+                    %(rights)s                                      AS entity_right,
                     entity.sort                                     AS entity_sort_value,
                     property_definition.keyname                     AS property_keyname,
                     property_definition.ordinal                     AS property_ordinal,
@@ -843,15 +873,15 @@ class Entity():
                 %(datapropertysql)s
                 ORDER BY
                     entity_definition.keyname,
-                    entity.created DESC
+                    entity.created DESC;
             """ % {'language': self.get_user_locale().code, 'public': public, 'idlist': ','.join(map(str, entity_id)), 'datapropertysql': datapropertysql, 'rights': rights}
             # logging.debug(sql)
 
             items = {}
             for row in self.db.query(sql):
-                if row.entity_sharing == 'private' and not row.entity_right:
+                if row.entity_sharing == 'private' and not row.entity_right and not sharing_key:
                     continue
-                if row.entity_sharing in ['domain', 'public'] and row.entity_right not in ['viewer', 'expander', 'editor', 'owner'] and row.property_public != 1:
+                if row.entity_sharing in ['domain', 'public'] and row.entity_right not in ['viewer', 'expander', 'editor', 'owner'] and row.property_public != 1 and not sharing_key:
                     continue
 
                 #Entity
@@ -868,6 +898,7 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {})['displayinfo'] = self.__get_system_translation(field='displayinfo', entity_definition_keyname=row.entity_definition_keyname)
                 items.setdefault('item_%s' % row.entity_id, {})['displaytable'] = self.__get_system_translation(field='displaytable', entity_definition_keyname=row.entity_definition_keyname)
                 items.setdefault('item_%s' % row.entity_id, {})['sharing'] = row.entity_sharing
+                items.setdefault('item_%s' % row.entity_id, {})['sharing_key'] = row.entity_sharing_key
                 items.setdefault('item_%s' % row.entity_id, {})['right'] = row.entity_right
                 items.setdefault('item_%s' % row.entity_id, {})['ordinal'] = row.entity_created if row.entity_created else datetime.datetime.now()
 
@@ -1284,7 +1315,7 @@ class Entity():
                 items.setdefault('%s' % ent.get('label_plural', ''), []).append(ent)
         return items
 
-    def get_file(self, file_id):
+    def get_file(self, file_id, sharing_key=None):
         """
         Returns file object. File properties are id, file, filename.
 
@@ -1307,6 +1338,8 @@ class Entity():
                     AND is_deleted = 0
                 )
             """ % self.__user_id
+        elif sharing_key:
+            user_where = 'AND p.entity_id IN (SELECT id FROM entity WHERE sharing_key = \'%s\')' % sharing_key
         else:
             user_where = 'AND pd.public = 1'
 

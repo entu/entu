@@ -188,6 +188,32 @@ class PublicEntityHandler(myRequestHandler, Entity):
         )
 
 
+class SharedEntityWithKeyHandler(myRequestHandler, Entity):
+    """
+    Show public entity.
+
+    """
+    def get(self, entity_id=None, sharing_key=None):
+        if not entity_id:
+            return self.missing()
+
+        if not sharing_key:
+            return self.missing()
+
+        item = self.get_entities(entity_id=entity_id, limit=1, only_public=True, sharing_key=sharing_key)
+        if not item:
+            return self.missing()
+
+        self.render('public/template/item.html',
+            page_title = item['displayname'],
+            entity = item,
+            paths = {},
+            path = '',
+            search = '',
+            sharing_key = sharing_key,
+        )
+
+
 class PublicFileHandler(myRequestHandler, Entity):
     """
     Download public file.
@@ -199,7 +225,9 @@ class PublicFileHandler(myRequestHandler, Entity):
         except:
             return self.missing()
 
-        files = self.get_file(file_id)
+        sharing_key = self.get_argument('key', default=None, strip=True)
+
+        files = self.get_file(file_id=file_id, sharing_key=sharing_key)
         if not files:
             return self.missing()
 
@@ -226,4 +254,5 @@ handlers = [
     (r'/public-(.*)/entity-(.*)', PublicEntityHandler),
     (r'/public/file-(.*)', PublicFileHandler),
     (r'/public(.*)', PublicHandler),
+    (r'/shared/(.*)/(.*)', SharedEntityWithKeyHandler),
 ]

@@ -75,7 +75,9 @@ confirm_parent_delete,Seos objektiga '%s' kustutatakse.
 rights_public,Public on the web
 rights_public_desc,Anyone on the Internet can access and view public properties. No sign-in required.
 rights_link,Anyone with the link
-rights_link_desc,Anyone who has the link can access and view public properties. No sign-in required.
+rights_link_desc,Anyone who has the link can access and view all properties. No sign-in required.
+rights_generate_link,Genereeri link
+rights_delete_link,Kustuta link
 rights_domain,Anyone at %s
 rights_domain_desc,People at %s can access and view all properties. Sign-in required.
 rights_private,Private

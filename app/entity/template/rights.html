@@ -12,14 +12,6 @@
                 </td>
                 <td class="share-cb" style="vertical-align:middle; border:none; font-size:24px; color:#F5F5F5;"><i class="fa fa-check"></i></td>
             </tr>
-            <!--tr class="share{% if sharing == 'link' %} share-selected{% end %}" data-value="link" style="cursor:pointer;">
-                <td class="share-icon" style="vertical-align:middle; font-size:30px; color:gray;"><i class="fa fa-link"></i></td>
-                <td class="share-name" style="width:100%; vertical-align:middle; padding: 8px;">
-                    {{ _('rights_link') }}<br />
-                    <span style="font-size:12px; font-weight:normal; color:gray;">{{ _('rights_link_desc') }}</span>
-                </td>
-                <td class="share-cb" style="vertical-align:middle; font-size:24px; color:#F5F5F5;"><i class="fa fa-check"></i></td>
-            </tr-->
             <tr class="share{% if sharing == 'domain' %} share-selected{% end %}" data-value="domain" style="cursor:pointer;">
                 <td class="share-icon" style="vertical-align:middle; font-size:30px; color:gray;"><i class="fa fa-home"></i></td>
                 <td class="share-name" style="width:100%; vertical-align:middle; padding: 8px;">
@@ -35,6 +27,16 @@
                     <span style="font-size:12px; font-weight:normal; color:gray;">{{ _('rights_private_desc') }}</span>
                 </td>
                 <td class="share-cb" style="vertical-align:middle; font-size:24px; color:#F5F5F5;"><i class="fa fa-check"></i></td>
+            </tr>
+            <tr class="" data-value="link">
+                <td class="share-icon" style="vertical-align:middle; font-size:30px; color:gray;"><i class="fa fa-link"></i></td>
+                <td class="share-name" style="width:100%; vertical-align:middle; padding: 8px;" colspan="2">
+                    {{ _('rights_link') }}<br />
+                    <span style="font-size:12px; font-weight:normal; color:gray;">{{ _('rights_link_desc') }}</span><br />
+                    <a id="generate-sharing-link" style="margin-top:10px; font-size:12px; color:green; {% if sharing_link %}display:none;{% end %}" href="javascript:void(0);">{{ _('rights_generate_link') }}</a>
+                    <a id="sharing-link" style="margin-top:10px; font-size:12px; {% if not sharing_link %}display:none;{% end %}" href="{{ sharing_link }}" target="_blank">{{ sharing_link }}</a><br />
+                    <a id="delete-sharing-link" style="margin-top:10px; font-size:12px; color:red; {% if not sharing_link %}display:none;{% end %}" href="javascript:void(0);">{{ _('rights_delete_link') }}</a>
+                </td>
             </tr>
         </tbody>
     </table>
@@ -85,6 +87,26 @@
         $('.share').click(function() {
             select_sharing($(this));
             $.post('/entity-{{ entity_id }}/rights', { sharing: $(this).data('value') });
+        });
+
+        $('#generate-sharing-link').click(function() {
+            $('#generate-sharing-link').hide();
+            $.post('/entity-{{ entity_id }}/rights', { generate_link: true }, function(data) {
+                $('#sharing-link').html(data);
+                $('#sharing-link').attr('href', data);
+                $('#sharing-link').show();
+                $('#delete-sharing-link').show();
+            });
+        });
+
+        $('#delete-sharing-link').click(function() {
+            $('#delete-sharing-link').hide();
+            $.post('/entity-{{ entity_id }}/rights', { delete_link: true }, function(data) {
+                $('#sharing-link').html('');
+                $('#sharing-link').attr('href', '');
+                $('#sharing-link').hide();
+                $('#generate-sharing-link').show();
+            });
         });
 
         function select_sharing(object) {
