@@ -1,3 +1,6 @@
+## 2014-05-09
+* Share Entities with URL
+
 ## 2014-04-30
 * Reorganized and deleted obsolete JS and CSS libraries
 * Small fixes
