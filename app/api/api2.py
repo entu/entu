@@ -459,10 +459,10 @@ class S3FileUpload(myRequestHandler):
         message = self.get_argument('message', None, True)
 
         if bucket and key and etag:
-            s3_conn = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
+            s3_conn   = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
             s3_bucket = s3_conn.get_bucket(bucket, validate=False)
-            s3_key = s3_bucket.get_key(key)
-            s3_url = s3_key.generate_url(expires_in=10, query_auth=True)
+            s3_key    = s3_bucket.get_key(key)
+            s3_url    = s3_key.generate_url(expires_in=10, query_auth=True)
 
             self.json({
                 'bucket': bucket,
@@ -489,7 +489,7 @@ class S3FileUpload(myRequestHandler):
                 ]
             }
             encoded_policy = json.dumps(policy).encode('utf-8').encode('base64').replace('\n','')
-            signature = hmac.new(AWS_SECRET_KEY, encoded_policy, sha1).digest().encode('base64').replace('\n','')
+            signature = hmac.new(str(AWS_SECRET_KEY), str(encoded_policy), sha1).digest().encode('base64').replace('\n','')
 
             self.json({
                 'url': 'https://%s.s3.amazonaws.com/' % AWS_BUCKET,
@@ -515,9 +515,9 @@ handlers = [
     (r'/api2/entity-(.*)/picture', API2EntityPicture),
     (r'/api2/entity-(.*)', API2Entity),
     (r'/api2/file', API2FileUpload),
+    (r'/api2/file/s3', S3FileUpload),
     (r'/api2/file-(.*)', API2File),
     (r'/api2/definition', API2DefinitionList),
     (r'/api2/definition-(.*)', API2Definition),
-    (r'/api2/s3upload', S3FileUpload),
     (r'/api2(.*)', API2NotFound),
 ]
