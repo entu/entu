@@ -185,6 +185,7 @@ class PublicEntityHandler(myRequestHandler, Entity):
             paths = self.get_public_paths(),
             path = path,
             search = '',
+            sharing_key = None,
         )
 
 
