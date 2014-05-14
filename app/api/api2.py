@@ -381,22 +381,37 @@ class API2EntityPicture(myRequestHandler, Entity2):
         if not picture:
             return self.redirect('https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest()))
 
-        elif not picture.get('file') and picture.get('definition', '') == 'person':
+        if picture.get('thumbnail'):
+            self.add_header('Content-Type', 'image/jpeg')
+            return self.write(picture.get('thumbnail'))
+
+        elif picture.get('file'):
+            thumbnail = None
+            try:
+                im = Image.open(StringIO(picture.get('file')))
+                im.thumbnail((300, 300), Image.ANTIALIAS)
+                im_new = StringIO()
+                im.save(im_new, 'JPEG', quality=80)
+                thumbnail = im_new.getvalue()
+            except Exception:
+                return
+
+            if thumbnail:
+                self.set_file_thumbnail(picture.get('id'), thumbnail)
+
+                self.add_header('Content-Type', 'image/jpeg')
+                return self.write(thumbnail)
+
+        elif picture.get('definition', '') == 'person':
             return self.redirect('https://secure.gravatar.com/avatar/%s?d=wavatar&s=150' % (hashlib.md5(str(entity_id)).hexdigest()))
 
-        elif not picture.get('file') and picture.get('definition', '') in ['audiovideo', 'book', 'methodical', 'periodical', 'textbook', 'workbook']:
+        elif picture.get('definition', '') in ['audiovideo', 'book', 'methodical', 'periodical', 'textbook', 'workbook']:
             return self.redirect('/photo-by-isbn?entity=%s' % entity_id)
 
-        elif not picture.get('file'):
+        else:
             return self.redirect('https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest()))
 
-        im = Image.open(StringIO(picture.get('file')))
-        im.thumbnail((300, 300), Image.ANTIALIAS)
-        im_new = StringIO()
-        im.save(im_new, 'JPEG', quality=80)
 
-        self.add_header('Content-Type', 'image/jpeg')
-        self.write(im_new.getvalue())
 
 
 class API2DefinitionList(myRequestHandler, Entity2):

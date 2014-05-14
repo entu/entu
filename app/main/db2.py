@@ -367,34 +367,43 @@ class Entity2():
     def get_entity_picture(self, entity_id):
         f = self.db.get("""
             SELECT
-                e.entity_definition_keyname AS definition,
-                (
-                    SELECT
-                        f.file
-                    FROM
-                        property AS p,
-                        property_definition AS pd,
-                        file AS f
-                    WHERE pd.keyname = p.property_definition_keyname
-                    AND f.id = p.value_file
-                    AND p.is_deleted = 0
-                    AND p.value_file > 0
-                    AND p.entity_id = e.id
-                    AND pd.entity_definition_keyname = e.entity_definition_keyname
-                    AND pd.is_deleted = 0
-                    AND pd.dataproperty = 'photo'
-                    ORDER BY p.id
-                    LIMIT 1
-                ) AS file
-            FROM entity AS e
-            WHERE e.id = %s
-            AND e.is_deleted = 0
+                entity.entity_definition_keyname AS definition,
+                file.id AS file_id,
+                file.file,
+                file.thumbnail
+            FROM entity
+            LEFT JOIN (
+                SELECT
+                    p.entity_id,
+                    f.id,
+                    f.file,
+                    f.thumbnail
+                FROM
+                    property AS p,
+                    property_definition AS pd,
+                    file AS f
+                WHERE pd.keyname = p.property_definition_keyname
+                AND f.id = p.value_file
+                AND p.is_deleted = 0
+                AND p.value_file > 0
+                AND p.entity_id = %s
+                AND pd.is_deleted = 0
+                AND pd.dataproperty = 'photo'
+                ORDER BY p.id
+                LIMIT 1
+            ) AS file ON file.entity_id = entity.id
+            WHERE entity.id = %s
+            AND entity.is_deleted = 0
             LIMIT 1;
-        """, entity_id)
+        """, entity_id, entity_id)
         if not f:
             return
 
-        return {'definition': f.definition, 'file': f.file}
+        return {'definition': f.definition, 'id': f.file_id, 'file': f.file, 'thumbnail': f.thumbnail}
+
+
+    def set_file_thumbnail(self, file_id, thumbnail):
+        self.db.execute('UPDATE file SET thumbnail = %s WHERE id = %s LIMIT 1;', thumbnail, file_id)
 
 
     def get_menu(self):
