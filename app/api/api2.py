@@ -6,6 +6,9 @@ import mimetypes
 from hashlib import sha1
 from operator import itemgetter
 
+from PIL import Image
+from StringIO import StringIO
+
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 
@@ -372,14 +375,28 @@ class API2FileUpload(myRequestHandler, Entity):
 class API2EntityPicture(myRequestHandler, Entity2):
     @web.removeslash
     def get(self, entity_id=None):
-        url = self.get_entity_picture_url(entity_id)
+        # im = Image.open(StringIO(data))
+        picture = self.get_entity_picture(entity_id)
 
-        if not url:
-            return self.missing()
+        if not picture:
+            return self.redirect('https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest()))
 
-        self.redirect(url)
+        elif not picture.get('file') and picture.get('definition', '') == 'person':
+            return self.redirect('https://secure.gravatar.com/avatar/%s?d=wavatar&s=150' % (hashlib.md5(str(entity_id)).hexdigest()))
 
+        elif not picture.get('file') and picture.get('definition', '') in ['audiovideo', 'book', 'methodical', 'periodical', 'textbook', 'workbook']:
+            return self.redirect('/photo-by-isbn?entity=%s' % entity_id)
 
+        elif not picture.get('file'):
+            return self.redirect('https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest()))
+
+        im = Image.open(StringIO(picture.get('file')))
+        im.thumbnail((300, 300), Image.ANTIALIAS)
+        im_new = StringIO()
+        im.save(im_new, 'JPEG', quality=80)
+
+        self.add_header('Content-Type', 'image/jpeg')
+        self.write(im_new.getvalue())
 
 
 class API2DefinitionList(myRequestHandler, Entity2):

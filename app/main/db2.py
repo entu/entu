@@ -364,16 +364,19 @@ class Entity2():
         }
 
 
-    def get_entity_picture_url(self, entity_id):
+    def get_entity_picture(self, entity_id):
         f = self.db.get("""
             SELECT
                 e.entity_definition_keyname AS definition,
                 (
-                    SELECT p.value_file
+                    SELECT
+                        f.file
                     FROM
                         property AS p,
-                        property_definition AS pd
+                        property_definition AS pd,
+                        file AS f
                     WHERE pd.keyname = p.property_definition_keyname
+                    AND f.id = p.value_file
                     AND p.is_deleted = 0
                     AND p.value_file > 0
                     AND p.entity_id = e.id
@@ -382,7 +385,7 @@ class Entity2():
                     AND pd.dataproperty = 'photo'
                     ORDER BY p.id
                     LIMIT 1
-                ) AS value_file
+                ) AS file
             FROM entity AS e
             WHERE e.id = %s
             AND e.is_deleted = 0
@@ -390,14 +393,8 @@ class Entity2():
         """, entity_id)
         if not f:
             return
-        if f.value_file:
-            return '/api2/file-%s' % f.value_file
-        elif f.definition in ['audiovideo', 'book', 'methodical', 'periodical', 'textbook', 'workbook']:
-            return '/photo-by-isbn?entity=%s' % entity_id
-        elif f.definition == 'person':
-            return 'https://secure.gravatar.com/avatar/%s?d=wavatar&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
-        else:
-            return 'https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
+
+        return {'definition': f.definition, 'file': f.file}
 
 
     def get_menu(self):
