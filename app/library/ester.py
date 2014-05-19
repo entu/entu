@@ -254,11 +254,6 @@ class EsterImport(myRequestHandler, Entity):
             return
 
         item = json.loads(tmp_file.file)
-        entity = GetExistingID(self, item.get('ester-id'))
-
-        if entity.get('entity_id'):
-            return self.write(str(entity.get('entity_id')))
-
         entity_id = self.create_entity(entity_definition_keyname=entity_definition_keyname, parent_entity_id=parent_entity_id)
 
         for field, values in item.iteritems():
