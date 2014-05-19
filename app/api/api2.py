@@ -20,15 +20,7 @@ from main.db2 import *
 
 
 
-class APIHandler(myRequestHandler):
-    @web.removeslash
-    def options(self):
-        self.add_header('Access-Control-Allow-Origin', '*')
-
-
-
-
-class API2EntityList(APIHandler, Entity2):
+class API2EntityList(myRequestHandler, Entity2):
     @web.removeslash
     def get(self):
         #
@@ -62,7 +54,7 @@ class API2EntityList(APIHandler, Entity2):
 
 
 
-class API2Entity(APIHandler, Entity):
+class API2Entity(myRequestHandler, Entity):
     @web.removeslash
     def get(self, entity_id=None):
         #
@@ -183,7 +175,7 @@ class API2Entity(APIHandler, Entity):
 
 
 
-class API2EntityChilds(APIHandler, Entity2):
+class API2EntityChilds(myRequestHandler, Entity2):
     @web.removeslash
     def get(self, entity_id=None):
         if not entity_id:
@@ -223,7 +215,7 @@ class API2EntityChilds(APIHandler, Entity2):
 
 
 
-class API2EntityReferrals(APIHandler, Entity2):
+class API2EntityReferrals(myRequestHandler, Entity2):
     @web.removeslash
     def get(self, entity_id=None):
         if not entity_id:
@@ -263,7 +255,7 @@ class API2EntityReferrals(APIHandler, Entity2):
 
 
 
-class API2File(APIHandler, Entity):
+class API2File(myRequestHandler, Entity):
     @web.removeslash
     def get(self, file_id=None):
         #
@@ -310,7 +302,7 @@ class API2File(APIHandler, Entity):
 
 
 
-class API2FileUpload(APIHandler, Entity):
+class API2FileUpload(myRequestHandler, Entity):
     @web.removeslash
     def post(self):
         #
@@ -381,7 +373,7 @@ class API2FileUpload(APIHandler, Entity):
 
 
 
-class API2EntityPicture(APIHandler, Entity2):
+class API2EntityPicture(myRequestHandler, Entity2):
     @web.removeslash
     def get(self, entity_id=None):
         # im = Image.open(StringIO(data))
@@ -423,7 +415,7 @@ class API2EntityPicture(APIHandler, Entity2):
 
 
 
-class API2DefinitionList(APIHandler, Entity2):
+class API2DefinitionList(myRequestHandler, Entity2):
     @web.removeslash
     def get(self):
         menu = self.get_menu()
@@ -436,7 +428,7 @@ class API2DefinitionList(APIHandler, Entity2):
 
 
 
-class API2Definition(APIHandler, Entity2):
+class API2Definition(myRequestHandler, Entity2):
     @web.removeslash
     def get(self, definition_id=None):
         if not definition_id:
@@ -460,7 +452,7 @@ class API2Definition(APIHandler, Entity2):
 
 
 
-class API2NotFound(APIHandler, Entity2):
+class API2NotFound(myRequestHandler, Entity2):
     #
     # Nice error if API method not found
     #
@@ -488,7 +480,7 @@ class API2NotFound(APIHandler, Entity2):
 
 
 
-class S3FileUpload(APIHandler):
+class S3FileUpload(myRequestHandler):
     def get(self, entity_id=None, property_id=None):
         AWS_BUCKET     = self.app_settings('auth-s3', '\n', True).split('\n')[0]
         AWS_ACCESS_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[1]

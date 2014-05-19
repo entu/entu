@@ -435,9 +435,11 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
         web.RequestHandler.render(self, template_name, **kwargs)
 
-    def json(self, dictionary, status_code=None):
+    def json(self, dictionary, status_code=None, allow_origin='*'):
         if status_code:
             self.set_status(status_code)
+        if allow_origin:
+            self.add_header('Access-Control-Allow-Origin', allow_origin)
         self.add_header('Content-Type', 'application/json')
         self.write(json.dumps(dictionary, cls=JSONDateFix))
 
