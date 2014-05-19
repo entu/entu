@@ -21,7 +21,7 @@
 
       function uploadFile(file) {
         $.ajaxSetup({ cache: false });
-        $.getJSON('/api2/file/s3', {file_name: file.name, file_size: file.size, file_type: file.type}, function (result) {
+        $.getJSON('/api2/file/aws', {file_name: file.name, file_size: file.size, file_type: file.type}, function (result) {
           var xhr = new XMLHttpRequest();
           var form = new FormData();
 
@@ -48,7 +48,7 @@
                 etag: $('ETag', xhr.responseXML).text(),
                 message: $('Message', xhr.responseXML).text(),
               }
-              $.getJSON('/api2/file/s3', file, function (result) {
+              $.getJSON('/api2/file/aws', file, function (result) {
                 status.children('i').html('<a href="'+result.url+'">Done!</a>');
               });
             }

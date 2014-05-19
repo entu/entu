@@ -547,7 +547,7 @@ handlers = [
     (r'/api2/entity-(.*)/picture', API2EntityPicture),
     (r'/api2/entity-(.*)', API2Entity),
     (r'/api2/file', API2FileUpload),
-    (r'/api2/file/s3', S3FileUpload),
+    (r'/api2/file/aws', S3FileUpload),
     (r'/api2/file-(.*)', API2File),
     (r'/api2/definition', API2DefinitionList),
     (r'/api2/definition-(.*)', API2Definition),
