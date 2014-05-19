@@ -104,6 +104,9 @@ class myApplication(tornado.web.Application):
                 settings.setdefault('paths', {}).setdefault('%s.py' % controller, []).append(h[0])
         handlers.append((r'(.*)', PageNotFound))
 
+        logging.warning('\n\n\n')
+        logging.warning('Tornado %s started' % tornado.version)
+
         # init application
         # logging.debug('App settings:\n%s' % yaml.safe_dump(settings, default_flow_style=False, allow_unicode=True))
         tornado.web.Application.__init__(self, handlers, **settings)
