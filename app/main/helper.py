@@ -356,15 +356,25 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
     __request_id = None
 
     def prepare(self):
-        self.__request_id = self.db.execute_lastrowid('INSERT INTO requestlog SET date = NOW(), port = %s, method = %s, url = %s, arguments = %s, user_id = %s, ip = %s, browser = %s;',
-            self.settings['port'],
-            self.request.method,
-            self.request.full_url(),
-            str(self.request.arguments)[:1000] if self.request.arguments else None,
-            self.get_current_user().id if self.get_current_user() else None,
-            self.request.remote_ip,
-            self.request.headers.get('User-Agent', None)
-        )
+        try:
+            if self.request.method in ['POST', 'PUT'] and self.request.headers.get('Content-Type', '').startswith('application/json'):
+                arguments = self.request.arguments if self.request.arguments else {}
+                for key, value in json.loads(self.request.body).iteritems():
+                    arguments.setdefault(key, []).append(value)
+                self.request.arguments = arguments
+
+            self.__request_id = self.db.execute_lastrowid('INSERT INTO requestlog SET date = NOW(), port = %s, method = %s, url = %s, arguments = %s, user_id = %s, ip = %s, browser = %s;',
+                self.settings['port'],
+                self.request.method,
+                self.request.full_url(),
+                str(self.request.arguments)[:1000] if self.request.arguments else None,
+                self.get_current_user().id if self.get_current_user() else None,
+                self.request.remote_ip,
+                self.request.headers.get('User-Agent', None)
+            )
+        except Exception, e:
+            logging.error('Reguest prepare error: ' % e)
+
 
     def on_finish(self):
         request_time = self.request.request_time()
