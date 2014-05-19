@@ -17,7 +17,7 @@
         <div class="list" ng-if="current_assessee">
             <div class="item item-text-wrap" ng-repeat="q in questions | filter:{ assessee_id: current_assessee } | orderBy : 'ordinal'">
                 <div class="row range range-calm">
-                    <div class="col question">
+                    <div class="col question" ng-class="{ 'no-answer' : q.rating && q.no_rating == false && !q.rating_value }">
                         {{ q.ordinal }} {{ q.title }}
                     </div>
                     <i class="icon ion-minus-circled assertive" ng-if="q.rating"></i>

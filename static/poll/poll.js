@@ -22,8 +22,14 @@ function getSignedData(user, key, data) {
 angular.module('entuApp', ['ionic', 'angular.markdown'])
     .config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider) {
             // $urlRouterProvider.otherwise('/');
-            $stateProvider.state('poll', {
+            $stateProvider
+            .state('poll', {
                 url: '/:poll_id/:user_id/:key',
+                controller: 'pollCtrl',
+                templateUrl: 'poll.html',
+            })
+            .state('poll_check', {
+                url: '/:poll_id/:user_id/:key/:check',
                 controller: 'pollCtrl',
                 templateUrl: 'poll.html',
             });
@@ -95,7 +101,7 @@ angular.module('entuApp', ['ionic', 'angular.markdown'])
                             catch(err) { var selftitle = ''; }
                             try        { var text = data.result.properties.text.values[0].id; }
                             catch(err) { var text = false; }
-                            try        { var text_value = data.result.properties.text.values[data.result.properties.text.values.length-1].value; }
+                            try        { var text_value = data.result.properties.text.values[data.result.properties.text.values.length-1].db_value; }
                             catch(err) { var text_value = ''; }
                             try        { var rating = data.result.properties.rating.values[0].id; }
                             catch(err) { var rating = false; }
@@ -115,6 +121,8 @@ angular.module('entuApp', ['ionic', 'angular.markdown'])
                                         ordinal : (assessee_id == $stateParams.user_id) ? 0 : 1
                                     });
                                 }
+
+                                if(!text_value) text_value = '';
 
                                 $scope.questions.push({
                                     id           : data.result.id,
@@ -151,7 +159,7 @@ angular.module('entuApp', ['ionic', 'angular.markdown'])
             $http({
                 method : 'PUT',
                 url    : '/api2/entity-' + row.id,
-                params : getSignedData($stateParams.user_id, $stateParams.key, {'answer-rating': -1})
+                data   : getSignedData($stateParams.user_id, $stateParams.key, {'answer-rating': -1})
             });
         }
 
@@ -160,7 +168,7 @@ angular.module('entuApp', ['ionic', 'angular.markdown'])
             $http({
                 method : 'PUT',
                 url    : '/api2/entity-' + row.id,
-                params : getSignedData($stateParams.user_id, $stateParams.key, {'answer-rating': row.rating_value})
+                data   : getSignedData($stateParams.user_id, $stateParams.key, {'answer-rating': row.rating_value})
             });
         }
 
@@ -168,7 +176,7 @@ angular.module('entuApp', ['ionic', 'angular.markdown'])
             $http({
                 method : 'PUT',
                 url    : '/api2/entity-' + row.id,
-                params : getSignedData($stateParams.user_id, $stateParams.key, {'answer-text': (row.text_value) ? row.text_value : '.'})
+                data   : getSignedData($stateParams.user_id, $stateParams.key, {'answer-text': (row.text_value) ? row.text_value : '.'})
             });
         }
 

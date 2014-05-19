@@ -26,6 +26,9 @@ markdown ul {
 .no-rating {
     margin-left: 20px !important;
 }
+.no-answer {
+    color: red;
+}
 .ion-minus-circled {
     margin-left: 20px !important;
 }
