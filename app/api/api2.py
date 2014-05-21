@@ -41,6 +41,8 @@ class API2EntityList(myRequestHandler, Entity2):
             result.setdefault(e.get('id'), {}).setdefault('definition', {})['table_header'] = e.get('displaytableheader').split('|') if e.get('displaytableheader') else None
             result.setdefault(e.get('id'), {})['id'] = e.get('id') if e.get('id') else None
             result.setdefault(e.get('id'), {})['sort'] = e.get('sort') if e.get('sort') else None
+            result.setdefault(e.get('id'), {}).setdefault('changed', {})['dt'] = e.get('changed') if e.get('changed') else None
+            result.setdefault(e.get('id'), {}).setdefault('changed', {})['ts'] = e.get('changed_ts') if e.get('changed_ts') else None
             result.setdefault(e.get('id'), {})['name'] = e.get('displayname') if e.get('displayname') else None
             result.setdefault(e.get('id'), {})['info'] = e.get('displayinfo') if e.get('displayinfo') else None
             result.setdefault(e.get('id'), {})['table'] = e.get('displaytable').split('|') if e.get('displaytable') else None

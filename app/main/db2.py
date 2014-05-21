@@ -275,7 +275,7 @@ class Entity2():
 
         if self.__user_id:
             entity_sql = """
-                SELECT e.id, e.entity_definition_keyname, IFNULL(e.sort, CONCAT('   ', 1000000000000 - e.id)) AS sort
+                SELECT e.id, e.entity_definition_keyname, IFNULL(e.sort, CONCAT('   ', 1000000000000 - e.id)) AS sort, e.changed, UNIX_TIMESTAMP(e.changed) AS changed_ts
                 FROM entity AS e
                 WHERE e.is_deleted = 0
                 AND e.sharing IN ('domain', 'public')
@@ -283,7 +283,7 @@ class Entity2():
                 %(parent_where)s
                 %(referrer_where)s
                 %(query_where)s
-                UNION SELECT e.id, e.entity_definition_keyname, IFNULL(e.sort, CONCAT('   ', 1000000000000 - e.id)) AS sort
+                UNION SELECT e.id, e.entity_definition_keyname, IFNULL(e.sort, CONCAT('   ', 1000000000000 - e.id)) AS sort, e.changed, UNIX_TIMESTAMP(e.changed) AS changed_ts
                 FROM entity AS e, relationship AS r
                 WHERE r.entity_id = e.id
                 AND e.is_deleted = 0
@@ -297,7 +297,7 @@ class Entity2():
             """ % {'definition_where': definition_where, 'parent_where': parent_where, 'referrer_where': referrer_where, 'query_where': query_where, 'user': self.__user_id}
         else:
             entity_sql = """
-                SELECT e.id, e.entity_definition_keyname, IFNULL(e.sort, CONCAT('   ', 1000000000000 - e.id)) AS sort
+                SELECT e.id, e.entity_definition_keyname, IFNULL(e.sort, CONCAT('   ', 1000000000000 - e.id)) AS sort, e.changed, UNIX_TIMESTAMP(e.changed) AS changed_ts
                 FROM entity AS e
                 WHERE e.is_deleted = 0
                 AND e.sharing = 'public'
@@ -327,6 +327,8 @@ class Entity2():
             SELECT
                 x.id,
                 x.sort,
+                x.changed,
+                x.changed_ts,
                 x.definition,
                 x.field,
                 GROUP_CONCAT(x.val ORDER BY n SEPARATOR '') AS val
@@ -334,6 +336,8 @@ class Entity2():
                 SELECT
                     e.id,
                     e.sort,
+                    e.changed,
+                    e.changed_ts,
                     e.entity_definition_keyname AS definition,
                     t.field,
                     n.n,
@@ -356,6 +360,8 @@ class Entity2():
             entities.setdefault(r.get('id'), {})['id'] = r.get('id')
             entities.setdefault(r.get('id'), {})['definition'] = r.get('definition')
             entities.setdefault(r.get('id'), {})['sort'] = r.get('sort')
+            entities.setdefault(r.get('id'), {})['changed'] = r.get('changed')
+            entities.setdefault(r.get('id'), {})['changed_ts'] = r.get('changed_ts')
             entities.setdefault(r.get('id'), {})[r.get('field')] = r.get('val')
 
         return {
