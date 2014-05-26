@@ -1,3 +1,9 @@
+## 2014-05-26
+* Allow reimport existing library items from Ester
+* Send emails thru mailgun.com
+* Make, store and serve image thumbnails and not full images
+* Handle JSON encoded body data on POST and PUT methods
+
 ## 2014-05-09
 * Share Entities with URL
 
