@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html ng-app="entuApp" ng-controller="mainCtrl">
+    <head>
+        <meta charset="utf-8">
+        <meta name="description" content="">
+        <meta name="author" content="Argo Roots">
+        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width, minimal-ui">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+        <title>{{ page_title }}</title>
+
+        <link href="/static/images/favicons/favicon.png?v=1" rel="apple-touch-icon">
+
+        <!-- Google font -->
+        <link href='//fonts.googleapis.com/css?family=PT+Sans:400,700,400italic,700italic|PT+Sans+Caption:400,700' rel='stylesheet' type='text/css'>
+
+        <!-- Angular JS & AngularUI -->
+        <script src="/static/frameworks/angular/angular.min.js?v=1"></script>
+        <script src="/static/frameworks/angular/angular-route.min.js?v=1"></script>
+        <script src="/static/frameworks/angular/angular-resource.min.js?v=1"></script>
+
+        <!-- Bootstrap & Font Awesome-->
+        <link  href="/static/frameworks/bootstrap3/css/bootstrap.min.css?v=1" rel="stylesheet">
+        <link  href="/static/frameworks/font-awesome/css/font-awesome.min.css?v=1" rel="stylesheet">
+        <script src="/static/frameworks/angular-ui/ui-bootstrap-0.10.0.min.js?v=1"></script>
+
+        <!-- Entu -->
+        <script src="js/entu.js?v=1"></script>
+        <link  href="css/screen.css?v=1" rel="stylesheet">
+
+    </head>
+    <body>
+        <div class="sidebar" ng-controller="menuCtrl" ng-style="menuStyle('sidebar')" ng-mouseenter="showMenu()" ng-mouseleave="hideMenu()">
+            <a class="pull-left" href=""><i class="fa fa-sign-out"></i> exit</a>
+            <a class="pull-right" href="" ng-click="pinMenu()">{{ pin_menu_label }} <i class="fa fa-bars"></i></a>
+            <img class="img-circle img-thumbnail user-avatar" src="https://lh4.googleusercontent.com/-92eBVB_aFFI/AAAAAAAAAAI/AAAAAAAAkr8/NlClQHPTByA/photo.jpg" alt="...">
+            <div>
+                <ul class="nav nav-sidebar" ng-repeat="(group_id, group) in definitions.result" ng-if="!hide_menu">
+                    <li class="nav-header">
+                        <a href="" ng-click="toggleMenuGroup(group_id)">
+                            <i class="fa fa-chevron-right" ng-if="!group.visible"></i>
+                            <i class="fa fa-chevron-down" ng-if="group.visible"></i>
+                            {{ group.label }}
+                        </a>
+                    </li>
+                    <li ng-repeat="definition in group.definitions" ng-show="group.visible == true"><a href="#/{{ definition.keyname }}">{{ definition.label_plural }}</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <nav class="navbar navbar-default navbar-fixed-top" role="navigation" ng-style="menuStyle('navbar')">
+            <ul class="nav navbar-nav pull-left">
+                <li><a class="navbar-button " href=""><i class="fa fa-search"></i></a></li>
+                <li><input type="text" class="form-control" placeholder="search something..."></li>
+            </ul>
+            <ul class="nav navbar-nav pull-right">
+                <li class="dropdown">
+                    <a href="#" class="navbar-button dropdown-toggle" data-toggle="dropdown"><i class="fa fa-plus"></i></a>
+                    <ul class="dropdown-menu">
+                        <li role="presentation" class="dropdown-header">Dropdown header</li>
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Another action</a></li>
+                        <li><a href="#">Something else here</a></li>
+                        <li class="divider"></li>
+                        <li role="presentation" class="dropdown-header">Dropdown header</li>
+                        <li><a href="#">Separated link</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#">One more separated link</a></li>
+                    </ul>
+                </li>
+                <li><a class="navbar-button " href=""><i class="fa fa-pencil"></i></a></li>
+                <li><a class="navbar-button " href=""><i class="fa fa-copy"></i></a></li>
+                <li><a class="navbar-button " href=""><i class="fa fa-arrow-up"></i></a></li>
+                <li><a class="navbar-button " href=""><i class="fa fa-lock"></i></a></li>
+                <li><a class="navbar-button " href=""><i class="fa fa-envelope"></i></a></li>
+                <li><a class="navbar-button " href=""><i class="fa fa-print"></i></a></li>
+            </ul>
+        </nav>
+
+        <div class="list-group" ng-controller="listCtrl" ng-style="menuStyle('list')">
+            <a class="list-group-item" ng-repeat="entity in entities.result"href="#/{{ entity.definition.keyname }}/{{ entity.id }}" >
+                <img class="pull-left img-circle img-thumbnail" ng-src="/api2/entity-{{ entity.id }}/picture">
+                <h4 class="list-group-item-heading">{{ entity.name }}</h4>
+                <p class="list-group-item-text">{{ entity.info }}</p>
+            </a>
+        </div>
+
+        <div class="content" ng-controller="entityCtrl" ng-style="menuStyle('content')">
+            <div class="btn-group btn-group-justified">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default parent-link" title="Univeristy of Tartu"><i class="fa fa-arrow-up pull-left"></i> Univeristy of Tartu</button>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default parent-link" title="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur faucibus odio eu nunc euismod, vel lacinia neque consectetur."><i class="fa fa-arrow-up pull-right"></i>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur faucibus odio eu nunc euismod, vel lacinia neque consectetur. </button>
+                </div>
+            </div>
+
+            <img src="/api2/entity-40928/picture" width="120">
+            <h1>L. lactis dairy starters</h1>
+
+            <table class="table table-condensed table-hover entity">
+                <tbody>
+                    <tr>
+                        <th>
+                            Rada
+                        </th>
+                        <td>
+                            L. lactis dairy starters
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            Short Name
+                        </th>
+                        <td>
+                            L. lactis dairy starters
+                            </td>
+                        </tr>
+                    <tr>
+                        <th>
+                            Pealkiri
+                        </th>
+                        <td>
+                            Optimisation of media and growth conditions for the production of high yield biomass of Lactococcus lactis with high acidification activity
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            Kirjeldus
+                        </th>
+                        <td>
+                            Lactococcus lactis is and important organism in producing fermented dairy products. In order to produce an effective dairy starter it is important to understand  and improve growth of L. lactis in milk. What is more, it is necessary to increase biomass yield and optimize the growth conditions of industrial starter production. All the latter issues are targeted in current project in co-operation with DuPont France.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </body>
+</html>
