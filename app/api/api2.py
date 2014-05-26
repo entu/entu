@@ -115,7 +115,9 @@ class API2Entity(myRequestHandler, Entity):
                 new_property_id = self.set_property(entity_id=entity_id, property_definition_keyname=dataproperty, value=v)
 
         self.json({
-            'entity_id': entity_id,
+            'result': {
+                'id': entity_id,
+            },
             'time': round(self.request.request_time(), 3),
         }, 201)
 
@@ -162,7 +164,9 @@ class API2Entity(myRequestHandler, Entity):
                 new_property_id = self.set_property(entity_id=entity_id, property_definition_keyname=dataproperty, value=v)
 
         self.json({
-            'entity_id': entity_id,
+            'result': {
+                'id': entity_id,
+            },
             'time': round(self.request.request_time(), 3),
         }, 201)
 
