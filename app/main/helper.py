@@ -470,12 +470,11 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
             to = StrToList(to)
 
         if self.current_user:
-            from_email = '%s <%s>' % (self.current_user.get('name', ''), self.current_user.get('email', ''))
+            name = self.current_user.get('name') if self.current_user.get('name') else ''
+            email = self.current_user.get('email') if self.current_user.get('email') else 'no-reply@entu.ee'
+            from_email = '%s <%s>' % (name, email)
         else:
             from_email = 'no-reply@entu.ee'
-
-        logging.debug(self.app_settings('auth-mailgun', '\n').split('\n')[0])
-        logging.debug(self.app_settings('auth-mailgun', '\n').split('\n')[1])
 
         http_client = httpclient.HTTPClient()
         response = http_client.fetch('https://api.mailgun.net/v2/%s/messages' % self.app_settings('auth-mailgun', '\n').split('\n')[0],
