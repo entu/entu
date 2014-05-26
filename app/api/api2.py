@@ -417,6 +417,52 @@ class API2EntityPicture(myRequestHandler, Entity2):
 
 
 
+class API2EntityShare(myRequestHandler, Entity):
+    def post(self, entity_id):
+        if not self.current_user:
+            return self.json({
+                'error': 'Forbidden!',
+                'time': round(self.request.request_time(), 3),
+            }, 403)
+
+        to = StrToList(self.get_argument('to', default=None, strip=True))
+        if not to:
+            return self.json({
+                'error': 'To address must be set!',
+                'time': round(self.request.request_time(), 3),
+            }, 404)
+
+        if not entity_id:
+            return self.json({
+                'error': 'No entity ID!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        entity = self.get_entities(entity_id=entity_id, limit=1)
+        if not entity:
+            return self.json({
+                'error': 'Entity with given ID is not found!',
+                'time': round(self.request.request_time(), 3),
+            }, 404)
+
+        url = 'https://%s/entity/%s/%s' % (self.request.headers.get('Host'), entity.get('definition_keyname', ''), entity.get('id'))
+
+        message = self.get_argument('message', default='', strip=True)
+
+        response = self.mail_send(
+            to = to,
+            subject = entity.get('displayname', ''),
+            message = '%s\n\n%s\n\n%s\n%s' % (message, url, self.current_user.get('name', ''), self.current_user.get('email', ''))
+        )
+
+        self.json({
+            'result': response,
+            'time': round(self.request.request_time(), 3),
+        })
+
+
+
+
 class API2DefinitionList(myRequestHandler, Entity2):
     @web.removeslash
     def get(self):
@@ -548,6 +594,7 @@ handlers = [
     (r'/api2/entity-(.*)/childs', API2EntityChilds),
     (r'/api2/entity-(.*)/referrals', API2EntityReferrals),
     (r'/api2/entity-(.*)/picture', API2EntityPicture),
+    (r'/api2/entity-(.*)/share', API2EntityShare),
     (r'/api2/entity-(.*)', API2Entity),
     (r'/api2/file', API2FileUpload),
     (r'/api2/file/aws', S3FileUpload),

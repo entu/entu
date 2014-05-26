@@ -37,7 +37,7 @@
         $('textarea').elastic();
 
         $('#send-email').click(function() {
-            $.post('/entity-{{ entity_id }}/share', { to: $('#email-to').val(), message: $('#email-message').val() }, function(newvalue) {
+            $.post('/api2/entity-{{ entity_id }}/share', { to: $('#email-to').val(), message: $('#email-message').val() }, function(newvalue) {
                 $('#modal-box').modal('hide')
             });
         });

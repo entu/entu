@@ -393,26 +393,6 @@ class ShareByEmail(myRequestHandler, Entity):
             entity_id = entity_id
         )
 
-    @web.authenticated
-    def post(self, entity_id=None):
-        if not self.get_argument('to', None):
-            return self.missing()
-
-        to = self.get_argument('to', None)
-        message = self.get_argument('message', '')
-
-        item = self.get_entities(entity_id=entity_id, limit=1)
-        if not item:
-            return self.missing()
-
-        url = 'https://%s/entity/%s/%s' % (self.request.headers.get('Host'), item['definition_keyname'], item['id'])
-
-        self.mail_send(
-            to = to,
-            subject = item['displayname'],
-            message = '%s\n\n%s\n\n%s\n%s' % (message, url, self.current_user.name, self.current_user.email)
-        )
-
 
 class EntityRights(myRequestHandler, Entity):
     @web.authenticated

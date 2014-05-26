@@ -3,15 +3,14 @@
 import torndb
 from tornado import web
 from tornado import locale
-
-from tornadomail.message import EmailMessage, EmailMultiAlternatives
-from tornadomail.backends.smtp import EmailBackend
+from tornado import httpclient
 
 import hmac
 import hashlib
 import re
 import random
 import string
+import urllib
 from SimpleAES import SimpleAES
 
 import logging
@@ -461,7 +460,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
             page_title = '404'
         )
 
-    def mail_send(self, to, cc=None, bcc=None, subject='', message='', attachments=None):
+    def mail_send(self, to, subject='', message=''):
         """
         Sends email using GMail account.
 
@@ -475,22 +474,22 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
         else:
             from_email = 'no-reply@entu.ee'
 
-        message = EmailMessage(
-            subject = subject,
-            body = message,
-            from_email = from_email,
-            to = to,
-            cc = cc,
-            bcc = bcc,
-            connection = EmailBackend(host='localhost')
+        logging.debug(self.app_settings('auth-mailgun', '\n').split('\n')[0])
+        logging.debug(self.app_settings('auth-mailgun', '\n').split('\n')[1])
+
+        http_client = httpclient.HTTPClient()
+        response = http_client.fetch('https://api.mailgun.net/v2/%s/messages' % self.app_settings('auth-mailgun', '\n').split('\n')[0],
+            method = 'POST',
+            auth_username = 'api',
+            auth_password = self.app_settings('auth-mailgun', '\n').split('\n')[1],
+            body = urllib.urlencode({
+                'from'    : from_email.encode('utf-8'),
+                'to'      : to,
+                'subject' : subject.encode('utf-8').strip(),
+                'text'    : message.encode('utf-8').strip()
+            }, True)
         )
-
-        # message.attach(
-        #     filename = '',
-        #     content = ''
-        # )
-
-        message.send()
+        return json.loads(response.body)
 
 
 class JSONDateFix(json.JSONEncoder):
