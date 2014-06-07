@@ -89,11 +89,12 @@ class MySQL2MongoDB():
             password = db_pass,
         )
 
-        mongo_client = MongoClient('127.0.0.1', 27017)
+        mongo_client = MongoClient('mongo.entu.ee', 27017)
         mongo_db = mongo_client['test']
         # mongo_db = mongo_client[self.db_name]
         self.mongo_collection = mongo_db['entity']
-        self.mongo_collection.create_index([('mysql.id', 1), ('mysql.db', 1)])
+        self.mongo_collection.create_index([('mysql.id', 1), ('mysql.db', 1)], name='mysqlIdx')
+        # self.mongo_collection.create_index([('__search.value', 'text')], name='search_et_Idx', default_language='none', language_override='none')
 
 
     def transfer(self):
@@ -186,7 +187,7 @@ class MySQL2MongoDB():
                     TRIM(p.value_formula) AS value_formula,
                     TRIM(p.value_string) AS value_string,
                     TRIM(p.value_text) AS value_text,
-                    p.value_display,
+                    TRIM(p.value_display) AS value_display,
                     p.value_integer,
                     p.value_decimal,
                     p.value_boolean,
@@ -240,12 +241,12 @@ class MySQL2MongoDB():
                 else:
                     properties.setdefault(r2.get('property_dataproperty'), []).append(value)
 
-                if r2.get('property_search') == 1:
+                if r2.get('value_display') and r2.get('property_search') == 1:
                     if r2.get('property_language'):
-                        e.setdefault('_search', {}).setdefault(r2.get('property_language'), []).append(r2.get('value_display'))
+                        e.setdefault('_search', {}).setdefault(r2.get('property_language'), []).append(r2.get('value_display').lower())
                     else:
-                        e.setdefault('_search', {}).setdefault('et', []).append(r2.get('value_display'))
-                        e.setdefault('_search', {}).setdefault('en', []).append(r2.get('value_display'))
+                        e.setdefault('_search', {}).setdefault('et', []).append(r2.get('value_display').lower())
+                        e.setdefault('_search', {}).setdefault('en', []).append(r2.get('value_display').lower())
 
             for p_key, p_value in properties.iteritems():
                 if type(p_value) is dict:
@@ -254,13 +255,12 @@ class MySQL2MongoDB():
                 else:
                     e[p_key] = list(set(p_value))
 
-            if e.get('_search', {}).get('et'):
-                e['_search']['et'] = list(set(e['_search']['et']))
-            if e.get('_search', {}).get('en'):
-                e['_search']['en'] = list(set(e['_search']['en']))
+            for l in ['et', 'en']:
+                if l in e.get('_search', {}):
+                    e['_search'][l] = list(set(e['_search'][l]))
 
             #Create or replace Mongo object
-            mongo_entity = self.mongo_collection.find_one({'mysql.id': mysql_id, 'mysql.db': self.db_name})
+            mongo_entity = self.mongo_collection.find_one({'mysql.id': mysql_id, 'mysql.db': self.db_name}, {'_id': True})
             if mongo_entity:
                 id = self.mongo_collection.update({'_id': mongo_entity.get('_id')}, e)
                 if args.verbose > 1: print '%s -> %s (update)' % (mysql_id, mongo_entity.get('_id'))
@@ -289,7 +289,7 @@ class MySQL2MongoDB():
             for x in ['created', 'changed', 'deleted']:
                 mysql_id = e.get(x, {}).get('by')
                 if mysql_id:
-                    mongo_entity = self.mongo_collection.find_one({'mysql.id': mysql_id, 'mysql.db': db_name}, {'_id': 1})
+                    mongo_entity = self.mongo_collection.find_one({'mysql.id': mysql_id, 'mysql.db': db_name}, {'_id': True})
                     if mongo_entity:
                         id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {'%s.by' % x: mongo_entity.get('_id')}})
                         if args.verbose > 2: print '    %s.by %s to %s' % (x, mysql_id, mongo_entity.get('_id'))
@@ -300,7 +300,7 @@ class MySQL2MongoDB():
                     for p_key, p_values in e.get(p, {}).iteritems():
                         mongo_references = []
                         for v in list(set(p_values)):
-                            mongo_entity = self.mongo_collection.find_one({'mysql.id': v, 'mysql.db': db_name}, {'_id': 1})
+                            mongo_entity = self.mongo_collection.find_one({'mysql.id': v, 'mysql.db': db_name}, {'_id': True})
                             if mongo_entity:
                                 mongo_references.append(mongo_entity.get('_id'))
                                 if args.verbose > 2: print '    %s reference %s.%s to %s' % (p, p_key, v, mongo_entity.get('_id'))
@@ -310,7 +310,7 @@ class MySQL2MongoDB():
                 else:
                     mongo_references = []
                     for v in list(set(e.get(p, []))):
-                        mongo_entity = self.mongo_collection.find_one({'mysql.id': v, 'mysql.db': db_name}, {'_id': 1})
+                        mongo_entity = self.mongo_collection.find_one({'mysql.id': v, 'mysql.db': db_name}, {'_id': True})
                         if mongo_entity:
                             mongo_references.append(mongo_entity.get('_id'))
                             if args.verbose > 2: print '    %s reference %s to %s' % (p, v, mongo_entity.get('_id'))
@@ -364,8 +364,8 @@ class MySQL2MongoDB():
 
 print '\n\n\n\n\n'
 for c in customers():
-    # if c.get('database-name') != 'dev':
-    #     continue
+    if c.get('database-name') in ['dev', 'devm', 'tftak']:
+        continue
 
     print '%s %s started' % (datetime.now(), c.get('database-name'))
 
