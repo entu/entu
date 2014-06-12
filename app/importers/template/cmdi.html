@@ -1,0 +1,56 @@
+<div class="row" style="text-align:center; margin-bottom:10px; margin-top:20px;">
+        <div id="search-results" style="margin:0px 0px 50px 0px;">
+        </div>
+    <div class="input-append">
+        <textarea type="text" id="cmdi-input" name="input" class="span8" placeholder="{{ _('action_add_cmdi_placeholder') }}" value="" data-intro="{{ _('action_add_cmdi_help') }}" data-position="bottom" />
+    </div>
+</div>
+<div class="row" style="text-align:center; margin-bottom:10px; margin-top:20px;">
+    <img src="{{ static_url('images/spinner_white.gif') }}" id="search-spinner" style="padding:40px; display:none; " />
+</div>
+
+<script>
+
+    // function importItem(file_id, parent_entity_id, entity_definition_keyname) {
+    //     $('#modal-box').modal('hide');
+    //     $('#modal-box').html('');
+    //     $.post('/action/ester/import', {
+    //         'file_id': file_id,
+    //         'parent_entity_id': parent_entity_id,
+    //         'entity_definition_keyname': entity_definition_keyname,
+    //     },
+    //     function(new_id) {
+    //         window.location = '/entity/{{ entity_definition_keyname }}/'+new_id;
+    //     });
+    // };
+
+    // function openItem(entity_definition_keyname, entity_id) {
+    //     $('#modal-box').modal('hide');
+    //     $('#modal-box').html('');
+    //     window.location = '/entity/'+entity_definition_keyname+'/'+entity_id;
+    // };
+
+    $(document).ready(function(){
+
+        $('#cmdi-input').focus();
+
+        $("#cmdi-input").keyup(function(event) {
+            if($('#cmdi-input').val()) {
+                $('#search-spinner').show();
+                $.post('/import/cmdi',
+                    {   cmdi_xml: $('#cmdi-input').val(),
+                        'parent_entity_id': '{{ parent_entity_id }}',
+                    },
+                    function(result) {
+                        $('#search-results').html(result)
+                        window.location = '/entity/cmdi/{{ parent_entity_id }}'
+                    }
+                );
+                $('#search-spinner').hide();
+            } else {
+                $('#cmdi-input').focus();
+            }
+        });
+
+    });
+</script>

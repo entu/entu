@@ -36,6 +36,7 @@ app_controllers = [
     'api.api2',
     'entity.csv_import',
     'entity.entity',
+    'importers.cmdi',
     'library.ester',
     'library.photo',
     'main.config',
