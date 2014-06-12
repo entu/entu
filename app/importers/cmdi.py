@@ -2,7 +2,6 @@
 
 from tornado import auth, web
 from operator import itemgetter
-from PyZ3950 import zoom, zmarc
 
 import sys
 import datetime
