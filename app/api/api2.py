@@ -56,6 +56,63 @@ class API2EntityList(myRequestHandler, Entity2):
 
 
 
+class API2CmdiXml(myRequestHandler, Entity):
+    @web.removeslash
+    def get(self, entity_id=None):
+        if not entity_id:
+            return self.json({
+                'error': 'No entity ID!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        entity = self.get_entities(entity_id=entity_id, limit=1)
+        if not entity:
+            return self.json({
+                'error': 'Entity with given ID is not found!',
+                'time': round(self.request.request_time(), 3),
+            }, 404)
+        entity['definition'] = {'keyname': entity['definition_keyname']}
+
+        xml = '''<?xml version="1.0" encoding="UTF-8"?>
+<CMD xmlns="http://www.clarin.eu/cmd/"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     CMDVersion="1.1"
+     xsi:schemaLocation="%(XSD)s">
+    <Header></Header>
+    <Resources>
+        <ResourceProxyList></ResourceProxyList>
+        <JournalFileProxyList></JournalFileProxyList>
+        <ResourceRelationList></ResourceRelationList>
+    </Resources>
+    <Components>
+        <%(Component)s>
+            <GeneralInfo>
+                <ResourceName xml:lang="en">%(ResourceName)s</ResourceName>
+                <Version xml:lang="en">%(Version)s</Version>
+                <LastUpdate>%(LastUpdate)s</LastUpdate>
+                <LegalOwner xml:lang="en">%(LegalOwner)s</LegalOwner>
+            </GeneralInfo>
+        </%(Component)s>
+    </Components>
+</CMD>
+''' % { 'XSD'          : entity['properties']['XSD'].get('values',[{'value':''}])[0]['value'],
+        'Component'    : entity['properties']['Component'].get('values',[{'value':''}])[0]['value'],
+        'ResourceName' : entity['properties']['ResourceName'].get('values',[{'value':''}])[0]['value'],
+        'Version'      : entity['properties']['Version'].get('values',[{'value':''}])[0]['value'],
+        'LastUpdate'   : entity['properties']['LastUpdate'].get('values',[{'value':''}])[0]['value'],
+        'LegalOwner'   : entity['properties']['LegalOwner'].get('values',[{'value':''}])[0]['value'],
+      }
+
+        mimetypes.init()
+        mime = mimetypes.types_map.get('.xml', 'application/octet-stream')
+        filename = 'entu-cmd-%s.xml' % entity_id
+        self.add_header('Content-Type', mime)
+        # self.add_header('Content-Disposition', 'attachment; filename="%s"' % filename)
+        self.write(xml)
+
+
+
+
 class API2Entity(myRequestHandler, Entity):
     @web.removeslash
     def get(self, entity_id=None):
@@ -605,5 +662,6 @@ handlers = [
     (r'/api2/file-(.*)', API2File),
     (r'/api2/definition', API2DefinitionList),
     (r'/api2/definition-(.*)', API2Definition),
+    (r'/api2/cmdi-xml/(.*)', API2CmdiXml),
     (r'/api2(.*)', API2NotFound),
 ]

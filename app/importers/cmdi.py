@@ -31,6 +31,8 @@ class CmdiImport(myRequestHandler, Entity):
 
         cmdi_CMD = cmdi_dict.get('CMD')
         if cmdi_CMD:
+            cmdi['XSD'] = cmdi_CMD.get('@xsi:schemaLocation')
+            # logging.debug(cmdi)
             cmdi_Components = cmdi_CMD.get('Components')
             if cmdi_Components:
                 cmdi_Component = cmdi_Components.itervalues().next()
