@@ -118,7 +118,7 @@ class myDatabase():
                 self.__app_settings[c.get('domain', '')] = c
 
         if not self.__app_settings.get(host):
-            self.redirect('https://www.entu.ee')
+            self.redirect('http://www.entu.ee')
             return
 
         return self.__app_settings.get(host, {})
@@ -425,7 +425,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
         """
         kwargs['app_title'] = 'Entu'
         kwargs['app_organisation'] = self.app_settings('name', '')
-        kwargs['app_logo'] = 'https://www.entu.ee/public/file-%s' % self.app_settings('photo') if self.app_settings('photo') else '/static/favicon/apple-touch-icon-144-precomposed.png'
+        kwargs['app_logo'] = 'https://entu.entu.ee/public/file-%s' % self.app_settings('photo') if self.app_settings('photo') else '/static/favicon/apple-touch-icon-144-precomposed.png'
         kwargs['page_title'] = '%s - %s' % (kwargs['app_title'], kwargs['page_title']) if kwargs.get('page_title') else '%s - %s' % (kwargs['app_title'], self.app_settings('name', ''))
         kwargs['google_analytics_code'] = self.app_settings('analytics-code')
         kwargs['google_auth_client_id'] = ('%s\n\n' % self.app_settings('auth-google', '', True)).split('\n')[0]
