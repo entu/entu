@@ -1,7 +1,11 @@
+@white: #FFFFFF;
+@blue: #3592DD;
+
+
 html, body {
     height: 100%;
     width: 100%;
-    background: #FBFBFB;
+    background: @white;
     font-family: 'PT Sans', sans-serif;
     -webkit-font-smoothing: antialiased;
 }
@@ -17,10 +21,12 @@ a {
     width: 200px;
     top: 0px;
     bottom: 0px;
-    background: #212429 !important;
+    background: @blue !important;
 
     img {
-        padding: 2px;
+        padding: 0px;
+        border: solid 3px rgba(255, 255, 255, 0.5);
+        background: rgba(255, 255, 255, 0.5);
         width: 100px;
         height: 100px;
         margin: 0px 50px 0px 50px;
@@ -28,15 +34,15 @@ a {
 
     a {
         padding: 10px !important;
-        color: #212429 !important;
+        color: @blue !important;
         text-overflow: ellipsis !important;
 
         i {
-            color: #74767B !important;
+            color: @white !important;
         }
 
         &:hover {
-            color: #74767B !important;
+            color: rgba(255, 255, 255, 0.5) !important;
             text-decoration: none !important;
         }
     }
@@ -58,14 +64,14 @@ a {
                 &.nav-header {
                     a {
                         padding: 10px 0px 5px 10px !important;
-                        color: #F1F1F1 !important;
+                        color: @white !important;
                         font-family: 'PT Sans Caption', sans-serif;
                         font-weight: bold;
                         text-transform: uppercase;
 
                         &:hover {
-                            color: #FFFFFF !important;
-                            background: #212429 !important;
+                            color: @white !important;
+                            background: @blue !important;
                         }
                         i {
                             width: 15px !important;
@@ -75,14 +81,14 @@ a {
 
                 a {
                     padding: 3px 10px 3px 29px !important;
-                    color: #F1F1F1 !important;
-                    background: #212429 !important;
+                    color: @white !important;
+                    background: @blue !important;
                     overflow: hidden;
                     white-space: nowrap;
 
                     &:hover {
-                        color: #FFFFFF !important;
-                        background: #2C3037 !important;
+                        color: @white !important;
+                        background: rgba(255, 255, 255, 0.2) !important;
                     }
                     &.selected {
 
@@ -99,7 +105,7 @@ a {
     margin: 0px 0px 0px 200px !important;
     padding: 0px 0px !important;
     height: 30px !important;
-    background: #FFFFFF !important;
+    background: @white !important;
     border-bottom: solid 1px #CCCCCC;
 
     input {
@@ -145,7 +151,7 @@ a {
     left: 200px;
     right: 0px;
     overflow: hidden;
-    background: #FFFFFF;
+    background: @white;
     z-index: 100;
     border-top: none;
     border-left: none;
@@ -161,12 +167,12 @@ a {
     margin: 0px;
     padding: 0px;
     position: fixed;
-    top: 49px;
+    top: 50px;
     bottom: -1px;
     left: 200px;
     width: 360px;
     overflow-x: hidden;
-    background: #FFFFFF;
+    background: @white;
     border-right: solid 1px #CCCCCC;
     -webkit-box-shadow: none !important;
     border-radius: 0px !important;
@@ -184,6 +190,10 @@ a {
         border-left: none !important;
         border-right: none !important;
         border-bottom: solid 1px #F0F0F0 !important;
+
+        &:hover {
+            color:red !important;
+        }
 
         img {
             padding: 2px;
@@ -207,9 +217,9 @@ a {
 
 .content {
     margin: 0px;
-    padding: 20px;
+    padding: 0px 20px 20px 20px;
     position: fixed;
-    top: 49px;
+    top: 50px;
     bottom: 0px;
     left: 560px;
     right: 0px;
@@ -217,10 +227,12 @@ a {
 
     .parent-link {
         margin: 0px 0px 20px 0px !important;
+        padding: 10px 5px;
         overflow: hidden;
         text-overflow: ellipsis !important;
         white-space: nowrap;
         border: solid 1px #F0F0F0;
+        border-top: none;
         border-left: none;
         border-right: none;
         border-radius: 0px;
@@ -230,13 +242,17 @@ a {
             padding-top: 2px;
         }
         &:hover {
-            background: #F2F2F2;
+            color: @blue;
+            background: @white;
+        }
+        &:active {
+            box-shadow: none;
         }
     }
 
     h1 {
         float: left;
-        margin: 0px 20% 20px 0px !important;
+        margin: 0px 20% 20px 5px !important;
         font-family: 'PT Sans Caption', sans-serif;
         font-weight: bold;
         font-size: 22px;
@@ -244,13 +260,17 @@ a {
     img {
         width: 15%;
         float: right;
-        border: 1px solid #F0F0F0;
-        padding: 5px;
-        background: #FFFFFF;
+        // border: 1px solid #F0F0F0;
+        // padding: 5px;
+        background: @white;
     }
 
     .entity {
         width: 84%;
+
+        tr:hover {
+            background: #F8F8F8 !important;
+        }
 
         th {
             white-space: nowrap;
@@ -263,7 +283,6 @@ a {
         td {
             border: none;
             text-align: justify;
-
         }
     }
 
