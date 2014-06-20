@@ -40,7 +40,7 @@ class Schedule():
         if not configuration:
             return {}
 
-        update_interval = configuration.get('properties', {}).get('update-interval', {}).get('values', [{}])[0].get('value')
+        update_interval = configuration.get('properties', {}).get('update-interval', {}).get('values', [{}])[0].get('value', 60)
 
         # get schedules
         schedule_ids = self.get_relatives(ids_only=True, entity_id=configuration_id, relationship_definition_keyname='child', entity_definition_keyname='sw-schedule', only_public=True)

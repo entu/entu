@@ -4,8 +4,8 @@ CACHE MANIFEST
 
 CACHE:
 # Static files
-{{ static_url('javascript/jquery-2.1.0.min.js', include_host=True) }}
-{{ static_url('images/spinner_pacman.gif', include_host=True) }}
+{{ static_url('frameworks/jquery/jquery-2.1.0.min.js', include_host=True) }}
+{{ static_url('images/pacman.gif', include_host=True) }}
 
 # Schedule JSON
 {{ json_url }}
