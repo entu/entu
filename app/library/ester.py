@@ -14,7 +14,7 @@ from main.db import *
 
 
 class ESTER():
-    server = 'tallinn.ester.ee'
+    server = 'ester.ester.ee' #193.40.4.242
     port = 212
     database = 'INNOPAC'
 
