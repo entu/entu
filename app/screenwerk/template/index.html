@@ -41,7 +41,7 @@
         display: inline;
       }
     </style>
-    <script src="{{ static_url('frameworks/jquery/jquery-2.1.0.min.js') }}"></script>
+    <script src="{{ static_url('frameworks/jquery/jquery-2.1.1.min.js') }}"></script>
     <script>
       $(document).ready(function(){
 
@@ -163,8 +163,9 @@
           }
 
           function restartApp() {
+            console.log('Player restart in 2 sec');
             setTimeout(function() {
-              window.location.reload();;
+              window.location.reload();
             }, 2000);
           }
 
@@ -204,6 +205,8 @@
 
           // BOX
           function createScreen(id, playlists) {
+            console.log('Create screen #' + id);
+
             for(p in playlists) {
               var playlist = playlists[p];
               var medias = playlist['media'];
@@ -284,6 +287,8 @@
           }
 
           function showBox(box) {
+            console.log('Show box #' + box.attr('id'));
+
             // show box (if not audio)
             box.addClass('current');
             if(box.data('type') != 'audio') box.show();
@@ -291,7 +296,9 @@
               // play audio/video and mute it if set
               if(box.data('type') == 'video') box.get(0).muted = box.data('mute');
               box.get(0).load();
+              console.log('Load');
               box.get(0).play();
+              console.log('Play');
             } else if(box.data('duration')) {
               // set image/url/flash timer
               timeouts[box.attr('id')+'-duration'] = setTimeout(function() {showNext(box)}, box.data('duration') * 1000);
@@ -299,6 +306,8 @@
           }
 
           function showNext(box) {
+            console.log('Hide box #' + box.attr('id'));
+
             // hide current box
             box.hide();
             box.removeClass('current');
