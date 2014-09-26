@@ -372,7 +372,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
                 self.request.headers.get('User-Agent', None)
             )
         except Exception, e:
-            logging.error('Reguest prepare error: ' % e)
+            logging.error('Reguest prepare error: %s' % e)
 
 
     def on_finish(self):

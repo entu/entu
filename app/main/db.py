@@ -729,7 +729,7 @@ class Entity():
                 if not self.__user_id or only_public == True:
                     join_parts.append('LEFT JOIN property_definition AS pd%i ON pd%i.keyname = p%i.property_definition_keyname' % (i, i, i))
 
-                where_parts.append('p%i.value_string LIKE \'%%%%%s%%%%\'' % (i, s))
+                where_parts.append('p%i.value_display LIKE \'%%%%%s%%%%\'' % (i, s))
                 where_parts.append('p%i.is_deleted = 0' % i)
 
         if entity_definition_keyname != None:
