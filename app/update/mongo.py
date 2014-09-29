@@ -1,11 +1,12 @@
 import argparse
+import os
+import sys
 import time
 import torndb
 import yaml
-import sys
 
 from datetime import datetime
-from pymongo import MongoClient
+from pymongo import MongoClient, ASCENDING, DESCENDING
 from operator import itemgetter
 
 
@@ -96,15 +97,6 @@ class MySQL2MongoDB():
         mongo_client = MongoClient('mongo.entu.ee', 27017)
         mongo_db = mongo_client['entu']
         self.mongo_collection = mongo_db[self.db_name]
-
-        self.mongo_collection.create_index([('_mysql.id', 1), ('_mysql.db', 1)])
-        self.mongo_collection.create_index([('parent', 1)])
-        self.mongo_collection.create_index([('ancestor', 1)])
-        self.mongo_collection.create_index([('definition', 1)])
-        self.mongo_collection.create_index([('_rights.viewer', 1)])
-        self.mongo_collection.create_index([('_rights.sharing', 1)])
-        self.mongo_collection.create_index([('_search.et', 1)])
-        self.mongo_collection.create_index([('_search.en', 1)])
 
 
     def transfer(self):
@@ -304,6 +296,15 @@ class MySQL2MongoDB():
 
 
     def update(self):
+        self.mongo_collection.create_index([('_mysql.id', ASCENDING), ('_mysql.db', ASCENDING)])
+        self.mongo_collection.create_index([('_parent._id', ASCENDING)])
+        self.mongo_collection.create_index([('_ancestor._id', ASCENDING)])
+        self.mongo_collection.create_index([('_definition._id', ASCENDING)])
+        self.mongo_collection.create_index([('_rights.viewer._id', ASCENDING)])
+        self.mongo_collection.create_index([('_rights.sharing', ASCENDING)])
+        self.mongo_collection.create_index([('_search.et', ASCENDING)])
+        self.mongo_collection.create_index([('_search.en', ASCENDING)])
+
         t = time.time()
 
         rows = self.mongo_collection.find({'_mysql.db': self.db_name})
@@ -317,7 +318,6 @@ class MySQL2MongoDB():
             # reference properties
             for p in e.get('_reference_property', []):
                 if '.' in p:
-                    print '%s' % e.get(p.split('.')[0], {})
                     p_value = e.get(p.split('.')[0], {}).get(p.split('.')[1])
                 else:
                     p_value = e.get(p)
@@ -354,6 +354,29 @@ class MySQL2MongoDB():
 
         self.stats['updates_time'] = round((time.time() - t) / 60, 2)
         self.stats['updates_speed'] = round(rows.count() / (time.time() - t), 2)
+
+
+    def files(self):
+        t = time.time()
+
+        rows = self.db.query('SELECT file.id FROM file, property WHERE property.value_file = file.id AND is_link <> 1 AND file IS NOT NULL ORDER BY file.id;')
+
+        if args.verbose > 0: print '%s transfer %s files' % (datetime.now(), len(rows))
+
+        for r in rows:
+            db_file = self.db.get('SELECT MD5(file.file) AS md5, file.file FROM file WHERE id = %s LIMIT 1;', r.get('id'))
+
+            directory = os.path.join(self.db_name, db_file.get('md5')[0])
+            filename = os.path.join(directory, db_file.get('md5'))
+
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            f = open(filename, 'w')
+            f.write(db_file.get('file'))
+            f.close()
+
+        self.stats['files_time'] = round((time.time() - t) / 60, 2)
+        # self.stats['files_speed'] = round(rows.count() / (time.time() - t), 2)
 
 
     def __get_parent(self, entity_id, recursive=False):
@@ -406,8 +429,9 @@ for c in customers():
         db_user = c.get('database-user'),
         db_pass = c.get('database-password')
     )
-    m2m.transfer()
-    m2m.update()
+    # m2m.transfer()
+    # m2m.update()
+    m2m.files()
 
     print '%s %s ended' % (datetime.now(), c.get('database-name'))
     print '%s' % yaml.safe_dump(m2m.stats, default_flow_style=False, allow_unicode=True)
