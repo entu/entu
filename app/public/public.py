@@ -6,6 +6,7 @@ import mimetypes
 
 from main.helper import *
 from main.db import *
+from main.db2 import *
 
 
 class PublicHandler(myRequestHandler, Entity):
@@ -32,7 +33,7 @@ class PublicHandler(myRequestHandler, Entity):
         )
 
 
-class PublicSearchHandler(myRequestHandler, Entity):
+class PublicSearchHandler(myRequestHandler, Entity2):
     """
     Show public search results.
 
@@ -41,7 +42,7 @@ class PublicSearchHandler(myRequestHandler, Entity):
         if not path:
             self.redirect('/public')
 
-        search = search.strip('/').strip('-')
+        search = urllib.unquote_plus(search.strip('/').strip('-'))
         if not search:
             self.redirect('/public-%s' % path)
 
@@ -50,10 +51,12 @@ class PublicSearchHandler(myRequestHandler, Entity):
         if len(search) > 1:
             entity_definitions = [x.keyname for x in self.db.query('SELECT keyname FROM entity_definition WHERE public_path = %s;', path)]
 
-            entities = self.get_entities(search=search, entity_definition_keyname=entity_definitions, only_public=True)
+            entities = self.get_entities_info(query=search, definition=entity_definitions)
+            logging.warning(search)
             if entities:
-                for item in entities:
+                for item in entities.get('entities', []):
                     items.append({
+                        'id': item.get('id', ''),
                         'url': '/public-%s/entity-%s/%s' % (path, item.get('id', ''), toURL(item.get('displayname', ''))),
                         'name': item.get('displayname', ''),
                         'date': item.get('created'),

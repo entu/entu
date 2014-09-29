@@ -8,7 +8,7 @@
             {% for i in entities %}
             <tr>
                 <td style="white-space:nowrap; min-width:20px;">
-                    <img src="{{ i['picture'] }}" style="height:20px; width:20px;" />
+                    <img src="/api2/entity-{{ i['id'] }}/picture" style="height:20px; width:20px;" />
                 </td>
                 <td style="1white-space:nowrap; width:100%; border-left:none;">
                     <a href="{{ i['url'] }}">{{ i['name'] }}</a>

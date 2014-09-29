@@ -225,9 +225,11 @@ class Entity2():
         #generate entity select
         definition_where = ''
         if definition:
+            if type(definition) is not list:
+                definition = [definition]
             definition_where = """
-                AND e.entity_definition_keyname = '%s'
-            """ % definition
+                    AND e.entity_definition_keyname IN (%s)
+                """ % ', '.join(['\'%s\'' % x for x in definition])
 
         parent_where = ''
         if parent_entity_id:
@@ -507,3 +509,31 @@ class Entity2():
             })
 
         return sorted(definitions.values(), key=itemgetter('label'))
+
+
+    def get_public_paths(self):
+        """
+        Returns public paths with labels
+
+        """
+
+        paths = {}
+        for i in self.db.query("""
+            SELECT DISTINCT
+                keyname,
+                public_path,
+                (
+                    SELECT value
+                    FROM translation
+                    WHERE language IS NULL or language = %s
+                    AND entity_definition_keyname = keyname
+                    ORDER BY language DESC
+                    LIMIT 1
+                ) AS label
+            FROM entity_definition
+            WHERE public_path IS NOT NULL
+            ORDER BY public_path;
+        """, self.__language):
+            paths[i.public_path] = i.label
+        return paths
+
