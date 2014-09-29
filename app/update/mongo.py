@@ -96,7 +96,6 @@ class MySQL2MongoDB():
         mongo_client = MongoClient('mongo.entu.ee', 27017)
         mongo_db = mongo_client['entu']
         self.mongo_collection = mongo_db[self.db_name]
-        self.mongo_collection.drop()
 
         self.mongo_collection.create_index([('_mysql.id', 1), ('_mysql.db', 1)])
         self.mongo_collection.create_index([('parent', 1)])
@@ -109,6 +108,8 @@ class MySQL2MongoDB():
 
 
     def transfer(self):
+        self.mongo_collection.drop()
+
         t = time.time()
 
         sql = """
@@ -142,58 +143,62 @@ class MySQL2MongoDB():
             e.setdefault('_mysql', {})['id'] = '%s' % mysql_id
 
             e['_definition'] = r.get('entity_definition')
-            e['_reference_property'] = [
-                '_parent',
-                '_ancestor',
-                '_rights.viewer',
-                '_rights.expander',
-                '_rights.editor',
-                '_rights.owner',
-                '_created._id',
-                '_changed._id',
-                '_deleted._id',
-            ]
 
             if r.get('entity_created'):
                 e.setdefault('_created', {})['date'] = r.get('entity_created')
             if r.get('entity_created_by'):
                 e.setdefault('_created', {})['_id'] = '%s' % r.get('entity_created_by')
+            if e.get('_created'):
+                e['_created'] = [e.get('_created')]
+                e.setdefault('_reference_property', []).append('_created')
 
             if r.get('entity_changed'):
                 e.setdefault('_changed', {})['date'] = r.get('entity_changed')
             if r.get('entity_changed_by'):
                 e.setdefault('_changed', {})['_id'] = '%s' % r.get('entity_changed_by')
+            if e.get('_changed'):
+                e['_changed'] = [e.get('_changed')]
+                e.setdefault('_reference_property', []).append('_changed')
 
             if r.get('entity_is_deleted') and r.get('entity_deleted'):
                 e.setdefault('_deleted', {})['date'] = r.get('entity_deleted')
             if r.get('entity_is_deleted') and r.get('entity_deleted_by'):
                 e.setdefault('_deleted', {})['_id'] = '%s' % r.get('entity_deleted_by')
+            if e.get('_deleted'):
+                e['_deleted'] = [e.get('_deleted')]
+                e.setdefault('_reference_property', []).append('_deleted')
 
             e.setdefault('_rights', {})['sharing']    = r.get('entity_sharing')
 
             viewers = self.__get_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'])
             if viewers:
-                e.setdefault('_rights', {})['viewer'] = viewers
+                e.setdefault('_rights', {})['viewer'] = [{'_id': x} for x in list(set(viewers))]
+                e.setdefault('_reference_property', []).append('_rights.viewer')
 
             expanders = self.__get_right(mysql_id, ['expander', 'editor', 'owner'])
             if expanders:
-                e.setdefault('_rights', {})['expander'] = expanders
+                e.setdefault('_rights', {})['expander'] = [{'_id': x} for x in list(set(expanders))]
+                e.setdefault('_reference_property', []).append('_rights.expander')
 
             editors = self.__get_right(mysql_id, ['editor', 'owner'])
             if editors:
-                e.setdefault('_rights', {})['editor'] = editors
+                e.setdefault('_rights', {})['editor'] = [{'_id': x} for x in list(set(editors))]
+                e.setdefault('_reference_property', []).append('_rights.editor')
 
             owners = self.__get_right(mysql_id, ['owner'])
             if owners:
-                e.setdefault('_rights', {})['owner'] = owners
+                e.setdefault('_rights', {})['owner'] = [{'_id': x} for x in list(set(owners))]
+                e.setdefault('_reference_property', []).append('_rights.owner')
 
             parent = self.__get_parent(entity_id=mysql_id, recursive=False)
             if parent:
-                e['_parent'] = parent
+                e['_parent'] = [{'_id': x} for x in list(set(parent))]
+                e.setdefault('_reference_property', []).append('_parent')
 
             ancestor = self.__get_parent(entity_id=mysql_id, recursive=True)
             if ancestor:
-                e['_ancestor'] = ancestor
+                e['_ancestor'] = [{'_id': x} for x in list(set(ancestor))]
+                e.setdefault('_reference_property', []).append('_ancestor')
 
             sql = """
                 SELECT
@@ -232,10 +237,7 @@ class MySQL2MongoDB():
 
                 value = None
                 if r2.get('property_formula') == 1 and r2.get('value_formula'):
-                    value = {
-                        'formula': r2.get('value_formula'),
-                        'name': '%s' % r2.get('value_display')
-                    }
+                    value = {'formula': r2.get('value_formula')}
                 elif r2.get('property_datatype') == 'string' and r2.get('value_string'):
                     value = r2.get('value_string')
                 elif r2.get('property_datatype') == 'text' and r2.get('value_text'):
@@ -249,11 +251,8 @@ class MySQL2MongoDB():
                 elif r2.get('property_datatype') in ['date', 'datetime'] and r2.get('value_datetime') != None:
                     value = r2.get('value_datetime')
                 elif r2.get('property_datatype') == 'reference' and r2.get('value_reference'):
-                    value = {
-                        '_id': '%s' % r2.get('value_reference'),
-                        'name': '%s' % r2.get('value_display')
-                    }
-                    e.setdefault('_reference_property', []).append('%s._id' % r2.get('property_dataproperty'))
+                    value = {'_id': '%s' % r2.get('value_reference')}
+                    e.setdefault('_reference_property', []).append('%s' % r2.get('property_dataproperty'))
                 elif r2.get('property_datatype') == 'file' and r2.get('value_file'):
                     if r2.get('value_file_link') == 1:
                         value = {
@@ -266,7 +265,6 @@ class MySQL2MongoDB():
                             'size': r2.get('value_file_size'),
                             'md5': r2.get('value_file_md5')
                         }
-                    e.setdefault('_file_property', []).append(r2.get('property_dataproperty'))
                 elif r2.get('property_datatype') == 'counter' and r2.get('value_string'):
                     value = r2.get('value_counter')
                     e.setdefault('counter_property', []).append(r2.get('property_dataproperty'))
@@ -319,35 +317,38 @@ class MySQL2MongoDB():
             # reference properties
             for p in e.get('_reference_property', []):
                 if '.' in p:
+                    print '%s' % e.get(p.split('.')[0], {})
                     p_value = e.get(p.split('.')[0], {}).get(p.split('.')[1])
                 else:
                     p_value = e.get(p)
+
                 if type(p_value) is dict:
                     for p_key, p_values in p_value.iteritems():
                         mongo_references = []
-                        for v in list(set(p_values)):
-                            mongo_entity = self.mongo_collection.find_one({'_mysql.id': v, '_mysql.db': e['_mysql']['db']}, {'_id': True})
+                        for v in p_values:
+                            mongo_entity = self.mongo_collection.find_one({'_mysql.id': v.get('_id'), '_mysql.db': e['_mysql']['db']}, {'_id': True})
                             if mongo_entity:
-                                mongo_references.append(mongo_entity.get('_id'))
-                                if args.verbose > 2: print '    %s reference %s.%s to %s' % (p, p_key, v, mongo_entity.get('_id'))
-                        mongo_references = list(set(mongo_references))
+                                v['_id'] = mongo_entity.get('_id')
+                                mongo_references.append(v)
+                                if args.verbose > 2: print '    %s.%s reference to %s' % (p, p_key, v)
                         if mongo_references:
                             id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {'%s.%s' % (p, p_key): mongo_references}})
                 elif type(p_value) is list:
                     mongo_references = []
-                    for v in list(set(p_value)):
-                        mongo_entity = self.mongo_collection.find_one({'_mysql.id': v, '_mysql.db': e['_mysql']['db']}, {'_id': True})
+                    for v in p_value:
+                        mongo_entity = self.mongo_collection.find_one({'_mysql.id': v.get('_id'), '_mysql.db': e['_mysql']['db']}, {'_id': True})
                         if mongo_entity:
-                            mongo_references.append(mongo_entity.get('_id'))
-                            if args.verbose > 2: print '    %s reference %s to %s' % (p, v, mongo_entity.get('_id'))
-                    mongo_references = list(set(mongo_references))
+                            v['_id'] = mongo_entity.get('_id')
+                            mongo_references.append(v)
+                            if args.verbose > 2: print '    %s reference to %s' % (p, v)
                     if mongo_references:
                         id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {'%s' % p: mongo_references}})
                 else:
-                    mongo_entity = self.mongo_collection.find_one({'_mysql.id': p_value, '_mysql.db': e['_mysql']['db']}, {'_id': True})
+                    mongo_entity = self.mongo_collection.find_one({'_mysql.id': p_value.get('_id'), '_mysql.db': e['_mysql']['db']}, {'_id': True})
                     if mongo_entity:
-                        id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {'%s' % p: mongo_entity.get('_id')}})
-                        if args.verbose > 2: print '    %s reference %s to %s' % (p, p_value, mongo_entity.get('_id'))
+                        p_value['_id'] = mongo_entity.get('_id')
+                        id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {'%s' % p: p_value}})
+                        if args.verbose > 2: print '    %s reference %s' % (p, p_value)
 
             self.mongo_collection.update({'_id': e.get('_id')}, {'$unset': {'_reference_property': 1}})
 
@@ -371,7 +372,7 @@ class MySQL2MongoDB():
             if recursive:
                 entities = entities + self.__get_parent(entity_id=r.get('entity_id'), recursive=True)
 
-        return list(set(entities))
+        return entities
 
 
     def __get_right(self, entity_id, rights):
@@ -388,14 +389,14 @@ class MySQL2MongoDB():
         for r in self.db.query(sql):
             entities.append('%s' % r.get('related_entity_id'))
 
-        return list(set(entities))
+        return entities
 
 
 
 print '\n\n\n\n\n'
 for c in customers():
-    if c.get('database-name') not in ['www', 'dev']:
-        continue
+    # if c.get('database-name') not in ['www']:
+    #     continue
 
     print '%s %s started' % (datetime.now(), c.get('database-name'))
 
