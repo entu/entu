@@ -42,7 +42,6 @@ app_controllers = [
     'main.config',
     'main.status',
     'public.public',
-    'screenwerk.screenwerk',
     'update.update',
     'user.auth',
     'user.user',
