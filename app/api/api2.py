@@ -451,14 +451,32 @@ class API2EntityPicture(myRequestHandler, Entity2):
 
         elif picture.get('file'):
             thumbnail = None
+            # try:
+
+            size = (300, 300)
+            im = Image.open(StringIO(picture.get('file')))
+
+            if im.size[0] < size[0] and im.size[1] < size[1]:
+                aspect = float(im.size[0])/float(im.size[1])
+                c = (aspect, 1) if aspect > 0 else (1, aspect)
+                im = im.resize((int(im.size[0]*size[0]/im.size[0]*c[0]), int(im.size[1]*size[1]/im.size[1]*c[1])), Image.ANTIALIAS)
+            else:
+                im.thumbnail(size, Image.ANTIALIAS)
+
+            im_bg = Image.new('RGB', size, (255, 255, 255))
             try:
-                im = Image.open(StringIO(picture.get('file')))
-                im.thumbnail((300, 300), Image.ANTIALIAS)
-                im_new = StringIO()
-                im.save(im_new, 'JPEG', quality=80)
-                thumbnail = im_new.getvalue()
+                im_bg.paste(im, ((size[0] - im.size[0]) / 2, (size[1] - im.size[1]) / 2), im)
             except Exception:
-                return
+                im_bg.paste(im, ((size[0] - im.size[0]) / 2, (size[1] - im.size[1]) / 2))
+
+
+            im_new = StringIO()
+            im_bg.save(im_new, 'JPEG', quality=75)
+
+            thumbnail = im_new.getvalue()
+
+            # except Exception:
+            #     return
 
             if thumbnail:
                 self.set_file_thumbnail(picture.get('id'), thumbnail)
@@ -520,6 +538,16 @@ class API2EntityShare(myRequestHandler, Entity):
             'result': response,
             'time': round(self.request.request_time(), 3),
         })
+
+
+
+
+class API2Email(myRequestHandler, Entity2):
+    def get(self):
+        pass
+
+    def post(self):
+        pass
 
 
 
@@ -663,5 +691,6 @@ handlers = [
     (r'/api2/definition', API2DefinitionList),
     (r'/api2/definition-(.*)', API2Definition),
     (r'/api2/cmdi-xml/(.*)', API2CmdiXml),
+    (r'/api2/email', API2Email),
     (r'/api2(.*)', API2NotFound),
 ]
