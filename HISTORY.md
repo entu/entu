@@ -1,3 +1,8 @@
+## 2014-09-29
+* CMDI-XML object importer
+* Removed ScreenWerk player from Entu (to separate project)
+* Bugfixes
+
 ## 2014-05-26
 * Allow reimport existing library items from Ester
 * Send emails thru mailgun.com
