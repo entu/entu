@@ -94,23 +94,18 @@ class MySQL2MongoDB():
         )
 
         mongo_client = MongoClient('mongo.entu.ee', 27017)
-        mongo_client.drop_database(self.db_name)
-        mongo_db = mongo_client[self.db_name]
-        # mongo_db = mongo_client['dev']
-        self.mongo_collection = mongo_db['entity']
+        mongo_db = mongo_client['entu']
+        self.mongo_collection = mongo_db[self.db_name]
+        self.mongo_collection.drop()
 
-        # modulus.io
-        # mongo_client = MongoClient('mongodb://import:eHFYUaN5CVFkVzdaUVxnmkbCMmbU2jC6@novus.modulusmongo.net:27017/wyvuxy8D')
-        # mongo_db = mongo_client['wyvuxy8D']
-        # self.mongo_collection = mongo_db[self.db_name]
-
-        self.mongo_collection.create_index([('_mysql_id', 1), ('_mysql_db', 1)], name='mysql_id')
-        # self.mongo_collection.create_index([('viewer', 1)], name='viewer')
-        # self.mongo_collection.create_index([('parent', 1)], name='parent')
-        # self.mongo_collection.create_index([('ancestor', 1)], name='ancestor')
-        # self.mongo_collection.create_index([('definition', 1)], name='definition')
-        # self.mongo_collection.create_index([('search.et', 1)], name='search_et')
-        # self.mongo_collection.create_index([('search.en', 1)], name='search_en')
+        self.mongo_collection.create_index([('_mysql.id', 1), ('_mysql.db', 1)])
+        self.mongo_collection.create_index([('parent', 1)])
+        self.mongo_collection.create_index([('ancestor', 1)])
+        self.mongo_collection.create_index([('definition', 1)])
+        self.mongo_collection.create_index([('_rights.viewer', 1)])
+        self.mongo_collection.create_index([('_rights.sharing', 1)])
+        self.mongo_collection.create_index([('_search.et', 1)])
+        self.mongo_collection.create_index([('_search.en', 1)])
 
 
     def transfer(self):
@@ -142,59 +137,55 @@ class MySQL2MongoDB():
         for r in rows:
             mysql_id = r.get('entity_id')
 
-            # if self.mongo_collection.find_one({'_mysql_id': mysql_id, '_mysql_db': self.db_name}):
-            #     continue
-
             e = {}
-            e['_mysql_db'] = self.db_name
-            e['_mysql_id'] = '%s' % mysql_id
-            # if r.get('entity_old_id'):
-            #     e['_mysql_old'] = '%s' % r.get('entity_old_id')
+            e.setdefault('_mysql', {})['db'] = self.db_name
+            e.setdefault('_mysql', {})['id'] = '%s' % mysql_id
 
             e['_definition'] = r.get('entity_definition')
-            e['_sharing']    = r.get('entity_sharing')
             e['_reference_property'] = [
                 '_parent',
                 '_ancestor',
-                '_viewer',
-                '_expander',
-                '_editor',
-                '_owner',
-                '_created_by',
-                '_changed_by',
-                '_deleted_by',
+                '_rights.viewer',
+                '_rights.expander',
+                '_rights.editor',
+                '_rights.owner',
+                '_created._id',
+                '_changed._id',
+                '_deleted._id',
             ]
 
             if r.get('entity_created'):
-                e['_created_at'] = r.get('entity_created')
+                e.setdefault('_created', {})['date'] = r.get('entity_created')
             if r.get('entity_created_by'):
-                e['_created_by'] = '%s' % r.get('entity_created_by')
+                e.setdefault('_created', {})['_id'] = '%s' % r.get('entity_created_by')
 
             if r.get('entity_changed'):
-                e['_changed_at'] = r.get('entity_changed')
+                e.setdefault('_changed', {})['date'] = r.get('entity_changed')
             if r.get('entity_changed_by'):
-                e['_changed_by'] = '%s' % r.get('entity_changed_by')
+                e.setdefault('_changed', {})['_id'] = '%s' % r.get('entity_changed_by')
 
             if r.get('entity_is_deleted') and r.get('entity_deleted'):
-                e['_deleted_at'] = r.get('entity_deleted')
+                e.setdefault('_deleted', {})['date'] = r.get('entity_deleted')
             if r.get('entity_is_deleted') and r.get('entity_deleted_by'):
-                e['_deleted_by'] = '%s' % r.get('entity_deleted_by')
+                e.setdefault('_deleted', {})['_id'] = '%s' % r.get('entity_deleted_by')
+
+            e.setdefault('_rights', {})['sharing']    = r.get('entity_sharing')
 
             viewers = self.__get_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'])
             if viewers:
-                e['_viewer'] = viewers
+                e.setdefault('_rights', {})['viewer'] = viewers
 
             expanders = self.__get_right(mysql_id, ['expander', 'editor', 'owner'])
             if expanders:
-                e['_expander'] = expanders
+                e.setdefault('_rights', {})['expander'] = expanders
 
             editors = self.__get_right(mysql_id, ['editor', 'owner'])
             if editors:
-                e['_editor'] = editors
+                e.setdefault('_rights', {})['editor'] = editors
 
             owners = self.__get_right(mysql_id, ['owner'])
             if owners:
-                e['_owner'] = owners
+                e.setdefault('_rights', {})['owner'] = owners
 
             parent = self.__get_parent(entity_id=mysql_id, recursive=False)
             if parent:
@@ -221,7 +212,11 @@ class MySQL2MongoDB():
                     p.value_boolean,
                     p.value_datetime,
                     p.value_reference,
-                    p.value_file,
+                    IF(pd.datatype = 'file', (SELECT file FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file,
+                    IF(pd.datatype = 'file', (SELECT MD5(file) FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_md5,
+                    IF(pd.datatype = 'file', (SELECT filename FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_name,
+                    IF(pd.datatype = 'file', (SELECT LENGTH(file) FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_size,
+                    IF(pd.datatype = 'file', (SELECT is_link FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_link,
                     p.value_counter
                 FROM
                     property AS p,
@@ -238,87 +233,67 @@ class MySQL2MongoDB():
                 value = None
                 if r2.get('property_formula') == 1 and r2.get('value_formula'):
                     value = {
-                        'value': r2.get('value_formula')
+                        'formula': r2.get('value_formula'),
+                        'name': '%s' % r2.get('value_display')
                     }
                 elif r2.get('property_datatype') == 'string' and r2.get('value_string'):
-                    value = {
-                        'value': r2.get('value_string')
-                    }
+                    value = r2.get('value_string')
                 elif r2.get('property_datatype') == 'text' and r2.get('value_text'):
-                    value = {
-                        'value': r2.get('value_text')
-                    }
+                    value = r2.get('value_text')
                 elif r2.get('property_datatype') == 'integer' and r2.get('value_integer') != None:
-                    value = {
-                        'value': r2.get('value_integer')
-                    }
+                    value = r2.get('value_integer')
                 elif r2.get('property_datatype') == 'decimal' and r2.get('value_decimal') != None:
-                    value = {
-                        'value': float(r2.get('value_decimal'))
-                    }
+                    value = float(r2.get('value_decimal'))
                 elif r2.get('property_datatype') == 'boolean' and r2.get('value_boolean') != None:
-                    value = {
-                        'value': bool(r2.get('value_boolean'))
-                    }
+                    value = bool(r2.get('value_boolean'))
                 elif r2.get('property_datatype') in ['date', 'datetime'] and r2.get('value_datetime') != None:
-                    value = {
-                        'value': r2.get('value_datetime')
-                    }
+                    value = r2.get('value_datetime')
                 elif r2.get('property_datatype') == 'reference' and r2.get('value_reference'):
                     value = {
-                        'value': '%s' % r2.get('value_reference')
+                        '_id': '%s' % r2.get('value_reference'),
+                        'name': '%s' % r2.get('value_display')
                     }
-                    e.setdefault('_reference_property', []).append('property.%s' % r2.get('property_dataproperty'))
+                    e.setdefault('_reference_property', []).append('%s._id' % r2.get('property_dataproperty'))
                 elif r2.get('property_datatype') == 'file' and r2.get('value_file'):
-                    value = {
-                        'value': r2.get('value_file')
-                    }
+                    if r2.get('value_file_link') == 1:
+                        value = {
+                            'name': r2.get('value_file_name'),
+                            'link': r2.get('file')
+                        }
+                    else:
+                        value = {
+                            'name': r2.get('value_file_name'),
+                            'size': r2.get('value_file_size'),
+                            'md5': r2.get('value_file_md5')
+                        }
                     e.setdefault('_file_property', []).append(r2.get('property_dataproperty'))
                 elif r2.get('property_datatype') == 'counter' and r2.get('value_string'):
-                    value = {
-                        'value': r2.get('value_counter')
-                    }
+                    value = r2.get('value_counter')
                     e.setdefault('counter_property', []).append(r2.get('property_dataproperty'))
                 elif r2.get('property_datatype') == 'counter-value' and r2.get('value_string'):
-                    value = {
-                        'value': r2.get('value_string')
-                    }
+                    value = r2.get('value_string')
 
                 if not value:
                     continue
 
-                value['type'] = r2.get('property_datatype')
-                value['search'] = r2.get('property_search') == 1
-
                 if r2.get('property_language'):
-                    value['language'] = r2.get('property_language')
+                    e.setdefault(r2.get('property_dataproperty'), {}).setdefault(r2.get('property_language'), []).append(value)
+                else:
+                    e.setdefault(r2.get('property_dataproperty'), []).append(value)
 
-                e.setdefault(r2.get('property_dataproperty'), []).append(value)
+                if r2.get('value_display') and r2.get('property_search') == 1:
+                    if r2.get('property_language'):
+                        e.setdefault('_search', {}).setdefault(r2.get('property_language'), []).append(r2.get('value_display').lower())
+                    else:
+                        e.setdefault('_search', {}).setdefault('et', []).append(r2.get('value_display').lower())
+                        e.setdefault('_search', {}).setdefault('en', []).append(r2.get('value_display').lower())
 
-                # if r2.get('value_display') and r2.get('property_search') == 1:
-                #     if r2.get('property_language'):
-                #         e.setdefault('_search', {}).setdefault(r2.get('property_language'), []).append(r2.get('value_display').lower())
-                #     else:
-                #         e.setdefault('_search', {}).setdefault('et', []).append(r2.get('value_display').lower())
-                #         e.setdefault('_search', {}).setdefault('en', []).append(r2.get('value_display').lower())
-
-            # for l in ['et', 'en']:
-            #     if l in e.get('_search', {}):
-            #         e['_search'][l] = list(set(e['_search'][l]))
-
-            # for p_key, p_value in e.iteritems():
-            #     if type(p_value) is dict:
-            #         for v_key, v_value in p_value.iteritems():
-            #             if type(e[p_key][v_key]) is list:
-            #                 if len(e[p_key][v_key]) == 1:
-            #                     e[p_key][v_key] = e[p_key][v_key][0]
-            #     else:
-            #         if type(e[p_key]) is list:
-            #             if len(e[p_key]) == 1:
-            #                 e[p_key] = e[p_key][0]
+            for l in ['et', 'en']:
+                if l in e.get('_search', {}):
+                    e['_search'][l] = list(set(e['_search'][l]))
 
             #Create or replace Mongo object
-            mongo_entity = self.mongo_collection.find_one({'_mysql_id': mysql_id, '_mysql_db': self.db_name}, {'_id': True})
+            mongo_entity = self.mongo_collection.find_one({'_mysql.id': mysql_id, '_mysql.db': self.db_name}, {'_id': True})
             if mongo_entity:
                 id = self.mongo_collection.update({'_id': mongo_entity.get('_id')}, e)
                 if args.verbose > 3: print '%s -> %s (update)' % (mysql_id, mongo_entity.get('_id'))
@@ -333,31 +308,35 @@ class MySQL2MongoDB():
     def update(self):
         t = time.time()
 
-        rows = self.mongo_collection.find({'_mysql_db': self.db_name})
+        rows = self.mongo_collection.find({'_mysql.db': self.db_name})
         i = 0
 
         if args.verbose > 0: print '%s update %s entities' % (datetime.now(), rows.count())
 
         for e in rows:
-            if args.verbose > 3: print '%s - %s' % (e['_mysql_db'], e.get('_id'))
+            if args.verbose > 3: print '%s - %s' % (e['_mysql']['db'], e.get('_id'))
 
             # reference properties
             for p in e.get('_reference_property', []):
-                if type(e.get(p)) is dict:
-                    for p_key, p_values in e.get(p, {}).iteritems():
+                if '.' in p:
+                    p_value = e.get(p.split('.')[0], {}).get(p.split('.')[1])
+                else:
+                    p_value = e.get(p)
+                if type(p_value) is dict:
+                    for p_key, p_values in p_value.iteritems():
                         mongo_references = []
                         for v in list(set(p_values)):
-                            mongo_entity = self.mongo_collection.find_one({'_mysql_id': v, '_mysql_db': e['_mysql_db']}, {'_id': True})
+                            mongo_entity = self.mongo_collection.find_one({'_mysql.id': v, '_mysql.db': e['_mysql']['db']}, {'_id': True})
                             if mongo_entity:
                                 mongo_references.append(mongo_entity.get('_id'))
                                 if args.verbose > 2: print '    %s reference %s.%s to %s' % (p, p_key, v, mongo_entity.get('_id'))
                         mongo_references = list(set(mongo_references))
                         if mongo_references:
                             id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {'%s.%s' % (p, p_key): mongo_references}})
-                elif type(e.get(p)) is list:
+                elif type(p_value) is list:
                     mongo_references = []
-                    for v in list(set(e.get(p, []))):
-                        mongo_entity = self.mongo_collection.find_one({'_mysql_id': v, '_mysql_db': e['_mysql_db']}, {'_id': True})
+                    for v in list(set(p_value)):
+                        mongo_entity = self.mongo_collection.find_one({'_mysql.id': v, '_mysql.db': e['_mysql']['db']}, {'_id': True})
                         if mongo_entity:
                             mongo_references.append(mongo_entity.get('_id'))
                             if args.verbose > 2: print '    %s reference %s to %s' % (p, v, mongo_entity.get('_id'))
@@ -365,14 +344,12 @@ class MySQL2MongoDB():
                     if mongo_references:
                         id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {'%s' % p: mongo_references}})
                 else:
-                    v = e.get(p)
-                    mongo_entity = self.mongo_collection.find_one({'_mysql_id': v, '_mysql_db': e['_mysql_db']}, {'_id': True})
+                    mongo_entity = self.mongo_collection.find_one({'_mysql.id': p_value, '_mysql.db': e['_mysql']['db']}, {'_id': True})
                     if mongo_entity:
                         id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {'%s' % p: mongo_entity.get('_id')}})
-                        if args.verbose > 2: print '    %s reference %s to %s' % (p, v, mongo_entity.get('_id'))
+                        if args.verbose > 2: print '    %s reference %s to %s' % (p, p_value, mongo_entity.get('_id'))
 
             self.mongo_collection.update({'_id': e.get('_id')}, {'$unset': {'_reference_property': 1}})
-            # self.mongo_collection.update({'_id': e.get('_id')}, {'$unset': {'_file_property': 1}})
 
         self.stats['updates_time'] = round((time.time() - t) / 60, 2)
         self.stats['updates_speed'] = round(rows.count() / (time.time() - t), 2)
@@ -417,7 +394,7 @@ class MySQL2MongoDB():
 
 print '\n\n\n\n\n'
 for c in customers():
-    if c.get('database-name') not in ['www']:
+    if c.get('database-name') not in ['www', 'dev']:
         continue
 
     print '%s %s started' % (datetime.now(), c.get('database-name'))
@@ -429,7 +406,7 @@ for c in customers():
         db_pass = c.get('database-password')
     )
     m2m.transfer()
-    # m2m.update()
+    m2m.update()
 
     print '%s %s ended' % (datetime.now(), c.get('database-name'))
     print '%s' % yaml.safe_dump(m2m.stats, default_flow_style=False, allow_unicode=True)
