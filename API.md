@@ -16,7 +16,7 @@ changelog|boolean|No|False|Return properties changelog
 deleted|boolean|No|False|Return also deleted entities
 user|string|No||User ID
 policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
-signature|string|No||Base64 encoded HMAC signature of policy
+signature|string|No||Base64 encoded HMAC signature of policy (signed with key what is stored in entu-api-key property)
 
 Result code|Status|Description
 :-:|:--|:--
@@ -35,7 +35,7 @@ changelog|boolean|No|False|Return properties changelog
 deleted|boolean|No|False|Return entity even if it's deleted
 user|string|No||User ID
 policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
-signature|string|No||Base64 encoded HMAC signature of policy
+signature|string|No||Base64 encoded HMAC signature of policy (signed with key what is stored in entu-api-key property)
 
 Result code|Status|Description
 :-:|:--|:--
@@ -66,7 +66,7 @@ definition|string|Yes||Definition ID of the new entity
 property_definition||No||
 user|string|No||User ID
 policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
-signature|string|No||Base64 encoded HMAC signature of policy
+signature|string|No||Base64 encoded HMAC signature of policy (signed with key what is stored in entu-api-key property)
 
 Result code|Status|Description
 :-:|:--|:--
@@ -80,7 +80,7 @@ Argument|Type|Required|Default|Description
 :--|:-:|:-:|:-:|:--
 user|string|No||User ID
 policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
-signature|string|No||Base64 encoded HMAC signature of policy
+signature|string|No||Base64 encoded HMAC signature of policy (signed with key what is stored in entu-api-key property)
 
 Result code|Status|Description
 :-:|:--|:--
@@ -106,7 +106,7 @@ property|string|Yes||Property definition of the new file property
 filename|string|Yes||File name
 user|string|No||User ID
 policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
-signature|string|No||Base64 encoded HMAC signature of policy
+signature|string|No||Base64 encoded HMAC signature of policy (signed with key what is stored in entu-api-key property)
 
 Result code|Status|Description
 :-:|:--|:--
@@ -125,7 +125,7 @@ Argument|Type|Required|Default|Description
 deleted|boolean|No|False|Return file even if entity or file is deleted
 user|string|No||User ID
 policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
-signature|string|No||Base64 encoded HMAC signature of policy
+signature|string|No||Base64 encoded HMAC signature of policy (signed with key what is stored in entu-api-key property)
 
 Result code|Status|Description
 :-:|:--|:--
@@ -140,7 +140,7 @@ Argument|Type|Required|Default|Description
 :--|:-:|:-:|:-:|:--
 user|string|No||User ID
 policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
-signature|string|No||Base64 encoded HMAC signature of policy
+signature|string|No||Base64 encoded HMAC signature of policy (signed with key what is stored in entu-api-key property)
 
 Result code|Status|Description
 :-:|:--|:--
