@@ -34,33 +34,7 @@ _Futuristic Data Management System_
 
 ## Dependencies
 
-* [MySQL](http://www.mysql.com/)
-* [Python 2.7](http://www.python.org/)
-    * [Tornado](http://www.tornadoweb.org)
-    * [python-mysqldb](http://mysql-python.sourceforge.net)
-    * [python-suds](https://fedorahosted.org/suds/)
-    * [python-markdown2](https://github.com/trentm/python-markdown2)
-    * [tornadomail](https://github.com/equeny/tornadomail)
-    * [torndb](https://github.com/bdarnell/torndb)
-    * [xmltodict](https://github.com/martinblech/xmltodict)
-    * [Beautiful Soup](http://www.crummy.com/software/BeautifulSoup)
-    * [PyYAML](http://pyyaml.org)
-    * [PyZ3950](http://www.panix.com/~asl2/software/PyZ3950/)
-    * [croniter](https://github.com/taichino/croniter)
-    * [chardet](https://github.com/erikrose/chardet)
-    * [boto](https://github.com/boto/boto)
-    * [SimpleAES](https://github.com/nvie/SimpleAES)
-
-
-## Used libraries/add-ons
-
-* [Bootstrap](http://twitter.github.io/bootstrap/) + [Font Awesome](http://fortawesome.github.io/Font-Awesome/)
-* [jQuery](http://jquery.com/) + [jQuery UI](http://jqueryui.com/)
-* [Elastic](http://unwrongest.com/projects/elastic/)
-* [Datejs](http://www.datejs.com/)
-* [Bootstrap File Input](https://github.com/grevory/bootstrap-file-input)
-* [Select2](http://ivaynberg.github.com/select2)
-* [bootstrap-sortable](https://github.com/drvic10k/bootstrap-sortable)
+[See INSTALL.md](INSTALL.md)
 
 
 ## License
