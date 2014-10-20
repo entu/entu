@@ -114,7 +114,7 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
 
         self._OAUTH_AUTHORIZE_URL = self.oauth2_provider['auth_url']
 
-        url = self.request.protocol + '://' + self.request.host + '/auth/' + provider
+        url = self.request.protocol + '://' + self.request.host + '/auth/' + self.oauth2_provider['provider']
 
         if not self.get_argument('code', None):
             return self.redirect(self.oauth2_provider['auth_url'] % {
@@ -125,7 +125,7 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
             })
 
         if self.get_argument('error', None):
-            logging.error('%s oauth error: %s' % (provider, self.get_argument('error', None)))
+            logging.error('%s oauth error: %s' % (self.oauth2_provider['provider'], self.get_argument('error', None)))
             return self.redirect(get_redirect(self))
 
         httpclient.AsyncHTTPClient().fetch(self.oauth2_provider['token_url'],
@@ -147,18 +147,18 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
         try:
             access_token = json.loads(access_token)
             if 'error' in access_token:
-                logging.error('%s oauth error: %s' % (provider, access_token['error']))
+                logging.error('%s oauth error: %s' % (self.oauth2_provider['provider'], access_token['error']))
                 return self.redirect(get_redirect(self))
             access_token = access_token['access_token']
         except:
             try:
                 access_token = urlparse.parse_qs(access_token)
                 if 'error' in access_token:
-                    logging.error('%s oauth error: %s' % (provider, access_token['error']))
+                    logging.error('%s oauth error: %s' % (self.oauth2_provider['provider'], access_token['error']))
                     return self.redirect(get_redirect(self))
                 access_token = access_token['access_token'][0]
             except:
-                logging.error('%s oauth error' % provider)
+                logging.error('%s oauth error' % self.oauth2_provider['provider'])
                 return self.redirect(get_redirect(self))
 
         httpclient.AsyncHTTPClient().fetch(self.oauth2_provider['info_url'] %  {'token': access_token },
@@ -171,7 +171,7 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
             user = json.loads(response.body)
             access_token = response.effective_url.split('access_token=')[1]
             if 'error' in user:
-                logging.error('%s oauth error: %s' % (provider, user['error']))
+                logging.error('%s oauth error: %s' % (self.oauth2_provider['provider'], user['error']))
                 return self.redirect(get_redirect(self))
         except:
             return

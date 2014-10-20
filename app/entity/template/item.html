@@ -1,6 +1,6 @@
 {% autoescape None %}
 {% from operator import itemgetter %}
-{% import markdown2 %}
+{% import mistune %}
 
 {% if parents %}
     <table class="table table-condensed table-bordered">
@@ -45,7 +45,7 @@
                             {% elif p['datatype'] == 'html' %}
                                 <div class="html-property" data-property="{{ p['dataproperty'] }}" style="display:block; width:100%;"><img src="{{ static_url('images/spinner_white.gif') }}" id="search-spinner" /></div>
                             {% elif p['datatype'] == 'text' %}
-                                {{ markdown2.markdown('   \n'.join(['%s' % v.get('value').replace('\n', '   \n') for v in p.get('values', [])])) }}
+                                {{ mistune.Markdown().render('   \n'.join(['%s' % v.get('value').replace('\n', '   \n') for v in p.get('values', [])])) }}
                             {% elif p['datatype'] == 'reference' %}
                                 {{ '<br />'.join(['<a href="#%s">%s</a>' % (v.get('db_value'), v.get('value')) for v in p.get('values', [])]) }}
                             {% elif p['datatype'] == 'string' %}
