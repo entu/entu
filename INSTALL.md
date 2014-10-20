@@ -22,7 +22,6 @@ pip install PyZ3950
 pip install SimpleAES  
 pip install suds  
 pip install tornado  
-pip install tornadomail  
 pip install torndb  
 pip install xmltodict  
 
