@@ -10,14 +10,11 @@ apt-get install mysql-server mysql-client python-mysqldb
 apt-get install python-pip  
 apt-get install supervisor  
 apt-get install ntp  
-apt-get install postfix  
-  
+
 ### 3. Install Python libraries
 pip install beautifulsoup4  
-pip install boto  
 pip install chardet  
-pip install croniter  
-pip install markdown2  
+pip install mistune  
 pip install ply  
 pip install PyYAML  
 pip install PyZ3950  
