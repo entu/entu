@@ -7,7 +7,8 @@ apt-get install ufw
 apt-get install nginx  
 apt-get install python-dev  
 apt-get install mysql-server mysql-client python-mysqldb  
-apt-get install python-pip  
+apt-get install python-pip
+apt-get install python-imaging
 apt-get install supervisor  
 apt-get install ntp  
 
@@ -24,8 +25,7 @@ pip install tornado
 pip install tornadomail  
 pip install torndb  
 pip install xmltodict  
-pip install PIL  
-  
+
 ### 4. Fix PyZ3950 (if needed)
 Change file /usr/local/lib/python2.7/dist-packages/PyZ3950/ccl.py:  
 "import lex" -> "from ply import lex" (line 124)  
