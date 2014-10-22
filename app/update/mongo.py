@@ -94,13 +94,15 @@ class MySQL2MongoDB():
             password = db_pass,
         )
 
-        mongo_client = MongoClient('mongo.entu.ee', 27017)
-        mongo_db = mongo_client['entu']
-        self.mongo_collection = mongo_db[self.db_name]
+        mongo_client = MongoClient('entu.cloudapp.net', 27017)
+        mongo_db = mongo_client[self.db_name]
+        # mongo_db = mongo_client['dev']
+        self.mongo_collection = mongo_db['entity']
+        self.mongo_collection.create_index([('_mysql.id', ASCENDING), ('_mysql.db', ASCENDING)])
 
 
     def transfer(self):
-        self.mongo_collection.drop()
+        # self.mongo_collection.drop()
 
         t = time.time()
 
@@ -128,11 +130,14 @@ class MySQL2MongoDB():
         if args.verbose > 0: print '%s transfer %s entities' % (datetime.now(), len(rows))
 
         for r in rows:
+            # if self.mongo_collection.find_one({'_mysql.id': '%s' % r.get('entity_id'), '_mysql.db': self.db_name}, {'_id': True}):
+            #     continue
+
             mysql_id = r.get('entity_id')
 
             e = {}
-            e.setdefault('_mysql', {})['db'] = self.db_name
             e.setdefault('_mysql', {})['id'] = '%s' % mysql_id
+            e.setdefault('_mysql', {})['db'] = self.db_name
 
             e['_definition'] = r.get('entity_definition')
 
@@ -296,7 +301,6 @@ class MySQL2MongoDB():
 
 
     def update(self):
-        self.mongo_collection.create_index([('_mysql.id', ASCENDING), ('_mysql.db', ASCENDING)])
         self.mongo_collection.create_index([('_parent._id', ASCENDING)])
         self.mongo_collection.create_index([('_ancestor._id', ASCENDING)])
         self.mongo_collection.create_index([('_definition._id', ASCENDING)])
@@ -421,6 +425,9 @@ for c in customers():
     # if c.get('database-name') not in ['www']:
     #     continue
 
+    # if c.get('database-name') < 'eka':
+    #     continue
+
     print '%s %s started' % (datetime.now(), c.get('database-name'))
 
     m2m = MySQL2MongoDB(
@@ -429,9 +436,9 @@ for c in customers():
         db_user = c.get('database-user'),
         db_pass = c.get('database-password')
     )
-    # m2m.transfer()
-    # m2m.update()
-    m2m.files()
+    m2m.transfer()
+    m2m.update()
+    # m2m.files()
 
     print '%s %s ended' % (datetime.now(), c.get('database-name'))
     print '%s' % yaml.safe_dump(m2m.stats, default_flow_style=False, allow_unicode=True)
