@@ -73,35 +73,35 @@ class API2CmdiXml(myRequestHandler, Entity):
             }, 404)
         entity['definition'] = {'keyname': entity['definition_keyname']}
 
-        xml = '''<?xml version="1.0" encoding="UTF-8"?>
-<CMD xmlns="http://www.clarin.eu/cmd/"
-     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     CMDVersion="1.1"
-     xsi:schemaLocation="%(XSD)s">
-    <Header></Header>
-    <Resources>
-        <ResourceProxyList></ResourceProxyList>
-        <JournalFileProxyList></JournalFileProxyList>
-        <ResourceRelationList></ResourceRelationList>
-    </Resources>
-    <Components>
-        <%(Component)s>
-            <GeneralInfo>
-                <ResourceName xml:lang="en">%(ResourceName)s</ResourceName>
-                <Version xml:lang="en">%(Version)s</Version>
-                <LastUpdate>%(LastUpdate)s</LastUpdate>
-                <LegalOwner xml:lang="en">%(LegalOwner)s</LegalOwner>
-            </GeneralInfo>
-        </%(Component)s>
-    </Components>
-</CMD>
-''' % { 'XSD'          : entity['properties']['XSD'].get('values',[{'value':''}])[0]['value'],
-        'Component'    : entity['properties']['Component'].get('values',[{'value':''}])[0]['value'],
-        'ResourceName' : entity['properties']['ResourceName'].get('values',[{'value':''}])[0]['value'],
-        'Version'      : entity['properties']['Version'].get('values',[{'value':''}])[0]['value'],
-        'LastUpdate'   : entity['properties']['LastUpdate'].get('values',[{'value':''}])[0]['value'],
-        'LegalOwner'   : entity['properties']['LegalOwner'].get('values',[{'value':''}])[0]['value'],
-      }
+        xml = """<?xml version="1.0" encoding="UTF-8"?>
+            <CMD xmlns="http://www.clarin.eu/cmd/"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 CMDVersion="1.1"
+                 xsi:schemaLocation="%(XSD)s">
+                <Header></Header>
+                <Resources>
+                    <ResourceProxyList></ResourceProxyList>
+                    <JournalFileProxyList></JournalFileProxyList>
+                    <ResourceRelationList></ResourceRelationList>
+                </Resources>
+                <Components>
+                    <%(Component)s>
+                        <GeneralInfo>
+                            <ResourceName xml:lang="en">%(ResourceName)s</ResourceName>
+                            <Version xml:lang="en">%(Version)s</Version>
+                            <LastUpdate>%(LastUpdate)s</LastUpdate>
+                            <LegalOwner xml:lang="en">%(LegalOwner)s</LegalOwner>
+                        </GeneralInfo>
+                    </%(Component)s>
+                </Components>
+            </CMD>""" % {
+                'XSD'          : entity['properties']['XSD'].get('values',[{'value':''}])[0]['value'],
+                'Component'    : entity['properties']['Component'].get('values',[{'value':''}])[0]['value'],
+                'ResourceName' : entity['properties']['ResourceName'].get('values',[{'value':''}])[0]['value'],
+                'Version'      : entity['properties']['Version'].get('values',[{'value':''}])[0]['value'],
+                'LastUpdate'   : entity['properties']['LastUpdate'].get('values',[{'value':''}])[0]['value'],
+                'LegalOwner'   : entity['properties']['LegalOwner'].get('values',[{'value':''}])[0]['value'],
+            }
 
         mimetypes.init()
         mime = mimetypes.types_map.get('.xml', 'application/octet-stream')
