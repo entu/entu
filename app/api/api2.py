@@ -594,7 +594,8 @@ class API2EntityShare(myRequestHandler, Entity):
         response = self.mail_send(
             to = to,
             subject = entity.get('displayname', ''),
-            message = '%s\n\n%s\n\n%s\n%s' % (message, url, self.current_user.get('name', ''), self.current_user.get('email', ''))
+            message = '%s\n\n%s\n\n%s\n%s' % (message, url, self.current_user.get('name', ''), self.current_user.get('email', '')),
+            html = False
         )
 
         self.json({
@@ -609,8 +610,49 @@ class API2Email(myRequestHandler, Entity2):
     def get(self):
         pass
 
+
     def post(self):
-        pass
+        if not self.current_user:
+            return self.json({
+                'error': 'Forbidden!',
+                'time': round(self.request.request_time(), 3),
+            }, 403)
+
+        to = self.get_argument('to', default=None, strip=True)
+        if not to:
+            return self.json({
+                'error': 'To address must be set!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        subject = self.get_argument('subject', default=None, strip=True)
+        if not subject:
+            return self.json({
+                'error': 'Subject must be set!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        message = self.get_argument('message', default=None, strip=True)
+        if not message:
+            return self.json({
+                'error': 'Message must be set!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        campaign = self.get_argument('campaign', default=None, strip=True)
+
+        response = self.mail_send(
+            to = to,
+            subject = subject,
+            message = message,
+            html = True,
+            campaign = campaign
+        )
+
+        self.json({
+            'result': response,
+            'time': round(self.request.request_time(), 3),
+        })
 
 
 

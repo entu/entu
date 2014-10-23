@@ -146,7 +146,18 @@ class myUser():
                 user.name,
                 user.language,
                 user.hide_menu,
-                user.email,
+                IFNULL((
+                    SELECT value_string
+                    FROM
+                        property,
+                        property_definition
+                    WHERE property_definition.keyname = property.property_definition_keyname
+                    AND property.entity_id = entity.id
+                    AND property.is_deleted = 0
+                    AND property_definition.dataproperty = 'email'
+                    ORDER BY property.id
+                    LIMIT 1
+                ), user.email) AS email,
                 user.provider,
                 user.access_token,
                 user.session_key,
@@ -226,7 +237,18 @@ class myUser():
                 NULL AS name,
                 'estonian' AS language,
                 NULL AS hide_menu,
-                NULL AS email,
+                (
+                    SELECT value_string
+                    FROM
+                        property,
+                        property_definition
+                    WHERE property_definition.keyname = property.property_definition_keyname
+                    AND property.entity_id = entity.id
+                    AND property.is_deleted = 0
+                    AND property_definition.dataproperty = 'email'
+                    ORDER BY property.id
+                    LIMIT 1
+                ) AS email,
                 NULL AS provider,
                 NULL AS access_token,
                 NULL AS session_key,
@@ -465,33 +487,43 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
             page_title = '404'
         )
 
-    def mail_send(self, to, subject='', message=''):
+    def mail_send(self, to, subject='', message='', html=False, campaign=None):
         """
         Sends email using GMail account.
 
         """
 
-        if type(to) is not list:
-            to = StrToList(to)
+        data = {
+            'subject' : subject.encode('utf-8').strip()
+        }
+
+        if type(to) is list:
+            data['to'] = to
+        else:
+            data['to'] = StrToList(to)
+
+        if html:
+            data['html'] = message.encode('utf-8').strip()
+        else:
+            data['text'] = message.encode('utf-8').strip()
+
+        if campaign:
+            data['o:campaign'] = campaign
+
 
         if self.current_user:
             name = self.current_user.get('name') if self.current_user.get('name') else ''
             email = self.current_user.get('email') if self.current_user.get('email') else 'no-reply@entu.ee'
-            from_email = '%s <%s>' % (name, email)
+            data['from'] = u'%s <%s>' % (name, email)
         else:
-            from_email = 'no-reply@entu.ee'
+            data['from'] = 'no-reply@entu.ee'
 
         http_client = httpclient.HTTPClient()
         response = http_client.fetch('https://api.mailgun.net/v2/%s/messages' % self.app_settings('auth-mailgun', '\n').split('\n')[0],
             method = 'POST',
             auth_username = 'api',
             auth_password = self.app_settings('auth-mailgun', '\n').split('\n')[1],
-            body = urllib.urlencode({
-                'from'    : from_email.encode('utf-8'),
-                'to'      : to,
-                'subject' : subject.encode('utf-8').strip(),
-                'text'    : message.encode('utf-8').strip()
-            }, True)
+            body = urllib.urlencode(data, True)
         )
         return json.loads(response.body)
 
