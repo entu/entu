@@ -537,3 +537,60 @@ class Entity2():
             paths[i.public_path] = i.label
         return paths
 
+
+    def set_entity_right(self, entity_id, related_entity_id, right=None):
+        if right and right not in ['viewer', 'expander', 'editor', 'owner']:
+            return
+
+        if not self.__user_id:
+            return
+
+        if not entity_id:
+            return
+
+        if not related_entity_id:
+            return
+
+        if not self.db.get("""
+                SELECT entity_id
+                FROM relationship
+                WHERE relationship_definition_keyname = 'owner'
+                AND entity_id = %s
+                AND related_entity_id = %s
+                AND is_deleted = 0
+            """,
+            entity_id,
+            self.__user_id
+        ):
+            return
+
+        self.db.execute(
+            """
+                UPDATE relationship SET
+                    is_deleted = 1,
+                    deleted = NOW(),
+                    deleted_by = %s
+                WHERE entity_id = %s
+                AND related_entity_id = %s
+                AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner');
+            """,
+            self.__user_id,
+            entity_id,
+            related_entity_id
+        )
+
+        if right:
+            self.db.execute(
+                """
+                    INSERT INTO relationship SET
+                    created = NOW(),
+                    created_by = %s,
+                    entity_id = %s,
+                    related_entity_id = %s,
+                    relationship_definition_keyname = %s;
+                """,
+                self.__user_id,
+                entity_id,
+                related_entity_id,
+                right
+            )

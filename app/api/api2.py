@@ -125,7 +125,14 @@ class API2Entity(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        entity = self.get_entities(entity_id=entity_id, limit=1)
+        try:
+            entity = self.get_entities(entity_id=entity_id, limit=1)
+        except Exception, e:
+            return self.json({
+                'error': 'Something is wrong here!',
+                'time': round(self.request.request_time(), 3),
+            }, 500)
+
         if not entity:
             return self.json({
                 'error': 'Entity with given ID is not found!',
@@ -166,14 +173,27 @@ class API2Entity(myRequestHandler, Entity):
         for dataproperty, value in self.request.arguments.iteritems():
             if dataproperty in ['user', 'policy', 'signature']:
                 continue
+
+            if '.' in dataproperty:
+                property_definition_keyname = dataproperty.split('.')[0]
+                old_property_id = dataproperty.split('.')[1]
+            else:
+                property_definition_keyname = dataproperty
+                old_property_id = None
+
             if type(value) is not list:
                 value = [value]
+
+            new_properties = {}
             for v in value:
-                new_property_id = self.set_property(entity_id=entity_id, property_definition_keyname=dataproperty, value=v)
+                new_property_id = self.set_property(entity_id=entity_id, old_property_id=old_property_id, property_definition_keyname=property_definition_keyname, value=v)
+                if new_property_id:
+                    new_properties.setdefault(property_definition_keyname, []).append({'id': new_property_id, 'value': v})
 
         self.json({
             'result': {
                 'id': entity_id,
+                'properties': new_properties
             },
             'time': round(self.request.request_time(), 3),
         }, 201)
@@ -413,8 +433,8 @@ class API2FileUpload(myRequestHandler, Entity):
         #         'time': round(self.request.request_time(), 3),
         #     }, 404)
 
-        dataproperty = self.get_argument('property', default=None, strip=True)
-        if not dataproperty:
+        property_definition_keyname = self.get_argument('property', default=None, strip=True)
+        if not property_definition_keyname:
             return self.json({
                 'error': 'No property!',
                 'time': round(self.request.request_time(), 3),
@@ -427,9 +447,15 @@ class API2FileUpload(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        new_property_id = self.set_property(entity_id=entity_id, property_definition_keyname=dataproperty, value={'filename': filename, 'body': uploaded_file, 'is_link': 0})
+        new_property_id = self.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value={'filename': filename, 'body': uploaded_file, 'is_link': 0})
+        if new_property_id:
+            properties = {property_definition_keyname: [{'id': new_property_id, 'value': filename}]}
 
         self.json({
+            'result': {
+                'id': entity_id,
+                'properties': properties
+            },
             'time': round(self.request.request_time(), 3),
         })
 
@@ -493,6 +519,43 @@ class API2EntityPicture(myRequestHandler, Entity2):
         else:
             return self.redirect('https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest()))
 
+
+
+
+class API2EntityRights(myRequestHandler, Entity2):
+    def post(self, entity_id):
+        if not self.current_user:
+            return self.json({
+                'error': 'Forbidden!',
+                'time': round(self.request.request_time(), 3),
+            }, 403)
+
+        if not entity_id:
+            return self.json({
+                'error': 'No entity ID!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        right = self.get_argument('right', default=None, strip=True)
+        if right and right not in ['viewer', 'expander', 'editor', 'owner']:
+            return self.json({
+                'error': 'Right type must be set!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        related_entity_id = self.get_argument('entity', default=None, strip=True)
+        if not related_entity_id:
+            return self.json({
+                'error': 'Entity ID must be set!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        response = self.set_entity_right(entity_id=entity_id, related_entity_id=related_entity_id, right=right)
+
+        self.json({
+            'result': response,
+            'time': round(self.request.request_time(), 3),
+        })
 
 
 
@@ -683,6 +746,7 @@ handlers = [
     (r'/api2/entity-(.*)/childs', API2EntityChilds),
     (r'/api2/entity-(.*)/referrals', API2EntityReferrals),
     (r'/api2/entity-(.*)/picture', API2EntityPicture),
+    (r'/api2/entity-(.*)/rights', API2EntityRights),
     (r'/api2/entity-(.*)/share', API2EntityShare),
     (r'/api2/entity-(.*)', API2Entity),
     (r'/api2/file', API2FileUpload),

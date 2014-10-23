@@ -359,7 +359,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
             if self.request.method in ['POST', 'PUT'] and self.request.headers.get('Content-Type', '').startswith('application/json'):
                 arguments = self.request.arguments if self.request.arguments else {}
                 for key, value in json.loads(self.request.body).iteritems():
-                    arguments.setdefault(key, []).append(value)
+                    arguments.setdefault(key, []).append('%s' % value)
                 self.request.arguments = arguments
 
             self.__request_id = self.db.execute_lastrowid('INSERT INTO requestlog SET date = NOW(), port = %s, method = %s, url = %s, arguments = %s, user_id = %s, ip = %s, browser = %s;',
@@ -441,6 +441,11 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
             self.add_header('Access-Control-Allow-Origin', allow_origin)
         self.add_header('Content-Type', 'application/json')
         self.write(json.dumps(dictionary, cls=JSONDateFix))
+
+    def options(self, abc=None, **kwargs):
+        self.add_header('Access-Control-Allow-Origin', '*')
+        self.add_header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+        self.add_header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE');
 
     def forbidden(self):
         """
