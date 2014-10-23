@@ -1,3 +1,9 @@
+## 2014-10-23
+* API2 enhancements:
+  * Entity rights management
+  * Custom e-mail sending
+* Markdown table support in text fields
+
 ## 2014-09-29
 * CMDI-XML object importer
 * Removed ScreenWerk player from Entu (to separate project)
