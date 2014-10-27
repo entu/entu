@@ -1,3 +1,7 @@
+## 2014-10-27
+* Entity delete API2 method
+* Maximum file size increased from 100MB to 1GB
+
 ## 2014-10-23
 * API2 enhancements:
   * Entity rights management
