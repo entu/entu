@@ -292,6 +292,19 @@ class Entity():
             """, new_entity_id, self.__user_id, entity_id)
 
     def delete_entity(self, entity_id):
+        if not self.db.get("""
+                SELECT entity_id
+                FROM relationship
+                WHERE relationship_definition_keyname = 'editor'
+                AND entity_id = %s
+                AND related_entity_id = %s
+                AND is_deleted = 0;
+            """,
+            entity_id,
+            self.__user_id
+        ):
+            return
+
         for child_id in self.get_relatives(ids_only=True, entity_id=entity_id, relationship_definition_keyname='child'):
             self.delete_entity(child_id)
 
@@ -299,6 +312,8 @@ class Entity():
 
         # remove "contains" information
         self.db.execute('DELETE FROM dag_entity WHERE entity_id = %s OR related_entity_id = %s;', entity_id, entity_id)
+
+        return True
 
     def set_property(self, entity_id=None, relationship_id=None, property_definition_keyname=None, value=None, old_property_id=None, uploaded_file=None):
         """

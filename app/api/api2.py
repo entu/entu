@@ -253,7 +253,25 @@ class API2Entity(myRequestHandler, Entity):
         #
         # Delete entity (with given ID)
         #
-        pass
+        if not entity_id:
+            return self.json({
+                'error': 'No entity ID!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        result = self.delete_entity(entity_id=entity_id)
+        if not result:
+            return self.json({
+                'error': 'Forbidden!',
+                'time': round(self.request.request_time(), 3),
+            }, 403)
+
+        self.json({
+            'result': {
+                'id': entity_id,
+            },
+            'time': round(self.request.request_time(), 3),
+        })
 
 
 
