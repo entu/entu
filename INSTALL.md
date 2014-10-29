@@ -2,7 +2,8 @@ apt-get install ufw
 apt-get install nginx  
 apt-get install python-dev  
 apt-get install python-pip  
-apt-get install mysql-server mysql-client  
+apt-get install mysql-server  
+apt-get install mysql-client  
 apt-get install python-mysqldb  
 apt-get install python-imaging  
 apt-get install supervisor  
@@ -10,6 +11,7 @@ apt-get install ntp
 
 pip install beautifulsoup4  
 pip install chardet  
+pip install python-dateutil  
 pip install mistune  
 pip install ply  
 pip install PyYAML  
