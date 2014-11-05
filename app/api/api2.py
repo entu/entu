@@ -415,27 +415,31 @@ class API2FileUpload(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 403)
 
-        uploaded_file = self.request.body
+        if self.request.headers.get('Content-Type', '').startswith('multipart/form-data'):
+            uploaded_file = self.request.files.get('file', [{}])[0].body
+        else:
+            uploaded_file = self.request.body
+
         if not uploaded_file:
             return self.json({
                 'error': 'No file!',
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        try:
-            file_size = int(self.request.headers.get('Content-Length', 0))
-        except Exception:
-            return self.json({
-                'error': 'Content-Length header not set!',
-                'time': round(self.request.request_time(), 3),
-            }, 403)
+        if not self.request.headers.get('Content-Type', '').startswith('multipart/form-data'):
+            try:
+                file_size = int(self.request.headers.get('Content-Length', 0))
+            except Exception:
+                return self.json({
+                    'error': 'Content-Length header not set!',
+                    'time': round(self.request.request_time(), 3),
+                }, 403)
 
-        if file_size != len(uploaded_file):
-            logging.debug(len(uploaded_file))
-            return self.json({
-                'error': 'File not complete!',
-                'time': round(self.request.request_time(), 3),
-            }, 400)
+            if file_size != len(uploaded_file):
+                return self.json({
+                    'error': 'File not complete!',
+                    'time': round(self.request.request_time(), 3),
+                }, 400)
 
         entity_id = self.get_argument('entity', default=None, strip=True)
         if not entity_id:
