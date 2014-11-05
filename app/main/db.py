@@ -295,7 +295,7 @@ class Entity():
         if not self.db.get("""
                 SELECT entity_id
                 FROM relationship
-                WHERE relationship_definition_keyname = 'editor'
+                WHERE relationship_definition_keyname IN ('editor', 'owner')
                 AND entity_id = %s
                 AND related_entity_id = %s
                 AND is_deleted = 0;
@@ -341,9 +341,10 @@ class Entity():
         if not value:
             return
 
+        value_display = None
+
         if definition.formula == 1:
             field = 'value_formula'
-            value_display = None
         elif definition.datatype == 'text':
             field = 'value_text'
             value_display = '%s' % value
