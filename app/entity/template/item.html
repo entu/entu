@@ -25,6 +25,12 @@
 <div class="pull-right" style="margin:0px 0px 20px 0px; width:120px; text-align:center; text-transform:uppercase; color:#B9B9B9; font-weight:bold;">
     <img src="/api2/entity-{{ entity.get('id') }}/picture" id="entity_picture" class="" width="120" style="padding-bottom:4px; width:120px;" /><br />
     {{ entity['label'] }}
+    {% if public_path %}
+        <br />
+        <a class="no-underline" href="/public-{{ public_path[0].public_path }}/entity-{{ entity.get('id') }}" style="display:block; padding:0px 8px;">
+            <b>{{ _('public_link') }}</b>
+        </a>
+    {% end %}
 </div>
 <h3 style="margin:0px 140px 8px 0px; line-height:23px;">{{ entity['displayname'] }}</h3>
 <div style="margin-right:140px;">

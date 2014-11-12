@@ -1515,6 +1515,24 @@ class Entity():
             paths[i.public_path] = self.__get_system_translation(field='public', entity_definition_keyname=i.keyname)
         return paths
 
+    def get_public_path(self, entity_id):
+        """
+        Returns public path for entity
+        Returns False, if public path does not exist
+
+        """
+
+        path = self.db.query('''SELECT ed.public_path
+FROM entity e
+LEFT JOIN entity_definition ed ON ed.keyname = e.entity_definition_keyname
+WHERE e.id = %s
+AND e.is_deleted = 0
+AND ed.is_deleted = 0
+AND e.sharing = 'public'
+AND ed.public_path IS NOT NULL
+''' % entity_id)
+        return path
+
     def get_menu(self):
         """
         Returns user menu.

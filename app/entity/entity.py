@@ -136,6 +136,7 @@ class ShowEntity(myRequestHandler, Entity):
             allowed_childs = allowed_childs,
             allowed_parents = allowed_parents,
             add_definitions = add_definitions,
+            public_path = self.get_public_path(entity_id),
         )
 
 
