@@ -27,7 +27,7 @@
     {{ entity['label'] }}
     {% if public_path %}
         <br />
-        <a class="no-underline" href="/public-{{ public_path[0].public_path }}/entity-{{ entity.get('id') }}" style="display:block; text-transform:none; font-weight:normal; padding:0px 8px;">
+        <a class="no-underline" href="/public-{{ public_path[0].public_path }}/entity-{{ entity.get('id') }}" title="/public-{{ public_path[0].public_path }}/entity-{{ entity.get('id') }}" style="display:block; text-transform:none; font-weight:normal; padding:0px 8px;">
             {{ _('public_link') }}
         </a>
     {% end %}
