@@ -72,7 +72,7 @@ share_send,Saada
 
 confirm_parent_delete,Seos objektiga '%s' kustutatakse.
 
-public_link,Avalik link
+public_link,Avalik viide
 
 rights_public,Public on the web
 rights_public_desc,Anyone on the Internet can access and view public properties. No sign-in required.
