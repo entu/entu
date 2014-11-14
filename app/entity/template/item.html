@@ -40,7 +40,7 @@
                 {% if p['visible'] and (p.get('values') or p['mandatory']) %}
                     <tr>
                         <th style="text-align:right; min-width:200px;{%if not p['public'] %} color:gray;{% end %}">
-                            {{ p['label'] }}
+                            {%if len(p.get('values')) > 1 %}{{ p['label_plural'] }}{% else %}{{ p['label'] }}{% end %}
                         </th>
                         <td style="width:100%;{%if not p['public'] %} color:gray;{% end %}">
                             {% if p['datatype'] == 'file' %}
