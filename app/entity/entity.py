@@ -65,7 +65,8 @@ class ShowTableView(myRequestHandler, Entity):
     @web.authenticated
     def post(self, entity_definition_keyname=None):
         search = self.get_argument('q', None, True)
-        entities = self.get_entities(search=search, entity_definition_keyname=entity_definition_keyname, full_definition=True, limit=101)
+        limit = self.app_settings('tablepagesize', 101)
+        entities = self.get_entities(search=search, entity_definition_keyname=entity_definition_keyname, full_definition=True, limit=limit)
 
         self.render('entity/template/table.html',
             entities = entities,
