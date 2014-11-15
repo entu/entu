@@ -1,3 +1,9 @@
+## 2014-11-15
+* Added publink to entity view
+* Table-view limit is now configurable
+* Mltipart/form-data file upload on API2
+* Small fixes
+
 ## 2014-10-27
 * Entity delete API2 method
 * Maximum file size increased from 100MB to 1GB
