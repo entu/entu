@@ -383,7 +383,10 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
                 for key, value in json.loads(self.request.body).iteritems():
                     arguments.setdefault(key, []).append('%s' % value)
                 self.request.arguments = arguments
+        except Exception, e:
+            logging.error('Reguest arguments error: %s' % e)
 
+        try:
             self.__request_id = self.db.execute_lastrowid('INSERT INTO requestlog SET date = NOW(), port = %s, method = %s, url = %s, arguments = %s, user_id = %s, ip = %s, browser = %s;',
                 self.settings['port'],
                 self.request.method,
@@ -394,7 +397,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
                 self.request.headers.get('User-Agent', None)
             )
         except Exception, e:
-            logging.error('Reguest prepare error: %s' % e)
+            logging.error('Reguest logging error: %s' % e)
 
 
     def on_finish(self):

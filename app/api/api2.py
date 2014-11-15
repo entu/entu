@@ -472,6 +472,8 @@ class API2FileUpload(myRequestHandler, Entity):
         new_property_id = self.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value={'filename': filename, 'body': uploaded_file, 'is_link': 0})
         if new_property_id:
             properties = {property_definition_keyname: [{'id': new_property_id, 'value': filename}]}
+        else:
+            properties = None
 
         self.json({
             'result': {
