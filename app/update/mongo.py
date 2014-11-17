@@ -13,12 +13,12 @@ from operator import itemgetter
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--database-host',     required = True)
-parser.add_argument('--database-name',     required = True)
-parser.add_argument('--database-user',     required = True)
-parser.add_argument('--database-password', required = True)
-parser.add_argument('--customergroup',     required = False, default = '0')
-parser.add_argument('-v', '--verbose',     action = 'count', default = 0)
+parser.add_argument('--host', default = '127.0.0.1')
+parser.add_argument('--database', required = True)
+parser.add_argument('--user', required = True)
+parser.add_argument('--password', required = True)
+parser.add_argument('--customergroup', required = False, default = '0')
+parser.add_argument('-v', '--verbose', action = 'count', default = 0)
 args = parser.parse_args()
 
 
@@ -28,10 +28,10 @@ sys.setdefaultencoding('UTF-8')
 
 def customers():
     db = torndb.Connection(
-        host     = args.database_host,
-        database = args.database_name,
-        user     = args.database_user,
-        password = args.database_password,
+        host     = args.host,
+        database = args.database,
+        user     = args.user,
+        password = args.password,
     )
 
     sql = """
@@ -226,11 +226,12 @@ class MySQL2MongoDB():
                 WHERE pd.keyname = p.property_definition_keyname
                 AND p.entity_id = %s
                 AND p.is_deleted = 0
+                AND pd.keyname NOT LIKE 'customer-database-%%'
                 -- LIMIT 1000;
-            """ % mysql_id
+            """
 
             properties = {}
-            for r2 in self.db.query(sql):
+            for r2 in self.db.query(sql, mysql_id):
 
                 value = None
                 if r2.get('property_formula') == 1 and r2.get('value_formula'):
@@ -288,7 +289,7 @@ class MySQL2MongoDB():
                     e['_search'][l] = list(set(e['_search'][l]))
 
             #Create or replace Mongo object
-            mongo_entity = self.mongo_collection.find_one({'_mysql.id': mysql_id, '_mysql.db': self.db_name}, {'_id': True})
+            mongo_entity = self.mongo_collection.find_one({'_mysql.id': '%s' % mysql_id, '_mysql.db': self.db_name}, {'_id': True})
             if mongo_entity:
                 id = self.mongo_collection.update({'_id': mongo_entity.get('_id')}, e)
                 if args.verbose > 3: print '%s -> %s (update)' % (mysql_id, mongo_entity.get('_id'))
