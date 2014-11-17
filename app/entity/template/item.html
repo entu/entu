@@ -39,10 +39,10 @@
             {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
                 {% if p['visible'] and (p.get('values') or p['mandatory']) %}
                     <tr>
-                        <th style="text-align:right; min-width:200px;{%if not p['public'] %} color:gray;{% end %}">
-                            {%if len(p.get('values')) > 1 %}{{ p['label_plural'] }}{% else %}{{ p['label'] }}{% end %}
+                        <th style="text-align:right; min-width:200px;{%if not p['public'] %} color:gray;{% end %}{%if p['mandatory'] and not p.get('values') %} background-color:#fff5f5;{% end %}">
+                            {%if p.get('values') and len(p.get('values')) > 1 %}{{ p['label_plural'] }}{% else %}{{ p['label'] }}{% end %}
                         </th>
-                        <td style="width:100%;{%if not p['public'] %} color:gray;{% end %}">
+                        <td style="width:100%;{%if not p['public'] %} color:gray;{% end %}{%if p['mandatory'] and not p.get('values') %} background-color:#fff5f5;{% end %}">
                             {% if p['datatype'] == 'file' %}
                                 {{ '<br />'.join(['<a href="/entity/file-%s" target="_blank">%s</a>' % (v.get('db_value'), v.get('value')) for v in p.get('values', []) if v]) }}
                                 {% if len(p.get('values', [])) > 1 %}
