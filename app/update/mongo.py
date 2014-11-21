@@ -371,7 +371,7 @@ class MySQL2MongoDB():
         for r in rows:
             db_file = self.db.get('SELECT MD5(file.file) AS md5, file.file FROM file WHERE id = %s LIMIT 1;', r.get('id'))
 
-            directory = os.path.join(self.db_name, db_file.get('md5')[0])
+            directory = os.path.join('/', 'entu', 'files', self.db_name, db_file.get('md5')[0])
             filename = os.path.join(directory, db_file.get('md5'))
 
             if not os.path.exists(directory):
@@ -379,6 +379,8 @@ class MySQL2MongoDB():
             f = open(filename, 'w')
             f.write(db_file.get('file'))
             f.close()
+
+            self.execute('UPDATE file SET md5 = %s WHERE id = %s LIMIT 1;', db_file.get('md5'), r.get('id'))
 
         self.stats['files_time'] = round((time.time() - t) / 60, 2)
         # self.stats['files_speed'] = round(rows.count() / (time.time() - t), 2)

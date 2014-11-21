@@ -157,35 +157,35 @@ class DownloadFile(myRequestHandler, Entity):
             return self.missing()
 
         if len(files) > 1:
-            f = StringIO()
-            zf = zipfile.ZipFile(f, 'w', zipfile.ZIP_DEFLATED)
+            sf = StringIO()
+            zf = zipfile.ZipFile(sf, 'w', zipfile.ZIP_DEFLATED)
             links = []
-            for file in files:
-                if file.file:
-                    if file.is_link == 1:
-                        links.append('<a href="%s" target="_blank">%s</a>' % (file.file, file.filename.encode('utf-8')))
+            for f in files:
+                if f.get('file'):
+                    if f.get('is_link') == 1:
+                        links.append('<a href="%s" target="_blank">%s</a>' % (f.get('file'), f.get('filename').encode('utf-8')))
                     else:
-                        zf.writestr('files/%s' % file.filename, file.file)
-                        links.append('<a href="%s" target="_blank">%s</a>' % ('files/%s' % file.filename.encode('utf-8'), file.filename.encode('utf-8')))
+                        zf.writestr('files/%s' % f.get('filename'), f.get('file'))
+                        links.append('<a href="%s" target="_blank">%s</a>' % ('files/%s' % f.get('filename').encode('utf-8'), f.get('filename').encode('utf-8')))
             if links:
                 linksfile = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<style type="text/css">body {margin:50px 100px; font-family:sans-serif; font-size:13px;} a {display: block; margin-top:10px;}</style>\n</head>\n<body>\n%s\n</body>\n</html>' % '\n'.join(links)
                 zf.writestr('index.html', linksfile)
             zf.close()
             mime = 'application/octet-stream'
             filename = '%s.zip' % file_ids
-            outfile = f.getvalue()
+            outfile = sf.getvalue()
         else:
-            file = files[0]
-            if not file.file:
+            f = files[0]
+            if not f.get('file'):
                 return self.missing()
-            if file.is_link == 1:
-                return self.redirect(file.file)
+            if f.get('is_link') == 1:
+                return self.redirect(f.get('file'))
 
             mimetypes.init()
-            mime = mimetypes.types_map.get('.%s' % file.filename.lower().split('.')[-1], 'application/octet-stream')
+            mime = mimetypes.types_map.get('.%s' % f.get('filename').lower().split('.')[-1], 'application/octet-stream')
 
-            filename = file.filename
-            outfile = file.file
+            filename = f.get('filename')
+            outfile = f.get('file')
 
         self.add_header('Content-Type', mime)
         self.add_header('Content-Disposition', 'inline; filename="%s"' % filename)
@@ -582,9 +582,9 @@ class DownloadEntity(myRequestHandler, Entity):
                 for f in self.get_file([x.get('db_value') for x in p.get('values', []) if x.get('db_value')]):
                     result.append({
                         'path': '%s/%s' % (path, p.get('label_plural', p.get('label', p.get('keyname',''))).replace('/', '_')),
-                        'name': f.filename,
+                        'name': f.get('filename'),
                         'date': f.get('created').timetuple() if f.get('created') else time.localtime(time.time()),
-                        'file': f.file
+                        'file': f.get('file')
                     })
 
         result.append({

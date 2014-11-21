@@ -375,23 +375,23 @@ class API2File(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 404)
 
-        if not files[0].file:
+        if not files[0].get('file'):
             return self.json({
                 'error': 'No file!',
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        if files[0].is_link == 1:
-            return self.redirect(files[0].file)
+        if files[0].get('is_link') == 1:
+            return self.redirect(files[0].get('file'))
 
         mimetypes.init()
-        mime = mimetypes.types_map.get('.%s' % files[0].filename.lower().split('.')[-1], 'application/octet-stream')
+        mime = mimetypes.types_map.get('.%s' % files[0].get('filename').lower().split('.')[-1], 'application/octet-stream')
 
-        filename = files[0].filename
+        filename = files[0].get('filename')
 
         self.add_header('Content-Type', mime)
         self.add_header('Content-Disposition', 'inline; filename="%s"' % filename)
-        self.write(files[0].file)
+        self.write(files[0].get('file'))
 
     @web.removeslash
     def delete(self, file_id=None):

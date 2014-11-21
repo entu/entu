@@ -3,6 +3,7 @@ from tornado import locale
 from operator import itemgetter
 from datetime import datetime
 
+import os
 import random
 import string
 import hashlib
@@ -370,9 +371,24 @@ class Entity():
                 value_display = self.__get_properties(entity_id=value)[0]['displayname']
         elif definition.datatype == 'file':
             uploaded_file = value
-            value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, filesize = %s, file = %s, is_link = %s, created_by = %s, created = NOW();', uploaded_file.get('filename', ''), len(uploaded_file.get('body', '')), uploaded_file.get('body', ''), uploaded_file.get('is_link', 0), self.__user_id)
             field = 'value_file'
             value_display = uploaded_file['filename'][:500]
+
+            if uploaded_file.get('is_link'):
+                value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, filesize = %s, file = %s, is_link = %s, created_by = %s, created = NOW();', uploaded_file.get('filename', ''), len(uploaded_file.get('body', '')), uploaded_file.get('body', ''), uploaded_file.get('is_link', 0), self.__user_id)
+            else:
+                md5 = hashlib.md5(uploaded_file.get('body')).hexdigest()
+                directory = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), md5[0])
+                filename = os.path.join(directory, md5)
+
+                if not os.path.exists(directory):
+                    os.makedirs(directory)
+                f = open(filename, 'w')
+                f.write(uploaded_file.get('body', ''))
+                f.close()
+
+                value = self.db.execute_lastrowid('INSERT INTO file SET md5 = %s, filename = %s, filesize = %s, is_link = 0, created_by = %s, created = NOW();', md5, uploaded_file.get('filename', ''), len(uploaded_file.get('body', '')), self.__user_id)
+
         elif definition.datatype == 'boolean':
             field = 'value_boolean'
             value = 1 if value.lower() == 'true' else 0
@@ -1362,6 +1378,7 @@ class Entity():
         sql = """
             SELECT DISTINCT
                 f.id,
+                f.md5,
                 f.created,
                 f.file,
                 f.filename,
@@ -1378,7 +1395,24 @@ class Entity():
             """ % {'file_id': ','.join(map(str, file_id)), 'user_where': user_where}
         # logging.debug(sql)
 
-        return self.db.query(sql)
+        result = []
+        for f in self.db.query(sql):
+            if not f.is_link and not f.file:
+                filename = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), f.md5[0], f.md5)
+                with open(filename, 'r') as myfile:
+                    filecontent = myfile.read()
+            else:
+                filecontent = f.file
+
+            result.append({
+                'id': f.id,
+                'created': f.created,
+                'file': filecontent,
+                'filename': f.filename,
+                'is_link': f.is_link
+            })
+
+        return result
 
     def get_allowed_childs(self, entity_id):
         """

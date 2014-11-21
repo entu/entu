@@ -627,46 +627,6 @@ class SaveProperties(myRequestHandler, Entity):
         self.write(json.dumps(property_id_list, cls=JSONDateFix))
 
 
-class GetFile(myRequestHandler, Entity):
-    @web.authenticated
-    def get(self):
-        """
-        Returns file using file_id.
-
-        get_file?file_id=$file_id
-
-        $file_id = (int)
-
-
-        Parameters:
-
-            file_id (REQUIRED) - ID of the desired file
-
-
-        Returns:
-
-            file
-
-        """
-
-        file_id = self.get_argument('file_id', default=None, strip=True)
-
-        if not file_id:
-            raise web.HTTPError(400,'file_id required')
-
-        # file = db.Entity(user_locale=self.get_user_locale()).get_file(file_id)
-
-        if not file:
-            return self.missing()
-
-        mimetypes.init()
-        mime = mimetypes.types_map.get('.%s' % file.filename.lower().split('.')[-1], 'application/octet-stream')
-
-        self.add_header('Content-Type', mime)
-        self.add_header('Content-Disposition', 'attachment; filename="%s"' % file.filename)
-        self.write(file.file)
-
-
 class GetSession(myRequestHandler, Entity):
     """
 
@@ -697,7 +657,6 @@ handlers = [
     ('/api/exit',Logout),
     ('/api/get_entity', GetEntity),
     ('/api/get_entity_list', GetEntityList),
-    ('/api/get_file',GetFile),
     ('/api/get_entity_definition', GetEntityDefinition),
     ('/api/get_allowed_chils',GetAllowedChildren),
     # ('/api/save_property', SaveProperty),
