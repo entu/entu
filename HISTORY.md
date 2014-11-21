@@ -1,3 +1,6 @@
+## 2014-11-21
+* Store uploaded files on disk (and not in DB)
+
 ## 2014-11-15
 * Added publink to entity view
 * Table-view limit is now configurable
