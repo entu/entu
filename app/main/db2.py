@@ -1,5 +1,6 @@
 from operator import itemgetter
 
+import os
 import logging
 
 
@@ -377,6 +378,7 @@ class Entity2():
             SELECT
                 entity.entity_definition_keyname AS definition,
                 file.id AS file_id,
+                file.md5,
                 file.file,
                 file.thumbnail
             FROM entity
@@ -407,7 +409,14 @@ class Entity2():
         if not f:
             return
 
-        return {'definition': f.definition, 'id': f.file_id, 'file': f.file, 'thumbnail': f.thumbnail}
+        if not f.file:
+            filename = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), f.md5[0], f.md5)
+            with open(filename, 'r') as myfile:
+                filecontent = myfile.read()
+        else:
+            filecontent = f.file
+
+        return {'definition': f.definition, 'id': f.file_id, 'file': filecontent, 'thumbnail': f.thumbnail}
 
 
     def set_file_thumbnail(self, file_id, thumbnail):
