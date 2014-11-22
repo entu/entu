@@ -1397,7 +1397,7 @@ class Entity():
 
         result = []
         for f in self.db.query(sql):
-            if not f.is_link and not f.file:
+            if f.md5 and not f.is_link and not f.file:
                 filename = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), f.md5[0], f.md5)
                 with open(filename, 'r') as myfile:
                     filecontent = myfile.read()

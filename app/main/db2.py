@@ -386,6 +386,7 @@ class Entity2():
                 SELECT
                     p.entity_id,
                     f.id,
+                    f.md5,
                     f.file,
                     f.thumbnail
                 FROM
@@ -409,7 +410,7 @@ class Entity2():
         if not f:
             return
 
-        if not f.file:
+        if f.md5 and not f.file:
             filename = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), f.md5[0], f.md5)
             with open(filename, 'r') as myfile:
                 filecontent = myfile.read()
