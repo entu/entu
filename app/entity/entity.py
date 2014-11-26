@@ -162,8 +162,8 @@ class DownloadFile(myRequestHandler, Entity):
             links = []
             for f in files:
                 if f.get('file'):
-                    if f.get('is_link') == 1:
-                        links.append('<a href="%s" target="_blank">%s</a>' % (f.get('file'), f.get('filename').encode('utf-8')))
+                    if f.get('url'):
+                        links.append('<a href="%s" target="_blank">%s</a>' % (f.get('url'), f.get('filename').encode('utf-8')))
                     else:
                         zf.writestr('files/%s' % f.get('filename'), f.get('file'))
                         links.append('<a href="%s" target="_blank">%s</a>' % ('files/%s' % f.get('filename').encode('utf-8'), f.get('filename').encode('utf-8')))
@@ -178,8 +178,8 @@ class DownloadFile(myRequestHandler, Entity):
             f = files[0]
             if not f.get('file'):
                 return self.missing()
-            if f.get('is_link') == 1:
-                return self.redirect(f.get('file'))
+            if f.get('url'):
+                return self.redirect(f.get('url'))
 
             mimetypes.init()
             mime = mimetypes.types_map.get('.%s' % f.get('filename').lower().split('.')[-1], 'application/octet-stream')
@@ -304,7 +304,7 @@ class SaveEntity(myRequestHandler, Entity):
                 if external_download:
                     httpclient.AsyncHTTPClient().fetch(link, method = 'GET', request_timeout = 3600, callback=self._got_external_file)
                 else:
-                    self.new_property_id = self.set_property(entity_id=self.entity_id, property_definition_keyname=self.property_definition_keyname, value={'filename': filename, 'body': link, 'is_link': 1})
+                    self.new_property_id = self.set_property(entity_id=self.entity_id, property_definition_keyname=self.property_definition_keyname, value={'filename': filename, 'url': link})
             if external_download:
                 return
         else:

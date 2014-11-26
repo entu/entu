@@ -62,7 +62,7 @@ def customers():
             AND entity.is_deleted = 0
             AND relationship.is_deleted = 0
             AND relationship.relationship_definition_keyname = 'child'
-            AND relationship.entity_id IN (%s)
+            -- AND relationship.entity_id IN (%s)
         ) AS e
         LEFT JOIN property_definition ON property_definition.entity_definition_keyname = e.entity_definition_keyname AND property_definition.dataproperty IN ('database-host', 'database-name', 'database-user', 'database-password') AND property_definition.is_deleted = 0
         LEFT JOIN property ON property.property_definition_keyname = property_definition.keyname AND property.entity_id = e.id AND property.is_deleted = 0
@@ -72,9 +72,30 @@ def customers():
     customers = {}
     for c in db.query(sql):
         if c.property in ['database-host', 'database-name', 'database-user', 'database-password']:
+            if not c.value or not c.property:
+                continue
             customers.setdefault(c.entity, {})[c.property] = c.value
 
-    return sorted(customers.values(), key=itemgetter('database-name'))
+    result = []
+    for c, p in customers.iteritems():
+        if not p.get('database-host') or not p.get('database-name') or not p.get('database-user') or not p.get('database-password'):
+            continue
+
+        try:
+            db = torndb.Connection(
+                host     = p.get('database-host'),
+                database = p.get('database-name'),
+                user     = p.get('database-user'),
+                password = p.get('database-password'),
+            )
+            db.get('SELECT 1 FROM entity LIMIT 1;')
+        except Exception:
+            print p
+            continue
+
+        result.append(p)
+
+    return sorted(result, key=itemgetter('database-name'))
 
 
 
@@ -364,12 +385,16 @@ class MySQL2MongoDB():
     def files(self):
         t = time.time()
 
-        rows = self.db.query('SELECT file.id FROM file, property WHERE property.value_file = file.id AND is_link <> 1 AND file IS NOT NULL ORDER BY file.id;')
+        rows = self.db.query('SELECT file.id FROM file WHERE IFNULL(is_link, 0) <> 1 AND md5 IS NULL ORDER BY file.id;')
 
         if args.verbose > 0: print '%s transfer %s files' % (datetime.now(), len(rows))
 
         for r in rows:
-            db_file = self.db.get('SELECT MD5(file.file) AS md5, file.file FROM file WHERE id = %s LIMIT 1;', r.get('id'))
+            db_file = self.db.get('SELECT MD5(IFNULL(file.file,\'\')) AS md5, IFNULL(file.file, \'\') AS file FROM file WHERE id = %s LIMIT 1;', r.get('id'))
+            if not db_file:
+                continue
+            if not db_file.get('md5'):
+                continue
 
             directory = os.path.join('/', 'entu', 'files', self.db_name, db_file.get('md5')[0])
             filename = os.path.join(directory, db_file.get('md5'))
@@ -380,7 +405,11 @@ class MySQL2MongoDB():
             f.write(db_file.get('file'))
             f.close()
 
-            self.execute('UPDATE file SET md5 = %s WHERE id = %s LIMIT 1;', db_file.get('md5'), r.get('id'))
+            if args.verbose > 2: print '%s -> %s' % (r.get('id'), db_file.get('md5'))
+
+            self.db.execute('UPDATE file SET md5 = %s, file = NULL WHERE id = %s LIMIT 1;', db_file.get('md5'), r.get('id'))
+
+        self.db.execute('OPTIMIZE TABLE file;')
 
         self.stats['files_time'] = round((time.time() - t) / 60, 2)
         # self.stats['files_speed'] = round(rows.count() / (time.time() - t), 2)
@@ -439,9 +468,9 @@ for c in customers():
         db_user = c.get('database-user'),
         db_pass = c.get('database-password')
     )
-    m2m.transfer()
-    m2m.update()
-    # m2m.files()
+    # m2m.transfer()
+    # m2m.update()
+    m2m.files()
 
     print '%s %s ended' % (datetime.now(), c.get('database-name'))
     print '%s' % yaml.safe_dump(m2m.stats, default_flow_style=False, allow_unicode=True)

@@ -381,7 +381,7 @@ class API2File(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        if files[0].get('is_link') == 1:
+        if files[0].get('url'):
             return self.redirect(files[0].get('file'))
 
         mimetypes.init()
@@ -469,7 +469,7 @@ class API2FileUpload(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        new_property_id = self.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value={'filename': filename, 'body': uploaded_file, 'is_link': 0})
+        new_property_id = self.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value={'filename': filename, 'body': uploaded_file})
         if new_property_id:
             properties = {property_definition_keyname: [{'id': new_property_id, 'value': filename}]}
         else:

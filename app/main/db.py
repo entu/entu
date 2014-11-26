@@ -374,8 +374,8 @@ class Entity():
             field = 'value_file'
             value_display = uploaded_file['filename'][:500]
 
-            if uploaded_file.get('is_link'):
-                value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, filesize = %s, file = %s, is_link = %s, created_by = %s, created = NOW();', uploaded_file.get('filename', ''), len(uploaded_file.get('body', '')), uploaded_file.get('body', ''), uploaded_file.get('is_link', 0), self.__user_id)
+            if uploaded_file.get('url'):
+                value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, url = %s, created_by = %s, created = NOW();', uploaded_file.get('filename', ''), uploaded_file.get('url', ''), self.__user_id)
             else:
                 md5 = hashlib.md5(uploaded_file.get('body')).hexdigest()
                 directory = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), md5[0])
@@ -387,7 +387,7 @@ class Entity():
                 f.write(uploaded_file.get('body', ''))
                 f.close()
 
-                value = self.db.execute_lastrowid('INSERT INTO file SET md5 = %s, filename = %s, filesize = %s, is_link = 0, created_by = %s, created = NOW();', md5, uploaded_file.get('filename', ''), len(uploaded_file.get('body', '')), self.__user_id)
+                value = self.db.execute_lastrowid('INSERT INTO file SET md5 = %s, filename = %s, filesize = %s, created_by = %s, created = NOW();', md5, uploaded_file.get('filename', ''), len(uploaded_file.get('body', '')), self.__user_id)
 
         elif definition.datatype == 'boolean':
             field = 'value_boolean'
@@ -1379,10 +1379,9 @@ class Entity():
             SELECT DISTINCT
                 f.id,
                 f.md5,
-                f.created,
-                f.file,
                 f.filename,
-                f.is_link
+                f.url,
+                f.created
             FROM
                 file AS f,
                 property AS p,
@@ -1397,19 +1396,19 @@ class Entity():
 
         result = []
         for f in self.db.query(sql):
-            if f.md5 and not f.is_link and not f.file:
+            if f.md5:
                 filename = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), f.md5[0], f.md5)
                 with open(filename, 'r') as myfile:
                     filecontent = myfile.read()
             else:
-                filecontent = f.file
+                filecontent = None
 
             result.append({
                 'id': f.id,
                 'created': f.created,
                 'file': filecontent,
                 'filename': f.filename,
-                'is_link': f.is_link
+                'url': f.url
             })
 
         return result
