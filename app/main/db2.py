@@ -379,7 +379,6 @@ class Entity2():
                 entity.entity_definition_keyname AS definition,
                 file.id AS file_id,
                 file.md5,
-                file.file,
                 file.thumbnail
             FROM entity
             LEFT JOIN (
@@ -387,7 +386,6 @@ class Entity2():
                     p.entity_id,
                     f.id,
                     f.md5,
-                    f.file,
                     f.thumbnail
                 FROM
                     property AS p,
@@ -410,12 +408,12 @@ class Entity2():
         if not f:
             return
 
-        if f.md5 and not f.file:
+        if f.md5:
             filename = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), f.md5[0], f.md5)
             with open(filename, 'r') as myfile:
                 filecontent = myfile.read()
         else:
-            filecontent = f.file
+            filecontent = None
 
         return {'definition': f.definition, 'id': f.file_id, 'file': filecontent, 'thumbnail': f.thumbnail}
 
