@@ -176,7 +176,7 @@ class DownloadFile(myRequestHandler, Entity):
             outfile = sf.getvalue()
         else:
             f = files[0]
-            if not f.get('file'):
+            if not f.get('file') and not f.get('url'):
                 return self.missing()
             if f.get('url'):
                 return self.redirect(f.get('url'))
