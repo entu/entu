@@ -114,5 +114,5 @@ class myApplication(tornado.web.Application):
 if __name__ == '__main__':
     tornado.locale.load_translations(path.join(path.dirname(__file__), 'main', 'translation'))
     tornado.options.parse_command_line()
-    tornado.httpserver.HTTPServer(myApplication(), xheaders=True, max_body_size=1024*1024*1024).listen(options.port)
+    tornado.httpserver.HTTPServer(myApplication(), xheaders=True, max_body_size=1024*1024*1024*5).listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
