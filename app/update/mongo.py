@@ -382,39 +382,6 @@ class MySQL2MongoDB():
         self.stats['updates_speed'] = round(rows.count() / (time.time() - t), 2)
 
 
-    def files(self):
-        t = time.time()
-
-        rows = self.db.query('SELECT file.id FROM file WHERE IFNULL(is_link, 0) <> 1 AND md5 IS NULL ORDER BY file.id;')
-
-        if args.verbose > 0: print '%s transfer %s files' % (datetime.now(), len(rows))
-
-        for r in rows:
-            db_file = self.db.get('SELECT MD5(IFNULL(file.file,\'\')) AS md5, IFNULL(file.file, \'\') AS file FROM file WHERE id = %s LIMIT 1;', r.get('id'))
-            if not db_file:
-                continue
-            if not db_file.get('md5'):
-                continue
-
-            directory = os.path.join('/', 'entu', 'files', self.db_name, db_file.get('md5')[0])
-            filename = os.path.join(directory, db_file.get('md5'))
-
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-            f = open(filename, 'w')
-            f.write(db_file.get('file'))
-            f.close()
-
-            if args.verbose > 2: print '%s -> %s' % (r.get('id'), db_file.get('md5'))
-
-            self.db.execute('UPDATE file SET md5 = %s, file = NULL WHERE id = %s LIMIT 1;', db_file.get('md5'), r.get('id'))
-
-        self.db.execute('OPTIMIZE TABLE file;')
-
-        self.stats['files_time'] = round((time.time() - t) / 60, 2)
-        # self.stats['files_speed'] = round(rows.count() / (time.time() - t), 2)
-
-
     def __get_parent(self, entity_id, recursive=False):
         sql = """
             SELECT entity_id
@@ -468,9 +435,8 @@ for c in customers():
         db_user = c.get('database-user'),
         db_pass = c.get('database-password')
     )
-    # m2m.transfer()
-    # m2m.update()
-    m2m.files()
+    m2m.transfer()
+    m2m.update()
 
     print '%s %s ended' % (datetime.now(), c.get('database-name'))
     print '%s' % yaml.safe_dump(m2m.stats, default_flow_style=False, allow_unicode=True)
