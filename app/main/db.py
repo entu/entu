@@ -719,6 +719,51 @@ class Entity():
 
         return sharing_key
 
+    def get_users(self, search=None):
+        """
+        To return list of entities that have
+        'user' or 'entu-api-key' property.
+        """
+
+        query_re = ''
+        if search != None:
+            join_parts = []
+            for s in search.split(' ')[:5]:
+                if not s:
+                    continue
+                join_parts.append('AND sp.value_display REGEXP(\'%(qs)s\')' % {'qs': s})
+            query_re = ' '.join(join_parts)
+
+        sql = """
+            SELECT DISTINCT e.id AS id, sp.value_display, spd.*
+            FROM entity AS e
+            LEFT JOIN relationship AS r           ON r.entity_id  = e.id
+            LEFT JOIN property AS p               ON p.entity_id = e.id
+            RIGHT JOIN property_definition AS pd  ON p.property_definition_keyname = pd.keyname
+                                                 AND pd.dataproperty IN ('user','entu-api-key')
+            LEFT JOIN property AS sp              ON sp.entity_id = e.id
+%(query_re)s
+            LEFT JOIN property_definition AS spd ON spd.keyname = sp.property_definition_keyname
+                                                 AND spd.is_deleted = 0
+                                                 AND spd.search = 1
+            WHERE e.is_deleted = 0
+            AND r.is_deleted = 0
+            AND p.is_deleted = 0
+            AND sp.is_deleted = 0
+            AND ( r.related_entity_id = %(user_id)i AND r.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
+               OR e.sharing IN ('domain', 'public')
+            ) ORDER BY e.sort, e.created DESC;
+        """ % {'user_id': self.__user_id, 'query_re': query_re}
+        # logging.debug(sql)
+        ids = self.db.query(sql)
+        # logging.debug(ids)
+
+        entities = self.__get_properties(entity_id=[x.id for x in ids])
+        if not entities:
+            return []
+
+        return entities
+
     def get_entities(self, ids_only=False, entity_id=None, search=None, entity_definition_keyname=None, dataproperty=None, limit=None, full_definition=False, only_public=False, sharing_key=None):
         """
         If ids_only = True, then returns list of Entity IDs. Else returns list of Entities (with properties) as dictionary. entity_id, entity_definition and dataproperty can be single value or list of values.

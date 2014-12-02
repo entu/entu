@@ -103,6 +103,38 @@ class GetEntities(myRequestHandler, Entity):
         self.write({'entities': result})
 
 
+class GetUsers(myRequestHandler, Entity):
+    """
+    To return list of entities that have
+    'user' or 'entu-api-key' property.
+    """
+    @web.authenticated
+    def get(self):
+        """
+        """
+        search = self.get_argument('q', None, True)
+        datapropertys = StrToList('user,entu-api-key')
+        exclude_entity_id = self.get_argument('exclude_entity', '0', True)
+        if not search:
+            return self.missing()
+
+
+        result = []
+        for e in self.get_users(search=search):
+            if exclude_entity_id:
+                if e['id'] in [int(x) for x in exclude_entity_id.split(',')]:
+                    continue
+            result.append({
+                'id':    e['id'],
+                'title': e['displayname'],
+                'info':  e['displayinfo'],
+                'image': e['displaypicture'],
+                'definition': e['label']
+            })
+
+        self.write({'entities': result})
+
+
 class ShowEntity(myRequestHandler, Entity):
     @web.authenticated
     def get(self, entity_id=None, url=None):
@@ -608,6 +640,7 @@ handlers = [
     ('/entity/delete-file', DeleteFile),
     ('/entity/delete-entity', DeleteEntity),
     ('/entity/search', GetEntities),
+    ('/entity/users', GetUsers),
     (r'/entity/table/(.*)', ShowTableView),
     (r'/entity/file-(.*)', DownloadFile),
     (r'/entity-(.*)/edit', ShowEntityEdit),
