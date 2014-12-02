@@ -6,9 +6,6 @@ import mimetypes
 from hashlib import sha1
 from operator import itemgetter
 
-from PIL import Image
-from StringIO import StringIO
-
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 
@@ -489,50 +486,14 @@ class API2FileUpload(myRequestHandler, Entity):
 class API2EntityPicture(myRequestHandler, Entity2):
     @web.removeslash
     def get(self, entity_id=None):
-        # im = Image.open(StringIO(data))
         picture = self.get_entity_picture(entity_id)
 
         if not picture:
             return self.redirect('https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest()))
 
-        if picture.get('thumbnail'):
+        if picture.get('picture'):
             self.add_header('Content-Type', 'image/jpeg')
-            return self.write(picture.get('thumbnail'))
-
-        elif picture.get('file'):
-            thumbnail = None
-            # try:
-
-            size = (300, 300)
-            im = Image.open(StringIO(picture.get('file')))
-
-            if im.size[0] < size[0] and im.size[1] < size[1]:
-                aspect = float(im.size[0])/float(im.size[1])
-                c = (aspect, 1) if aspect > 0 else (1, aspect)
-                im = im.resize((int(im.size[0]*size[0]/im.size[0]*c[0]), int(im.size[1]*size[1]/im.size[1]*c[1])), Image.ANTIALIAS)
-            else:
-                im.thumbnail(size, Image.ANTIALIAS)
-
-            im_bg = Image.new('RGB', size, (255, 255, 255))
-            try:
-                im_bg.paste(im, ((size[0] - im.size[0]) / 2, (size[1] - im.size[1]) / 2), im)
-            except Exception:
-                im_bg.paste(im, ((size[0] - im.size[0]) / 2, (size[1] - im.size[1]) / 2))
-
-
-            im_new = StringIO()
-            im_bg.save(im_new, 'JPEG', quality=75)
-
-            thumbnail = im_new.getvalue()
-
-            # except Exception:
-            #     return
-
-            if thumbnail:
-                self.set_file_thumbnail(picture.get('id'), thumbnail)
-
-                self.add_header('Content-Type', 'image/jpeg')
-                return self.write(thumbnail)
+            return self.write(picture.get('picture'))
 
         elif picture.get('definition', '') == 'person':
             return self.redirect('https://secure.gravatar.com/avatar/%s?d=wavatar&s=150' % (hashlib.md5(str(entity_id)).hexdigest()))

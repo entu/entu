@@ -1,4 +1,5 @@
 from operator import itemgetter
+from PIL import Image
 
 import os
 import logging
@@ -378,15 +379,13 @@ class Entity2():
             SELECT
                 entity.entity_definition_keyname AS definition,
                 file.id AS file_id,
-                file.md5,
-                file.thumbnail
+                file.md5
             FROM entity
             LEFT JOIN (
                 SELECT
                     p.entity_id,
                     f.id,
-                    f.md5,
-                    f.thumbnail
+                    f.md5
                 FROM
                     property AS p,
                     property_definition AS pd,
@@ -408,18 +407,49 @@ class Entity2():
         if not f:
             return
 
-        if f.md5:
-            filename = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), f.md5[0], f.md5)
-            with open(filename, 'r') as myfile:
+        if not f.md5:
+            return
+
+        filename  = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), f.md5[0], f.md5)
+        thumbdir = os.path.join('/', 'entu', 'thumbs', self.app_settings('database-name'), f.md5[0])
+        thumbname = os.path.join(thumbdir, f.md5)
+
+        if f.md5 and os.path.isfile(thumbname):
+            with open(thumbname, 'r') as myfile:
                 filecontent = myfile.read()
+
+        elif f.md5 and os.path.isfile(filename):
+            try:
+                size = (300, 300)
+                im = Image.open(filename)
+
+                if im.size[0] < size[0] and im.size[1] < size[1]:
+                    aspect = float(im.size[0])/float(im.size[1])
+                    c = (aspect, 1) if aspect > 0 else (1, aspect)
+                    im = im.resize((int(im.size[0]*size[0]/im.size[0]*c[0]), int(im.size[1]*size[1]/im.size[1]*c[1])), Image.ANTIALIAS)
+                else:
+                    im.thumbnail(size, Image.ANTIALIAS)
+
+                im_bg = Image.new('RGB', size, (255, 255, 255))
+                try:
+                    im_bg.paste(im, ((size[0] - im.size[0]) / 2, (size[1] - im.size[1]) / 2), im)
+                except Exception:
+                    im_bg.paste(im, ((size[0] - im.size[0]) / 2, (size[1] - im.size[1]) / 2))
+
+                if not os.path.exists(thumbdir):
+                    os.makedirs(thumbdir)
+
+                im_bg.save(thumbname, 'JPEG', quality=75)
+
+                filecontent = im_new.getvalue()
+
+            except Exception:
+                filecontent = None
+
         else:
             filecontent = None
 
-        return {'definition': f.definition, 'id': f.file_id, 'file': filecontent, 'thumbnail': f.thumbnail}
-
-
-    def set_file_thumbnail(self, file_id, thumbnail):
-        self.db.execute('UPDATE file SET thumbnail = %s WHERE id = %s LIMIT 1;', thumbnail, file_id)
+        return {'definition': f.definition, 'picture': filecontent}
 
 
     def get_menu(self):
