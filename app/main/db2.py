@@ -441,9 +441,11 @@ class Entity2():
 
                 im_bg.save(thumbname, 'JPEG', quality=75)
 
-                filecontent = im_new.getvalue()
+                with open(thumbname, 'r') as myfile:
+                    filecontent = myfile.read()
 
-            except Exception:
+            except Exception, e:
+                logging.error('%s %s - %s' % (self.app_settings('database-name'), f.md5, e))
                 filecontent = None
 
         else:
