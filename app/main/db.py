@@ -1097,7 +1097,11 @@ class Entity():
                             items[key]['properties'][p_key]['reference_definition'] = reference_definition.classifying_entity_definition_keyname
                 if p_value['datatype'] == 'file':
                     for f_key, f_value in enumerate(p_value.get('values', {})):
-                        md5_result = self.db.get('SELECT `md5` FROM `file` WHERE id = %s;', f_value['db_value'])
+                        if not f_value.get('db_value'):
+                            continue
+                        md5_result = self.db.get('SELECT md5 FROM file WHERE id = %s;', f_value.get('db_value'))
+                        if not md5_result:
+                            continue
                         items[key]['properties'][p_key]['values'][f_key]['md5'] = md5_result.md5
 
         return items.values()
