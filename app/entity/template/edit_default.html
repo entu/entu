@@ -11,7 +11,9 @@
                         {% end %}
                         <td>
                             {% if p['readonly'] and p['datatype'] != 'counter-value' %}
-                                <span style="padding:8px !important; font-style:italic; color:gray;">{{ v['value'] }} </span>
+                                {% if v['value'] %}
+                                    <span style="padding:8px !important; font-style:italic; color:gray; display:block;">{{ v['value'] }} </span>
+                                {% end %}
                             {% else %}
                                 {% if p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal'] or (p['datatype'] == 'counter-value' and v['value'] and not p['readonly']) %}
                                     {% if p.get('select', None) %}
