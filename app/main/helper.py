@@ -172,7 +172,7 @@ class myUser():
             AND property.is_deleted = 0
             AND entity.is_deleted = 0
             AND user.email = property.value_string
-            AND property_definition.dataproperty = 'user'
+            AND property_definition.dataproperty = 'entu-user'
             AND user.session_key = %s
             AND user.user_key = %s
             LIMIT 1;

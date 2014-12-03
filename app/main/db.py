@@ -722,7 +722,7 @@ class Entity():
     def get_users(self, search=None):
         """
         To return list of entities that have
-        'user' or 'entu-api-key' property.
+        'entu-user' or 'entu-api-key' property.
         """
 
         query_re = ''
@@ -740,7 +740,7 @@ class Entity():
             LEFT JOIN relationship AS r           ON r.entity_id  = e.id
             LEFT JOIN property AS p               ON p.entity_id = e.id
             RIGHT JOIN property_definition AS pd  ON p.property_definition_keyname = pd.keyname
-                                                 AND pd.dataproperty IN ('user','entu-api-key')
+                                                 AND pd.dataproperty IN ('entu-user','entu-api-key')
             LEFT JOIN property AS sp              ON sp.entity_id = e.id
 %(query_re)s
             LEFT JOIN property_definition AS spd ON spd.keyname = sp.property_definition_keyname

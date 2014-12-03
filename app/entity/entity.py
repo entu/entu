@@ -106,14 +106,13 @@ class GetEntities(myRequestHandler, Entity):
 class GetUsers(myRequestHandler, Entity):
     """
     To return list of entities that have
-    'user' or 'entu-api-key' property.
+    'entu-user' or 'entu-api-key' property.
     """
     @web.authenticated
     def get(self):
         """
         """
         search = self.get_argument('q', None, True)
-        datapropertys = StrToList('user,entu-api-key')
         exclude_entity_id = self.get_argument('exclude_entity', '0', True)
         if not search:
             return self.missing()
