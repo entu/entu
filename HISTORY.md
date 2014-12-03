@@ -1,3 +1,9 @@
+## 2014-12-03
+* Return MD5 with file property (API2 Entity get)
+* Rights can be assigned to any Entity with entu-user or entu-api-key
+* Store image thumbnails on disk (and not in DB)
+* Show current user authentication provider in preferences
+
 ## 2014-11-21
 * Store uploaded files on disk (and not in DB)
 
