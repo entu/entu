@@ -1,3 +1,7 @@
+## 2015-01-07
+* Fixed children/relations table sorting on Entity view
+* Other small fixes
+
 ## 2014-12-03
 * Return MD5 with file property (API2 Entity get)
 * Rights can be assigned to any Entity with entu-user or entu-api-key
