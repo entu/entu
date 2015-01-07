@@ -137,7 +137,7 @@
             // get and show entity childs
             spinner(div);
             $.get(url, function(data) {
-                for (var d_key in data.result){
+                for(var d_key in data.result) {
                     var definition     = data.result[d_key];
                     var entities       = definition.entities;
 
@@ -171,11 +171,13 @@
                         if(definition.entities[tr_key].table) {
                             for(td_key in definition.entities[tr_key].table) {
                                 var $td = $tr.children('.childs-td-template').clone(true).removeClass('childs-td-template').appendTo($tr);
+                                $td.attr('data-value', definition.entities[tr_key].table[td_key]);
                                 $td.children('a').html(definition.entities[tr_key].table[td_key]);
                                 $td.children('a').attr('href', '#'+definition.entities[tr_key].id);
                             }
                         } else {
                             var $td = $tr.children('.childs-td-template').clone(true).removeClass('childs-td-template').appendTo($tr);
+                            $td.attr('data-value', definition.entities[tr_key].name);
                             $td.children('a').html(definition.entities[tr_key].name);
                             $td.children('a').attr('href', '#'+definition.entities[tr_key].id);
                         }
@@ -185,6 +187,7 @@
                     $element.find('.childs-tr-template').remove();
 
                     //show it
+                    $.bootstrapSortable(true, 'reversed');
                     $element.show();
                 }
                 spinner(div);
