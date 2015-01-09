@@ -634,6 +634,20 @@ class GetSession(myRequestHandler, Entity):
 
     Returns:
 
+        {'session_user':$current_user}
+
+    """
+    @web.authenticated
+    def get(self):
+
+        self.write(json.dumps({'session_user': self.current_user.get('session_key')}, cls=JSONDateFix))
+
+
+class GetUser(myRequestHandler, Entity):
+    """
+
+    Returns:
+
         {'session_key':$session_key}
 
     """
@@ -654,6 +668,7 @@ class Logout(myRequestHandler, Entity):
 
 handlers = [
     ('/api/auth',GetSession),
+    ('/api/user',GetUser),
     ('/api/exit',Logout),
     ('/api/get_entity', GetEntity),
     ('/api/get_entity_list', GetEntityList),
