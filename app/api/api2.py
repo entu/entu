@@ -679,6 +679,23 @@ class API2Definition(myRequestHandler, Entity2):
 
 
 
+class API2User(myRequestHandler, Entity2):
+    @web.removeslash
+    def get(self):
+        if not self.current_user:
+            return self.json({
+                'error': 'No logged in user!',
+                'time': round(self.request.request_time(), 3),
+            }, 404)
+
+        self.json({
+            'result': self.current_user,
+            'time': round(self.request.request_time(), 3),
+        })
+
+
+
+
 class API2NotFound(myRequestHandler, Entity2):
     #
     # Nice error if API method not found
@@ -783,5 +800,6 @@ handlers = [
     (r'/api2/definition-(.*)', API2Definition),
     (r'/api2/cmdi-xml/(.*)', API2CmdiXml),
     (r'/api2/email', API2Email),
+    (r'/api2/user', API2User),
     (r'/api2(.*)', API2NotFound),
 ]
