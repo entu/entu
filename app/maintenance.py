@@ -415,6 +415,7 @@ class Maintenance():
                 sql_where.append('r.entity_id = e.id')
                 sql_where.append('r.is_deleted = 0')
                 sql_where.append('r.value_reference = %s' % entity_id)
+                sql_where.append('p.value_reference = %s' % entity_id)
             if formula_fields[2]:
                 sql_where.append('e.entity_definition_keyname = \'%s\'' % formula_fields[2])
             dataproperty = formula_fields[3]
@@ -465,6 +466,7 @@ class Maintenance():
             'sql_where': ' AND '.join(sql_where),
         }
 
+        print(sql)
         result = []
         for v in self.db.query(sql):
             result.append(v.value_display)
