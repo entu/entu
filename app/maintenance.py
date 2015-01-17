@@ -466,7 +466,6 @@ class Maintenance():
             'sql_where': ' AND '.join(sql_where),
         }
 
-        print(sql)
         result = []
         for v in self.db.query(sql):
             result.append(v.value_display)
