@@ -401,11 +401,13 @@ class Maintenance():
             if formula_fields[1] == 'parent':
                 sql_from.append('relationship AS r')
                 sql_where.append('r.entity_id = e.id')
+                sql_where.append('r.relationship_definition_keyname = \'child\'')
                 sql_where.append('r.is_deleted = 0')
                 sql_where.append('r.related_entity_id = %s' % entity_id)
             elif formula_fields[1] == 'child':
                 sql_from.append('relationship AS r')
                 sql_where.append('r.related_entity_id = e.id')
+                sql_where.append('r.relationship_definition_keyname = \'child\'')
                 sql_where.append('r.is_deleted = 0')
                 sql_where.append('r.entity_id = %s' % entity_id)
             elif formula_fields[1] == 'referrer':
