@@ -427,10 +427,13 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
         """
         if self.get_argument('user', default=None) and self.get_argument('policy', default=None) and self.get_argument('signature', default=None):
-            logging.debug('User/signature auth')
+            logging.debug('Signature auth')
             return self.get_user_by_signature()
+        else if self.request.headers.get('X-Auth-Token', None):
+            logging.debug('X-Auth-Token auth')
+            return self.get_user_by_session_key(self.request.headers.get('X-Auth-Token', ''))
         else:
-            logging.debug('Session auth')
+            logging.debug('Cookie auth')
             return self.get_user_by_session_key(self.get_secure_cookie('session'))
 
     def get_user_locale(self):
