@@ -712,7 +712,7 @@ class API2UrlFileUpload(myRequestHandler, Entity):
                 filename = urllib.unquote(filename_params.get('filename*').replace('UTF-8\'\'', ''))
 
         if not filename:
-            filename = url
+            filename = url.split('#')[0].split('?')[0].split('/')[-1]
 
         filesize = len(response.body)
         if int(filesize) > 4294967295:
