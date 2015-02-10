@@ -32,9 +32,21 @@
                                     <input type="checkbox" class="autosave {% if p['can_add_new'] and idx+1 == len(p.get('values')) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" {% if v.get('db_value', 0) == 1 %} checked{% end %} style="margin:8px;" />
                                 {% elif p['datatype'] == 'file' %}
                                     {% if not v['id'] %}
-                                        <div class="new-filenames" style="padding:0px;"></div>
+                                        <div id="new-filenames-{{ p['keyname'] }}" style="padding:0px;"></div>
                                         <img src="{{ static_url('images/spinner_white.gif') }}" style="display:none; padding:8px;" />
-                                        <iframe name="iframe_{{ p['keyname'] }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentDocument.body.textContent, '#upload-form-{{ p['keyname'] }}');" style="display:none;"></iframe>
+                                        <div class="edit" style="height:23px;">
+                                            <input type="file" class="dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" multiple>
+                                            <!--input type="file" name="value" class="dtype-{{ p['datatype'] }}" data-form="#upload-form-{{ p['keyname'] }}" title="{{ _('add_files_computer') }}" multiple /-->
+                                            <div class="google-open btn btn-small pull-right" data-form="#upload-form-{{ p['keyname'] }}">{{ _('add_files_google') }}</div>
+                                            <div class="dropbox-open btn btn-small pull-right" data-form="#upload-form-{{ p['keyname'] }}" style="margin-right:10px;">{{ _('add_files_dropbox') }}</div>
+                                            <div class="url-open btn btn-small pull-right" data-form="#upload-form-{{ p['keyname'] }}" style="margin-right:10px;">{{ _('add_files_url') }}</div>
+                                        </div>
+
+
+
+
+
+                                        <!--iframe name="iframe_{{ p['keyname'] }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentDocument.body.textContent, '#upload-form-{{ p['keyname'] }}');" style="display:none;"></iframe>
                                         <form id="upload-form-{{ p['keyname'] }}" method="post" action="/entity/save" target="iframe_{{ p['keyname'] }}" enctype="multipart/form-data" style="margin:0px; padding:0px;">
                                             <input type="hidden" name="is_file" value="true" />
                                             <input type="hidden" name="entity_id" class="file_entity_id" value="{{ entity.get('id', '') }}" />
@@ -49,7 +61,7 @@
                                                 <div class="dropbox-open btn btn-small pull-right" data-form="#upload-form-{{ p['keyname'] }}" style="margin-right:10px;">{{ _('add_files_dropbox') }}</div>
                                                 <div class="url-open btn btn-small pull-right" data-form="#upload-form-{{ p['keyname'] }}" style="margin-right:10px;">{{ _('add_files_url') }}</div>
                                             </div>
-                                        </form>
+                                        </form-->
                                     {% else %}
                                         <div class="delete-file-row edit" style="padding:8px;"><a href="/entity/file-{{ v['db_value'] }}" target="_blank">{{ v['value'] }}</a> <a href="javascript:void(0);" data-property_id="{{ v['id'] }}" class="delete-file" style="float:right; display:none;"><i class="fa fa-trash-o" style="color:red;"></i></a></div>
                                     {% end %}
@@ -83,27 +95,84 @@
 <script>
 
 
-    function showDocument(json_string, div){
-        td = $(div).parent();
-        newvalue = jQuery.parseJSON(json_string);
-        $('#database').data('entity_id', newvalue.entity_id);
-        {% if open_after_add %}$('#modal-box').data('open_entity_id', newvalue.entity_id);{% end %}
-        $('.file_entity_id').val(newvalue.entity_id);
-        for(i in newvalue.files) {
-            td.children('.new-filenames').append('<div class="new-input" style="padding:8px; color:gray;">'+newvalue.files[i]+'</div>');
-        }
-        td.children('img').hide();
-        td.children('form').children('.dtype-file').val('');
-        td.children('form').show();
-        td.children('form').children('.external-files').val('');
-        td.children('form').children('.external-download').val('');
-    };
+    // function showDocument(json_string, div) {
+    //     td = $(div).parent();
+    //     newvalue = jQuery.parseJSON(json_string);
+    //     $('#database').data('entity_id', newvalue.entity_id);
+    //     {% if open_after_add %}$('#modal-box').data('open_entity_id', newvalue.entity_id);{% end %}
+    //     $('.file_entity_id').val(newvalue.entity_id);
+    //     for(i in newvalue.files) {
+    //         td.children('.new-filenames').append('<div class="new-input" style="padding:8px; color:gray;">'+newvalue.files[i]+'</div>');
+    //     }
+    //     td.children('img').hide();
+    //     td.children('form').children('.dtype-file').val('');
+    //     td.children('form').show();
+    //     td.children('form').children('.external-files').val('');
+    //     td.children('form').children('.external-download').val('');
+    // };
 
-    $(document).ready(function(){
+    $(document).ready(function() {
 
         $('textarea').elastic();
 
         $('input[type=file]').bootstrapFileInput();
+
+        $('input[type=file]').change(function() {
+            for (var i=0; i<this.files.length; i++) {
+                uploadFile(this.files[i], $(this));
+            }
+            $(this).val(null);
+        });
+
+        function uploadFile(file, div) {
+            $.ajaxSetup({ cache: false });
+            $.post('/api2/file/s3', {
+                entity:   {{ entity.get('id', '') }},
+                property: div.data('property_definition_keyname'),
+                filename: file.name,
+                filesize: file.size,
+                filetype: file.type
+            }, function(data) {
+                if(data.result) {
+                    var xhr = new XMLHttpRequest();
+                    var form = new FormData();
+
+                    for(var i in data.result.s3.data) {
+                        form.append(i, data.result.s3.data[i]);
+                    }
+                    form.append('file', file);
+
+                    var status = $('<div class="new-input" style="padding:8px; color:gray;">'+file.name+'<i> - Uploading...</i></div>');
+                    $('#new-filenames-' + div.data('property_definition_keyname')).append(status);
+
+                    xhr.upload.addEventListener('progress', function(ev) {
+                        if(ev.lengthComputable) status.children('i').html(' - ' + Math.round(ev.loaded * 1000 / ev.total) / 10 + '%');
+                    }, false);
+
+                    xhr.onreadystatechange = function(ev) {
+                        if(xhr.readyState == 4 && xhr.status == 201) {
+                            file = {
+                                location: $('Location', xhr.responseXML).text(),
+                                bucket: $('Bucket', xhr.responseXML).text(),
+                                key: $('Key', xhr.responseXML).text(),
+                                etag: $('ETag', xhr.responseXML).text(),
+                                message: $('Message', xhr.responseXML).text(),
+                            }
+                            status.children('i').html('');
+                        }
+                        if(xhr.readyState == 4 && xhr.status != 201) {
+                            status.children('i').html(' - Error!');
+                        }
+                    };
+
+                    xhr.open('POST', data.result.s3.url, true);
+                    xhr.send(form);
+                } else {
+                    console.log(data);
+                }
+            }, 'json');
+        }
+
 
         $('.classifier-select').select2({
             placeholder: ' ',
@@ -268,12 +337,12 @@
             }, 'json');
         });
 
-        $('.dtype-file').change(function() {
-            form = $($(this).data('form'));
-            form.hide();
-            form.parent().children('img').show();
-            form.submit();
-        });
+        // $('.dtype-file').change(function() {
+        //     form = $($(this).data('form'));
+        //     form.hide();
+        //     form.parent().children('img').show();
+        //     form.submit();
+        // });
 
         $('.delete-file-row').hover(
             function() {

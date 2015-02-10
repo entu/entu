@@ -375,7 +375,10 @@ class Entity():
             value_display = uploaded_file['filename'][:500]
 
             if uploaded_file.get('url'):
-                value = self.db.execute_lastrowid('INSERT INTO file SET filename = %s, url = %s, created_by = %s, created = NOW();', uploaded_file.get('filename', ''), uploaded_file.get('url', ''), self.__user_id)
+                value = self.db.execute_lastrowid('INSERT INTO file SET url = %s, filename = %s, created_by = %s, created = NOW();', uploaded_file.get('filename', ''), uploaded_file.get('url', ''), self.__user_id)
+            elif uploaded_file.get('s3key'):
+                logging.debug(uploaded_file.get('filesize', ''))
+                value = self.db.execute_lastrowid('INSERT INTO file SET s3_key = %s, filename = %s, filesize = %s, created_by = %s, created = NOW();', uploaded_file.get('s3key', ''), uploaded_file.get('filename', ''), uploaded_file.get('filesize', ''), self.__user_id)
             else:
                 md5 = hashlib.md5(uploaded_file.get('body')).hexdigest()
                 directory = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), md5[0])
@@ -416,6 +419,9 @@ class Entity():
             value_display,
             self.__user_id
         )
+
+        if definition.datatype == 'file' and uploaded_file.get('s3key'):
+            self.db.execute('UPDATE file SET s3_key = CONCAT(s3_key, \'/\', %s) WHERE id = %s LIMIT 1;', new_property_id, value)
 
         self.db.execute('UPDATE entity SET changed = NOW(), changed_by = %s WHERE id = %s;',
             self.__user_id,
@@ -1433,6 +1439,7 @@ class Entity():
                 f.id,
                 f.md5,
                 f.filename,
+                f.s3_key,
                 f.url,
                 f.created
             FROM
@@ -1451,8 +1458,11 @@ class Entity():
         for f in self.db.query(sql):
             if f.md5:
                 filename = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), f.md5[0], f.md5)
-                with open(filename, 'r') as myfile:
-                    filecontent = myfile.read()
+                if os.path.isfile(filename):
+                    with open(filename, 'r') as myfile:
+                        filecontent = myfile.read()
+                else:
+                    filecontent = None
             else:
                 filecontent = None
 
@@ -1461,6 +1471,7 @@ class Entity():
                 'created': f.created,
                 'file': filecontent,
                 'filename': f.filename,
+                's3key': f.s3_key,
                 'url': f.url
             })
 

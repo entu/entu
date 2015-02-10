@@ -44,7 +44,7 @@
                         </th>
                         <td style="width:100%;{%if not p['public'] %} color:gray;{% end %}{%if p['mandatory'] and not p.get('values') %} background-color:#fff5f5;{% end %}">
                             {% if p['datatype'] == 'file' %}
-                                {{ '<br />'.join(['<a href="/entity/file-%s" target="_blank">%s</a>' % (v.get('db_value'), v.get('value')) for v in p.get('values', []) if v]) }}
+                                {{ '<br />'.join(['<a href="/api2/file-%s">%s</a>' % (v.get('db_value'), v.get('value')) for v in p.get('values', []) if v]) }}
                                 {% if len(p.get('values', [])) > 1 %}
                                     <a href="/entity/file-{{ ','.join(['%s' % v.get('db_value') for v in p.get('values', [])]) }}" style="font-size:11px; font-style:italic; float:right;">{{ _('download_all_as_zip') }}</a>
                                 {% end %}

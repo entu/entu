@@ -3,6 +3,7 @@ import json
 import datetime
 import logging
 import mimetypes
+import urllib
 from hashlib import sha1
 from operator import itemgetter
 
@@ -372,14 +373,36 @@ class API2File(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 404)
 
+        if files[0].get('url'):
+            return self.redirect(files[0].get('file'))
+
+        if files[0].get('s3key'):
+            try:
+                AWS_BUCKET     = self.app_settings('auth-s3', '\n', True).split('\n')[0]
+                AWS_ACCESS_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[1]
+                AWS_SECRET_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[2]
+            except Exception, e:
+                return self.json({
+                    'error': 'Amazon S3 bucket, key or secret not set!',
+                    'time': round(self.request.request_time(), 3),
+                }, 400)
+            s3_conn   = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
+            s3_bucket = s3_conn.get_bucket(AWS_BUCKET, validate=False)
+            s3_key    = s3_bucket.get_key(files[0].get('s3key'))
+            if not s3_key:
+                return self.json({
+                    'error': 'FIle not found from Amazon S3!',
+                    'time': round(self.request.request_time(), 3),
+                }, 400)
+
+            s3_url    = s3_key.generate_url(expires_in=10, query_auth=True)
+            return self.redirect(s3_url)
+
         if not files[0].get('file'):
             return self.json({
                 'error': 'No file!',
                 'time': round(self.request.request_time(), 3),
             }, 400)
-
-        if files[0].get('url'):
-            return self.redirect(files[0].get('file'))
 
         mimetypes.init()
         mime = mimetypes.types_map.get('.%s' % files[0].get('filename').lower().split('.')[-1], 'application/octet-stream')
@@ -387,7 +410,7 @@ class API2File(myRequestHandler, Entity):
         filename = files[0].get('filename')
 
         self.add_header('Content-Type', mime)
-        self.add_header('Content-Disposition', 'inline; filename="%s"' % filename)
+        self.add_header('Content-Disposition', 'attachment; filename="%s"' % filename)
         self.write(files[0].get('file'))
 
     @web.removeslash
@@ -430,7 +453,7 @@ class API2FileUpload(myRequestHandler, Entity):
                 return self.json({
                     'error': 'Content-Length header not set!',
                     'time': round(self.request.request_time(), 3),
-                }, 403)
+                }, 400)
 
             if file_size != len(uploaded_file):
                 return self.json({
@@ -476,6 +499,117 @@ class API2FileUpload(myRequestHandler, Entity):
             'result': {
                 'id': entity_id,
                 'properties': properties
+            },
+            'time': round(self.request.request_time(), 3),
+        })
+
+
+
+
+class API2AmazonFileUpload(myRequestHandler, Entity):
+    def post(self):
+        #
+        # Upload/create file
+        #
+        if not self.current_user:
+            return self.json({
+                'error': 'Forbidden!',
+                'time': round(self.request.request_time(), 3),
+            }, 403)
+
+        entity_id = self.get_argument('entity', default=None, strip=True)
+        if not entity_id:
+            return self.json({
+                'error': 'No entity ID!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        # entity = self.get_entities(entity_id=entity_id, limit=1)
+        # if not entity:
+        #     return self.json({
+        #         'error': 'Entity with given ID is not found!',
+        #         'time': round(self.request.request_time(), 3),
+        #     }, 404)
+
+        property_definition_keyname = self.get_argument('property', default=None, strip=True)
+        if not property_definition_keyname:
+            return self.json({
+                'error': 'No property!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        filename = self.get_argument('filename', default=None, strip=True)
+        if not filename:
+            return self.json({
+                'error': 'No filename!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        filetype = self.get_argument('filetype', None, True)
+        if not filetype:
+            filetype = 'binary/octet-stream'
+
+        filesize = self.get_argument('filesize', 0, True)
+        if int(filesize) > 4294967295:
+            return self.json({
+                'error': 'Max file size is 4294967295 bytes!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+
+        try:
+            AWS_BUCKET     = self.app_settings('auth-s3', '\n', True).split('\n')[0]
+            AWS_ACCESS_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[1]
+            AWS_SECRET_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[2]
+        except Exception, e:
+            return self.json({
+                'error': 'Amazon S3 bucket, key or secret not set!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        key = '%s/%s' % (self.app_settings('database-name'), entity_id)
+
+        new_property_id = self.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value={'filename': filename, 's3key': key, 'filesize': filesize})
+        if new_property_id:
+            properties = {property_definition_keyname: [{'id': new_property_id, 'value': filename}]}
+        else:
+            properties = None
+
+        key = '%s/%s' % (key, new_property_id)
+
+        policy = {
+            'expiration': (datetime.datetime.utcnow()+datetime.timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'conditions': [
+                {'bucket': AWS_BUCKET},
+                ['starts-with', '$key', key],
+                {'acl': 'private'},
+                {'success_action_status': '201'},
+                {'x-amz-server-side-encryption': 'AES256'},
+                {'Content-Type': filetype},
+                ['starts-with', '$Content-Disposition', 'attachment; filename'],
+            ]
+        }
+        encoded_policy = json.dumps(policy).encode('utf-8').encode('base64').replace('\n','')
+        signature = hmac.new(str(AWS_SECRET_KEY), str(encoded_policy), sha1).digest().encode('base64').replace('\n','')
+
+        self.json({
+            'result': {
+                'id': entity_id,
+                'properties': properties,
+                's3': {
+                    'url': 'https://%s.s3.amazonaws.com/' % AWS_BUCKET,
+                    'data': {
+                        'key':                          key,
+                        'acl':                          'private',
+                        'success_action_status':        '201',
+                        'x-amz-server-side-encryption': 'AES256',
+                        'AWSAccessKeyId':               AWS_ACCESS_KEY,
+                        'policy':                       encoded_policy,
+                        'signature':                    signature,
+                        'Content-Type':                 filetype,
+                        'Content-Disposition':          'attachment; filename*=UTF-8\'\'%s' % urllib.quote(filename.encode('utf-8')),
+                    }
+                }
             },
             'time': round(self.request.request_time(), 3),
         })
@@ -718,73 +852,6 @@ class API2NotFound(myRequestHandler, Entity2):
 
 
 
-
-
-
-
-
-
-class S3FileUpload(myRequestHandler):
-    def get(self, entity_id=None, property_id=None):
-        AWS_BUCKET     = self.app_settings('auth-s3', '\n', True).split('\n')[0]
-        AWS_ACCESS_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[1]
-        AWS_SECRET_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[2]
-
-        bucket = self.get_argument('bucket', None, True)
-        key = self.get_argument('key', None, True)
-        etag = self.get_argument('etag', None, True)
-        message = self.get_argument('message', None, True)
-
-        if bucket and key and etag:
-            s3_conn   = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
-            s3_bucket = s3_conn.get_bucket(bucket, validate=False)
-            s3_key    = s3_bucket.get_key(key)
-            s3_url    = s3_key.generate_url(expires_in=10, query_auth=True)
-
-            self.json({
-                'bucket': bucket,
-                'key': key,
-                'etag': etag,
-                'message': message,
-                'url': s3_url,
-            })
-        else:
-            file_type = self.get_argument('file_type', None, True)
-            if not file_type:
-                file_type = 'binary/octet-stream'
-
-            key = '%s/%s' % (self.app_settings('database-name'), datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
-            policy = {
-                'expiration': (datetime.datetime.utcnow()+datetime.timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ'),
-                'conditions': [
-                    {'bucket': AWS_BUCKET},
-                    ['starts-with', '$key', key],
-                    {'acl': 'private'},
-                    {'success_action_status': '201'},
-                    {'x-amz-server-side-encryption': 'AES256'},
-                    {'Content-Type': file_type},
-                ]
-            }
-            encoded_policy = json.dumps(policy).encode('utf-8').encode('base64').replace('\n','')
-            signature = hmac.new(str(AWS_SECRET_KEY), str(encoded_policy), sha1).digest().encode('base64').replace('\n','')
-
-            self.json({
-                'url': 'https://%s.s3.amazonaws.com/' % AWS_BUCKET,
-                'data': {
-                    'key':                          '%s/${filename}' % key,
-                    'acl':                          'private',
-                    'success_action_status':        '201',
-                    'x-amz-server-side-encryption': 'AES256',
-                    'AWSAccessKeyId':               AWS_ACCESS_KEY,
-                    'policy':                       encoded_policy,
-                    'signature':                    signature,
-                    'Content-Type':                 file_type,
-                }
-            })
-
-
-
-
 handlers = [
     (r'/api2/entity', API2EntityList),
     (r'/api2/entity-(.*)/childs', API2EntityChilds),
@@ -794,7 +861,7 @@ handlers = [
     (r'/api2/entity-(.*)/share', API2EntityShare),
     (r'/api2/entity-(.*)', API2Entity),
     (r'/api2/file', API2FileUpload),
-    (r'/api2/file/aws', S3FileUpload),
+    (r'/api2/file/s3', API2AmazonFileUpload),
     (r'/api2/file-(.*)', API2File),
     (r'/api2/definition', API2DefinitionList),
     (r'/api2/definition-(.*)', API2Definition),
