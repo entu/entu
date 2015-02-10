@@ -191,7 +191,7 @@
                     url: '/api2/entity',
                     dataType: 'json',
                     quietMillis: 1000,
-                    data: function (term, page) {
+                    data: function(term, page) {
                         return {
                             query: term,
                             definition: box.data('reference_definition'),
@@ -199,12 +199,12 @@
                             page: page,
                         };
                     },
-                    results: function (data, page) {
+                    results: function(data, page) {
                         var more = (page * 25) < data.count;
                         return {results: data.result, more: more};
                     }
                 },
-                formatResult: function (data) {
+                formatResult: function(data) {
                     if(data.id == $('#database').data('entity_id')) return;
                     if(data.info) {
                         info = '<span>'+data.info+'</span>';
@@ -213,7 +213,7 @@
                     };
                     return '<div class="select2-result-item"><img src="/api2/entity-'+data.id+'/picture" />'+data.name+info+'<div>';
                 },
-                formatSelection: function (data) {
+                formatSelection: function(data) {
                     return data.name;
                 }
             });
@@ -392,7 +392,7 @@
                     'client_id': CLIENT_ID,
                     'scope': SCOPE,
                     'immediate': false
-                }, function(authResult){
+                }, function(authResult) {
                     OAUTH_TOKEN = authResult.access_token;
                     if(OAUTH_TOKEN) {
                         gapi.load('picker', {'callback': function() {
