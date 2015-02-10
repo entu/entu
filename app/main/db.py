@@ -377,7 +377,6 @@ class Entity():
             if uploaded_file.get('url'):
                 value = self.db.execute_lastrowid('INSERT INTO file SET url = %s, filename = %s, created_by = %s, created = NOW();', uploaded_file.get('filename', ''), uploaded_file.get('url', ''), self.__user_id)
             elif uploaded_file.get('s3key'):
-                logging.debug(uploaded_file.get('filesize', ''))
                 value = self.db.execute_lastrowid('INSERT INTO file SET s3_key = %s, filename = %s, filesize = %s, created_by = %s, created = NOW();', uploaded_file.get('s3key', ''), uploaded_file.get('filename', ''), uploaded_file.get('filesize', ''), self.__user_id)
             else:
                 md5 = hashlib.md5(uploaded_file.get('body')).hexdigest()

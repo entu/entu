@@ -36,34 +36,12 @@
                                         <img src="{{ static_url('images/spinner_white.gif') }}" style="display:none; padding:8px;" />
                                         <div class="edit" style="height:23px;">
                                             <input type="file" class="dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" multiple>
-                                            <!--input type="file" name="value" class="dtype-{{ p['datatype'] }}" data-form="#upload-form-{{ p['keyname'] }}" title="{{ _('add_files_computer') }}" multiple /-->
-                                            <div class="google-open btn btn-small pull-right" data-form="#upload-form-{{ p['keyname'] }}">{{ _('add_files_google') }}</div>
-                                            <div class="dropbox-open btn btn-small pull-right" data-form="#upload-form-{{ p['keyname'] }}" style="margin-right:10px;">{{ _('add_files_dropbox') }}</div>
-                                            <div class="url-open btn btn-small pull-right" data-form="#upload-form-{{ p['keyname'] }}" style="margin-right:10px;">{{ _('add_files_url') }}</div>
+                                            <div class="google-open btn btn-small pull-right" data-property_definition_keyname="{{ p['keyname'] }}">{{ _('add_files_google') }}</div>
+                                            <div class="dropbox-open btn btn-small pull-right" data-property_definition_keyname="{{ p['keyname'] }}" style="margin-right:10px;">{{ _('add_files_dropbox') }}</div>
+                                            <div class="url-open btn btn-small pull-right" data-property_definition_keyname="{{ p['keyname'] }}" style="margin-right:10px;">{{ _('add_files_url') }}</div>
                                         </div>
-
-
-
-
-
-                                        <!--iframe name="iframe_{{ p['keyname'] }}" height="0" width="0" frameborder="0" scrolling="no" onLoad="showDocument(this.contentDocument.body.textContent, '#upload-form-{{ p['keyname'] }}');" style="display:none;"></iframe>
-                                        <form id="upload-form-{{ p['keyname'] }}" method="post" action="/entity/save" target="iframe_{{ p['keyname'] }}" enctype="multipart/form-data" style="margin:0px; padding:0px;">
-                                            <input type="hidden" name="is_file" value="true" />
-                                            <input type="hidden" name="entity_id" class="file_entity_id" value="{{ entity.get('id', '') }}" />
-                                            <input type="hidden" name="parent_entity_id" value="{{ parent_entity_id }}" />
-                                            <input type="hidden" name="entity_definition_keyname" value="{{ entity_definition_keyname }}" />
-                                            <input type="hidden" name="property_definition_keyname" value="{{ p['keyname'] }}" />
-                                            <input type="hidden" name="external_files" class="external-files" />
-                                            <input type="hidden" name="external_download" class="external-download" />
-                                            <div class="edit" style="height:23px;">
-                                                <input type="file" name="value" class="dtype-{{ p['datatype'] }}" data-form="#upload-form-{{ p['keyname'] }}" title="{{ _('add_files_computer') }}" multiple />
-                                                <div class="google-open btn btn-small pull-right" data-form="#upload-form-{{ p['keyname'] }}">{{ _('add_files_google') }}</div>
-                                                <div class="dropbox-open btn btn-small pull-right" data-form="#upload-form-{{ p['keyname'] }}" style="margin-right:10px;">{{ _('add_files_dropbox') }}</div>
-                                                <div class="url-open btn btn-small pull-right" data-form="#upload-form-{{ p['keyname'] }}" style="margin-right:10px;">{{ _('add_files_url') }}</div>
-                                            </div>
-                                        </form-->
                                     {% else %}
-                                        <div class="delete-file-row edit" style="padding:8px;"><a href="/entity/file-{{ v['db_value'] }}" target="_blank">{{ v['value'] }}</a> <a href="javascript:void(0);" data-property_id="{{ v['id'] }}" class="delete-file" style="float:right; display:none;"><i class="fa fa-trash-o" style="color:red;"></i></a></div>
+                                        <div class="delete-file-row edit" style="padding:8px;"><a href="/api2/file-{{ v['db_value'] }}">{{ v['value'] }}</a> <a href="javascript:void(0);" data-property_id="{{ v['id'] }}" class="delete-file" style="float:right; display:none;"><i class="fa fa-trash-o" style="color:red;"></i></a></div>
                                     {% end %}
                                 {% elif p['datatype'] == 'counter-value' %}
                                     {% if v['value'] %}
@@ -93,24 +71,6 @@
 </table>
 
 <script>
-
-
-    // function showDocument(json_string, div) {
-    //     td = $(div).parent();
-    //     newvalue = jQuery.parseJSON(json_string);
-    //     $('#database').data('entity_id', newvalue.entity_id);
-    //     {% if open_after_add %}$('#modal-box').data('open_entity_id', newvalue.entity_id);{% end %}
-    //     $('.file_entity_id').val(newvalue.entity_id);
-    //     for(i in newvalue.files) {
-    //         td.children('.new-filenames').append('<div class="new-input" style="padding:8px; color:gray;">'+newvalue.files[i]+'</div>');
-    //     }
-    //     td.children('img').hide();
-    //     td.children('form').children('.dtype-file').val('');
-    //     td.children('form').show();
-    //     td.children('form').children('.external-files').val('');
-    //     td.children('form').children('.external-download').val('');
-    // };
-
     $(document).ready(function() {
 
         $('textarea').elastic();
@@ -173,6 +133,26 @@
             }, 'json');
         }
 
+
+        function uploadFromLink(div, links, download) {
+            // console.log(links);
+            for(var i in links) {
+                var filename = (links[i].filename) ? links[i].filename : links[i].url;
+                var status = $('<div class="new-input" style="padding:8px; color:gray;">' + filename + '<i> - Uploading...</i></div>');
+                $('#new-filenames-' + div.data('property_definition_keyname')).append(status);
+                $.post('/api2/file/url', {
+                    entity:   {{ entity.get('id', '') }},
+                    property: div.data('property_definition_keyname'),
+                    url: links[i].url,
+                    filename: links[i].filename,
+                    download: links[i].download
+                }, function(data) {
+                    console.log(data)
+                    status.children('i').html('');
+                }, 'json');
+            }
+
+        }
 
         $('.classifier-select').select2({
             placeholder: ' ',
@@ -337,13 +317,6 @@
             }, 'json');
         });
 
-        // $('.dtype-file').change(function() {
-        //     form = $($(this).data('form'));
-        //     form.hide();
-        //     form.parent().children('img').show();
-        //     form.submit();
-        // });
-
         $('.delete-file-row').hover(
             function() {
                 $(this).children('.delete-file').show();
@@ -363,16 +336,20 @@
         );
 
         $('.dropbox-open').click(function() {
-            form = $($(this).data('form'));
+            var input = $(this);
             Dropbox.choose({
                 linkType: 'direct',
                 multiselect: true,
                 success: function(files) {
-                    var links = new Object();
+                    var links = [];
                     for(i in files) {
-                        links[files[i].link] = files[i].name;
+                        links.push({
+                            url: files[i].link,
+                            filename: files[i].name,
+                            download: true
+                        });
                     }
-                    submitExternalFile(form, links, true);
+                    uploadFromLink(input, links, true);
                 }
             });
         });
@@ -380,7 +357,7 @@
         {% if google_auth_api_id %}
 
         $('.google-open').click(function() {
-            var form = $($(this).data('form'));
+            var input = $(this);
 
             var DEVELOPER_KEY = '{{ google_auth_api_id }}';
             var CLIENT_ID = '{{ google_auth_client_id }}';
@@ -408,11 +385,15 @@
                                 .setCallback(function(data) {
                                     if (data[google.picker.Response.ACTION] == google.picker.Action.PICKED) {
                                         var files = data[google.picker.Response.DOCUMENTS];
-                                        var links = new Object();
+                                        var links = [];
                                         for(i in files) {
-                                            links[files[i][google.picker.Document.URL]] = files[i][google.picker.Document.NAME];
+                                            links.push({
+                                                url: files[i][google.picker.Document.URL],
+                                                filename: files[i][google.picker.Document.NAME],
+                                                download: false
+                                            });
                                         }
-                                        submitExternalFile(form, links, false);
+                                        uploadFromLink(input, links, false);
                                     }
                                 })
                                 .build();
@@ -433,22 +414,18 @@
 
 
         $('.url-open').click(function() {
-            var form = $($(this).data('form'));
+            var input = $(this);
             var url = $.trim(window.prompt('{{ _('add_files_url_prompt') }}'));
-            var links = new Object();
+            var links = [];
             if(url) {
-                links[url] = url.split('/').slice(-1)[0];
-                submitExternalFile(form, links, true);
+                links.push({
+                    url: url,
+                    filename: null,
+                    download: true
+                });
+                uploadFromLink(input, links, true);
             }
         });
-
-        function submitExternalFile(form, links, download) {
-            form.children('.external-files').val(JSON.stringify(links));
-            form.children('.external-download').val(download);
-            form.hide();
-            form.parent().children('img').show();
-            form.submit();
-        }
 
         $('.delete-file').click(function() {
 

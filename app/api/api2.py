@@ -4,8 +4,13 @@ import datetime
 import logging
 import mimetypes
 import urllib
+import cgi
+
 from hashlib import sha1
 from operator import itemgetter
+
+from tornado import gen
+from tornado import httpclient
 
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
@@ -511,6 +516,16 @@ class API2AmazonFileUpload(myRequestHandler, Entity):
         #
         # Upload/create file
         #
+        try:
+            AWS_BUCKET     = self.app_settings('auth-s3', '\n', True).split('\n')[0]
+            AWS_ACCESS_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[1]
+            AWS_SECRET_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[2]
+        except Exception, e:
+            return self.json({
+                'error': 'Amazon S3 bucket, key or secret not set!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
         if not self.current_user:
             return self.json({
                 'error': 'Forbidden!',
@@ -553,17 +568,6 @@ class API2AmazonFileUpload(myRequestHandler, Entity):
         if int(filesize) > 4294967295:
             return self.json({
                 'error': 'Max file size is 4294967295 bytes!',
-                'time': round(self.request.request_time(), 3),
-            }, 400)
-
-
-        try:
-            AWS_BUCKET     = self.app_settings('auth-s3', '\n', True).split('\n')[0]
-            AWS_ACCESS_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[1]
-            AWS_SECRET_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[2]
-        except Exception, e:
-            return self.json({
-                'error': 'Amazon S3 bucket, key or secret not set!',
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
@@ -610,6 +614,137 @@ class API2AmazonFileUpload(myRequestHandler, Entity):
                         'Content-Disposition':          'attachment; filename*=UTF-8\'\'%s' % urllib.quote(filename.encode('utf-8')),
                     }
                 }
+            },
+            'time': round(self.request.request_time(), 3),
+        })
+
+
+
+
+class API2UrlFileUpload(myRequestHandler, Entity):
+    @gen.coroutine
+    def post(self):
+        #
+        # Upload/create file
+        #
+        try:
+            AWS_BUCKET     = self.app_settings('auth-s3', '\n', True).split('\n')[0]
+            AWS_ACCESS_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[1]
+            AWS_SECRET_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[2]
+        except Exception, e:
+            self.json({
+                'error': 'Amazon S3 bucket, key or secret not set!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+            return
+
+        if not self.current_user:
+            self.json({
+                'error': 'Forbidden!',
+                'time': round(self.request.request_time(), 3),
+            }, 403)
+            return
+
+        entity_id = self.get_argument('entity', default=None, strip=True)
+        if not entity_id:
+            self.json({
+                'error': 'No entity ID!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+            return
+
+        # entity = self.get_entities(entity_id=entity_id, limit=1)
+        # if not entity:
+        #     return self.json({
+        #         'error': 'Entity with given ID is not found!',
+        #         'time': round(self.request.request_time(), 3),
+        #     }, 404)
+
+        property_definition_keyname = self.get_argument('property', default=None, strip=True)
+        if not property_definition_keyname:
+            self.json({
+                'error': 'No property!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+            return
+
+        url = self.get_argument('url', default=None, strip=True)
+        if not url:
+            self.json({
+                'error': 'No url!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+            return
+
+        filename = self.get_argument('filename', default=None, strip=True)
+
+        download = self.get_argument('download', default='false', strip=True)
+        if download.lower() != 'true':
+            new_property_id = self.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value={'filename': filename, 'url': url})
+
+            if new_property_id:
+                properties = {property_definition_keyname: [{'id': new_property_id, 'value': filename}]}
+            else:
+                properties = None
+
+            self.json({
+                'result': {
+                    'id': entity_id,
+                    'properties': properties
+                },
+                'time': round(self.request.request_time(), 3),
+            })
+            return
+
+        http_client = httpclient.AsyncHTTPClient()
+        response = yield http_client.fetch(url)
+
+        if response.headers.get('Content-Type', None):
+            filetype = response.headers.get('Content-Type')
+        else:
+            filetype = 'binary/octet-stream'
+
+        if not filename and response.headers.get('Content-Disposition', None):
+            filename_value, filename_params = cgi.parse_header(response.headers.get('Content-Disposition'))
+            if filename_params.get('filename', None):
+                filename = filename_params.get('filename').decode('utf-8')
+            elif filename_params.get('filename*', None):
+                filename = urllib.unquote(filename_params.get('filename*').replace('UTF-8\'\'', ''))
+
+        if not filename:
+            filename = url
+
+        filesize = len(response.body)
+        if int(filesize) > 4294967295:
+            self.json({
+                'error': 'Max file size is 4294967295 bytes!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+            return
+
+        key = '%s/%s' % (self.app_settings('database-name'), entity_id)
+
+        new_property_id = self.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value={'filename': filename, 's3key': key, 'filesize': filesize})
+        if new_property_id:
+            properties = {property_definition_keyname: [{'id': new_property_id, 'value': filename}]}
+        else:
+            properties = None
+
+        key = '%s/%s' % (key, new_property_id)
+
+        s3_conn   = S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
+        s3_bucket = s3_conn.get_bucket(AWS_BUCKET, validate=False)
+        s3_file   = Key(s3_bucket)
+
+        s3_file.key = key
+        s3_file.content_type = filetype
+        s3_file.set_metadata('Content-Disposition', 'attachment; filename*=UTF-8\'\'%s' % urllib.quote(filename.encode('utf-8')))
+        s3_file.set_contents_from_string(response.body, encrypt_key=True)
+
+        self.json({
+            'result': {
+                'id': entity_id,
+                'properties': properties,
             },
             'time': round(self.request.request_time(), 3),
         })
@@ -862,6 +997,7 @@ handlers = [
     (r'/api2/entity-(.*)', API2Entity),
     (r'/api2/file', API2FileUpload),
     (r'/api2/file/s3', API2AmazonFileUpload),
+    (r'/api2/file/url', API2UrlFileUpload),
     (r'/api2/file-(.*)', API2File),
     (r'/api2/definition', API2DefinitionList),
     (r'/api2/definition-(.*)', API2Definition),
