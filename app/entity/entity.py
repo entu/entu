@@ -234,12 +234,21 @@ class ShowEntityEdit(myRequestHandler, Entity):
         if not item:
             return
 
+        try:
+            AWS_BUCKET     = self.app_settings('auth-s3', '\n', True).split('\n')[0]
+            AWS_ACCESS_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[1]
+            AWS_SECRET_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[2]
+            s3upload = True
+        except Exception, e:
+            s3upload = False
+
         self.render('entity/template/edit.html',
             entity = item,
             parent_entity_id = '',
             entity_definition_keyname = '',
             actions = ['default'],
             open_after_add = False,
+            s3upload = s3upload
         )
 
 

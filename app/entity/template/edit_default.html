@@ -79,12 +79,16 @@
 
         $('input[type=file]').change(function() {
             for (var i=0; i<this.files.length; i++) {
-                uploadFile(this.files[i], $(this));
+                {% if s3upload %}
+                    uploadFileS3(this.files[i], $(this));
+                {% else %}
+                    uploadFile(this.files[i], $(this));
+                {% end %}
             }
             $(this).val(null);
         });
 
-        function uploadFile(file, div) {
+        function uploadFileS3(file, div) {
             $.ajaxSetup({ cache: false });
             $.post('/api2/file/s3', {
                 entity:   {{ entity.get('id', '') }},
@@ -131,6 +135,35 @@
                     console.log(data);
                 }
             }, 'json');
+        }
+        function uploadFile(file, div) {
+            var xhr = new XMLHttpRequest();
+            var form = new FormData();
+
+            form.append('entity', {{ entity.get('id', '') }});
+            form.append('property', div.data('property_definition_keyname'));
+            form.append('filename', file.name);
+            form.append('file', file);
+
+            var status = $('<div class="new-input" style="padding:8px; color:gray;">'+file.name+'<i> - Uploading...</i></div>');
+            $('#new-filenames-' + div.data('property_definition_keyname')).append(status);
+
+            xhr.upload.addEventListener('progress', function(ev) {
+                if(ev.lengthComputable) status.children('i').html(' - ' + Math.round(ev.loaded * 1000 / ev.total) / 10 + '%');
+            }, false);
+
+            xhr.onreadystatechange = function(ev) {
+                if(xhr.readyState == 4 && xhr.status == 200) {
+                    status.children('i').html('');
+                }
+                if(xhr.readyState == 4 && xhr.status != 200) {
+                    console.log(xhr)
+                    status.children('i').html(' - Error!');
+                }
+            };
+
+            xhr.open('POST', '/api2/file', true);
+            xhr.send(form);
         }
 
 
