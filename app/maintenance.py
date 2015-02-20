@@ -495,15 +495,16 @@ while True:
                 db_pass = c.get('database-password'),
                 language = c.get('language'),
                 hours = 2,
+                # hours = 876000 , # 100 years
                 speed = total_time / total_count
             )
 
             m.echo('start', 1)
 
             if m.changed_entities:
-                    m.set_formula_properties()
-                    m.set_reference_properties()
-                    m.set_sort()
+                m.set_formula_properties()
+                m.set_reference_properties()
+                m.set_sort()
 
             else:
                 m.echo('entities not changed', 1)
