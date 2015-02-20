@@ -957,10 +957,24 @@ class API2User(myRequestHandler, Entity2):
                 'time': round(self.request.request_time(), 3),
             }, 404)
 
+        result = self.current_user
+
+        del result['access_token']
+        del result['api_key']
+
         self.json({
-            'result': self.current_user,
+            'result': result,
             'time': round(self.request.request_time(), 3),
         })
+
+
+
+
+class API2UserAuth(myRequestHandler, Entity2):
+    @web.removeslash
+    @web.authenticated
+    def get(self):
+        self.redirect('/api2/user')
 
 
 
@@ -1003,6 +1017,7 @@ handlers = [
     (r'/api2/definition-(.*)', API2Definition),
     (r'/api2/cmdi-xml/(.*)', API2CmdiXml),
     (r'/api2/email', API2Email),
+    (r'/api2/user/auth', API2UserAuth),
     (r'/api2/user', API2User),
     (r'/api2(.*)', API2NotFound),
 ]
