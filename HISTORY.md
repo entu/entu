@@ -1,3 +1,9 @@
+## 2015-02-20
+* Option to store files in Amazon S3
+* Authenticate user by "X-Auth-UserId" and "X-Auth-Token" header
+* User method on API2
+* Lots of bugfixes
+
 ## 2015-01-07
 * Fixed children/relations table sorting on Entity view
 * Other small fixes
