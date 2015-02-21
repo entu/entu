@@ -270,12 +270,21 @@ class ShowEntityAdd(myRequestHandler, Entity):
         if '-default' in actions:
             actions.remove('-default')
 
+        try:
+            AWS_BUCKET     = self.app_settings('auth-s3', '\n', True).split('\n')[0]
+            AWS_ACCESS_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[1]
+            AWS_SECRET_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[2]
+            s3upload = True
+        except Exception, e:
+            s3upload = False
+
         self.render('entity/template/edit.html',
             entity = item,
             parent_entity_id = entity_id,
             entity_definition_keyname = entity_definition_keyname,
             actions = actions,
             open_after_add = True if entity_definition[0].get('open_after_add', 0) == 1 else False,
+            s3upload = s3upload
         )
 
 

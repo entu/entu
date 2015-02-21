@@ -33,7 +33,6 @@
                                 {% elif p['datatype'] == 'file' %}
                                     {% if not v['id'] %}
                                         <div id="new-filenames-{{ p['keyname'] }}" style="padding:0px;"></div>
-                                        <img src="{{ static_url('images/spinner_white.gif') }}" style="display:none; padding:8px;" />
                                         <div class="edit" style="height:23px;">
                                             <input type="file" class="dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" multiple>
                                             <div class="google-open btn btn-small pull-right" data-property_definition_keyname="{{ p['keyname'] }}">{{ _('add_files_google') }}</div>
@@ -91,7 +90,7 @@
         function uploadFileS3(file, div) {
             $.ajaxSetup({ cache: false });
             $.post('/api2/file/s3', {
-                entity:   {{ entity.get('id', '') }},
+                entity: '{{ entity.get('id', '') }}',
                 property: div.data('property_definition_keyname'),
                 filename: file.name,
                 filesize: file.size,
@@ -140,7 +139,7 @@
             var xhr = new XMLHttpRequest();
             var form = new FormData();
 
-            form.append('entity', {{ entity.get('id', '') }});
+            form.append('entity', '{{ entity.get('id', '') }}');
             form.append('property', div.data('property_definition_keyname'));
             form.append('filename', file.name);
             form.append('file', file);
@@ -174,7 +173,7 @@
                 var status = $('<div class="new-input" style="padding:8px; color:gray;">' + filename + '<i> - Uploading...</i></div>');
                 $('#new-filenames-' + div.data('property_definition_keyname')).append(status);
                 $.post('/api2/file/url', {
-                    entity:   {{ entity.get('id', '') }},
+                    entity: '{{ entity.get('id', '') }}',
                     property: div.data('property_definition_keyname'),
                     url: links[i].url,
                     filename: links[i].filename,
