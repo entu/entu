@@ -415,7 +415,7 @@ class API2File(myRequestHandler, Entity):
         filename = files[0].get('filename')
 
         self.add_header('Content-Type', mime)
-        self.add_header('Content-Disposition', 'attachment; filename="%s"' % filename)
+        self.add_header('Content-Disposition', 'inline; filename="%s"' % filename)
         self.write(files[0].get('file'))
 
     @web.removeslash
@@ -590,7 +590,7 @@ class API2AmazonFileUpload(myRequestHandler, Entity):
                 {'success_action_status': '201'},
                 {'x-amz-server-side-encryption': 'AES256'},
                 {'Content-Type': filetype},
-                ['starts-with', '$Content-Disposition', 'attachment; filename'],
+                ['starts-with', '$Content-Disposition', 'inline; filename'],
             ]
         }
         encoded_policy = json.dumps(policy).encode('utf-8').encode('base64').replace('\n','')
@@ -611,7 +611,7 @@ class API2AmazonFileUpload(myRequestHandler, Entity):
                         'policy':                       encoded_policy,
                         'signature':                    signature,
                         'Content-Type':                 filetype,
-                        'Content-Disposition':          'attachment; filename*=UTF-8\'\'%s' % urllib.quote(filename.encode('utf-8')),
+                        'Content-Disposition':          'inline; filename*=UTF-8\'\'%s' % urllib.quote(filename.encode('utf-8')),
                     }
                 }
             },
@@ -738,7 +738,7 @@ class API2UrlFileUpload(myRequestHandler, Entity):
 
         s3_file.key = key
         s3_file.content_type = filetype
-        s3_file.set_metadata('Content-Disposition', 'attachment; filename*=UTF-8\'\'%s' % urllib.quote(filename.encode('utf-8')))
+        s3_file.set_metadata('Content-Disposition', 'inline; filename*=UTF-8\'\'%s' % urllib.quote(filename.encode('utf-8')))
         s3_file.set_contents_from_string(response.body, encrypt_key=True)
 
         self.json({
