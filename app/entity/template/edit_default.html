@@ -90,13 +90,14 @@
         function uploadFileS3(file, div) {
             $.ajaxSetup({ cache: false });
             $.post('/api2/file/s3', {
-                entity: '{{ entity.get('id', '') }}',
+                entity: $('#database').data('entity_id'),
                 property: div.data('property_definition_keyname'),
                 filename: file.name,
                 filesize: file.size,
                 filetype: file.type
             }, function(data) {
                 if(data.result) {
+                    $('#database').data('entity_id', data.result.id);
                     var xhr = new XMLHttpRequest();
                     var form = new FormData();
 
@@ -139,7 +140,7 @@
             var xhr = new XMLHttpRequest();
             var form = new FormData();
 
-            form.append('entity', '{{ entity.get('id', '') }}');
+            form.append('entity', $('#database').data('entity_id'));
             form.append('property', div.data('property_definition_keyname'));
             form.append('filename', file.name);
             form.append('file', file);
@@ -153,6 +154,7 @@
 
             xhr.onreadystatechange = function(ev) {
                 if(xhr.readyState == 4 && xhr.status == 200) {
+                    $('#database').data('entity_id', JSON.parse(xhr.response).result.id);
                     status.children('i').html('');
                 }
                 if(xhr.readyState == 4 && xhr.status != 200) {
@@ -173,12 +175,13 @@
                 var status = $('<div class="new-input" style="padding:8px; color:gray;">' + filename + '<i> - Uploading...</i></div>');
                 $('#new-filenames-' + div.data('property_definition_keyname')).append(status);
                 $.post('/api2/file/url', {
-                    entity: '{{ entity.get('id', '') }}',
+                    entity: $('#database').data('entity_id'),
                     property: div.data('property_definition_keyname'),
                     url: links[i].url,
                     filename: links[i].filename,
                     download: links[i].download
                 }, function(data) {
+                    $('#database').data('entity_id', data.result.id);
                     status.children('i').html('');
                 }, 'json');
             }
