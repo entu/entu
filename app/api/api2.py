@@ -379,7 +379,7 @@ class API2File(myRequestHandler, Entity):
             }, 404)
 
         if files[0].get('url'):
-            return self.redirect(files[0].get('file'))
+            return self.redirect(files[0].get('url'))
 
         if files[0].get('s3key'):
             try:
