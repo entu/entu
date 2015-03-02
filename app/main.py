@@ -34,6 +34,7 @@ define('secret',        help='secret key',            type=str, default='ABC123'
 app_controllers = [
     'api.api',
     'api.api2',
+    'api.erply',
     'entity.csv_import',
     'entity.entity',
     'importers.cmdi',
