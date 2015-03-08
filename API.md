@@ -60,6 +60,7 @@ Result code|Status|Description
 404|Not Found|Entity (or property) with given ID is not found
 
 ### POST - create new child entity (under entity with given ID)
+Sorry, but this description is a mess - blame Argo.
 Argument|Type|Required|Default|Description
 :--|:-:|:-:|:--|:--
 definition|string|Yes||Definition ID of the new entity
