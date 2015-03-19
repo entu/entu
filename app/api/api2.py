@@ -5,6 +5,8 @@ import logging
 import mimetypes
 import urllib
 import cgi
+import random
+import string
 
 from hashlib import sha1
 from operator import itemgetter
@@ -977,6 +979,116 @@ class API2UserAuth(myRequestHandler, Entity2):
         self.redirect('/api2/user')
 
 
+    @web.removeslash
+    def post(self):
+        state = self.get_argument('state', default=None, strip=True)
+        if not state:
+            return self.json({
+                'error': 'State parameter must be set!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        redirect_url = self.get_argument('redirect_url', default=None, strip=True)
+
+        token = hashlib.md5('%s.%s.%s' % (state, redirect_url, ''.join(random.choice(string.ascii_letters + string.digits) for x in range(16)))).hexdigest()
+
+        tmp_filename = '%s.authtoken' % token
+        tmp_file = json.dumps({
+            'token': token,
+            'state': state,
+            'redirect_url': redirect_url
+        })
+
+        self.set_tmp_file(filename=tmp_filename, content=tmp_file)
+
+        self.json({
+            'token': token,
+            'state': state,
+            'auth_url': '%s/%s' % (self.request.full_url(), token)
+        })
+
+
+
+
+class API2UserAuthToken(myRequestHandler, Entity2):
+    @web.removeslash
+    @web.authenticated
+    def get(self, token):
+        if not token:
+            return self.json({
+                'error': 'No token!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        filename = '%s.authtoken' % token
+        tmp_file = get_tmp_file(filename=filename)
+
+        if not tmp_file:
+            return self.json({
+                'error': 'Invalid token!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        tmp_file_json = json.parse(tmp_file.get('file', ''))
+
+        tmp_file_json['user'] = self.current_user
+
+        del tmp_file_json['user']['access_token']
+        del tmp_file_json['user']['api_key']
+
+        if tmp_file_json.get('redirect_url', None):
+
+            tmp_filename = '%s.usertoken' % token
+            tmp_file = json.dumps(tmp_file_json)
+
+            self.set_tmp_file(filename=tmp_filename, content=tmp_file)
+
+            return self.redirect(tmp_file_json.get('redirect_url'))
+
+        self.json({
+            'result': tmp_file_json,
+            'time': round(self.request.request_time(), 3),
+        })
+
+
+    @web.removeslash
+    def post(self, token):
+        if not token:
+            return self.json({
+                'error': 'No token!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        filename = '%s.usertoken' % token
+        tmp_file = get_tmp_file(filename=filename)
+
+        if not tmp_file:
+            return self.json({
+                'error': 'Invalid token!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        tmp_file_json = json.parse(tmp_file.get('file', ''))
+
+        state = self.get_argument('state', default=None, strip=True)
+        if not state:
+            return self.json({
+                'error': 'State parameter must be set!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        if state !== tmp_file_json.get('state', None):
+            return self.json({
+                'error': 'Invalid state!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+
+        self.json({
+            'result': tmp_file_json,
+            'time': round(self.request.request_time(), 3),
+        })
+
 
 
 class API2NotFound(myRequestHandler, Entity2):
@@ -1018,6 +1130,7 @@ handlers = [
     (r'/api2/cmdi-xml/(.*)', API2CmdiXml),
     (r'/api2/email', API2Email),
     (r'/api2/user/auth', API2UserAuth),
+    (r'/api2/user/auth/(.*)', API2UserAuthToken),
     (r'/api2/user', API2User),
     (r'/api2(.*)', API2NotFound),
 ]

@@ -659,3 +659,25 @@ class Entity2():
                 related_entity_id,
                 right
             )
+
+
+    def set_tmp_file(self, filename=None, content=None):
+        if not filename or not content:
+            return
+
+        return self.db.execute_lastrowid('INSERT INTO tmp_file SET filename = %s, file = %s, filesize = LENGTH(file), created = NOW(), created_by = %s;', filename, content, self.__user_id)
+
+    def get_tmp_file(self, filename=None):
+        if not filename:
+            return
+
+        tmp_file = self.db.get('SELECT filename, file FROM tmp_file WHERE filename = %s LIMIT 1;', filename)
+
+        if not tmp_file:
+            return
+
+        return {
+            'filename': tmp_file.filename,
+            'file': tmp_file.file
+        }
+
