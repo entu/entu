@@ -472,7 +472,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
     def options(self, abc=None, **kwargs):
         self.add_header('Access-Control-Allow-Origin', '*')
-        self.add_header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+        self.add_header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-Auth-UserId, X-Auth-Token');
         self.add_header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE');
 
     def forbidden(self):

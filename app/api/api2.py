@@ -994,7 +994,6 @@ class API2UserAuth(myRequestHandler, Entity2):
 
         tmp_filename = '%s.authtoken' % token
         tmp_file = json.dumps({
-            'token': token,
             'state': state,
             'redirect_url': redirect_url
         })
@@ -1002,7 +1001,6 @@ class API2UserAuth(myRequestHandler, Entity2):
         self.set_tmp_file(filename=tmp_filename, content=tmp_file)
 
         self.json({
-            'token': token,
             'state': state,
             'auth_url': '%s/%s' % (self.request.full_url(), token)
         })
@@ -1021,7 +1019,7 @@ class API2UserAuthToken(myRequestHandler, Entity2):
             }, 400)
 
         filename = '%s.authtoken' % token
-        tmp_file = get_tmp_file(filename=filename)
+        tmp_file = self.get_tmp_file(filename=filename)
 
         if not tmp_file:
             return self.json({
@@ -1029,20 +1027,19 @@ class API2UserAuthToken(myRequestHandler, Entity2):
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        tmp_file_json = json.parse(tmp_file.get('file', ''))
+        tmp_file_json = json.loads(tmp_file.get('file', ''))
 
         tmp_file_json['user'] = self.current_user
 
         del tmp_file_json['user']['access_token']
         del tmp_file_json['user']['api_key']
 
+        tmp_filename = '%s.usertoken' % token
+        tmp_file = json.dumps(tmp_file_json)
+
+        self.set_tmp_file(filename=tmp_filename, content=tmp_file)
+
         if tmp_file_json.get('redirect_url', None):
-
-            tmp_filename = '%s.usertoken' % token
-            tmp_file = json.dumps(tmp_file_json)
-
-            self.set_tmp_file(filename=tmp_filename, content=tmp_file)
-
             return self.redirect(tmp_file_json.get('redirect_url'))
 
         self.json({
@@ -1060,7 +1057,7 @@ class API2UserAuthToken(myRequestHandler, Entity2):
             }, 400)
 
         filename = '%s.usertoken' % token
-        tmp_file = get_tmp_file(filename=filename)
+        tmp_file = self.get_tmp_file(filename=filename)
 
         if not tmp_file:
             return self.json({
@@ -1068,7 +1065,7 @@ class API2UserAuthToken(myRequestHandler, Entity2):
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        tmp_file_json = json.parse(tmp_file.get('file', ''))
+        tmp_file_json = json.loads(tmp_file.get('file', ''))
 
         state = self.get_argument('state', default=None, strip=True)
         if not state:
@@ -1077,7 +1074,7 @@ class API2UserAuthToken(myRequestHandler, Entity2):
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        if state !== tmp_file_json.get('state', None):
+        if state != tmp_file_json.get('state', None):
             return self.json({
                 'error': 'Invalid state!',
                 'time': round(self.request.request_time(), 3),
