@@ -3,23 +3,17 @@
 {% include 'start.html' %}
 
 {% block public_content %}
-    <table class="table table-bordered">
-        <tbody>
-            {% for i in entities %}
-            <tr>
-                <td style="white-space:nowrap; min-width:20px;">
-                    <img src="/api2/entity-{{ i['id'] }}/picture" style="height:20px; width:20px;" />
-                </td>
-                <td style="1white-space:nowrap; width:100%; border-left:none;">
-                    <a href="{{ i['url'] }}">{{ i['name'] }}</a>
-                </td>
-            </tr>
-            {% end %}
-            <tr>
-                <td colspan="3" style="text-align:center;">
-                    {{ itemcount }}
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="public_list">
+        {% for i in entities %}
+            <div class="public_list list_item" style="padding:1em; clear:both;">
+                <img src="/api2/entity-{{ i['id'] }}/picture" style="height:120px; width:120px; float:left; padding:1em;" />
+                <h4><a href="{{ i['url'] }}">{{ i['name'] }}</a></h4>
+                <span class="description">{{ i['info'] }}</span>
+            </div>
+        {% end %}
+    </div>
+
+    <div style="text-align:center; clear:both;">
+        {{ itemcount }}
+    </div>
 {% end %}
