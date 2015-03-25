@@ -1,3 +1,8 @@
+## 2015-03-25
+* Erply API integration
+* API2 authentication for standalone (web)apps
+* Public search results redesign
+
 ## 2015-02-20
 * Option to store files in Amazon S3
 * Authenticate user by "X-Auth-UserId" and "X-Auth-Token" header
