@@ -1,9 +1,6 @@
-# Entu
+# Entu - Futuristic Data Management System
 
-_Futuristic Data Management System_
-
-
-## Key features
+![Screenshot](https://raw.github.com/argoroots/Entu/2013-07-01/static/images/screenshot.png "Screenshot")
 
 * It stores data in Entities (objects) and Entities have (text, numeric, date, file, …) properties
 * Entities are fully customizable
@@ -25,18 +22,3 @@ _Futuristic Data Management System_
 * Entities can be related with each other by system relations (child, seeder, leecher) or by custom ones
 * User authentication is delegated to Google, Facebook, Twitter, MS Live or other providers
 * Users have explicit rights (viewer, editor, owner) for every Entity - there are no roles
-
-
-## Screenshot
-
-![Screenshot](https://raw.github.com/argoroots/Entu/2013-07-01/static/images/screenshot.png "Screenshot")
-
-
-## Dependencies
-
-[See INSTALL.md](INSTALL.md)
-
-
-## License
-
-Entu is open source and available under the [MIT license](LICENSE.md).
