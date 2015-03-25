@@ -24,7 +24,7 @@ RUN mkdir -p /entu/files
 RUN mkdir -p /entu/thumbs
 
 # Copy a configuration files from the current directory
-ADD nginx.conf /entu/conf/
+# ADD nginx.conf /entu/conf/
 
 ##################### INSTALLATION END #####################
 
