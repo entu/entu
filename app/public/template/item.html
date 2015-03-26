@@ -21,9 +21,9 @@
                             <td style="width:100%;">
                                 {% if p['datatype'] == 'file' %}
                                     {% if sharing_key %}
-                                        {{ '<br />'.join(['<a href="/public/file-%s?key=%s">%s</a>' % (v['db_value'], sharing_key, v['value']) for v in p['values']]) }}
+                                        {{ '<br />'.join(['<a href="/api2/file-%s?key=%s">%s</a>' % (v['db_value'], sharing_key, v['value']) for v in p['values']]) }}
                                     {% else %}
-                                        {{ '<br />'.join(['<a href="/public/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
+                                        {{ '<br />'.join(['<a href="/api2/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
                                     {% end %}
                                 {% else %}
                                     {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
