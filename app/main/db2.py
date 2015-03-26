@@ -681,3 +681,140 @@ class Entity2():
             'file': tmp_file.file
         }
 
+
+    def get_history_timeframe(self, timestamp=None, limit=10):
+        # logging.debug(timestamp)
+        # logging.debug(limit)
+
+        if timestamp:
+            timestamp = "'" + timestamp + "'"
+        else:
+            timestamp = 'NOW()'
+        sql = """
+            SELECT min(tstamp) AS from_ts,
+                   max(tstamp) AS to_ts
+            FROM
+              (SELECT *
+               FROM
+                 (SELECT tstamp
+                  FROM
+                    (SELECT r.created AS tstamp
+                     FROM relationship r
+                     WHERE r.created_by = '%(user_id)s'
+                       AND r.created < %(timestamp)s
+                     GROUP BY r.created
+                     ORDER BY r.created DESC LIMIT %(limit)i) cr
+                  UNION SELECT tstamp
+                  FROM
+                    (SELECT r.deleted AS tstamp
+                     FROM relationship r
+                     WHERE r.deleted_by = '%(user_id)s'
+                       AND r.created < %(timestamp)s
+                     GROUP BY r.deleted
+                     ORDER BY r.deleted DESC LIMIT %(limit)i) dr
+                  UNION SELECT tstamp
+                  FROM
+                    (SELECT e.created AS tstamp
+                     FROM entity e
+                     WHERE e.created_by = '%(user_id)s'
+                       AND e.created < %(timestamp)s
+                     GROUP BY e.created
+                     ORDER BY e.created DESC LIMIT %(limit)i) ce
+                  UNION SELECT tstamp
+                  FROM
+                    (SELECT e.deleted AS tstamp
+                     FROM entity e
+                     WHERE e.deleted_by = '%(user_id)s'
+                       AND e.created < %(timestamp)s
+                     GROUP BY e.deleted
+                     ORDER BY e.deleted DESC LIMIT %(limit)i) de
+                  UNION SELECT tstamp
+                  FROM
+                    (SELECT e.changed AS tstamp
+                     FROM entity e
+                     WHERE e.changed_by = '%(user_id)s'
+                       AND e.changed < %(timestamp)s
+                     GROUP BY e.changed
+                     ORDER BY e.changed DESC LIMIT %(limit)i) ce) ts
+               ORDER BY tstamp DESC LIMIT %(limit)i) AS lts;
+            """ % {'user_id': self.__user_id, 'timestamp': timestamp, 'limit': int(limit)}
+
+        logging.debug(sql)
+
+        result = self.db.get(sql)
+        # logging.debug(result)
+
+        return result
+
+    def get_history_events(self, timeframe):
+        logging.debug(timeframe)
+        from_timestamp = timeframe.from_ts.isoformat()
+        to_timestamp = timeframe.to_ts.isoformat()
+
+        sql = """
+            SELECT *
+            FROM
+              (SELECT r.created AS tstamp,
+                      'Created relationship' AS "Action",
+                      r.id AS "Target",
+                      r.relationship_definition_keyname AS "Property",
+                      r.entity_id AS "From",
+                      r.related_entity_id AS "To"
+               FROM relationship r
+               WHERE r.created_by = '%(user_id)s'
+                 AND r.created BETWEEN '%(from_timestamp)s' AND '%(to_timestamp)s'
+               UNION SELECT r.deleted AS tstamp,
+                            'Deleted relationship' AS "Action",
+                            r.id AS "Target",
+                            r.relationship_definition_keyname AS "Property",
+                            r.entity_id AS "From",
+                            r.related_entity_id AS "To"
+               FROM relationship r
+               WHERE r.deleted_by = '%(user_id)s'
+                 AND r.deleted BETWEEN '%(from_timestamp)s' AND '%(to_timestamp)s'
+               UNION SELECT e.created AS tstamp,
+                            'Created entity' AS "Action",
+                            e.id AS "Target",
+                            NULL AS "Property",
+                            NULL AS "From",
+                            NULL AS "To"
+               FROM entity e
+               WHERE e.created_by = '%(user_id)s'
+                 AND e.created BETWEEN '%(from_timestamp)s' AND '%(to_timestamp)s'
+               UNION SELECT e.deleted AS tstamp,
+                            'Deleted entity' AS "Action",
+                            e.id AS "Target",
+                            NULL AS "Property",
+                            NULL AS "From",
+                            NULL AS "To"
+               FROM entity e
+               WHERE e.deleted_by = '%(user_id)s'
+                 AND e.deleted BETWEEN '%(from_timestamp)s' AND '%(to_timestamp)s'
+               UNION SELECT e.changed AS tstamp,
+                            'Changed entity' AS "Action",
+                            e.id AS "Target",
+                            p2.property_definition_keyname AS "Property",
+                            p1.value_display AS "From",
+                            p2.value_display AS "To"
+               FROM entity e
+               LEFT JOIN property p1 ON p1.entity_id = e.id
+               AND p1.deleted_by = '%(user_id)s'
+               AND p1.deleted = e.changed
+               LEFT JOIN property p2 ON p2.entity_id = e.id
+               AND p2.created_by = '%(user_id)s'
+               AND p2.created = e.changed
+               WHERE e.changed_by = '%(user_id)s'
+                 AND e.changed BETWEEN '%(from_timestamp)s' AND '%(to_timestamp)s') lts
+            ORDER BY lts.tstamp DESC ;
+            """ % {'user_id': self.__user_id, 'from_timestamp': from_timestamp, 'to_timestamp': to_timestamp}
+
+        logging.debug(sql)
+
+        result = {}
+        for r in self.db.query(sql):
+            # logging.debug(r)
+            result.setdefault(r.get('tstamp').isoformat(), []).append(r)
+        # logging.debug(result)
+
+        return {'from':from_timestamp, 'to':to_timestamp, 'events':sorted(result.items())}
+

@@ -1088,6 +1088,26 @@ class API2UserAuthToken(myRequestHandler, Entity2):
 
 
 
+class API2History(myRequestHandler, Entity2):
+    @web.removeslash
+    @web.authenticated
+    def get(self, limit=10, timestamp=None):
+
+        if limit == '':
+            limit = 10
+
+        logging.debug(timestamp)
+        logging.debug(limit)
+        timeframe = self.get_history_timeframe(limit=limit, timestamp=timestamp)
+        logging.debug(timeframe)
+        events = self.get_history_events(timeframe)
+        # logging.debug(events)
+
+        self.json(events)
+
+
+
+
 class API2NotFound(myRequestHandler, Entity2):
     #
     # Nice error if API method not found
@@ -1128,6 +1148,9 @@ handlers = [
     (r'/api2/email', API2Email),
     (r'/api2/user/auth', API2UserAuth),
     (r'/api2/user/auth/(.*)', API2UserAuthToken),
+    (r'/api2/history/(.*)/(.*)', API2History),
+    (r'/api2/history/(.*)', API2History),
+    (r'/api2/history', API2History),
     (r'/api2/user', API2User),
     (r'/api2(.*)', API2NotFound),
 ]
