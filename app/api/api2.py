@@ -1084,7 +1084,7 @@ class API2UserAuthToken(myRequestHandler, Entity2):
         self.json({
             'result': tmp_file_json,
             'time': round(self.request.request_time(), 3),
-        }, 200)
+        })
 
 
 
@@ -1108,15 +1108,15 @@ class API2History(myRequestHandler, Entity2):
 
 
 
-class API2Ping(myRequestHandler, Entity2):
+class API2Ping(myRequestHandler):
     #
     # just pong
     #
     def get(self):
         self.json({
-            'ping': 'pong',
+            'result': 'pong',
             'time': round(self.request.request_time(), 3),
-        }, 200)
+        })
 
 
 
