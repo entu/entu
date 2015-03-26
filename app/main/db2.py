@@ -739,7 +739,7 @@ class Entity2():
                ORDER BY tstamp DESC LIMIT %(limit)i) AS lts;
             """ % {'user_id': self.__user_id, 'timestamp': timestamp, 'limit': int(limit)}
 
-        logging.debug(sql)
+        # logging.debug(sql)
 
         result = self.db.get(sql)
         # logging.debug(result)
@@ -808,7 +808,7 @@ class Entity2():
             ORDER BY lts.tstamp DESC ;
             """ % {'user_id': self.__user_id, 'from_timestamp': from_timestamp, 'to_timestamp': to_timestamp}
 
-        logging.debug(sql)
+        # logging.debug(sql)
 
         result = {}
         for r in self.db.query(sql):

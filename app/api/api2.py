@@ -1094,6 +1094,8 @@ class API2History(myRequestHandler, Entity2):
     def get(self):
 
         limit = self.get_argument('limit', default=10, strip=True)
+        if limit > 50:
+            limit = 50
         # logging.debug(timestamp)
         timestamp = self.get_argument('timestamp', default=None, strip=True)
 
@@ -1107,6 +1109,7 @@ class API2History(myRequestHandler, Entity2):
         self.json({
             'result': events,
             'time': round(self.request.request_time(), 3),
+            'count': len(events['events']),
             })
 
 
