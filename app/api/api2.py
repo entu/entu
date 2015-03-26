@@ -1091,19 +1091,23 @@ class API2UserAuthToken(myRequestHandler, Entity2):
 class API2History(myRequestHandler, Entity2):
     @web.removeslash
     @web.authenticated
-    def get(self, limit=10, timestamp=None):
+    def get(self):
+
+        limit = self.get_argument('limit', default=10, strip=True)
+        # logging.debug(timestamp)
+        timestamp = self.get_argument('timestamp', default=None, strip=True)
 
         if limit == '':
             limit = 10
 
-        logging.debug(timestamp)
-        logging.debug(limit)
         timeframe = self.get_history_timeframe(limit=limit, timestamp=timestamp)
-        logging.debug(timeframe)
         events = self.get_history_events(timeframe)
         # logging.debug(events)
 
-        self.json(events)
+        self.json({
+            'result': events,
+            'time': round(self.request.request_time(), 3),
+            })
 
 
 
@@ -1161,8 +1165,6 @@ handlers = [
     (r'/api2/email', API2Email),
     (r'/api2/user/auth', API2UserAuth),
     (r'/api2/user/auth/(.*)', API2UserAuthToken),
-    (r'/api2/history/(.*)/(.*)', API2History),
-    (r'/api2/history/(.*)', API2History),
     (r'/api2/history', API2History),
     (r'/api2/user', API2User),
     (r'/api2/ping', API2Ping),
