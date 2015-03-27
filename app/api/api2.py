@@ -573,7 +573,7 @@ class API2AmazonFileUpload(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        key = '%s/%s' % (self.app_settings('database-name'), entity_id)
+        key = '%s_2/%s' % (self.app_settings('database-name'), entity_id)
 
         new_property_id = self.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value={'filename': filename, 's3key': key, 'filesize': filesize})
         if new_property_id:
