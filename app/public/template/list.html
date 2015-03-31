@@ -6,12 +6,50 @@
     <div class="public_list">
         {% for i in entities %}
             <div class="public_list list_item" style="padding:1em; clear:both;">
-                <img src="/api2/entity-{{ i['id'] }}/picture" style="height:120px; width:120px; float:left; padding:1em;" />
+                <div style="float:left; margin-right:1em;">
+                    <a href="{{ i['url'] }}">
+                        <div class="list_carousel" style="width:150px;" id="{{ i['id'] }}" eid="{{ i['id'] }}">
+                            <div><img src="/api2/entity-{{ i['id'] }}/picture" style="width:120px; margin:1em;" /></div>
+                        </div>
+                    </a>
+                </div>
                 <h4><a href="{{ i['url'] }}">{{ i['name'] }}</a></h4>
                 <span class="description">{{ i['info'] }}</span>
             </div>
         {% end %}
     </div>
+
+    <script type="text/javascript">
+
+        $('.list_carousel')
+            .each(function() {
+                var carousel_item = $(this)
+                var eid = this.id
+
+                $.getJSON( "https://devm.entu.ee/api2/entity-" + eid, function( data ) {
+                    var items = []
+                    if( data.result.properties.photo !== undefined
+                            && data.result.properties.photo.values !== undefined
+                            && data.result.properties.photo.values.length > 1) {
+                        carousel_item.empty()
+                        $.each( data.result.properties.photo.values, function( key, val ) {
+                            var new_item = $('<div><img src="/api2/file-' + val['db_value'] + '" alt="' + val['value'] + '" style="width:120px; margin:1em;" /></div>')
+                            carousel_item.append(new_item)
+                        })
+                        carousel_item.slick(
+                            {
+                                infinite: true,
+                                arrows: false,
+                                speed: 300,
+                                slidesToShow: 1,
+                                autoplay: true,
+                                autoplaySpeed: 5000
+                            }
+                        )
+                    }
+                })
+            })
+     </script>
 
     <div style="text-align:center; clear:both;">
         {{ itemcount }}
