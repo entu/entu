@@ -7,6 +7,13 @@
     .brand {padding-left:0px !important;}
 {% end %}
 
+{% block head %}
+    <!-- Slick carousel -->
+    <link rel="stylesheet" type="text/css" href="{{ static_url('frameworks/slick/slick.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ static_url('frameworks/slick/slick-theme.css') }}">
+    <script type="text/javascript" src="{{ static_url('frameworks/slick/slick.min.js') }}"></script>
+{% end %}
+
 {% block right_toolbar %}
     <ul class="nav pull-right">
     {% for p, l in paths.iteritems() %}
