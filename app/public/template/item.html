@@ -37,22 +37,21 @@
     </div>
     {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
         {% if p.get('visible') and p.get('values') and p['datatype'] == 'file' and p['dataproperty'] == 'photo' %}
-            <div class="carousel" style="width:600px; margin: auto;">
+            <div class="item_carousel" style="width:600px; margin: auto;">
                 {{ "\n".join(['<div><img src="/api2/file-%s" alt="%s"/></div>' % (v['db_value'], v['value']) for v in p['values']]) }}
             </div>
-            <script type="text/javascript">
-                $('.carousel').slick(
-{
-  dots: true,
-  infinite: true,
-  speed: 300,
-  slidesToShow: 1,
-  // adaptiveHeight: true,
-  autoplay: true,
-  autoplaySpeed: 5000
-}
-                );
-            </script>
         {% end %}
     {% end %}
+    <script type="text/javascript">
+        $('.item_carousel').slick(
+            {
+                dots: true,
+                infinite: true,
+                speed: 300,
+                slidesToShow: 1,
+                autoplay: true,
+                autoplaySpeed: 5000
+            }
+        );
+    </script>
 {% end %}
