@@ -1,3 +1,4 @@
+{% autoescape None %}
 {% extends '../../main/template/index.html' %}
 
 {% block logo_url %}/public{% end %}
@@ -18,7 +19,10 @@
     <div class="container" style="margin-top:70px;">
 
         {% block public_content %}
-            <img src="{{ app_logo }}" alt="logo" style="margin:100px auto 50px auto; display:block; max-height:200px;" />
+            <div style="margin:100px auto 50px auto; display:block; text-align: center;">
+                <img src="{{ app_logo }}" alt="logo" style="display:block; margin: 0px auto; max-height:200px;" />
+                <div style="margin: 10px; border:0px; background-color: initial;">{{ motd }}</div>
+            </div>
             {% include 'search.html' %}
         {% end %}
     </div>
