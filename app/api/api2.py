@@ -398,7 +398,7 @@ class API2File(myRequestHandler, Entity):
             s3_key    = s3_bucket.get_key(files[0].get('s3key'))
             if not s3_key:
                 return self.json({
-                    'error': 'FIle not found from Amazon S3!',
+                    'error': 'File not found from Amazon S3!',
                     'time': round(self.request.request_time(), 3),
                 }, 400)
 
