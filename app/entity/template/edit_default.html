@@ -34,7 +34,7 @@
                                     {% if not v['id'] %}
                                         <div id="new-filenames-{{ p['keyname'] }}" style="padding:0px;"></div>
                                         <div class="edit" style="height:23px;">
-                                            <input type="file" class="dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" multiple>
+                                            <input type="file" title="{{ _('add_files_computer') }}" class="dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" multiple>
                                             <div class="google-open btn btn-small pull-right" data-property_definition_keyname="{{ p['keyname'] }}">{{ _('add_files_google') }}</div>
                                             <div class="dropbox-open btn btn-small pull-right" data-property_definition_keyname="{{ p['keyname'] }}" style="margin-right:10px;">{{ _('add_files_dropbox') }}</div>
                                             <div class="url-open btn btn-small pull-right" data-property_definition_keyname="{{ p['keyname'] }}" style="margin-right:10px;">{{ _('add_files_url') }}</div>
