@@ -296,7 +296,7 @@ class Entity():
         if not self.db.get("""
                 SELECT entity_id
                 FROM relationship
-                WHERE relationship_definition_keyname IN ('editor', 'owner')
+                WHERE relationship_definition_keyname IN ('owner')
                 AND entity_id = %s
                 AND related_entity_id = %s
                 AND is_deleted = 0;
