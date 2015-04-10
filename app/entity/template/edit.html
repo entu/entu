@@ -23,7 +23,7 @@
     </div>
 </div>
 <div class="modal-footer">
-    {% if entity.get('id') %}
+    {% if entity.get('right') == 'owner' %}
     <a id="delete-entity" class="btn btn-link pull-left" style="color:red;" href="javascript:void(0);">{{ _('entity_delete') }}</a>
     {% end %}
     <a href="#" class="btn" data-dismiss="modal">{{ _('close') }}</a>
