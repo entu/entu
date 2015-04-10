@@ -8,7 +8,7 @@ log_in_mid_message,"Kontrollige, et näete oma mobiiltelefoni ekraanil täpselt 
 log_in_info,Entu uses onlu those providers for user authentication. We don't get nor save Your password.
 
 menu_add,Add new
-menu_edit,Edit
+menu_edit,Edit/Delete
 menu_relate,Join relative
 menu_rights,Rights
 menu_share,Share
