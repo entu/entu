@@ -22,6 +22,14 @@
     </table>
 {% end %}
 
+<style>
+#entity_meta {
+    visibility: hidden;
+}
+.pull-right:hover~#entity_meta {
+    visibility: visible;
+}
+</style>
 <div class="pull-right" style="margin:0px 0px 20px 0px; width:120px; text-align:center; text-transform:uppercase; color:#B9B9B9; font-weight:bold;">
     <img src="/api2/entity-{{ entity.get('id') }}/picture" id="entity_picture" class="" width="120" style="padding-bottom:4px; width:120px;" /><br />
     {{ entity['label'] }}
@@ -32,6 +40,15 @@
         </a>
     {% end %}
 </div>
+<table id="entity_meta" style="z-index: 2; position: absolute; top: 60px; right: 160px; background-color: rgb(245, 245, 245); border: rgb(221, 221, 221) solid 1px; border-radius: 4px; border-spacing: 6px; border-collapse: separate;">
+    <tr>
+        <td for="entity_created">{{ _('created') }}</td><td id="entity_created">{{ entity['created'] }}<br/></td>
+    </tr>
+    <tr>
+        <td for="entity_changed">{{ _('changed') }}</td><td id="entity_created">{{ entity['changed'] }}<br/></td>
+    </tr>
+</table>
+
 <h3 style="margin:0px 140px 8px 0px; line-height:23px;">{{ entity['displayname'] }}</h3>
 <div style="margin-right:140px;">
     <table class="table table-condensed">
