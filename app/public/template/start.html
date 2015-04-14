@@ -43,7 +43,7 @@
 
 var fill = d3.scale.category20();
 var tags = []
-$.get('/api2/tagcloud?limit=500&definition={{tagcloud}}', function getCloud(data) {
+$.get('/api2/tagcloud?limit=100&definition={{tagcloud}}', function getCloud(data) {
     tags = data.result.tags
 
     d3.layout.cloud().size([900, 200])
