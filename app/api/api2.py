@@ -43,8 +43,8 @@ class API2TagCloud(myRequestHandler, Entity2):
         max_log = max(seq_log)
 
         for row in db_result:
-            row['nCount'] = 1.0 * (row['Count'] - min_cnt) / (max_cnt - min_cnt)
-            row['nLog'] = 1.0 * (row['Log'] - min_log) / (max_log - min_log)
+            row['nCount'] = 1.0 * (row['Count'] - min_cnt) / (max_cnt - min_cnt) if (max_cnt > min_cnt) else 1
+            row['nLog'] = 1.0 * (row['Log'] - min_log) / (max_log - min_log) if (max_log > min_log) else 1
 
         self.json({
             'result': {

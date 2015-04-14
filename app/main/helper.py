@@ -454,6 +454,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
         kwargs['app_title'] = 'Entu'
         kwargs['app_organisation'] = self.app_settings('name', '')
         kwargs['motd'] = self.app_settings('motd', '')
+        kwargs['tagcloud'] = self.app_settings('tagcloud', '')
         kwargs['app_logo'] = 'https://entu.entu.ee/api2/file-%s' % self.app_settings('photo') if self.app_settings('photo') else '/static/favicon/apple-touch-icon-144-precomposed.png'
         kwargs['page_title'] = '%s - %s' % (kwargs['app_title'], kwargs['page_title']) if kwargs.get('page_title') else '%s - %s' % (kwargs['app_title'], self.app_settings('name', ''))
         kwargs['google_analytics_code'] = self.app_settings('analytics-code')

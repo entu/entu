@@ -218,15 +218,19 @@ class Entity2():
     def get_tag_cloud(self, definition=None, limit=None):
         limit = int(limit) if int(limit) > 0 else 0
         return self.db.query("""
-            SELECT value_string AS "Tag",
+            SELECT p.value_string AS "Tag",
                    count(1) AS "Count",
                    log(count(1)) AS "Log"
-            FROM property
-            WHERE property_definition_keyname = %s
-              AND value_string IS NOT NULL
-            GROUP BY value_string
+            FROM property p
+            LEFT JOIN entity e ON e.id = p.entity_id
+            WHERE p.property_definition_keyname = %s
+              AND p.value_string IS NOT NULL
+              AND e.is_deleted = 0
+              AND p.is_deleted = 0
+              AND e.sharing = %s
+            GROUP BY p.value_string
             ORDER BY count(1) DESC LIMIT %s;
-        """, definition, limit)
+        """, definition, 'public', limit)
 
 
     def get_entities_info(self, entity_id=None, definition=None, parent_entity_id=None, referred_to_entity_id=None, query=None, limit=None, page=None):
