@@ -215,6 +215,20 @@ class Entity2():
         return entities2
 
 
+    def get_tag_cloud(self, definition=None, limit=None):
+        limit = int(limit) if int(limit) > 0 else 0
+        return self.db.query("""
+            SELECT value_string AS "Tag",
+                   count(1) AS "Count",
+                   log(count(1)) AS "Log"
+            FROM property
+            WHERE property_definition_keyname = %s
+              AND value_string IS NOT NULL
+            GROUP BY value_string
+            ORDER BY count(1) DESC LIMIT %s;
+        """, definition, limit)
+
+
     def get_entities_info(self, entity_id=None, definition=None, parent_entity_id=None, referred_to_entity_id=None, query=None, limit=None, page=None):
         #generate numbers subselect
         fields_count = self.db.query("""

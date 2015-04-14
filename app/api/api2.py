@@ -25,6 +25,38 @@ from main.db2 import *
 
 
 
+class API2TagCloud(myRequestHandler, Entity2):
+    @web.removeslash
+    def get(self):
+        #
+        # Get entity list
+        #
+        db_result = self.get_tag_cloud(
+            definition = self.get_argument('definition', default=None, strip=True),
+            limit      = self.get_argument('limit', default=None, strip=True),
+        )
+        seq_count = [x['Count'] for x in db_result]
+        seq_log = [x['Log'] for x in db_result]
+        min_cnt = min(seq_count)
+        max_cnt = max(seq_count)
+        min_log = min(seq_log)
+        max_log = max(seq_log)
+
+        for row in db_result:
+            row['nCount'] = 1.0 * (row['Count'] - min_cnt) / (max_cnt - min_cnt)
+            row['nLog'] = 1.0 * (row['Log'] - min_log) / (max_log - min_log)
+
+        self.json({
+            'result': {
+                'tags': db_result
+                },
+            'range': {'min': min_cnt, 'max': max_cnt},
+            'logRange': {'min': min_log, 'max': max_log},
+        })
+
+
+
+
 class API2EntityList(myRequestHandler, Entity2):
     @web.removeslash
     def get(self):
@@ -1169,6 +1201,7 @@ handlers = [
     (r'/api2/user/auth', API2UserAuth),
     (r'/api2/user/auth/(.*)', API2UserAuthToken),
     (r'/api2/history', API2History),
+    (r'/api2/tagcloud', API2TagCloud),
     (r'/api2/user', API2User),
     (r'/api2/ping', API2Ping),
     (r'/api2(.*)', API2NotFound),
