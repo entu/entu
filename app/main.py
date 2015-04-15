@@ -35,6 +35,7 @@ app_controllers = [
     'api.api',
     'api.api2',
     'api.erply',
+    'api.websocket',
     'entity.csv_import',
     'entity.entity',
     'importers.cmdi',
