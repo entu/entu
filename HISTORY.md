@@ -1,3 +1,10 @@
+## 2015-04-15
+* Only object owner can delete entity
+* Option to set custom text to public start page
+* Show all Entity photos in public view
+* Show object metainfo on image hover
+* Lots of bugfixes
+
 ## 2015-03-25
 * Erply API integration
 * API2 authentication for standalone (web)apps
