@@ -19,7 +19,7 @@
     {% for p, l in paths.iteritems() %}
         <li class="{% if path == p %} active{% end %}"><a href="/public-{{ p }}{% if search %}/search/{{ search }}{% end %}" style="padding: 15px;">{{ l }}</a></li>
     {% end %}
-        <li><a href="/entity" class="toolbar-item" title="{{ _('log_in') }}"><i class="fa fa-sign-in"></i></a></li>
+        <li><a id="sign_in_link" href="/entity" class="toolbar-item" title="{{ _('log_in') }}"><i class="fa fa-sign-in"></i></a></li>
     </ul>
 {% end %}
 
