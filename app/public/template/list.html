@@ -3,6 +3,10 @@
 {% include 'start.html' %}
 
 {% block public_content %}
+    <div style="text-align:center; clear:both;">
+        {{ itemcount }}
+    </div>
+
     <div class="public_list">
         {% for i in entities %}
             <div class="public_list list_item" style="padding:1em; clear:both;">
@@ -13,7 +17,4 @@
         {% end %}
     </div>
 
-    <div style="text-align:center; clear:both;">
-        {{ itemcount }}
-    </div>
 {% end %}
