@@ -32,6 +32,7 @@ quota_files,Faile: %s / %s
 search,Otsi
 search_button,Otsi
 search_advanced,Laiendatud otsing
+search_simple,Tavaotsing
 search_placeholder,Pime kana leiab tera...
 search_term_to_short,Otsisõna '%s' on liiga lühike. Proovi 2x pikemat.
 search_noresult,Ei leidnud midagi

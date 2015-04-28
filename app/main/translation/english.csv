@@ -32,6 +32,7 @@ quota_files,Files: %s of %s
 search,Search
 search_button,Search
 search_advanced,Advanced search
+search_simple,Simple search
 search_placeholder,Search something...
 search_term_to_short,Searching term '%s' is too short. Try to double it.
 search_noresult,Found nothing

@@ -5,17 +5,11 @@
         <input type="text" name="search" class="span4" placeholder="{{ _('search_placeholder') }}" value="" />
         <div class="btn-group">
             <button class="btn" type="submit">{{ _('search_button') }}</button>
-            <button class="btn dropdown-toggle" data-toggle="dropdown">
-                <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu">
-                <li><a href="javascript:void(0);" id="advanced-search-btn">{{ _('search_advanced') }}</a></li>
-            </ul>
         </div>
 
 
     </div>
-    <div class="row"></div>
+    <div class="row"><a href="javascript:void(0);" id="advanced-search-lnk">{{ _('search_advanced') }}</a></div>
 </form>
 
 <div id="advanced-search" class="row" style="display:none;">
@@ -86,15 +80,21 @@
                 </div>
             </div>
         {% end %}
+        <div class="row" style="clear:both; text-align:center;"><a href="javascript:void(0);" id="simple-search-lnk">{{ _('search_simple') }}</a></div>
     </div>
 </div>
 
 <script>
     $(document).ready(function(){
 
-        $('#advanced-search-btn').click(function() {
+        $('#advanced-search-lnk').click(function() {
             $('#simple-search').hide('show');
             $('#advanced-search').show('show');
+        });
+
+        $('#simple-search-lnk').click(function() {
+            $('#advanced-search').hide('show');
+            $('#simple-search').show('show');
         });
 
         $('.dtype-datetime').change(function() {
