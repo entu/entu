@@ -9,7 +9,7 @@
 
 
     </div>
-    <div class="row"><a href="javascript:void(0);" id="advanced-search-lnk">{{ _('search_advanced') }}</a></div>
+    <div class="row" style="display:none;"><a href="javascript:void(0);" id="advanced-search-lnk">{{ _('search_advanced') }}</a></div>
 </form>
 
 <div id="advanced-search" class="row" style="display:none;">
@@ -28,13 +28,14 @@
                             <table class="table atable-condensed" style="border:none; margin:0px;">
                                 <tbody>
                                     {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
-                                    {% if p['public'] and p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal', 'boolean', 'counter_value'] %}
+                                    <script type="text/javascript">console.log('{{ p }}')</script>
+                                    {% if p['public'] and p['datatype'] in ['string', 'text', 'datetime', 'date', 'integer', 'decimal', 'boolean', 'counter_value'] %}
                                     <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
                                         <th class="span3" style="white-space:nowrap; text-align:right; vertical-align:middle;">
                                             {%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}
                                         </th>
                                         <td class="span5" style="vertical-align:middle; text-align:center;">
-                                            {% if p['datatype'] in ['counter_value', 'string', 'integer', 'decimal'] %}
+                                            {% if p['datatype'] in ['counter_value', 'string', 'text', 'integer', 'decimal'] %}
                                                 {% if p.get('select', None) %}
                                                     {% for v in p['values'] %}
                                                         <select name="t{{ p['keyname'] }}" style="width:99;">
