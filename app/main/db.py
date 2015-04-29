@@ -1104,10 +1104,12 @@ class Entity():
                     for f_key, f_value in enumerate(p_value.get('values', {})):
                         if not f_value.get('db_value'):
                             continue
-                        md5_result = self.db.get('SELECT md5 FROM file WHERE id = %s;', f_value.get('db_value'))
-                        if not md5_result:
+                        file_result = self.db.get('SELECT md5, filesize, created FROM file WHERE id = %s;', f_value.get('db_value'))
+                        if not file_result:
                             continue
-                        items[key]['properties'][p_key]['values'][f_key]['md5'] = md5_result.md5
+                        items[key]['properties'][p_key]['values'][f_key]['md5'] = file_result.md5
+                        items[key]['properties'][p_key]['values'][f_key]['filesize'] = file_result.filesize
+                        items[key]['properties'][p_key]['values'][f_key]['created'] = file_result.created
 
         return items.values()
 
