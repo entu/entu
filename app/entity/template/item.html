@@ -32,7 +32,7 @@
 </style>
 <div class="pull-right" style="margin:0px 0px 20px 0px; width:120px; text-align:center; text-transform:uppercase; color:#B9B9B9; font-weight:bold;">
     <img src="/api2/entity-{{ entity.get('id') }}/picture" id="entity_picture" class="" width="120" style="padding-bottom:4px; width:120px;" /><br />
-    {{ entity['label'] }}
+    {{ entity.get('label', '---') }}
     {% if public_path %}
         <br />
         <a class="no-underline" href="/public-{{ public_path[0].public_path }}/entity-{{ entity.get('id') }}" title="/public-{{ public_path[0].public_path }}/entity-{{ entity.get('id') }}" style="display:block; text-transform:none; font-weight:normal; padding:0px 8px;">
@@ -48,8 +48,7 @@
         <td for="entity_changed">{{ _('changed') }}</td><td id="entity_created">{{ entity['changed'] }}<br/></td>
     </tr>
 </table>
-
-<h3 style="margin:0px 140px 8px 0px; line-height:23px;">{{ entity['displayname'] }}</h3>
+<h3 style="margin:0px 140px 8px 0px; line-height:23px;">{{ entity.get('displayname', '---') }}</h3>
 <div style="margin-right:140px;">
     <table class="table table-condensed">
         <tbody>
@@ -103,15 +102,15 @@
             </ul>
         </li>
     {% end %}
-    {% if entity['right'] in ['editor', 'owner'] %}
+    {% if entity.get('right', '') in ['editor', 'owner'] %}
         <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/edit" title="{{ _('menu_edit') }}"><i class="fa fa-pencil"></i></a></li>
         <!--li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/relate" title="{{ _('menu_relate') }}"><i class="fa fa-link"></i></a></li-->
     {% end %}
-    {% if entity['right'] in ['editor', 'owner'] and allowed_parents %}
+    {% if entity.get('right', '') in ['editor', 'owner'] and allowed_parents %}
         <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/duplicate" title="{{ _('menu_duplicate') }}"><i class="fa fa-copy"></i></a></li>
         <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/parents" title="{{ _('menu_parents') }}"><i class="fa fa-arrow-up"></i></a></li>
     {% end %}
-    {% if entity['right'] == 'owner' %}
+    {% if entity.get('right', '') == 'owner' %}
         <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/rights" title="{{ _('menu_rights') }}"><i class="fa fa-lock"></i></a></li>
     {% end %}
     <li><a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-{{ entity['id'] }}/share" title="{{ _('menu_share') }}"><i class="fa fa-envelope"></i></a></li>

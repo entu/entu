@@ -391,7 +391,7 @@ class Entity2():
             ) AS x
             GROUP BY x.id, x.sort, x.definition, x.field;
         """ % {'numbers_sql': numbers_sql, 'property_sql': property_sql, 'entity_sql': entity_sql, 'language': self.__language}
-        logging.warning(sql)
+        # logging.warning(sql)
 
         entities = {}
         for r in self.db.query(sql):

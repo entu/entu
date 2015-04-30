@@ -780,14 +780,52 @@ class Entity():
         if ids_only == True:
             return ids
 
-        entities = self.__get_properties(entity_id=ids, entity_definition_keyname=entity_definition_keyname, dataproperty=dataproperty, full_definition=full_definition, only_public=only_public, sharing_key=sharing_key)
-        if not entities and full_definition == False and entity_definition_keyname == None:
+        entities = self.db.query('SELECT * FROM entity AS e WHERE e.id IN (%s) ORDER BY e.sort, e.created DESC;' % ','.join(map(str, ids)))
+
+        properties = self.__get_properties(entity_id=ids, entity_definition_keyname=entity_definition_keyname, dataproperty=dataproperty, full_definition=full_definition, only_public=only_public, sharing_key=sharing_key)
+
+        # logging.debug(entities)
+        # logging.debug(properties)
+        entities.sort(key=lambda x: x['id'])
+        properties.sort(key=lambda x: x['id'])
+        items = []
+        i_e = 0
+        i_p = 0
+        while (i_e < len(entities) and i_p < len(properties)):
+            logging.debug('%s:%s' %(i_e,i_p))
+            e = entities[i_e]
+            p = properties[i_p]
+            if e['id'] == p['id']:
+                logging.debug( 'match %s' % e['id'])
+                e.update(p)
+                items.append(e)
+                i_e += 1
+                i_p += 1
+            elif e['id'] < p['id']:
+                items.append(e)
+                i_e += 1
+            else:
+                items.append(p)
+                i_p += 1
+
+        while i_e < len(entities):
+            e = entities[i_e]
+            items.append(e)
+            i_e += 1
+        while i_p < len(properties):
+            p = properties[i_p]
+            items.append(p)
+            i_p += 1
+
+        # logging.debug(items)
+
+        if not items and full_definition == False and entity_definition_keyname == None:
             return
 
-        if limit == 1 and len(entities) > 0:
-            return entities[0]
+        if limit == 1 and len(items) > 0:
+            return items[0]
 
-        return entities
+        return items
 
     def __get_id_list(self, entity_id=None, search=None, entity_definition_keyname=None, limit=None, only_public=False, sharing_key=None):
         """
@@ -882,6 +920,7 @@ class Entity():
         * full_definition - All metadata for entity and properties is fetched, if True
         """
         items = None
+        # logging.debug(entity_id)
         if entity_id:
             if type(entity_id) is not list:
                 entity_id = [entity_id]
@@ -961,6 +1000,7 @@ class Entity():
 
             items = {}
             for row in self.db.query(sql):
+                # logging.debug(row)
                 if row.entity_sharing == 'private' and not row.entity_right and not sharing_key:
                     continue
                 if row.entity_sharing in ['domain', 'public'] and row.entity_right not in ['viewer', 'expander', 'editor', 'owner'] and row.property_public != 1 and not sharing_key:
