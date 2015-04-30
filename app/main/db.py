@@ -1239,6 +1239,7 @@ class Entity():
             SELECT
                 entity_definition.keyname AS entity_definition_keyname,
                 property_definition.keyname AS property_keyname,
+                property_definition.formula AS property_formula,
                 property_definition.datatype AS property_datatype,
                 property_definition.dataproperty AS property_dataproperty,
                 property_definition.mandatory AS property_mandatory,
