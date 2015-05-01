@@ -55,6 +55,9 @@
                 autoplay: true,
                 autoplaySpeed: 5000
             }
-        );
+        )
+        $('body').bind('contextmenu', function(event) {
+            return false
+        })
     </script>
 {% end %}
