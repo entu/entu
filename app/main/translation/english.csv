@@ -50,8 +50,8 @@ add_files_url,Add from URL
 add_files_url_prompt,Enter URL
 
 entity_delete,Delete
-confirm_entity_delete,'%s' and all its childs will be deleted.
-confirm_file_delete,File '%s' will be deleted.
+confirm_entity_delete,%s and all its childs will be deleted.
+confirm_file_delete,File %s will be deleted.
 edit_help_tabs,"Donec a metus tellus. Nullam vulputate, ligula a ornare eleifend, dolor quam ornare velit, a malesuada mauris mi vitae quam. Quisque auctor nulla faucibus sem elementum placerat."
 
 download_all_as_zip,Download all files

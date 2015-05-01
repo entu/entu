@@ -50,8 +50,8 @@ add_files_url,Lisa URL'ist
 add_files_url_prompt,Sisesta fali URL
 
 entity_delete,Kustuta
-confirm_entity_delete,'%s' ja kõik selle alamosad kustutatakse.
-confirm_file_delete,Fail '%s' kustutatakse.
+confirm_entity_delete,%s ja kõik selle alamosad kustutatakse.
+confirm_file_delete,Fail %s kustutatakse.
 edit_help_tabs,"Donec a metus tellus. Nullam vulputate, ligula a ornare eleifend, dolor quam ornare velit, a malesuada mauris mi vitae quam. Quisque auctor nulla faucibus sem elementum placerat."
 
 counter_generate_value,Genereeri number
