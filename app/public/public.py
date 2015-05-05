@@ -28,8 +28,7 @@ class PublicHandler(myRequestHandler, Entity):
         self.render('public/template/start.html',
             paths = self.get_public_paths(),
             path = path,
-            search = '',
-            entity_definitions = get_definitions(self, path)
+            search = ''
         )
 
 

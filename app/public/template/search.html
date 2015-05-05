@@ -6,97 +6,14 @@
         <div class="btn-group">
             <button class="btn" type="submit">{{ _('search_button') }}</button>
         </div>
-
-
     </div>
-    <div class="row" style="display:none;"><a href="javascript:void(0);" id="advanced-search-lnk">{{ _('search_advanced') }}</a></div>
 </form>
 
-<div id="advanced-search" class="row" style="display:none;">
-    <div class="accordion span8 offset2" id="accordion2">
-        {% for entity in entity_definitions %}
-            <div class="accordion-group">
-                <div class="accordion-heading">
-                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapse-{{ entity['definition_keyname'] }}">
-                        <b>{{ entity['displayname'] }}</b>
-                    </a>
-                </div>
-                <div id="collapse-{{ entity['definition_keyname'] }}" class="accordion-body collapse">
-                    <div class="accordion-inner" style="padding:0px;">
-                        <form class="form-horizontal" action="/public-{{ path }}/search2" method="GET" style="margin:0px; padding:0px;">
-                            <input type="hidden" name="ed" value="{{ entity['definition_keyname'] }}" />
-                            <table class="table atable-condensed" style="border:none; margin:0px;">
-                                <tbody>
-                                    {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
-                                    <script type="text/javascript">console.log('{{ p }}')</script>
-                                    {% if p['public'] and p['datatype'] in ['string', 'text', 'datetime', 'date', 'integer', 'decimal', 'boolean', 'counter_value'] %}
-                                    <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
-                                        <th class="span3" style="white-space:nowrap; text-align:right; vertical-align:middle;">
-                                            {%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}
-                                        </th>
-                                        <td class="span5" style="vertical-align:middle; text-align:center;">
-                                            {% if p['datatype'] in ['counter_value', 'string', 'text', 'integer', 'decimal'] %}
-                                                {% if p.get('select', None) %}
-                                                    {% for v in p['values'] %}
-                                                        <select name="t{{ p['keyname'] }}" style="width:99;">
-                                                            <option value=""></option>
-                                                            {% for s in p.get('select','') %}
-                                                            <option value="{{ s['label'] }}" {% if s['label'] == v['value'] %} selected{% end %}>{{ s['label'] }}</option>
-                                                            {% end %}
-                                                        </select>
-                                                    {% end %}
-                                                {% else %}
-                                                    {% for v in p['values'] %}
-                                                        <input type="text" name="t{{ p['keyname'] }}" value="{{ v['value'] }}" style="width:98%;" />
-                                                    {% end %}
-                                                {% end %}
-                                            {% elif p['datatype'] in ['datetime', 'date'] %}
-                                                {% for v in p['values'] %}
-                                                    <input class="pull-left dtype-{{ p['datatype'] }}" type="text" name="s{{ p['keyname'] }}" value="{{ v['value'] }}" style="width:43%;" />
-                                                    -
-                                                    <input class="pull-right dtype-{{ p['datatype'] }}" type="text" name="e{{ p['keyname'] }}" value="{{ v['value'] }}" style="width:43%;" />
-                                                {% end %}
-                                            {% elif p['datatype'] == 'boolean' %}
-                                                {% for v in p['values'] %}
-                                                    <input type="checkbox" name="c{{ p['keyname'] }}" {% if v.get('db_value', 0) == 1 %} checked{% end %} />
-                                                {% end %}
-                                            {% else %}
-                                                {{ p['datatype'] }}
-                                            {% end %}
-                                        </td>
-                                    </tr>
-                                    {% end %}
-                                    {% end %}
-                                    <tr>
-                                        <td style="vertical-align:middle; text-align:center;" colspan="2">
-                                            <button class="btn btn-success" type="submit" style="width:20%;">{{ _('search_button') }}</button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
 
-
-                        </form>
-                    </div>
-                </div>
-            </div>
-        {% end %}
-        <div class="row" style="clear:both; text-align:center;"><a href="javascript:void(0);" id="simple-search-lnk">{{ _('search_simple') }}</a></div>
-    </div>
-</div>
 
 <script>
     $(document).ready(function(){
 
-        $('#advanced-search-lnk').click(function() {
-            $('#simple-search').hide('show');
-            $('#advanced-search').show('show');
-        });
-
-        $('#simple-search-lnk').click(function() {
-            $('#advanced-search').hide('show');
-            $('#simple-search').show('show');
-        });
 
         $('.dtype-datetime').change(function() {
             $(this).val(format_date($(this).val(), 'yyyy-MM-dd HH:mm'));
