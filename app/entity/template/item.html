@@ -167,6 +167,10 @@
 
                     // make table header
                     if(definition.table_header) {
+                        var $th = $element.find('.childs-th-template').clone(true).removeClass('childs-th-template').appendTo($element.children('table').children('thead').children('tr'));
+                        $th.html('');
+                        $th.attr('style', 'width:25px; vertical-align:middle; border-top: 1px solid #DDDDDD;');
+                        $th.show();
                         for(th_key in definition.table_header) {
                             var $th = $element.find('.childs-th-template').clone(true).removeClass('childs-th-template').appendTo($element.children('table').children('thead').children('tr'));
                             $th.html(definition.table_header[th_key]);
@@ -183,6 +187,12 @@
 
                         //make table cells
                         if(definition.entities[tr_key].table) {
+                            var $td = $tr.children('.childs-td-template').clone(true).removeClass('childs-td-template').appendTo($tr);
+                            $td.attr('data-value', definition.entities[tr_key].id);
+                            $td.children('a').html('<img src="/api2/entity-' + definition.entities[tr_key].id + '/picture" style="height:25px; max-width:25px;" />');
+                            $td.children('a').attr('href', '#'+definition.entities[tr_key].id);
+                            $td.attr('style', 'width: 25px;');
+
                             for(td_key in definition.entities[tr_key].table) {
                                 var $td = $tr.children('.childs-td-template').clone(true).removeClass('childs-td-template').appendTo($tr);
                                 $td.attr('data-value', definition.entities[tr_key].table[td_key]);
@@ -192,7 +202,7 @@
                         } else {
                             var $td = $tr.children('.childs-td-template').clone(true).removeClass('childs-td-template').appendTo($tr);
                             $td.attr('data-value', definition.entities[tr_key].name);
-                            $td.children('a').html(definition.entities[tr_key].name);
+                            $td.children('a').html('<img src="/api2/entity-' + definition.entities[tr_key].id + '/picture" style="height:25px; max-width:25px; margin-right:5px; " />' + definition.entities[tr_key].name);
                             $td.children('a').attr('href', '#'+definition.entities[tr_key].id);
                         }
 
