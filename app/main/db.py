@@ -802,36 +802,39 @@ class Entity():
 
         # logging.debug(entities)
         # logging.debug(properties)
-        entities.sort(key=lambda x: x['id'])
-        properties.sort(key=lambda x: x['id'])
         items = []
-        i_e = 0
-        i_p = 0
-        while (i_e < len(entities) and i_p < len(properties)):
-            logging.debug('%s:%s' %(i_e,i_p))
-            e = entities[i_e]
-            p = properties[i_p]
-            if e['id'] == p['id']:
-                logging.debug( 'match %s' % e['id'])
-                e.update(p)
+        if not entities or full_definition:
+            items = properties
+        else:
+            entities.sort(key=lambda x: x['id'])
+            properties.sort(key=lambda x: x['id'])
+            i_e = 0
+            i_p = 0
+            while (i_e < len(entities) and i_p < len(properties)):
+                logging.debug('%s:%s' %(i_e,i_p))
+                e = entities[i_e]
+                p = properties[i_p]
+                if e['id'] == p['id']:
+                    logging.debug( 'match %s' % e['id'])
+                    e.update(p)
+                    items.append(e)
+                    i_e += 1
+                    i_p += 1
+                elif e['id'] < p['id']:
+                    items.append(e)
+                    i_e += 1
+                else:
+                    items.append(p)
+                    i_p += 1
+
+            while i_e < len(entities):
+                e = entities[i_e]
                 items.append(e)
                 i_e += 1
-                i_p += 1
-            elif e['id'] < p['id']:
-                items.append(e)
-                i_e += 1
-            else:
+            while i_p < len(properties):
+                p = properties[i_p]
                 items.append(p)
                 i_p += 1
-
-        while i_e < len(entities):
-            e = entities[i_e]
-            items.append(e)
-            i_e += 1
-        while i_p < len(properties):
-            p = properties[i_p]
-            items.append(p)
-            i_p += 1
 
         # logging.debug(items)
 
