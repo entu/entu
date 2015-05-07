@@ -116,8 +116,8 @@ class MySQL2MongoDB():
         )
 
         mongo_client = MongoClient('entu.cloudapp.net', 27017)
-        mongo_db = mongo_client[self.db_name]
-        # mongo_db = mongo_client['dev']
+        # mongo_db = mongo_client[self.db_name]
+        mongo_db = mongo_client['entu-dev']
         self.mongo_collection = mongo_db['entity']
         self.mongo_collection.create_index([('_mysql.id', ASCENDING), ('_mysql.db', ASCENDING)])
 
@@ -186,27 +186,27 @@ class MySQL2MongoDB():
                 e['_deleted'] = [e.get('_deleted')]
                 e.setdefault('_reference_property', []).append('_deleted')
 
-            e.setdefault('_rights', {})['sharing']    = r.get('entity_sharing')
+            e['_sharing'] = r.get('entity_sharing')
 
             viewers = self.__get_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'])
             if viewers:
-                e.setdefault('_rights', {})['viewer'] = [{'_id': x} for x in list(set(viewers))]
-                e.setdefault('_reference_property', []).append('_rights.viewer')
+                e['_viewer'] = [{'_id': x} for x in list(set(viewers))]
+                e.setdefault('_reference_property', []).append('_viewer')
 
             expanders = self.__get_right(mysql_id, ['expander', 'editor', 'owner'])
             if expanders:
-                e.setdefault('_rights', {})['expander'] = [{'_id': x} for x in list(set(expanders))]
-                e.setdefault('_reference_property', []).append('_rights.expander')
+                e['_expander'] = [{'_id': x} for x in list(set(expanders))]
+                e.setdefault('_reference_property', []).append('_expander')
 
             editors = self.__get_right(mysql_id, ['editor', 'owner'])
             if editors:
-                e.setdefault('_rights', {})['editor'] = [{'_id': x} for x in list(set(editors))]
-                e.setdefault('_reference_property', []).append('_rights.editor')
+                e['_editor'] = [{'_id': x} for x in list(set(editors))]
+                e.setdefault('_reference_property', []).append('_editor')
 
             owners = self.__get_right(mysql_id, ['owner'])
             if owners:
-                e.setdefault('_rights', {})['owner'] = [{'_id': x} for x in list(set(owners))]
-                e.setdefault('_reference_property', []).append('_rights.owner')
+                e['_owner'] = [{'_id': x} for x in list(set(owners))]
+                e.setdefault('_reference_property', []).append('_owner')
 
             parent = self.__get_parent(entity_id=mysql_id, recursive=False)
             if parent:
@@ -235,11 +235,10 @@ class MySQL2MongoDB():
                     p.value_boolean,
                     p.value_datetime,
                     p.value_reference,
-                    IF(pd.datatype = 'file', (SELECT file FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file,
-                    IF(pd.datatype = 'file', (SELECT MD5(file) FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_md5,
+                    IF(pd.datatype = 'file', (SELECT md5 FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_md5,
                     IF(pd.datatype = 'file', (SELECT filename FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_name,
-                    IF(pd.datatype = 'file', (SELECT LENGTH(file) FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_size,
-                    IF(pd.datatype = 'file', (SELECT is_link FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_link,
+                    IF(pd.datatype = 'file', (SELECT filesize FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_size,
+                    IF(pd.datatype = 'file', (SELECT url FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_url,
                     p.value_counter
                 FROM
                     property AS p,
@@ -255,7 +254,9 @@ class MySQL2MongoDB():
             for r2 in self.db.query(sql, mysql_id):
 
                 value = None
-                if r2.get('property_formula') == 1 and r2.get('value_formula'):
+                if r2.get('property_dataproperty', '')[:5] == 'auth_':
+                    value = ''
+                elif r2.get('property_formula') == 1 and r2.get('value_formula'):
                     value = {'formula': r2.get('value_formula')}
                 elif r2.get('property_datatype') == 'string' and r2.get('value_string'):
                     value = r2.get('value_string')
@@ -273,10 +274,10 @@ class MySQL2MongoDB():
                     value = {'_id': '%s' % r2.get('value_reference')}
                     e.setdefault('_reference_property', []).append('%s' % r2.get('property_dataproperty'))
                 elif r2.get('property_datatype') == 'file' and r2.get('value_file'):
-                    if r2.get('value_file_link') == 1:
+                    if r2.get('value_file_url'):
                         value = {
                             'name': r2.get('value_file_name'),
-                            'link': r2.get('file')
+                            'url': r2.get('file')
                         }
                     else:
                         value = {
@@ -298,12 +299,12 @@ class MySQL2MongoDB():
                 else:
                     e.setdefault(r2.get('property_dataproperty'), []).append(value)
 
-                if r2.get('value_display') and r2.get('property_search') == 1:
-                    if r2.get('property_language'):
-                        e.setdefault('_search', {}).setdefault(r2.get('property_language'), []).append(r2.get('value_display').lower())
-                    else:
-                        e.setdefault('_search', {}).setdefault('et', []).append(r2.get('value_display').lower())
-                        e.setdefault('_search', {}).setdefault('en', []).append(r2.get('value_display').lower())
+                # if r2.get('value_display') and r2.get('property_search') == 1:
+                #     if r2.get('property_language'):
+                #         e.setdefault('_search', {}).setdefault(r2.get('property_language'), []).append(r2.get('value_display').lower())
+                #     else:
+                #         e.setdefault('_search', {}).setdefault('et', []).append(r2.get('value_display').lower())
+                #         e.setdefault('_search', {}).setdefault('en', []).append(r2.get('value_display').lower())
 
             for l in ['et', 'en']:
                 if l in e.get('_search', {}):
@@ -326,8 +327,8 @@ class MySQL2MongoDB():
         self.mongo_collection.create_index([('_parent._id', ASCENDING)])
         self.mongo_collection.create_index([('_ancestor._id', ASCENDING)])
         self.mongo_collection.create_index([('_definition._id', ASCENDING)])
-        self.mongo_collection.create_index([('_rights.viewer._id', ASCENDING)])
-        self.mongo_collection.create_index([('_rights.sharing', ASCENDING)])
+        self.mongo_collection.create_index([('_viewer._id', ASCENDING)])
+        self.mongo_collection.create_index([('_sharing', ASCENDING)])
         self.mongo_collection.create_index([('_search.et', ASCENDING)])
         self.mongo_collection.create_index([('_search.en', ASCENDING)])
 
@@ -424,8 +425,8 @@ for c in customers():
     # if c.get('database-name') not in ['www']:
     #     continue
 
-    # if c.get('database-name') < 'eka':
-    #     continue
+    if c.get('database-name') not in ['www']:
+        continue
 
     print '%s %s started' % (datetime.now(), c.get('database-name'))
 
