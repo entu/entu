@@ -780,23 +780,7 @@ class Entity():
         if ids_only == True:
             return ids
 
-        entities = self.db.query("""
-            SELECT r.relationship_definition_keyname as "right",
-                   e.*
-            FROM entity AS e
-            LEFT JOIN relationship r ON r.entity_id = e.id
-            AND r.is_deleted = 0
-            AND r.related_entity_id = %s
-            AND r.relationship_definition_keyname IN ('viewer',
-                                                      'expander',
-                                                      'editor',
-                                                      'owner')
-            WHERE e.id IN (%s)
-            GROUP BY e.id
-            ORDER BY e.sort,
-                     e.created DESC;
-
-            """, self.__user_id, ','.join(map(str, ids)))
+        entities = self.db.query('SELECT * FROM entity AS e WHERE e.id IN (%s) ORDER BY e.sort, e.created DESC;' % ','.join(map(str, ids)))
 
         properties = self.__get_properties(entity_id=ids, entity_definition_keyname=entity_definition_keyname, dataproperty=dataproperty, full_definition=full_definition, only_public=only_public, sharing_key=sharing_key)
 
