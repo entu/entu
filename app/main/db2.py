@@ -320,9 +320,6 @@ class Entity2():
                 AND r.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
                 AND r.related_entity_id = %(user)s
             """ % {'definition_where': definition_where, 'parent_where': parent_where, 'referrer_where': referrer_where, 'query_where': query_where, 'user': self.__user_id}
-            property_sql = """
-                property
-            """
         else:
             entity_sql = """
                 SELECT e.id, e.entity_definition_keyname, IFNULL(e.sort, CONCAT('   ', 1000000000000 - e.id)) AS sort, e.changed, UNIX_TIMESTAMP(e.changed) AS changed_ts
@@ -334,19 +331,6 @@ class Entity2():
                 %(referrer_where)s
                 %(query_where)s
             """ % {'definition_where': definition_where, 'parent_where': parent_where, 'referrer_where': referrer_where, 'query_where': query_where}
-            property_sql = """(
-                SELECT
-                    property.entity_id,
-                    property.property_definition_keyname,
-                    property.value_display,
-                    property.is_deleted,
-                    property.language
-                FROM
-                    property,
-                    property_definition
-                WHERE property_definition.keyname = property.property_definition_keyname
-                AND property_definition.public = 1
-            )"""
 
         entity_count = None
         if limit:
@@ -386,11 +370,11 @@ class Entity2():
                 FROM (%(numbers_sql)s) AS n
                 INNER JOIN translation AS t ON CHAR_LENGTH(t.value) - CHAR_LENGTH(REPLACE(t.value, '@', '')) >= n.n - 1 AND IFNULL(t.language, '%(language)s') = '%(language)s'
                 INNER JOIN (%(entity_sql)s) AS e ON e.entity_definition_keyname = t.entity_definition_keyname
-                LEFT JOIN %(property_sql)s AS p ON p.entity_id = e.id AND p.is_deleted = 0 AND p.property_definition_keyname = CONCAT(e.entity_definition_keyname, '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', n.n), '@', -1)) AND IFNULL(p.language, '%(language)s') = '%(language)s'
+                LEFT JOIN property AS p ON p.entity_id = e.id AND p.is_deleted = 0 AND p.property_definition_keyname = CONCAT(e.entity_definition_keyname, '-', SUBSTRING_INDEX(SUBSTRING_INDEX(t.value, '@', n.n), '@', -1)) AND IFNULL(p.language, '%(language)s') = '%(language)s'
                 GROUP BY id, definition, field, n
             ) AS x
             GROUP BY x.id, x.sort, x.definition, x.field;
-        """ % {'numbers_sql': numbers_sql, 'property_sql': property_sql, 'entity_sql': entity_sql, 'language': self.__language}
+        """ % {'numbers_sql': numbers_sql, 'entity_sql': entity_sql, 'language': self.__language}
         # logging.warning(sql)
 
         entities = {}

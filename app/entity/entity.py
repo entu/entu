@@ -162,7 +162,7 @@ class ShowEntity(myRequestHandler, Entity):
             add_definitions.setdefault(ad.get('related_entity_label'), []).append(ad)
 
         self.render('entity/template/item.html',
-            page_title = item.get('displayname', '---'),
+            page_title = item['displayname'],
             entity = item,
             parents = parents.values() if parents else [],
             allowed_childs = allowed_childs,
