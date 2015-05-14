@@ -35,6 +35,23 @@ class API2TagCloud(myRequestHandler, Entity2):
             definition = self.get_argument('definition', default=None, strip=True),
             limit      = self.get_argument('limit', default=None, strip=True),
         )
+
+        if len(db_result) == 0:
+            self.json({
+                'result': {
+                    'tags': [{
+                        'Count': 1,
+                        'Tag': '(>< V ><)',
+                        'nLog': 1,
+                        'Log': 1,
+                        'nCount': 1
+                        },]
+                    },
+                'range': {'min': 1, 'max': 1},
+                'logRange': {'min': 1, 'max': 1},
+            })
+            return
+
         seq_count = [x['Count'] for x in db_result]
         seq_log = [x['Log'] for x in db_result]
         min_cnt = min(seq_count)
