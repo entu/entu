@@ -38,6 +38,8 @@ class API2TagCloud(myRequestHandler, Entity2):
 
         if len(db_result) == 0:
             self.json({
+                'time': round(self.request.request_time(), 3),
+                'count': 0,
                 'result': {
                     'tags': [{
                         'Count': 1,
@@ -45,10 +47,10 @@ class API2TagCloud(myRequestHandler, Entity2):
                         'nLog': 1,
                         'Log': 1,
                         'nCount': 1
-                        },]
-                    },
-                'range': {'min': 1, 'max': 1},
-                'logRange': {'min': 1, 'max': 1},
+                    },],
+                    'range': {'min': 1, 'max': 1},
+                    'logRange': {'min': 1, 'max': 1}
+                }
             })
             return
 
@@ -64,11 +66,13 @@ class API2TagCloud(myRequestHandler, Entity2):
             row['nLog'] = 1.0 * (row['Log'] - min_log) / (max_log - min_log) if (max_log > min_log) else 1
 
         self.json({
+            'time': round(self.request.request_time(), 3),
+            'count': len(db_result),
             'result': {
-                'tags': db_result
-                },
-            'range': {'min': min_cnt, 'max': max_cnt},
-            'logRange': {'min': min_log, 'max': max_log},
+                'tags': db_result,
+                'range': {'min': min_cnt, 'max': max_cnt},
+                'logRange': {'min': min_log, 'max': max_log}
+            }
         })
 
 
