@@ -8,6 +8,14 @@
     <script type="text/javascript">
         $('#sign_in_link').attr('href', '/entity/{{ entity['definition_keyname'] }}/{{ entity['id'] }}')
     </script>
+    <form id="simple-search" class="form-horizontal" action="/public-{{ path }}/search" method="POST" style="text-align:center;">
+        <div class="input-append1">
+            <input type="text" name="search" class="span4" placeholder="{{ _('search_placeholder') }}" value="" />
+            <div class="btn-group">
+                <button class="btn" type="submit">{{ _('search_button') }}</button>
+            </div>
+        </div>
+    </form>
     <div class="pull-right" style="margin:0px 0px 20px 0px; width:120px; text-align:center; text-transform:uppercase; color:#B9B9B9; font-weight:bold;">
         <img src="{{ entity['displaypicture'] }}" id="entity_picture" class="" width="120" style="width:120px;" />
     </div>
