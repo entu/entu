@@ -24,6 +24,11 @@
 {% end %}
 
 {% block content %}
+    {% if feedback %}
+        <div id="feedback" style="position: fixed;bottom: 0;right: 0;">
+            <label for="feedback" style="display: inline;">{{ _('feedback') }}:</label><a href="mailto:{{ feedback }}" style="padding: 0.3em;">{{ feedback }}</a>
+        </div>
+    {% end %}
     <div class="container" style="margin-top:70px;">
 
         {% block public_content %}
