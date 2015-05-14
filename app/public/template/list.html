@@ -7,7 +7,7 @@
 
     <form id="simple-search" class="form-horizontal" action="/public-{{ path }}/search" method="POST" style="text-align:center;">
         <div class="input-append1">
-            <input type="text" name="search" class="span4" placeholder="{{ _('search_placeholder') }}" value="" />
+            <input type="text" name="search" class="span4" placeholder="{{ _('search_placeholder') }}" value="{{ search }}" />
             <div class="btn-group">
                 <button class="btn" type="submit">{{ _('search_button') }}</button>
             </div>
