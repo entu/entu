@@ -115,9 +115,9 @@ class MySQL2MongoDB():
             password = db_pass,
         )
 
-        mongo_client = MongoClient('entu.cloudapp.net', 27017)
-        # mongo_db = mongo_client[self.db_name]
-        mongo_db = mongo_client['entu-dev']
+        mongo_client = MongoClient('178.62.243.182', 27017, replicaset='entu')
+        mongo_db = mongo_client[self.db_name]
+        # mongo_db = mongo_client['entu-dev']
         self.mongo_collection = mongo_db['entity']
         self.mongo_collection.create_index([('_mysql.id', ASCENDING), ('_mysql.db', ASCENDING)])
 
@@ -235,6 +235,7 @@ class MySQL2MongoDB():
                     p.value_boolean,
                     p.value_datetime,
                     p.value_reference,
+                    IF(pd.datatype = 'file', (SELECT s3_key FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_s3,
                     IF(pd.datatype = 'file', (SELECT md5 FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_md5,
                     IF(pd.datatype = 'file', (SELECT filename FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_name,
                     IF(pd.datatype = 'file', (SELECT filesize FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_size,
@@ -282,9 +283,13 @@ class MySQL2MongoDB():
                     else:
                         value = {
                             'name': r2.get('value_file_name'),
-                            'size': r2.get('value_file_size'),
-                            'md5': r2.get('value_file_md5')
+                            'size': r2.get('value_file_size')
                         }
+                        if r2.get('value_file_md5', None):
+                            value['md5'] = r2.get('value_file_md5')
+                        if r2.get('value_file_s3', None):
+                            value['s3'] = r2.get('value_file_s3')
+
                 elif r2.get('property_datatype') == 'counter' and r2.get('value_string'):
                     value = r2.get('value_counter')
                     e.setdefault('counter_property', []).append(r2.get('property_dataproperty'))
