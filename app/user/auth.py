@@ -94,7 +94,7 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 'user_picture': '%(picture)s',
             }
         if provider == 'live' and self.app_settings('auth-live'):
-            # https://manage.dev.live.com/Applications/Index
+            # https://account.live.com/developers/applications/index
             self.oauth2_provider = {
                 'provider':     'live',
                 'key':          self.app_settings('auth-live', '\n', True).split('\n')[0],
