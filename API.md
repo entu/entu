@@ -65,6 +65,8 @@ signature|string|No||Base64 encoded HMAC signature of policy (signed with key wh
 ## /api2/file
 
 #### POST - upload/create file
+**NB!** You must use /api2/file/s3!
+
 **Note:** Since the entire POST body will be treated as the file, any parameters must be passed as part of the request URL.  
 **Note 2:** Providing a Content-Length header set to the size of the uploaded file is required so that the server can verify that it has received the entire file contents.  
 **Note 3** Multipart/form-data is now also supported.
@@ -83,6 +85,8 @@ signature|string|No||Base64 encoded HMAC signature of policy (signed with key wh
 ## /api2/file/s3
 
 #### POST - get Amazon S3 upload url and formdata
+Append file to returned formdata and post all to given url
+
 Argument|Type|Required|Default|Description
 :--|:-:|:-:|:--|:--
 entity|integer|Yes||ID of the entity where to but this file
