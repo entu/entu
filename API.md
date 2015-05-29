@@ -22,12 +22,12 @@ signature|string|No||Base64 encoded HMAC signature of policy (signed with key wh
 ## /api2/user/auth
 
 #### POST - 1st step for user authentication
-Returns **state** and **auth_url** (/api2/user/auth/{token}). Check that **state** is what you sent and redirect user to **auth_url**. After successful login user is redirected back to url you sent in **redirect_url** argument. If **redirect_url** is not sent returns user object (in JSON)
-
 Argument|Type|Required|Default|Description
 :--|:-:|:-:|:-:|:--
 state|string|Yes||Random string for communication verification
 redirect_url|string|No||URL where user is redirected after successful login 
+
+Returns **state** and **auth_url** (/api2/user/auth/{token}). Check that **state** is what you sent and redirect user to **auth_url**. After successful login user is redirected back to url you sent in **redirect_url** argument. If **redirect_url** is not sent returns user object (in JSON)
 
 
 
@@ -37,11 +37,11 @@ redirect_url|string|No||URL where user is redirected after successful login
 After successful login user is redirected back to url you sent in **redirect_url** argument. If **redirect_url** is not sent returns user object (in JSON).
 
 #### POST - 2nd step for user authentication
-Returns user object. Use result.user.id as X-Auth-UserId and result.user.session_key as X-Auth-Token header parameter in future requests as this user.
-
 Argument|Type|Required|Default|Description
 :--|:-:|:-:|:-:|:--
 state|string|Yes||Random string for communication verification. Must be same as used in 1st step (/api2/user/auth post request).
+
+Returns user object. Use result.user.id as X-Auth-UserId and result.user.session_key as X-Auth-Token header parameter in future requests as this user.
 
 
 
@@ -102,11 +102,7 @@ signature|string|No||Base64 encoded HMAC signature of policy (signed with key wh
 ## /api2/file
 
 #### POST - upload/create file
-**NB!** You must use /api2/file/s3!
-
-**Note:** Since the entire POST body will be treated as the file, any parameters must be passed as part of the request URL.  
-**Note 2:** Providing a Content-Length header set to the size of the uploaded file is required so that the server can verify that it has received the entire file contents.  
-**Note 3** Multipart/form-data is now also supported.
+**NB!** If customer is configured to store files in Amazon S3 you must use **/api2/file/s3**!
 
 Argument|Type|Required|Default|Description
 :--|:-:|:-:|:--|:--
@@ -116,14 +112,16 @@ filename|string|Yes||File name
 user|string|No||User ID
 policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
 signature|string|No||Base64 encoded HMAC signature of policy (signed with key what is stored in entu-api-key property)
+
+**Note:** Since the entire POST body will be treated as the file, any parameters must be passed as part of the request URL.  
+**Note 2:** Providing a Content-Length header set to the size of the uploaded file is required so that the server can verify that it has received the entire file contents.  
+**Note 3** Multipart/form-data is now also supported.
 
 
 
 ## /api2/file/s3
 
 #### POST - get Amazon S3 upload url and formdata
-Append file to returned formdata and post all to given url
-
 Argument|Type|Required|Default|Description
 :--|:-:|:-:|:--|:--
 entity|integer|Yes||ID of the entity where to but this file
@@ -132,6 +130,8 @@ filename|string|Yes||File name
 user|string|No||User ID
 policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
 signature|string|No||Base64 encoded HMAC signature of policy (signed with key what is stored in entu-api-key property)
+
+Append file to returned formdata (result.s3.data) and post all to S3 url (result.s3.url)
 
 
 
