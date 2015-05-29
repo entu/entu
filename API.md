@@ -8,6 +8,43 @@ Authentication is possible in two ways:
 
 
 
+## /api2/user
+
+#### GET - get current user info
+Argument|Type|Required|Default|Description
+:--|:-:|:-:|:-:|:--
+user|string|No||User ID
+policy|string|No||Base64 encoded JSON dictionary where *conditions* is list of request arguments and *expiration* is expiration time (%Y-%m-%dT%H:%M:%SZ)
+signature|string|No||Base64 encoded HMAC signature of policy (signed with key what is stored in entu-api-key property)
+
+
+
+## /api2/user/auth
+
+#### POST - 1st step for user authentication
+Returns **state** and **auth_url** (/api2/user/auth/{token}). Check that **state** is what you sent and redirect user to **auth_url**. After successful login user is redirected back to url you sent in **redirect_url** argument. If **redirect_url** is not sent returns user object (in JSON)
+
+Argument|Type|Required|Default|Description
+:--|:-:|:-:|:-:|:--
+state|string|Yes||Random string for communication verification
+redirect_url|string|No||URL where user is redirected after successful login 
+
+
+
+## /api2/user/auth/{token}
+
+#### GET - login screen
+After successful login user is redirected back to url you sent in **redirect_url** argument. If **redirect_url** is not sent returns user object (in JSON).
+
+#### POST - 2nd step for user authentication
+Returns user object. Use result.user.id as X-Auth-UserId and result.user.session_key as X-Auth-Token header parameter in future requests as this user.
+
+Argument|Type|Required|Default|Description
+:--|:-:|:-:|:-:|:--
+state|string|Yes||Random string for communication verification. Must be same as used in 1st step (/api2/user/auth post request).
+
+
+
 ## /api2/entity
 
 #### GET - get entity list
