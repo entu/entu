@@ -138,7 +138,6 @@ class myUser():
         if self.__user and self.__session_key == session_key:
             return self.__user
 
-        user_key = hashlib.md5(self.request.remote_ip).hexdigest()
         user = self.db.get("""
             SELECT
                 property.entity_id AS id,
@@ -173,10 +172,10 @@ class myUser():
             AND entity.is_deleted = 0
             AND user.email = property.value_string
             AND property_definition.dataproperty = 'entu-user'
+            AND user.ip = %s
             AND user.session_key = %s
-            AND user.user_key = %s
             LIMIT 1;
-        """, session_key, user_key)
+        """, self.request.remote_ip, session_key)
 
         if not user:
             logging.debug('No current user!')
@@ -304,7 +303,6 @@ class myUser():
         """
         redirect_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
         session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
-        user_key = hashlib.md5(self.request.remote_ip).hexdigest()
         host = None
 
         if redirect_url:
@@ -315,7 +313,7 @@ class myUser():
         else:
             db = self.db
 
-        profile_id = db.execute_lastrowid('INSERT INTO user SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, session_key = %s, user_key = %s, access_token = %s, redirect_url = %s, redirect_key = %s, login_count = 0, created = NOW() ON DUPLICATE KEY UPDATE email = %s, name = %s, picture = %s, session_key = %s, user_key = %s, access_token = %s, redirect_url = %s, redirect_key = %s, login_count = login_count + 1, changed = NOW();',
+        profile_id = db.execute_lastrowid('INSERT INTO user SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, ip = %s, session_key = %s, access_token = %s, redirect_url = %s, redirect_key = %s, login_count = 0, created = NOW() ON DUPLICATE KEY UPDATE name = %s, picture = %s, access_token = %s, redirect_url = %s, redirect_key = %s, login_count = login_count + 1, changed = NOW();',
                 # insert
                 provider,
                 provider_id,
@@ -323,17 +321,14 @@ class myUser():
                 name,
                 picture,
                 self.app_settings('language', 'english'),
+                ip,
                 session_key,
-                user_key,
                 access_token,
                 redirect_url,
                 redirect_key,
                 # update
-                email,
                 name,
                 picture,
-                session_key,
-                user_key,
                 access_token,
                 redirect_url,
                 redirect_key
@@ -355,14 +350,13 @@ class myUser():
         self.set_secure_cookie('session', user.session_key)
         self.redirect(user.redirect_url)
 
-
     def user_logout(self, session_key=None):
         """
         Ends user session.
 
         """
         if self.current_user:
-            self.db.execute('UPDATE user SET session_key = NULL, user_key = NULL, access_token = NULL, redirect_url = NULL, redirect_key = NULL WHERE id = %s;', self.current_user.user_id)
+            self.db.execute('UPDATE user SET session_key = NULL, access_token = NULL, redirect_url = NULL, redirect_key = NULL WHERE id = %s;', self.current_user.user_id)
 
         self.clear_cookie('session')
 
