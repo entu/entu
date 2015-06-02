@@ -138,7 +138,7 @@ class myUser():
         if self.__user and self.__session_key == session_key:
             return self.__user
 
-        user_key = hashlib.md5(self.request.remote_ip + self.request.headers.get('User-Agent', None)).hexdigest()
+        user_key = hashlib.md5(self.request.remote_ip).hexdigest()
         user = self.db.get("""
             SELECT
                 property.entity_id AS id,
@@ -304,7 +304,7 @@ class myUser():
         """
         redirect_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
         session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
-        user_key = hashlib.md5(self.request.remote_ip + self.request.headers.get('User-Agent', None)).hexdigest()
+        user_key = hashlib.md5(self.request.remote_ip).hexdigest()
         host = None
 
         if redirect_url:
