@@ -321,7 +321,7 @@ class myUser():
                 name,
                 picture,
                 self.app_settings('language', 'english'),
-                ip,
+                self.request.remote_ip,
                 session_key,
                 access_token,
                 redirect_url,
