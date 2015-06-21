@@ -288,13 +288,13 @@ class myUser():
 
     def set_preferences(self, key, value):
         if key == 'language' and value in ['estonian', 'english']:
-            self.db.execute('UPDATE user SET language = %s WHERE id = %s;', value, self.get_current_user().user_id)
+            self.db.execute('UPDATE session SET language = %s WHERE id = %s;', value, self.get_current_user().user_id)
         elif key == 'hide_menu' and value.lower() in ['true', 'false']:
             if value.lower() == 'true':
                 value = True
             else:
                 value = False
-            self.db.execute('UPDATE user SET hide_menu = %s WHERE id = %s;', value, self.get_current_user().user_id)
+            self.db.execute('UPDATE session SET hide_menu = %s WHERE id = %s;', value, self.get_current_user().user_id)
 
     def user_login(self, provider=None, provider_id=None, email=None, name=None, picture=None, access_token=None, redirect_url=None):
         """
@@ -313,7 +313,7 @@ class myUser():
         else:
             db = self.db
 
-        profile_id = db.execute_lastrowid('INSERT INTO user SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, ip = %s, session_key = %s, access_token = %s, redirect_url = %s, redirect_key = %s, login_count = 0, created = NOW() ON DUPLICATE KEY UPDATE name = %s, picture = %s, access_token = %s, redirect_url = %s, redirect_key = %s, login_count = login_count + 1, changed = NOW();',
+        profile_id = db.execute_lastrowid('INSERT INTO session SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, ip = %s, session_key = %s, access_token = %s, redirect_url = %s, redirect_key = %s, login_count = 0, created = NOW() ON DUPLICATE KEY UPDATE name = %s, picture = %s, access_token = %s, redirect_url = %s, redirect_key = %s, login_count = login_count + 1, changed = NOW();',
                 # insert
                 provider,
                 provider_id,
@@ -340,11 +340,11 @@ class myUser():
         if not redirect_key or not profile_id:
             return self.redirect('/')
 
-        user = self.db.get('SELECT session_key, redirect_url FROM user WHERE id = %s AND redirect_key = %s LIMIT 1;', profile_id, redirect_key)
+        user = self.db.get('SELECT session_key, redirect_url FROM session WHERE id = %s AND redirect_key = %s LIMIT 1;', profile_id, redirect_key)
         if not user:
             return self.redirect('/')
 
-        self.db.execute('UPDATE user SET redirect_url = NULL, redirect_key = NULL WHERE id = %s AND redirect_key = %s;', profile_id, redirect_key)
+        self.db.execute('UPDATE session SET redirect_url = NULL, redirect_key = NULL WHERE id = %s AND redirect_key = %s;', profile_id, redirect_key)
 
         self.clear_cookie('session')
         self.set_secure_cookie('session', user.session_key)
@@ -356,7 +356,7 @@ class myUser():
 
         """
         if self.current_user:
-            self.db.execute('UPDATE user SET session_key = NULL, access_token = NULL, redirect_url = NULL, redirect_key = NULL WHERE id = %s;', self.current_user.user_id)
+            self.db.execute('UPDATE session SET session_key = NULL, access_token = NULL, redirect_url = NULL, redirect_key = NULL WHERE id = %s;', self.current_user.user_id)
 
         self.clear_cookie('session')
 
