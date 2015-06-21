@@ -277,10 +277,12 @@ class Entity2():
                 referred_to_entity_id = [referred_to_entity_id]
             referrer_where = """
                 AND e.id IN (
-                    SELECT entity_id
-                    FROM property
-                    WHERE value_reference IN (%s)
-                    AND is_deleted = 0
+                    SELECT property.entity_id
+                    FROM property, property_definition
+                    WHERE property_definition.keyname = property.property_definition_keyname
+                    AND property.value_reference IN (%s)
+                    AND property_definition.dataproperty NOT IN ('entu-created-at', 'entu-created-by', 'entu-changed-at', 'entu-changed-by')
+                    AND property.is_deleted = 0
                 )
                 """ % ', '.join(referred_to_entity_id)
 
