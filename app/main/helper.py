@@ -313,7 +313,7 @@ class myUser():
         else:
             db = self.db
 
-        profile_id = db.execute_lastrowid('INSERT INTO session SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, ip = %s, session_key = %s, access_token = %s, redirect_url = %s, redirect_key = %s, login_count = 0, created = NOW() ON DUPLICATE KEY UPDATE name = %s, picture = %s, access_token = %s, redirect_url = %s, redirect_key = %s, login_count = login_count + 1, changed = NOW();',
+        profile_id = db.execute_lastrowid('INSERT INTO session SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, ip = %s, browser = %s, session_key = %s, access_token = %s, redirect_url = %s, redirect_key = %s, login_count = 0, created = NOW() ON DUPLICATE KEY UPDATE name = %s, picture = %s, access_token = %s, redirect_url = %s, redirect_key = %s, login_count = login_count + 1, changed = NOW();',
                 # insert
                 provider,
                 provider_id,
@@ -322,6 +322,7 @@ class myUser():
                 picture,
                 self.app_settings('language', 'english'),
                 self.request.remote_ip,
+                self.request.headers.get('User-Agent', None),
                 session_key,
                 access_token,
                 redirect_url,
