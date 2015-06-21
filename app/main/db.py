@@ -183,6 +183,22 @@ class Entity():
         # logging.debug(sql)
         self.db.execute(sql, entity_id, self.__user_id, parent_entity_id)
 
+        self.db.execute("""
+            INSERT INTO property (property_definition_keyname, entity_id, value_display, value_datetime, created_by, created)
+            SELECT keyname, %s, NOW(), NOW(), %s, NOW()
+            FROM property_definition
+            WHERE dataproperty = 'entu-created-at'
+            AND entity_definition_keyname = %s
+        """, entity_id, self.__user_id, entity_definition_keyname)
+
+        self.db.execute("""
+            INSERT INTO property (property_definition_keyname, entity_id, value_reference, created_by, created)
+            SELECT keyname, %s, %s, %s, NOW()
+            FROM property_definition
+            WHERE dataproperty = 'entu-created-by'
+            AND entity_definition_keyname = %s
+        """, entity_id, self.__user_id, self.__user_id, entity_definition_keyname)
+
         return entity_id
 
     def duplicate_entity(self, entity_id, copies=1, skip_property_definition_keyname=None):
@@ -211,6 +227,7 @@ class Entity():
                 FROM entity
                 WHERE id = %s;
             """ , self.__user_id, entity_id)
+
             self.db.execute("""
                 INSERT INTO property (
                     property_definition_keyname,
@@ -255,6 +272,7 @@ class Entity():
                     %s
                     AND is_deleted = 0;
             """ % (new_entity_id, self.__user_id, entity_id, properties_sql))
+
             self.db.execute("""
                 INSERT INTO relationship (
                     relationship_definition_keyname,
@@ -273,6 +291,7 @@ class Entity():
                 AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
                 AND is_deleted = 0;
             """, new_entity_id, self.__user_id, entity_id)
+
             self.db.execute("""
                 INSERT INTO relationship (
                     relationship_definition_keyname,
@@ -291,6 +310,23 @@ class Entity():
                 AND relationship_definition_keyname IN ('child', 'viewer', 'expander', 'editor', 'owner')
                 AND is_deleted = 0;
             """, new_entity_id, self.__user_id, entity_id)
+
+            self.db.execute("""
+                INSERT INTO property (property_definition_keyname, entity_id, value_display, value_datetime, created_by, created)
+                SELECT keyname, %s, NOW(), NOW(), %s, NOW()
+                FROM property_definition
+                WHERE dataproperty = 'entu-created-at'
+                AND entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1)
+            """, new_entity_id, self.__user_id, new_entity_id)
+
+            self.db.execute("""
+                INSERT INTO property (property_definition_keyname, entity_id, value_reference, created_by, created)
+                SELECT keyname, %s, %s, %s, NOW()
+                FROM property_definition
+                WHERE dataproperty = 'entu-created-by'
+                AND entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1)
+            """, new_entity_id, self.__user_id, self.__user_id, new_entity_id)
+
 
     def delete_entity(self, entity_id):
         if not self.db.get("""
