@@ -58,7 +58,7 @@
     <tr>
         <td for="entity_changed">{{ _('changed') }}</td><td id="entity_changed">
             {% if entity.get('properties').get('entu-changed-by').get('values', False) %}
-                {{ entity.get('properties').get('entu-changed-by').get('values')[0].get('value') }}<br/>
+                {{ entity.get('properties').get('entu-changed-by').get('values')[0].get('value') }}
             {% end %}
             {% if entity.get('properties').get('entu-changed-at').get('values', False) %}
                 <div id="entu-changed-at"/>
