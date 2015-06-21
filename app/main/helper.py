@@ -141,10 +141,10 @@ class myUser():
         user = self.db.get("""
             SELECT
                 property.entity_id AS id,
-                user.id AS user_id,
-                user.name,
-                user.language,
-                user.hide_menu,
+                session.id AS user_id,
+                session.name,
+                session.language,
+                session.hide_menu,
                 IFNULL((
                     SELECT value_string
                     FROM
@@ -156,24 +156,24 @@ class myUser():
                     AND property_definition.dataproperty = 'email'
                     ORDER BY property.id
                     LIMIT 1
-                ), user.email) AS email,
-                user.provider,
-                user.access_token,
-                user.session_key,
+                ), session.email) AS email,
+                session.provider,
+                session.access_token,
+                session.session_key,
                 NULL AS api_key
             FROM
                 property_definition,
                 property,
                 entity,
-                user
+                session
             WHERE property.property_definition_keyname = property_definition.keyname
             AND entity.id = property.entity_id
             AND property.is_deleted = 0
             AND entity.is_deleted = 0
-            AND user.email = property.value_string
+            AND session.email = property.value_string
             AND property_definition.dataproperty = 'entu-user'
-            AND user.ip = %s
-            AND user.session_key = %s
+            AND session.ip = %s
+            AND session.session_key = %s
             LIMIT 1;
         """, self.request.remote_ip, session_key)
 
@@ -313,7 +313,7 @@ class myUser():
         else:
             db = self.db
 
-        profile_id = db.execute_lastrowid('INSERT INTO session SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, ip = %s, browser = %s, session_key = %s, access_token = %s, redirect_url = %s, redirect_key = %s, login_count = 0, created = NOW() ON DUPLICATE KEY UPDATE name = %s, picture = %s, access_token = %s, redirect_url = %s, redirect_key = %s, login_count = login_count + 1, changed = NOW();',
+        session_id = db.execute_lastrowid('INSERT INTO session SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, ip = %s, browser = %s, session_key = %s, access_token = %s, redirect_url = %s, redirect_key = %s, created = NOW();',
                 # insert
                 provider,
                 provider_id,
@@ -326,26 +326,20 @@ class myUser():
                 session_key,
                 access_token,
                 redirect_url,
-                redirect_key,
-                # update
-                name,
-                picture,
-                access_token,
-                redirect_url,
                 redirect_key
             )
 
-        return {'id': profile_id, 'host': host, 'redirect_key': redirect_key}
+        return {'id': session_id, 'host': host, 'redirect_key': redirect_key}
 
-    def user_login_redirect(self, profile_id=None, redirect_key=None):
-        if not redirect_key or not profile_id:
+    def user_login_redirect(self, session_id=None, redirect_key=None):
+        if not redirect_key or not session_id:
             return self.redirect('/')
 
-        user = self.db.get('SELECT session_key, redirect_url FROM session WHERE id = %s AND redirect_key = %s LIMIT 1;', profile_id, redirect_key)
+        user = self.db.get('SELECT session_key, redirect_url FROM session WHERE id = %s AND redirect_key = %s LIMIT 1;', session_id, redirect_key)
         if not user:
             return self.redirect('/')
 
-        self.db.execute('UPDATE session SET redirect_url = NULL, redirect_key = NULL WHERE id = %s AND redirect_key = %s;', profile_id, redirect_key)
+        self.db.execute('UPDATE session SET redirect_url = NULL, redirect_key = NULL WHERE id = %s AND redirect_key = %s;', session_id, redirect_key)
 
         self.clear_cookie('session')
         self.set_secure_cookie('session', user.session_key)

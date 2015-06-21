@@ -299,7 +299,7 @@ class AuthRedirect(myRequestHandler):
 
     """
     def get(self):
-        self.user_login_redirect(profile_id=self.get_argument('user', None, True), redirect_key=self.get_argument('key', None, True))
+        self.user_login_redirect(session_id=self.get_argument('user', None, True), redirect_key=self.get_argument('key', None, True))
 
 
 def set_redirect(rh):
