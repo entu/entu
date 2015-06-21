@@ -281,7 +281,7 @@ class Entity2():
                     FROM property, property_definition
                     WHERE property_definition.keyname = property.property_definition_keyname
                     AND property.value_reference IN (%s)
-                    AND property_definition.dataproperty NOT IN ('entu-created-at', 'entu-created-by', 'entu-changed-at', 'entu-changed-by')
+                    AND property_definition.dataproperty NOT IN ('entu-created-by', 'entu-changed-by')
                     AND property.is_deleted = 0
                 )
                 """ % ', '.join(referred_to_entity_id)
