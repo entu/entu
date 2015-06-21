@@ -407,7 +407,7 @@ class Entity():
         """, entity_id):
             self.db.execute("""
                 UPDATE property, property_definition
-                SET property.value_reference = %s, property.created_by = %s, property.created = NOW()
+                SET property.value_display = NULL, property.value_reference = %s, property.created_by = %s, property.created = NOW()
                 WHERE property_definition.keyname = property.property_definition_keyname
                 AND property.entity_id = %s
                 AND property_definition.dataproperty = 'entu-changed-by';
