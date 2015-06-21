@@ -44,9 +44,15 @@
     <tr>
         <td for="entity_created">{{ _('created') }}</td><td id="entity_created">
             {% if entity.get('properties').get('entu-created-by').get('values', False) %}
-                {{ entity.get('properties').get('entu-created-by').get('values')[0].get('value') }}<br/>
+                {{ entity.get('properties').get('entu-created-by').get('values')[0].get('value') }}
             {% end %}
-            {{ entity.get('properties').get('entu-created-at').get('values',[{'value':''}])[0].get('value') }}
+            {% if entity.get('properties').get('entu-created-at').get('values', False) %}
+                <div id="entu-created-at"/>
+                <script type="text/javascript">
+                    var date = new Date("{{ entity.get('properties').get('entu-created-at').get('values',[{'value':''}])[0].get('value') }}".replace(' ', 'T')).toLocaleString()
+                    document.getElementById('entu-created-at').textContent = date
+                </script>
+            {% end %}
         </td>
     </tr>
     <tr>
@@ -54,7 +60,13 @@
             {% if entity.get('properties').get('entu-changed-by').get('values', False) %}
                 {{ entity.get('properties').get('entu-changed-by').get('values')[0].get('value') }}<br/>
             {% end %}
-            {{ entity.get('properties').get('entu-changed-at').get('values',[{'value':''}])[0].get('value') }}
+            {% if entity.get('properties').get('entu-changed-at').get('values', False) %}
+                <div id="entu-changed-at"/>
+                <script type="text/javascript">
+                    var date = new Date("{{ entity.get('properties').get('entu-changed-at').get('values',[{'value':''}])[0].get('value') }}".replace(' ', 'T')).toLocaleString()
+                    document.getElementById('entu-changed-at').textContent = date
+                </script>
+            {% end %}
         </td>
     </tr>
 </table>
