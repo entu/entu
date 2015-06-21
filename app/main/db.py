@@ -188,7 +188,7 @@ class Entity():
             SELECT keyname, %s, NOW(), NOW(), %s, NOW()
             FROM property_definition
             WHERE dataproperty = 'entu-created-at'
-            AND entity_definition_keyname = %s
+            AND entity_definition_keyname = %s;
         """, entity_id, self.__user_id, entity_definition_keyname)
 
         self.db.execute("""
@@ -196,7 +196,7 @@ class Entity():
             SELECT keyname, %s, %s, %s, NOW()
             FROM property_definition
             WHERE dataproperty = 'entu-created-by'
-            AND entity_definition_keyname = %s
+            AND entity_definition_keyname = %s;
         """, entity_id, self.__user_id, self.__user_id, entity_definition_keyname)
 
         return entity_id
@@ -316,7 +316,7 @@ class Entity():
                 SELECT keyname, %s, NOW(), NOW(), %s, NOW()
                 FROM property_definition
                 WHERE dataproperty = 'entu-created-at'
-                AND entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1)
+                AND entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1);
             """, new_entity_id, self.__user_id, new_entity_id)
 
             self.db.execute("""
@@ -324,9 +324,8 @@ class Entity():
                 SELECT keyname, %s, %s, %s, NOW()
                 FROM property_definition
                 WHERE dataproperty = 'entu-created-by'
-                AND entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1)
+                AND entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1);
             """, new_entity_id, self.__user_id, self.__user_id, new_entity_id)
-
 
     def delete_entity(self, entity_id):
         if not self.db.get("""
@@ -373,6 +372,54 @@ class Entity():
 
         if old_property_id:
             self.db.execute('UPDATE property SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', self.__user_id, old_property_id)
+
+        if self.db.get("""
+            SELECT property.id
+            FROM property, property_definition
+            WHERE property_definition.keyname = property.property_definition_keyname
+            AND property.entity_id = %s
+            AND property_definition.dataproperty = 'entu-changed-at'
+            LIMIT 1;
+        """, entity_id):
+            self.db.execute("""
+                UPDATE property, property_definition
+                SET property.value_display = NOW(), property.value_datetime = NOW(), property.created_by = %s, property.created = NOW()
+                WHERE property_definition.keyname = property.property_definition_keyname
+                AND property.entity_id = %s
+                AND property_definition.dataproperty = 'entu-changed-at';
+            """, self.__user_id, entity_id)
+        else:
+            self.db.execute("""
+                INSERT INTO property (property_definition_keyname, entity_id, value_display, value_datetime, created_by, created)
+                SELECT keyname, %s, NOW(), NOW(), %s, NOW()
+                FROM property_definition
+                WHERE dataproperty = 'entu-changed-at'
+                AND entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1);
+            """, entity_id, self.__user_id, entity_id)
+
+        if self.db.get("""
+            SELECT property.id
+            FROM property, property_definition
+            WHERE property_definition.keyname = property.property_definition_keyname
+            AND property.entity_id = %s
+            AND property_definition.dataproperty = 'entu-changed-by'
+            LIMIT 1;
+        """, entity_id):
+            self.db.execute("""
+                UPDATE property, property_definition
+                SET property.value_reference = %s, property.created_by = %s, property.created = NOW()
+                WHERE property_definition.keyname = property.property_definition_keyname
+                AND property.entity_id = %s
+                AND property_definition.dataproperty = 'entu-changed-by';
+            """, self.__user_id, self.__user_id, entity_id)
+        else:
+            self.db.execute("""
+                INSERT INTO property (property_definition_keyname, entity_id, value_reference, created_by, created)
+                SELECT keyname, %s, %s, %s, NOW()
+                FROM property_definition
+                WHERE dataproperty = 'entu-changed-by'
+                AND entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1);
+            """, entity_id, self.__user_id, self.__user_id, entity_id)
 
         # If no value, then property is deleted, return
         if not value:
