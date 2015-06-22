@@ -355,7 +355,7 @@ class Maintenance():
                             function_result = sum(map(float, [x for x in values if x]))
                         if function == 'COUNT':
                             function_result = len(values)
-                        if function == 'AVERAGE':
+                        if function == 'AVERAGE' and [x for x in values if x]:
                             function_result = sum(map(float, [x for x in values if x])) / len(values)
                         if function == 'MIN':
                             function_result = min(values)
