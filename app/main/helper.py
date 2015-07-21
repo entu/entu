@@ -305,12 +305,12 @@ class myUser():
         session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
         host = None
 
-        if redirect_url:
-            host = redirect_url.replace('http://', '').replace('https://', '').split('/')[0]
 
-        if host:
+        if redirect_url and redirect_url != '/':
+            host = redirect_url.replace('http://', '').replace('https://', '').split('/')[0]
             db = self.get_db(host)
         else:
+            host = self.request.host
             db = self.db
 
         session_id = db.execute_lastrowid('INSERT INTO session SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, ip = %s, browser = %s, session_key = %s, access_token = %s, redirect_url = %s, redirect_key = %s, created = NOW();',
