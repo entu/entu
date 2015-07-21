@@ -140,7 +140,7 @@ class myUser():
 
         user = self.db.get("""
             SELECT
-                property.entity_id AS id,
+                u.entity_id AS id,
                 session.id AS user_id,
                 session.name,
                 session.language,
@@ -151,7 +151,7 @@ class myUser():
                         property,
                         property_definition
                     WHERE property_definition.keyname = property.property_definition_keyname
-                    AND property.entity_id = entity.id
+                    AND property.entity_id = u.entity_id
                     AND property.is_deleted = 0
                     AND property_definition.dataproperty = 'email'
                     ORDER BY property.id
@@ -161,18 +161,23 @@ class myUser():
                 session.access_token,
                 session.session_key,
                 NULL AS api_key
-            FROM
-                property_definition,
-                property,
-                entity,
-                session
-            WHERE property.property_definition_keyname = property_definition.keyname
-            AND entity.id = property.entity_id
-            AND property.is_deleted = 0
-            AND entity.is_deleted = 0
-            AND session.email = property.value_string
-            AND property_definition.dataproperty = 'entu-user'
-            AND session.ip = %s
+            FROM session
+            LEFT JOIN (
+                SELECT
+                    property.value_string,
+                    property.entity_id
+                FROM
+                    entity,
+                    property,
+                    property_definition
+                WHERE property.entity_id = entity.id
+                AND property_definition.keyname = property.property_definition_keyname
+                AND property.entity_id = entity.id
+                AND entity.is_deleted = 0
+                AND property.is_deleted = 0
+                AND property_definition.dataproperty = 'entu-user'
+            ) AS u ON u.value_string = session.email
+            WHERE session.ip = %s
             AND session.session_key = %s
             LIMIT 1;
         """, self.request.remote_ip, session_key)
@@ -182,8 +187,19 @@ class myUser():
             return
 
         if not user.id:
-            logging.debug('No user id!')
-            return
+            if user.email and self.app_settings('user-parent'):
+                if not self.db.get('SELECT entity.id FROM entity, property WHERE property.entity_id = entity.id AND entity.is_deleted = 0 AND property.is_deleted = 0 AND property.property_definition_keyname = "person-user" and property.value_string = %s LIMIT 1', user.email):
+                    new_person_id = self.create_entity(entity_definition_keyname='person', parent_entity_id=self.app_settings('user-parent'), ignore_user=True)
+                    self.set_property(entity_id=new_person_id, property_definition_keyname='person-forename', value=' '.join(user.name.split(' ')[:-1]), ignore_user=True)
+                    self.set_property(entity_id=new_person_id, property_definition_keyname='person-surname', value=user.name.split(' ')[-1], ignore_user=True)
+                    self.set_property(entity_id=new_person_id, property_definition_keyname='person-user', value=user.email, ignore_user=True)
+                    self.set_property(entity_id=new_person_id, property_definition_keyname='person-email', value=user.email, ignore_user=True)
+                    self.set_rights(entity_id=new_person_id, related_entity_id=new_person_id, right='editor', ignore_user=True)
+                    logging.debug('Created person #%s' % new_person_id)
+                return
+            else:
+                logging.debug('No user id!')
+                return
 
         self.__user = user
         self.__session_key = session_key

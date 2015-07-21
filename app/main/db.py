@@ -42,13 +42,18 @@ class Entity():
                 self.__translation['%s|%s|%s' % (t.entity_definition_keyname, t.property_definition_keyname, t.field)] = t.value
         return self.__translation.get('%s|%s|%s' % (entity_definition_keyname, property_definition_keyname, field), None)
 
-    def create_entity(self, entity_definition_keyname, parent_entity_id=None):
+    def create_entity(self, entity_definition_keyname, parent_entity_id=None, ignore_user=False):
         """
         Creates new Entity and returns its ID.
 
         """
-        if not self.__user_id:
-            return
+
+        if ignore_user == True:
+            user_id = None
+        else:
+            if not self.__user_id:
+                return
+            user_id = self.__user_id
 
         # logging.debug('creating %s under entity %s' % (entity_definition_keyname, parent_entity_id))
         if not entity_definition_keyname:
@@ -62,7 +67,7 @@ class Entity():
                 created = NOW();
         """
         # logging.debug(sql)
-        entity_id = self.db.execute_lastrowid(sql, entity_definition_keyname, self.__user_id)
+        entity_id = self.db.execute_lastrowid(sql, entity_definition_keyname, user_id)
 
         if not parent_entity_id:
             return entity_id
@@ -97,7 +102,7 @@ class Entity():
                 NOW();
         """
         # logging.debug(sql)
-        self.db.execute(sql, entity_id, self.__user_id, entity_definition_keyname, parent_entity_id, entity_id, self.__user_id)
+        self.db.execute(sql, entity_id, user_id, entity_definition_keyname, parent_entity_id, entity_id, user_id)
 
         # Insert or update "contains" information
         for row in self.db.query("SELECT entity_id FROM relationship r WHERE r.is_deleted = 0 AND r.relationship_definition_keyname = 'child' AND r.related_entity_id = %s" , entity_id):
@@ -127,10 +132,11 @@ class Entity():
             AND       rr.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner');
         """
         # logging.debug(sql)
-        self.db.execute(sql, entity_id, self.__user_id, entity_id)
+        self.db.execute(sql, entity_id, user_id, entity_id)
 
         # set creator to owner
-        self.set_rights(entity_id=entity_id, related_entity_id=self.__user_id, right='owner')
+        if user_id:
+            self.set_rights(entity_id=entity_id, related_entity_id=user_id, right='owner')
 
         # Populate default values
         for default_value in self.db.query('SELECT keyname, defaultvalue FROM property_definition WHERE entity_definition_keyname = %s AND defaultvalue IS NOT null', entity_definition_keyname):
@@ -181,7 +187,7 @@ class Entity():
             ;
         """
         # logging.debug(sql)
-        self.db.execute(sql, entity_id, self.__user_id, parent_entity_id)
+        self.db.execute(sql, entity_id, user_id, parent_entity_id)
 
         self.db.execute("""
             INSERT INTO property (property_definition_keyname, entity_id, value_display, value_datetime, created_by, created)
@@ -189,15 +195,16 @@ class Entity():
             FROM property_definition
             WHERE dataproperty = 'entu-created-at'
             AND entity_definition_keyname = %s;
-        """, entity_id, self.__user_id, entity_definition_keyname)
+        """, entity_id, user_id, entity_definition_keyname)
 
-        self.db.execute("""
-            INSERT INTO property (property_definition_keyname, entity_id, value_reference, created_by, created)
-            SELECT keyname, %s, %s, %s, NOW()
-            FROM property_definition
-            WHERE dataproperty = 'entu-created-by'
-            AND entity_definition_keyname = %s;
-        """, entity_id, self.__user_id, self.__user_id, entity_definition_keyname)
+        if user_id:
+            self.db.execute("""
+                INSERT INTO property (property_definition_keyname, entity_id, value_reference, created_by, created)
+                SELECT keyname, %s, %s, %s, NOW()
+                FROM property_definition
+                WHERE dataproperty = 'entu-created-by'
+                AND entity_definition_keyname = %s;
+            """, entity_id, user_id, user_id, entity_definition_keyname)
 
         return entity_id
 
@@ -351,13 +358,20 @@ class Entity():
 
         return True
 
-    def set_property(self, entity_id=None, relationship_id=None, property_definition_keyname=None, value=None, old_property_id=None, uploaded_file=None):
+    def set_property(self, entity_id=None, relationship_id=None, property_definition_keyname=None, value=None, old_property_id=None, uploaded_file=None, ignore_user=False):
         """
         Saves property value. Creates new one if old_property_id = None. Returns new_property_id.
 
         """
         if not entity_id:
             return
+
+        if ignore_user == True:
+            user_id = None
+        else:
+            if not self.__user_id:
+                return
+            user_id = self.__user_id
 
         # property_definition_keyname is preferred because it could change for existing property
         if old_property_id:
@@ -371,7 +385,7 @@ class Entity():
             return
 
         if old_property_id:
-            self.db.execute('UPDATE property SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', self.__user_id, old_property_id)
+            self.db.execute('UPDATE property SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', user_id, old_property_id)
 
         if self.db.get("""
             SELECT property.id
@@ -387,7 +401,7 @@ class Entity():
                 WHERE property_definition.keyname = property.property_definition_keyname
                 AND property.entity_id = %s
                 AND property_definition.dataproperty = 'entu-changed-at';
-            """, self.__user_id, entity_id)
+            """, user_id, entity_id)
         else:
             self.db.execute("""
                 INSERT INTO property (property_definition_keyname, entity_id, value_display, value_datetime, created_by, created)
@@ -395,31 +409,32 @@ class Entity():
                 FROM property_definition
                 WHERE dataproperty = 'entu-changed-at'
                 AND entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1);
-            """, entity_id, self.__user_id, entity_id)
+            """, entity_id, user_id, entity_id)
 
-        if self.db.get("""
-            SELECT property.id
-            FROM property, property_definition
-            WHERE property_definition.keyname = property.property_definition_keyname
-            AND property.entity_id = %s
-            AND property_definition.dataproperty = 'entu-changed-by'
-            LIMIT 1;
-        """, entity_id):
-            self.db.execute("""
-                UPDATE property, property_definition
-                SET property.value_display = NULL, property.value_reference = %s, property.created_by = %s, property.created = NOW()
+        if user_id:
+            if self.db.get("""
+                SELECT property.id
+                FROM property, property_definition
                 WHERE property_definition.keyname = property.property_definition_keyname
                 AND property.entity_id = %s
-                AND property_definition.dataproperty = 'entu-changed-by';
-            """, self.__user_id, self.__user_id, entity_id)
-        else:
-            self.db.execute("""
-                INSERT INTO property (property_definition_keyname, entity_id, value_reference, created_by, created)
-                SELECT keyname, %s, %s, %s, NOW()
-                FROM property_definition
-                WHERE dataproperty = 'entu-changed-by'
-                AND entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1);
-            """, entity_id, self.__user_id, self.__user_id, entity_id)
+                AND property_definition.dataproperty = 'entu-changed-by'
+                LIMIT 1;
+            """, entity_id):
+                self.db.execute("""
+                    UPDATE property, property_definition
+                    SET property.value_display = NULL, property.value_reference = %s, property.created_by = %s, property.created = NOW()
+                    WHERE property_definition.keyname = property.property_definition_keyname
+                    AND property.entity_id = %s
+                    AND property_definition.dataproperty = 'entu-changed-by';
+                """, user_id, user_id, entity_id)
+            else:
+                self.db.execute("""
+                    INSERT INTO property (property_definition_keyname, entity_id, value_reference, created_by, created)
+                    SELECT keyname, %s, %s, %s, NOW()
+                    FROM property_definition
+                    WHERE dataproperty = 'entu-changed-by'
+                    AND entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1);
+                """, entity_id, user_id, user_id, entity_id)
 
         # If no value, then property is deleted, return
         if not value:
@@ -458,9 +473,9 @@ class Entity():
             value_display = uploaded_file['filename'][:500]
 
             if uploaded_file.get('url'):
-                value = self.db.execute_lastrowid('INSERT INTO file SET url = %s, filename = %s, created_by = %s, created = NOW();', uploaded_file.get('url', ''), uploaded_file.get('filename', ''), self.__user_id)
+                value = self.db.execute_lastrowid('INSERT INTO file SET url = %s, filename = %s, created_by = %s, created = NOW();', uploaded_file.get('url', ''), uploaded_file.get('filename', ''), user_id)
             elif uploaded_file.get('s3key'):
-                value = self.db.execute_lastrowid('INSERT INTO file SET s3_key = %s, filename = %s, filesize = %s, created_by = %s, created = NOW();', uploaded_file.get('s3key', ''), uploaded_file.get('filename', ''), uploaded_file.get('filesize', ''), self.__user_id)
+                value = self.db.execute_lastrowid('INSERT INTO file SET s3_key = %s, filename = %s, filesize = %s, created_by = %s, created = NOW();', uploaded_file.get('s3key', ''), uploaded_file.get('filename', ''), uploaded_file.get('filesize', ''), user_id)
             else:
                 md5 = hashlib.md5(uploaded_file.get('body')).hexdigest()
                 directory = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), md5[0])
@@ -472,7 +487,7 @@ class Entity():
                 f.write(uploaded_file.get('body', ''))
                 f.close()
 
-                value = self.db.execute_lastrowid('INSERT INTO file SET md5 = %s, filename = %s, filesize = %s, created_by = %s, created = NOW();', md5, uploaded_file.get('filename', ''), len(uploaded_file.get('body', '')), self.__user_id)
+                value = self.db.execute_lastrowid('INSERT INTO file SET md5 = %s, filename = %s, filesize = %s, created_by = %s, created = NOW();', md5, uploaded_file.get('filename', ''), len(uploaded_file.get('body', '')), user_id)
 
         elif definition.datatype == 'boolean':
             field = 'value_boolean'
@@ -499,14 +514,14 @@ class Entity():
             definition.keyname,
             value,
             value_display,
-            self.__user_id
+            user_id
         )
 
         if definition.datatype == 'file' and uploaded_file.get('s3key'):
             self.db.execute('UPDATE file SET s3_key = CONCAT(s3_key, \'/\', %s) WHERE id = %s LIMIT 1;', new_property_id, value)
 
         self.db.execute('UPDATE entity SET changed = NOW(), changed_by = %s WHERE id = %s;',
-            self.__user_id,
+            user_id,
             entity_id,
         )
 
@@ -739,9 +754,16 @@ class Entity():
 
         return rights
 
-    def set_rights(self, entity_id, related_entity_id, right=None):
+    def set_rights(self, entity_id, related_entity_id, right=None, ignore_user=False):
         if not entity_id or not related_entity_id:
             return
+
+        if ignore_user == True:
+            user_id = None
+        else:
+            if not self.__user_id:
+                return
+            user_id = self.__user_id
 
         if type(entity_id) is not list:
             entity_id = [entity_id]
@@ -753,18 +775,18 @@ class Entity():
             UPDATE relationship SET
                 deleted = NOW(),
                 is_deleted = 1,
-                deleted_by = %s
+                deleted_by = %%s
             WHERE is_deleted = 0
             AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
             AND entity_id IN (%s)
             AND related_entity_id IN (%s);
-        """ % (self.__user_id, ','.join(map(str, entity_id)), ','.join(map(str, related_entity_id)))
-        self.db.execute(sql)
+        """ % (','.join(map(str, entity_id)), ','.join(map(str, related_entity_id)))
+        self.db.execute(sql, user_id)
 
         if right in ['viewer', 'expander', 'editor', 'owner']:
             for e in entity_id:
                 for re in related_entity_id:
-                    self.db.execute('INSERT INTO relationship SET relationship_definition_keyname = %s, entity_id = %s, related_entity_id = %s, created = NOW(), created_by = %s;', right, int(e), int(re), self.__user_id)
+                    self.db.execute('INSERT INTO relationship SET relationship_definition_keyname = %s, entity_id = %s, related_entity_id = %s, created = NOW(), created_by = %s;', right, int(e), int(re), user_id)
 
     def set_sharing(self, entity_id, sharing):
         if not entity_id or not sharing:
