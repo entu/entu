@@ -177,10 +177,9 @@ class myUser():
                 AND property.is_deleted = 0
                 AND property_definition.dataproperty = 'entu-user'
             ) AS u ON u.value_string = session.email
-            WHERE session.ip = %s
-            AND session.session_key = %s
+            WHERE session.session_key = %s
             LIMIT 1;
-        """, self.request.remote_ip, session_key)
+        """, session_key)
 
         if not user:
             logging.debug('No current user!')
