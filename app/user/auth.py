@@ -24,6 +24,12 @@ class ShowAuthPage(myRequestHandler):
         set_redirect(self)
 
         self.clear_cookie('session')
+
+        if self.get_secure_cookie('auth_provider'):
+            url = '/auth/%s' % self.get_secure_cookie('auth_provider')
+            self.clear_cookie('auth_provider', domain='.'.join(['']+self.request.host.split('.')[1:]))
+            return self.redirect(url)
+
         self.render('user/template/auth.html',
             mobileid = True if self.app_settings('auth-mobileid') else False,
             google = True if self.app_settings('auth-google') else False,

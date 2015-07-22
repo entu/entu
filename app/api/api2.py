@@ -1042,22 +1042,34 @@ class API2UserAuth(myRequestHandler, Entity2):
             }, 400)
 
         redirect_url = self.get_argument('redirect_url', default=None, strip=True)
+        provider = self.get_argument('provider', default=None, strip=True)
 
         token = hashlib.md5('%s.%s.%s' % (state, redirect_url, ''.join(random.choice(string.ascii_letters + string.digits) for x in range(16)))).hexdigest()
 
         tmp_filename = '%s.authtoken' % token
         tmp_file = json.dumps({
             'state': state,
-            'redirect_url': redirect_url
+            'redirect_url': redirect_url,
+            'provider': provider
         })
 
         self.set_tmp_file(filename=tmp_filename, content=tmp_file)
 
         self.json({
-            'state': state,
-            'auth_url': '%s/%s' % (self.request.full_url(), token)
+            'result': {
+                'state': state,
+                'auth_url': '%s/%s' % (self.request.full_url(), token)
+            },
+            'time': round(self.request.request_time(), 3),
         })
 
+
+
+class API2UserAuthTokenProvider(myRequestHandler, Entity2):
+    @web.removeslash
+    def get(self, token, provider):
+        self.set_secure_cookie(name='auth_provider', value=provider, expires_days=1, domain='.'.join(['']+self.request.host.split('.')[1:]))
+        self.redirect('/api2/user/auth/%s' % token)
 
 
 
@@ -1065,6 +1077,8 @@ class API2UserAuthToken(myRequestHandler, Entity2):
     @web.removeslash
     @web.authenticated
     def get(self, token):
+        self.clear_cookie('auth_provider', domain='.'.join(['']+self.request.host.split('.')[1:]))
+
         if not token:
             return self.json({
                 'error': 'No token!',
@@ -1220,6 +1234,7 @@ handlers = [
     (r'/api2/cmdi-xml/(.*)', API2CmdiXml),
     (r'/api2/email', API2Email),
     (r'/api2/user/auth', API2UserAuth),
+    (r'/api2/user/auth/(.*)/(.*)', API2UserAuthTokenProvider),
     (r'/api2/user/auth/(.*)', API2UserAuthToken),
     (r'/api2/history', API2History),
     (r'/api2/tagcloud', API2TagCloud),
