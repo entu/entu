@@ -5,7 +5,7 @@ log_in_mid_phone,Phone number
 log_in_mid_go,Go
 log_in_mid_cancel,Cancel
 log_in_mid_message,"Kontrollige, et näete oma mobiiltelefoni ekraanil täpselt sama numbrit ning seejärel sisestage Mobiil-ID PIN1."
-log_in_info,Entu uses onlu those providers for user authentication. We don't get nor save Your password.
+log_in_info,uses those providers for user authentication. We don't get nor save Your password.
 feedback,Feedback
 
 menu_add,Add new
@@ -89,7 +89,7 @@ rights_private_desc,Only people explicitly granted permission (see below) can ac
 rights_no_access, No access
 rights_can_view,Can only view
 rights_can_add_child,Can view and add childs
-rights_can_edit,"Can edit, delete and add childs"
+rights_can_edit,"Can edit and add childs"
 rights_owner,"Can edit, delete, add childs and change rights"
 rights_add_user,Add new
 rights_help_share,"Donec pharetra, sem quis pellentesque convallis, ligula neque dignissim tellus, non laoreet dolor neque nec felis. Etiam id eleifend nunc."

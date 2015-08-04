@@ -19,6 +19,9 @@ import datetime, time
 import dateutil.parser
 
 
+from main.db import *
+
+
 class myDatabase():
     __app_settings = None
 
@@ -130,6 +133,7 @@ class myUser():
     __user_id     = None
     __policy      = None
     __signature   = None
+    __entity      = Entity
 
     def get_user_by_session_key(self, session_key):
         if not session_key:
@@ -188,12 +192,12 @@ class myUser():
         if not user.id:
             if user.email and self.app_settings('user-parent'):
                 if not self.db.get('SELECT entity.id FROM entity, property WHERE property.entity_id = entity.id AND entity.is_deleted = 0 AND property.is_deleted = 0 AND property.property_definition_keyname = "person-user" and property.value_string = %s LIMIT 1', user.email):
-                    new_person_id = self.create_entity(entity_definition_keyname='person', parent_entity_id=self.app_settings('user-parent'), ignore_user=True)
-                    self.set_property(entity_id=new_person_id, property_definition_keyname='person-forename', value=' '.join(user.name.split(' ')[:-1]), ignore_user=True)
-                    self.set_property(entity_id=new_person_id, property_definition_keyname='person-surname', value=user.name.split(' ')[-1], ignore_user=True)
-                    self.set_property(entity_id=new_person_id, property_definition_keyname='person-user', value=user.email, ignore_user=True)
-                    self.set_property(entity_id=new_person_id, property_definition_keyname='person-email', value=user.email, ignore_user=True)
-                    self.set_rights(entity_id=new_person_id, related_entity_id=new_person_id, right='editor', ignore_user=True)
+                    new_person_id = self.__entity.create_entity(entity_definition_keyname='person', parent_entity_id=self.app_settings('user-parent'), ignore_user=True)
+                    self.__entity.set_property(entity_id=new_person_id, property_definition_keyname='person-forename', value=' '.join(user.name.split(' ')[:-1]), ignore_user=True)
+                    self.__entity.set_property(entity_id=new_person_id, property_definition_keyname='person-surname', value=user.name.split(' ')[-1], ignore_user=True)
+                    self.__entity.set_property(entity_id=new_person_id, property_definition_keyname='person-user', value=user.email, ignore_user=True)
+                    self.__entity.set_property(entity_id=new_person_id, property_definition_keyname='person-email', value=user.email, ignore_user=True)
+                    self.__entity.set_rights(entity_id=new_person_id, related_entity_id=new_person_id, right='editor', ignore_user=True)
                     logging.debug('Created person #%s' % new_person_id)
                 return
             else:

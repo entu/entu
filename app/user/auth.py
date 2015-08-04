@@ -68,6 +68,9 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
     def get(self, provider):
         self.oauth2_provider = None
 
+        if self.get_argument('next', default=None, strip=True):
+            set_redirect(self)
+
         if provider == 'facebook' and self.app_settings('auth-facebook'):
             # https://developers.facebook.com/apps
             self.oauth2_provider = {

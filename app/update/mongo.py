@@ -115,10 +115,13 @@ class MySQL2MongoDB():
             password = db_pass,
         )
 
-        mongo_client = MongoClient('178.62.243.182', 27017, replicaset='entu')
-        mongo_db = mongo_client[self.db_name]
-        # mongo_db = mongo_client['entu-dev']
-        self.mongo_collection = mongo_db['entity']
+        # mongo_client = MongoClient('178.62.243.182', 27017, replicaset='entu')
+        # mongo_db = mongo_client[self.db_name]
+        # self.mongo_collection = mongo_db['entity']
+        mongo_client = MongoClient('mongodb://entu:g4PgQf23HdB4kBGv@waffle.modulusmongo.net:27017/eH6inojo')
+        mongo_db = mongo_client.get_default_database()
+        self.mongo_collection = mongo_db[self.db_name]
+
         self.mongo_collection.create_index([('_mysql.id', ASCENDING), ('_mysql.db', ASCENDING)])
 
 
@@ -430,8 +433,8 @@ for c in customers():
     # if c.get('database-name') not in ['www']:
     #     continue
 
-    if c.get('database-name') not in ['www']:
-        continue
+    # if c.get('database-name') not in ['www']:
+    #     continue
 
     print '%s %s started' % (datetime.now(), c.get('database-name'))
 

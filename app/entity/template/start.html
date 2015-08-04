@@ -37,7 +37,7 @@
                 {% for m in menu %}
                     <h3><a href="#">{{ m['label'] }}</a></h3>
                     <div>
-                        {% for i in sorted(m['items'], key=itemgetter('title')) %}
+                        {% for i in sorted(m.get('items', []), key=itemgetter('title')) %}
                             <a href="/entity/{{ i['keyname'] }}">{{ i['title'] }}</a>
                         {% end %}
                     </div>

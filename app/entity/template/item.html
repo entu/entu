@@ -43,13 +43,13 @@
 <table id="entity_meta" style="z-index: 2; position: absolute; top: 60px; right: 160px; background-color: rgb(245, 245, 245); border: rgb(221, 221, 221) solid 1px; border-radius: 4px; border-spacing: 6px; border-collapse: separate;">
     <tr>
         <td for="entity_created">{{ _('created') }}</td><td id="entity_created">
-            {% if entity.get('properties').get('entu-created-by').get('values', False) %}
-                {{ entity.get('properties').get('entu-created-by').get('values')[0].get('value') }}
+            {% if entity.get('properties', {}).get('entu-created-by', {}).get('values', False) %}
+                {{ entity.get('properties', {}).get('entu-created-by', {}).get('values')[0].get('value') }}
             {% end %}
-            {% if entity.get('properties').get('entu-created-at').get('values', False) %}
+            {% if entity.get('properties', {}).get('entu-created-at', {}).get('values', False) %}
                 <div id="entu-created-at"/>
                 <script type="text/javascript">
-                    var date = new Date("{{ entity.get('properties').get('entu-created-at').get('values',[{'value':''}])[0].get('value') }}".replace(' ', 'T')).toLocaleString()
+                    var date = new Date("{{ entity.get('properties', {}).get('entu-created-at', {}).get('values',[{'value':''}])[0].get('value') }}".replace(' ', 'T')).toLocaleString()
                     document.getElementById('entu-created-at').textContent = date
                 </script>
             {% end %}
@@ -57,13 +57,13 @@
     </tr>
     <tr>
         <td for="entity_changed">{{ _('changed') }}</td><td id="entity_changed">
-            {% if entity.get('properties').get('entu-changed-by').get('values', False) %}
-                {{ entity.get('properties').get('entu-changed-by').get('values')[0].get('value') }}
+            {% if entity.get('properties', {}).get('entu-changed-by', {}).get('values', False) %}
+                {{ entity.get('properties', {}).get('entu-changed-by', {}).get('values')[0].get('value') }}
             {% end %}
-            {% if entity.get('properties').get('entu-changed-at').get('values', False) %}
+            {% if entity.get('properties', {}).get('entu-changed-at', {}).get('values', False) %}
                 <div id="entu-changed-at"/>
                 <script type="text/javascript">
-                    var date = new Date("{{ entity.get('properties').get('entu-changed-at').get('values',[{'value':''}])[0].get('value') }}".replace(' ', 'T')).toLocaleString()
+                    var date = new Date("{{ entity.get('properties', {}).get('entu-changed-at', {}).get('values',[{'value':''}])[0].get('value') }}".replace(' ', 'T')).toLocaleString()
                     document.getElementById('entu-changed-at').textContent = date
                 </script>
             {% end %}

@@ -5,7 +5,7 @@ log_in_mid_phone,Telefoninumber
 log_in_mid_go,Sisene
 log_in_mid_cancel,Tühista
 log_in_mid_message,"Kontrollige, et näete oma mobiiltelefoni ekraanil täpselt sama numbrit ning seejärel sisestage Mobiil-ID PIN1."
-log_in_info,Entu kasutab autentimiseks vaid ülaltoodud teenusepakkujaid. Teie kasutajanime ega parooli meile ei edastata.
+log_in_info,kasutab autentimiseks ülaltoodud teenusepakkujaid. Teie kasutajanime ega parooli meile ei edastata.
 feedback,Tagasiside
 
 menu_add,Lisa
@@ -89,7 +89,7 @@ rights_private_desc,Only people explicitly granted permission (see below) can ac
 rights_no_access, Ligipääs puudub
 rights_can_view,Võib ainult vaadata
 rights_can_add_child,Võib ainult vaadata ja lisada alamosi
-rights_can_edit,"Võib muuta, kustutada ja lisada alamosi"
+rights_can_edit,"Võib muuta ja lisada alamosi"
 rights_owner,"Võib muuta, kustutada, lisada alamosi ja muuta õiguseid"
 rights_add_user,Lisa uus
 rights_help_share,"Donec pharetra, sem quis pellentesque convallis, ligula neque dignissim tellus, non laoreet dolor neque nec felis. Etiam id eleifend nunc."
