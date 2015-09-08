@@ -7,6 +7,7 @@ log_in_mid_cancel,Tühista
 log_in_mid_message,"Kontrollige, et näete oma mobiiltelefoni ekraanil täpselt sama numbrit ning seejärel sisestage Mobiil-ID PIN1."
 log_in_info,kasutab autentimiseks ülaltoodud teenusepakkujaid. Teie kasutajanime ega parooli meile ei edastata.
 feedback,Tagasiside
+homepage,WWW
 
 menu_add,Lisa
 menu_edit,Muuda/Kustuta
