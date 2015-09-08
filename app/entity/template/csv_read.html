@@ -19,7 +19,13 @@
                     {{ _('action_add_csv_encoding') }}
                 </th>
                 <td>
-                    <span style="padding:8px; font-style:italic; color:gray;">{{ encoding }}</span>
+                    <select type="text" id="encoding" class="resubmit" name="encoding" style="width:100%;">
+                        <option value="utf-8"{% if encoding == 'utf-8' %} selected{% end %}>UTF-8</option>
+                        <option value="windows-1252"{% if encoding == 'windows-1252' %} selected{% end %}>Western (Windows Latin 1)</option>
+                        {% if encoding != 'utf-8' and encoding != 'windows-1252' %}
+                            <option value="{{ encoding }}" selected>{{ encoding }}</option>
+                        {% end %}
+                    </select>
                 </td>
             <tr>
             <tr>
@@ -37,17 +43,6 @@
                 <td>
                     <input type="text" id="first_row" name="first_row" maxlength="2" value="{{ first_row }}" />
                 </td>
-            <tr>
-            <!--tr>
-                <th>
-                    {{ _('action_add_csv_encoding') }}
-                </th>
-                <td>
-                    <select type="text" id="encoding" class="resubmit" name="encoding" style="width:100%;">
-                        <option value="utf8"{% if encoding == 'utf8' %} selected{% end %}>UTF-8</option>
-                        <option value="Windows-1252"{% if encoding == 'Windows-1252' %} selected{% end %}>Western (Windows Latin 1)</option>
-                    </select>
-                </td-->
             <tr>
         </tbody>
     </table>
@@ -104,7 +99,7 @@
                     file_id: {{ file_id }},
                     delimiter: $('#delimiter').val(),
                     first_row: $('#first_row').val(),
-                    // encoding: $('#encoding').val(),
+                    encoding: $('#encoding').val(),
                     entity_definition_keyname: '{{ entity_definition_keyname }}',
                     parent_entity_id: {{ parent_entity_id }}
                 }, function(data) {

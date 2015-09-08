@@ -55,10 +55,13 @@ class ReadFile(myRequestHandler, Entity):
 
         tmp_file = tmp.file
 
-        encoding = chardet.detect(tmp_file).get('encoding')
+        encoding = self.get_argument('encoding', chardet.detect(tmp_file).get('encoding'))
 
-        if encoding != 'utf-8':
-            tmp_file = tmp_file.decode(encoding).encode('utf-8')
+        if encoding and encoding != 'utf-8':
+            try:
+                tmp_file = tmp_file.decode(encoding).encode('utf-8')
+            except Exception, e:
+                pass
 
         if not delimiter:
             delimiter = ',' if tmp_file.count(',') > tmp_file.count(';') else ';'
@@ -79,7 +82,7 @@ class ReadFile(myRequestHandler, Entity):
             delimiter = delimiter,
             first_row = first_row,
             row_count = row_count,
-            encoding = encoding,
+            encoding = encoding.lower(),
             csv_headers = csv_headers,
             properties = item.get('properties', {}).values(),
             parent_entity_id = parent_entity_id,
@@ -110,10 +113,13 @@ class ImportFile(myRequestHandler, Entity):
 
         tmp_file = tmp.file
 
-        encoding = chardet.detect(tmp_file).get('encoding')
+        encoding = self.get_argument('encoding', 'utf-8')
 
-        if encoding != 'utf8':
-            tmp_file = tmp_file.decode(encoding).encode('utf-8')
+        if encoding and encoding != 'utf-8':
+            try:
+                tmp_file = tmp_file.decode(encoding).encode('utf-8')
+            except Exception, e:
+                pass
 
         item = self.get_entities(entity_id=0, entity_definition_keyname=entity_definition_keyname, limit=1, full_definition=True)
         properties = item.get('properties', {}).values()

@@ -76,7 +76,7 @@
 
         $('input[type=file]').bootstrapFileInput();
 
-        $('input[type=file]').change(function() {
+        $('.dtype-file').change(function() {
             for (var i=0; i<this.files.length; i++) {
                 {% if s3upload %}
                     uploadFileS3(this.files[i], $(this));
