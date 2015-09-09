@@ -14,16 +14,10 @@ pip install boto
 pip install chardet  
 pip install markdown2  
 pip install mistune  
-pip install ply  
 pip install python-dateutil  
 pip install PyYAML  
 pip install SimpleAES  
 pip install suds  
 pip install tornado  
 pip install torndb  
-pip install xmltodict  
-
-
-PyZ3950 needs manual [installation](http://www.panix.com/~asl2/software/PyZ3950/) and [fix](http://bayo.opadeyi.net/2011/05/getting-pyz3950-to-play-nice-with.html). Change file /usr/local/lib/python2.7/dist-packages/PyZ3950/ccl.py:  
-"import lex" -> "from ply import lex" (line 124)  
-"import yacc" -> "from ply import yacc" (line 140)  
+pip install xmltodict
