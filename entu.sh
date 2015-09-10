@@ -15,7 +15,7 @@ docker rm entu
 docker run -d \
     --name="entu" \
     --restart="always" \
-    --memory="256m" \
+    --memory="512m" \
     --env="PORT=80" \
     --env="MYSQL_HOST=" \
     --env="MYSQL_DATABASE=" \
