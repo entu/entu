@@ -5,12 +5,10 @@ import tornado.ioloop
 import tornado.locale
 import tornado.web
 import tornado.httpserver
-import tornado.options
-from tornado.options import define, options
 
+import os
 import yaml
 import logging
-import random
 import string
 import datetime, time
 
@@ -19,15 +17,15 @@ from main.helper import *
 from main.db import *
 
 
-# Command line options
-define('debug',         help='run on debug mode',     type=str, default='False')
-define('port',          help='run on the given port', type=int, default=8000)
-define('host',          help='database host',         type=str)
-define('database',      help='database name',         type=str)
-define('user',          help='database user',         type=str)
-define('password',      help='database password',     type=str)
-define('customergroup', help='customergroup',         type=str, default=0)
-define('secret',        help='secret key',            type=str, default='ABC123')
+# global variables (and list of all used environment variables)
+APP_DEBUG          = os.getenv('DEBUG', 'false')
+APP_PORT           = os.getenv('PORT', 3000)
+APP_MYSQL_HOST     = os.getenv('MYSQL_HOST', 'localhost')
+APP_MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
+APP_MYSQL_USER     = os.getenv('MYSQL_USER')
+APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
+APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
+APP_SECRET         = os.getenv('SECRET', 'ABC123')
 
 
 # List of controllers to load.
@@ -74,8 +72,8 @@ class myApplication(tornado.web.Application):
     def __init__(self):
         # load settings
         settings = {
-            'port':                 options.port,
-            'debug':                True if str(options.debug).lower() == 'true' else False,
+            'port':                 APP_PORT,
+            'debug':                True if str(APP_DEBUG).lower() == 'true' else False,
             'template_path':        path.join(path.dirname(__file__), '..', 'app'),
             'static_path':          path.join(path.dirname(__file__), '..', 'static'),
             'xsrf_coocies':         True,
@@ -87,12 +85,12 @@ class myApplication(tornado.web.Application):
             'slow_request_count':   0,
             'slow_request_time':    0,
             'slow_request_ms':      1000,
-            'database-host':        options.host,
-            'database-database':    options.database,
-            'database-user':        options.user,
-            'database-password':    options.password,
-            'customergroup':        options.customergroup,
-            'secret':               options.secret,
+            'database-host':        APP_MYSQL_HOST,
+            'database-database':    APP_MYSQL_DATABASE,
+            'database-user':        APP_MYSQL_USER,
+            'database-password':    APP_MYSQL_PASSWORD,
+            'customergroup':        APP_CUSTOMERGROUP,
+            'secret':               APP_SECRET,
             'databases':            {},
         }
 
@@ -115,6 +113,5 @@ class myApplication(tornado.web.Application):
 
 if __name__ == '__main__':
     tornado.locale.load_translations(path.join(path.dirname(__file__), 'main', 'translation'))
-    tornado.options.parse_command_line()
-    tornado.httpserver.HTTPServer(myApplication(), xheaders=True, max_body_size=1024*1024*1024*5).listen(options.port)
+    tornado.httpserver.HTTPServer(myApplication(), xheaders=True, max_body_size=1024*1024*1024*5).listen(APP_PORT)
     tornado.ioloop.IOLoop.instance().start()
