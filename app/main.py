@@ -117,4 +117,4 @@ if __name__ == '__main__':
     server.bind(APP_PORT)
     server.start(0)
 
-    IOLoop.current().start()
+    tornado.ioloop.IOLoop.current().start()
