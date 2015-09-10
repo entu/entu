@@ -103,8 +103,7 @@ class myApplication(tornado.web.Application):
                 settings.setdefault('paths', {}).setdefault('%s.py' % controller, []).append(h[0])
         handlers.append((r'(.*)', PageNotFound))
 
-        logging.warning('\n\n\n')
-        logging.warning('Tornado %s started' % tornado.version)
+        logging.warning('Tornado %s started to listen %s' % (tornado.version, APP_PORT))
 
         # init application
         # logging.debug('App settings:\n%s' % yaml.safe_dump(settings, default_flow_style=False, allow_unicode=True))
@@ -113,5 +112,5 @@ class myApplication(tornado.web.Application):
 
 if __name__ == '__main__':
     tornado.locale.load_translations(path.join(path.dirname(__file__), 'main', 'translation'))
-    tornado.httpserver.HTTPServer(myApplication(), xheaders=True, max_body_size=1024*1024*1024*5).listen(APP_PORT)
-    tornado.ioloop.IOLoop.instance().start()
+    tornado.httpserver.HTTPServer(myApplication(), xheaders=True, max_body_size=1024*1024*1024*5).bind(APP_PORT).start(0)
+    tornado.ioloop.IOLoop.current().start()
