@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mkdir -p /data/entu/code
+mkdir -p /data/entu/code /data/entu/ssl /data/entu/files /data/entu/thumbs
 cd /data/entu/code
 
 git clone https://github.com/argoroots/Entu.git ./
