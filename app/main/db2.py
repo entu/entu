@@ -499,7 +499,7 @@ class Entity2():
 
             return thumb
         except Exception, e:
-            logging.error('%s %s - %s' % (self.app_settings('database-name'), f.md5, e))
+            logging.error('%s %s - %s' % (self.app_settings('database-name'), e))
 
 
     def get_menu(self):
