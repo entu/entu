@@ -103,13 +103,6 @@ class myApplication(tornado.web.Application):
             handlers.extend(c.handlers)
             for h in c.handlers:
                 settings.setdefault('paths', {}).setdefault('%s.py' % controller, []).append(h[0])
-
-        # static file handlers
-        handlers.append((r'/robots.txt',  tornado.web.StaticFileHandler, {'path': '../static/robots.txt'}))
-        handlers.append((r'/favicon.ico', tornado.web.StaticFileHandler, {'path': '../static/images/favicons/favicon.ico'}))
-        handlers.append((r'/static/(.*)', tornado.web.StaticFileHandler, {'path': '../static'}))
-
-        # 404
         handlers.append((r'(.*)', PageNotFound))
 
         logging.warning('\n\n\n')
