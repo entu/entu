@@ -1,4 +1,4 @@
-import argparse
+import os
 import re
 import time
 import torndb
@@ -7,24 +7,20 @@ from operator import itemgetter
 from datetime import datetime
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--database-host',     required = True)
-parser.add_argument('--database-name',     required = True)
-parser.add_argument('--database-user',     required = True)
-parser.add_argument('--database-password', required = True)
-parser.add_argument('--customergroup',     default = 0)
-parser.add_argument('-v', '--verbose',     action = 'count', default = 0)
-args = parser.parse_args()
-
-
+APP_MYSQL_HOST     = os.getenv('MYSQL_HOST', 'localhost')
+APP_MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
+APP_MYSQL_USER     = os.getenv('MYSQL_USER')
+APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
+APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
+APP_VERBOSE        = os.getenv('VERBOSE', 1)
 
 
 def customers():
     db = torndb.Connection(
-        host     = args.database_host,
-        database = args.database_name,
-        user     = args.database_user,
-        password = args.database_password,
+        host     = APP_MYSQL_HOST,
+        database = APP_MYSQL_DATABASE,
+        user     = APP_MYSQL_USER,
+        password = APP_MYSQL_PASSWORD,
     )
 
     sql = """
@@ -59,7 +55,7 @@ def customers():
         ) AS e
         LEFT JOIN property_definition ON property_definition.entity_definition_keyname = e.entity_definition_keyname AND property_definition.is_deleted = 0
         LEFT JOIN property ON property.property_definition_keyname = property_definition.keyname AND property.entity_id = e.id AND property.is_deleted = 0;
-    """ % args.customergroup
+    """ % APP_CUSTOMERGROUP
 
     customers = {}
     for c in db.query(sql):
@@ -111,7 +107,7 @@ class Maintenance():
 
 
     def echo(self, msg='', level=0):
-        if args.verbose >= level:
+        if int(APP_VERBOSE) >= level:
             msg = '%s -%s- %s' % (datetime.now(), self.db_name, msg)
             print msg.encode('UTF-8')
 

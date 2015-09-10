@@ -25,3 +25,16 @@ docker run -d \
     entu:latest
 
 /data/nginx.sh
+
+docker kill entu-maintenance
+docker rm entu-maintenance
+docker run -d \
+    --name="entu-maintenance" \
+    --restart="always" \
+    --memory="512m" \
+    --env="MYSQL_HOST=" \
+    --env="MYSQL_DATABASE=" \
+    --env="MYSQL_USER=" \
+    --env="MYSQL_PASSWORD=" \
+    --env="CUSTOMERGROUP=" \
+    entu:latest /usr/src/entu/app/maintenance.py
