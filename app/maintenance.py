@@ -273,7 +273,7 @@ class Maintenance():
         if not rows:
             self.echo('no changed formulas', 1)
             return
-        self.echo('checking %s formulas (~%s min)' % (count, round(float(count) * float(self.speed) / 60.0, 1)), 2)
+        self.echo('checking %s formulas (~%s min)' % (count, round(float(count) * float(self.speed) / 60.0, 1)), 1)
 
         i = 0
         for r in rows:
@@ -282,9 +282,9 @@ class Maintenance():
                 continue
             i += 1
             if r.value_display:
-                self.echo('#%s %s "%s" => "%s"' % (r.id, r.dataproperty, r.value_display, formula), 0)
+                self.echo('#%s %s "%s" => "%s"' % (r.id, r.dataproperty, r.value_display, formula), 2)
             else:
-                self.echo('#%s %s "%s"' % (r.id, r.dataproperty, formula), 0)
+                self.echo('#%s %s "%s"' % (r.id, r.dataproperty, formula), 2)
 
             self.db.execute('UPDATE property SET value_display = LEFT(%s, 500) WHERE id = %s;', formula, r.id)
 
@@ -293,7 +293,7 @@ class Maintenance():
             self.time = 0.0001
 
         self.formulas = count
-        self.echo('updated %s formulas (%s fps)' % (i, round(float(m.formulas) / float(m.time), 1)), 2)
+        self.echo('updated %s formulas (%s fps)' % (i, round(float(m.formulas) / float(m.time), 1)), 1)
 
 
     def __calculate_formula(self, property_id):
