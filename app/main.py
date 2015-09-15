@@ -1,4 +1,5 @@
 from os import path
+from raven.contrib.tornado import AsyncSentryClient
 
 import torndb
 import tornado.ioloop
@@ -26,6 +27,7 @@ APP_MYSQL_USER     = os.getenv('MYSQL_USER')
 APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
 APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
 APP_SECRET         = os.getenv('SECRET', 'ABC123')
+APP_SENTRY         = os.getenv('SENTRY_DSN')
 
 
 # List of controllers to load.
@@ -92,6 +94,7 @@ class myApplication(tornado.web.Application):
             'customergroup':        APP_CUSTOMERGROUP,
             'secret':               APP_SECRET,
             'databases':            {},
+            'sentry_client':        AsyncSentryClient(APP_SENTRY)
         }
 
         # load handlers

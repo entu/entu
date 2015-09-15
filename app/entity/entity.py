@@ -14,6 +14,10 @@ from main.helper import *
 from main.db import *
 
 
+class TestBug(myRequestHandler, Entity):
+    def get(self):
+         1 / 0
+
 class ShowGroup(myRequestHandler, Entity):
     """
     """
@@ -655,6 +659,7 @@ class DownloadEntity(myRequestHandler, Entity):
 
 
 handlers = [
+    ('/test', TestBug),
     ('/entity/save', SaveEntity),
     ('/entity/delete-file', DeleteFile),
     ('/entity/delete-entity', DeleteEntity),

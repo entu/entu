@@ -10,7 +10,7 @@ git pull
 version=`date +"%y%m%d.%H%M%S"`
 
 docker build -q -t entu:$version ./ && docker tag -f entu:$version entu:latest
-docker kill entu
+docker stop entu
 docker rm entu
 docker run -d \
     --name="entu" \
@@ -22,11 +22,12 @@ docker run -d \
     --env="MYSQL_USER=" \
     --env="MYSQL_PASSWORD=" \
     --env="CUSTOMERGROUP=" \
+    --env="SENTRY_DSN=" \
     entu:latest
 
 /data/nginx.sh
 
-docker kill entu-maintenance
+docker stop entu-maintenance
 docker rm entu-maintenance
 docker run -d \
     --name="entu-maintenance" \

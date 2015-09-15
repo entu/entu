@@ -4,6 +4,7 @@ import torndb
 from tornado import web
 from tornado import locale
 from tornado import httpclient
+from raven.contrib.tornado import SentryMixin
 
 import hmac
 import hashlib
@@ -377,7 +378,7 @@ class myUser(myE):
         self.clear_cookie('session')
 
 
-class myRequestHandler(web.RequestHandler, myDatabase, myUser):
+class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
     """
     Rewriten tornado.web.RequestHandler methods.
 
