@@ -9,40 +9,6 @@ from main.helper import *
 from main.db import *
 
 
-class EsterProxy(myRequestHandler):
-    @web.removeslash
-    @gen.coroutine
-    def get(self, url):
-        if not self.current_user:
-            self.json({
-                'error': 'Forbidden!',
-                'time': round(self.request.request_time(), 3)
-            }, 403)
-            return
-
-        arguments = {}
-        for k, v in self.request.arguments.iteritems():
-            arguments[k] = v[0]
-        logging.debug(arguments)
-
-
-        http_client = httpclient.AsyncHTTPClient()
-        ester_request = yield http_client.fetch(httpclient.HTTPRequest(
-            url='http://ester.entu.eu/%s?%s' % (url, urllib.urlencode(arguments)),
-            method='GET',
-            request_timeout=60
-        ))
-
-        try:
-            ester = json.loads(ester_request.body)
-            self.json(ester)
-        except Exception:
-            self.json({
-                'error': 'Ester proxy failed!',
-                'time': round(self.request.request_time(), 3),
-            }, 500)
-
-
 class EsterCheckIfExists(myRequestHandler):
     @web.removeslash
     def get(self):
@@ -147,7 +113,6 @@ class EsterImport(myRequestHandler, Entity):
 
 
 handlers = [
-    (r'/ester/(.*)', EsterProxy),
-    (r'/ester-check', EsterCheckIfExists),
-    (r'/ester-import', EsterImport),
+    (r'/ester/check', EsterCheckIfExists),
+    (r'/ester/import', EsterImport),
 ]

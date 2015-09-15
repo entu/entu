@@ -14,7 +14,7 @@
     function importItem(file_id, entity, definition) {
         $('#modal-box').modal('hide');
         $('#modal-box').html('');
-        $.post('/ester-import', {
+        $.post('/ester/import', {
             'id': file_id,
             'entity': entity,
             'definition': definition,
@@ -39,7 +39,7 @@
                 $('#search-spinner').show();
                 $('#search-results').hide();
                 $('#search-results').html('');
-                $.get('/ester/search', {
+                $.get('https://ester.entu.ee/search', {
                         q: $('#search-text').val(),
                         f: 'human'
                     },
@@ -48,8 +48,8 @@
                             var item = list.result[i];
                             var tr = '<tr>';
                             tr += '<td style="width:50px;">';
-                            if(item.isbn) tr += '<img src="/ester/cover/'+item.isbn+'" style="width:50px; height:50px;" />';
-                            if(item.issn && !item.isbn) tr += '<img src="/ester/cover/'+item.issn+'" style="width:50px; height:50px;" />';
+                            if(item.isbn) tr += '<img src="https://ester.entu.ee/cover/'+item.isbn+'" style="width:50px; height:50px;" />';
+                            if(item.issn && !item.isbn) tr += '<img src="https://ester.entu.ee/cover/'+item.issn+'" style="width:50px; height:50px;" />';
                             tr += '</td>';
                             tr += '<td style="width:99%">';
                             if(item.title) tr += '<b>'+item.title.join('<br />')+'</b><br />';
@@ -64,7 +64,7 @@
                             $('#search-results').append(tr);
 
                             if(!item['ester-id']) continue
-                            $.get('/ester-check', {id: item._id, ester_id: item['ester-id'][0]}, function(data) {
+                            $.get('/ester/check', {id: item._id, ester_id: item['ester-id'][0]}, function(data) {
                                 $('#ester-' + data.result.id).append('<a href="/entity/'+data.result.definition+'/'+data.result.entity+'" class="btn btn-info pull-right" style="margin-top:5px;margin-right:5px;">{{ _('action_add_ester_open') }}</a>')
                             }, 'json');
                         };
