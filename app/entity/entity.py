@@ -41,7 +41,8 @@ class ShowGroup(myRequestHandler, Entity):
             try:
                 f = open('../HISTORY.md', 'r')
                 history = markdown2.markdown('## '.join(f.read().split('## ')[:4]).replace('## ', '#### '))
-            except:
+            except Exception, e:
+                logging.error(e)
                 history = ''
 
 
