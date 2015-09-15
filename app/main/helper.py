@@ -484,6 +484,9 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
         self.add_header('Content-Type', 'application/json')
         self.write(json.dumps(dictionary, cls=JSONDateFix))
 
+    def head(self, abc=None, **kwargs):
+        self.set_status(200)
+
     def options(self, abc=None, **kwargs):
         self.add_header('Access-Control-Allow-Origin', '*')
         self.add_header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, X-Auth-UserId, X-Auth-Token');
