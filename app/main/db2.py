@@ -288,20 +288,37 @@ class Entity2():
 
         query_where = ''
         if query:
-            for q in StrToList(query):
-                query_where += """
-                    AND e.id IN (
-                        SELECT p.entity_id
-                        FROM
-                            property AS p,
-                            property_definition AS pd
-                        WHERE pd.keyname = p.property_definition_keyname
-                        AND pd.search = 1
-                        AND p.is_deleted = 0
-                        AND pd.is_deleted = 0
-                        and p.value_display LIKE '%%%%%s%%%%'
-                    )
-                """ % q
+            if self.__user_id:
+                for q in StrToList(query):
+                    query_where += """
+                        AND e.id IN (
+                            SELECT p.entity_id
+                            FROM
+                                property AS p,
+                                property_definition AS pd
+                            WHERE pd.keyname = p.property_definition_keyname
+                            AND pd.search = 1
+                            AND p.is_deleted = 0
+                            AND pd.is_deleted = 0
+                            AND p.value_display LIKE '%%%%%s%%%%'
+                        )
+                    """ % q
+            else:
+                for q in StrToList(query):
+                    query_where += """
+                        AND e.id IN (
+                            SELECT p.entity_id
+                            FROM
+                                property AS p,
+                                property_definition AS pd
+                            WHERE pd.keyname = p.property_definition_keyname
+                            AND pd.search = 1
+                            AND p.is_deleted = 0
+                            AND pd.is_deleted = 0
+                            AND pd.public = 1
+                            AND p.value_display LIKE '%%%%%s%%%%'
+                        )
+                    """ % q
 
         if self.__user_id:
             entity_sql = """
