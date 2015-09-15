@@ -7,7 +7,7 @@ log_in_mid_cancel,Cancel
 log_in_mid_message,"Kontrollige, et näete oma mobiiltelefoni ekraanil täpselt sama numbrit ning seejärel sisestage Mobiil-ID PIN1."
 log_in_info,Entu.ee uses those providers for user authentication. We don't get nor save Your password.
 feedback,Feedback
-homepage,WWW
+homepage,Manual
 
 menu_add,Add new
 menu_edit,Edit/Delete
