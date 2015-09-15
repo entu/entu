@@ -94,7 +94,6 @@ class myApplication(tornado.web.Application):
             'customergroup':        APP_CUSTOMERGROUP,
             'secret':               APP_SECRET,
             'databases':            {},
-            'sentry_client':        AsyncSentryClient(APP_SENTRY)
         }
 
         # load handlers
@@ -114,9 +113,12 @@ class myApplication(tornado.web.Application):
 
 
 if __name__ == '__main__':
+    application = myApplication()
+    application.sentry_client = AsyncSentryClient(APP_SENTRY)
+
     tornado.locale.load_translations(path.join(path.dirname(__file__), 'main', 'translation'))
 
-    server = tornado.httpserver.HTTPServer(myApplication(), xheaders=True, max_body_size=1024*1024*1024*5)
+    server = tornado.httpserver.HTTPServer(application, xheaders=True, max_body_size=1024*1024*1024*5)
     server.bind(APP_PORT)
     server.start(0)
 
