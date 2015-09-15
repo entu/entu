@@ -489,13 +489,13 @@
             };
         });
 
-        var ws_url = 'wss://' + window.location.host +'/ws/scanner_socket?id={{ current_user.id }}';
-        ws = new WebSocket(ws_url);
+        // var ws_url = 'wss://' + window.location.host +'/ws/scanner_socket?id={{ current_user.id }}';
+        // ws = new WebSocket(ws_url);
 
-        ws.onmessage = function(evt) {
-            $(':focus').val(evt.data);
-            $(':focus').trigger('change');
-        };
+        // ws.onmessage = function(evt) {
+        //     $(':focus').val(evt.data);
+        //     $(':focus').trigger('change');
+        // };
 
         console.log('WebSocket open to ' + ws_url);
 
