@@ -1,6 +1,10 @@
+## 2015-09-15
+* Entu is [dockerized](https://www.docker.com) now
+* 79 commits full of fixes and small enhancements
+
 ## 2015-05-05
 * Show item thumbnail in childs/relations table
-* Small fixes andenhancements
+* Small fixes and enhancements
 
 ## 2015-04-15
 * Only object owner can delete entity
