@@ -21,8 +21,10 @@
     <div class="public_list">
         {% for i in entities %}
             <div class="public_list list_item" style="padding:1em; clear:both;">
-                <img src="/api2/entity-{{ i['id'] }}/picture" style="height:120px; width:120px; float:left; padding:1em;" />
-                <h5><a href="{{ i['url'] }}">{{ i['name'] }}</a></h5>
+                <a href="{{ i['url'] }}">
+                    <img src="/api2/entity-{{ i['id'] }}/picture" style="height:120px; width:120px; float:left; padding:1em;" />
+                    <div>{{ i['name'] }}</div>
+                </a>
                 <span class="description">{{ i['info'] }}</span>
             </div>
         {% end %}
