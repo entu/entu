@@ -455,7 +455,7 @@ class API2File(myRequestHandler, Entity):
                     'time': round(self.request.request_time(), 3),
                 }, 400)
 
-            s3_url    = s3_key.generate_url(expires_in=10, query_auth=True)
+            s3_url    = s3_key.generate_url(expires_in=3600, query_auth=True)
             return self.redirect(s3_url)
 
         if not files[0].get('file'):
