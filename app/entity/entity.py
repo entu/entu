@@ -1,6 +1,7 @@
 from tornado import auth, web, httpclient
 from StringIO import StringIO
 from operator import itemgetter
+import os
 import logging
 import mimetypes
 import zipfile
@@ -39,7 +40,7 @@ class ShowGroup(myRequestHandler, Entity):
             quota_entities_used = self.db.get('SELECT COUNT(*) AS entities FROM entity WHERE is_deleted = 0;').entities
             quota_size_used = self.db.get('SELECT SUM(filesize) AS size FROM file;').size
             try:
-                f = open('../HISTORY.md', 'r')
+                f = open(os.path.join(os.path.realpath(__file__), '..', 'HISTORY.md'), 'r')
                 history = markdown2.markdown('## '.join(f.read().split('## ')[:4]).replace('## ', '#### '))
             except Exception, e:
                 logging.error(e)
