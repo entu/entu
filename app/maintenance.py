@@ -1,3 +1,7 @@
+import newrelic.agent
+newrelic.agent.initialize()
+
+
 import os
 import re
 import time

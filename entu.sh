@@ -22,6 +22,11 @@ docker run -d \
     --env="MYSQL_USER=" \
     --env="MYSQL_PASSWORD=" \
     --env="CUSTOMERGROUP=" \
+    --env="NEW_RELIC_APP_NAME=entu" \
+    --env="NEW_RELIC_LICENSE_KEY=" \
+    --env="NEW_RELIC_LOG=stdout" \
+    --env="NEW_RELIC_LOG_LEVEL=error" \
+    --env="NEW_RELIC_NO_CONFIG_FILE=true" \
     --env="SENTRY_DSN=" \
     entu:latest
 
@@ -37,5 +42,10 @@ docker run -d \
     --env="MYSQL_DATABASE=" \
     --env="MYSQL_USER=" \
     --env="MYSQL_PASSWORD=" \
+    --env="NEW_RELIC_APP_NAME=entu-maintenance" \
+    --env="NEW_RELIC_LICENSE_KEY=" \
+    --env="NEW_RELIC_LOG=stdout" \
+    --env="NEW_RELIC_LOG_LEVEL=error" \
+    --env="NEW_RELIC_NO_CONFIG_FILE=true" \
     --env="CUSTOMERGROUP=" \
     entu:latest /usr/src/entu/app/maintenance.py
