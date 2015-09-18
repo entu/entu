@@ -17,8 +17,6 @@ docker run -d \
     --restart="always" \
     --memory="512m" \
     --env="PORT=80" \
-    --env="DEBUG=false" \
-    --env="LOGLEVEL=error" \
     --env="MYSQL_HOST=" \
     --env="MYSQL_DATABASE=" \
     --env="MYSQL_USER=" \
@@ -30,7 +28,7 @@ docker run -d \
     --env="NEW_RELIC_LOG_LEVEL=error" \
     --env="NEW_RELIC_NO_CONFIG_FILE=true" \
     --env="SENTRY_DSN=" \
-    entu:latest
+    entu:latest python /usr/src/entu/app/main.py --logging=error
 
 /data/nginx.sh
 

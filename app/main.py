@@ -10,6 +10,7 @@ import tornado.ioloop
 import tornado.locale
 import tornado.web
 import tornado.httpserver
+import tornado.options
 
 import os
 import yaml
@@ -24,7 +25,6 @@ from main.db import *
 
 # global variables (and list of all used environment variables)
 APP_DEBUG          = os.getenv('DEBUG', 'false')
-APP_LOGLEVEL       = os.getenv('LOGLEVEL', 'debug')
 APP_PORT           = os.getenv('PORT', 3000)
 APP_MYSQL_HOST     = os.getenv('MYSQL_HOST', 'localhost')
 APP_MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
@@ -81,7 +81,6 @@ class myApplication(tornado.web.Application):
         settings = {
             'port':                 APP_PORT,
             'debug':                True if str(APP_DEBUG).lower() == 'true' else False,
-            'logging':              APP_LOGLEVEL,
             'template_path':        path.join(path.dirname(__file__), '..', 'app'),
             'static_path':          path.join(path.dirname(__file__), '..', 'static'),
             'xsrf_coocies':         True,
@@ -119,10 +118,11 @@ class myApplication(tornado.web.Application):
 
 
 if __name__ == '__main__':
+    tornado.options.parse_command_line()
+    tornado.locale.load_translations(path.join(path.dirname(__file__), 'main', 'translation'))
+
     application = myApplication()
     application.sentry_client = AsyncSentryClient(APP_SENTRY)
-
-    tornado.locale.load_translations(path.join(path.dirname(__file__), 'main', 'translation'))
 
     server = tornado.httpserver.HTTPServer(application, xheaders=True, max_body_size=1024*1024*1024*5)
     server.bind(APP_PORT)
