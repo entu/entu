@@ -17,6 +17,8 @@ docker run -d \
     --restart="always" \
     --memory="512m" \
     --env="PORT=80" \
+    --env="DEBUG=false" \
+    --env="LOGLEVEL=error" \
     --env="MYSQL_HOST=" \
     --env="MYSQL_DATABASE=" \
     --env="MYSQL_USER=" \

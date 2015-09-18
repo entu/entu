@@ -24,6 +24,7 @@ from main.db import *
 
 # global variables (and list of all used environment variables)
 APP_DEBUG          = os.getenv('DEBUG', 'false')
+APP_LOGLEVEL       = os.getenv('LOGLEVEL', 'debug')
 APP_PORT           = os.getenv('PORT', 3000)
 APP_MYSQL_HOST     = os.getenv('MYSQL_HOST', 'localhost')
 APP_MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
@@ -80,6 +81,7 @@ class myApplication(tornado.web.Application):
         settings = {
             'port':                 APP_PORT,
             'debug':                True if str(APP_DEBUG).lower() == 'true' else False,
+            'logging':              APP_LOGLEVEL,
             'template_path':        path.join(path.dirname(__file__), '..', 'app'),
             'static_path':          path.join(path.dirname(__file__), '..', 'static'),
             'xsrf_coocies':         True,
