@@ -511,7 +511,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             page_title = '404'
         )
 
-    def mail_send(self, to, subject='', message='', html=False, campaign=None):
+    def mail_send(self, to, subject='', message='', html=False, campaign=None, tag=None):
         """
         Sends email using GMail account.
 
@@ -534,6 +534,11 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
         if campaign:
             data['o:campaign'] = campaign
 
+        if tag:
+            if type(tag) is list:
+                data['o:tag'] = tag
+            else:
+                data['o:tag'] = tag.split(',')
 
         if self.current_user:
             name = self.current_user.get('name') if self.current_user.get('name') else ''

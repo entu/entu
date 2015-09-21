@@ -904,7 +904,8 @@ class API2EntityShare(myRequestHandler, Entity):
             to = to,
             subject = entity.get('displayname', ''),
             message = '%s\n\n%s\n\n%s\n%s' % (message, url, self.current_user.get('name', ''), self.current_user.get('email', '')),
-            html = False
+            html = False,
+            tag = ['entu', 'share']
         )
 
         self.json({
@@ -950,12 +951,15 @@ class API2Email(myRequestHandler, Entity2):
 
         campaign = self.get_argument('campaign', default=None, strip=True)
 
+        tag = self.get_argument('tag', default=None, strip=True)
+
         response = self.mail_send(
             to = to,
             subject = subject,
             message = message,
             html = True,
-            campaign = campaign
+            campaign = campaign,
+            tag = tag
         )
 
         self.json({
