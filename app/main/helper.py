@@ -539,6 +539,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
                 data['o:tag'] = tag
             else:
                 data['o:tag'] = tag.split(',')
+        data.setdefault('o:tag', []).append(self.request.host)
 
         if self.current_user:
             name = self.current_user.get('name') if self.current_user.get('name') else ''
