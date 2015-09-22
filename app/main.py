@@ -1,10 +1,4 @@
-import newrelic.agent
-newrelic.agent.initialize()
-
-
-from os import path
-from raven.contrib.tornado import AsyncSentryClient
-
+import bugsnag
 import torndb
 import tornado.ioloop
 import tornado.locale
@@ -32,8 +26,13 @@ APP_MYSQL_USER     = os.getenv('MYSQL_USER')
 APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
 APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
 APP_SECRET         = os.getenv('SECRET', 'ABC123')
-APP_SENTRY         = os.getenv('SENTRY_DSN')
+APP_BUGSNAG        = os.getenv('BUGSNAG_KEY')
 
+if APP_BUGSNAG:
+    bugsnag.configure(
+        api_key = APP_BUGSNAG,
+        project_root = os.path.join(os.path.dirname(__file__)),
+    )
 
 # List of controllers to load.
 app_controllers = [
@@ -81,8 +80,8 @@ class myApplication(tornado.web.Application):
         settings = {
             'port':                 APP_PORT,
             'debug':                True if str(APP_DEBUG).lower() == 'true' else False,
-            'template_path':        path.join(path.dirname(__file__), '..', 'app'),
-            'static_path':          path.join(path.dirname(__file__), '..', 'static'),
+            'template_path':        os.path.join(os.path.dirname(__file__), '..', 'app'),
+            'static_path':          os.path.join(os.path.dirname(__file__), '..', 'static'),
             'xsrf_coocies':         True,
             'cookie_secret':        'ess6ujukawreph98Et6q9ragAtuVevu3UPraqepr6maqaFreXch4huj6de3ezAcU',
             'login_url':            'https://entu.entu.ee/auth',
@@ -119,12 +118,9 @@ class myApplication(tornado.web.Application):
 
 if __name__ == '__main__':
     tornado.options.parse_command_line()
-    tornado.locale.load_translations(path.join(path.dirname(__file__), 'main', 'translation'))
+    tornado.locale.load_translations(os.path.join(os.path.dirname(__file__), 'main', 'translation'))
 
-    application = myApplication()
-    application.sentry_client = AsyncSentryClient(APP_SENTRY)
-
-    server = tornado.httpserver.HTTPServer(application, xheaders=True, max_body_size=1024*1024*1024*5)
+    server = tornado.httpserver.HTTPServer(myApplication(), xheaders=True, max_body_size=1024*1024*1024*5)
     server.bind(APP_PORT)
     server.start(0)
 
