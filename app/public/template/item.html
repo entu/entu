@@ -36,6 +36,8 @@
                                     {% else %}
                                         {{ '<br />'.join(['<a href="/api2/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
                                     {% end %}
+                                {% elif p['datatype'] == 'reference' %}
+                                    {{ '<br />'.join(['<a href="entity-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
                                 {% else %}
                                     {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
                                 {% end %}
