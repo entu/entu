@@ -405,7 +405,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
                 str(self.request.arguments)[:1000] if self.request.arguments else None,
                 self.get_current_user().id if self.get_current_user() else None,
                 self.request.remote_ip,
-                self.request.headers.get('User-Agent', None)
+                self.request.headers.get('User-Agent', None) if self.request.headers else None
             )
         except Exception, e:
             logging.error('Reguest logging error: %s' % e)
