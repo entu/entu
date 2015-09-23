@@ -45,6 +45,7 @@ class myDatabase():
         try:
             x = self.settings['databases'][host].get('SELECT 1 FROM DUAL;')
         except Exception:
+            self.captureException
             settings = self.get_app_settings(host)
             self.settings['databases'][host] = torndb.Connection(
                 host     = settings.get('database-host'),
@@ -230,6 +231,7 @@ class myUser(myE):
         try:
             policy_dict = json.loads(policy.decode('base64').decode('utf-8'))
         except Exception:
+            self.captureException
             logging.debug('Invalid policy!')
             return
 
@@ -240,6 +242,7 @@ class myUser(myE):
         try:
             expiration_time = time.mktime(dateutil.parser.parse(policy_dict['expiration']).timetuple())
         except Exception:
+            self.captureException
             logging.debug('Invalid expiration date!')
             return
 
@@ -395,6 +398,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
                     arguments.setdefault(key, []).append('%s' % value)
                 self.request.arguments = arguments
         except Exception, e:
+            self.captureException
             logging.error('Reguest arguments error: %s' % e)
 
         try:
@@ -408,6 +412,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
                 self.request.headers.get('User-Agent', None) if self.request.headers else None
             )
         except Exception, e:
+            self.captureException
             logging.error('Reguest logging error: %s' % e)
 
 
