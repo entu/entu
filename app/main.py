@@ -24,6 +24,7 @@ from main.db import *
 
 
 # global variables (and list of all used environment variables)
+APP_VERSION        = os.getenv('VERSION', tornado.version)
 APP_DEBUG          = os.getenv('DEBUG', 'false')
 APP_PORT           = os.getenv('PORT', 3000)
 APP_MYSQL_HOST     = os.getenv('MYSQL_HOST', 'localhost')
@@ -110,7 +111,7 @@ class myApplication(tornado.web.Application):
                 settings.setdefault('paths', {}).setdefault('%s.py' % controller, []).append(h[0])
         handlers.append((r'(.*)', PageNotFound))
 
-        logging.warning('Tornado %s started to listen %s' % (tornado.version, APP_PORT))
+        logging.warning('Tornado %s started to listen %s' % (APP_VERSION, APP_PORT))
 
         # init application
         # logging.debug('App settings:\n%s' % yaml.safe_dump(settings, default_flow_style=False, allow_unicode=True))
@@ -122,7 +123,7 @@ if __name__ == '__main__':
     tornado.locale.load_translations(path.join(path.dirname(__file__), 'main', 'translation'))
 
     application = myApplication()
-    application.sentry_client = AsyncSentryClient(APP_SENTRY)
+    application.sentry_client = AsyncSentryClient(dsn=APP_SENTRY, release=APP_VERSION)
 
     server = tornado.httpserver.HTTPServer(application, xheaders=True, max_body_size=1024*1024*1024*5)
     server.bind(APP_PORT)

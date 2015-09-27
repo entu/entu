@@ -20,6 +20,7 @@ docker run -d \
     --name="entu-maintenance" \
     --restart="always" \
     --memory="512m" \
+    --env="VERSION=$version" \
     --env="MYSQL_HOST=" \
     --env="MYSQL_DATABASE=" \
     --env="MYSQL_USER=" \
