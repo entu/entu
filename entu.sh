@@ -32,8 +32,9 @@ docker run -d \
     --env="NEW_RELIC_LOG=stdout" \
     --env="NEW_RELIC_LOG_LEVEL=error" \
     --env="NEW_RELIC_NO_CONFIG_FILE=true" \
+    --env="SENTRY_DSN=" \
     --link="entu-mysql:entumysql" \
-    entu:latest python /usr/src/entu/app/maintenance.py
+    entu:latest python -u /usr/src/entu/app/maintenance.py
 
 docker inspect -f "{{ .NetworkSettings.IPAddress }}" entu-maintenance
 printf "\n\n"
@@ -60,7 +61,7 @@ docker run -d \
     --link="entu-mysql:entumysql" \
     --volume="/data/entu/files:/entu/files" \
     --volume="/data/entu/thumbs:/entu/thumbs" \
-    entu:latest python /usr/src/entu/app/main.py --logging=error
+    entu:latest python -u /usr/src/entu/app/main.py --logging=error
 
 docker inspect -f "{{ .NetworkSettings.IPAddress }}" entu
 printf "\n\n"
