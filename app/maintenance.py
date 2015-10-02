@@ -426,21 +426,31 @@ class Maintenance():
 
         if dataproperty != 'id':
             if reference_entity_field:
-                sql_select = 'rep.value_display'
-                sql_from.append('property AS p')
-                sql_from.append('property_definition AS pd')
-                sql_from.append('property AS rep')
-                sql_from.append('property_definition AS repd')
-                sql_where.append('p.entity_id = e.id')
-                sql_where.append('pd.keyname = p.property_definition_keyname')
-                sql_where.append('rep.entity_id = p.value_reference')
-                sql_where.append('repd.keyname = rep.property_definition_keyname')
-                sql_where.append('p.is_deleted = 0')
-                sql_where.append('pd.is_deleted = 0')
-                sql_where.append('rep.is_deleted = 0')
-                sql_where.append('repd.is_deleted = 0')
-                sql_where.append('pd.dataproperty = \'%s\'' % dataproperty)
-                sql_where.append('repd.dataproperty = \'%s\'' % reference_entity_field)
+                if reference_entity_field == 'id':
+                    sql_select = 'p.value_reference'
+                    sql_from.append('property AS p')
+                    sql_from.append('property_definition AS pd')
+                    sql_where.append('p.entity_id = e.id')
+                    sql_where.append('pd.keyname = p.property_definition_keyname')
+                    sql_where.append('p.is_deleted = 0')
+                    sql_where.append('pd.is_deleted = 0')
+                    sql_where.append('pd.dataproperty = \'%s\'' % dataproperty)
+                else:
+                    sql_select = 'rep.value_display'
+                    sql_from.append('property AS p')
+                    sql_from.append('property_definition AS pd')
+                    sql_from.append('property AS rep')
+                    sql_from.append('property_definition AS repd')
+                    sql_where.append('p.entity_id = e.id')
+                    sql_where.append('pd.keyname = p.property_definition_keyname')
+                    sql_where.append('rep.entity_id = p.value_reference')
+                    sql_where.append('repd.keyname = rep.property_definition_keyname')
+                    sql_where.append('p.is_deleted = 0')
+                    sql_where.append('pd.is_deleted = 0')
+                    sql_where.append('rep.is_deleted = 0')
+                    sql_where.append('repd.is_deleted = 0')
+                    sql_where.append('pd.dataproperty = \'%s\'' % dataproperty)
+                    sql_where.append('repd.dataproperty = \'%s\'' % reference_entity_field)
             else:
                 if formula_fields[1] == '_created':
                     sql_select = 'e.created as value_display'
