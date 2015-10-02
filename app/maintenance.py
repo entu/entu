@@ -427,7 +427,7 @@ class Maintenance():
         if dataproperty != 'id':
             if reference_entity_field:
                 if reference_entity_field == 'id':
-                    sql_select = 'p.value_reference'
+                    sql_select = 'p.value_reference as value_display'
                     sql_from.append('property AS p')
                     sql_from.append('property_definition AS pd')
                     sql_where.append('p.entity_id = e.id')
