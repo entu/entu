@@ -25,8 +25,8 @@ class ShowAuthPage(myRequestHandler):
 
         self.clear_cookie('session')
 
-        if self.get_secure_cookie('auth_provider'):
-            url = '/auth/%s' % self.get_secure_cookie('auth_provider')
+        if self.get_cookie('auth_provider'):
+            url = '/auth/%s' % self.get_cookie('auth_provider')
             self.clear_cookie('auth_provider', domain='.'.join(['']+self.request.host.split('.')[1:]))
             return self.redirect(url)
 
@@ -326,7 +326,7 @@ def get_redirect(rh):
     Returns requested URL (or / if not set) from cookie.
 
     """
-    redirect_url = rh.get_secure_cookie('auth_redirect')
+    redirect_url = rh.get_cookie('auth_redirect')
     if redirect_url:
         return redirect_url
     return '/'
