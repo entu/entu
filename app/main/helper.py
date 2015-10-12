@@ -364,7 +364,7 @@ class myUser(myE):
         self.db.execute('UPDATE session SET redirect_url = NULL, redirect_key = NULL WHERE id = %s AND redirect_key = %s;', session_id, redirect_key)
 
         self.clear_cookie('session')
-        self.set_cookie('session', user.session_key)
+        self.set_cookie(name='session', value=user.session_key)
         self.redirect(user.redirect_url)
 
     def user_logout(self, session_key=None):
