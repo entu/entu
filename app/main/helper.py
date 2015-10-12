@@ -364,7 +364,7 @@ class myUser(myE):
         self.db.execute('UPDATE session SET redirect_url = NULL, redirect_key = NULL WHERE id = %s AND redirect_key = %s;', session_id, redirect_key)
 
         self.clear_cookie('session')
-        self.set_secure_cookie('session', user.session_key)
+        self.set_cookie('session', user.session_key)
         self.redirect(user.redirect_url)
 
     def user_logout(self, session_key=None):
@@ -447,7 +447,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             return self.get_user_by_session_key(self.request.headers.get('X-Auth-Token'))
         else:
             logging.debug('Cookie auth')
-            return self.get_user_by_session_key(self.get_secure_cookie('session'))
+            return self.get_user_by_session_key(self.get_cookie('session'))
 
     def get_user_locale(self):
         """

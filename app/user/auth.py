@@ -318,7 +318,7 @@ def set_redirect(rh):
     """
     if rh.get_argument('next', None, strip=True):
         rh.clear_cookie('auth_redirect')
-        rh.set_secure_cookie('auth_redirect', rh.get_argument('next', default='/', strip=True), 1)
+        rh.set_cookie('auth_redirect', rh.get_argument('next', default='/', strip=True), 1)
 
 
 def get_redirect(rh):

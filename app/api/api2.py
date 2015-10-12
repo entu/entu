@@ -1072,7 +1072,7 @@ class API2UserAuth(myRequestHandler, Entity2):
 class API2UserAuthTokenProvider(myRequestHandler, Entity2):
     @web.removeslash
     def get(self, token, provider):
-        self.set_secure_cookie(name='auth_provider', value=provider, expires_days=1, domain='.'.join(['']+self.request.host.split('.')[1:]))
+        self.set_cookie(name='auth_provider', value=provider, expires_days=1, domain='.'.join(['']+self.request.host.split('.')[1:]))
         self.redirect('/api2/user/auth/%s' % token)
 
 
