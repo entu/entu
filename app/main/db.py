@@ -717,6 +717,40 @@ class Entity():
         else:
             id = self.mongodb().entity.insert(e)
 
+    def __get_parent(self, entity_id, recursive=False):
+        sql = """
+            SELECT entity_id
+            FROM relationship
+            WHERE relationship_definition_keyname = 'child'
+            AND is_deleted = 0
+            AND entity_id IS NOT NULL
+            AND related_entity_id = %s
+        """ % entity_id
+
+        entities = []
+        for r in self.db.query(sql):
+            entities.append('%s' % r.get('entity_id'))
+            if recursive:
+                entities = entities + self.__get_parent(entity_id=r.get('entity_id'), recursive=True)
+
+        return entities
+
+    def __get_right(self, entity_id, rights):
+        sql = """
+            SELECT related_entity_id
+            FROM relationship
+            WHERE relationship_definition_keyname IN (%s)
+            AND is_deleted = 0
+            AND related_entity_id IS NOT NULL
+            AND entity_id = %s
+        """ % (', '.join(['\'%s\'' % x for x in rights]), entity_id)
+
+        entities = []
+        for r in self.db.query(sql):
+            entities.append('%s' % r.get('related_entity_id'))
+
+        return entities
+
     def set_counter(self, entity_id):
         """
         Sets counter property.
