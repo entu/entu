@@ -426,7 +426,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             if self.request.headers:
                 if self.request.headers.get('User-Agent', None):
                     r['browser'] = self.request.headers.get('User-Agent')
-            self.__request_id = self.mongodb('entu').request.insert_one(request).inserted_id
+            self.__request_id = self.mongodb('entu').request.insert_one(r).inserted_id
         except Exception, e:
             self.captureException()
             logging.error('Reguest logging error: %s' % e)
