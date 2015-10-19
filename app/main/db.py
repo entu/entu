@@ -583,32 +583,32 @@ class Entity():
 
         e['_sharing'] = r.get('entity_sharing')
 
-        viewers = self.__get_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'])
+        viewers = self.__get_mongodb_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'])
         if viewers:
             e['_viewer'] = [{'_id': x} for x in list(set(viewers))]
             e.setdefault('_reference_property', []).append('_viewer')
 
-        expanders = self.__get_right(mysql_id, ['expander', 'editor', 'owner'])
+        expanders = self.__get_mongodb_right(mysql_id, ['expander', 'editor', 'owner'])
         if expanders:
             e['_expander'] = [{'_id': x} for x in list(set(expanders))]
             e.setdefault('_reference_property', []).append('_expander')
 
-        editors = self.__get_right(mysql_id, ['editor', 'owner'])
+        editors = self.__get_mongodb_right(mysql_id, ['editor', 'owner'])
         if editors:
             e['_editor'] = [{'_id': x} for x in list(set(editors))]
             e.setdefault('_reference_property', []).append('_editor')
 
-        owners = self.__get_right(mysql_id, ['owner'])
+        owners = self.__get_mongodb_right(mysql_id, ['owner'])
         if owners:
             e['_owner'] = [{'_id': x} for x in list(set(owners))]
             e.setdefault('_reference_property', []).append('_owner')
 
-        parent = self.__get_parent(entity_id=mysql_id, recursive=False)
+        parent = self.__get_mongodb_parent(entity_id=mysql_id, recursive=False)
         if parent:
             e['_parent'] = [{'_id': x} for x in list(set(parent))]
             e.setdefault('_reference_property', []).append('_parent')
 
-        ancestor = self.__get_parent(entity_id=mysql_id, recursive=True)
+        ancestor = self.__get_mongodb_parent(entity_id=mysql_id, recursive=True)
         if ancestor:
             e['_ancestor'] = [{'_id': x} for x in list(set(ancestor))]
             e.setdefault('_reference_property', []).append('_ancestor')
@@ -630,6 +630,7 @@ class Entity():
                 p.value_boolean,
                 p.value_datetime,
                 p.value_reference,
+                p.value_file,
                 IF(pd.datatype = 'file', (SELECT s3_key FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_s3,
                 IF(pd.datatype = 'file', (SELECT md5 FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_md5,
                 IF(pd.datatype = 'file', (SELECT filename FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_name,
@@ -641,9 +642,7 @@ class Entity():
                 property_definition AS pd
             WHERE pd.keyname = p.property_definition_keyname
             AND p.entity_id = %s
-            AND p.is_deleted = 0
-            AND pd.keyname NOT LIKE 'customer-database-%%'
-            -- LIMIT 1000;
+            AND p.is_deleted = 0;
         """
 
         properties = {}
@@ -717,7 +716,7 @@ class Entity():
         else:
             id = self.mongodb().entity.insert(e)
 
-    def __get_parent(self, entity_id, recursive=False):
+    def __get_mongodb_parent(self, entity_id, recursive=False):
         sql = """
             SELECT entity_id
             FROM relationship
@@ -731,11 +730,11 @@ class Entity():
         for r in self.db.query(sql):
             entities.append('%s' % r.get('entity_id'))
             if recursive:
-                entities = entities + self.__get_parent(entity_id=r.get('entity_id'), recursive=True)
+                entities = entities + self.__get_mongodb_parent(entity_id=r.get('entity_id'), recursive=True)
 
         return entities
 
-    def __get_right(self, entity_id, rights):
+    def __get_mongodb_right(self, entity_id, rights):
         sql = """
             SELECT related_entity_id
             FROM relationship
