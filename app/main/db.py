@@ -852,7 +852,7 @@ class Entity():
             RIGHT JOIN property_definition AS pd  ON p.property_definition_keyname = pd.keyname
                                                  AND pd.dataproperty IN ('entu-user','entu-api-key')
             LEFT JOIN property AS sp              ON sp.entity_id = e.id
-%(query_re)s
+            %(query_re)s
             LEFT JOIN property_definition AS spd ON spd.keyname = sp.property_definition_keyname
                                                  AND spd.is_deleted = 0
                                                  AND spd.search = 1
@@ -1726,15 +1726,16 @@ class Entity():
 
         """
 
-        path = self.db.query('''SELECT ed.public_path
-FROM entity e
-LEFT JOIN entity_definition ed ON ed.keyname = e.entity_definition_keyname
-WHERE e.id = %s
-AND e.is_deleted = 0
-AND ed.is_deleted = 0
-AND e.sharing = 'public'
-AND ed.public_path IS NOT NULL
-''' % entity_id)
+        path = self.db.query("""
+            SELECT ed.public_path
+            FROM entity e
+            LEFT JOIN entity_definition ed ON ed.keyname = e.entity_definition_keyname
+            WHERE e.id = %s
+            AND e.is_deleted = 0
+            AND ed.is_deleted = 0
+            AND e.sharing = 'public'
+            AND ed.public_path IS NOT NULL
+        """ % entity_id)
         return path
 
     def get_menu(self):
