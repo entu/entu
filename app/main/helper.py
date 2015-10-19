@@ -412,7 +412,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
         try:
             self.__request_id = self.mongodb('session').session.insert_one({
                 'date': datetime.datetime.utcnow(),
-                'port' : self.settings['port'],
+                'port' : int(self.settings['port']),
                 'method': self.request.method,
                 'url': self.request.full_url(),
                 'arguments': str(self.request.arguments)[:1000] if self.request.arguments else None,
