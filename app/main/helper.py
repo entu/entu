@@ -414,7 +414,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
                 'date': datetime.datetime.utcnow(),
                 'method': self.request.method,
                 'url': self.request.full_url(),
-                'arguments': str(self.request.arguments)[:1000] if self.request.arguments else None,
+                'arguments': self.request.arguments if self.request.arguments else None,
                 'user': self.get_current_user().id if self.get_current_user() else None,
                 'ip': self.request.remote_ip,
                 'browser': self.request.headers.get('User-Agent', None) if self.request.headers else None
