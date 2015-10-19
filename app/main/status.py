@@ -31,27 +31,6 @@ class ShowDbSizes(myRequestHandler):
         self.write(yaml.safe_dump(status, default_flow_style=False, allow_unicode=True))
 
 
-class ShowLastErrors(myRequestHandler):
-    @web.removeslash
-    def get(self):
-        self.add_header('Content-Type', 'text/plain; charset=utf-8')
-
-        status = {}
-        for s in self.settings['hosts'].values():
-            db_connection = torndb.Connection(
-                host        = s['database']['host'],
-                database    = s['database']['database'],
-                user        = s['database']['user'],
-                password    = s['database']['password'],
-            )
-            for r in db_connection.query('SELECT date, port, IFNULL(status, \'   \') AS status, method, url FROM requestlog WHERE (status = 500 OR time IS NULL) AND date > CURDATE() ORDER BY id DESC;'):
-                status.setdefault(s['database']['database'], []).append(
-                    '%s   %s   %s   %s %s' % (str(r.date), r.port, r.status, r.method, r.url)
-                )
-
-        self.write(yaml.safe_dump(status, default_flow_style=False, allow_unicode=True))
-
-
 class ShowStatus(myRequestHandler):
     @web.removeslash
     def get(self, url):
@@ -75,7 +54,6 @@ class ShowStatus(myRequestHandler):
 
 
 handlers = [
-    (r'/status/error', ShowLastErrors),
     (r'/status/size', ShowDbSizes),
     (r'/status(.*)', ShowStatus),
 ]

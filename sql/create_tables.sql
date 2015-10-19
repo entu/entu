@@ -263,23 +263,6 @@ CREATE TABLE `relationship_definition` (
   KEY `deleted` (`deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'requestlog'
-CREATE TABLE `requestlog` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `date` datetime DEFAULT NULL,
-  `port` int(65) DEFAULT NULL,
-  `status` int(3) DEFAULT NULL,
-  `method` varchar(10) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
-  `url` varchar(1000) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
-  `arguments` text CHARACTER SET utf8 COLLATE utf8_unicode_ci,
-  `time` double(11,4) DEFAULT NULL,
-  `user_id` int(11) DEFAULT NULL,
-  `ip` varchar(15) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
-  `browser` varchar(2000) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `date` (`date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
-
 -- Create syntax for TABLE 'tmp_file'
 CREATE TABLE `tmp_file` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
