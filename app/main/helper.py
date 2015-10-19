@@ -131,7 +131,7 @@ class myDatabase():
 
         return self.__app_settings.get(host, {})
 
-    def mongodb(self, database):
+    def mongodb(self, database=None):
         """
         Returns MongoDB connection.
 
