@@ -27,6 +27,7 @@ from main.db import *
 APP_VERSION        = os.getenv('VERSION', tornado.version)
 APP_DEBUG          = os.getenv('DEBUG', 'false')
 APP_PORT           = os.getenv('PORT', 3000)
+APP_AUTH_URL       = os.getenv('AUTH_URL', 'https://entu.entu.ee/auth')
 APP_MONGODB        = os.getenv('MONGODB', 'mongodb://localhost:27017/')
 APP_MYSQL_HOST     = os.getenv('MYSQL_HOST', 'localhost')
 APP_MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
@@ -86,7 +87,7 @@ class myApplication(tornado.web.Application):
             'template_path':        path.join(path.dirname(__file__), '..', 'app'),
             'static_path':          path.join(path.dirname(__file__), '..', 'static'),
             'xsrf_coocies':         True,
-            'login_url':            'https://entu.entu.ee/auth',
+            'login_url':            APP_AUTH_URL,
             'start_time':           time.time(),
             'request_count':        0,
             'request_time':         0,
