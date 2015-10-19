@@ -438,6 +438,7 @@ class Entity():
 
         # If no value, then property is deleted, return
         if not value:
+            self.set_mongodb_entity(entity_id)
             return
 
         value_display = None
@@ -547,7 +548,7 @@ class Entity():
             LIMIT 1;
         """
 
-        r = self.db.get(sql)
+        r = self.db.get(sql, entity_id)
 
         mysql_id = r.get('entity_id')
 
