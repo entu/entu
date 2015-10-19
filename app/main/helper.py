@@ -410,15 +410,23 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             logging.error('Reguest arguments error: %s' % e)
 
         try:
-            self.__request_id = self.mongodb('entu').request.insert_one({
-                'date': datetime.datetime.utcnow(),
-                'method': self.request.method,
-                'url': self.request.full_url(),
-                'arguments': json.dumps(self.request.arguments) if self.request.arguments else None,
-                'user': self.get_current_user().id if self.get_current_user() else None,
-                'ip': self.request.remote_ip,
-                'browser': self.request.headers.get('User-Agent', None) if self.request.headers else None
-            }).inserted_id
+            r = {}
+            r['date'] = datetime.datetime.utcnow(),
+            if self.request.method:
+                r['method'] = self.request.method
+            if self.request.full_url():
+                r['url'] = self.request.full_url()
+            if self.request.arguments:
+                r['arguments'] = json.dumps(self.request.arguments)
+            if self.get_current_user():
+                if self.get_current_user().id:
+                    r['user'] = self.get_current_user().id
+            if self.request.remote_ip:
+                r['ip'] = self.request.remote_ip,
+            if self.request.headers:
+                if self.request.headers.get('User-Agent', None):
+                    r['browser'] = self.request.headers.get('User-Agent')
+            self.__request_id = self.mongodb('entu').request.insert_one(request).inserted_id
         except Exception, e:
             self.captureException()
             logging.error('Reguest logging error: %s' % e)
