@@ -553,8 +553,7 @@ class Entity():
         mysql_id = r.get('entity_id')
 
         e = {}
-        e.setdefault('_mysql', {})['id'] = '%s' % mysql_id
-        e.setdefault('_mysql', {})['db'] = self.db_name
+        e['_mysql_id'] = '%s' % mysql_id
 
         e['_definition'] = r.get('entity_definition')
 
@@ -712,7 +711,7 @@ class Entity():
                 e['_search'][l] = list(set(e['_search'][l]))
 
         #Create or replace Mongo object
-        mongo_entity = self.mongodb().entity.find_one({'_mysql.id': '%s' % mysql_id, '_mysql.db': self.db_name}, {'_id': True})
+        mongo_entity = self.mongodb().entity.find_one({'_mysql_id': '%s' % mysql_id}, {'_id': True})
         if mongo_entity:
             id = self.mongodb().entity.update({'_id': mongo_entity.get('_id')}, e)
         else:
