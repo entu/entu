@@ -410,7 +410,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             logging.error('Reguest arguments error: %s' % e)
 
         try:
-            self.__request_id = self.mongodb('session').session.insert_one({
+            self.__request_id = self.mongodb('entu').request.insert_one({
                 'date': datetime.datetime.utcnow(),
                 'method': self.request.method,
                 'url': self.request.full_url(),
@@ -434,7 +434,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             self.settings['request_time'] += request_time
 
         if self.__request_id:
-            self.mongodb('session').session.update({'_id': self.__request_id}, {"$set": {
+            self.mongodb('entu').request.update({'_id': self.__request_id}, {"$set": {
                 'time': request_time,
                 'status': self.get_status()
             }}, upsert=False)
