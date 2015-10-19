@@ -414,8 +414,12 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             r['date'] = datetime.datetime.utcnow()
             if self.request.method:
                 r['method'] = self.request.method
-            if self.request.full_url():
-                r['url'] = self.request.full_url()
+            if self.request.host:
+                r['host'] = self.request.host
+            if self.request.uri:
+                r['uri'] = self.request.uri
+            if self.request.path:
+                r['path'] = self.request.path
             if self.request.arguments:
                 r['arguments'] = json.dumps(self.request.arguments)
             if self.get_current_user():
