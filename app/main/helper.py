@@ -442,10 +442,11 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             self.settings['request_time'] += request_time
 
         if self.__request_id:
-            self.mongodb('entu').request.update({'_id': self.__request_id}, {"$set": {
-                'time': request_time,
-                'status': self.get_status()
-            }}, upsert=False)
+            r = {}
+            r['time'] = request_time
+            if self.get_status():
+                r['status'] = self.get_status()
+            self.mongodb('entu').request.update({'_id': self.__request_id}, {'$set': r}, upsert=False)
 
     def timer(self, msg=''):
         logging.debug('TIMER: %0.3f - %s' % (round(self.request.request_time(), 3), msg))
