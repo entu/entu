@@ -1,9 +1,7 @@
-import argparse
 import os
 import sys
 import time
 import torndb
-import yaml
 
 from datetime import datetime
 from pymongo import MongoClient, ASCENDING, DESCENDING
@@ -11,15 +9,12 @@ from operator import itemgetter
 
 
 
+APP_MONGODB        = os.getenv('MONGODB', 'mongodb://localhost:27017/')
+APP_MYSQL_HOST     = os.getenv('MYSQL_HOST', 'localhost')
+APP_MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
+APP_MYSQL_USER     = os.getenv('MYSQL_USER')
+APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--host', default = '127.0.0.1')
-parser.add_argument('--database', required = True)
-parser.add_argument('--user', required = True)
-parser.add_argument('--password', required = True)
-parser.add_argument('--customergroup', required = False, default = '0')
-parser.add_argument('-v', '--verbose', action = 'count', default = 0)
-args = parser.parse_args()
 
 
 reload(sys)
@@ -28,10 +23,10 @@ sys.setdefaultencoding('UTF-8')
 
 def customers():
     db = torndb.Connection(
-        host     = args.host,
-        database = args.database,
-        user     = args.user,
-        password = args.password,
+        host     = APP_MYSQL_HOST,
+        database = APP_MYSQL_DATABASE,
+        user     = APP_MYSQL_USER,
+        password = APP_MYSQL_PASSWORD,
     )
 
     sql = """
@@ -62,12 +57,11 @@ def customers():
             AND entity.is_deleted = 0
             AND relationship.is_deleted = 0
             AND relationship.relationship_definition_keyname = 'child'
-            -- AND relationship.entity_id IN (%s)
         ) AS e
         LEFT JOIN property_definition ON property_definition.entity_definition_keyname = e.entity_definition_keyname AND property_definition.dataproperty IN ('database-host', 'database-name', 'database-user', 'database-password') AND property_definition.is_deleted = 0
         LEFT JOIN property ON property.property_definition_keyname = property_definition.keyname AND property.entity_id = e.id AND property.is_deleted = 0
         HAVING value IS NOT NULL;
-    """ % args.customergroup
+    """
 
     customers = {}
     for c in db.query(sql):
@@ -102,7 +96,6 @@ def customers():
 
 class MySQL2MongoDB():
     def __init__(self, db_host, db_name, db_user, db_pass):
-        self.stats = {}
 
         self.db_host = db_host
         self.db_name = db_name
@@ -114,15 +107,9 @@ class MySQL2MongoDB():
             user     = db_user,
             password = db_pass,
         )
+        self.mongo_collection = MongoClient(APP_MONGODB)[self.db_name]['entity']
 
-        # mongo_client = MongoClient('178.62.243.182', 27017, replicaset='entu')
-        # mongo_db = mongo_client[self.db_name]
-        # self.mongo_collection = mongo_db['entity']
-        mongo_client = MongoClient('mongodb://entu:g4PgQf23HdB4kBGv@waffle.modulusmongo.net:27017/eH6inojo')
-        mongo_db = mongo_client.get_default_database()
-        self.mongo_collection = mongo_db[self.db_name]
-
-        self.mongo_collection.create_index([('_mysql.id', ASCENDING), ('_mysql.db', ASCENDING)])
+        self.mongo_collection.create_index([('_mysql_id', ASCENDING)])
 
 
     def transfer(self):
@@ -137,9 +124,11 @@ class MySQL2MongoDB():
                 e.sharing    AS entity_sharing,
                 e.created    AS entity_created,
                 e.created_by AS entity_created_by,
-                e.is_deleted AS entity_is_deleted,
+                e.changed    AS entity_changed,
+                e.changed_by AS entity_changed_by,
                 e.deleted    AS entity_deleted,
                 e.deleted_by AS entity_deleted_by,
+                e.is_deleted AS entity_is_deleted,
                 e.old_id     AS entity_old_id
             FROM
                 entity AS e
@@ -151,17 +140,16 @@ class MySQL2MongoDB():
 
         rows = self.db.query(sql)
 
-        if args.verbose > 0: print '%s transfer %s entities' % (datetime.now(), len(rows))
+        print '%s transfer %s entities' % (datetime.now(), len(rows))
 
         for r in rows:
-            # if self.mongo_collection.find_one({'_mysql.id': '%s' % r.get('entity_id'), '_mysql.db': self.db_name}, {'_id': True}):
+            # if self.mongo_collection.find_one({'_mysql_id': '%s' % r.get('entity_id')}, {'_id': True}):
             #     continue
 
             mysql_id = r.get('entity_id')
 
             e = {}
-            e.setdefault('_mysql', {})['id'] = '%s' % mysql_id
-            e.setdefault('_mysql', {})['db'] = self.db_name
+            e['_mysql_id'] = '%s' % mysql_id
 
             e['_definition'] = r.get('entity_definition')
 
@@ -238,6 +226,7 @@ class MySQL2MongoDB():
                     p.value_boolean,
                     p.value_datetime,
                     p.value_reference,
+                    p.value_file,
                     IF(pd.datatype = 'file', (SELECT s3_key FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_s3,
                     IF(pd.datatype = 'file', (SELECT md5 FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_md5,
                     IF(pd.datatype = 'file', (SELECT filename FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_name,
@@ -250,8 +239,7 @@ class MySQL2MongoDB():
                 WHERE pd.keyname = p.property_definition_keyname
                 AND p.entity_id = %s
                 AND p.is_deleted = 0
-                AND pd.keyname NOT LIKE 'customer-database-%%'
-                -- LIMIT 1000;
+                AND pd.dataproperty NOT IN ('entu-changed-by', 'entu-changed-at', 'entu-created-by', 'entu-created-at');
             """
 
             properties = {}
@@ -319,16 +307,12 @@ class MySQL2MongoDB():
                     e['_search'][l] = list(set(e['_search'][l]))
 
             #Create or replace Mongo object
-            mongo_entity = self.mongo_collection.find_one({'_mysql.id': '%s' % mysql_id, '_mysql.db': self.db_name}, {'_id': True})
+            mongo_entity = self.mongo_collection.find_one({'_mysql_id': '%s' % mysql_id}, {'_id': True})
             if mongo_entity:
                 id = self.mongo_collection.update({'_id': mongo_entity.get('_id')}, e)
-                if args.verbose > 3: print '%s -> %s (update)' % (mysql_id, mongo_entity.get('_id'))
             else:
                 id = self.mongo_collection.insert(e)
-                if args.verbose > 3: print '%s -> %s' % (mysql_id, id)
 
-        self.stats['transfer_time'] = round((time.time() - t) / 60, 2)
-        self.stats['transfer_speed'] = round(len(rows) / (time.time() - t), 2)
 
 
     def update(self):
@@ -342,14 +326,12 @@ class MySQL2MongoDB():
 
         t = time.time()
 
-        rows = self.mongo_collection.find({'_mysql.db': self.db_name})
+        rows = self.mongo_collection.find()
         i = 0
 
-        if args.verbose > 0: print '%s update %s entities' % (datetime.now(), rows.count())
+        print '%s update %s entities' % (datetime.now(), rows.count())
 
         for e in rows:
-            if args.verbose > 3: print '%s - %s' % (e['_mysql']['db'], e.get('_id'))
-
             # reference properties
             for p in e.get('_reference_property', []):
                 if '.' in p:
@@ -361,34 +343,29 @@ class MySQL2MongoDB():
                     for p_key, p_values in p_value.iteritems():
                         mongo_references = []
                         for v in p_values:
-                            mongo_entity = self.mongo_collection.find_one({'_mysql.id': v.get('_id'), '_mysql.db': e['_mysql']['db']}, {'_id': True})
+                            mongo_entity = self.mongo_collection.find_one({'_mysql_id': v.get('_id')}, {'_id': True})
                             if mongo_entity:
                                 v['_id'] = mongo_entity.get('_id')
                                 mongo_references.append(v)
-                                if args.verbose > 2: print '    %s.%s reference to %s' % (p, p_key, v)
                         if mongo_references:
                             id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {'%s.%s' % (p, p_key): mongo_references}})
                 elif type(p_value) is list:
                     mongo_references = []
                     for v in p_value:
-                        mongo_entity = self.mongo_collection.find_one({'_mysql.id': v.get('_id'), '_mysql.db': e['_mysql']['db']}, {'_id': True})
+                        mongo_entity = self.mongo_collection.find_one({'_mysql_id': v.get('_id')}, {'_id': True})
                         if mongo_entity:
                             v['_id'] = mongo_entity.get('_id')
                             mongo_references.append(v)
-                            if args.verbose > 2: print '    %s reference to %s' % (p, v)
                     if mongo_references:
                         id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {'%s' % p: mongo_references}})
                 else:
-                    mongo_entity = self.mongo_collection.find_one({'_mysql.id': p_value.get('_id'), '_mysql.db': e['_mysql']['db']}, {'_id': True})
+                    mongo_entity = self.mongo_collection.find_one({'_mysql_id': p_value.get('_id')}, {'_id': True})
                     if mongo_entity:
                         p_value['_id'] = mongo_entity.get('_id')
                         id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {'%s' % p: p_value}})
-                        if args.verbose > 2: print '    %s reference %s' % (p, p_value)
 
             self.mongo_collection.update({'_id': e.get('_id')}, {'$unset': {'_reference_property': 1}})
 
-        self.stats['updates_time'] = round((time.time() - t) / 60, 2)
-        self.stats['updates_speed'] = round(rows.count() / (time.time() - t), 2)
 
 
     def __get_parent(self, entity_id, recursive=False):
@@ -445,7 +422,6 @@ for c in customers():
         db_pass = c.get('database-password')
     )
     m2m.transfer()
-    m2m.update()
+    # m2m.update()
 
     print '%s %s ended' % (datetime.now(), c.get('database-name'))
-    print '%s' % yaml.safe_dump(m2m.stats, default_flow_style=False, allow_unicode=True)
