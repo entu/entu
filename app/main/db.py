@@ -538,9 +538,11 @@ class Entity():
                 e.sharing    AS entity_sharing,
                 e.created    AS entity_created,
                 e.created_by AS entity_created_by,
-                e.is_deleted AS entity_is_deleted,
+                e.changed    AS entity_changed,
+                e.changed_by AS entity_changed_by,
                 e.deleted    AS entity_deleted,
                 e.deleted_by AS entity_deleted_by,
+                e.is_deleted AS entity_is_deleted,
                 e.old_id     AS entity_old_id
             FROM
                 entity AS e
@@ -642,7 +644,8 @@ class Entity():
                 property_definition AS pd
             WHERE pd.keyname = p.property_definition_keyname
             AND p.entity_id = %s
-            AND p.is_deleted = 0;
+            AND p.is_deleted = 0
+            AND pd.dataproperty NOT IN ('entu-changed-by', 'entu-changed-at', 'entu-created-by', 'entu-created-at');
         """
 
         properties = {}
