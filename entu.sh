@@ -21,6 +21,8 @@ docker run -d \
     --restart="always" \
     --memory="512m" \
     --env="VERSION=$version" \
+    --env="PORT=80" \
+    --env="MONGODB=" \
     --env="MYSQL_HOST=" \
     --env="MYSQL_DATABASE=" \
     --env="MYSQL_USER=" \

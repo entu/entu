@@ -27,6 +27,7 @@ from main.db import *
 APP_VERSION        = os.getenv('VERSION', tornado.version)
 APP_DEBUG          = os.getenv('DEBUG', 'false')
 APP_PORT           = os.getenv('PORT', 3000)
+APP_MONGODB        = os.getenv('MONGODB', 'mongodb://localhost:27017/')
 APP_MYSQL_HOST     = os.getenv('MYSQL_HOST', 'localhost')
 APP_MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
 APP_MYSQL_USER     = os.getenv('MYSQL_USER')
@@ -92,12 +93,14 @@ class myApplication(tornado.web.Application):
             'slow_request_count':   0,
             'slow_request_time':    0,
             'slow_request_ms':      1000,
+            'mongodb':              APP_MONGODB,
             'database-host':        APP_MYSQL_HOST,
             'database-database':    APP_MYSQL_DATABASE,
             'database-user':        APP_MYSQL_USER,
             'database-password':    APP_MYSQL_PASSWORD,
             'customergroup':        APP_CUSTOMERGROUP,
             'secret':               APP_SECRET,
+            'mongodbs':             {},
             'databases':            {},
         }
 

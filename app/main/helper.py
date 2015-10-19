@@ -4,6 +4,7 @@ import torndb
 from tornado import web
 from tornado import locale
 from tornado import httpclient
+from pymongo import MongoClient
 from raven.contrib.tornado import SentryMixin
 
 import hmac
@@ -130,6 +131,16 @@ class myDatabase():
 
         return self.__app_settings.get(host, {})
 
+    def mongodb(self, database):
+        """
+        Returns MongoDB connection.
+
+        """
+        try:
+            x = self.settings['mongodbs'][database].server_info()
+        except Exception:
+            self.settings['mongodbs'][database] = MongoClient(self.settings['mongodb'] + database, serverSelectionTimeoutMS=1000, socketKeepAlive=True)
+        return self.settings['mongodbs'][database]
 
 class myUser(myE):
     __user        = None
@@ -399,19 +410,19 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             logging.error('Reguest arguments error: %s' % e)
 
         try:
-            self.__request_id = self.db.execute_lastrowid('INSERT INTO requestlog SET date = NOW(), port = %s, method = %s, url = %s, arguments = %s, user_id = %s, ip = %s, browser = %s;',
-                self.settings['port'],
-                self.request.method,
-                self.request.full_url(),
-                str(self.request.arguments)[:1000] if self.request.arguments else None,
-                self.get_current_user().id if self.get_current_user() else None,
-                self.request.remote_ip,
-                self.request.headers.get('User-Agent', None) if self.request.headers else None
-            )
+            self.__request_id = self.mongodb('session').session.insert_one({
+                'date': datetime.now(),
+                'port' : self.settings['port'],
+                'method': self.request.method,
+                'url': self.request.full_url(),
+                'arguments': str(self.request.arguments)[:1000] if self.request.arguments else None,
+                'user': self.get_current_user().id if self.get_current_user() else None,
+                'ip': self.request.remote_ip,
+                'browser': self.request.headers.get('User-Agent', None) if self.request.headers else None
+            }).inserted_id
         except Exception, e:
             self.captureException()
             logging.error('Reguest logging error: %s' % e)
-
 
     def on_finish(self):
         request_time = self.request.request_time()
@@ -424,11 +435,10 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             self.settings['request_time'] += request_time
 
         if self.__request_id:
-            self.db.execute('UPDATE requestlog SET time = %s, status = %s WHERE id = %s;',
-                request_time,
-                self.get_status(),
-                self.__request_id
-            )
+            self.mongodb('session').session.update({'_id': self.__request_id}, {"$set": {
+                'time': request_time,
+                'status': self.get_status()
+            }}, upsert=False)
 
     def timer(self, msg=''):
         logging.debug('TIMER: %0.3f - %s' % (round(self.request.request_time(), 3), msg))
