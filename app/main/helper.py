@@ -422,7 +422,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
                 if self.get_current_user().id:
                     r['user'] = self.get_current_user().id
             if self.request.remote_ip:
-                r['ip'] = self.request.remote_ip,
+                r['ip'] = self.request.remote_ip
             if self.request.headers:
                 if self.request.headers.get('User-Agent', None):
                     r['browser'] = self.request.headers.get('User-Agent')
