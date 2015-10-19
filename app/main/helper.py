@@ -411,7 +411,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
 
         try:
             r = {}
-            r['date'] = datetime.datetime.utcnow(),
+            r['date'] = datetime.datetime.utcnow()
             if self.request.method:
                 r['method'] = self.request.method
             if self.request.full_url():
