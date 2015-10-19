@@ -525,7 +525,197 @@ class Entity():
             entity_id,
         )
 
+        self.set_mongodb_entity(entity_id)
+
         return new_property_id
+
+    def set_mongodb_entity(self, entity_id):
+        sql = """
+            SELECT
+                REPLACE(REPLACE(e.entity_definition_keyname, '_', '-'), '.', '-') AS entity_definition,
+                e.id         AS entity_id,
+                e.sharing    AS entity_sharing,
+                e.created    AS entity_created,
+                e.created_by AS entity_created_by,
+                e.is_deleted AS entity_is_deleted,
+                e.deleted    AS entity_deleted,
+                e.deleted_by AS entity_deleted_by,
+                e.old_id     AS entity_old_id
+            FROM
+                entity AS e
+            WHERE e.id = %s
+            LIMIT 1;
+        """
+
+        r = self.db.get(sql)
+
+        mysql_id = r.get('entity_id')
+
+        e = {}
+        e.setdefault('_mysql', {})['id'] = '%s' % mysql_id
+        e.setdefault('_mysql', {})['db'] = self.db_name
+
+        e['_definition'] = r.get('entity_definition')
+
+        if r.get('entity_created'):
+            e.setdefault('_created', {})['date'] = r.get('entity_created')
+        if r.get('entity_created_by'):
+            e.setdefault('_created', {})['_id'] = '%s' % r.get('entity_created_by')
+        if e.get('_created'):
+            e['_created'] = [e.get('_created')]
+            e.setdefault('_reference_property', []).append('_created')
+
+        if r.get('entity_changed'):
+            e.setdefault('_changed', {})['date'] = r.get('entity_changed')
+        if r.get('entity_changed_by'):
+            e.setdefault('_changed', {})['_id'] = '%s' % r.get('entity_changed_by')
+        if e.get('_changed'):
+            e['_changed'] = [e.get('_changed')]
+            e.setdefault('_reference_property', []).append('_changed')
+
+        if r.get('entity_is_deleted') and r.get('entity_deleted'):
+            e.setdefault('_deleted', {})['date'] = r.get('entity_deleted')
+        if r.get('entity_is_deleted') and r.get('entity_deleted_by'):
+            e.setdefault('_deleted', {})['_id'] = '%s' % r.get('entity_deleted_by')
+        if e.get('_deleted'):
+            e['_deleted'] = [e.get('_deleted')]
+            e.setdefault('_reference_property', []).append('_deleted')
+
+        e['_sharing'] = r.get('entity_sharing')
+
+        viewers = self.__get_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'])
+        if viewers:
+            e['_viewer'] = [{'_id': x} for x in list(set(viewers))]
+            e.setdefault('_reference_property', []).append('_viewer')
+
+        expanders = self.__get_right(mysql_id, ['expander', 'editor', 'owner'])
+        if expanders:
+            e['_expander'] = [{'_id': x} for x in list(set(expanders))]
+            e.setdefault('_reference_property', []).append('_expander')
+
+        editors = self.__get_right(mysql_id, ['editor', 'owner'])
+        if editors:
+            e['_editor'] = [{'_id': x} for x in list(set(editors))]
+            e.setdefault('_reference_property', []).append('_editor')
+
+        owners = self.__get_right(mysql_id, ['owner'])
+        if owners:
+            e['_owner'] = [{'_id': x} for x in list(set(owners))]
+            e.setdefault('_reference_property', []).append('_owner')
+
+        parent = self.__get_parent(entity_id=mysql_id, recursive=False)
+        if parent:
+            e['_parent'] = [{'_id': x} for x in list(set(parent))]
+            e.setdefault('_reference_property', []).append('_parent')
+
+        ancestor = self.__get_parent(entity_id=mysql_id, recursive=True)
+        if ancestor:
+            e['_ancestor'] = [{'_id': x} for x in list(set(ancestor))]
+            e.setdefault('_reference_property', []).append('_ancestor')
+
+        sql = """
+            SELECT
+                p.id                    AS property_id,
+                REPLACE(REPLACE(pd.dataproperty, '-', '_'), '.', '_')  AS property_dataproperty,
+                pd.datatype             AS property_datatype,
+                pd.formula              AS property_formula,
+                pd.search               AS property_search,
+                IF(pd.multilingual = 1, IF(p.language = 'english', 'en', 'et'), NULL) AS property_language,
+                TRIM(p.value_formula)   AS value_formula,
+                TRIM(p.value_string)    AS value_string,
+                TRIM(p.value_text)      AS value_text,
+                TRIM(p.value_display)   AS value_display,
+                p.value_integer,
+                p.value_decimal,
+                p.value_boolean,
+                p.value_datetime,
+                p.value_reference,
+                IF(pd.datatype = 'file', (SELECT s3_key FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_s3,
+                IF(pd.datatype = 'file', (SELECT md5 FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_md5,
+                IF(pd.datatype = 'file', (SELECT filename FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_name,
+                IF(pd.datatype = 'file', (SELECT filesize FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_size,
+                IF(pd.datatype = 'file', (SELECT url FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_url,
+                p.value_counter
+            FROM
+                property AS p,
+                property_definition AS pd
+            WHERE pd.keyname = p.property_definition_keyname
+            AND p.entity_id = %s
+            AND p.is_deleted = 0
+            AND pd.keyname NOT LIKE 'customer-database-%%'
+            -- LIMIT 1000;
+        """
+
+        properties = {}
+        for r2 in self.db.query(sql, mysql_id):
+
+            value = None
+            if r2.get('property_dataproperty', '')[:5] == 'auth_':
+                value = ''
+            elif r2.get('property_formula') == 1 and r2.get('value_formula'):
+                value = {'formula': r2.get('value_formula')}
+            elif r2.get('property_datatype') == 'string' and r2.get('value_string'):
+                value = r2.get('value_string')
+            elif r2.get('property_datatype') == 'text' and r2.get('value_text'):
+                value = r2.get('value_text')
+            elif r2.get('property_datatype') == 'integer' and r2.get('value_integer') != None:
+                value = r2.get('value_integer')
+            elif r2.get('property_datatype') == 'decimal' and r2.get('value_decimal') != None:
+                value = float(r2.get('value_decimal'))
+            elif r2.get('property_datatype') == 'boolean' and r2.get('value_boolean') != None:
+                value = bool(r2.get('value_boolean'))
+            elif r2.get('property_datatype') in ['date', 'datetime'] and r2.get('value_datetime') != None:
+                value = r2.get('value_datetime')
+            elif r2.get('property_datatype') == 'reference' and r2.get('value_reference'):
+                value = {'_id': '%s' % r2.get('value_reference')}
+                e.setdefault('_reference_property', []).append('%s' % r2.get('property_dataproperty'))
+            elif r2.get('property_datatype') == 'file' and r2.get('value_file'):
+                if r2.get('value_file_url'):
+                    value = {
+                        'name': r2.get('value_file_name'),
+                        'url': r2.get('file')
+                    }
+                else:
+                    value = {
+                        'name': r2.get('value_file_name'),
+                        'size': r2.get('value_file_size')
+                    }
+                    if r2.get('value_file_md5', None):
+                        value['md5'] = r2.get('value_file_md5')
+                    if r2.get('value_file_s3', None):
+                        value['s3'] = r2.get('value_file_s3')
+
+            elif r2.get('property_datatype') == 'counter' and r2.get('value_string'):
+                value = r2.get('value_counter')
+                e.setdefault('counter_property', []).append(r2.get('property_dataproperty'))
+            elif r2.get('property_datatype') == 'counter-value' and r2.get('value_string'):
+                value = r2.get('value_string')
+
+            if not value:
+                continue
+
+            if r2.get('property_language'):
+                e.setdefault(r2.get('property_dataproperty'), {}).setdefault(r2.get('property_language'), []).append(value)
+            else:
+                e.setdefault(r2.get('property_dataproperty'), []).append(value)
+
+            # if r2.get('value_display') and r2.get('property_search') == 1:
+            #     if r2.get('property_language'):
+            #         e.setdefault('_search', {}).setdefault(r2.get('property_language'), []).append(r2.get('value_display').lower())
+            #     else:
+            #         e.setdefault('_search', {}).setdefault('et', []).append(r2.get('value_display').lower())
+            #         e.setdefault('_search', {}).setdefault('en', []).append(r2.get('value_display').lower())
+
+        for l in ['et', 'en']:
+            if l in e.get('_search', {}):
+                e['_search'][l] = list(set(e['_search'][l]))
+
+        #Create or replace Mongo object
+        mongo_entity = self.mongodb().entity.find_one({'_mysql.id': '%s' % mysql_id, '_mysql.db': self.db_name}, {'_id': True})
+        if mongo_entity:
+            id = self.mongodb().entity.update({'_id': mongo_entity.get('_id')}, e)
+        else:
+            id = self.mongodb().entity.insert(e)
 
     def set_counter(self, entity_id):
         """

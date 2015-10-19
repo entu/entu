@@ -136,6 +136,9 @@ class myDatabase():
         Returns MongoDB connection.
 
         """
+        if not database:
+            database = self.app_settings('database-name')
+
         try:
             x = self.settings['mongodbs'][database].server_info()
         except Exception:
