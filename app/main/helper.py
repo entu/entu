@@ -445,7 +445,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
 
         if self.__request_id:
             r = {}
-            r['time'] = request_time
+            r['ms'] = round(request_time * 1000)
             if self.get_status():
                 r['status'] = self.get_status()
             self.mongodb('entu').request.update({'_id': self.__request_id}, {'$set': r}, upsert=False)
