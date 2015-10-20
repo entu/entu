@@ -562,7 +562,7 @@ class Entity():
         if r.get('entity_created'):
             e.setdefault('_created', {})['date'] = r.get('entity_created')
         if r.get('entity_created_by'):
-            e.setdefault('_created', {})['_id'] = r.get('entity_created_by')
+            e.setdefault('_created', {})['_mid'] = r.get('entity_created_by')
         if e.get('_created'):
             e['_created'] = [e.get('_created')]
             e.setdefault('_reference_property', []).append('_created')
@@ -570,7 +570,7 @@ class Entity():
         if r.get('entity_changed'):
             e.setdefault('_changed', {})['date'] = r.get('entity_changed')
         if r.get('entity_changed_by'):
-            e.setdefault('_changed', {})['_id'] = r.get('entity_changed_by')
+            e.setdefault('_changed', {})['_mid'] = r.get('entity_changed_by')
         if e.get('_changed'):
             e['_changed'] = [e.get('_changed')]
             e.setdefault('_reference_property', []).append('_changed')
@@ -578,7 +578,7 @@ class Entity():
         if r.get('entity_is_deleted') and r.get('entity_deleted'):
             e.setdefault('_deleted', {})['date'] = r.get('entity_deleted')
         if r.get('entity_is_deleted') and r.get('entity_deleted_by'):
-            e.setdefault('_deleted', {})['_id'] = r.get('entity_deleted_by')
+            e.setdefault('_deleted', {})['_mid'] = r.get('entity_deleted_by')
         if e.get('_deleted'):
             e['_deleted'] = [e.get('_deleted')]
             e.setdefault('_reference_property', []).append('_deleted')
