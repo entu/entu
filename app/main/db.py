@@ -537,11 +537,11 @@ class Entity():
                 e.id         AS entity_id,
                 e.sharing    AS entity_sharing,
                 e.created    AS entity_created,
-                e.created_by AS entity_created_by,
+                IF(CAST(e.created_by AS UNSIGNED) > 0, CAST(e.created_by AS UNSIGNED), NULL) AS entity_created_by,
                 e.changed    AS entity_changed,
-                e.changed_by AS entity_changed_by,
+                IF(CAST(e.changed_by AS UNSIGNED) > 0, CAST(e.changed_by AS UNSIGNED), NULL) AS entity_changed_by,
                 e.deleted    AS entity_deleted,
-                e.deleted_by AS entity_deleted_by,
+                IF(CAST(e.deleted_by AS UNSIGNED) > 0, CAST(e.deleted_by AS UNSIGNED), NULL) AS entity_deleted_by,
                 e.is_deleted AS entity_is_deleted,
                 e.old_id     AS entity_old_id
             FROM
@@ -555,14 +555,14 @@ class Entity():
         mysql_id = r.get('entity_id')
 
         e = {}
-        e['_mysql_id'] = '%s' % mysql_id
+        e['_mid'] = mysql_id
 
         e['_definition'] = r.get('entity_definition')
 
         if r.get('entity_created'):
             e.setdefault('_created', {})['date'] = r.get('entity_created')
         if r.get('entity_created_by'):
-            e.setdefault('_created', {})['_id'] = '%s' % r.get('entity_created_by')
+            e.setdefault('_created', {})['_id'] = r.get('entity_created_by')
         if e.get('_created'):
             e['_created'] = [e.get('_created')]
             e.setdefault('_reference_property', []).append('_created')
@@ -570,7 +570,7 @@ class Entity():
         if r.get('entity_changed'):
             e.setdefault('_changed', {})['date'] = r.get('entity_changed')
         if r.get('entity_changed_by'):
-            e.setdefault('_changed', {})['_id'] = '%s' % r.get('entity_changed_by')
+            e.setdefault('_changed', {})['_id'] = r.get('entity_changed_by')
         if e.get('_changed'):
             e['_changed'] = [e.get('_changed')]
             e.setdefault('_reference_property', []).append('_changed')
@@ -578,7 +578,7 @@ class Entity():
         if r.get('entity_is_deleted') and r.get('entity_deleted'):
             e.setdefault('_deleted', {})['date'] = r.get('entity_deleted')
         if r.get('entity_is_deleted') and r.get('entity_deleted_by'):
-            e.setdefault('_deleted', {})['_id'] = '%s' % r.get('entity_deleted_by')
+            e.setdefault('_deleted', {})['_id'] = r.get('entity_deleted_by')
         if e.get('_deleted'):
             e['_deleted'] = [e.get('_deleted')]
             e.setdefault('_reference_property', []).append('_deleted')
@@ -587,32 +587,32 @@ class Entity():
 
         viewers = self.__get_mongodb_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'])
         if viewers:
-            e['_viewer'] = [{'_id': x} for x in list(set(viewers))]
+            e['_viewer'] = [{'_mid': x} for x in list(set(viewers))]
             e.setdefault('_reference_property', []).append('_viewer')
 
         expanders = self.__get_mongodb_right(mysql_id, ['expander', 'editor', 'owner'])
         if expanders:
-            e['_expander'] = [{'_id': x} for x in list(set(expanders))]
+            e['_expander'] = [{'_mid': x} for x in list(set(expanders))]
             e.setdefault('_reference_property', []).append('_expander')
 
         editors = self.__get_mongodb_right(mysql_id, ['editor', 'owner'])
         if editors:
-            e['_editor'] = [{'_id': x} for x in list(set(editors))]
+            e['_editor'] = [{'_mid': x} for x in list(set(editors))]
             e.setdefault('_reference_property', []).append('_editor')
 
         owners = self.__get_mongodb_right(mysql_id, ['owner'])
         if owners:
-            e['_owner'] = [{'_id': x} for x in list(set(owners))]
+            e['_owner'] = [{'_mid': x} for x in list(set(owners))]
             e.setdefault('_reference_property', []).append('_owner')
 
         parent = self.__get_mongodb_parent(entity_id=mysql_id, recursive=False)
         if parent:
-            e['_parent'] = [{'_id': x} for x in list(set(parent))]
+            e['_parent'] = [{'_mid': x} for x in list(set(parent))]
             e.setdefault('_reference_property', []).append('_parent')
 
         ancestor = self.__get_mongodb_parent(entity_id=mysql_id, recursive=True)
         if ancestor:
-            e['_ancestor'] = [{'_id': x} for x in list(set(ancestor))]
+            e['_ancestor'] = [{'_mid': x} for x in list(set(ancestor))]
             e.setdefault('_reference_property', []).append('_ancestor')
 
         sql = """
@@ -669,8 +669,8 @@ class Entity():
             elif r2.get('property_datatype') in ['date', 'datetime'] and r2.get('value_datetime') != None:
                 value = r2.get('value_datetime')
             elif r2.get('property_datatype') == 'reference' and r2.get('value_reference'):
-                value = {'_id': '%s' % r2.get('value_reference')}
-                e.setdefault('_reference_property', []).append('%s' % r2.get('property_dataproperty'))
+                value = {'_mid': r2.get('value_reference')}
+                e.setdefault('_reference_property', []).append(r2.get('property_dataproperty'))
             elif r2.get('property_datatype') == 'file' and r2.get('value_file'):
                 if r2.get('value_file_url'):
                     value = {
@@ -713,7 +713,7 @@ class Entity():
                 e['_search'][l] = list(set(e['_search'][l]))
 
         #Create or replace Mongo object
-        mongo_entity = self.mongodb().entity.find_one({'_mysql_id': '%s' % mysql_id}, {'_id': True})
+        mongo_entity = self.mongodb().entity.find_one({'_mid': mysql_id}, {'_id': True})
         if mongo_entity:
             id = self.mongodb().entity.update({'_id': mongo_entity.get('_id')}, e)
         else:
@@ -731,7 +731,7 @@ class Entity():
 
         entities = []
         for r in self.db.query(sql):
-            entities.append('%s' % r.get('entity_id'))
+            entities.append(r.get('entity_id'))
             if recursive:
                 entities = entities + self.__get_mongodb_parent(entity_id=r.get('entity_id'), recursive=True)
 
@@ -749,7 +749,7 @@ class Entity():
 
         entities = []
         for r in self.db.query(sql):
-            entities.append('%s' % r.get('related_entity_id'))
+            entities.append(r.get('related_entity_id'))
 
         return entities
 
