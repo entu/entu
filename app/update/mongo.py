@@ -367,7 +367,7 @@ class MySQL2MongoDB():
 
 
 
-    def __get_parent(self, entity_id, recursive=False):
+    def __get_mongodb_parent(self, entity_id, recursive=False):
         sql = """
             SELECT entity_id
             FROM relationship
@@ -381,12 +381,12 @@ class MySQL2MongoDB():
         for r in self.db.query(sql):
             entities.append(r.get('entity_id'))
             if recursive:
-                entities = entities + self.__get_parent(entity_id=r.get('entity_id'), recursive=True)
+                entities = entities + self.__get_mongodb_parent(entity_id=r.get('entity_id'), recursive=True)
 
         return entities
 
 
-    def __get_right(self, entity_id, rights):
+    def __get_mongodb_right(self, entity_id, rights):
         sql = """
             SELECT related_entity_id
             FROM relationship
