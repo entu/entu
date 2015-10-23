@@ -556,63 +556,64 @@ class Entity():
 
         e = {}
         e['_mid'] = mysql_id
-
         e['_definition'] = r.get('entity_definition')
+        e['_sharing'] = r.get('entity_sharing')
 
         if r.get('entity_created'):
             e.setdefault('_created', {})['date'] = r.get('entity_created')
         if r.get('entity_created_by'):
-            e.setdefault('_created', {})['_mid'] = r.get('entity_created_by')
+            e.setdefault('_created', {})['reference'] = r.get('entity_created_by')
         if e.get('_created'):
+            e['_created']['type'] = 'reference'
             e['_created'] = [e.get('_created')]
             e.setdefault('_reference_property', []).append('_created')
 
         if r.get('entity_changed'):
             e.setdefault('_changed', {})['date'] = r.get('entity_changed')
         if r.get('entity_changed_by'):
-            e.setdefault('_changed', {})['_mid'] = r.get('entity_changed_by')
+            e.setdefault('_changed', {})['reference'] = r.get('entity_changed_by')
         if e.get('_changed'):
+            e['_changed']['type'] = 'reference'
             e['_changed'] = [e.get('_changed')]
             e.setdefault('_reference_property', []).append('_changed')
 
         if r.get('entity_is_deleted') and r.get('entity_deleted'):
             e.setdefault('_deleted', {})['date'] = r.get('entity_deleted')
         if r.get('entity_is_deleted') and r.get('entity_deleted_by'):
-            e.setdefault('_deleted', {})['_mid'] = r.get('entity_deleted_by')
+            e.setdefault('_deleted', {})['reference'] = r.get('entity_deleted_by')
         if e.get('_deleted'):
+            e['_deleted']['type'] = 'reference'
             e['_deleted'] = [e.get('_deleted')]
             e.setdefault('_reference_property', []).append('_deleted')
 
-        e['_sharing'] = r.get('entity_sharing')
-
         viewers = self.__get_mongodb_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'])
         if viewers:
-            e['_viewer'] = [{'_mid': x} for x in list(set(viewers))]
+            e['_viewer'] = [{'reference': x, 'type': 'reference'} for x in list(set(viewers))]
             e.setdefault('_reference_property', []).append('_viewer')
 
         expanders = self.__get_mongodb_right(mysql_id, ['expander', 'editor', 'owner'])
         if expanders:
-            e['_expander'] = [{'_mid': x} for x in list(set(expanders))]
+            e['_expander'] = [{'reference': x, 'type': 'reference'} for x in list(set(expanders))]
             e.setdefault('_reference_property', []).append('_expander')
 
         editors = self.__get_mongodb_right(mysql_id, ['editor', 'owner'])
         if editors:
-            e['_editor'] = [{'_mid': x} for x in list(set(editors))]
+            e['_editor'] = [{'reference': x, 'type': 'reference'} for x in list(set(editors))]
             e.setdefault('_reference_property', []).append('_editor')
 
         owners = self.__get_mongodb_right(mysql_id, ['owner'])
         if owners:
-            e['_owner'] = [{'_mid': x} for x in list(set(owners))]
+            e['_owner'] = [{'reference': x, 'type': 'reference'} for x in list(set(owners))]
             e.setdefault('_reference_property', []).append('_owner')
 
         parent = self.__get_mongodb_parent(entity_id=mysql_id, recursive=False)
         if parent:
-            e['_parent'] = [{'_mid': x} for x in list(set(parent))]
+            e['_parent'] = [{'reference': x, 'type': 'reference'} for x in list(set(parent))]
             e.setdefault('_reference_property', []).append('_parent')
 
         ancestor = self.__get_mongodb_parent(entity_id=mysql_id, recursive=True)
         if ancestor:
-            e['_ancestor'] = [{'_mid': x} for x in list(set(ancestor))]
+            e['_ancestor'] = [{'reference': x, 'type': 'reference'} for x in list(set(ancestor))]
             e.setdefault('_reference_property', []).append('_ancestor')
 
         sql = """
