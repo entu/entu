@@ -285,7 +285,7 @@ class MySQL2MongoDB():
                 if not value:
                     continue
 
-                value['_mid'] = property_id
+                value['_mid'] = r2.get('property_id')
                 value['type'] = r2.get('property_datatype')
 
                 if r2.get('property_language'):
