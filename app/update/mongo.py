@@ -244,51 +244,49 @@ class MySQL2MongoDB():
 
             properties = {}
             for r2 in self.db.query(sql, mysql_id):
+                value = {}
 
-                value = None
                 if r2.get('property_dataproperty', '')[:5] == 'auth_':
-                    value = ''
+                    pass
                 elif r2.get('property_formula') == 1 and r2.get('value_formula'):
-                    value = {'formula': r2.get('value_formula')}
+                    value['formula'] = r2.get('value_formula')
                 elif r2.get('property_datatype') == 'string' and r2.get('value_string'):
-                    value = r2.get('value_string')
+                    value['value'] = r2.get('value_string')
                 elif r2.get('property_datatype') == 'text' and r2.get('value_text'):
-                    value = r2.get('value_text')
+                    value['value'] = r2.get('value_text')
                 elif r2.get('property_datatype') == 'integer' and r2.get('value_integer') != None:
-                    value = r2.get('value_integer')
+                    value['value'] = r2.get('value_integer')
                 elif r2.get('property_datatype') == 'decimal' and r2.get('value_decimal') != None:
-                    value = float(r2.get('value_decimal'))
+                    value['value'] = float(r2.get('value_decimal'))
                 elif r2.get('property_datatype') == 'boolean' and r2.get('value_boolean') != None:
-                    value = bool(r2.get('value_boolean'))
+                    value['value'] = bool(r2.get('value_boolean'))
                 elif r2.get('property_datatype') in ['date', 'datetime'] and r2.get('value_datetime') != None:
-                    value = r2.get('value_datetime')
+                    value['value'] = r2.get('value_datetime')
                 elif r2.get('property_datatype') == 'reference' and r2.get('value_reference'):
-                    value = {'_mid': r2.get('value_reference')}
+                    value['reference'] = r2.get('value_reference')
                     e.setdefault('_reference_property', []).append(r2.get('property_dataproperty'))
                 elif r2.get('property_datatype') == 'file' and r2.get('value_file'):
+                    value['value'] = r2.get('value_file_name')
                     if r2.get('value_file_url'):
-                        value = {
-                            'name': r2.get('value_file_name'),
-                            'url': r2.get('file')
-                        }
+                        value['url'] = r2.get('file')
                     else:
-                        value = {
-                            'name': r2.get('value_file_name'),
-                            'size': r2.get('value_file_size')
-                        }
+                        value['size'] = r2.get('value_file_size')
                         if r2.get('value_file_md5', None):
                             value['md5'] = r2.get('value_file_md5')
                         if r2.get('value_file_s3', None):
                             value['s3'] = r2.get('value_file_s3')
 
                 elif r2.get('property_datatype') == 'counter' and r2.get('value_string'):
-                    value = r2.get('value_counter')
+                    value['reference'] = r2.get('value_counter')
                     e.setdefault('counter_property', []).append(r2.get('property_dataproperty'))
                 elif r2.get('property_datatype') == 'counter-value' and r2.get('value_string'):
-                    value = r2.get('value_string')
+                    value['value'] = r2.get('value_string')
 
                 if not value:
                     continue
+
+                value['_mid'] = property_id
+                value['type'] = r2.get('property_datatype')
 
                 if r2.get('property_language'):
                     e.setdefault(r2.get('property_dataproperty'), {}).setdefault(r2.get('property_language'), []).append(value)
