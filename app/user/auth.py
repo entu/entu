@@ -23,7 +23,7 @@ class ShowAuthPage(myRequestHandler):
     def get(self):
         redirect_url = self.get_argument('next', None, strip=True)
 
-        if 'http' in redirect_url:
+        if 'http' not in redirect_url:
             redirect_url = self.request.host + '://' + self.request.host + redirect_url
 
         self.render('user/template/auth.html',
