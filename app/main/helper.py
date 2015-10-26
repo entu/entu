@@ -160,6 +160,7 @@ class myUser(myE):
             return self.__user
 
         session = self.mongodb('entu').request.find_one({'key': session_key})
+        logging.debug(session)
 
         if not session:
             return None
@@ -204,6 +205,8 @@ class myUser(myE):
             ) AS u
             LIMIT 1;
         """, session['_id'], session['user']['name'], session['user']['email'], session['user']['provider'], session['key'], session['user']['email'])
+
+        logging.debug(user)
 
         if not user:
             logging.debug('No current user!')

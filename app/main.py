@@ -25,7 +25,7 @@ from main.db import *
 
 # global variables (and list of all used environment variables)
 APP_VERSION        = os.getenv('VERSION', tornado.version)
-APP_DEBUG          = os.getenv('DEBUG', 'false')
+APP_DEBUG          = str(os.getenv('DEBUG', 'false')).lower() == 'true'
 APP_PORT           = os.getenv('PORT', 3000)
 APP_AUTH_URL       = os.getenv('AUTH_URL', 'https://auth.entu.ee')
 APP_MONGODB        = os.getenv('MONGODB', 'mongodb://localhost:27017/')
@@ -83,7 +83,7 @@ class myApplication(tornado.web.Application):
         # load settings
         settings = {
             'port':                 APP_PORT,
-            'debug':                str(APP_DEBUG).lower() == 'true',
+            'debug':                APP_DEBUG,
             'template_path':        path.join(path.dirname(__file__), '..', 'app'),
             'static_path':          path.join(path.dirname(__file__), '..', 'static'),
             'xsrf_coocies':         True,
@@ -130,8 +130,11 @@ if __name__ == '__main__':
     application.sentry_client = AsyncSentryClient(dsn=APP_SENTRY, release=APP_VERSION)
 
     server = tornado.httpserver.HTTPServer(application, xheaders=True, max_body_size=1024*1024*1024*5)
-    # server.bind(APP_PORT)
-    # server.start(0)
-    server.listen(APP_PORT)
+
+    if APP_DEBUG:
+        server.listen(APP_PORT)
+    else:
+        server.bind(APP_PORT)
+        server.start(0)
 
     tornado.ioloop.IOLoop.current().start()
