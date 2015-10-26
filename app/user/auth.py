@@ -21,10 +21,6 @@ class ShowAuthPage(myRequestHandler):
 
     """
     def get(self):
-
-        if self.get_argument('next', None, strip=True):
-
-
         set_redirect(self)
 
         self.clear_cookie('session')
@@ -39,7 +35,8 @@ class ShowAuthPage(myRequestHandler):
             google = 'https://%s/google?next=%s' % (APP_AUTH_URL, self.get_argument('next', None, strip=True)),
             facebook = 'https://%s/facebook?next=%s' % (APP_AUTH_URL, self.get_argument('next', None, strip=True)),
             twitter = 'https://%s/twitter?next=%s' % (APP_AUTH_URL, self.get_argument('next', None, strip=True)),
-            live = 'https://%s/live?next=%s' % (APP_AUTH_URL, self.get_argument('next', None, strip=True))
+            live = 'https://%s/live?next=%s' % (APP_AUTH_URL, self.get_argument('next', None, strip=True)),
+            taat = 'https://%s/taat?next=%s' % (APP_AUTH_URL, self.get_argument('next', None, strip=True))
         )
 
 
