@@ -317,40 +317,6 @@ class myUser(myE):
         logging.debug('Loaded user #%s' % user.id)
         return user
 
-    def user_login(self, provider=None, provider_id=None, email=None, name=None, picture=None, access_token=None, redirect_url=None):
-        """
-        Starts session. Creates new (or updates old) user.
-
-        """
-        redirect_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
-        session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
-        host = None
-
-
-        if redirect_url and redirect_url != '/':
-            host = redirect_url.replace('http://', '').replace('https://', '').split('/')[0]
-            db = self.get_db(host)
-        else:
-            host = self.request.host
-            db = self.db
-
-        session_id = db.execute_lastrowid('INSERT INTO session SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, ip = %s, browser = %s, session_key = %s, access_token = %s, redirect_url = %s, redirect_key = %s, created = NOW();',
-                # insert
-                provider,
-                provider_id,
-                email,
-                name,
-                picture,
-                self.app_settings('language', 'english'),
-                self.request.remote_ip,
-                self.request.headers.get('User-Agent', None),
-                session_key,
-                access_token,
-                redirect_url,
-                redirect_key
-            )
-
-        return {'id': session_id, 'host': host, 'redirect_key': redirect_key}
 
 class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
     """

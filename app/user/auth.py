@@ -125,17 +125,6 @@ class AuthMobileID(myRequestHandler):
             return self.write({'url': get_redirect(self)})
 
 
-def get_redirect(rh):
-    """
-    Returns requested URL (or / if not set) from cookie.
-
-    """
-    redirect_url = rh.get_cookie('auth_redirect')
-    if redirect_url:
-        return redirect_url
-    return '/'
-
-
 handlers = [
     ('/auth', ShowAuthPage),
     ('/auth/mobileid', AuthMobileID),
