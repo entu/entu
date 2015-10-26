@@ -24,13 +24,10 @@ class ShowAuthPage(myRequestHandler):
         self.clear_all_cookies()
         self.clear_all_cookies(domain=self.settings['cookie_domain'])
 
-        redirect_url = self.get_argument('next', None, strip=True)
-
+        redirect_url = self.get_argument('next', '', strip=True)
         if redirect_url:
             if 'http' not in redirect_url:
                 redirect_url = self.request.protocol + '://' + self.request.host + redirect_url
-        else:
-            redirect_url = ''
 
         if self.get_cookie('auth_provider'):
             self.redirect('%s/%s?next=%s' % (self.settings['auth_url'], self.get_cookie('auth_provider'), redirect_url))
