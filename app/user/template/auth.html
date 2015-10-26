@@ -90,73 +90,69 @@
 
             $('#content-wrap .content').css('min-height', $(document).height() - 255 + 'px');
 
-            {% if mobileid %}
+            $('.mobileid').click(function() {
+                $('#mobileid-input').toggle();
+                $('#mobileid-input').addClass('info');
+                $('#mobileid-phone').focus();
+            });
 
-                $('.mobileid').click(function() {
-                    $('#mobileid-input').toggle();
-                    $('#mobileid-input').addClass('info');
-                    $('#mobileid-phone').focus();
-                });
+            $('.mobileid').hover(function() {
+                $('#mobileid-input').addClass('info');
+            });
 
-                $('.mobileid').hover(function() {
-                    $('#mobileid-input').addClass('info');
-                });
+            $('#mobileid-input').hover(function() {
+                $(this).prev().addClass('info');
+            });
 
-                $('#mobileid-input').hover(function() {
-                    $(this).prev().addClass('info');
-                });
-
-                mobile_id_inprogress = false;
-                $('#mobileid-form').submit(function(e) {
-                    if($('#mobileid-phone').val() && !mobile_id_inprogress) {
-                        mobile_id_inprogress = true;
-                        $.post('/auth/mobileid', {
-                            mobile: $('#mobileid-phone').val(),
-                        }, function(data) {
-                            mobile_id_inprogress = false;
-                            $('#mobileid-code').html('');
-                            if(data){
-                                $('#mobileid-code').html(data.code);
-                                $('#mobileid-code').data('session', data.session);
-                                $('#mobileid-code').data('file', data.file);
-                                $('#login-authenticators').hide();
-                                $('#login-mid').show();
-                                setTimeout(mobile_id_check, 5000);
-                            } else {
-                                $('#mobileid-phone').select();
-                                $('#mobileid-form').effect('shake', { times:3 }, 100);
-                            }
-                        }, 'json');
-                    }
-                    return false;
-                });
-
-                function mobile_id_check() {
+            mobile_id_inprogress = false;
+            $('#mobileid-form').submit(function(e) {
+                if($('#mobileid-phone').val() && !mobile_id_inprogress) {
+                    mobile_id_inprogress = true;
                     $.post('/auth/mobileid', {
-                        session: $('#mobileid-code').data('session'),
-                        file: $('#mobileid-code').data('file'),
+                        mobile: $('#mobileid-phone').val(),
                     }, function(data) {
-                        if(data) {
-                            if(data.url) {
-                                window.location.href = data.url;
-                            } else if(data.in_progress) {
-                                setTimeout(mobile_id_check, 2000);
-                            } else {
-                                $('#mobileid-cancel').click();
-                            }
+                        mobile_id_inprogress = false;
+                        $('#mobileid-code').html('');
+                        if(data){
+                            $('#mobileid-code').html(data.code);
+                            $('#mobileid-code').data('session', data.session);
+                            $('#mobileid-code').data('file', data.file);
+                            $('#login-authenticators').hide();
+                            $('#login-mid').show();
+                            setTimeout(mobile_id_check, 5000);
+                        } else {
+                            $('#mobileid-phone').select();
+                            $('#mobileid-form').effect('shake', { times:3 }, 100);
                         }
                     }, 'json');
                 }
+                return false;
+            });
 
-                $('#mobileid-cancel').click(function() {
-                    $('#mobileid-phone').val('')
-                    $('#mobileid-input').hide();
-                    $('#mobileid-code').html('');
-                    $('#login-mid').hide();
-                    $('#login-authenticators').show();
-                });
+            function mobile_id_check() {
+                $.post('/auth/mobileid', {
+                    session: $('#mobileid-code').data('session'),
+                    file: $('#mobileid-code').data('file'),
+                }, function(data) {
+                    if(data) {
+                        if(data.url) {
+                            window.location.href = data.url;
+                        } else if(data.in_progress) {
+                            setTimeout(mobile_id_check, 2000);
+                        } else {
+                            $('#mobileid-cancel').click();
+                        }
+                    }
+                }, 'json');
+            }
 
-            {% end %}
+            $('#mobileid-cancel').click(function() {
+                $('#mobileid-phone').val('')
+                $('#mobileid-input').hide();
+                $('#mobileid-code').html('');
+                $('#login-mid').hide();
+                $('#login-authenticators').show();
+            });
 
             $('tr').hover(function() {
                 $(this).addClass('info');
