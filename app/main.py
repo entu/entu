@@ -83,7 +83,7 @@ class myApplication(tornado.web.Application):
         # load settings
         settings = {
             'port':                 APP_PORT,
-            'debug':                True if str(APP_DEBUG).lower() == 'true' else False,
+            'debug':                str(APP_DEBUG).lower() == 'true',
             'template_path':        path.join(path.dirname(__file__), '..', 'app'),
             'static_path':          path.join(path.dirname(__file__), '..', 'static'),
             'xsrf_coocies':         True,
@@ -130,7 +130,8 @@ if __name__ == '__main__':
     application.sentry_client = AsyncSentryClient(dsn=APP_SENTRY, release=APP_VERSION)
 
     server = tornado.httpserver.HTTPServer(application, xheaders=True, max_body_size=1024*1024*1024*5)
-    server.bind(APP_PORT)
-    server.start(0)
+    # server.bind(APP_PORT)
+    # server.start(0)
+    server.listen(APP_PORT)
 
     tornado.ioloop.IOLoop.current().start()
