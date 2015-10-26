@@ -372,7 +372,7 @@ class myUser(myE):
                 session = self.mongodb('entu').session.delete_many({'key': self.current_user.user_id})
 
         self.clear_cookie('session', domain=self.settings['cookie_domain'])
-)
+
 
 
 class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
