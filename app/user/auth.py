@@ -25,7 +25,7 @@ class ShowAuthPage(myRequestHandler):
 
         if redirect_url:
             if 'http' not in redirect_url:
-                redirect_url = self.request.host + '://' + self.request.host + redirect_url
+                redirect_url = self.request.protocol + '://' + self.request.host + redirect_url
         else:
             redirect_url = ''
 
