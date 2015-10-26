@@ -169,7 +169,7 @@ class myUser(myE):
                 u.entity_id AS id,
                 %s AS user_id,
                 %s AS name,
-                'et' AS language,
+                'estonian' AS language,
                 0 AS hide_menu,
                 IFNULL((
                     SELECT property.value_string
