@@ -370,20 +370,6 @@ class myUser(myE):
 
         return {'id': session_id, 'host': host, 'redirect_key': redirect_key}
 
-    def user_login_redirect(self, session_id=None, redirect_key=None):
-        if not redirect_key or not session_id:
-            return self.redirect('/')
-
-        user = self.db.get('SELECT session_key, redirect_url FROM session WHERE id = %s AND redirect_key = %s LIMIT 1;', session_id, redirect_key)
-        if not user:
-            return self.redirect('/')
-
-        self.db.execute('UPDATE session SET redirect_url = NULL, redirect_key = NULL WHERE id = %s AND redirect_key = %s;', session_id, redirect_key)
-
-        self.clear_cookie('session')
-        self.set_cookie(name='session', value=user.session_key, expires_days=14)
-        self.redirect(user.redirect_url)
-
     def user_logout(self, session_key=None):
         """
         Ends user session.

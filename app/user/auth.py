@@ -21,6 +21,8 @@ class ShowAuthPage(myRequestHandler):
 
     """
     def get(self):
+        self.clear_all_cookies()
+
         redirect_url = self.get_argument('next', None, strip=True)
 
         if redirect_url:
@@ -36,187 +38,6 @@ class ShowAuthPage(myRequestHandler):
             live = '%s/live?next=%s' % (self.settings['auth_url'], redirect_url),
             taat = '%s/taat?next=%s' % (self.settings['auth_url'], redirect_url)
         )
-
-
-class Exit(myRequestHandler):
-    """
-    Log out.
-
-    """
-    def get(self):
-        redirect_url = '/'
-        if self.current_user:
-            if self.current_user.provider == 'google':
-                redirect_url = 'https://www.google.com/accounts/logout'
-            elif self.current_user.provider == 'facebook':
-                redirect_url = 'https://www.facebook.com/logout.php?access_token=%s&confirm=1&next=%s://%s/status' % (self.current_user.access_token, self.request.protocol, self.request.host)
-            elif self.current_user.provider == 'live':
-                redirect_url = 'https://login.live.com/oauth20_logout.srf?client_id=%s&redirect_uri=%s://%s/status' % (self.app_settings('auth-live', '\n', True).split('\n')[0], self.request.protocol, self.request.host)
-
-            self.user_logout()
-
-        self.redirect(redirect_url)
-
-
-class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
-    """
-    Google, Facebook and MSLive authentication.
-
-    """
-    @web.asynchronous
-    def get(self, provider):
-        self.oauth2_provider = None
-
-        if self.get_argument('next', default=None, strip=True):
-            set_redirect(self)
-
-        if provider == 'facebook' and self.app_settings('auth-facebook'):
-            # https://developers.facebook.com/apps
-            self.oauth2_provider = {
-                'provider':     'facebook',
-                'key':          self.app_settings('auth-facebook', '\n', True).split('\n')[0],
-                'secret':       self.app_settings('auth-facebook', '\n', True).split('\n')[1],
-                'auth_url':     'https://www.facebook.com/dialog/oauth?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s',
-                'token_url':    'https://graph.facebook.com/oauth/access_token',
-                'info_url':     'https://graph.facebook.com/me?access_token=%(token)s',
-                'scope':        'email',
-                'user_id':      '%(id)s',
-                'user_email':   '%(email)s',
-                'user_name':    '%(name)s',
-                'user_picture': 'http://graph.facebook.com/%(id)s/picture?type=large',
-            }
-
-        if provider == 'google' and self.app_settings('auth-google'):
-            # https://code.google.com/apis/console
-            self.oauth2_provider = {
-                'provider':     'google',
-                'key':          self.app_settings('auth-google', '\n', True).split('\n')[0],
-                'secret':       self.app_settings('auth-google', '\n', True).split('\n')[1],
-                'auth_url':     'https://accounts.google.com/o/oauth2/auth?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s&response_type=code&approval_prompt=auto&access_type=online',
-                'token_url':    'https://accounts.google.com/o/oauth2/token',
-                'info_url':     'https://www.googleapis.com/oauth2/v2/userinfo?access_token=%(token)s',
-                'scope':        'https://www.googleapis.com/auth/userinfo.profile+https://www.googleapis.com/auth/userinfo.email',
-                'user_id':      '%(id)s',
-                'user_email':   '%(email)s',
-                'user_name':    '%(name)s',
-                'user_picture': '%(picture)s',
-            }
-        if provider == 'live' and self.app_settings('auth-live'):
-            # https://account.live.com/developers/applications/index
-            self.oauth2_provider = {
-                'provider':     'live',
-                'key':          self.app_settings('auth-live', '\n', True).split('\n')[0],
-                'secret':       self.app_settings('auth-live', '\n', True).split('\n')[1],
-                'auth_url':     'https://login.live.com/oauth20_authorize.srf?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s&response_type=code',
-                'token_url':    'https://login.live.com/oauth20_token.srf',
-                'info_url':     'https://apis.live.net/v5.0/me?access_token=%(token)s',
-                'scope':        'wl.basic+wl.emails',
-                'user_id':      '%(id)s',
-                'user_email':   '',
-                'user_name':    '%(name)s',
-                'user_picture': 'https://apis.live.net/v5.0/%(id)s/picture',
-            }
-
-        if not self.oauth2_provider:
-            return self.finish()
-
-        self._OAUTH_AUTHORIZE_URL = self.oauth2_provider['auth_url']
-
-        url = self.request.protocol + '://' + self.request.host + '/auth/' + self.oauth2_provider['provider']
-
-        if not self.get_argument('code', None):
-            return self.redirect(self.oauth2_provider['auth_url'] % {
-                'id':       self.oauth2_provider['key'],
-                'redirect': url,
-                'scope':    self.oauth2_provider['scope'],
-                'state':    ''.join(random.choice(string.ascii_letters + string.digits) for x in range(16)),
-            })
-
-        if self.get_argument('error', None):
-            logging.error('%s oauth error: %s' % (self.oauth2_provider['provider'], self.get_argument('error', None)))
-            return self.redirect(get_redirect(self))
-
-        httpclient.AsyncHTTPClient().fetch(self.oauth2_provider['token_url'],
-            method = 'POST',
-            headers = {'Content-Type': 'application/x-www-form-urlencoded'},
-            body = urllib.urlencode({
-                'client_id':        self.oauth2_provider['key'],
-                'client_secret':    self.oauth2_provider['secret'],
-                'redirect_uri':     url,
-                'code':             self.get_argument('code', None),
-                'grant_type':       'authorization_code',
-            }),
-            callback = self._got_token,
-        )
-
-    @web.asynchronous
-    def _got_token(self, response):
-        access_token = response.body
-        try:
-            access_token = json.loads(access_token)
-            if 'error' in access_token:
-                logging.error('%s oauth error: %s' % (self.oauth2_provider['provider'], access_token['error']))
-                return self.redirect(get_redirect(self))
-            access_token = access_token['access_token']
-        except:
-            try:
-                access_token = urlparse.parse_qs(access_token)
-                if 'error' in access_token:
-                    logging.error('%s oauth error: %s' % (self.oauth2_provider['provider'], access_token['error']))
-                    return self.redirect(get_redirect(self))
-                access_token = access_token['access_token'][0]
-            except:
-                logging.error('%s oauth error' % self.oauth2_provider['provider'])
-                return self.redirect(get_redirect(self))
-
-        httpclient.AsyncHTTPClient().fetch(self.oauth2_provider['info_url'] %  {'token': access_token },
-            callback = self._got_user
-        )
-
-    @web.asynchronous
-    def _got_user(self, response):
-        try:
-            user = json.loads(response.body)
-            access_token = response.effective_url.split('access_token=')[1]
-            if 'error' in user:
-                logging.error('%s oauth error: %s' % (self.oauth2_provider['provider'], user['error']))
-                return self.redirect(get_redirect(self))
-        except:
-            return
-
-        if self.oauth2_provider['provider'] == 'facebook':
-            session_dict = self.user_login(
-                provider        = self.oauth2_provider['provider'],
-                provider_id     = user.get('id'),
-                email           = user.get('email'),
-                name            = user.get('name'),
-                picture         = 'http://graph.facebook.com/%s/picture?type=large' % user.get('id'),
-                access_token    = access_token,
-                redirect_url    = get_redirect(self),
-            )
-        if self.oauth2_provider['provider'] == 'google':
-            session_dict = self.user_login(
-                provider        = self.oauth2_provider['provider'],
-                provider_id     = user.get('id'),
-                email           = user.get('email'),
-                name            = user.get('name'),
-                picture         = user.get('picture'),
-                access_token    = access_token,
-                redirect_url    = get_redirect(self),
-            )
-        if self.oauth2_provider['provider'] == 'live':
-            session_dict = self.user_login(
-                provider        = self.oauth2_provider['provider'],
-                provider_id     = user.get('id'),
-                email           = user.get('emails', {}).get('preferred', user.get('emails', {}).get('preferred', user.get('personal', {}).get('account'))),
-                name            = user.get('name'),
-                picture         = 'https://apis.live.net/v5.0/%s/picture' % user.get('id'),
-                access_token    = access_token,
-                redirect_url    = get_redirect(self),
-            )
-
-        if session_dict:
-            self.redirect('https://%(host)s/auth/redirect?user=%(id)s&key=%(redirect_key)s' % session_dict)
 
 
 class AuthMobileID(myRequestHandler):
@@ -301,25 +122,6 @@ class AuthMobileID(myRequestHandler):
             return self.write({'url': get_redirect(self)})
 
 
-class AuthRedirect(myRequestHandler):
-    """
-    Redirect.
-
-    """
-    def get(self):
-        self.user_login_redirect(session_id=self.get_argument('user', None, True), redirect_key=self.get_argument('key', None, True))
-
-
-def set_redirect(rh):
-    """
-    Saves requested URL to cookie, then (after authentication) we know where to go.
-
-    """
-    if rh.get_argument('next', None, strip=True):
-        rh.clear_cookie('auth_redirect')
-        rh.set_cookie(name='auth_redirect', value=rh.get_argument('next', default='/', strip=True), expires_days=1)
-
-
 def get_redirect(rh):
     """
     Returns requested URL (or / if not set) from cookie.
@@ -333,8 +135,5 @@ def get_redirect(rh):
 
 handlers = [
     ('/auth', ShowAuthPage),
-    ('/auth/redirect', AuthRedirect),
     ('/auth/mobileid', AuthMobileID),
-    ('/auth/(.*)', AuthOAuth2),
-    ('/exit', Exit),
 ]
