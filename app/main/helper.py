@@ -317,16 +317,6 @@ class myUser(myE):
         logging.debug('Loaded user #%s' % user.id)
         return user
 
-    def set_preferences(self, key, value):
-        if key == 'language' and value in ['estonian', 'english']:
-            self.db.execute('UPDATE session SET language = %s WHERE id = %s;', value, self.get_current_user().user_id)
-        elif key == 'hide_menu' and value.lower() in ['true', 'false']:
-            if value.lower() == 'true':
-                value = True
-            else:
-                value = False
-            self.db.execute('UPDATE session SET hide_menu = %s WHERE id = %s;', value, self.get_current_user().user_id)
-
     def user_login(self, provider=None, provider_id=None, email=None, name=None, picture=None, access_token=None, redirect_url=None):
         """
         Starts session. Creates new (or updates old) user.
@@ -361,19 +351,6 @@ class myUser(myE):
             )
 
         return {'id': session_id, 'host': host, 'redirect_key': redirect_key}
-
-    def user_logout(self, session_key=None):
-        """
-        Ends user session.
-
-        """
-        if self.current_user:
-            if self.current_user.user_id:
-                session = self.mongodb('entu').session.delete_many({'key': self.current_user.user_id})
-
-        self.clear_cookie('session', domain=self.settings['cookie_domain'])
-
-
 
 class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
     """
