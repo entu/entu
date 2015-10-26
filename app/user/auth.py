@@ -22,6 +22,7 @@ class ShowAuthPage(myRequestHandler):
     """
     def get(self):
         self.clear_all_cookies()
+        self.clear_all_cookies(domain=self.settings['cookie_domain'])
 
         redirect_url = self.get_argument('next', None, strip=True)
 

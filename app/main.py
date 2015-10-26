@@ -27,6 +27,7 @@ from main.db import *
 APP_VERSION        = os.getenv('VERSION', tornado.version)
 APP_DEBUG          = str(os.getenv('DEBUG', 'false')).lower() == 'true'
 APP_PORT           = os.getenv('PORT', 3000)
+APP_COOKIE_DOMAIN  = os.getenv('COOKIE_DOMAIN', '.entu.ee')
 APP_AUTH_URL       = os.getenv('AUTH_URL', 'https://auth.entu.ee')
 APP_MONGODB        = os.getenv('MONGODB', 'mongodb://localhost:27017/')
 APP_MYSQL_HOST     = os.getenv('MYSQL_HOST', 'localhost')
@@ -34,7 +35,6 @@ APP_MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
 APP_MYSQL_USER     = os.getenv('MYSQL_USER')
 APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
 APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
-APP_SECRET         = os.getenv('SECRET', 'ABC123')
 APP_SENTRY         = os.getenv('SENTRY_DSN')
 
 
@@ -89,6 +89,7 @@ class myApplication(tornado.web.Application):
             'xsrf_coocies':         True,
             'login_url':            '/auth',
             'auth_url':             APP_AUTH_URL,
+            'cookie_domain':        APP_COOKIE_DOMAIN,
             'start_time':           time.time(),
             'request_count':        0,
             'request_time':         0,
@@ -101,7 +102,6 @@ class myApplication(tornado.web.Application):
             'database-user':        APP_MYSQL_USER,
             'database-password':    APP_MYSQL_PASSWORD,
             'customergroup':        APP_CUSTOMERGROUP,
-            'secret':               APP_SECRET,
             'mongodbs':             {},
             'databases':            {},
         }

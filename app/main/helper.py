@@ -59,14 +59,6 @@ class myDatabase():
         if self.get_app_settings():
             return self.get_app_settings().get(key, default)
 
-        # if not do_something_fun:
-        #     return self.get_app_settings().get(key, default)
-        # try:
-        #     s = self.get_app_settings().get(key)
-        #     return SimpleAES('%s.%s' % (self.settings['secret'], self.app_settings('database-name'))).decrypt('\n'.join(s[pos:pos+64] for pos in xrange(0, len(s), 64))).strip()
-        # except Exception:
-        #     return default
-
     def get_app_settings(self, host=None):
         if not host:
             host = self.request.host
@@ -376,9 +368,11 @@ class myUser(myE):
 
         """
         if self.current_user:
-            self.db.execute('UPDATE session SET session_key = NULL, access_token = NULL, redirect_url = NULL, redirect_key = NULL WHERE id = %s;', self.current_user.user_id)
+            if self.current_user.user_id:
+                session = self.mongodb('entu').session.delete_many({'key': self.current_user.user_id})
 
-        self.clear_cookie('session')
+        self.clear_cookie('session', domain=self.settings['cookie_domain'])
+)
 
 
 class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
