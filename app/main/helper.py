@@ -159,7 +159,7 @@ class myUser(myE):
         if self.__user and self.__session_key == session_key:
             return self.__user
 
-        session = self.mongodb('entu').request.find_one({'key': session_key})
+        session = self.mongodb('entu').session.find_one({'key': session_key})
         logging.debug(session)
 
         if not session:
