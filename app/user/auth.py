@@ -21,7 +21,7 @@ class ShowAuthPage(myRequestHandler):
 
     """
     def get(self):
-        redirect_url = self.get_argument('next', None, strip=True)
+        redirect_url = self.get_argument('next', '', strip=True)
 
         if 'http' not in redirect_url:
             redirect_url = self.request.host + '://' + self.request.host + redirect_url
@@ -30,7 +30,6 @@ class ShowAuthPage(myRequestHandler):
             mobileid = True if self.app_settings('auth-mobileid') else False,
             google = '%s/google?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
             facebook = '%s/facebook?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
-            twitter = '%s/twitter?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
             live = '%s/live?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
             taat = '%s/taat?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True))
         )
