@@ -22,75 +22,63 @@
 
 {% block content %}
     <div class="container" style="">
-        {% if mobileid %}
-            <div id="login-mid" class="login-box" style="display:none;">
-                <h2 id="mobileid-code"></h2>
-                <span style="padding: 0px 20px;">{{ _('log_in_mid_message') }}</span>
-                <h2><i class="fa fa-spinner fa-spin"></i></h2>
-                <button id="mobileid-cancel" class="btn btn-link" type="button">{{ _('log_in_mid_cancel') }}</button>
-            </div>
-        {% end %}
+        <div id="login-mid" class="login-box" style="display:none;">
+            <h2 id="mobileid-code"></h2>
+            <span style="padding: 0px 20px;">{{ _('log_in_mid_message') }}</span>
+            <h2><i class="fa fa-spinner fa-spin"></i></h2>
+            <button id="mobileid-cancel" class="btn btn-link" type="button">{{ _('log_in_mid_cancel') }}</button>
+        </div>
         <div id="login-authenticators" class="login-box">
             <h2>{{ _('log_in') }}</h2>
             <table class="table" style="width:100%; margin-top:20px; background:white;">
-                {% if mobileid %}
-                    <tr class="mobileid">
-                        <td style="padding:0px; vertical-align:middle; border-top: none;">
-                            <a class="no-underline" href="javascript:void(0);" style="padding:7px 5px; display:block; text-align:right;"><i class="fa fa-mobile-phone" style="padding-right:5px; font-size:24px; line-height:24px; color:#F04822;"></i></a>
-                        </td>
-                        <td style="padding:0px; vertical-align:middle; border-left:none; border-top: none;">
-                            <a class="no-underline" href="javascript:void(0);" style="padding:7px 5px; display:block; color:black; font-weight:bold;">Mobiil-ID</a>
-                        </td>
-                    </tr>
-                    <tr id="mobileid-input" style="display:none;">
-                        <td colspan="2" style="text-align:center; border-top:none; padding-bottom:10px;" >
-                            <form id="mobileid-form" class="input-append" style="margin:0px; padding:0px;">
-                                <input id="mobileid-phone" class="span2" type="text" placeholder="{{ _('log_in_mid_phone') }}" />
-                                <button id="mobileid-submit" class="btn" type="submit">{{ _('log_in_mid_go') }}</button>
-                            </form>
-                        </td>
-                    </tr>
-                {% end %}
-                {% if google %}
-                    <tr>
-                        <td style="padding:0px; vertical-align:middle; width:100px;">
-                            <a class="no-underline" href="{{ google }}" style="padding:7px 5px; display:block; text-align:right;"><i class="fa fa-google-plus-square" style="font-size:24px; line-height:24px; color:#DC2400;"></i></a>
-                        </td>
-                        <td style="padding:0px; vertical-align:middle; border-left:none;">
-                            <a class="no-underline" href="{{ google }}" style="padding:7px 5px; display:block; color:black; font-weight:bold;">Google</a>
-                        </td>
-                    </tr>
-                {% end %}
-                {% if facebook %}
-                    <tr>
-                        <td style="padding:0px; vertical-align:middle; width:100px;">
-                            <a class="no-underline" href="{{ facebook }}" style="padding:7px 5px; display:block; text-align:right;"><i class="fa fa-facebook-square" style="font-size:24px; line-height:24px; color:#39579A";></i></a>
-                        </td>
-                        <td style="padding:0px; vertical-align:middle; border-left:none;">
-                            <a class="no-underline" href="{{ facebook }}" style="padding:7px 5px; display:block; color:black; font-weight:bold;">Facebook</a>
-                        </td>
-                    </tr>
-                {% end %}
-                {% if live %}
-                    <tr>
-                        <td style="padding:0px; vertical-align:middle; width:100px;">
-                            <a class="no-underline" href="{{ live }}" style="padding:7px 5px; display:block; text-align:right;"><i class="fa fa-windows" style="font-size:21px; line-height:21px; color:#0070C9;"></i></a>
-                        </td>
-                        <td style="padding:0px; vertical-align:middle; border-left:none;">
-                            <a class="no-underline" href="{{ live }}" style="padding:7px 5px; display:block; color:black; font-weight:bold;">Microsoft</a>
-                        </td>
-                    </tr>
-                {% end %}
-                {% if taat %}
-                    <tr>
-                        <td style="padding:0px; vertical-align:middle; width:100px;">
-                            <a class="no-underline" href="{{ taat }}" style="padding:7px 3px; display:block; text-align:right;"><i class="fa fa-university" style="font-size:19px; line-height:19px; color:#369a21;"></i></a>
-                        </td>
-                        <td style="padding:0px; vertical-align:middle; border-left:none;">
-                            <a class="no-underline" href="{{ taat }}" style="padding:7px 5px; display:block; color:black; font-weight:bold;">TAAT</a>
-                        </td>
-                    </tr>
-                {% end %}
+                <tr class="mobileid">
+                    <td style="padding:0px; vertical-align:middle; border-top: none;">
+                        <a class="no-underline" href="javascript:void(0);" style="padding:7px 5px; display:block; text-align:right;"><i class="fa fa-mobile-phone" style="padding-right:5px; font-size:24px; line-height:24px; color:#F04822;"></i></a>
+                    </td>
+                    <td style="padding:0px; vertical-align:middle; border-left:none; border-top: none;">
+                        <a class="no-underline" href="javascript:void(0);" style="padding:7px 5px; display:block; color:black; font-weight:bold;">Mobiil-ID</a>
+                    </td>
+                </tr>
+                <tr id="mobileid-input" style="display:none;">
+                    <td colspan="2" style="text-align:center; border-top:none; padding-bottom:10px;" >
+                        <form id="mobileid-form" class="input-append" style="margin:0px; padding:0px;">
+                            <input id="mobileid-phone" class="span2" type="text" placeholder="{{ _('log_in_mid_phone') }}" />
+                            <button id="mobileid-submit" class="btn" type="submit">{{ _('log_in_mid_go') }}</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:0px; vertical-align:middle; width:100px;">
+                        <a class="no-underline" href="{{ google }}" style="padding:7px 5px; display:block; text-align:right;"><i class="fa fa-google-plus-square" style="font-size:24px; line-height:24px; color:#DC2400;"></i></a>
+                    </td>
+                    <td style="padding:0px; vertical-align:middle; border-left:none;">
+                        <a class="no-underline" href="{{ google }}" style="padding:7px 5px; display:block; color:black; font-weight:bold;">Google</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:0px; vertical-align:middle; width:100px;">
+                        <a class="no-underline" href="{{ facebook }}" style="padding:7px 5px; display:block; text-align:right;"><i class="fa fa-facebook-square" style="font-size:24px; line-height:24px; color:#39579A";></i></a>
+                    </td>
+                    <td style="padding:0px; vertical-align:middle; border-left:none;">
+                        <a class="no-underline" href="{{ facebook }}" style="padding:7px 5px; display:block; color:black; font-weight:bold;">Facebook</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:0px; vertical-align:middle; width:100px;">
+                        <a class="no-underline" href="{{ live }}" style="padding:7px 5px; display:block; text-align:right;"><i class="fa fa-windows" style="font-size:21px; line-height:21px; color:#0070C9;"></i></a>
+                    </td>
+                    <td style="padding:0px; vertical-align:middle; border-left:none;">
+                        <a class="no-underline" href="{{ live }}" style="padding:7px 5px; display:block; color:black; font-weight:bold;">Microsoft</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:0px; vertical-align:middle; width:100px;">
+                        <a class="no-underline" href="{{ taat }}" style="padding:7px 3px; display:block; text-align:right;"><i class="fa fa-university" style="font-size:19px; line-height:19px; color:#369a21;"></i></a>
+                    </td>
+                    <td style="padding:0px; vertical-align:middle; border-left:none;">
+                        <a class="no-underline" href="{{ taat }}" style="padding:7px 5px; display:block; color:black; font-weight:bold;">TAAT</a>
+                    </td>
+                </tr>
             </table>
             <div class="muted" style="position:absolute; text-align:center; bottom:0px; padding:20px;">
                 <small>{{ _('log_in_info') }}</small>

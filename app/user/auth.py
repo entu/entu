@@ -32,7 +32,6 @@ class ShowAuthPage(myRequestHandler):
             redirect_url = ''
 
         self.render('user/template/auth.html',
-            mobileid = True if self.app_settings('auth-mobileid') else False,
             google = '%s/google?next=%s' % (self.settings['auth_url'], redirect_url),
             facebook = '%s/facebook?next=%s' % (self.settings['auth_url'], redirect_url),
             live = '%s/live?next=%s' % (self.settings['auth_url'], redirect_url),
