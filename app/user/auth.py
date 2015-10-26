@@ -32,11 +32,11 @@ class ShowAuthPage(myRequestHandler):
 
         self.render('user/template/auth.html',
             mobileid = True if self.app_settings('auth-mobileid') else False,
-            google = 'https://%s/google?next=%s' % (APP_AUTH_URL, self.get_argument('next', None, strip=True)),
-            facebook = 'https://%s/facebook?next=%s' % (APP_AUTH_URL, self.get_argument('next', None, strip=True)),
-            twitter = 'https://%s/twitter?next=%s' % (APP_AUTH_URL, self.get_argument('next', None, strip=True)),
-            live = 'https://%s/live?next=%s' % (APP_AUTH_URL, self.get_argument('next', None, strip=True)),
-            taat = 'https://%s/taat?next=%s' % (APP_AUTH_URL, self.get_argument('next', None, strip=True))
+            google = 'https://%s/google?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
+            facebook = 'https://%s/facebook?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
+            twitter = 'https://%s/twitter?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
+            live = 'https://%s/live?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
+            taat = 'https://%s/taat?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True))
         )
 
 

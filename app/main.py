@@ -88,6 +88,7 @@ class myApplication(tornado.web.Application):
             'static_path':          path.join(path.dirname(__file__), '..', 'static'),
             'xsrf_coocies':         True,
             'login_url':            '/auth',
+            'auth_url':             APP_AUTH_URL,
             'start_time':           time.time(),
             'request_count':        0,
             'request_time':         0,
