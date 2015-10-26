@@ -32,12 +32,15 @@ class ShowAuthPage(myRequestHandler):
         else:
             redirect_url = ''
 
-        self.render('user/template/auth.html',
-            google = '%s/google?next=%s' % (self.settings['auth_url'], redirect_url),
-            facebook = '%s/facebook?next=%s' % (self.settings['auth_url'], redirect_url),
-            live = '%s/live?next=%s' % (self.settings['auth_url'], redirect_url),
-            taat = '%s/taat?next=%s' % (self.settings['auth_url'], redirect_url)
-        )
+        if self.get_cookie('auth_provider'):
+            self.redirect('%s/%s?next=%s' % (self.settings['auth_url'], self.get_cookie('auth_provider'), redirect_url))
+        else:
+            self.render('user/template/auth.html',
+                google = '%s/google?next=%s' % (self.settings['auth_url'], redirect_url),
+                facebook = '%s/facebook?next=%s' % (self.settings['auth_url'], redirect_url),
+                live = '%s/live?next=%s' % (self.settings['auth_url'], redirect_url),
+                taat = '%s/taat?next=%s' % (self.settings['auth_url'], redirect_url)
+            )
 
 
 class AuthMobileID(myRequestHandler):
