@@ -21,17 +21,20 @@ class ShowAuthPage(myRequestHandler):
 
     """
     def get(self):
-        redirect_url = self.get_argument('next', '', strip=True)
+        redirect_url = self.get_argument('next', None, strip=True)
 
-        if 'http' not in redirect_url:
-            redirect_url = self.request.host + '://' + self.request.host + redirect_url
+        if redirect_url:
+            if 'http' not in redirect_url:
+                redirect_url = self.request.host + '://' + self.request.host + redirect_url
+        else:
+            redirect_url = ''
 
         self.render('user/template/auth.html',
             mobileid = True if self.app_settings('auth-mobileid') else False,
-            google = '%s/google?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
-            facebook = '%s/facebook?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
-            live = '%s/live?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
-            taat = '%s/taat?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True))
+            google = '%s/google?next=%s' % (self.settings['auth_url'], redirect_url),
+            facebook = '%s/facebook?next=%s' % (self.settings['auth_url'], redirect_url),
+            live = '%s/live?next=%s' % (self.settings['auth_url'], redirect_url),
+            taat = '%s/taat?next=%s' % (self.settings['auth_url'], redirect_url)
         )
 
 
