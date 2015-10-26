@@ -159,15 +159,20 @@ class myUser(myE):
         if self.__user and self.__session_key == session_key:
             return self.__user
 
+        session = self.mongodb('entu').request.find_one({'key': session_key})
+
+        if not session:
+            return None
+
         user = self.db.get("""
             SELECT
                 u.entity_id AS id,
-                session.id AS user_id,
-                session.name,
-                session.language,
-                session.hide_menu,
+                %s AS user_id,
+                %s AS name,
+                'et' AS language,
+                0 AS hide_menu,
                 IFNULL((
-                    SELECT value_string
+                    SELECT property.value_string
                     FROM
                         property,
                         property_definition
@@ -177,16 +182,13 @@ class myUser(myE):
                     AND property_definition.dataproperty = 'email'
                     ORDER BY property.id
                     LIMIT 1
-                ), session.email) AS email,
-                session.provider,
-                session.access_token,
-                session.session_key,
+                ), %s) AS email,
+                %s AS provider,
+                NULL AS access_token,
+                %s AS session_key,
                 NULL AS api_key
-            FROM session
-            LEFT JOIN (
-                SELECT
-                    property.value_string,
-                    property.entity_id
+            FROM (
+                SELECT property.entity_id
                 FROM
                     entity,
                     property,
@@ -197,10 +199,11 @@ class myUser(myE):
                 AND entity.is_deleted = 0
                 AND property.is_deleted = 0
                 AND property_definition.dataproperty = 'entu-user'
-            ) AS u ON u.value_string = session.email
-            WHERE session.session_key = %s
+                AND property.value_string = %s
+                LIMIT 1
+            ) AS u
             LIMIT 1;
-        """, session_key)
+        """, session['_id'], session['user']['name'], session['user']['email'], session['user']['provider'], session['key'], session['user']['email'])
 
         if not user:
             logging.debug('No current user!')

@@ -21,6 +21,10 @@ class ShowAuthPage(myRequestHandler):
 
     """
     def get(self):
+
+        if self.get_argument('next', None, strip=True):
+
+
         set_redirect(self)
 
         self.clear_cookie('session')
@@ -32,10 +36,10 @@ class ShowAuthPage(myRequestHandler):
 
         self.render('user/template/auth.html',
             mobileid = True if self.app_settings('auth-mobileid') else False,
-            google = True if self.app_settings('auth-google') else False,
-            facebook = True if self.app_settings('auth-facebook') else False,
-            twitter = True if self.app_settings('auth-twitter') else False,
-            live = True if self.app_settings('auth-live') else False,
+            google = 'https://%s/google?next=%s' % (APP_AUTH_URL, self.get_argument('next', None, strip=True)),
+            facebook = 'https://%s/facebook?next=%s' % (APP_AUTH_URL, self.get_argument('next', None, strip=True)),
+            twitter = 'https://%s/twitter?next=%s' % (APP_AUTH_URL, self.get_argument('next', None, strip=True)),
+            live = 'https://%s/live?next=%s' % (APP_AUTH_URL, self.get_argument('next', None, strip=True))
         )
 
 
