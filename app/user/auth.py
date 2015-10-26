@@ -21,22 +21,18 @@ class ShowAuthPage(myRequestHandler):
 
     """
     def get(self):
-        set_redirect(self)
+        redirect_url = self.get_argument('next', None, strip=True)
 
-        self.clear_cookie('session')
-
-        if self.get_cookie('auth_provider'):
-            url = '/auth/%s' % self.get_cookie('auth_provider')
-            self.clear_cookie('auth_provider', domain='.'.join(['']+self.request.host.split('.')[1:]))
-            return self.redirect(url)
+        if 'http' in redirect_url:
+            redirect_url = self.request.host + '://' + self.request.host + redirect_url
 
         self.render('user/template/auth.html',
             mobileid = True if self.app_settings('auth-mobileid') else False,
-            google = 'https://%s/google?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
-            facebook = 'https://%s/facebook?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
-            twitter = 'https://%s/twitter?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
-            live = 'https://%s/live?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
-            taat = 'https://%s/taat?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True))
+            google = '%s/google?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
+            facebook = '%s/facebook?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
+            twitter = '%s/twitter?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
+            live = '%s/live?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True)),
+            taat = '%s/taat?next=%s' % (self.settings['auth_url'], self.get_argument('next', None, strip=True))
         )
 
 
