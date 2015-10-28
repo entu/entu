@@ -226,7 +226,7 @@ class MySQL2MongoDB():
                     IF(pd.datatype = 'file', (SELECT url FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_url,
                     p.value_counter,
                     p.created,
-                    IF(CAST(p.created_by AS UNSIGNED) > 0, CAST(p.created_by AS UNSIGNED), NULL) AS created_by
+                    IF(CAST(p.created_by AS UNSIGNED) > 0, CAST(p.created_by AS UNSIGNED), NULL) AS created_by,
                     p.is_deleted,
                     p.deleted,
                     IF(CAST(p.deleted_by AS UNSIGNED) > 0, CAST(p.deleted_by AS UNSIGNED), NULL) AS deleted_by
