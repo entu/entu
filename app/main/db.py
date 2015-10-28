@@ -645,19 +645,17 @@ class Entity():
                 property_definition AS pd
             WHERE pd.keyname = p.property_definition_keyname
             AND p.entity_id = %s
-            AND p.is_deleted = 0
-            AND pd.dataproperty NOT IN ('entu-changed-by', 'entu-changed-at', 'entu-created-by', 'entu-created-at');
+            AND pd.dataproperty NOT IN ('entu-changed-by', 'entu-changed-at', 'entu-created-by', 'entu-created-at')
+            AND pd.dataproperty NOT LIKE 'auth_%%'
+            AND pd.datatype NOT IN ('counter')
+            AND pd.property_formula = 0;
         """
 
         properties = {}
         for r2 in self.db.query(sql, mysql_id):
             value = {}
 
-            if r2.get('property_dataproperty', '')[:5] == 'auth_':
-                pass
-            elif r2.get('property_formula') == 1 and r2.get('value_formula'):
-                value['formula'] = r2.get('value_formula')
-            elif r2.get('property_datatype') == 'string' and r2.get('value_string'):
+            if r2.get('property_datatype') == 'string' and r2.get('value_string'):
                 value['value'] = r2.get('value_string')
             elif r2.get('property_datatype') == 'text' and r2.get('value_text'):
                 value['value'] = r2.get('value_text')
@@ -672,6 +670,8 @@ class Entity():
             elif r2.get('property_datatype') == 'reference' and r2.get('value_reference'):
                 value['reference'] = r2.get('value_reference')
                 e.setdefault('_reference_property', []).append(r2.get('property_dataproperty'))
+            elif r2.get('property_datatype') == 'counter-value' and r2.get('value_string'):
+                value['value'] = r2.get('value_string')
             elif r2.get('property_datatype') == 'file' and r2.get('value_file'):
                 value['value'] = r2.get('value_file_name')
                 if r2.get('value_file_url'):
@@ -682,12 +682,6 @@ class Entity():
                         value['md5'] = r2.get('value_file_md5')
                     if r2.get('value_file_s3', None):
                         value['s3'] = r2.get('value_file_s3')
-
-            elif r2.get('property_datatype') == 'counter' and r2.get('value_string'):
-                value['reference'] = r2.get('value_counter')
-                e.setdefault('counter_property', []).append(r2.get('property_dataproperty'))
-            elif r2.get('property_datatype') == 'counter-value' and r2.get('value_string'):
-                value['value'] = r2.get('value_string')
 
             if not value:
                 continue
