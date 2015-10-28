@@ -290,9 +290,9 @@ class MySQL2MongoDB():
                 value['type'] = r2.get('property_datatype')
 
                 if r2.get('property_language'):
-                    e.setdefault(r2.get('property_dataproperty'), {}).setdefault(r2.get('property_language'), []).append(value)
-                else:
-                    e.setdefault(r2.get('property_dataproperty'), []).append(value)
+                    value['language'] = r2.get('property_language')
+
+                e.setdefault(r2.get('property_dataproperty'), []).append(value)
 
                 # if r2.get('value_display') and r2.get('property_search') == 1:
                 #     if r2.get('property_language'):
@@ -301,9 +301,9 @@ class MySQL2MongoDB():
                 #         e.setdefault('_search', {}).setdefault('et', []).append(r2.get('value_display').lower())
                 #         e.setdefault('_search', {}).setdefault('en', []).append(r2.get('value_display').lower())
 
-            for l in ['et', 'en']:
-                if l in e.get('_search', {}):
-                    e['_search'][l] = list(set(e['_search'][l]))
+            # for l in ['et', 'en']:
+            #     if l in e.get('_search', {}):
+            #         e['_search'][l] = list(set(e['_search'][l]))
 
             #Create or replace Mongo object
             mongo_entity = self.mongo_collection.find_one({'_mid': mysql_id}, {'_id': True})
