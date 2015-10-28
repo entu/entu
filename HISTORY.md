@@ -1,3 +1,12 @@
+## 2015-10-28
+* Started to move everything to MongoDB
+    * Authentication is now separate service
+    * Requestlog
+* Added [TAAT](http://taat.edu.ee) authentication
+* Link to referenced entity in public view
+* Support for MailGun tags
+* Errors are logged to [Sentry](https://getsentry.com)
+
 ## 2015-09-15
 * Entu is [dockerized](https://www.docker.com) now
 * 79 commits full of fixes and small enhancements
