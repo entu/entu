@@ -224,7 +224,12 @@ class MySQL2MongoDB():
                     IF(pd.datatype = 'file', (SELECT filename FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_name,
                     IF(pd.datatype = 'file', (SELECT filesize FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_size,
                     IF(pd.datatype = 'file', (SELECT url FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_url,
-                    p.value_counter
+                    p.value_counter,
+                    p.created,
+                    IF(CAST(p.created_by AS UNSIGNED) > 0, CAST(p.created_by AS UNSIGNED), NULL) AS created_by
+                    p.is_deleted,
+                    p.deleted,
+                    IF(CAST(p.deleted_by AS UNSIGNED) > 0, CAST(p.deleted_by AS UNSIGNED), NULL) AS deleted_by
                 FROM
                     property AS p,
                     property_definition AS pd
@@ -275,6 +280,16 @@ class MySQL2MongoDB():
 
                 if r2.get('property_language'):
                     value['language'] = r2.get('property_language')
+
+                if r2.get('created'):
+                    value.setdefault('created', {})['at'] = r2.get('created')
+                if r2.get('created_by'):
+                    value.setdefault('created', {})['by'] = r2.get('created_by')
+
+                if r2.get('is_deleted') and r2.get('deleted'):
+                    value.setdefault('deleted', {})['at'] = r2.get('deleted')
+                if r2.get('is_deleted') and r2.get('deleted_by'):
+                    value.setdefault('deleted', {})['by'] = r2.get('deleted_by')
 
                 e.setdefault(r2.get('property_dataproperty'), []).append(value)
 
