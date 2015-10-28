@@ -154,27 +154,27 @@ class MySQL2MongoDB():
             e['_sharing'] = r.get('entity_sharing')
 
             if r.get('entity_created'):
-                e.setdefault('_created', {})['date'] = r.get('entity_created')
+                e.setdefault('_created', {})['at'] = r.get('entity_created')
             if r.get('entity_created_by'):
-                e.setdefault('_created', {})['reference'] = r.get('entity_created_by')
+                e.setdefault('_created', {})['by'] = r.get('entity_created_by')
             if e.get('_created'):
-                e['_created']['type'] = 'reference'
+                e['_created']['type'] = 'action'
                 e['_created'] = [e.get('_created')]
 
             if r.get('entity_changed'):
-                e.setdefault('_changed', {})['date'] = r.get('entity_changed')
+                e.setdefault('_changed', {})['at'] = r.get('entity_changed')
             if r.get('entity_changed_by'):
-                e.setdefault('_changed', {})['reference'] = r.get('entity_changed_by')
+                e.setdefault('_changed', {})['by'] = r.get('entity_changed_by')
             if e.get('_changed'):
-                e['_changed']['type'] = 'reference'
+                e['_changed']['type'] = 'action'
                 e['_changed'] = [e.get('_changed')]
 
             if r.get('entity_is_deleted') and r.get('entity_deleted'):
-                e.setdefault('_deleted', {})['date'] = r.get('entity_deleted')
+                e.setdefault('_deleted', {})['at'] = r.get('entity_deleted')
             if r.get('entity_is_deleted') and r.get('entity_deleted_by'):
-                e.setdefault('_deleted', {})['reference'] = r.get('entity_deleted_by')
+                e.setdefault('_deleted', {})['by'] = r.get('entity_deleted_by')
             if e.get('_deleted'):
-                e['_deleted']['type'] = 'reference'
+                e['_deleted']['type'] = 'action'
                 e['_deleted'] = [e.get('_deleted')]
 
             viewers = self.__get_mongodb_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'])
