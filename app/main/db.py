@@ -644,7 +644,7 @@ class Entity():
             AND pd.dataproperty NOT IN ('entu-changed-by', 'entu-changed-at', 'entu-created-by', 'entu-created-at')
             AND pd.dataproperty NOT LIKE 'auth_%%'
             AND pd.datatype NOT IN ('counter')
-            AND pd.property_formula = 0;
+            AND pd.formula = 0;
         """
 
         properties = {}
