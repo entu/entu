@@ -641,6 +641,7 @@ class Entity():
                 property_definition AS pd
             WHERE pd.keyname = p.property_definition_keyname
             AND p.entity_id = %s
+            AND p.is_deleted = 0
             AND pd.dataproperty NOT IN ('entu-changed-by', 'entu-changed-at', 'entu-created-by', 'entu-created-at')
             AND pd.dataproperty NOT LIKE 'auth_%%'
             AND pd.datatype NOT IN ('counter')
