@@ -492,39 +492,35 @@ while True:
     print '\n\n%s START' % datetime.now()
 
     for c in customers():
-        try:
-            start = time.time()
+        start = time.time()
 
-            # if c.get('database-name') != 'saksa':
-            #     continue
+        # if c.get('database-name') != 'saksa':
+        #     continue
 
-            m = Maintenance(
-                db_host = c.get('database-host'),
-                db_name = c.get('database-name'),
-                db_user = c.get('database-user'),
-                db_pass = c.get('database-password'),
-                language = c.get('language'),
-                hours = 2,
-                # hours = 876000 , # 100 years
-                speed = total_time / total_count
-            )
+        m = Maintenance(
+            db_host = c.get('database-host'),
+            db_name = c.get('database-name'),
+            db_user = c.get('database-user'),
+            db_pass = c.get('database-password'),
+            language = c.get('language'),
+            hours = 2,
+            # hours = 876000 , # 100 years
+            speed = total_time / total_count
+        )
 
-            m.echo('start', 1)
+        m.echo('start', 1)
 
-            if m.changed_entities:
-                m.set_formula_properties()
-                m.set_reference_properties()
-                m.set_sort()
+        if m.changed_entities:
+            m.set_formula_properties()
+            m.set_reference_properties()
+            m.set_sort()
 
-            else:
-                m.echo('entities not changed', 1)
+        else:
+            m.echo('entities not changed', 1)
 
-            m.echo('end (%ss)\n' % round(time.time() - start, 1), 1)
+        m.echo('end (%ss)\n' % round(time.time() - start, 1), 1)
 
-            total_count += m.formulas
-            total_time += m.time
-
-        except Exception, e:
-            print 'ERROR: %s' % e
+        total_count += m.formulas
+        total_time += m.time
 
         time.sleep(1)
