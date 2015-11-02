@@ -198,13 +198,17 @@ class myUser(myE):
             LIMIT 1;
         """, session['_id'], session['user']['name'], session['user']['email'], session['user']['provider'], session['key'], session['user']['email'])
 
-        if not user and session.get('user', {}).get('email') and self.app_settings('user-parent'):
-            if not self.db.get('SELECT entity.id FROM entity, property WHERE property.entity_id = entity.id AND entity.is_deleted = 0 AND property.is_deleted = 0 AND property.property_definition_keyname = "person-user" and property.value_string = %s LIMIT 1', session.get('user', {}).get('email')):
+        session_email = session.get('user', {}).get('email')
+        session_name = session.get('user', {}).get('name')
+
+        if not user and session_email and self.app_settings('user-parent'):
+            if not self.db.get('SELECT entity.id FROM entity, property WHERE property.entity_id = entity.id AND entity.is_deleted = 0 AND property.is_deleted = 0 AND property.property_definition_keyname = "person-user" and property.value_string = %s LIMIT 1', session_email):
                 new_person_id = self.create_entity(entity_definition_keyname='person', parent_entity_id=self.app_settings('user-parent'), ignore_user=True)
-                self.set_property(entity_id=new_person_id, property_definition_keyname='person-forename', value=' '.join(user.name.split(' ')[:-1]), ignore_user=True)
-                self.set_property(entity_id=new_person_id, property_definition_keyname='person-surname', value=user.name.split(' ')[-1], ignore_user=True)
-                self.set_property(entity_id=new_person_id, property_definition_keyname='person-user', value=session.get('user', {}).get('email'), ignore_user=True)
-                self.set_property(entity_id=new_person_id, property_definition_keyname='person-email', value=session.get('user', {}).get('email'), ignore_user=True)
+                self.set_property(entity_id=new_person_id, property_definition_keyname='person-user', value=session_email, ignore_user=True)
+                self.set_property(entity_id=new_person_id, property_definition_keyname='person-email', value=session_email, ignore_user=True)
+                if session_name:
+                    self.set_property(entity_id=new_person_id, property_definition_keyname='person-forename', value=' '.join(session_name.split(' ')[:-1]), ignore_user=True)
+                    self.set_property(entity_id=new_person_id, property_definition_keyname='person-surname', value=session_name.split(' ')[-1], ignore_user=True)
                 self.set_rights(entity_id=new_person_id, related_entity_id=new_person_id, right='editor', ignore_user=True)
                 logging.debug('Created person #%s' % new_person_id)
             return
