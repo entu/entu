@@ -158,15 +158,15 @@ class myUser(myE):
             return None
 
         user = {
-            user_id: session['_id'],
-            name: session['user']['name'],
-            language: 'estonian',
-            hide_menu: 0,
-            email: session['user']['email'],
-            provider: session['user']['provider'],
-            access_token: None,
-            session_key: session['key'],
-            api_key: None
+            'user_id': session['_id'],
+            'name': session['user']['name'],
+            'language': 'estonian',
+            'hide_menu': 0,
+            'email': session['user']['email'],
+            'provider': session['user']['provider'],
+            'access_token': None,
+            'session_key': session['key'],
+            'api_key': None
         }
 
         person = self.db.get("""
