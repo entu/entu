@@ -199,7 +199,7 @@ class myUser(myE):
         """, user['email'])
 
         if person:
-            user['id'] = person.id
+            user['id'] = person.entity_id
             if person.email:
                 user['email'] = person.email
         else:
