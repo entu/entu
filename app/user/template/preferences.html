@@ -9,10 +9,10 @@
             <tr>
                 <td colspan="2" style="vertical-align:middle; text-align:center; padding-bottom:5px;">
                     <h4 style="margin-bottom:0px;">
-                        <img src="/api2/entity-{{ current_user.id }}/picture" class="img-rounded" style="height:120px; width:120px; margin-bottom:5px;" ><br />
-                        {{ current_user.name }}<br />
+                        <img src="/api2/entity-{{ current_user.get('id') }}/picture" class="img-rounded" style="height:120px; width:120px; margin-bottom:5px;" ><br />
+                        {{ current_user.get('name') }}<br />
                     </h4>
-                    <span style="color:gray;">{{ current_user.email }} ({{ current_user.provider }})</span>
+                    <span style="color:gray;">{{ current_user.get('email') }} ({{ current_user.get('provider') }})</span>
                 </td>
             </tr>
             <tr>
@@ -21,8 +21,8 @@
                 </th>
                 <td style="padding:8px;">
                     <select class="autosave" name="language">
-                        <option value="estonian"{%if current_user.language == 'estonian' %} selected{% end %}>Eesti keel</option>
-                        <option value="english"{%if current_user.language == 'english' %} selected{% end %}>English</option>
+                        <option value="estonian"{%if current_user.get('language') == 'estonian' %} selected{% end %}>Eesti keel</option>
+                        <option value="english"{%if current_user.get('language') == 'english' %} selected{% end %}>English</option>
                     </select>
                 </td>
             </tr>
@@ -31,7 +31,7 @@
                     {{ _('user_hide_menu') }}
                 </th>
                 <td style="padding:8px;">
-                    <input class="autosave" name="hide_menu" type="checkbox" {%if current_user.hide_menu == True %} checked{% end %} />
+                    <input class="autosave" name="hide_menu" type="checkbox" {%if current_user.get('hide_menu') == True %} checked{% end %} />
                 </td>
             </tr>
             <!--tr>
