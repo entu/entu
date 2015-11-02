@@ -157,70 +157,74 @@ class myUser(myE):
             logging.debug('No session!')
             return None
 
-        user = self.db.get("""
+        user = {
+            user_id: session['_id']
+            name: session['user']['name']
+            language: 'estonian'
+            hide_menu: 0
+            email: session['user']['email']
+            provider: session['user']['provider']
+            access_token: None
+            session_key: session['key']
+            api_key: None
+        }
+
+        person = self.db.get("""
             SELECT
-                u.entity_id AS id,
-                %s AS user_id,
-                %s AS name,
-                'estonian' AS language,
-                0 AS hide_menu,
-                IFNULL((
+                property.entity_id,
+                (
                     SELECT property.value_string
                     FROM
                         property,
                         property_definition
                     WHERE property_definition.keyname = property.property_definition_keyname
-                    AND property.entity_id = u.entity_id
+                    AND property.entity_id = entity.id
                     AND property.is_deleted = 0
                     AND property_definition.dataproperty = 'email'
                     ORDER BY property.id
                     LIMIT 1
-                ), %s) AS email,
-                %s AS provider,
-                NULL AS access_token,
-                %s AS session_key,
-                NULL AS api_key
-            FROM (
-                SELECT property.entity_id
-                FROM
-                    entity,
-                    property,
-                    property_definition
-                WHERE property.entity_id = entity.id
-                AND property_definition.keyname = property.property_definition_keyname
-                AND property.entity_id = entity.id
-                AND entity.is_deleted = 0
-                AND property.is_deleted = 0
-                AND property_definition.dataproperty = 'entu-user'
-                AND property.value_string = %s
-                LIMIT 1
-            ) AS u
-            LIMIT 1;
-        """, session['_id'], session['user']['name'], session['user']['email'], session['user']['provider'], session['key'], session['user']['email'])
+                ) AS email
+            FROM
+                entity,
+                property,
+                property_definition
+            WHERE property.entity_id = entity.id
+            AND property_definition.keyname = property.property_definition_keyname
+            AND property.entity_id = entity.id
+            AND entity.is_deleted = 0
+            AND property.is_deleted = 0
+            AND property_definition.dataproperty = 'entu-user'
+            AND property.value_string = %s
+            LIMIT 1
+        """, user['email'])
 
-        session_email = session.get('user', {}).get('email')
-        session_name = session.get('user', {}).get('name')
-
-        if not user and session_email and self.app_settings('user-parent'):
-            if not self.db.get('SELECT entity.id FROM entity, property WHERE property.entity_id = entity.id AND entity.is_deleted = 0 AND property.is_deleted = 0 AND property.property_definition_keyname = "person-user" and property.value_string = %s LIMIT 1', session_email):
-                new_person_id = self.create_entity(entity_definition_keyname='person', parent_entity_id=self.app_settings('user-parent'), ignore_user=True)
-                self.set_property(entity_id=new_person_id, property_definition_keyname='person-user', value=session_email, ignore_user=True)
-                self.set_property(entity_id=new_person_id, property_definition_keyname='person-email', value=session_email, ignore_user=True)
-                if session_name:
-                    self.set_property(entity_id=new_person_id, property_definition_keyname='person-forename', value=' '.join(session_name.split(' ')[:-1]), ignore_user=True)
-                    self.set_property(entity_id=new_person_id, property_definition_keyname='person-surname', value=session_name.split(' ')[-1], ignore_user=True)
-                self.set_rights(entity_id=new_person_id, related_entity_id=new_person_id, right='editor', ignore_user=True)
-                logging.debug('Created person #%s' % new_person_id)
-            return
+        if person:
+            user['id'] = person.id
+            if person.email:
+                user['email'] = person.email
         else:
-            logging.debug('No user id!')
-            return
+            if user['email'] and self.app_settings('user-parent'):
+                if not self.db.get('SELECT entity.id FROM entity, property WHERE property.entity_id = entity.id AND entity.is_deleted = 0 AND property.is_deleted = 0 AND property.property_definition_keyname = "person-user" and property.value_string = %s LIMIT 1', user['email']):
+                    new_person_id = self.create_entity(entity_definition_keyname='person', parent_entity_id=self.app_settings('user-parent'), ignore_user=True)
+                    self.set_property(entity_id=new_person_id, property_definition_keyname='person-user', value=user['email'], ignore_user=True)
+                    self.set_property(entity_id=new_person_id, property_definition_keyname='person-email', value=user['email'], ignore_user=True)
+                    if user['name']:
+                        self.set_property(entity_id=new_person_id, property_definition_keyname='person-forename', value=' '.join(user['name'].split(' ')[:-1]), ignore_user=True)
+                        self.set_property(entity_id=new_person_id, property_definition_keyname='person-surname', value=user['name'].split(' ')[-1], ignore_user=True)
+                    self.set_rights(entity_id=new_person_id, related_entity_id=new_person_id, right='editor', ignore_user=True)
 
-        self.__user = user
-        self.__session_key = session_key
+                    user['id'] = new_person_id
+                    logging.debug('Created person #%s' % new_person_id)
+            else:
+                logging.debug('Cant create person - no user email or parent not configured!')
+                return
 
-        logging.debug('Loaded user #%s' % user.id)
-        return user
+        if user.get('id'):
+            self.__user = user
+            self.__session_key = session_key
+
+            logging.debug('Loaded user #%s' % user.id)
+            return user
 
     def get_user_by_signature(self):
         user_id = self.get_argument('user', default=None, strip=True)
