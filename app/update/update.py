@@ -10,19 +10,19 @@ from main.db import *
 class UpdateFormulasWeb(myRequestHandler):
     @web.authenticated
     def get(self, entity_id):
-        if self.current_user.email != 'mihkel.putrinsh@gmail.com':
+        if self.current_user.get('email') != 'mihkel.putrinsh@gmail.com':
             return
 
-        updateFormulas(entity_id=entity_id, user_locale=self.get_user_locale(), user_id=self.current_user.id)
+        updateFormulas(entity_id=entity_id, user_locale=self.get_user_locale(), user_id=self.current_user.get('id'))
 
 
 class UpdateFormulasByDefinitionWeb(myRequestHandler, Entity):
     @web.authenticated
     def get(self, entity_definition_keyname, dataproperty):
-        if self.current_user.email != 'mihkel.putrinsh@gmail.com':
+        if self.current_user.get('email') != 'mihkel.putrinsh@gmail.com':
             return
 
-        # for row in db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.id).get(entity_definition_keyname=entity_definition_keyname, dataproperty=dataproperty):
+        # for row in db.Entity(user_locale=self.get_user_locale(), user_id=self.current_user.get('id')).get(entity_definition_keyname=entity_definition_keyname, dataproperty=dataproperty):
         for row in self.get_entities(entity_definition_keyname=entity_definition_keyname, dataproperty=dataproperty):
             logging.debug('ID: %s', str(row['id']))
             logging.debug('properties: %s', row['properties'])
@@ -34,10 +34,10 @@ class UpdateFormulasByDefinitionWeb(myRequestHandler, Entity):
 class UpdateFormulasRecursiveWeb(myRequestHandler):
     @web.authenticated
     def get(self, entity_id):
-        if self.current_user.email != 'mihkel.putrinsh@gmail.com':
+        if self.current_user.get('email') != 'mihkel.putrinsh@gmail.com':
             return
 
-        updateFormulasRecursive(entity_id=entity_id, user_locale=self.get_user_locale(), user_id=self.current_user.id)
+        updateFormulasRecursive(entity_id=entity_id, user_locale=self.get_user_locale(), user_id=self.current_user.get('id'))
 
 
 def updateFormulas(entity_id, user_locale, user_id):
@@ -50,7 +50,7 @@ def updateFormulas(entity_id, user_locale, user_id):
 class updateValueReferenceDisplayField(myRequestHandler, Entity):
     @web.authenticated
     def get(self):
-        if self.current_user.email not in ['argoroots@gmail.com', 'mihkel.putrinsh@gmail.com']:
+        if self.current_user.get('email') not in ['argoroots@gmail.com', 'mihkel.putrinsh@gmail.com']:
             return
 
         entities = self.get_entities(entity_id = [x.get('value_reference') for x in self.db.query('SELECT DISTINCT value_reference FROM property WHERE value_reference IS NOT NULL AND value_string IS NULL;') if x.get('value_reference')])

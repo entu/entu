@@ -16,9 +16,9 @@ class Entity2():
     def __user_id(self):
         if not self.current_user:
             return None
-        if not self.current_user.id:
+        if not self.current_user.get('id'):
             return None
-        return self.current_user.id
+        return self.current_user.get('id')
 
 
     @property

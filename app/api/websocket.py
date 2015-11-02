@@ -21,7 +21,7 @@ clients = {}
 #         if not code:
 #             return self.write('Scan a code...')
 
-#         for c in clients.get(self.current_user.id, []):
+#         for c in clients.get(self.current_user.get('id'), []):
 #             c.write_message(code)
 
 #         self.redirect('http://www.barcodesinc.com/generator/image.php?code=%s&style=452&type=C128B&width=388&height=100&xres=2&font=5' % code)
@@ -32,7 +32,7 @@ class PicToShopConfig(myRequestHandler):
     @web.authenticated
     def get(self):
         self.redirect('p2spro://configure?%s' % urllib.urlencode({
-            'lookup'      : '%s://%s/ws/scanner-%s?code=CODE&format=FORMAT' % (self.request.protocol, self.request.host, self.current_user.id),
+            'lookup'      : '%s://%s/ws/scanner-%s?code=CODE&format=FORMAT' % (self.request.protocol, self.request.host, self.current_user.get('id')),
             'home'        : '%s://%s/ws/scanner' % (self.request.protocol, self.request.host),
             'formats'     : 'EAN13,EAN8,UPCE,ITF,CODE39,CODE128,CODABAR,CODE93,STD2OF5',
             'gps'         : True,

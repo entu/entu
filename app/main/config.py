@@ -10,7 +10,7 @@ from main.db import *
 class SyncConfig(myRequestHandler, Entity):
     @web.authenticated
     def get(self):
-        if self.current_user.email not in ('mihkel.putrinsh@gmail.com', 'argo@roots.ee'):
+        if self.current_user.get('email') not in ('mihkel.putrinsh@gmail.com', 'argo@roots.ee'):
             return
 
 
