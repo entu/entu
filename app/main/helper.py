@@ -354,8 +354,8 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             if self.request.arguments:
                 r['arguments'] = json.dumps(self.request.arguments)
             if self.get_current_user():
-                if self.get_current_user().id:
-                    r['user'] = self.get_current_user().id
+                if self.get_current_user().get('id'):
+                    r['user'] = self.get_current_user().get('id')
             if self.request.remote_ip:
                 r['ip'] = self.request.remote_ip
             if self.request.headers:
