@@ -120,7 +120,7 @@ class GetEntityList(myRequestHandler, Entity):
         user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
         user_id = None
         if user:
-            user_id = user.id
+            user_id = user.get('id')
             if not user_id:
                 only_public = True
         else:
@@ -207,7 +207,7 @@ class GetEntity(myRequestHandler, Entity):
         user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
         user_id = None
         if user:
-            user_id = user.id
+            user_id = user.get('id')
             if not user_id:
                 only_public = True
         else:
@@ -262,7 +262,7 @@ class GetEntityDefinition(myRequestHandler, Entity):
         user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
         user_id = None
         if user:
-            user_id = user.id
+            user_id = user.get('id')
             if not user_id:
                 only_public = True
         else:
@@ -335,7 +335,7 @@ class GetAllowedChildren(myRequestHandler, Entity):
         user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
         user_id = None
         if user:
-            user_id = user.id
+            user_id = user.get('id')
             if not user_id:
                 only_public = True
         else:
@@ -416,7 +416,7 @@ class SaveEntity(myRequestHandler, Entity):
         user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
         user_id = None
         if user:
-            if not user.id:
+            if not user.get('id'):
                 raise web.HTTPError(401, "Unauthorized")
         else:
             raise web.HTTPError(401, "Unauthorized")
@@ -563,7 +563,7 @@ class SaveProperty(myRequestHandler, Entity):
         user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
         user_id = None
         if user:
-            if not user.id:
+            if not user.get('id'):
                 raise web.HTTPError(401, "Unauthorized")
         else:
             raise web.HTTPError(401, "Unauthorized")
@@ -590,7 +590,7 @@ class SaveProperties(myRequestHandler, Entity):
         user = self.get_user_by_session_key(self.get_argument('session_key', default=None, strip=True))
         user_id = None
         if user:
-            if not user.id:
+            if not user.get('id'):
                 raise web.HTTPError(401, "Unauthorized")
         else:
             raise web.HTTPError(401, "Unauthorized")

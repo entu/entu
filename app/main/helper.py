@@ -223,7 +223,7 @@ class myUser(myE):
             self.__user = user
             self.__session_key = session_key
 
-            logging.debug('Loaded user #%s' % user.id)
+            logging.debug('Loaded user #%s' % user.get('id'))
             return user
 
     def get_user_by_signature(self):
@@ -318,7 +318,7 @@ class myUser(myE):
         self.__policy = policy
         self.__signature = signature
 
-        logging.debug('Loaded user #%s' % user.id)
+        logging.debug('Loaded user #%s' % user.get('id'))
         return user
 
 
