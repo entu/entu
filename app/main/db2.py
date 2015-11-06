@@ -476,7 +476,13 @@ class Entity2():
 
             s3_key.key = f.s3_key
 
-            filecontent = self.save_thumb(Image.open(StringIO(s3_key.get_contents_as_string())), thumbname)
+            try:
+                filecontent = self.save_thumb(Image.open(StringIO(s3_key.get_contents_as_string())), thumbname)
+            except Exception, e:
+                return self.json({
+                    'error': e,
+                    'time': round(self.request.request_time(), 3),
+                }, 404)
 
         elif f.md5:
             filename  = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), f.md5[0], f.md5)
@@ -857,4 +863,3 @@ class Entity2():
         # logging.debug(result)
 
         return {'from':from_timestamp, 'to':to_timestamp, 'events':sorted(result.items())}
-
