@@ -228,6 +228,7 @@ class API2Entity(myRequestHandler, Entity):
         #         'time': round(self.request.request_time(), 3),
         #     }, 404)
 
+        new_properties = {}
         for dataproperty, value in self.request.arguments.iteritems():
             if dataproperty in ['user', 'policy', 'signature']:
                 continue
@@ -242,7 +243,6 @@ class API2Entity(myRequestHandler, Entity):
             if type(value) is not list:
                 value = [value]
 
-            new_properties = {}
             for v in value:
                 new_property_id = self.set_property(entity_id=entity_id, old_property_id=old_property_id, property_definition_keyname=property_definition_keyname, value=v)
                 if new_property_id:
