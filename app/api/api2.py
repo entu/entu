@@ -1007,7 +1007,7 @@ class API2Definition(myRequestHandler, Entity2):
 
 
 
-class API2User(myRequestHandler, Entity2):
+class API2User(myRequestHandler, Entity):
     @web.removeslash
     def get(self):
         if not self.current_user:
@@ -1016,7 +1016,12 @@ class API2User(myRequestHandler, Entity2):
                 'time': round(self.request.request_time(), 3),
             }, 404)
 
+        person = self.get_entities(entity_id=self.current_user.get('id'), limit=1)
+        if person:
+            person = person[0]
+
         result = self.current_user
+        result['person'] = person
 
         del result['access_token']
         del result['api_key']
