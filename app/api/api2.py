@@ -1017,8 +1017,6 @@ class API2User(myRequestHandler, Entity):
             }, 404)
 
         person = self.get_entities(entity_id=self.current_user.get('id'), limit=1)
-        if person:
-            person = person[0]
 
         result = self.current_user
         result['person'] = person
