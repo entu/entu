@@ -168,6 +168,8 @@ class myUser(myE):
             'session_key': session['key'],
             'api_key': None
         }
+        if session['user']['picture']:
+            user['picture'] = session['user']['picture']
 
         person = self.db.get("""
             SELECT
