@@ -13,7 +13,7 @@
 * Properties are fully customizable
     * label
     * description
-    * data type ('boolean','decimal','date','datetime','file','integer','reference','string','text','secret')
+    * data type ('boolean','decimal','date','datetime','file','integer','reference','string','text')
     * multiplicity
     * visibility in public search
     * ...
