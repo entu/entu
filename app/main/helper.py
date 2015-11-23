@@ -7,7 +7,6 @@ from tornado import httpclient
 from pymongo import MongoClient
 from raven.contrib.tornado import SentryMixin
 
-import os
 import hmac
 import hashlib
 import re
@@ -135,7 +134,7 @@ class myDatabase():
         try:
             x = self.settings['mongodbs'][database].server_info()
         except Exception:
-            self.settings['mongodbs'][database] = MongoClient(self.settings['mongodb'], serverSelectionTimeoutMS=1000, socketKeepAlive=True, ssl=True, ssl_ca_certs=os.path.join('/', 'entu', 'ssl', 'mongodb.key'))[database]
+            self.settings['mongodbs'][database] = MongoClient(self.settings['mongodb'], serverSelectionTimeoutMS=1000, socketKeepAlive=True)[database]
         return self.settings['mongodbs'][database]
 
 class myUser(myE):
