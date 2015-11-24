@@ -423,7 +423,12 @@ class Maintenance():
                 sql_where.append('r.value_reference = %s' % entity_id)
             if formula_fields[2]:
                 sql_where.append('e.entity_definition_keyname = \'%s\'' % formula_fields[2])
-            dataproperty = formula_fields[3]
+            try:
+                dataproperty = formula_fields[3]
+            except Exception as e:
+                print e
+                print self.db_name
+                print formula_fields
         else:
             sql_where.append('e.id = %s' % entity_id)
             dataproperty = formula_fields[1]
