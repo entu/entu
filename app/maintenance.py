@@ -16,6 +16,7 @@ APP_MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
 APP_MYSQL_USER     = os.getenv('MYSQL_USER')
 APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
 APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
+APP_FULLRUN        = os.getenv('FULLRUN')
 APP_VERBOSE        = os.getenv('VERBOSE', 1)
 
 
@@ -93,16 +94,21 @@ class Maintenance():
         self.changed_entities = []
 
         # get changed entities
-        sql = """
-                  SELECT id AS id FROM entity WHERE deleted >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
-            UNION SELECT id AS id FROM entity WHERE created >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
-            UNION SELECT entity_id AS id FROM property WHERE deleted >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
-            UNION SELECT entity_id AS id FROM property WHERE created >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
-            UNION SELECT entity_id AS id FROM relationship WHERE deleted >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
-            UNION SELECT entity_id AS id FROM relationship WHERE created >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
-            UNION SELECT related_entity_id AS id FROM relationship WHERE deleted >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
-            UNION SELECT related_entity_id AS id FROM relationship WHERE created >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
-        """ % { 'hours': self.hours }
+        if APP_FULLRUN:
+            sql = """
+                SELECT id FROM entity;
+            """
+        else:
+            sql = """
+                      SELECT id AS id FROM entity WHERE deleted >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
+                UNION SELECT id AS id FROM entity WHERE created >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
+                UNION SELECT entity_id AS id FROM property WHERE deleted >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
+                UNION SELECT entity_id AS id FROM property WHERE created >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
+                UNION SELECT entity_id AS id FROM relationship WHERE deleted >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
+                UNION SELECT entity_id AS id FROM relationship WHERE created >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
+                UNION SELECT related_entity_id AS id FROM relationship WHERE deleted >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR)
+                UNION SELECT related_entity_id AS id FROM relationship WHERE created >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR);
+            """ % { 'hours': self.hours }
 
         for r in self.db.query(sql):
             self.changed_entities.append(r.id)
@@ -504,7 +510,6 @@ while True:
             db_pass = c.get('database-password'),
             language = c.get('language'),
             hours = 2,
-            # hours = 876000 , # 100 years
             speed = total_time / total_count
         )
 
