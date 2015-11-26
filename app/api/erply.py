@@ -12,7 +12,7 @@ from main.helper import *
 class API2Erply(myRequestHandler):
     @web.removeslash
     @gen.coroutine
-    def get(self, erply_request):
+    def post(self, erply_request):
         try:
             ERPLY_CUSTOMER = self.app_settings('auth-erply', '\n', True).split('\n')[0]
             ERPLY_USER     = self.app_settings('auth-erply', '\n', True).split('\n')[1]
