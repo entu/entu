@@ -75,22 +75,37 @@ class API2Erply(myRequestHandler):
             for x, y in self.request.arguments.iteritems():
                 arguments[x] = y[0]
 
-        erply_api_request = yield http_client.fetch(httpclient.HTTPRequest(
-            url=erply_url,
-            method='POST',
-            body=urllib.urlencode(arguments)
-        ))
+        page = 0
+        result = []
 
-        try:
-            erply_api = json.loads(erply_api_request.body)
-        except Exception:
-            self.json({
-                'error': 'Erply request failed!',
-                'time': round(self.request.request_time(), 3),
-            }, 500)
-            return
+        while True:
+            page = page + 1
+            arguments['pageNo'] = page
 
-        self.json(erply_api)
+            erply_api_request = yield http_client.fetch(httpclient.HTTPRequest(
+                url=erply_url,
+                method='POST',
+                body=urllib.urlencode(arguments)
+            ))
+
+            try:
+                erply_api = json.loads(erply_api_request.body)
+            except Exception:
+                self.json({
+                    'error': 'Erply request failed!',
+                    'time': round(self.request.request_time(), 3),
+                }, 500)
+                return
+
+            result = result + erply_api.get('records', [])
+
+            if len(result) <= records_count + erply_api.get('status', {}).get('recordsInResponse', 0):
+                break
+
+        self.json({
+            'result': result,
+            'time': round(self.request.request_time(), 3),
+        })
 
 
 
