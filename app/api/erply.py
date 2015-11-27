@@ -80,6 +80,7 @@ class API2Erply(myRequestHandler):
 
         while True:
             page = page + 1
+            arguments['recordsOnPage'] = 100
             arguments['pageNo'] = page
 
             erply_api_request = yield http_client.fetch(httpclient.HTTPRequest(
@@ -99,7 +100,7 @@ class API2Erply(myRequestHandler):
 
             result = result + erply_api.get('records', [])
 
-            if len(result) <= erply_api.get('status', {}).get('recordsInResponse', 0):
+            if len(result) >= erply_api.get('status', {}).get('recordsInResponse', 0):
                 break
 
         self.json({
