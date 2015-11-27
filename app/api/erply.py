@@ -99,7 +99,7 @@ class API2Erply(myRequestHandler):
 
             result = result + erply_api.get('records', [])
 
-            if len(result) <= records_count + erply_api.get('status', {}).get('recordsInResponse', 0):
+            if len(result) <= erply_api.get('status', {}).get('recordsInResponse', 0):
                 break
 
         self.json({
