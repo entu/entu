@@ -181,7 +181,7 @@ class myUser(myE):
             return None
 
         user = {
-            'user_id': str(session['_id']),
+            'user_id': str(session['id']),
             'name': session['user']['name'],
             'language': 'estonian',
             'hide_menu': 0,
