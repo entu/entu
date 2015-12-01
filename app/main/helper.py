@@ -1,25 +1,24 @@
 # -*- coding: utf-8 -*-
 
-import torndb
-from tornado import web
-from tornado import locale
-from tornado import httpclient
-from pymongo import MongoClient
 from raven.contrib.tornado import SentryMixin
-
-import rethinkdb
-import hmac
-import hashlib
-import re
-import random
-import string
-import urllib
 from SimpleAES import SimpleAES
+from tornado import httpclient
+from tornado import locale
+from tornado import web
 
-import logging
-import json
-import datetime, time
+import datetime
 import dateutil.parser
+import hashlib
+import hmac
+import json
+import logging
+import random
+import re
+import rethinkdb
+import string
+import time
+import torndb
+import urllib
 
 
 from main.db import *

@@ -1,17 +1,18 @@
 from tornado import locale
 
-from operator import itemgetter
 from datetime import datetime
+from decimal import Decimal
+from operator import itemgetter
 
+import hashlib
+import logging
+import math
 import os
 import random
-import string
-import hashlib
-import time
-import logging
 import re
-import math
-from decimal import Decimal
+import rethinkdb
+import string
+import time
 
 from helper import *
 
@@ -438,7 +439,7 @@ class Entity():
 
         # If no value, then property is deleted, return
         if not value:
-            self.set_mongodb_entity(entity_id)
+            self.set_rethinkdb_entity(entity_id)
             return
 
         value_display = None
@@ -526,11 +527,11 @@ class Entity():
             entity_id,
         )
 
-        self.set_mongodb_entity(entity_id)
+        self.set_rethinkdb_entity(entity_id)
 
         return new_property_id
 
-    def set_mongodb_entity(self, entity_id):
+    def set_rethinkdb_entity(self, entity_id):
         sql = """
             SELECT
                 REPLACE(REPLACE(e.entity_definition_keyname, '_', '-'), '.', '-') AS entity_definition,
@@ -583,27 +584,27 @@ class Entity():
             e['_deleted']['type'] = 'action'
             e['_deleted'] = [e.get('_deleted')]
 
-        viewers = self.__get_mongodb_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'])
+        viewers = self.__get_rethinkdb_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'])
         if viewers:
             e['_viewer'] = [{'reference': x, 'type': 'reference'} for x in list(set(viewers))]
 
-        expanders = self.__get_mongodb_right(mysql_id, ['expander', 'editor', 'owner'])
+        expanders = self.__get_rethinkdb_right(mysql_id, ['expander', 'editor', 'owner'])
         if expanders:
             e['_expander'] = [{'reference': x, 'type': 'reference'} for x in list(set(expanders))]
 
-        editors = self.__get_mongodb_right(mysql_id, ['editor', 'owner'])
+        editors = self.__get_rethinkdb_right(mysql_id, ['editor', 'owner'])
         if editors:
             e['_editor'] = [{'reference': x, 'type': 'reference'} for x in list(set(editors))]
 
-        owners = self.__get_mongodb_right(mysql_id, ['owner'])
+        owners = self.__get_rethinkdb_right(mysql_id, ['owner'])
         if owners:
             e['_owner'] = [{'reference': x, 'type': 'reference'} for x in list(set(owners))]
 
-        parent = self.__get_mongodb_parent(entity_id=mysql_id, recursive=False)
+        parent = self.__get_rethinkdb_parent(entity_id=mysql_id, recursive=False)
         if parent:
             e['_parent'] = [{'reference': x, 'type': 'reference'} for x in list(set(parent))]
 
-        ancestor = self.__get_mongodb_parent(entity_id=mysql_id, recursive=True)
+        ancestor = self.__get_rethinkdb_parent(entity_id=mysql_id, recursive=True)
         if ancestor:
             e['_ancestor'] = [{'reference': x, 'type': 'reference'} for x in list(set(ancestor))]
 
@@ -711,14 +712,17 @@ class Entity():
         #     if l in e.get('_search', {}):
         #         e['_search'][l] = list(set(e['_search'][l]))
 
-        #Create or replace Mongo object
-        mongo_entity = self.mongodb().entity.find_one({'_mid': mysql_id}, {'_id': True})
-        if mongo_entity:
-            id = self.mongodb().entity.update({'_id': mongo_entity.get('_id')}, e)
-        else:
-            id = self.mongodb().entity.insert(e)
+        #Create or replace rethinkdb object
+        if 'entity' not in rethinkdb.table_list().run(self.rethinkdb()):
+            rethinkdb.table_create('entity').run(self.rethinkdb())
 
-    def __get_mongodb_parent(self, entity_id, recursive=False):
+        rethinkdb_entity = rethinkdb.table('entity').filter({'_mid': mysql_id}).limit(1).get_field('id')
+        if rethinkdb_entity:
+            rethinkdb.table('entity').get(rethinkdb_entity[0]).update(e).run(self.rethinkdb())
+        else:
+            rethinkdb.table('entity').insert(e).run(self.rethinkdb())
+
+    def __get_rethinkdb_parent(self, entity_id, recursive=False):
         sql = """
             SELECT entity_id
             FROM relationship
@@ -732,11 +736,11 @@ class Entity():
         for r in self.db.query(sql):
             entities.append(r.get('entity_id'))
             if recursive:
-                entities = entities + self.__get_mongodb_parent(entity_id=r.get('entity_id'), recursive=True)
+                entities = entities + self.__get_rethinkdb_parent(entity_id=r.get('entity_id'), recursive=True)
 
         return entities
 
-    def __get_mongodb_right(self, entity_id, rights):
+    def __get_rethinkdb_right(self, entity_id, rights):
         sql = """
             SELECT related_entity_id
             FROM relationship
