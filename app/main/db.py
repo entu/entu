@@ -717,7 +717,7 @@ class Entity():
         if 'entity' not in rethinkdb.table_list().run(self.rethinkdb()):
             rethinkdb.table_create('entity').run(self.rethinkdb())
 
-        rethinkdb_entity = list(rethinkdb.table('entity').filter({'_mid': mysql_id}).limit(1).get_field('id').run(self.rethinkdb())
+        rethinkdb_entity = list(rethinkdb.table('entity').filter({'_mid': mysql_id}).limit(1).get_field('id').run(self.rethinkdb()))
         if rethinkdb_entity:
             rethinkdb.table('entity').get(rethinkdb_entity[0]).update(e).run(self.rethinkdb())
         else:
