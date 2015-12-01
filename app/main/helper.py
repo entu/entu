@@ -365,7 +365,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
 
         try:
             r = {}
-            r['date'] = datetime.datetime.utcnow()
+            r['date'] = rethinkdb.now()
             if self.request.method:
                 r['method'] = self.request.method
             if self.request.host:
@@ -382,11 +382,10 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             if self.request.headers:
                 if self.request.headers.get('User-Agent', None):
                     r['browser'] = self.request.headers.get('User-Agent')
-            self.__request_id = self.mongodb('entu').request.insert_one(r).inserted_id
 
             if 'request' not in rethinkdb.table_list().run(self.rethinkdb('entu')):
                 rethinkdb.table_create('request').run(self.rethinkdb('entu'))
-            self.__request_id2 = rethinkdb.table('request').insert(r).run(self.rethinkdb('entu')).get('generated_keys', [None])[0]
+            self.__request_id = rethinkdb.table('request').insert(r).run(self.rethinkdb('entu')).get('generated_keys', [None])[0]
         except Exception, e:
             self.captureException()
             logging.error('Reguest logging error: %s' % e)
@@ -406,7 +405,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             r['ms'] = int(round(request_time * 1000))
             if self.get_status():
                 r['status'] = self.get_status()
-            self.mongodb('entu').request.update({'_id': self.__request_id}, {'$set': r}, upsert=False)
+            rethinkdb.table('request').get(self.__request_id).update(r).run(self.rethinkdb('entu'))
 
     def timer(self, msg=''):
         logging.debug('TIMER: %0.3f - %s' % (round(self.request.request_time(), 3), msg))
