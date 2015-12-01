@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from pymongo import MongoClient
 from raven.contrib.tornado import SentryMixin
 from SimpleAES import SimpleAES
 from tornado import httpclient
