@@ -131,6 +131,9 @@ class myDatabase():
         if not database:
             database = self.app_settings('database-name')
 
+        if database == 'www'
+            database = 'entu'
+
         try:
             self.settings['rethinkdbs'][database].use(database)
         except Exception:
