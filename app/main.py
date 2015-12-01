@@ -29,7 +29,6 @@ APP_DEBUG          = str(os.getenv('DEBUG', 'false')).lower() == 'true'
 APP_PORT           = os.getenv('PORT', 3000)
 APP_COOKIE_DOMAIN  = os.getenv('COOKIE_DOMAIN', '.entu.ee')
 APP_AUTH_URL       = os.getenv('AUTH_URL', 'https://auth.entu.ee')
-APP_MONGODB        = os.getenv('MONGODB', 'mongodb://localhost:27017/')
 APP_RETHINKDB_HOST = os.getenv('RETHINKDB_HOST', 'entu_rethinkdb')
 APP_MYSQL_HOST     = os.getenv('MYSQL_HOST', 'localhost')
 APP_MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
@@ -97,14 +96,12 @@ class myApplication(tornado.web.Application):
             'slow_request_count':   0,
             'slow_request_time':    0,
             'slow_request_ms':      1000,
-            'mongodb':              APP_MONGODB,
             'rethinkdb-host':       APP_RETHINKDB_HOST,
             'database-host':        APP_MYSQL_HOST,
             'database-database':    APP_MYSQL_DATABASE,
             'database-user':        APP_MYSQL_USER,
             'database-password':    APP_MYSQL_PASSWORD,
             'customergroup':        APP_CUSTOMERGROUP,
-            'mongodbs':             {},
             'rethinkdbs':           {},
             'databases':            {},
         }

@@ -22,7 +22,7 @@ docker run -d \
     --memory="512m" \
     --env="VERSION=$version" \
     --env="PORT=80" \
-    --env="MONGODB=" \
+    --env="RETHINKDB_HOST=" \
     --env="MYSQL_HOST=" \
     --env="MYSQL_DATABASE=" \
     --env="MYSQL_USER=" \
@@ -36,7 +36,7 @@ docker run -d \
     --env="NEW_RELIC_NO_CONFIG_FILE=true" \
     --env="SENTRY_DSN=" \
     --link="entu-mysql:entumysql" \
-    --link="entu-mongodb:entumongodb" \
+    --link="entu-rethinkdb:enturethinkdb" \
     entu:latest python -u /usr/src/entu/app/maintenance.py
 
 docker inspect -f "{{ .NetworkSettings.IPAddress }}" entu-maintenance

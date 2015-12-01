@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from pymongo import MongoClient
 from raven.contrib.tornado import SentryMixin
 from SimpleAES import SimpleAES
 from tornado import httpclient
@@ -123,20 +122,6 @@ class myDatabase():
             return
 
         return self.__app_settings.get(host, {})
-
-    def mongodb(self, database=None):
-        """
-        Returns MongoDB connection.
-
-        """
-        if not database:
-            database = self.app_settings('database-name')
-
-        try:
-            x = self.settings['mongodbs'][database].server_info()
-        except Exception:
-            self.settings['mongodbs'][database] = MongoClient(self.settings['mongodb'], serverSelectionTimeoutMS=1000, socketKeepAlive=True)[database]
-        return self.settings['mongodbs'][database]
 
     def rethinkdb(self, database=None):
         """
