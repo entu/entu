@@ -131,7 +131,7 @@ class myDatabase():
         if not database:
             database = self.app_settings('database-name')
 
-        if database == 'www'
+        if database == 'www':
             database = 'entu'
 
         try:
