@@ -7,6 +7,7 @@ from tornado import httpclient
 from pymongo import MongoClient
 from raven.contrib.tornado import SentryMixin
 
+import rethinkdb
 import hmac
 import hashlib
 import re
@@ -136,6 +137,23 @@ class myDatabase():
         except Exception:
             self.settings['mongodbs'][database] = MongoClient(self.settings['mongodb'], serverSelectionTimeoutMS=1000, socketKeepAlive=True)[database]
         return self.settings['mongodbs'][database]
+
+    def rethinkdb(self, database=None):
+        """
+        Returns RethinkDB connection.
+
+        """
+        if not database:
+            database = self.app_settings('database-name')
+
+        try:
+            x = self.settings['rethinkdbs'][database].server()
+        except Exception:
+            self.settings['rethinkdbs'][database] = rethinkdb.connect(self.settings['rethinkdb-host'])
+            if database not in rethinkdb.db_list().run(self.settings['rethinkdbs'][database]):
+                rethinkdb.db_create(database)
+
+        return self.settings['rethinkdbs'][database]
 
 class myUser(myE):
     __user        = None
@@ -364,6 +382,8 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
                 if self.request.headers.get('User-Agent', None):
                     r['browser'] = self.request.headers.get('User-Agent')
             self.__request_id = self.mongodb('entu').request.insert_one(r).inserted_id
+
+            self.rethinkdb('entu').server()
         except Exception, e:
             self.captureException()
             logging.error('Reguest logging error: %s' % e)

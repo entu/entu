@@ -10,6 +10,7 @@ pymongo==3.1.1
 python-dateutil==2.4.2
 pyyaml==3.11
 raven==5.8.1
+rethinkdb==2.2.0.post1
 simpleaes==1.0
 suds==0.4
 tornado==4.3
