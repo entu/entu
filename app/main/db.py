@@ -4,6 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from operator import itemgetter
 
+import dateutil
 import hashlib
 import logging
 import math
@@ -561,7 +562,7 @@ class Entity():
         e['_sharing'] = r.get('entity_sharing')
 
         if r.get('entity_created'):
-            e.setdefault('_created', {})['at'] = rethinkdb.ISO8601(r.get('entity_created'))
+            e.setdefault('_created', {})['at'] = r.get('entity_created').to_iso8601()
         if r.get('entity_created_by'):
             e.setdefault('_created', {})['by'] = r.get('entity_created_by')
         if e.get('_created'):
@@ -569,7 +570,7 @@ class Entity():
             e['_created'] = [e.get('_created')]
 
         if r.get('entity_changed'):
-            e.setdefault('_changed', {})['at'] = rethinkdb.ISO8601(r.get('entity_changed'))
+            e.setdefault('_changed', {})['at'] = r.get('entity_changed').to_iso8601()
         if r.get('entity_changed_by'):
             e.setdefault('_changed', {})['by'] = r.get('entity_changed_by')
         if e.get('_changed'):
@@ -577,7 +578,7 @@ class Entity():
             e['_changed'] = [e.get('_changed')]
 
         if r.get('entity_is_deleted') and r.get('entity_deleted'):
-            e.setdefault('_deleted', {})['at'] = rethinkdb.ISO8601(r.get('entity_deleted'))
+            e.setdefault('_deleted', {})['at'] = r.get('entity_deleted').to_iso8601()
         if r.get('entity_is_deleted') and r.get('entity_deleted_by'):
             e.setdefault('_deleted', {})['by'] = r.get('entity_deleted_by')
         if e.get('_deleted'):
@@ -664,7 +665,7 @@ class Entity():
             elif r2.get('property_datatype') == 'boolean' and r2.get('value_boolean') != None:
                 value['value'] = bool(r2.get('value_boolean'))
             elif r2.get('property_datatype') in ['date', 'datetime'] and r2.get('value_datetime') != None:
-                value['value'] = rethinkdb.ISO8601(r2.get('value_datetime'))
+                value['value'] = r2.get('value_datetime').to_iso8601()
             elif r2.get('property_datatype') == 'reference' and r2.get('value_reference'):
                 value['reference'] = r2.get('value_reference')
             elif r2.get('property_datatype') == 'counter-value' and r2.get('value_string'):
@@ -690,12 +691,12 @@ class Entity():
                 value['language'] = r2.get('property_language')
 
             if r2.get('created'):
-                value.setdefault('created', {})['at'] = rethinkdb.ISO8601(r2.get('created'))
+                value.setdefault('created', {})['at'] = r2.get('created').to_iso8601()
             if r2.get('created_by'):
                 value.setdefault('created', {})['by'] = r2.get('created_by')
 
             if r2.get('is_deleted') and r2.get('deleted'):
-                value.setdefault('deleted', {})['at'] = rethinkdb.ISO8601(r2.get('deleted'))
+                value.setdefault('deleted', {})['at'] = r2.get('deleted').to_iso8601()
             if r2.get('is_deleted') and r2.get('deleted_by'):
                 value.setdefault('deleted', {})['by'] = r2.get('deleted_by')
 
