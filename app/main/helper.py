@@ -170,7 +170,11 @@ class myUser(myE):
         if self.__user and self.__session_key == session_key:
             return self.__user
 
-        session = self.mongodb('entu').session.find_one({'key': session_key})
+        try:
+            session = list(rethinkdb.table('session').filter({'key': session_key}).limit(1).run(self.rethinkdb('entu')))[0]
+        except Exception, e:
+            logging.debug(e)
+            return None
 
         if not session:
             logging.debug('No session!')
