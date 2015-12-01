@@ -151,7 +151,7 @@ class myDatabase():
         except Exception:
             self.settings['rethinkdbs'][database] = rethinkdb.connect(self.settings['rethinkdb-host'])
             if database not in rethinkdb.db_list().run(self.settings['rethinkdbs'][database]):
-                rethinkdb.db_create(database)
+                rethinkdb.db_create(database).run(self.settings['rethinkdbs'][database])
 
         return self.settings['rethinkdbs'][database]
 

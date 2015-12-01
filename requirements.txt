@@ -4,7 +4,7 @@ chardet==2.3.0
 markdown2==2.3.0
 mistune==0.7.1
 mysql-python==1.2.5
-newrelic==2.58.1.44
+newrelic==2.58.2.45
 pillow==3.0.0
 pymongo==3.1.1
 python-dateutil==2.4.2
