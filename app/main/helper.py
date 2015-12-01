@@ -365,7 +365,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             if self.request.path:
                 r['path'] = self.request.path
             if self.request.arguments:
-                r['arguments'] = json.dumps(self.request.arguments)
+                r['arguments'] = self.request.arguments
             if self.get_current_user():
                 if self.get_current_user().get('id'):
                     r['user'] = self.get_current_user().get('id')
