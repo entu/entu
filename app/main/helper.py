@@ -147,11 +147,12 @@ class myDatabase():
             database = self.app_settings('database-name')
 
         try:
-            x = self.settings['rethinkdbs'][database].server()
+            self.settings['rethinkdbs'][database].use(database)
         except Exception:
             self.settings['rethinkdbs'][database] = rethinkdb.connect(self.settings['rethinkdb-host'])
             if database not in rethinkdb.db_list().run(self.settings['rethinkdbs'][database]):
                 rethinkdb.db_create(database).run(self.settings['rethinkdbs'][database])
+            self.settings['rethinkdbs'][database].use(database)
 
         return self.settings['rethinkdbs'][database]
 
@@ -383,7 +384,9 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
                     r['browser'] = self.request.headers.get('User-Agent')
             self.__request_id = self.mongodb('entu').request.insert_one(r).inserted_id
 
-            self.rethinkdb('entu').server()
+            if 'request' not in rethinkdb.table_list().run(self.rethinkdb('entu')):
+                rethinkdb.table_create('request').run(self.rethinkdb('entu'))
+            self.__request_id2 = rethinkdb.table('request').insert(r).run(self.rethinkdb('entu')).get('generated_keys', [None])[0]
         except Exception, e:
             self.captureException()
             logging.error('Reguest logging error: %s' % e)
