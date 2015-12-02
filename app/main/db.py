@@ -714,14 +714,15 @@ class Entity():
         #         e['_search'][l] = list(set(e['_search'][l]))
 
         #Create or replace rethinkdb object
-        if 'entity' not in rethinkdb.table_list().run(self.rethinkdb()):
-            rethinkdb.table_create('entity').run(self.rethinkdb())
+        rethinkdn_table = self.app_settings('database-name')
+        if rethinkdn_table not in rethinkdb.table_list().run(self.rethinkdb('entu')):
+            rethinkdb.table_create(rethinkdn_table).run(self.rethinkdb('entu'))
 
-        rethinkdb_entity = list(rethinkdb.table('entity').filter({'_mid': mysql_id}).limit(1).get_field('id').run(self.rethinkdb()))
+        rethinkdb_entity = list(rethinkdb.table(rethinkdn_table).filter({'_mid': mysql_id}).limit(1).get_field('id').run(self.rethinkdb('entu')))
         if rethinkdb_entity:
-            rethinkdb.table('entity').get(rethinkdb_entity[0]).update(e).run(self.rethinkdb())
+            rethinkdb.table(rethinkdn_table).get(rethinkdb_entity[0]).update(e).run(self.rethinkdb('entu'))
         else:
-            rethinkdb.table('entity').insert(e).run(self.rethinkdb())
+            rethinkdb.table(rethinkdn_table).insert(e).run(self.rethinkdb('entu'))
 
     def __get_rethinkdb_parent(self, entity_id, recursive=False):
         sql = """
