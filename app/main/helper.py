@@ -169,18 +169,18 @@ class myUser(myE):
             return None
 
         user = {
-            'user_id': str(session['id']),
-            'name': session['user']['name'],
+            'user_id': str(session.get('id')),
+            'name': session.get('user', {}).get('name'),
             'language': 'estonian',
             'hide_menu': 0,
-            'email': session['user']['email'],
-            'provider': session['user']['provider'],
+            'email': session.get('user', {}).get('email'),
+            'provider': session.get('user', {}).get('provider'),
             'access_token': None,
-            'session_key': session['key'],
+            'session_key': session.get('key'),
             'api_key': None
         }
-        if session['user']['picture']:
-            user['picture'] = session['user']['picture']
+        if session.get('user', {}).get('picture'):
+            user['picture'] = session.get('user', {}).get('picture')
 
         person = self.db.get("""
             SELECT
