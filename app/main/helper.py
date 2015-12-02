@@ -365,7 +365,10 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             if self.request.path:
                 r['path'] = self.request.path
             if self.request.arguments:
-                r['arguments'] = self.request.arguments
+                for argument, value in self.request.arguments.iteritems():
+                    r.setdefault('arguments', {})[argument] = [u'%s' % x for x in value]
+                    if len(r.get('arguments', {}).get(argument, [])) < 2:
+                        r['arguments'][argument] = r['arguments'][argument][0]
             if self.get_current_user():
                 if self.get_current_user().get('id'):
                     r['user'] = self.get_current_user().get('id')
