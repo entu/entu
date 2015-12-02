@@ -655,9 +655,9 @@ class Entity():
             value = {}
 
             if r2.get('property_datatype') == 'string' and r2.get('value_string'):
-                value['value'] = r2.get('value_string').decode('utf-8').encode('utf-8')
+                value['value'] = u'%s'.encode('utf-8') % r2.get('value_string')
             elif r2.get('property_datatype') == 'text' and r2.get('value_text'):
-                value['value'] = r2.get('value_text').decode('utf-8').encode('utf-8')
+                value['value'] = u'%s'.encode('utf-8') % r2.get('value_text')
             elif r2.get('property_datatype') == 'integer' and r2.get('value_integer') != None:
                 value['value'] = r2.get('value_integer')
             elif r2.get('property_datatype') == 'decimal' and r2.get('value_decimal') != None:
