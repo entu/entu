@@ -655,9 +655,9 @@ class Entity():
             value = {}
 
             if r2.get('property_datatype') == 'string' and r2.get('value_string'):
-                value['value'] = r2.get('value_string')
+                value['value'] = str(r2.get('value_string').encode('utf-8', 'ignore'))
             elif r2.get('property_datatype') == 'text' and r2.get('value_text'):
-                value['value'] = r2.get('value_text')
+                value['value'] = str(r2.get('value_text').encode('utf-8', 'ignore'))
             elif r2.get('property_datatype') == 'integer' and r2.get('value_integer') != None:
                 value['value'] = r2.get('value_integer')
             elif r2.get('property_datatype') == 'decimal' and r2.get('value_decimal') != None:
@@ -671,7 +671,7 @@ class Entity():
             elif r2.get('property_datatype') == 'counter-value' and r2.get('value_string'):
                 value['value'] = r2.get('value_string')
             elif r2.get('property_datatype') == 'file' and r2.get('value_file'):
-                value['value'] = r2.get('value_file_name')
+                value['value'] = str(r2.get('value_file_name').encode('utf-8', 'ignore'))
                 if r2.get('value_file_url'):
                     value['url'] = r2.get('file')
                 else:
