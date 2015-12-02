@@ -144,6 +144,12 @@ class myDatabase():
 
         return self.settings['rethinkdbs'][database]
 
+    def to_unicode(data, encoding='utf-8'):
+        if isinstance(data, basestring):
+            if not isinstance(data, unicode):
+                data = unicode(data, encoding)
+        return data
+
 class myUser(myE):
     __user        = None
     __session_key = None
@@ -366,7 +372,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
                 r['path'] = self.request.path
             if self.request.arguments:
                 for argument, value in self.request.arguments.iteritems():
-                    r.setdefault('arguments', {})[argument] = value
+                    r.setdefault('arguments', {})[argument] = [self.to_unicode(x) for x in value]
                     if len(r.get('arguments', {}).get(argument, [])) < 2:
                         r['arguments'][argument] = r['arguments'][argument][0]
             if self.get_current_user():
