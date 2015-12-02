@@ -144,7 +144,7 @@ class myDatabase():
 
         return self.settings['rethinkdbs'][database]
 
-    def to_unicode(data, encoding='utf-8'):
+    def to_unicode(self, data, encoding='utf-8'):
         if isinstance(data, basestring):
             if not isinstance(data, unicode):
                 data = unicode(data, encoding)
