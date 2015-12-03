@@ -367,9 +367,9 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             if self.request.method:
                 r['method'] = self.request.method
             if self.request.host:
-                r['host'] = self.request.host
+                r['host'] = self.to_unicode(self.request.host)
             if self.request.path:
-                r['path'] = self.request.path
+                r['path'] = self.to_unicode(self.request.path)
             if self.request.arguments:
                 for argument, value in self.request.arguments.iteritems():
                     r.setdefault('arguments', {})[argument] = [self.to_unicode(x) for x in value]
@@ -382,7 +382,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
                 r['ip'] = self.request.remote_ip
             if self.request.headers:
                 if self.request.headers.get('User-Agent', None):
-                    r['browser'] = self.request.headers.get('User-Agent')
+                    r['browser'] = self.to_unicode(self.request.headers.get('User-Agent'))
 
             if 'request' not in rethinkdb.table_list().run(self.rethinkdb('entu')):
                 rethinkdb.table_create('request').run(self.rethinkdb('entu'))
