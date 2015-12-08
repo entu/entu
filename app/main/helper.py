@@ -165,7 +165,7 @@ class myUser(myE):
             return self.__user
 
         try:
-            session = list(rethinkdb.table('session').get_all(session_key, {'index': 'key'}).limit(1).run(self.rethinkdb('entu')))[0]
+            session = list(rethinkdb.table('session').get_all(session_key, index='key').limit(1).run(self.rethinkdb('entu')))[0]
         except Exception, e:
             self.captureException()
             logging.error(e)
