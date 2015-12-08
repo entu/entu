@@ -6,7 +6,7 @@ mistune==0.7.1
 mysql-python==1.2.5
 newrelic==2.58.2.45
 pillow==3.0.0
-pymongo==3.1.1
+pymongo==3.2
 python-dateutil==2.4.2
 pyyaml==3.11
 raven==5.8.1
