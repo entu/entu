@@ -166,6 +166,9 @@ class myUser(myE):
 
         try:
             session = list(rethinkdb.table('session').get_all(session_key, index='key').limit(1).run(self.rethinkdb('entu')))[0]
+        except IndexError:
+            logging.debug('No session!')
+            return None
         except Exception, e:
             self.captureException()
             logging.error(e)
