@@ -442,7 +442,7 @@ class Entity2():
                 AND p.entity_id = %s
                 AND pd.is_deleted = 0
                 AND pd.dataproperty = 'photo'
-                ORDER BY p.id
+                ORDER BY f.filename
                 LIMIT 1
             ) AS file ON file.entity_id = entity.id
             WHERE entity.id = %s

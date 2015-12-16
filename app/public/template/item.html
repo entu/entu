@@ -51,7 +51,7 @@
     {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
         {% if p.get('visible') and p.get('values') and p['datatype'] == 'file' and p['dataproperty'] == 'photo' %}
             <div class="item_carousel" style="width:800px; margin: auto;">
-                {{ "\n".join(['<div><img src="/api2/file-%s" alt="%s"/></div>' % (v['db_value'], v['value']) for v in p['values']]) }}
+                {{ "\n".join(['<div><img src="/api2/file-%s" alt="%s"/></div>' % (v['db_value'], v['value']) for v in sorted(p['values'], key=itemgetter('value')))]) }}
             </div>
         {% end %}
     {% end %}
