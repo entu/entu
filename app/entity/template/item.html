@@ -244,6 +244,7 @@
         $('.toggle-table').css('cursor', 'pointer');
         $('.toggle-table').click(function() {
             $(this).next('table').toggle();
+            $(this).toggleClass('no-print');
         });
 
         $('#toolbar').html($('#toolbar_template').html());
