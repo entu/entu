@@ -426,7 +426,7 @@ class API2File(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        files = self.get_file(file_id)
+        files = self.get_file(file_id=file_id, sharing_key=self.get_argument('key', default=None, strip=True))
         if not files:
             return self.json({
                 'error': 'File with given ID is not found!',
