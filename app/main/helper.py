@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from pymongo import MongoClient
 from raven.contrib.tornado import SentryMixin
 from SimpleAES import SimpleAES
 from tornado import httpclient
@@ -143,6 +144,22 @@ class myDatabase():
             self.settings['rethinkdbs'][database].use(database)
 
         return self.settings['rethinkdbs'][database]
+
+    def mongodb(self, database=None):
+        """
+        Returns MongoDB connection.
+        """
+        if not database:
+            database = self.app_settings('database-name')
+
+        if database == 'www':
+            database = 'entu'
+
+        try:
+            x = self.settings['mongodbs'][database].server_info()
+        except Exception:
+            self.settings['mongodbs'][database] = MongoClient(self.settings['mongodb'], serverSelectionTimeoutMS=1000, socketKeepAlive=True)[database]
+        return self.settings['mongodbs'][database]
 
     def to_unicode(self, data, encoding='utf-8'):
         if isinstance(data, basestring):
@@ -367,7 +384,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
 
         try:
             r = {}
-            r['date'] = rethinkdb.now()
+            r['date'] = datetime.datetime.utcnow()
             if self.request.method:
                 r['method'] = self.request.method
             if self.request.host:
@@ -376,9 +393,10 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
                 r['path'] = self.to_unicode(self.request.path)
             if self.request.arguments:
                 for argument, value in self.request.arguments.iteritems():
-                    r.setdefault('arguments', {})[argument] = [self.to_unicode(x) for x in value]
-                    if len(r.get('arguments', {}).get(argument, [])) < 2:
-                        r['arguments'][argument] = r['arguments'][argument][0]
+                    a = argument.replace('.', '_')
+                    r.setdefault('arguments', {})[a] = value
+                    if len(r.get('arguments', {}).get(a, [])) < 2:
+                        r['arguments'][a] = r['arguments'][a][0]
             if self.get_current_user():
                 if self.get_current_user().get('id'):
                     r['user'] = self.get_current_user().get('id')
@@ -388,9 +406,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
                 if self.request.headers.get('User-Agent', None):
                     r['browser'] = self.to_unicode(self.request.headers.get('User-Agent'))
 
-            if 'request' not in rethinkdb.table_list().run(self.rethinkdb('entu')):
-                rethinkdb.table_create('request').run(self.rethinkdb('entu'))
-            self.__request_id = rethinkdb.table('request').insert(r).run(self.rethinkdb('entu')).get('generated_keys', [None])[0]
+            self.__request_id = self.mongodb('entu').request.insert_one(r).inserted_id
         except Exception, e:
             self.captureException()
             logging.error('Reguest logging error: %s' % e)
@@ -410,7 +426,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             r['ms'] = int(round(request_time * 1000))
             if self.get_status():
                 r['status'] = self.get_status()
-            rethinkdb.table('request').get(self.__request_id).update(r).run(self.rethinkdb('entu'))
+            self.mongodb('entu').request.update({'_id': self.__request_id}, {'$set': r}, upsert=False)
 
     def timer(self, msg=''):
         logging.debug('TIMER: %0.3f - %s' % (round(self.request.request_time(), 3), msg))

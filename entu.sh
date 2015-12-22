@@ -35,8 +35,6 @@ docker run -d \
     --env="NEW_RELIC_LOG_LEVEL=error" \
     --env="NEW_RELIC_NO_CONFIG_FILE=true" \
     --env="SENTRY_DSN=" \
-    --link="entu-mysql:entumysql" \
-    --link="entu-rethinkdb:enturethinkdb" \
     entu:latest python -u /usr/src/entu/app/maintenance.py
 
 docker inspect -f "{{ .NetworkSettings.IPAddress }}" entu-maintenance
@@ -50,6 +48,7 @@ docker run -d \
     --memory="512m" \
     --env="PORT=80" \
     --env="DEBUG=false" \
+    --env="MONGODB=" \
     --env="MYSQL_HOST=" \
     --env="MYSQL_DATABASE=" \
     --env="MYSQL_USER=" \
@@ -61,7 +60,6 @@ docker run -d \
     --env="NEW_RELIC_LOG_LEVEL=error" \
     --env="NEW_RELIC_NO_CONFIG_FILE=true" \
     --env="SENTRY_DSN=" \
-    --link="entu-mysql:entumysql" \
     --volume="/data/entu/files:/entu/files" \
     --volume="/data/entu/thumbs:/entu/thumbs" \
     entu:latest python -u /usr/src/entu/app/main.py --logging=error
