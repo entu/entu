@@ -161,12 +161,6 @@ class myDatabase():
             self.settings['mongodbs'][database] = MongoClient(self.settings['mongodb'], serverSelectionTimeoutMS=1000, socketKeepAlive=True)[database]
         return self.settings['mongodbs'][database]
 
-    def to_unicode(self, data, encoding='utf-8'):
-        if isinstance(data, basestring):
-            if not isinstance(data, unicode):
-                data = unicode(data, encoding)
-        return data
-
 class myUser(myE):
     __user        = None
     __session_key = None
@@ -388,9 +382,9 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             if self.request.method:
                 r['method'] = self.request.method
             if self.request.host:
-                r['host'] = self.to_unicode(self.request.host)
+                r['host'] = self.request.host
             if self.request.path:
-                r['path'] = self.to_unicode(self.request.path)
+                r['path'] = self.request.path
             if self.request.arguments:
                 for argument, value in self.request.arguments.iteritems():
                     a = argument.replace('.', '_')
@@ -404,7 +398,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
                 r['ip'] = self.request.remote_ip
             if self.request.headers:
                 if self.request.headers.get('User-Agent', None):
-                    r['browser'] = self.to_unicode(self.request.headers.get('User-Agent'))
+                    r['browser'] = self.request.headers.get('User-Agent')
 
             self.__request_id = self.mongodb('entu').request.insert_one(r).inserted_id
         except Exception, e:

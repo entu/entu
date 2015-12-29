@@ -11,7 +11,6 @@ import math
 import os
 import random
 import re
-import rethinkdb
 import string
 import time
 
@@ -440,7 +439,7 @@ class Entity():
 
         # If no value, then property is deleted, return
         if not value:
-            self.set_rethinkdb_entity(entity_id)
+            self.set_mongodb_entity(entity_id)
             return
 
         value_display = None
@@ -528,11 +527,11 @@ class Entity():
             entity_id,
         )
 
-        self.set_rethinkdb_entity(entity_id)
+        self.set_mongodb_entity(entity_id)
 
         return new_property_id
 
-    def set_rethinkdb_entity(self, entity_id):
+    def set_mongodb_entity(self, entity_id):
         sql = """
             SELECT
                 REPLACE(REPLACE(e.entity_definition_keyname, '_', '-'), '.', '-') AS entity_definition,
@@ -562,7 +561,7 @@ class Entity():
         e['_sharing'] = r.get('entity_sharing')
 
         if r.get('entity_created'):
-            e.setdefault('_created', {})['at'] = rethinkdb.iso8601('%s+00:00' % r.get('entity_created').isoformat())
+            e.setdefault('_created', {})['at'] = r.get('entity_created')
         if r.get('entity_created_by'):
             e.setdefault('_created', {})['by'] = r.get('entity_created_by')
         if e.get('_created'):
@@ -570,7 +569,7 @@ class Entity():
             e['_created'] = [e.get('_created')]
 
         if r.get('entity_changed'):
-            e.setdefault('_changed', {})['at'] = rethinkdb.iso8601('%s+00:00' % r.get('entity_changed').isoformat())
+            e.setdefault('_changed', {})['at'] = r.get('entity_changed')
         if r.get('entity_changed_by'):
             e.setdefault('_changed', {})['by'] = r.get('entity_changed_by')
         if e.get('_changed'):
@@ -578,34 +577,34 @@ class Entity():
             e['_changed'] = [e.get('_changed')]
 
         if r.get('entity_is_deleted') and r.get('entity_deleted'):
-            e.setdefault('_deleted', {})['at'] = rethinkdb.iso8601('%s+00:00' % r.get('entity_deleted').isoformat())
+            e.setdefault('_deleted', {})['at'] = r.get('entity_deleted')
         if r.get('entity_is_deleted') and r.get('entity_deleted_by'):
             e.setdefault('_deleted', {})['by'] = r.get('entity_deleted_by')
         if e.get('_deleted'):
             e['_deleted']['type'] = 'action'
             e['_deleted'] = [e.get('_deleted')]
 
-        viewers = self.__get_rethinkdb_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'])
+        viewers = self.__get_mongodb_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'])
         if viewers:
             e['_viewer'] = [{'reference': x, 'type': 'reference'} for x in list(set(viewers))]
 
-        expanders = self.__get_rethinkdb_right(mysql_id, ['expander', 'editor', 'owner'])
+        expanders = self.__get_mongodb_right(mysql_id, ['expander', 'editor', 'owner'])
         if expanders:
             e['_expander'] = [{'reference': x, 'type': 'reference'} for x in list(set(expanders))]
 
-        editors = self.__get_rethinkdb_right(mysql_id, ['editor', 'owner'])
+        editors = self.__get_mongodb_right(mysql_id, ['editor', 'owner'])
         if editors:
             e['_editor'] = [{'reference': x, 'type': 'reference'} for x in list(set(editors))]
 
-        owners = self.__get_rethinkdb_right(mysql_id, ['owner'])
+        owners = self.__get_mongodb_right(mysql_id, ['owner'])
         if owners:
             e['_owner'] = [{'reference': x, 'type': 'reference'} for x in list(set(owners))]
 
-        parent = self.__get_rethinkdb_parent(entity_id=mysql_id, recursive=False)
+        parent = self.__get_mongodb_parent(entity_id=mysql_id, recursive=False)
         if parent:
             e['_parent'] = [{'reference': x, 'type': 'reference'} for x in list(set(parent))]
 
-        ancestor = self.__get_rethinkdb_parent(entity_id=mysql_id, recursive=True)
+        ancestor = self.__get_mongodb_parent(entity_id=mysql_id, recursive=True)
         if ancestor:
             e['_ancestor'] = [{'reference': x, 'type': 'reference'} for x in list(set(ancestor))]
 
@@ -655,9 +654,9 @@ class Entity():
             value = {}
 
             if r2.get('property_datatype') == 'string' and r2.get('value_string'):
-                value['value'] = self.to_unicode(r2.get('value_string'))
+                value['value'] = r2.get('value_string')
             elif r2.get('property_datatype') == 'text' and r2.get('value_text'):
-                value['value'] = self.to_unicode(r2.get('value_text'))
+                value['value'] = r2.get('value_text')
             elif r2.get('property_datatype') == 'integer' and r2.get('value_integer') != None:
                 value['value'] = r2.get('value_integer')
             elif r2.get('property_datatype') == 'decimal' and r2.get('value_decimal') != None:
@@ -665,13 +664,13 @@ class Entity():
             elif r2.get('property_datatype') == 'boolean' and r2.get('value_boolean') != None:
                 value['value'] = bool(r2.get('value_boolean'))
             elif r2.get('property_datatype') in ['date', 'datetime'] and r2.get('value_datetime') != None:
-                value['value'] = rethinkdb.iso8601('%s+00:00' % r2.get('value_datetime').isoformat())
+                value['value'] = r2.get('value_datetime')
             elif r2.get('property_datatype') == 'reference' and r2.get('value_reference'):
                 value['reference'] = r2.get('value_reference')
             elif r2.get('property_datatype') == 'counter-value' and r2.get('value_string'):
                 value['value'] = r2.get('value_string')
             elif r2.get('property_datatype') == 'file' and r2.get('value_file'):
-                value['value'] = self.to_unicode(r2.get('value_file_name'))
+                value['value'] = r2.get('value_file_name')
                 if r2.get('value_file_url'):
                     value['url'] = r2.get('file')
                 else:
@@ -690,15 +689,15 @@ class Entity():
             if r2.get('property_language'):
                 value['language'] = r2.get('property_language')
 
-            if r2.get('created'):
-                value.setdefault('created', {})['at'] = rethinkdb.iso8601('%s+00:00' % r2.get('created').isoformat())
-            if r2.get('created_by'):
-                value.setdefault('created', {})['by'] = r2.get('created_by')
-
-            if r2.get('is_deleted') and r2.get('deleted'):
-                value.setdefault('deleted', {})['at'] = rethinkdb.iso8601('%s+00:00' % r2.get('deleted').isoformat())
-            if r2.get('is_deleted') and r2.get('deleted_by'):
-                value.setdefault('deleted', {})['by'] = r2.get('deleted_by')
+            # if r2.get('created'):
+            #     value.setdefault('created', {})['at'] = r2.get('created')
+            # if r2.get('created_by'):
+            #     value.setdefault('created', {})['by'] = r2.get('created_by')
+            #
+            # if r2.get('is_deleted') and r2.get('deleted'):
+            #     value.setdefault('deleted', {})['at'] = r2.get('deleted')
+            # if r2.get('is_deleted') and r2.get('deleted_by'):
+            #     value.setdefault('deleted', {})['by'] = r2.get('deleted_by')
 
             e.setdefault(r2.get('property_dataproperty'), []).append(value)
 
@@ -713,22 +712,18 @@ class Entity():
         #     if l in e.get('_search', {}):
         #         e['_search'][l] = list(set(e['_search'][l]))
 
-        #Create or replace rethinkdb object
+        #Create or replace Mongo object
         try:
-            rethinkdb_table = self.app_settings('database-name')
-            if rethinkdb_table not in rethinkdb.table_list().run(self.rethinkdb('entu')):
-                rethinkdb.table_create(rethinkdb_table).run(self.rethinkdb('entu'))
-
-            rethinkdb_entity = list(rethinkdb.table(rethinkdb_table).get_all(mysql_id, index='_mid').limit(1).get_field('id').run(self.rethinkdb('entu')))
-            if rethinkdb_entity:
-                rethinkdb.table(rethinkdb_table).get(rethinkdb_entity[0]).update(e).run(self.rethinkdb('entu'))
+            mongo_entity = self.mongodb().entity.find_one({'_mid': mysql_id}, {'_id': True})
+            if mongo_entity:
+                self.mongodb().entity.update({'_id': mongo_entity.get('_id')}, e)
             else:
-                rethinkdb.table(rethinkdb_table).insert(e).run(self.rethinkdb('entu'))
+                self.mongodb().entity.insert(e)
         except Exception, err:
             self.captureException()
-            logging.error('RethinkDb error: %s - %s' % (err, e))
+            logging.error('MongoDb error: %s - %s' % (err, e))
 
-    def __get_rethinkdb_parent(self, entity_id, recursive=False):
+    def __get_mongodb_parent(self, entity_id, recursive=False):
         sql = """
             SELECT entity_id
             FROM relationship
@@ -742,11 +737,11 @@ class Entity():
         for r in self.db.query(sql):
             entities.append(r.get('entity_id'))
             if recursive:
-                entities = entities + self.__get_rethinkdb_parent(entity_id=r.get('entity_id'), recursive=True)
+                entities = entities + self.__get_mongodb_parent(entity_id=r.get('entity_id'), recursive=True)
 
         return entities
 
-    def __get_rethinkdb_right(self, entity_id, rights):
+    def __get_mongodb_right(self, entity_id, rights):
         sql = """
             SELECT related_entity_id
             FROM relationship
