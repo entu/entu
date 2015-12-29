@@ -15,7 +15,6 @@ import json
 import logging
 import random
 import re
-import rethinkdb
 import string
 import time
 import torndb
@@ -124,27 +123,6 @@ class myDatabase():
 
         return self.__app_settings.get(host, {})
 
-    def rethinkdb(self, database=None):
-        """
-        Returns RethinkDB connection.
-
-        """
-        if not database:
-            database = self.app_settings('database-name')
-
-        if database == 'www':
-            database = 'entu'
-
-        try:
-            self.settings['rethinkdbs'][database].use(database)
-        except Exception:
-            self.settings['rethinkdbs'][database] = rethinkdb.connect(self.settings['rethinkdb-host'])
-            if database not in rethinkdb.db_list().run(self.settings['rethinkdbs'][database]):
-                rethinkdb.db_create(database).run(self.settings['rethinkdbs'][database])
-            self.settings['rethinkdbs'][database].use(database)
-
-        return self.settings['rethinkdbs'][database]
-
     def mongodb(self, database=None):
         """
         Returns MongoDB connection.
@@ -176,7 +154,7 @@ class myUser(myE):
             return self.__user
 
         try:
-            session = list(rethinkdb.table('session').get_all(session_key, index='key').limit(1).run(self.rethinkdb('entu')))[0]
+            session = self.mongodb('entu').session.find_one({'key': session_key})
         except IndexError:
             logging.debug('No session!')
             return None

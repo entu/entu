@@ -9,8 +9,7 @@ pillow==3.0.0
 pymongo==3.2
 python-dateutil==2.4.2
 pyyaml==3.11
-raven==5.9.0
-rethinkdb==2.2.0.post1
+raven==5.9.2
 simpleaes==1.0
 suds==0.4
 tornado==4.3

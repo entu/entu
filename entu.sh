@@ -22,7 +22,6 @@ docker run -d \
     --memory="512m" \
     --env="VERSION=$version" \
     --env="PORT=80" \
-    --env="RETHINKDB_HOST=" \
     --env="MYSQL_HOST=" \
     --env="MYSQL_DATABASE=" \
     --env="MYSQL_USER=" \
