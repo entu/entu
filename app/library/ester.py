@@ -79,7 +79,7 @@ class EsterImport(myRequestHandler, Entity):
 
         http_client = httpclient.AsyncHTTPClient()
         ester_request = yield http_client.fetch(httpclient.HTTPRequest(
-            url='https://ester.entu.eu/item/%s?f=human' % id,
+            url='https://ester.entu.ee/item/%s?f=human' % id,
             method='GET',
             request_timeout=60
         ))
