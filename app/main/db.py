@@ -1261,6 +1261,8 @@ class Entity():
                     property_definition.visible                     AS property_visible,
                     property.id                                     AS value_id,
                     property.id                                     AS value_ordinal,
+                    property.created                                AS value_created,
+                    property.created_by                             AS value_created_by,
                     property.value_display                          AS value_display,
                     property.value_formula                          AS value_formula,
                     property.value_string                           AS value_string,
@@ -1373,6 +1375,8 @@ class Entity():
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['ordinal'] = row.value_ordinal
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['value'] = value
                 items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['db_value'] = db_value
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['created'] = row.value_created
+                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['created_by'] = row.value_created_by
 
         if not items:
             if not full_definition:
