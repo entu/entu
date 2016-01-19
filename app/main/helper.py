@@ -174,6 +174,7 @@ class myUser(myE):
             'hide_menu': 0,
             'email': session.get('user', {}).get('email'),
             'provider': session.get('user', {}).get('provider'),
+            'created_at': session.get('user', {}).get('created'),
             'access_token': None,
             'session_key': session.get('key'),
             'api_key': None
