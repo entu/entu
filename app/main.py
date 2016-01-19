@@ -36,6 +36,7 @@ APP_MYSQL_USER     = os.getenv('MYSQL_USER')
 APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
 APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
 APP_SENTRY         = os.getenv('SENTRY_DSN')
+APP_INTERCOM_KEY   = os.getenv('INTERCOM_KEY')
 
 
 # List of controllers to load.
@@ -90,6 +91,7 @@ class myApplication(tornado.web.Application):
             'login_url':            '/auth',
             'auth_url':             APP_AUTH_URL,
             'cookie_domain':        APP_COOKIE_DOMAIN,
+            'intercom_key':         APP_INTERCOM_KEY,
             'start_time':           time.time(),
             'request_count':        0,
             'request_time':         0,

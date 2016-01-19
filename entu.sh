@@ -34,6 +34,7 @@ docker run -d \
     --env="NEW_RELIC_LOG_LEVEL=error" \
     --env="NEW_RELIC_NO_CONFIG_FILE=true" \
     --env="SENTRY_DSN=" \
+    --env="INTERCOM_KEY=" \
     entu:latest python -u /usr/src/entu/app/maintenance.py
 
 docker inspect -f "{{ .NetworkSettings.IPAddress }}" entu-maintenance
