@@ -68,9 +68,9 @@
                 {% if current_user %}
                     window.intercomSettings = {
                         app_id: "{{ intercom_key }}",
-                        id: "{{ current_user.get('id') }}",
+                        user_id: "{{ current_user.get('email') }}",
                         name: "{{ current_user.get('name') }}",
-                        email: "{{ current_user.get('email') }}"
+                        email: "{{ current_user.get('email') }}",
                         // created_at: "{{ current_user.get('created_at') }}",
                         // customer: "{{ app_organisation }}",
                         company: {
