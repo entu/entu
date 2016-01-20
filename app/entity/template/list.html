@@ -46,6 +46,10 @@
             $('#toolbar').html($('#list_toolbar_template').html());
             $('#content').html('');
         }
+
+        {% if intercom_key %}
+            window.Intercom('update');
+        {% end %}
     };
 
     $(document).ready(function(){
