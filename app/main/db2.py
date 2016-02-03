@@ -748,7 +748,7 @@ class Entity2():
             SELECT
                 id AS id,
                 changed AS changed_dt,
-                UNIX_TIMESTAMP(changed) AS changed_timestamp
+                UNIX_TIMESTAMP(changed) AS changed_ts
             FROM entity
             WHERE 1 = 1
             %(timestamp_constraint)s
@@ -756,6 +756,8 @@ class Entity2():
             ORDER BY changed %(order_by)s
             LIMIT %(limit)s;
         """ % {'timestamp_constraint': timestamp_constraint, 'definition_constraint': definition_constraint, 'order_by': order_by, 'limit': limit}
+
+        logging.error(sql)
 
         return self.db.query(sql)
 
