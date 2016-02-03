@@ -728,40 +728,36 @@ class Entity2():
         }
 
 
-    def get_recently_changed(self, timestamp, definition=None, limit=50):
+    def get_recently_changed(self, timestamp=None, definition=None, limit=50):
         """
         Return entity_id's and changed timestamps
         ordered by timestamps
-        from entities of givrn 'definition'
+        from entities of given 'definition'
         that are changed at or after given 'timestamp'.
+
+        If 'timestamp' is not set latest changes will be returned in descending order.
+
         Let the list be no longer than 'limit'
         """
 
-        if not timestamp:
-            return []
-
-        timestamp = int(timestamp)
-        limit = int(limit)
-
-        definition_constraint = ''
-        if definition:
-            definition_constraint = 'AND entity_definition_keyname = "%s"' % definition
+        definition_constraint = definition ? 'AND entity_definition_keyname = "%s"' % definition : ''
+        timestamp_constraint = timestamp ? 'UNIX_TIMESTAMP(changed) >= %(timestamp)i' % timestamp : ''
+        order_by = timestamp ? '' : ' DESC'
 
         sql = """
-            SELECT id AS 'id', UNIX_TIMESTAMP(changed) AS 'timestamp'
+            SELECT
+                id AS id,
+                changed AS changed_dt,
+                UNIX_TIMESTAMP(changed) AS changed_timestamp
             FROM entity
-            WHERE UNIX_TIMESTAMP(changed) >= %(timestamp)i
+            WHERE 1 = 1
+            %(timestamp_constraint)s
             %(definition_constraint)s
-            ORDER BY UNIX_TIMESTAMP(changed)
+            ORDER BY changed %(order_by)s
             LIMIT %(limit)i;
-            """ % {'timestamp': timestamp, 'definition_constraint': definition_constraint, 'limit': limit}
+        """ % {'timestamp_constraint': timestamp_constraint, 'definition_constraint': definition_constraint, 'order_by': order_by, 'limit': limit}
 
-        logging.debug(sql)
-
-        result = self.db.get(sql)
-        logging.debug(result)
-
-        return result
+        return self.db.get(sql)
 
 
     def get_history_timeframe(self, timestamp=None, limit=10):

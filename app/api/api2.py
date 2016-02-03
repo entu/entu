@@ -1193,25 +1193,22 @@ class API2Changed(myRequestHandler, Entity2):
     @web.authenticated
     def get(self):
 
-        limit = self.get_argument('limit', default=50, strip=True)
-        if limit == '':
-            limit = 50
-        limit = int(limit)
-        if limit > 500:
-            limit = 500
-
         timestamp = self.get_argument('timestamp', default=None, strip=True)
-
         definition = self.get_argument('definition', default=None, strip=True)
+        limit = int(self.get_argument('limit', default=50, strip=True))
 
-        changed = self.get_recently_changed(timestamp, definition, limit)
-        logging.debug(changed)
+        if limit > 500:
+            return self.json({
+                'error': 'Limit must be less than 500!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        changed = self.get_recently_changed(timestamp=timestamp, definition=definition, limit=limit)
 
         self.json({
             'result': changed,
             'time': round(self.request.request_time(), 3),
-            # 'count': len(changed['changed']),
-            })
+        })
 
 
 
