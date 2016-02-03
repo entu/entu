@@ -740,9 +740,9 @@ class Entity2():
         Let the list be no longer than 'limit'
         """
 
-        definition_constraint = definition ? 'AND entity_definition_keyname = "%s"' % definition : ''
-        timestamp_constraint = timestamp ? 'UNIX_TIMESTAMP(changed) >= %(timestamp)i' % timestamp : ''
-        order_by = timestamp ? '' : ' DESC'
+        definition_constraint = 'AND entity_definition_keyname = "%s"' % definition if definition else ''
+        timestamp_constraint = 'UNIX_TIMESTAMP(changed) >= %(timestamp)i' % timestamp if timestamp else ''
+        order_by = ' DESC' if not timestamp else ''
 
         sql = """
             SELECT
