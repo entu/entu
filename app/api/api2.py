@@ -1195,7 +1195,14 @@ class API2Changed(myRequestHandler, Entity2):
 
         timestamp = self.get_argument('timestamp', default=None, strip=True)
         definition = self.get_argument('definition', default=None, strip=True)
-        limit = int(self.get_argument('limit', default=50, strip=True))
+
+        try:
+            limit = int(self.get_argument('limit', default=50, strip=True))
+        except Exception, e:
+            return self.json({
+                'error': 'Limit must a number!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
 
         if limit > 500:
             return self.json({

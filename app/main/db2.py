@@ -750,7 +750,7 @@ class Entity2():
                 changed AS changed_dt,
                 UNIX_TIMESTAMP(changed) AS changed_ts
             FROM entity
-            WHERE 1 = 1
+            WHERE is_deleted = 0
             %(timestamp_constraint)s
             %(definition_constraint)s
             ORDER BY changed %(order_by)s
