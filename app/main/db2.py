@@ -745,12 +745,12 @@ class Entity2():
 
         definition_constraint = ''
         if definition:
-            definition_constraint = 'AND entity_definition_keyname = %s' % definition
+            definition_constraint = 'AND entity_definition_keyname = "%s"' % definition
 
         sql = """
-            SELECT created, UNIX_TIMESTAMP(changed)
+            SELECT id, UNIX_TIMESTAMP(changed)
             FROM entity
-            WHERE UNIX_TIMESTAMP(created) >= %(timestamp)i
+            WHERE UNIX_TIMESTAMP(changed) >= %(timestamp)i
             %(definition_constraint)s
             ORDER BY UNIX_TIMESTAMP(changed)
             LIMIT %(limit)i;

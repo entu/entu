@@ -1194,6 +1194,7 @@ class API2Changed(myRequestHandler, Entity2):
     def get(self):
 
         limit = self.get_argument('limit', default=50, strip=True)
+        limit = int(limit)
         if limit > 500:
             limit = 500
 
