@@ -741,7 +741,7 @@ class Entity2():
         """
 
         definition_constraint = 'AND entity_definition_keyname = "%s"' % definition if definition else ''
-        timestamp_constraint = 'UNIX_TIMESTAMP(changed) >= %(timestamp)i' % timestamp if timestamp else ''
+        timestamp_constraint = 'UNIX_TIMESTAMP(changed) >= %s' % timestamp if timestamp else ''
         order_by = ' DESC' if not timestamp else ''
 
         sql = """
@@ -754,7 +754,7 @@ class Entity2():
             %(timestamp_constraint)s
             %(definition_constraint)s
             ORDER BY changed %(order_by)s
-            LIMIT %(limit)i;
+            LIMIT %(limit)s;
         """ % {'timestamp_constraint': timestamp_constraint, 'definition_constraint': definition_constraint, 'order_by': order_by, 'limit': limit}
 
         return self.db.get(sql)
