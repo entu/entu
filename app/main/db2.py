@@ -757,7 +757,7 @@ class Entity2():
             LIMIT %(limit)s;
         """ % {'timestamp_constraint': timestamp_constraint, 'definition_constraint': definition_constraint, 'order_by': order_by, 'limit': limit}
 
-        return self.db.get(sql)
+        return self.db.query(sql)
 
 
     def get_history_timeframe(self, timestamp=None, limit=10):
