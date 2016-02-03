@@ -728,6 +728,42 @@ class Entity2():
         }
 
 
+    def get_recently_changed(self, timestamp, definition=None, limit=50):
+        """
+        Return entity_id's and changed timestamps
+        ordered by timestamps
+        from entities of givrn 'definition'
+        that are changed at or after given 'timestamp'.
+        Let the list be no longer than 'limit'
+        """
+
+        if not timestamp:
+            return []
+
+        timestamp = int(timestamp)
+        limit = int(limit)
+
+        definition_constraint = ''
+        if definition:
+            definition_constraint = 'AND entity_definition_keyname = %s' % definition
+
+        sql = """
+            SELECT created, UNIX_TIMESTAMP(changed)
+            FROM entity
+            WHERE UNIX_TIMESTAMP(created) >= %(timestamp)i
+            %(definition_constraint)s
+            ORDER BY UNIX_TIMESTAMP(changed)
+            LIMIT %(limit)i;
+            """ % {'timestamp': timestamp, 'definition_constraint': definition_constraint, 'limit': limit}
+
+        logging.debug(sql)
+
+        result = self.db.get(sql)
+        logging.debug(result)
+
+        return result
+
+
     def get_history_timeframe(self, timestamp=None, limit=10):
         # logging.debug(timestamp)
         # logging.debug(limit)
