@@ -1188,6 +1188,32 @@ class API2History(myRequestHandler, Entity2):
 
 
 
+class API2Changed(myRequestHandler, Entity2):
+    @web.removeslash
+    @web.authenticated
+    def get(self):
+
+        limit = self.get_argument('limit', default=50, strip=True)
+        if limit > 500:
+            limit = 500
+
+        if limit == '':
+            limit = 50
+
+        timestamp = self.get_argument('timestamp', default=None, strip=True)
+
+        definition = self.get_argument('definition', default=None, strip=True)
+
+        changed = self.get_recently_changed(timestamp, definition, limit)
+        logging.debug(changed)
+
+        self.json({
+            'result': changed,
+            'time': round(self.request.request_time(), 3),
+            # 'count': len(changed['changed']),
+            })
+
+
 
 class API2Ping(myRequestHandler):
     #
@@ -1244,6 +1270,7 @@ handlers = [
     (r'/api2/user/auth/(.*)/(.*)', API2UserAuthTokenProvider),
     (r'/api2/user/auth/(.*)', API2UserAuthToken),
     (r'/api2/history', API2History),
+    (r'/api2/changed', API2Changed),
     (r'/api2/tagcloud', API2TagCloud),
     (r'/api2/user', API2User),
     (r'/api2/ping', API2Ping),
