@@ -177,13 +177,6 @@ class API2Entity(myRequestHandler, Entity):
         #
         # Get entity (with given ID)
         #
-        try:
-            time = round(self.request.request_time(), 3)
-        except Exception, e:
-            return self.json({
-                'error': e,
-            }, 500)
-
         if not entity_id:
             return self.json({
                 'error': 'No entity ID!',
