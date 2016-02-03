@@ -748,7 +748,7 @@ class Entity2():
             definition_constraint = 'AND entity_definition_keyname = "%s"' % definition
 
         sql = """
-            SELECT id, UNIX_TIMESTAMP(changed)
+            SELECT id AS 'id', UNIX_TIMESTAMP(changed) AS 'timestamp'
             FROM entity
             WHERE UNIX_TIMESTAMP(changed) >= %(timestamp)i
             %(definition_constraint)s
