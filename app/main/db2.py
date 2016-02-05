@@ -747,7 +747,7 @@ class Entity2():
         sql = """
             SELECT
                 id AS id,
-                changed AS changed_dt,
+                entity_definition_keyname AS definition,
                 UNIX_TIMESTAMP(changed) AS changed_ts
             FROM entity
             WHERE is_deleted = 0
