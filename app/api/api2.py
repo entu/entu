@@ -868,6 +868,7 @@ class API2EntityRights(myRequestHandler, Entity2):
 
 
 
+
 class API2EntityShare(myRequestHandler, Entity):
     def post(self, entity_id):
         if not self.current_user:
@@ -1072,11 +1073,13 @@ class API2UserAuth(myRequestHandler, Entity2):
 
 
 
+
 class API2UserAuthTokenProvider(myRequestHandler, Entity2):
     @web.removeslash
     def get(self, token, provider):
         self.set_cookie(name='auth_provider', value=provider, expires_days=1, domain=self.settings['cookie_domain'])
         self.redirect('/api2/user/auth/%s' % token)
+
 
 
 
@@ -1162,6 +1165,7 @@ class API2UserAuthToken(myRequestHandler, Entity2):
 
 
 
+
 class API2History(myRequestHandler, Entity2):
     @web.removeslash
     @web.authenticated
@@ -1185,6 +1189,7 @@ class API2History(myRequestHandler, Entity2):
             'time': round(self.request.request_time(), 3),
             'count': len(events['events']),
             })
+
 
 
 
@@ -1216,6 +1221,35 @@ class API2Changed(myRequestHandler, Entity2):
             'result': changed,
             'time': round(self.request.request_time(), 3),
         })
+
+
+
+
+class API2EntityParents(myRequestHandler, Entity2):
+    @web.removeslash
+    @web.authenticated
+    def get(self, entity_id=None):
+        if not entity_id:
+            return self.json({
+                'error': 'No entity ID!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        try:
+            id = int(entity_id)
+        except Exception, e:
+            return self.json({
+                'error': 'Id has to be a number!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        parents = self.get_parents(id=id)
+
+        return self.json({
+            'result': parents,
+            'time': round(self.request.request_time(), 3),
+        })
+
 
 
 
@@ -1261,6 +1295,7 @@ handlers = [
     (r'/api2/entity-(.*)/picture', API2EntityPicture),
     (r'/api2/entity-(.*)/rights', API2EntityRights),
     (r'/api2/entity-(.*)/share', API2EntityShare),
+    (r'/api2/entity-(.*)/parents', API2EntityParents),
     (r'/api2/entity-(.*)', API2Entity),
     (r'/api2/file', API2FileUpload),
     (r'/api2/file/s3', API2AmazonFileUpload),

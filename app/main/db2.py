@@ -760,6 +760,28 @@ class Entity2():
         return self.db.query(sql)
 
 
+    def get_parents(self, id=None):
+        """
+        Return array of parent entity id's
+        """
+        if not id:
+            return
+
+        sql = """
+            SELECT ep.id AS id
+            FROM relationship r
+            LEFT JOIN entity e ON e.id = r.related_entity_id
+            LEFT JOIN entity ep ON ep.id = r.entity_id
+            WHERE r.is_deleted = 0
+            AND e.is_deleted = 0
+            AND ep.is_deleted = 0
+            AND r.relationship_definition_keyname = 'child'
+            AND e.id = %(id)s
+        """ % {'id': id}
+
+        return self.db.query(sql)
+
+
     def get_history_timeframe(self, timestamp=None, limit=10):
         # logging.debug(timestamp)
         # logging.debug(limit)
