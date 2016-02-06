@@ -768,7 +768,7 @@ class Entity2():
             return
 
         sql = """
-            SELECT ep.id AS id
+            SELECT ep.id AS id, ep.entity_definition_keyname AS definition
             FROM relationship r
             LEFT JOIN entity e ON e.id = r.related_entity_id
             LEFT JOIN entity ep ON ep.id = r.entity_id
