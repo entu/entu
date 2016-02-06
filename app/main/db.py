@@ -387,6 +387,7 @@ class Entity():
 
         if old_property_id:
             self.db.execute('UPDATE property SET deleted = NOW(), is_deleted = 1, deleted_by = %s WHERE id = %s;', user_id, old_property_id)
+            self.db.execute('UPDATE entity SET changed = NOW(), changed_by = %s WHERE id = %s;', user_id, entity_id)
 
         if self.db.get("""
             SELECT property.id
@@ -522,10 +523,7 @@ class Entity():
         if definition.datatype == 'file' and uploaded_file.get('s3key'):
             self.db.execute('UPDATE file SET s3_key = CONCAT(s3_key, \'/\', %s) WHERE id = %s LIMIT 1;', new_property_id, value)
 
-        self.db.execute('UPDATE entity SET changed = NOW(), changed_by = %s WHERE id = %s;',
-            user_id,
-            entity_id,
-        )
+        self.db.execute('UPDATE entity SET changed = NOW(), changed_by = %s WHERE id = %s;', user_id, entity_id)
 
         self.set_mongodb_entity(entity_id)
 
