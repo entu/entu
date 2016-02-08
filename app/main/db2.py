@@ -733,29 +733,75 @@ class Entity2():
         Return entity_id's and changed timestamps
         ordered by timestamps
         from entities of given 'definition'
-        that are changed at or after given 'timestamp'.
+        that are created/changed/deleted at or after given 'timestamp'.
 
         If 'timestamp' is not set latest changes will be returned in descending order.
 
-        Let the list be no longer than 'limit'
+        Let the list be no longer than 'limit' different timestamps.
         """
 
         definition_constraint = ' AND entity_definition_keyname = "%s"' % definition if definition else ''
-        timestamp_constraint = ' AND UNIX_TIMESTAMP(changed) >= %s' % timestamp if timestamp else ''
-        order_by = ' DESC' if not timestamp else ''
+        timestamp_constraint = ' HAVING timestamp >= %s' % timestamp if timestamp else ''
+        sort_direction = 'ASC' if timestamp else 'DESC'
 
         sql = """
-            SELECT
-                id AS id,
-                entity_definition_keyname AS definition,
-                UNIX_TIMESTAMP(changed) AS changed_ts
-            FROM entity
-            WHERE is_deleted = 0
-            %(timestamp_constraint)s
-            %(definition_constraint)s
-            ORDER BY changed %(order_by)s
-            LIMIT %(limit)s;
-        """ % {'timestamp_constraint': timestamp_constraint, 'definition_constraint': definition_constraint, 'order_by': order_by, 'limit': limit}
+            SELECT DISTINCT events.definition AS definition, events.id AS ID, dates.action AS action, dates.timestamp AS timestamp
+            FROM (
+                SELECT DISTINCT 'created at'            AS action,
+                                Unix_timestamp(created) AS timestamp
+                FROM   entity
+                WHERE  is_deleted = 0
+                       %(definition_constraint)s
+                       %(timestamp_constraint)s
+                UNION ALL
+                SELECT DISTINCT 'changed at'            AS action,
+                                Unix_timestamp(changed) AS timestamp
+                FROM   entity
+                WHERE  is_deleted = 0
+                       %(definition_constraint)s
+                       %(timestamp_constraint)s
+                UNION ALL
+                SELECT DISTINCT 'deleted at'            AS action,
+                                Unix_timestamp(deleted) AS timestamp
+                FROM   entity
+                WHERE  is_deleted = 1
+                       %(definition_constraint)s
+                       %(timestamp_constraint)s
+                ORDER  BY date %(sort_direction)s
+                LIMIT %(limit)s
+            ) AS dates
+            LEFT JOIN (
+                SELECT entity_definition_keyname AS definition,
+                       id                        AS id,
+                       'created at'              AS action,
+                       Unix_timestamp(created)   AS timestamp
+                FROM   entity
+                WHERE  is_deleted = 0
+                       %(definition_constraint)s
+                       %(timestamp_constraint)s
+                UNION ALL
+                SELECT entity_definition_keyname AS definition,
+                       id                        AS id,
+                       'changed at'              AS action,
+                       Unix_timestamp(changed)   AS timestamp
+                FROM   entity
+                WHERE  is_deleted = 0
+                       %(definition_constraint)s
+                       %(timestamp_constraint)s
+                UNION ALL
+                SELECT entity_definition_keyname AS definition,
+                       id                        AS id,
+                       'deleted at'              AS action,
+                       Unix_timestamp(deleted)   AS timestamp
+                FROM   entity
+                WHERE  is_deleted = 1
+                       %(definition_constraint)s
+                       %(timestamp_constraint)s
+            ) AS events
+              ON events.timestamp = dates.timestamp
+             AND events.action = dates.action
+            ORDER BY dates.timestamp %(sort_direction)s;
+        """ % {'timestamp_constraint': timestamp_constraint, 'definition_constraint': definition_constraint, 'sort_direction': sort_direction, 'limit': limit}
 
         return self.db.query(sql)
 
