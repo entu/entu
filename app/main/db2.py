@@ -735,7 +735,7 @@ class Entity2():
         from entities of given 'definition'
         that are created/changed/deleted at or after given 'timestamp'.
 
-        If 'timestamp' is not set latest changes will be returned in descending order.
+        If 'timestamp' is not set latest updates will be returned.
 
         Let the list be no longer than 'limit' different timestamps.
         """
@@ -800,7 +800,7 @@ class Entity2():
             ) AS events
               ON events.timestamp = dates.timestamp
              AND events.action = dates.action
-            ORDER BY dates.timestamp %(sort_direction)s;
+            ORDER BY dates.timestamp;
         """ % {'timestamp_constraint': timestamp_constraint, 'definition_constraint': definition_constraint, 'sort_direction': sort_direction, 'limit': limit}
 
         return self.db.query(sql)
