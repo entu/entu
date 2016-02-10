@@ -745,7 +745,7 @@ class Entity2():
         sort_direction = 'ASC' if timestamp else 'DESC'
 
         sql = """
-            SELECT DISTINCT events.definition AS definition, events.id AS ID, dates.action AS action, dates.timestamp AS timestamp
+            SELECT DISTINCT events.definition AS definition, events.id AS id, dates.action AS action, dates.timestamp AS timestamp
             FROM (
                 SELECT DISTINCT 'created at'            AS action,
                                 Unix_timestamp(created) AS timestamp
