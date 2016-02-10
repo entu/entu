@@ -767,7 +767,7 @@ class Entity2():
                 WHERE  is_deleted = 1
                        %(definition_constraint)s
                        %(timestamp_constraint)s
-                ORDER  BY date %(sort_direction)s
+                ORDER  BY timestamp %(sort_direction)s
                 LIMIT %(limit)s
             ) AS dates
             LEFT JOIN (
