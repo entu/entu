@@ -1220,6 +1220,7 @@ class API2Changed(myRequestHandler, Entity2):
         self.json({
             'result': changed,
             'time': round(self.request.request_time(), 3),
+            'count': len(changed),
         })
 
 
