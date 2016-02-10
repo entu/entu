@@ -741,7 +741,7 @@ class Entity2():
         """
 
         definition_constraint = ' AND entity_definition_keyname = "%s"' % definition if definition else ''
-        timestamp_constraint = ' HAVING timestamp >= %s' % timestamp if timestamp else ''
+        timestamp_constraint = ' HAVING timestamp > %s' % timestamp if timestamp else ''
         sort_direction = 'ASC' if timestamp else 'DESC'
 
         sql = """
