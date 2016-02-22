@@ -107,7 +107,10 @@ class MySQL2MongoDB():
             user     = db_user,
             password = db_pass,
         )
-        self.mongo_collection = MongoClient(APP_MONGODB)[self.db_name]['entity']
+        if self.db_name == 'www':
+            self.mongo_collection = MongoClient(APP_MONGODB)['entu']['entity']
+        else:
+            self.mongo_collection = MongoClient(APP_MONGODB)[self.db_name]['entity']
 
         self.mongo_collection.create_index([('_mid', ASCENDING)])
 
@@ -117,89 +120,159 @@ class MySQL2MongoDB():
 
         t = time.time()
 
-        sql = """
+        actions_sql = """
             SELECT
-                REPLACE(REPLACE(e.entity_definition_keyname, '_', '-'), '.', '-') AS entity_definition,
-                e.id         AS entity_id,
-                e.sharing    AS entity_sharing,
-                e.created    AS entity_created,
-                IF(CAST(e.created_by AS UNSIGNED) > 0, CAST(e.created_by AS UNSIGNED), NULL) AS entity_created_by,
-                e.changed    AS entity_changed,
-                IF(CAST(e.changed_by AS UNSIGNED) > 0, CAST(e.changed_by AS UNSIGNED), NULL) AS entity_changed_by,
-                e.deleted    AS entity_deleted,
-                IF(CAST(e.deleted_by AS UNSIGNED) > 0, CAST(e.deleted_by AS UNSIGNED), NULL) AS entity_deleted_by,
-                e.is_deleted AS entity_is_deleted,
-                e.old_id     AS entity_old_id
-            FROM
-                entity AS e
-            -- WHERE e.entity_definition_keyname IN ('person', 'conf-menu-item', 'customer')
+                entity_id,
+                (SELECT definition FROM entity WHERE id = entity_id LIMIT 1) AS definition,
+                (SELECT sharing FROM entity WHERE id = entity_id LIMIT 1) AS sharing,
+                IFNULL(dt, (SELECT created FROM entity WHERE id = entity_id LIMIT 1)) AS dt,
+                person,
+                GROUP_CONCAT(action ORDER BY action SEPARATOR ',') AS action
+            FROM (
+                -- PROPERTY ADD
+                SELECT
+                	entity_id,
+                	IF(created > '1900', created, NULL) AS dt,
+                	IF(CAST(created_by AS UNSIGNED) > 0, CAST(created_by AS UNSIGNED), NULL) AS person,
+                	'change' AS action
+                FROM property
+                GROUP BY entity_id, created, created_by
+
+                -- PROPERTY DELETE
+                UNION SELECT
+                	entity_id,
+                	IF(deleted > '1900', deleted, NULL) AS dt,
+                	IF(CAST(deleted_by AS UNSIGNED) > 0, CAST(deleted_by AS UNSIGNED), NULL) AS person,
+                	'change' AS action
+                FROM property
+                WHERE is_deleted = 1
+                GROUP BY entity_id, deleted, deleted_by
+
+                -- ENTITY DELETE
+                -- UNION SELECT
+                -- 	id AS entity_id,
+                -- 	IF(deleted > '1900', deleted, NULL) AS dt,
+                -- 	IF(CAST(deleted_by AS UNSIGNED) > 0, CAST(deleted_by AS UNSIGNED), NULL) AS person,
+                -- 	'delete' AS action
+                -- FROM entity
+                -- WHERE is_deleted = 1
+                -- GROUP BY deleted, deleted_by
+
+                -- PARENT ADD
+                UNION SELECT
+                	related_entity_id AS entity_id,
+                	IF(created > '1900', created, NULL) AS dt,
+                	IF(CAST(created_by AS UNSIGNED) > 0, CAST(created_by AS UNSIGNED), NULL) AS person,
+                	'parent' AS action
+                FROM relationship
+                WHERE relationship_definition_keyname = 'child'
+                GROUP BY related_entity_id, created, created_by
+
+                -- PARENT DELETED
+                UNION SELECT
+                	related_entity_id AS entity_id,
+                	IF(deleted > '1900', deleted, NULL) AS dt,
+                	IF(CAST(deleted_by AS UNSIGNED) > 0, CAST(deleted_by AS UNSIGNED), NULL) AS person,
+                	'parent' AS action
+                FROM relationship
+                WHERE is_deleted = 1
+                AND relationship_definition_keyname = 'child'
+                GROUP BY related_entity_id, deleted, deleted_by
+
+                -- RIGHT ADD
+                UNION SELECT
+                	entity_id,
+                	IF(created > '1900', created, NULL) AS dt,
+                	IF(CAST(created_by AS UNSIGNED) > 0, CAST(created_by AS UNSIGNED), NULL) AS person,
+                	'right' AS action
+                FROM relationship
+                WHERE relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
+                GROUP BY entity_id, created, created_by
+
+                -- RIGHT DELETED
+                UNION SELECT
+                	entity_id,
+                	IF(deleted > '1900', deleted, NULL) AS dt,
+                	IF(CAST(deleted_by AS UNSIGNED) > 0, CAST(deleted_by AS UNSIGNED), NULL) AS person,
+                	'right' AS action
+                FROM relationship
+                WHERE is_deleted = 1
+                AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
+                GROUP BY entity_id, deleted, deleted_by
+            ) AS x
+            WHERE entity_id IN (SELECT entity_id FROM property)
+            GROUP BY
+                definition,
+                entity_id,
+                dt,
+                person
             ORDER BY
-                e.id
-            -- LIMIT 1000;
+                definition,
+                entity_id,
+                dt,
+                person,
+                action
         """
 
-        rows = self.db.query(sql)
+        rows = self.db.query(actions_sql)
 
-        print '%s transfer %s entities' % (datetime.now(), len(rows))
+        print '%s transfer %s entity versions' % (datetime.now(), len(rows))
 
         for r in rows:
-            # if self.mongo_collection.find_one({'_mid': r.get('entity_id')}, {'_id': True}):
-            #     continue
-
             mysql_id = r.get('entity_id')
 
             e = {}
             e['_mid'] = mysql_id
-            e['_definition'] = r.get('entity_definition')
-            e['_sharing'] = r.get('entity_sharing')
+            e['_definition'] = r.get('definition')
+            e['_sharing'] = r.get('sharing')
 
-            if r.get('entity_created'):
+            if r.dt:
                 e.setdefault('_created', {})['at'] = r.get('entity_created')
-            if r.get('entity_created_by'):
+            if r.person:
                 e.setdefault('_created', {})['by'] = r.get('entity_created_by')
             if e.get('_created'):
                 e['_created']['type'] = 'action'
                 e['_created'] = [e.get('_created')]
 
-            if r.get('entity_changed'):
-                e.setdefault('_changed', {})['at'] = r.get('entity_changed')
-            if r.get('entity_changed_by'):
-                e.setdefault('_changed', {})['by'] = r.get('entity_changed_by')
-            if e.get('_changed'):
-                e['_changed']['type'] = 'action'
-                e['_changed'] = [e.get('_changed')]
-
-            if r.get('entity_is_deleted') and r.get('entity_deleted'):
-                e.setdefault('_deleted', {})['at'] = r.get('entity_deleted')
-            if r.get('entity_is_deleted') and r.get('entity_deleted_by'):
-                e.setdefault('_deleted', {})['by'] = r.get('entity_deleted_by')
-            if e.get('_deleted'):
-                e['_deleted']['type'] = 'action'
-                e['_deleted'] = [e.get('_deleted')]
-
-            viewers = self.__get_mongodb_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'])
-            if viewers:
-                e['_viewer'] = [{'reference': x, 'type': 'reference'} for x in list(set(viewers))]
-
-            expanders = self.__get_mongodb_right(mysql_id, ['expander', 'editor', 'owner'])
-            if expanders:
-                e['_expander'] = [{'reference': x, 'type': 'reference'} for x in list(set(expanders))]
-
-            editors = self.__get_mongodb_right(mysql_id, ['editor', 'owner'])
-            if editors:
-                e['_editor'] = [{'reference': x, 'type': 'reference'} for x in list(set(editors))]
-
-            owners = self.__get_mongodb_right(mysql_id, ['owner'])
-            if owners:
-                e['_owner'] = [{'reference': x, 'type': 'reference'} for x in list(set(owners))]
-
-            parent = self.__get_mongodb_parent(entity_id=mysql_id, recursive=False)
-            if parent:
-                e['_parent'] = [{'reference': x, 'type': 'reference'} for x in list(set(parent))]
-
-            ancestor = self.__get_mongodb_parent(entity_id=mysql_id, recursive=True)
-            if ancestor:
-                e['_ancestor'] = [{'reference': x, 'type': 'reference'} for x in list(set(ancestor))]
+            # if r.get('entity_changed'):
+            #     e.setdefault('_changed', {})['at'] = r.get('entity_changed')
+            # if r.get('entity_changed_by'):
+            #     e.setdefault('_changed', {})['by'] = r.get('entity_changed_by')
+            # if e.get('_changed'):
+            #     e['_changed']['type'] = 'action'
+            #     e['_changed'] = [e.get('_changed')]
+            #
+            # if r.get('entity_is_deleted') and r.get('entity_deleted'):
+            #     e.setdefault('_deleted', {})['at'] = r.get('entity_deleted')
+            # if r.get('entity_is_deleted') and r.get('entity_deleted_by'):
+            #     e.setdefault('_deleted', {})['by'] = r.get('entity_deleted_by')
+            # if e.get('_deleted'):
+            #     e['_deleted']['type'] = 'action'
+            #     e['_deleted'] = [e.get('_deleted')]
+            #
+            # viewers = self.__get_mongodb_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'], p.created)
+            # if viewers:
+            #     e['_viewer'] = [{'reference': x, 'type': 'reference'} for x in list(set(viewers))]
+            #
+            # expanders = self.__get_mongodb_right(mysql_id, ['expander', 'editor', 'owner'], p.created)
+            # if expanders:
+            #     e['_expander'] = [{'reference': x, 'type': 'reference'} for x in list(set(expanders))]
+            #
+            # editors = self.__get_mongodb_right(mysql_id, ['editor', 'owner'], p.created)
+            # if editors:
+            #     e['_editor'] = [{'reference': x, 'type': 'reference'} for x in list(set(editors))]
+            #
+            # owners = self.__get_mongodb_right(mysql_id, ['owner'], p.created)
+            # if owners:
+            #     e['_owner'] = [{'reference': x, 'type': 'reference'} for x in list(set(owners))]
+            #
+            # parent = self.__get_mongodb_parent(entity_id=mysql_id, recursive=False, p.created)
+            # if parent:
+            #     e['_parent'] = [{'reference': x, 'type': 'reference'} for x in list(set(parent))]
+            #
+            # ancestor = self.__get_mongodb_parent(entity_id=mysql_id, recursive=True, p.created)
+            # if ancestor:
+            #     e['_ancestor'] = [{'reference': x, 'type': 'reference'} for x in list(set(ancestor))]
 
             sql = """
                 SELECT
@@ -235,7 +308,23 @@ class MySQL2MongoDB():
                     property_definition AS pd
                 WHERE pd.keyname = p.property_definition_keyname
                 AND p.entity_id = %s
-                AND p.is_deleted = 0
+            """ % mysql_id
+            if r.dt:
+                sql += """
+                    AND (p.created IS NULL OR p.created <= '%s')
+                    AND (p.deleted IS NULL OR p.deleted > '%s')
+                """ % (r.dt, r.dt)
+
+            if r.person:
+                sql += """
+                    AND p.created_by = %s
+                """ % r.person
+            else:
+                sql += """
+                    AND p.created_by IS NULL
+                """ % r.person
+
+            sql += """
                 AND pd.dataproperty NOT IN ('entu-changed-by', 'entu-changed-at', 'entu-created-by', 'entu-created-at')
                 AND pd.dataproperty NOT LIKE 'auth_%%'
                 AND pd.datatype NOT IN ('counter')
@@ -243,7 +332,7 @@ class MySQL2MongoDB():
             """
 
             properties = {}
-            for r2 in self.db.query(sql, mysql_id):
+            for r2 in self.db.query(sql):
                 value = {}
 
                 if r2.get('property_datatype') == 'string' and r2.get('value_string'):
@@ -282,15 +371,15 @@ class MySQL2MongoDB():
                 if r2.get('property_language'):
                     value['language'] = r2.get('property_language')
 
-                if r2.get('created'):
-                    value.setdefault('created', {})['at'] = r2.get('created')
-                if r2.get('created_by'):
-                    value.setdefault('created', {})['by'] = r2.get('created_by')
-
-                if r2.get('is_deleted') and r2.get('deleted'):
-                    value.setdefault('deleted', {})['at'] = r2.get('deleted')
-                if r2.get('is_deleted') and r2.get('deleted_by'):
-                    value.setdefault('deleted', {})['by'] = r2.get('deleted_by')
+                # if r2.get('created'):
+                #     value.setdefault('created', {})['at'] = r2.get('created')
+                # if r2.get('created_by'):
+                #     value.setdefault('created', {})['by'] = r2.get('created_by')
+                #
+                # if r2.get('is_deleted') and r2.get('deleted'):
+                #     value.setdefault('deleted', {})['at'] = r2.get('deleted')
+                # if r2.get('is_deleted') and r2.get('deleted_by'):
+                #     value.setdefault('deleted', {})['by'] = r2.get('deleted_by')
 
                 e.setdefault(r2.get('property_dataproperty'), []).append(value)
 
@@ -306,111 +395,125 @@ class MySQL2MongoDB():
             #         e['_search'][l] = list(set(e['_search'][l]))
 
             #Create or replace Mongo object
-            mongo_entity = self.mongo_collection.find_one({'_mid': mysql_id}, {'_id': True})
-            if mongo_entity:
-                id = self.mongo_collection.update({'_id': mongo_entity.get('_id')}, e)
-            else:
-                id = self.mongo_collection.insert(e)
-
-
-
-    def update(self):
-        self.mongo_collection.create_index([('_parent._id', ASCENDING)])
-        self.mongo_collection.create_index([('_ancestor._id', ASCENDING)])
-        self.mongo_collection.create_index([('_definition._id', ASCENDING)])
-        self.mongo_collection.create_index([('_viewer._id', ASCENDING)])
-        self.mongo_collection.create_index([('_sharing', ASCENDING)])
-        self.mongo_collection.create_index([('_search.et', ASCENDING)])
-        self.mongo_collection.create_index([('_search.en', ASCENDING)])
-
-        t = time.time()
-
-        rows = self.mongo_collection.find()
-        i = 0
-
-        print '%s update %s entities' % (datetime.now(), rows.count())
-
-        for e in rows:
-            # reference properties
-            for p in e.get('_reference_property', []):
-                if '.' in p:
-                    p_value = e.get(p.split('.')[0], {}).get(p.split('.')[1])
+            try:
+                mongo_entity_version = self.mongodb().entityVersion.find_one({'_mid': mysql_id}, {'_id': False, '_entity': True})
+                if mongo_entity_version:
+                    e['_entity'] = mongo_entity_version.get('_entity')
                 else:
-                    p_value = e.get(p)
-
-                if type(p_value) is dict:
-                    for p_key, p_values in p_value.iteritems():
-                        mongo_references = []
-                        for v in p_values:
-                            mongo_entity = self.mongo_collection.find_one({'_mid': v.get('_id')}, {'_id': True})
-                            if mongo_entity:
-                                v['_id'] = mongo_entity.get('_id')
-                                mongo_references.append(v)
-                        if mongo_references:
-                            id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {'%s.%s' % (p, p_key): mongo_references}})
-                elif type(p_value) is list:
-                    mongo_references = []
-                    for v in p_value:
-                        mongo_entity = self.mongo_collection.find_one({'_mid': v.get('_id')}, {'_id': True})
-                        if mongo_entity:
-                            v['_id'] = mongo_entity.get('_id')
-                            mongo_references.append(v)
-                    if mongo_references:
-                        id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {p: mongo_references}})
-                else:
-                    mongo_entity = self.mongo_collection.find_one({'_mid': p_value.get('_id')}, {'_id': True})
-                    if mongo_entity:
-                        p_value['_id'] = mongo_entity.get('_id')
-                        id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {p: p_value}})
-
-            self.mongo_collection.update({'_id': e.get('_id')}, {'$unset': {'_reference_property': 1}})
+                    e['_entity'] = self.mongodb().entity.insert_one({}).inserted_id
+                self.mongodb().entityVersion.insert_one(e)
+            except Exception, err:
+                self.captureException()
+                logging.error('MongoDb error: %s - %s' % (err, e))
 
 
 
-    def __get_mongodb_parent(self, entity_id, recursive=False):
-        sql = """
-            SELECT entity_id
-            FROM relationship
-            WHERE relationship_definition_keyname = 'child'
-            AND is_deleted = 0
-            AND entity_id IS NOT NULL
-            AND related_entity_id = %s
-        """ % entity_id
+    # def update(self):
+    #     self.mongo_collection.create_index([('_parent._id', ASCENDING)])
+    #     self.mongo_collection.create_index([('_ancestor._id', ASCENDING)])
+    #     self.mongo_collection.create_index([('_definition._id', ASCENDING)])
+    #     self.mongo_collection.create_index([('_viewer._id', ASCENDING)])
+    #     self.mongo_collection.create_index([('_sharing', ASCENDING)])
+    #     self.mongo_collection.create_index([('_search.et', ASCENDING)])
+    #     self.mongo_collection.create_index([('_search.en', ASCENDING)])
+    #
+    #     t = time.time()
+    #
+    #     rows = self.mongo_collection.find()
+    #     i = 0
+    #
+    #     print '%s update %s entities' % (datetime.now(), rows.count())
+    #
+    #     for e in rows:
+    #         # reference properties
+    #         for p in e.get('_reference_property', []):
+    #             if '.' in p:
+    #                 p_value = e.get(p.split('.')[0], {}).get(p.split('.')[1])
+    #             else:
+    #                 p_value = e.get(p)
+    #
+    #             if type(p_value) is dict:
+    #                 for p_key, p_values in p_value.iteritems():
+    #                     mongo_references = []
+    #                     for v in p_values:
+    #                         mongo_entity = self.mongo_collection.find_one({'_mid': v.get('_id')}, {'_id': True})
+    #                         if mongo_entity:
+    #                             v['_id'] = mongo_entity.get('_id')
+    #                             mongo_references.append(v)
+    #                     if mongo_references:
+    #                         id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {'%s.%s' % (p, p_key): mongo_references}})
+    #             elif type(p_value) is list:
+    #                 mongo_references = []
+    #                 for v in p_value:
+    #                     mongo_entity = self.mongo_collection.find_one({'_mid': v.get('_id')}, {'_id': True})
+    #                     if mongo_entity:
+    #                         v['_id'] = mongo_entity.get('_id')
+    #                         mongo_references.append(v)
+    #                 if mongo_references:
+    #                     id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {p: mongo_references}})
+    #             else:
+    #                 mongo_entity = self.mongo_collection.find_one({'_mid': p_value.get('_id')}, {'_id': True})
+    #                 if mongo_entity:
+    #                     p_value['_id'] = mongo_entity.get('_id')
+    #                     id = self.mongo_collection.update({'_id': e.get('_id')}, {'$set': {p: p_value}})
+    #
+    #         self.mongo_collection.update({'_id': e.get('_id')}, {'$unset': {'_reference_property': 1}})
 
-        entities = []
-        for r in self.db.query(sql):
-            entities.append(r.get('entity_id'))
-            if recursive:
-                entities = entities + self.__get_mongodb_parent(entity_id=r.get('entity_id'), recursive=True)
-
-        return entities
 
 
-    def __get_mongodb_right(self, entity_id, rights):
-        sql = """
-            SELECT related_entity_id
-            FROM relationship
-            WHERE relationship_definition_keyname IN (%s)
-            AND is_deleted = 0
-            AND related_entity_id IS NOT NULL
-            AND entity_id = %s
-        """ % (', '.join(['\'%s\'' % x for x in rights]), entity_id)
+    # def __get_mongodb_parent(self, entity_id, recursive=False, created=None):
+    #     if created:
+    #         query = self.db.query("""
+    #             SELECT entity_id
+    #             FROM relationship
+    #             WHERE relationship_definition_keyname = 'child'
+    #             AND is_deleted = 0
+    #             AND entity_id IS NOT NULL
+    #             AND related_entity_id = %s
+    #             AND (created IS NULL OR created <= %s)
+    #             AND (deleted IS NULL OR deleted > %s);
+    #         """, entity_id, created, created)
+    #     else:
+    #         query = self.db.query("""
+    #             SELECT entity_id
+    #             FROM relationship
+    #             WHERE relationship_definition_keyname = 'child'
+    #             AND is_deleted = 0
+    #             AND entity_id IS NOT NULL
+    #             AND related_entity_id = %s;
+    #         """, entity_id)
+    #
+    #     entities = []
+    #     for r in query:
+    #         entities.append(r.get('entity_id'))
+    #         if recursive:
+    #             entities = entities + self.__get_mongodb_parent(entity_id=r.get('entity_id'), recursive=True, created=created)
+    #
+    #     return entities
 
-        entities = []
-        for r in self.db.query(sql):
-            entities.append(r.get('related_entity_id'))
 
-        return entities
+    # def __get_mongodb_right(self, entity_id, rights, created=None):
+    #     sql = """
+    #         SELECT related_entity_id
+    #         FROM relationship
+    #         WHERE relationship_definition_keyname IN (%s)
+    #         AND is_deleted = 0
+    #         AND related_entity_id IS NOT NULL
+    #         AND entity_id = %s
+    #     """ % (', '.join(['\'%s\'' % x for x in rights]), entity_id)
+    #
+    #     entities = []
+    #     for r in self.db.query(sql):
+    #         entities.append(r.get('related_entity_id'))
+    #
+    #     return entities
 
 
 
 print '\n\n\n\n\n'
 for c in customers():
-    # if c.get('database-name') not in ['www']:
-    #     continue
-
-    # if c.get('database-name') not in ['www']:
-    #     continue
+    if c.get('database-name') not in ['www']:
+        continue
 
     print '%s %s started' % (datetime.now(), c.get('database-name'))
 
