@@ -220,6 +220,7 @@ class MySQL2MongoDB():
 
         for r in rows:
             mysql_id = r.get('entity_id')
+            actions = r.get('actions').split(',')
 
             e = {}
             e['_mid'] = mysql_id
@@ -273,6 +274,9 @@ class MySQL2MongoDB():
             # ancestor = self.__get_mongodb_parent(entity_id=mysql_id, recursive=True, p.created)
             # if ancestor:
             #     e['_ancestor'] = [{'reference': x, 'type': 'reference'} for x in list(set(ancestor))]
+
+            if 'change' not in actions:
+                continue
 
             sql = """
                 SELECT
