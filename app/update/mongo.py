@@ -228,10 +228,10 @@ class MySQL2MongoDB():
             e['_definition'] = r.get('definition')
             e['_sharing'] = r.get('sharing')
 
-            if r.dt:
-                e.setdefault('_created', {})['at'] = r.get('entity_created')
-            if r.person:
-                e.setdefault('_created', {})['by'] = r.get('entity_created_by')
+            if r.get('dt'):
+                e.setdefault('_created', {})['at'] = r.get('dt')
+            if r.get('person'):
+                e.setdefault('_created', {})['by'] = r.get('person')
             if e.get('_created'):
                 e['_created']['type'] = 'action'
                 e['_created'] = [e.get('_created')]
@@ -314,16 +314,16 @@ class MySQL2MongoDB():
                 WHERE pd.keyname = p.property_definition_keyname
                 AND p.entity_id = %s
             """ % mysql_id
-            if r.dt:
+            if r.get('dt'):
                 sql += """
                     AND (p.created IS NULL OR p.created <= '%s')
                     AND (p.deleted IS NULL OR p.deleted > '%s')
-                """ % (r.dt, r.dt)
+                """ % (r.get('dt'), r.get('dt'))
 
-            if r.person:
+            if r.get('person'):
                 sql += """
                     AND p.created_by = %s
-                """ % r.person
+                """ % r.get('person')
             else:
                 sql += """
                     AND p.created_by IS NULL
