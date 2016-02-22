@@ -116,7 +116,8 @@ class MySQL2MongoDB():
 
 
     def transfer(self):
-        # self.mongo_collection.drop()
+        self.mongo_db.entity.drop()
+        self.mongo_db.entityVersion.drop()
 
         t = time.time()
 
