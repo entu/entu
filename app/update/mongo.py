@@ -403,7 +403,7 @@ class MySQL2MongoDB():
                     e['_entity'] = self.mongodb().entity.insert_one({}).inserted_id
                 self.mongodb().entityVersion.insert_one(e)
             except Exception, err:
-                logging.error('MongoDb error: %s - %s' % (err, e))
+                print 'MongoDb error: %s - %s' % (err, e)
 
 
 
