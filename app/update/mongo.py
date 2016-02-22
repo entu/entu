@@ -220,7 +220,7 @@ class MySQL2MongoDB():
 
         for r in rows:
             mysql_id = r.get('entity_id')
-            actions = r.get('actions').split(',')
+            actions = r.get('action').split(',')
 
             e = {}
             e['_mid'] = mysql_id
