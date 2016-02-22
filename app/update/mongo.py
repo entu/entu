@@ -322,7 +322,7 @@ class MySQL2MongoDB():
             else:
                 sql += """
                     AND p.created_by IS NULL
-                """ % r.person
+                """
 
             sql += """
                 AND pd.dataproperty NOT IN ('entu-changed-by', 'entu-changed-at', 'entu-created-by', 'entu-created-at')
