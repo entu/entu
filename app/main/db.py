@@ -712,11 +712,12 @@ class Entity():
 
         #Create or replace Mongo object
         try:
-            mongo_entity = self.mongodb().entity.find_one({'_mid': mysql_id}, {'_id': True})
-            if mongo_entity:
-                self.mongodb().entity.update({'_id': mongo_entity.get('_id')}, e)
+            mongo_entity_version = self.mongodb().entityVersion.find_one({'_mid': mysql_id}, {'_id': False, '_entity': True})
+            if mongo_entity_version:
+                e['_entity'] = mongo_entity_version.get('_entity')
             else:
-                self.mongodb().entity.insert(e)
+                e['_entity'] = self.mongodb().entity.insert_one({}).inserted_id
+            self.mongodb().entityVersion.insert_one(e)
         except Exception, err:
             self.captureException()
             logging.error('MongoDb error: %s - %s' % (err, e))
