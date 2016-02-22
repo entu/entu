@@ -112,12 +112,11 @@ class MySQL2MongoDB():
         else:
             self.mongo_db = MongoClient(APP_MONGODB)[self.db_name]
 
-        self.mongo_db.entityVersion.create_index([('_mid', ASCENDING)])
-
 
     def transfer(self):
         self.mongo_db.entity.drop()
         self.mongo_db.entityVersion.drop()
+        self.mongo_db.entityVersion.create_index([('_mid', ASCENDING)])
 
         t = time.time()
 
