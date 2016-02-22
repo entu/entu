@@ -515,8 +515,8 @@ class MySQL2MongoDB():
 
 print '\n\n\n\n\n'
 for c in customers():
-    if c.get('database-name') not in ['www']:
-        continue
+    # if c.get('database-name') not in ['www']:
+    #     continue
 
     print '%s %s started' % (datetime.now(), c.get('database-name'))
 
