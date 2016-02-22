@@ -108,11 +108,11 @@ class MySQL2MongoDB():
             password = db_pass,
         )
         if self.db_name == 'www':
-            self.mongo_collection = MongoClient(APP_MONGODB)['entu']['entity']
+            self.mongo_db = MongoClient(APP_MONGODB)['entu']
         else:
-            self.mongo_collection = MongoClient(APP_MONGODB)[self.db_name]['entity']
+            self.mongo_db = MongoClient(APP_MONGODB)[self.db_name]
 
-        self.mongo_collection.create_index([('_mid', ASCENDING)])
+        self.mongo_db.entityVersion.create_index([('_mid', ASCENDING)])
 
 
     def transfer(self):
@@ -396,12 +396,12 @@ class MySQL2MongoDB():
 
             #Create or replace Mongo object
             try:
-                mongo_entity_version = self.mongodb().entityVersion.find_one({'_mid': mysql_id}, {'_id': False, '_entity': True})
+                mongo_entity_version = self.mongo_db.entityVersion.find_one({'_mid': mysql_id}, {'_id': False, '_entity': True})
                 if mongo_entity_version:
                     e['_entity'] = mongo_entity_version.get('_entity')
                 else:
-                    e['_entity'] = self.mongodb().entity.insert_one({}).inserted_id
-                self.mongodb().entityVersion.insert_one(e)
+                    e['_entity'] = self.mongo_db.entity.insert_one({}).inserted_id
+                self.mongo_db.entityVersion.insert_one(e)
             except Exception, err:
                 print 'MongoDb error: %s - %s' % (err, e)
 
