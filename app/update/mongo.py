@@ -123,7 +123,7 @@ class MySQL2MongoDB():
         actions_sql = """
             SELECT
                 entity_id,
-                (SELECT definition FROM entity WHERE id = entity_id LIMIT 1) AS definition,
+                (SELECT entity_definition_keyname FROM entity WHERE id = entity_id LIMIT 1) AS definition,
                 (SELECT sharing FROM entity WHERE id = entity_id LIMIT 1) AS sharing,
                 IFNULL(dt, (SELECT created FROM entity WHERE id = entity_id LIMIT 1)) AS dt,
                 person,
