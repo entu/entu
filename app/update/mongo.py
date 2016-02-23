@@ -235,27 +235,27 @@ class MySQL2MongoDB():
                 e['_created']['type'] = 'action'
                 e['_created'] = [e.get('_created')]
 
-            viewers = self.__get_mongodb_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'], r.get('dt'))
+            viewers = self.__get_mongodb_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'], created=r.get('dt'))
             if viewers:
                 e['_viewer'] = [{'reference': x, 'type': 'reference'} for x in list(set(viewers))]
 
-            expanders = self.__get_mongodb_right(mysql_id, ['expander', 'editor', 'owner'], r.get('dt'))
+            expanders = self.__get_mongodb_right(mysql_id, ['expander', 'editor', 'owner'], created=r.get('dt'))
             if expanders:
                 e['_expander'] = [{'reference': x, 'type': 'reference'} for x in list(set(expanders))]
 
-            editors = self.__get_mongodb_right(mysql_id, ['editor', 'owner'], r.get('dt'))
+            editors = self.__get_mongodb_right(mysql_id, ['editor', 'owner'], created=r.get('dt'))
             if editors:
                 e['_editor'] = [{'reference': x, 'type': 'reference'} for x in list(set(editors))]
 
-            owners = self.__get_mongodb_right(mysql_id, ['owner'], r.get('dt'))
+            owners = self.__get_mongodb_right(mysql_id, ['owner'], created=r.get('dt'))
             if owners:
                 e['_owner'] = [{'reference': x, 'type': 'reference'} for x in list(set(owners))]
 
-            parent = self.__get_mongodb_parent(entity_id=mysql_id, recursive=False, r.get('dt'))
+            parent = self.__get_mongodb_parent(entity_id=mysql_id, recursive=False, created=r.get('dt'))
             if parent:
                 e['_parent'] = [{'reference': x, 'type': 'reference'} for x in list(set(parent))]
 
-            ancestor = self.__get_mongodb_parent(entity_id=mysql_id, recursive=True, r.get('dt'))
+            ancestor = self.__get_mongodb_parent(entity_id=mysql_id, recursive=True, created=r.get('dt'))
             if ancestor:
                 e['_ancestor'] = [{'reference': x, 'type': 'reference'} for x in list(set(ancestor))]
 
