@@ -235,48 +235,29 @@ class MySQL2MongoDB():
                 e['_created']['type'] = 'action'
                 e['_created'] = [e.get('_created')]
 
-            # if r.get('entity_changed'):
-            #     e.setdefault('_changed', {})['at'] = r.get('entity_changed')
-            # if r.get('entity_changed_by'):
-            #     e.setdefault('_changed', {})['by'] = r.get('entity_changed_by')
-            # if e.get('_changed'):
-            #     e['_changed']['type'] = 'action'
-            #     e['_changed'] = [e.get('_changed')]
-            #
-            # if r.get('entity_is_deleted') and r.get('entity_deleted'):
-            #     e.setdefault('_deleted', {})['at'] = r.get('entity_deleted')
-            # if r.get('entity_is_deleted') and r.get('entity_deleted_by'):
-            #     e.setdefault('_deleted', {})['by'] = r.get('entity_deleted_by')
-            # if e.get('_deleted'):
-            #     e['_deleted']['type'] = 'action'
-            #     e['_deleted'] = [e.get('_deleted')]
-            #
-            # viewers = self.__get_mongodb_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'], p.created)
-            # if viewers:
-            #     e['_viewer'] = [{'reference': x, 'type': 'reference'} for x in list(set(viewers))]
-            #
-            # expanders = self.__get_mongodb_right(mysql_id, ['expander', 'editor', 'owner'], p.created)
-            # if expanders:
-            #     e['_expander'] = [{'reference': x, 'type': 'reference'} for x in list(set(expanders))]
-            #
-            # editors = self.__get_mongodb_right(mysql_id, ['editor', 'owner'], p.created)
-            # if editors:
-            #     e['_editor'] = [{'reference': x, 'type': 'reference'} for x in list(set(editors))]
-            #
-            # owners = self.__get_mongodb_right(mysql_id, ['owner'], p.created)
-            # if owners:
-            #     e['_owner'] = [{'reference': x, 'type': 'reference'} for x in list(set(owners))]
-            #
-            # parent = self.__get_mongodb_parent(entity_id=mysql_id, recursive=False, p.created)
-            # if parent:
-            #     e['_parent'] = [{'reference': x, 'type': 'reference'} for x in list(set(parent))]
-            #
-            # ancestor = self.__get_mongodb_parent(entity_id=mysql_id, recursive=True, p.created)
-            # if ancestor:
-            #     e['_ancestor'] = [{'reference': x, 'type': 'reference'} for x in list(set(ancestor))]
+            viewers = self.__get_mongodb_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'], r.get('dt'))
+            if viewers:
+                e['_viewer'] = [{'reference': x, 'type': 'reference'} for x in list(set(viewers))]
 
-            if 'change' not in actions:
-                continue
+            expanders = self.__get_mongodb_right(mysql_id, ['expander', 'editor', 'owner'], r.get('dt'))
+            if expanders:
+                e['_expander'] = [{'reference': x, 'type': 'reference'} for x in list(set(expanders))]
+
+            editors = self.__get_mongodb_right(mysql_id, ['editor', 'owner'], r.get('dt'))
+            if editors:
+                e['_editor'] = [{'reference': x, 'type': 'reference'} for x in list(set(editors))]
+
+            owners = self.__get_mongodb_right(mysql_id, ['owner'], r.get('dt'))
+            if owners:
+                e['_owner'] = [{'reference': x, 'type': 'reference'} for x in list(set(owners))]
+
+            parent = self.__get_mongodb_parent(entity_id=mysql_id, recursive=False, r.get('dt'))
+            if parent:
+                e['_parent'] = [{'reference': x, 'type': 'reference'} for x in list(set(parent))]
+
+            ancestor = self.__get_mongodb_parent(entity_id=mysql_id, recursive=True, r.get('dt'))
+            if ancestor:
+                e['_ancestor'] = [{'reference': x, 'type': 'reference'} for x in list(set(ancestor))]
 
             sql = """
                 SELECT
@@ -375,16 +356,6 @@ class MySQL2MongoDB():
                 if r2.get('property_language'):
                     value['language'] = r2.get('property_language')
 
-                # if r2.get('created'):
-                #     value.setdefault('created', {})['at'] = r2.get('created')
-                # if r2.get('created_by'):
-                #     value.setdefault('created', {})['by'] = r2.get('created_by')
-                #
-                # if r2.get('is_deleted') and r2.get('deleted'):
-                #     value.setdefault('deleted', {})['at'] = r2.get('deleted')
-                # if r2.get('is_deleted') and r2.get('deleted_by'):
-                #     value.setdefault('deleted', {})['by'] = r2.get('deleted_by')
-
                 e.setdefault(r2.get('property_dataproperty'), []).append(value)
 
                 # if r2.get('value_display') and r2.get('property_search') == 1:
@@ -394,10 +365,6 @@ class MySQL2MongoDB():
                 #         e.setdefault('_search', {}).setdefault('et', []).append(r2.get('value_display').lower())
                 #         e.setdefault('_search', {}).setdefault('en', []).append(r2.get('value_display').lower())
 
-            # for l in ['et', 'en']:
-            #     if l in e.get('_search', {}):
-            #         e['_search'][l] = list(set(e['_search'][l]))
-
             #Create or replace Mongo object
             try:
                 mongo_entity_version = self.mongo_db.entityVersion.find_one({'_mid': mysql_id}, {'_id': False, '_entity': True})
@@ -405,6 +372,16 @@ class MySQL2MongoDB():
                     e['_entity'] = mongo_entity_version.get('_entity')
                 else:
                     e['_entity'] = self.mongo_db.entity.insert_one({}).inserted_id
+
+                deleted = {}
+                if r.get('dt'):
+                    deleted['at'] = r.get('dt')
+                if r.get('person'):
+                    deleted['by'] = r.get('person')
+                if deleted:
+                    deleted['type'] = 'action'
+
+                self.mongo_db.entityVersion.update_many({'_mid': mysql_id, {'_deleted': {'$exists': False }}}, {'$set': {'_deleted': deleted}})
                 self.mongo_db.entityVersion.insert_one(e)
             except Exception, err:
                 print 'MongoDb error: %s - %s' % (err, e)
@@ -464,52 +441,68 @@ class MySQL2MongoDB():
 
 
 
-    # def __get_mongodb_parent(self, entity_id, recursive=False, created=None):
-    #     if created:
-    #         query = self.db.query("""
-    #             SELECT entity_id
-    #             FROM relationship
-    #             WHERE relationship_definition_keyname = 'child'
-    #             AND is_deleted = 0
-    #             AND entity_id IS NOT NULL
-    #             AND related_entity_id = %s
-    #             AND (created IS NULL OR created <= %s)
-    #             AND (deleted IS NULL OR deleted > %s);
-    #         """, entity_id, created, created)
-    #     else:
-    #         query = self.db.query("""
-    #             SELECT entity_id
-    #             FROM relationship
-    #             WHERE relationship_definition_keyname = 'child'
-    #             AND is_deleted = 0
-    #             AND entity_id IS NOT NULL
-    #             AND related_entity_id = %s;
-    #         """, entity_id)
-    #
-    #     entities = []
-    #     for r in query:
-    #         entities.append(r.get('entity_id'))
-    #         if recursive:
-    #             entities = entities + self.__get_mongodb_parent(entity_id=r.get('entity_id'), recursive=True, created=created)
-    #
-    #     return entities
+    def __get_mongodb_parent(self, entity_id, recursive=False, created=None):
+        if created:
+            query = self.db.query("""
+                SELECT entity_id
+                FROM relationship
+                WHERE relationship_definition_keyname = 'child'
+                AND is_deleted = 0
+                AND entity_id IS NOT NULL
+                AND related_entity_id = %s
+                AND (created IS NULL OR created <= %s)
+                AND (deleted IS NULL OR deleted > %s);
+            """, entity_id, created, created)
+        else:
+            query = self.db.query("""
+                SELECT entity_id
+                FROM relationship
+                WHERE relationship_definition_keyname = 'child'
+                AND is_deleted = 0
+                AND entity_id IS NOT NULL
+                AND related_entity_id = %s;
+                AND created IS NULL
+                AND deleted IS NULL;
+            """, entity_id)
+
+        entities = []
+        for r in query:
+            entities.append(r.get('entity_id'))
+            if recursive:
+                entities = entities + self.__get_mongodb_parent(entity_id=r.get('entity_id'), recursive=True, created=created)
+
+        return entities
 
 
-    # def __get_mongodb_right(self, entity_id, rights, created=None):
-    #     sql = """
-    #         SELECT related_entity_id
-    #         FROM relationship
-    #         WHERE relationship_definition_keyname IN (%s)
-    #         AND is_deleted = 0
-    #         AND related_entity_id IS NOT NULL
-    #         AND entity_id = %s
-    #     """ % (', '.join(['\'%s\'' % x for x in rights]), entity_id)
-    #
-    #     entities = []
-    #     for r in self.db.query(sql):
-    #         entities.append(r.get('related_entity_id'))
-    #
-    #     return entities
+    def __get_mongodb_right(self, entity_id, rights, created=None):
+        if created:
+            query = self.db.query("""
+                SELECT related_entity_id
+                FROM relationship
+                WHERE relationship_definition_keyname IN (%s)
+                AND is_deleted = 0
+                AND related_entity_id IS NOT NULL
+                AND entity_id = %%s
+                AND (created IS NULL OR created <= %%s)
+                AND (deleted IS NULL OR deleted > %%s);
+            """ % ', '.join(['\'%s\'' % x for x in rights]), entity_id, created, created)
+        else:
+            query = self.db.query("""
+                SELECT related_entity_id
+                FROM relationship
+                WHERE relationship_definition_keyname IN (%s)
+                AND is_deleted = 0
+                AND related_entity_id IS NOT NULL
+                AND entity_id = %%s
+                AND created IS NULL
+                AND deleted IS NULL;
+            """ % ', '.join(['\'%s\'' % x for x in rights]), entity_id)
+
+        entities = []
+        for r in query:
+            entities.append(r.get('related_entity_id'))
+
+        return entities
 
 
 
