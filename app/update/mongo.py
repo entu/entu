@@ -204,11 +204,12 @@ class MySQL2MongoDB():
             GROUP BY
                 entity_id,
                 definition,
-                dt,
-                person
+                sharing,
+                dt
             ORDER BY
                 entity_id,
                 definition,
+                sharing,
                 dt,
                 person,
                 action
