@@ -125,7 +125,7 @@ class MySQL2MongoDB():
                 entity_id,
                 (SELECT entity_definition_keyname FROM entity WHERE id = entity_id LIMIT 1) AS definition,
                 (SELECT sharing FROM entity WHERE id = entity_id LIMIT 1) AS sharing,
-                IFNULL(dt, (SELECT created FROM entity WHERE id = entity_id LIMIT 1)) AS dt,
+                dt,
                 person,
                 GROUP_CONCAT(action ORDER BY action SEPARATOR ',') AS action
             FROM (
