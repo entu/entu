@@ -460,7 +460,7 @@ class MySQL2MongoDB():
                 WHERE relationship_definition_keyname = 'child'
                 AND is_deleted = 0
                 AND entity_id IS NOT NULL
-                AND related_entity_id = %s;
+                AND related_entity_id = %s
                 AND created IS NULL
                 AND deleted IS NULL;
             """, entity_id)
