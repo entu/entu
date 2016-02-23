@@ -316,6 +316,13 @@ class MySQL2MongoDB():
                 AND pd.formula = 0;
             """
 
+            if mysql_id == 3:
+                print ''
+                print ''
+                print sql
+                print ''
+                print ''
+
             properties = {}
             for r2 in self.db.query(sql):
                 value = {}
