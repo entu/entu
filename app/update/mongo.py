@@ -460,34 +460,36 @@ class MySQL2MongoDB():
                         AND deleted IS NULL
                 """
 
-            if mysql_id == 3:
-                print ''
-                print ''
-                print sql
-                print ''
-                print ''
+            sql += ';'
+
+            # if mysql_id == 3:
+            #     print ''
+            #     print ''
+            #     print sql
+            #     print ''
+            #     print ''
 
             properties = {}
             for r2 in self.db.query(sql):
                 value = {}
 
-                if r2.get('property_datatype') == 'string' and r2.get('value_string'):
+                if r2.get('datatype') == 'string' and r2.get('value_string'):
                     value['value'] = r2.get('value_string')
-                elif r2.get('property_datatype') == 'text' and r2.get('value_text'):
+                elif r2.get('datatype') == 'text' and r2.get('value_text'):
                     value['value'] = r2.get('value_text')
-                elif r2.get('property_datatype') == 'integer' and r2.get('value_integer') != None:
+                elif r2.get('datatype') == 'integer' and r2.get('value_integer') != None:
                     value['value'] = r2.get('value_integer')
-                elif r2.get('property_datatype') == 'decimal' and r2.get('value_decimal') != None:
+                elif r2.get('datatype') == 'decimal' and r2.get('value_decimal') != None:
                     value['value'] = float(r2.get('value_decimal'))
-                elif r2.get('property_datatype') == 'boolean' and r2.get('value_boolean') != None:
+                elif r2.get('datatype') == 'boolean' and r2.get('value_boolean') != None:
                     value['value'] = bool(r2.get('value_boolean'))
-                elif r2.get('property_datatype') in ['date', 'datetime'] and r2.get('value_datetime') != None:
+                elif r2.get('datatype') in ['date', 'datetime'] and r2.get('value_datetime') != None:
                     value['value'] = r2.get('value_datetime')
-                elif r2.get('property_datatype') == 'reference' and r2.get('value_reference'):
+                elif r2.get('datatype') == 'reference' and r2.get('value_reference'):
                     value['reference'] = r2.get('value_reference')
-                elif r2.get('property_datatype') == 'counter-value' and r2.get('value_string'):
+                elif r2.get('datatype') == 'counter-value' and r2.get('value_string'):
                     value['value'] = r2.get('value_string')
-                elif r2.get('property_datatype') == 'file' and r2.get('value_file'):
+                elif r2.get('datatype') == 'file' and r2.get('value_file'):
                     value['value'] = r2.get('value_file_name')
                     if r2.get('value_file_url'):
                         value['url'] = r2.get('file')
@@ -501,13 +503,13 @@ class MySQL2MongoDB():
                 if not value:
                     continue
 
-                value['_mid'] = r2.get('property_id')
-                value['type'] = r2.get('property_datatype')
+                value['_mid'] = r2.get('id')
+                value['type'] = r2.get('datatype')
 
-                if r2.get('property_language'):
-                    value['language'] = r2.get('property_language')
+                if r2.get('language'):
+                    value['language'] = r2.get('language')
 
-                e.setdefault(r2.get('property_dataproperty'), []).append(value)
+                e.setdefault(r2.get('dataproperty'), []).append(value)
 
                 # if r2.get('value_display') and r2.get('property_search') == 1:
                 #     if r2.get('property_language'):
