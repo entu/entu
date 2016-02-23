@@ -381,7 +381,7 @@ class MySQL2MongoDB():
                 if deleted:
                     deleted['type'] = 'action'
 
-                self.mongo_db.entityVersion.update_many({'$and': [{'_mid': mysql_id}, {'_deleted': {'$exists': False }}]}, {'$set': {'_deleted': deleted}})
+                self.mongo_db.entityVersion.update_many({'$and': [{'_mid': mysql_id}, {'_deleted': {'$exists': False }}]}, {'$set': {'_deleted': [deleted]}})
                 self.mongo_db.entityVersion.insert_one(e)
             except Exception, err:
                 print 'MongoDb error: %s - %s' % (err, e)
