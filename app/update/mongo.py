@@ -291,7 +291,7 @@ class MySQL2MongoDB():
                         property_definition AS pd
                     WHERE pd.keyname = p.property_definition_keyname
                     AND pd.dataproperty NOT IN ('entu-changed-by', 'entu-changed-at', 'entu-created-by', 'entu-created-at')
-                    AND pd.dataproperty NOT LIKE 'auth_%%'
+                    AND pd.dataproperty NOT LIKE 'auth_%%%%'
                     AND pd.datatype NOT IN ('counter')
                     AND pd.formula = 0
                     AND p.entity_id = %(id)s
