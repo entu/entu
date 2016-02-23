@@ -202,13 +202,13 @@ class MySQL2MongoDB():
             ) AS x
             WHERE entity_id IN (SELECT entity_id FROM property)
             GROUP BY
-                definition,
                 entity_id,
+                definition,
                 dt,
                 person
             ORDER BY
-                definition,
                 entity_id,
+                definition,
                 dt,
                 person,
                 action
