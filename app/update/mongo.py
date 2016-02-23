@@ -126,7 +126,7 @@ class MySQL2MongoDB():
                 (SELECT entity_definition_keyname FROM entity WHERE id = entity_id LIMIT 1) AS definition,
                 (SELECT sharing FROM entity WHERE id = entity_id LIMIT 1) AS sharing,
                 dt,
-                person,
+                MAX(person) AS person,
                 GROUP_CONCAT(action ORDER BY action SEPARATOR ',') AS action
             FROM (
                 -- PROPERTY ADD
@@ -294,20 +294,12 @@ class MySQL2MongoDB():
                 WHERE pd.keyname = p.property_definition_keyname
                 AND p.entity_id = %s
             """ % mysql_id
+
             if r.get('dt'):
                 sql += """
                     AND (p.created IS NULL OR p.created <= '%s')
                     AND (p.deleted IS NULL OR p.deleted > '%s')
                 """ % (r.get('dt'), r.get('dt'))
-
-            if r.get('person'):
-                sql += """
-                    AND p.created_by = %s
-                """ % r.get('person')
-            else:
-                sql += """
-                    AND p.created_by IS NULL
-                """
 
             sql += """
                 AND pd.dataproperty NOT IN ('entu-changed-by', 'entu-changed-at', 'entu-created-by', 'entu-created-at')
@@ -454,7 +446,6 @@ class MySQL2MongoDB():
                 SELECT entity_id
                 FROM relationship
                 WHERE relationship_definition_keyname = 'child'
-                AND is_deleted = 0
                 AND entity_id IS NOT NULL
                 AND related_entity_id = %s
                 AND (created IS NULL OR created <= %s)
@@ -465,7 +456,6 @@ class MySQL2MongoDB():
                 SELECT entity_id
                 FROM relationship
                 WHERE relationship_definition_keyname = 'child'
-                AND is_deleted = 0
                 AND entity_id IS NOT NULL
                 AND related_entity_id = %s
                 AND created IS NULL
@@ -487,7 +477,6 @@ class MySQL2MongoDB():
                 SELECT related_entity_id
                 FROM relationship
                 WHERE relationship_definition_keyname IN (%s)
-                AND is_deleted = 0
                 AND related_entity_id IS NOT NULL
                 AND entity_id = %%s
                 AND (created IS NULL OR created <= %%s)
@@ -498,7 +487,6 @@ class MySQL2MongoDB():
                 SELECT related_entity_id
                 FROM relationship
                 WHERE relationship_definition_keyname IN (%s)
-                AND is_deleted = 0
                 AND related_entity_id IS NOT NULL
                 AND entity_id = %%s
                 AND created IS NULL
