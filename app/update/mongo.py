@@ -125,7 +125,7 @@ class MySQL2MongoDB():
                 entity_id,
                 (SELECT entity_definition_keyname FROM entity WHERE id = entity_id LIMIT 1) AS definition,
                 (SELECT sharing FROM entity WHERE id = entity_id LIMIT 1) AS sharing,
-                dt,
+                IFNULL(dt, (SELECT created FROM entity WHERE id = entity_id LIMIT 1)) AS dt,
                 MAX(person) AS person,
                 GROUP_CONCAT(action ORDER BY action SEPARATOR ',') AS action
             FROM (
@@ -235,78 +235,230 @@ class MySQL2MongoDB():
                 e['_created']['type'] = 'action'
                 e['_created'] = [e.get('_created')]
 
-            viewers = self.__get_mongodb_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'], created=r.get('dt'))
-            if viewers:
-                e['_viewer'] = [{'reference': x, 'type': 'reference'} for x in list(set(viewers))]
-
-            expanders = self.__get_mongodb_right(mysql_id, ['expander', 'editor', 'owner'], created=r.get('dt'))
-            if expanders:
-                e['_expander'] = [{'reference': x, 'type': 'reference'} for x in list(set(expanders))]
-
-            editors = self.__get_mongodb_right(mysql_id, ['editor', 'owner'], created=r.get('dt'))
-            if editors:
-                e['_editor'] = [{'reference': x, 'type': 'reference'} for x in list(set(editors))]
-
-            owners = self.__get_mongodb_right(mysql_id, ['owner'], created=r.get('dt'))
-            if owners:
-                e['_owner'] = [{'reference': x, 'type': 'reference'} for x in list(set(owners))]
-
-            parent = self.__get_mongodb_parent(entity_id=mysql_id, recursive=False, created=r.get('dt'))
-            if parent:
-                e['_parent'] = [{'reference': x, 'type': 'reference'} for x in list(set(parent))]
-
-            ancestor = self.__get_mongodb_parent(entity_id=mysql_id, recursive=True, created=r.get('dt'))
-            if ancestor:
-                e['_ancestor'] = [{'reference': x, 'type': 'reference'} for x in list(set(ancestor))]
+            # viewers = self.__get_mongodb_right(mysql_id, ['viewer', 'expander', 'editor', 'owner'], created=r.get('dt'))
+            # if viewers:
+            #     e['_viewer'] = [{'reference': x, 'type': 'reference'} for x in list(set(viewers))]
+            #
+            # expanders = self.__get_mongodb_right(mysql_id, ['expander', 'editor', 'owner'], created=r.get('dt'))
+            # if expanders:
+            #     e['_expander'] = [{'reference': x, 'type': 'reference'} for x in list(set(expanders))]
+            #
+            # editors = self.__get_mongodb_right(mysql_id, ['editor', 'owner'], created=r.get('dt'))
+            # if editors:
+            #     e['_editor'] = [{'reference': x, 'type': 'reference'} for x in list(set(editors))]
+            #
+            # owners = self.__get_mongodb_right(mysql_id, ['owner'], created=r.get('dt'))
+            # if owners:
+            #     e['_owner'] = [{'reference': x, 'type': 'reference'} for x in list(set(owners))]
+            #
+            # parent = self.__get_mongodb_parent(entity_id=mysql_id, recursive=False, created=r.get('dt'))
+            # if parent:
+            #     e['_parent'] = [{'reference': x, 'type': 'reference'} for x in list(set(parent))]
+            #
+            # ancestor = self.__get_mongodb_parent(entity_id=mysql_id, recursive=True, created=r.get('dt'))
+            # if ancestor:
+            #     e['_ancestor'] = [{'reference': x, 'type': 'reference'} for x in list(set(ancestor))]
 
             sql = """
-                SELECT
-                    p.id                    AS property_id,
-                    REPLACE(REPLACE(pd.dataproperty, '-', '_'), '.', '_')  AS property_dataproperty,
-                    pd.datatype             AS property_datatype,
-                    pd.formula              AS property_formula,
-                    pd.search               AS property_search,
-                    IF(pd.multilingual = 1, IF(p.language = 'english', 'en', 'et'), NULL) AS property_language,
-                    TRIM(p.value_formula)   AS value_formula,
-                    TRIM(p.value_string)    AS value_string,
-                    TRIM(p.value_text)      AS value_text,
-                    TRIM(p.value_display)   AS value_display,
-                    p.value_integer,
-                    p.value_decimal,
-                    p.value_boolean,
-                    p.value_datetime,
-                    p.value_reference,
-                    p.value_file,
-                    IF(pd.datatype = 'file', (SELECT s3_key FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_s3,
-                    IF(pd.datatype = 'file', (SELECT md5 FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_md5,
-                    IF(pd.datatype = 'file', (SELECT filename FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_name,
-                    IF(pd.datatype = 'file', (SELECT filesize FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_size,
-                    IF(pd.datatype = 'file', (SELECT url FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_url,
-                    p.value_counter,
-                    p.created,
-                    IF(CAST(p.created_by AS UNSIGNED) > 0, CAST(p.created_by AS UNSIGNED), NULL) AS created_by,
-                    p.is_deleted,
-                    p.deleted,
-                    IF(CAST(p.deleted_by AS UNSIGNED) > 0, CAST(p.deleted_by AS UNSIGNED), NULL) AS deleted_by
-                FROM
-                    property AS p,
-                    property_definition AS pd
-                WHERE pd.keyname = p.property_definition_keyname
-                AND p.entity_id = %s
-            """ % mysql_id
+                SELECT * FROM (
+                    -- PROPERTIES
+                    SELECT
+                        p.id AS id,
+                        REPLACE(REPLACE(pd.dataproperty, '-', '_'), '.', '_')  AS dataproperty,
+                        pd.datatype AS datatype,
+                        IF(pd.multilingual = 1, IF(p.language = 'english', 'en', 'et'), NULL) AS language,
+                        IFNULL(p.created, (SELECT created FROM entity WHERE id = p.entity_id LIMIT 1)) AS created,
+                        p.created AS created_orig,
+                        IF(CAST(p.created_by AS UNSIGNED) > 0, CAST(p.created_by AS UNSIGNED), NULL) AS created_by,
+                        p.deleted,
+                        TRIM(p.value_formula) AS value_formula,
+                        TRIM(p.value_string) AS value_string,
+                        TRIM(p.value_text) AS value_text,
+                        TRIM(p.value_display) AS value_display,
+                        p.value_integer,
+                        p.value_decimal,
+                        p.value_boolean,
+                        p.value_datetime,
+                        p.value_reference,
+                        p.value_file,
+                        IF(pd.datatype = 'file', (SELECT s3_key FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_s3,
+                        IF(pd.datatype = 'file', (SELECT md5 FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_md5,
+                        IF(pd.datatype = 'file', (SELECT filename FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_name,
+                        IF(pd.datatype = 'file', (SELECT filesize FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_size,
+                        IF(pd.datatype = 'file', (SELECT url FROM file WHERE id = p.value_file AND deleted IS NULL LIMIT 1), NULL) AS value_file_url
+                    FROM
+                        property AS p,
+                        property_definition AS pd
+                    WHERE pd.keyname = p.property_definition_keyname
+                    AND pd.dataproperty NOT IN ('entu-changed-by', 'entu-changed-at', 'entu-created-by', 'entu-created-at')
+                    AND pd.dataproperty NOT LIKE 'auth_%%'
+                    AND pd.datatype NOT IN ('counter')
+                    AND pd.formula = 0
+                    AND p.entity_id = %(id)s
+
+                    -- VIEWERS
+                    UNION SELECT
+                        id,
+                        '_viewer' AS dataproperty,
+                        'reference' AS datatype,
+                        NULL AS language,
+                        IFNULL(created, (SELECT created FROM entity WHERE id = entity_id LIMIT 1)) AS created,
+                        created AS created_orig,
+                        IF(CAST(created_by AS UNSIGNED) > 0, CAST(created_by AS UNSIGNED), NULL) AS created_by,
+                        deleted,
+                        NULL AS value_formula,
+                        NULL AS value_string,
+                        NULL AS value_text,
+                        NULL AS value_display,
+                        NULL AS value_integer,
+                        NULL AS value_decimal,
+                        NULL AS value_boolean,
+                        NULL AS value_datetime,
+                        related_entity_id AS value_reference,
+                        NULL AS value_file,
+                        NULL AS value_file_s3,
+                        NULL AS value_file_md5,
+                        NULL AS value_file_name,
+                        NULL AS value_file_size,
+                        NULL AS value_file_url
+                    FROM relationship
+                    WHERE relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
+                    AND entity_id = %(id)s
+
+                    -- EXPANDERS
+                    UNION SELECT
+                        id,
+                        '_expander' AS dataproperty,
+                        'reference' AS datatype,
+                        NULL AS language,
+                        IFNULL(created, (SELECT created FROM entity WHERE id = entity_id LIMIT 1)) AS created,
+                        created AS created_orig,
+                        IF(CAST(created_by AS UNSIGNED) > 0, CAST(created_by AS UNSIGNED), NULL) AS created_by,
+                        deleted,
+                        NULL AS value_formula,
+                        NULL AS value_string,
+                        NULL AS value_text,
+                        NULL AS value_display,
+                        NULL AS value_integer,
+                        NULL AS value_decimal,
+                        NULL AS value_boolean,
+                        NULL AS value_datetime,
+                        related_entity_id AS value_reference,
+                        NULL AS value_file,
+                        NULL AS value_file_s3,
+                        NULL AS value_file_md5,
+                        NULL AS value_file_name,
+                        NULL AS value_file_size,
+                        NULL AS value_file_url
+                    FROM relationship
+                    WHERE relationship_definition_keyname IN ('expander', 'editor', 'owner')
+                    AND entity_id = %(id)s
+
+                    -- EDITORS
+                    UNION SELECT
+                        id,
+                        '_editor' AS dataproperty,
+                        'reference' AS datatype,
+                        NULL AS language,
+                        IFNULL(created, (SELECT created FROM entity WHERE id = entity_id LIMIT 1)) AS created,
+                        created AS created_orig,
+                        IF(CAST(created_by AS UNSIGNED) > 0, CAST(created_by AS UNSIGNED), NULL) AS created_by,
+                        deleted,
+                        NULL AS value_formula,
+                        NULL AS value_string,
+                        NULL AS value_text,
+                        NULL AS value_display,
+                        NULL AS value_integer,
+                        NULL AS value_decimal,
+                        NULL AS value_boolean,
+                        NULL AS value_datetime,
+                        related_entity_id AS value_reference,
+                        NULL AS value_file,
+                        NULL AS value_file_s3,
+                        NULL AS value_file_md5,
+                        NULL AS value_file_name,
+                        NULL AS value_file_size,
+                        NULL AS value_file_url
+                    FROM relationship
+                    WHERE relationship_definition_keyname IN ('editor', 'owner')
+                    AND entity_id = %(id)s
+
+                    -- OWNERS
+                    UNION SELECT
+                        id,
+                        '_owner' AS dataproperty,
+                        'reference' AS datatype,
+                        NULL AS language,
+                        IFNULL(created, (SELECT created FROM entity WHERE id = entity_id LIMIT 1)) AS created,
+                        created AS created_orig,
+                        IF(CAST(created_by AS UNSIGNED) > 0, CAST(created_by AS UNSIGNED), NULL) AS created_by,
+                        deleted,
+                        NULL AS value_formula,
+                        NULL AS value_string,
+                        NULL AS value_text,
+                        NULL AS value_display,
+                        NULL AS value_integer,
+                        NULL AS value_decimal,
+                        NULL AS value_boolean,
+                        NULL AS value_datetime,
+                        related_entity_id AS value_reference,
+                        NULL AS value_file,
+                        NULL AS value_file_s3,
+                        NULL AS value_file_md5,
+                        NULL AS value_file_name,
+                        NULL AS value_file_size,
+                        NULL AS value_file_url
+                    FROM relationship
+                    WHERE relationship_definition_keyname = 'owner'
+                    AND entity_id = %(id)s
+
+                    -- PARENTS
+                    UNION SELECT
+                        id,
+                        '_parent' AS dataproperty,
+                        'reference' AS datatype,
+                        NULL AS language,
+                        IFNULL(created, (SELECT created FROM entity WHERE id = related_entity_id LIMIT 1)) AS created,
+                        created AS created_orig,
+                        IF(CAST(created_by AS UNSIGNED) > 0, CAST(created_by AS UNSIGNED), NULL) AS created_by,
+                        deleted,
+                        NULL AS value_formula,
+                        NULL AS value_string,
+                        NULL AS value_text,
+                        NULL AS value_display,
+                        NULL AS value_integer,
+                        NULL AS value_decimal,
+                        NULL AS value_boolean,
+                        NULL AS value_datetime,
+                        entity_id AS value_reference,
+                        NULL AS value_file,
+                        NULL AS value_file_s3,
+                        NULL AS value_file_md5,
+                        NULL AS value_file_name,
+                        NULL AS value_file_size,
+                        NULL AS value_file_url
+                    FROM relationship
+                    WHERE related_entity_id = %(id)s
+                    AND relationship_definition_keyname = 'child'
+
+                    ORDER BY
+                        created,
+                        dataproperty,
+                        id
+                ) AS x
+                WHERE 1 = 1
+            """ % {'id': mysql_id}
 
             if r.get('dt'):
                 sql += """
-                    AND (p.created IS NULL OR p.created <= '%s')
-                    AND (p.deleted IS NULL OR p.deleted > '%s')
+                        AND (created IS NULL OR created <= '%s')
+                        AND (deleted IS NULL OR deleted > '%s')
                 """ % (r.get('dt'), r.get('dt'))
-
-            sql += """
-                AND pd.dataproperty NOT IN ('entu-changed-by', 'entu-changed-at', 'entu-created-by', 'entu-created-at')
-                AND pd.dataproperty NOT LIKE 'auth_%%'
-                AND pd.datatype NOT IN ('counter')
-                AND pd.formula = 0;
-            """
+            else:
+                sql += """
+                        AND created IS NULL
+                        AND deleted IS NULL
+                """
 
             if mysql_id == 3:
                 print ''
