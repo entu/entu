@@ -42,10 +42,10 @@ class ShowFileSizes(myRequestHandler):
             files = db_connection.get("""
                 SELECT
                     SUM(filesize) AS filesize,
-                    DATE_FORMAT(created, '%Y-%m-%d') AS date
+                    DATE_FORMAT(created, '%%Y-%%m-%%d') AS date
                 FROM file
                 GROUP BY
-                    DATE_FORMAT(created, "%Y-%m-%d")
+                    DATE_FORMAT(created, "%%Y-%%m-%%d")
                 ORDER BY date DESC
                 LIMIT %s
                 ;""", days)
