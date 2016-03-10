@@ -11,13 +11,13 @@ class ShowDbSizes(myRequestHandler):
         result = {}
         for s in self._app_settings.values():
             db_connection = torndb.Connection(
-                host        = s['database']['host'],
-                database    = s['database']['database'],
-                user        = s['database']['user'],
-                password    = s['database']['password'],
+                host        = s['database-host'],
+                database    = s['database-name'],
+                user        = s['database-user'],
+                password    = s['database-password'],
             )
             size = db_connection.get('SELECT SUM(table_rows) AS table_rows,  SUM(data_length) AS data_length, SUM(index_length) AS index_length FROM information_schema.TABLES;')
-            result[s['database']['database']] = {
+            result[s['database-name']] = {
                 'total': size.data_length+size.index_length,
                 'data': size.data_length,
                 'index': size.index_length,
@@ -34,10 +34,10 @@ class ShowFileSizes(myRequestHandler):
         series_data = {}
         for s in self._app_settings.values():
             db_connection = torndb.Connection(
-                host        = s['database']['host'],
-                database    = s['database']['database'],
-                user        = s['database']['user'],
-                password    = s['database']['password'],
+                host        = s['database-host'],
+                database    = s['database-name'],
+                user        = s['database-user'],
+                password    = s['database-password'],
             )
             files = db_connection.get("""
                 SELECT
@@ -50,8 +50,8 @@ class ShowFileSizes(myRequestHandler):
                 LIMIT %s
                 ;""", days)
 
-            series_data.setDefault(s['database']['database'], {})['name'] = s['database']['database']
-            series_data.setDefault(s['database']['database'], {}).setDefault('data', []).push([files.date, files.filesize])
+            series_data.setDefault(s['database-name'], {})['name'] = s['database-name']
+            series_data.setDefault(s['database-name'], {}).setDefault('data', []).push([files.date, files.filesize])
 
         self.json({
             'x_axis': {
