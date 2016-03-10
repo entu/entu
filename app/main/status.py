@@ -31,6 +31,39 @@ class ShowDbSizes(myRequestHandler):
         self.write(yaml.safe_dump(status, default_flow_style=False, allow_unicode=True))
 
 
+class ShowFileSizes(myRequestHandler):
+    @web.removeslash
+    def get(self):
+        series_data = {}
+        for s in self.settings['hosts'].values():
+            db_connection = torndb.Connection(
+                host        = s['database']['host'],
+                database    = s['database']['database'],
+                user        = s['database']['user'],
+                password    = s['database']['password'],
+            )
+            files = db_connection.get("""
+                SELECT
+                    SUM(filesize) AS filesize,
+                    DATE_FORMAT(created, '%Y-%m-%d') AS date
+                FROM file
+                GROUP BY
+                    DATE_FORMAT(created, "%Y-%m-%d")
+                ORDER BY date DESC
+                LIMIT %s
+                ;""", 7)
+
+            series_data.setDefault(s['database']['database'], {})['name'] = s['database']['database']
+            series_data.setDefault(s['database']['database'], {}).setDefault('data', []).push([files.date, files.filesize])
+
+        self.json({
+            'x_axis': {
+                'type': 'datetime'
+            },
+            'series': series_data.values()
+        })
+
+
 class ShowStatus(myRequestHandler):
     @web.removeslash
     def get(self, url):
@@ -55,5 +88,6 @@ class ShowStatus(myRequestHandler):
 
 handlers = [
     (r'/status/size', ShowDbSizes),
+    (r'/status/filesize', ShowFileSizes),
     (r'/status(.*)', ShowStatus),
 ]
