@@ -9,7 +9,7 @@ class ShowDbSizes(myRequestHandler):
     @web.removeslash
     def get(self):
         result = {}
-        for s in self.__app_settings.values():
+        for s in self._app_settings.values():
             db_connection = torndb.Connection(
                 host        = s['database']['host'],
                 database    = s['database']['database'],
@@ -32,7 +32,7 @@ class ShowFileSizes(myRequestHandler):
         days = self.get_argument('days', default=7, strip=True),
 
         series_data = {}
-        for s in self.__app_settings.values():
+        for s in self._app_settings.values():
             db_connection = torndb.Connection(
                 host        = s['database']['host'],
                 database    = s['database']['database'],

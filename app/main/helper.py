@@ -28,7 +28,7 @@ class myE(Entity):
 
 
 class myDatabase():
-    __app_settings = None
+    _app_settings = None
 
     @property
     def db(self):
@@ -63,7 +63,7 @@ class myDatabase():
         if not host:
             host = self.request.host
 
-        if not self.__app_settings:
+        if not self._app_settings:
             logging.debug('Loaded app_settings for %s.' % host)
 
             db = torndb.Connection(
@@ -113,15 +113,15 @@ class myDatabase():
             for c in db.query(sql):
                 customers.setdefault(c.entity, {})[c.property] = c.value
 
-            self.__app_settings = {}
+            self._app_settings = {}
             for c in customers.values():
-                self.__app_settings[c.get('domain', '')] = c
+                self._app_settings[c.get('domain', '')] = c
 
-        if not self.__app_settings.get(host):
+        if not self._app_settings.get(host):
             self.redirect('http://www.entu.ee')
             return
 
-        return self.__app_settings.get(host, {})
+        return self._app_settings.get(host, {})
 
     def mongodb(self, database=None):
         """
