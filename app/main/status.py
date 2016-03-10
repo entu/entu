@@ -47,8 +47,7 @@ class ShowFileSizes(myRequestHandler):
                 GROUP BY
                     DATE_FORMAT(created, "%%Y-%%m-%%d")
                 ORDER BY date DESC
-                LIMIT %s
-                ;""", days)
+                ;""")
 
             series_data.setDefault(s['database-name'], {})['name'] = s['database-name']
             series_data.setDefault(s['database-name'], {}).setDefault('data', []).push([files.date, files.filesize])
