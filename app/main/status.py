@@ -5,6 +5,23 @@ import logging
 from main.helper import *
 
 
+class ShowStatus(myRequestHandler):
+    @web.removeslash
+    def get(self):
+        result = {}
+        try:
+            self.db.get('SELECT MAX(id) FROM entity;')
+            self.json({
+                'result': True,
+                'time': round(self.request.request_time(), 3)
+            })
+        except Exception, e:
+            self.json({
+                'error': e,
+                'time': round(self.request.request_time(), 3)
+            }, 500)
+
+
 class ShowDbSizes(myRequestHandler):
     @web.removeslash
     def get(self):
@@ -61,6 +78,7 @@ class ShowFileSizes(myRequestHandler):
 
 
 handlers = [
+    (r'/status', ShowStatus),
     (r'/status/dbsize', ShowDbSizes),
     (r'/status/filesize', ShowFileSizes),
 ]
