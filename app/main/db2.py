@@ -706,6 +706,8 @@ class Entity2():
                 right
             )
 
+        self.db.execute('UPDATE entity SET changed = NOW() WHERE entity_id = %s;', entity_id )
+
 
     def set_tmp_file(self, filename=None, content=None):
         if not filename or not content:
