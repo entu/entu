@@ -898,7 +898,7 @@ class Entity():
         for e in entity_id:
             for r in related_entity_id:
                 for t in relationship_definition_keyname:
-                    self.db.execute('UPDATE entity SET changed = NOW() WHERE entity_id = %s;', r if t == 'child' else e)
+                    self.db.execute('UPDATE entity SET changed = NOW() WHERE entity.id = %s;', r if t == 'child' else e)
                     if delete == True:
                         sql = """
                             UPDATE relationship SET
@@ -1018,7 +1018,7 @@ class Entity():
                 for re in related_entity_id:
                     self.db.execute('INSERT INTO relationship SET relationship_definition_keyname = %s, entity_id = %s, related_entity_id = %s, created = NOW(), created_by = %s;', right, int(e), int(re), user_id)
 
-        self.db.execute('UPDATE entity SET changed = NOW() WHERE entity_id = %s;', entity_id)
+        self.db.execute('UPDATE entity SET changed = NOW() WHERE entity.id = %s;', entity_id)
 
     def set_sharing(self, entity_id, sharing):
         if not entity_id or not sharing:
