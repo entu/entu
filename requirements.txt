@@ -1,13 +1,13 @@
 beautifulsoup4==4.4.1
 boto==2.39.0
 chardet==2.3.0
-markdown2==2.3.0
+markdown2==2.3.1
 mistune==0.7.2
 mysql-python==1.2.5
 newrelic==2.60.0.46
 pillow==3.1.1
-pymongo==3.2.1
-python-dateutil==2.5.0
+pymongo==3.2.2
+python-dateutil==2.5.1
 pyyaml==3.11
 raven==5.11.1
 simpleaes==1.0
