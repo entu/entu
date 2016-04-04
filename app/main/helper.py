@@ -80,16 +80,19 @@ class myDatabase():
 
         result = cursor.fetchone()
 
-        result = {}
-        for key, value in cursor.fetchone().iteritems():
+        if not result:
+            return None
+
+        new_row = {}
+        for key, value in result.iteritems():
             if isinstance(value, (bytes, bytearray)):
-                result[key] = value.decode('utf-8')
+                new_row[key] = value.decode('utf-8')
             else:
-                result[key] = value
+                new_row[key] = value
 
         cursor.close()
 
-        return result
+        return new_row
 
 
     def db_query(self, sql=None, *args, **kwargs):
