@@ -1439,8 +1439,8 @@ class Entity():
                 if p_value['datatype'] == 'reference':
                     reference_definition = self.db_get('SELECT classifying_entity_definition_keyname FROM property_definition WHERE keyname = %s LIMIT 1;', p_value['keyname'])
                     if reference_definition:
-                        if reference_definition.classifying_entity_definition_keyname:
-                            items[key]['properties'][p_key]['reference_definition'] = reference_definition.classifying_entity_definition_keyname
+                        if reference_definition.get('classifying_entity_definition_keyname'):
+                            items[key]['properties'][p_key]['reference_definition'] = reference_definition.get('classifying_entity_definition_keyname')
                 if p_value['datatype'] == 'file':
                     for f_key, f_value in enumerate(p_value.get('values', {})):
                         if not f_value.get('db_value'):
