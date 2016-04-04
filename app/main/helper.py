@@ -50,21 +50,24 @@ class myDatabase():
             settings = self.get_app_settings(host)
 
             if self.settings['database-ssl-path'] and settings.get('database-ssl', 0) == 1:
-                ssl = {
-                    'cert': os.path.join(self.settings['database-ssl-path'], 'mysql-client-cert.pem'),
-                    'key': os.path.join(self.settings['database-ssl-path'], 'mysql-client-key.pem'),
-                    'ca': os.path.join(self.settings['database-ssl-path'], 'mysql-client-ca.pem')
-                }
+                self.settings['databases'][host] = torndb.Connection(
+                    host     = settings.get('database-host'),
+                    database = settings.get('database-name'),
+                    user     = settings.get('database-user'),
+                    password = settings.get('database-password'),
+                    ssl_cert = os.path.join(self.settings['database-ssl-path'], 'mysql-client-cert.pem'),
+                    ssl_key  = os.path.join(self.settings['database-ssl-path'], 'mysql-client-key.pem'),
+                    ssl_ca   = os.path.join(self.settings['database-ssl-path'], 'mysql-client-ca.pem'),
+                    ssl_verify_cert = True
+                )
             else:
-                ssl = None
+                self.settings['databases'][host] = torndb.Connection(
+                    host     = settings.get('database-host'),
+                    database = settings.get('database-name'),
+                    user     = settings.get('database-user'),
+                    password = settings.get('database-password')
+                )
 
-            self.settings['databases'][host] = torndb.Connection(
-                host     = settings.get('database-host'),
-                database = settings.get('database-name'),
-                user     = settings.get('database-user'),
-                password = settings.get('database-password'),
-                ssl      = ssl
-            )
         return self.settings['databases'][host]
 
     def app_settings(self, key, default=None, do_something_fun=False):
@@ -79,21 +82,24 @@ class myDatabase():
             logging.debug('Loaded app_settings for %s.' % host)
 
             if self.settings['database-ssl-path']:
-                ssl = {
-                    'cert': os.path.join(self.settings['database-ssl-path'], 'mysql-client-cert.pem'),
-                    'key': os.path.join(self.settings['database-ssl-path'], 'mysql-client-key.pem'),
-                    'ca': os.path.join(self.settings['database-ssl-path'], 'mysql-client-ca.pem')
-                }
+                db = torndb.Connection(
+                    host     = self.settings['database-host'],
+                    database = self.settings['database-database'],
+                    user     = self.settings['database-user'],
+                    password = self.settings['database-password'],
+                    ssl_cert = os.path.join(self.settings['database-ssl-path'], 'mysql-client-cert.pem'),
+                    ssl_key  = os.path.join(self.settings['database-ssl-path'], 'mysql-client-key.pem'),
+                    ssl_ca   = os.path.join(self.settings['database-ssl-path'], 'mysql-client-ca.pem'),
+                    ssl_verify_cert = True
+                )
             else:
-                ssl = None
+                db = torndb.Connection(
+                    host     = self.settings['database-host'],
+                    database = self.settings['database-database'],
+                    user     = self.settings['database-user'],
+                    password = self.settings['database-password']
+                )
 
-            db = torndb.Connection(
-                host     = self.settings['database-host'],
-                database = self.settings['database-database'],
-                user     = self.settings['database-user'],
-                password = self.settings['database-password'],
-                ssl      = ssl
-            )
             sql = """
                 SELECT DISTINCT
                     e.id AS entity,
