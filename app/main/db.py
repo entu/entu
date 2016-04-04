@@ -1734,15 +1734,15 @@ class Entity():
         if ids_only == True:
             items = []
             for item in self.db_query(sql):
-                items.append(item.id)
+                items.append(item.get('id'))
         elif relationship_ids_only == True:
             items = []
             for item in self.db_query(sql):
-                items.append(item.relationship_id)
+                items.append(item.get('relationship_id'))
         else:
             items = {}
             for item in self.db_query(sql):
-                ent = self.__get_properties(entity_id=item.id, full_definition=full_definition, entity_definition_keyname=entity_definition_keyname, only_public=only_public)
+                ent = self.__get_properties(entity_id=item.get('id'), full_definition=full_definition, entity_definition_keyname=entity_definition_keyname, only_public=only_public)
                 if not ent:
                     continue
                 ent = ent[0]
