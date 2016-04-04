@@ -44,7 +44,7 @@ def customers():
             use_pure = False,
             autocommit = True
         )
-
+    cursor = db.cursor(dictionary=True)
 
     sql = """
         SELECT DISTINCT
@@ -79,9 +79,10 @@ def customers():
         LEFT JOIN property_definition ON property_definition.entity_definition_keyname = e.entity_definition_keyname AND property_definition.is_deleted = 0
         LEFT JOIN property ON property.property_definition_keyname = property_definition.keyname AND property.entity_id = e.id AND property.is_deleted = 0;
     """ % APP_CUSTOMERGROUP
+    cursor.execute(sql)
 
     customers = {}
-    for c in db_query(sql):
+    for c in cursor:
         if c.get('property') in ['database-host', 'database-name', 'database-user', 'database-password', 'language']:
             customers.setdefault(c.get('entity'), {})[c.get('property')] = c.get('value')
 
