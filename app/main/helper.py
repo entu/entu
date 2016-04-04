@@ -49,6 +49,7 @@ class myDatabase():
                     database = settings.get('database-name'),
                     user     = settings.get('database-user'),
                     password = settings.get('database-password'),
+                    use_pure = False,
                     autocommit = True,
                     ssl_cert = os.path.join(self.settings['database-ssl-path'], 'mysql-client-cert.pem'),
                     ssl_key  = os.path.join(self.settings['database-ssl-path'], 'mysql-client-key.pem'),
@@ -61,6 +62,7 @@ class myDatabase():
                     database = settings.get('database-name'),
                     user     = settings.get('database-user'),
                     password = settings.get('database-password'),
+                    use_pure = False,
                     autocommit = True
                 )
 
@@ -199,6 +201,7 @@ class myDatabase():
                     database = self.settings['database-database'],
                     user     = self.settings['database-user'],
                     password = self.settings['database-password'],
+                    use_pure = False,
                     autocommit = True,
                     ssl_cert = os.path.join(self.settings['database-ssl-path'], 'mysql-client-cert.pem'),
                     ssl_key  = os.path.join(self.settings['database-ssl-path'], 'mysql-client-key.pem'),
@@ -211,6 +214,7 @@ class myDatabase():
                     database = self.settings['database-database'],
                     user     = self.settings['database-user'],
                     password = self.settings['database-password'],
+                    use_pure = False,
                     autocommit = True
                 )
             cursor = db.cursor(dictionary=True)

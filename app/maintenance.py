@@ -28,6 +28,8 @@ def customers():
             database = APP_MYSQL_DATABASE,
             user     = APP_MYSQL_USER,
             password = APP_MYSQL_PASSWORD,
+            use_pure = False,
+            autocommit = True,
             ssl_cert = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-cert.pem'),
             ssl_key  = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-key.pem'),
             ssl_ca   = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-ca.pem'),
@@ -38,7 +40,9 @@ def customers():
             host     = APP_MYSQL_HOST,
             database = APP_MYSQL_DATABASE,
             user     = APP_MYSQL_USER,
-            password = APP_MYSQL_PASSWORD
+            password = APP_MYSQL_PASSWORD,
+            use_pure = False,
+            autocommit = True
         )
 
 
@@ -99,6 +103,8 @@ class Maintenance():
                 database = self.db_name,
                 user     = self.db_user,
                 password = self.db_pass,
+                use_pure = False,
+                autocommit = True,
                 ssl_cert = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-cert.pem'),
                 ssl_key  = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-key.pem'),
                 ssl_ca   = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-ca.pem'),
@@ -109,7 +115,9 @@ class Maintenance():
                 host     = self.db_host,
                 database = self.db_name,
                 user     = self.db_user,
-                password = self.db_pass
+                password = self.db_pass,
+                use_pure = False,
+                autocommit = True
             )
 
 
