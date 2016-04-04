@@ -440,11 +440,11 @@ class myUser(myE):
             logging.debug('No current user!')
             return
 
-        if not user.api_key:
+        if not user.get(api_key):
             logging.debug('No user API key!')
             return
 
-        correct_signature = hmac.new(user.api_key.encode('utf-8'), policy.encode('utf-8'), hashlib.sha1).digest().encode('base64').replace('\n','')
+        correct_signature = hmac.new(user.get(api_key, '').encode('utf-8'), policy.encode('utf-8'), hashlib.sha1).digest().encode('base64').replace('\n','')
         if signature != correct_signature:
             logging.debug('Wrong signature!')
             return
