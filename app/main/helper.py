@@ -80,6 +80,13 @@ class myDatabase():
 
         result = cursor.fetchone()
 
+        result = {}
+        for key, value in cursor.fetchone().iteritems():
+            if isinstance(value, (bytes, bytearray)):
+                result[key] = value.decode('utf-8')
+            else:
+                result[key] = value
+
         cursor.close()
 
         return result
@@ -98,8 +105,15 @@ class myDatabase():
         else:
             cursor.execute(sql)
 
-        result = cursor.fetchall()
-
+        result = []
+        for row in cursor:
+            new_row = {}
+            for key, value in row.iteritems():
+                if isinstance(value, (bytes, bytearray)):
+                    new_row[key] = value.decode('utf-8')
+                else:
+                    new_row[key] = value
+            result.append(new_row)
         cursor.close()
 
         return result
