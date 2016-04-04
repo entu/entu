@@ -1448,9 +1448,9 @@ class Entity():
                         file_result = self.db_get('SELECT md5, filesize, created FROM file WHERE id = %s;', f_value.get('db_value'))
                         if not file_result:
                             continue
-                        items[key]['properties'][p_key]['values'][f_key]['md5'] = file_result.md5
-                        items[key]['properties'][p_key]['values'][f_key]['filesize'] = file_result.filesize
-                        items[key]['properties'][p_key]['values'][f_key]['created'] = file_result.created
+                        items[key]['properties'][p_key]['values'][f_key]['md5'] = file_result.get('md5')
+                        items[key]['properties'][p_key]['values'][f_key]['filesize'] = file_result.get('filesize')
+                        items[key]['properties'][p_key]['values'][f_key]['created'] = file_result.get('created')
 
         return items.values()
 
