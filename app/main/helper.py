@@ -334,9 +334,9 @@ class myUser(myE):
         """, user_id)
 
         if person:
-            user['id'] = person.entity_id
-            if person.email:
-                user['email'] = person.email
+            user['id'] = person.get('entity_id')
+            if person.get('email'):
+                user['email'] = person.get('email')
         else:
             if self.app_settings('user-parent'):
                 if not self.db_get('SELECT entity.id FROM entity, property WHERE property.entity_id = entity.id AND entity.is_deleted = 0 AND property.is_deleted = 0 AND property.property_definition_keyname = "person-entu-user" and property.value_string = %s LIMIT 1', user_id):
