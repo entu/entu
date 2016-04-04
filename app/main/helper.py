@@ -49,6 +49,7 @@ class myDatabase():
                     database = settings.get('database-name'),
                     user     = settings.get('database-user'),
                     password = settings.get('database-password'),
+                    autocommit = True,
                     ssl_cert = os.path.join(self.settings['database-ssl-path'], 'mysql-client-cert.pem'),
                     ssl_key  = os.path.join(self.settings['database-ssl-path'], 'mysql-client-key.pem'),
                     ssl_ca   = os.path.join(self.settings['database-ssl-path'], 'mysql-client-ca.pem'),
@@ -59,7 +60,8 @@ class myDatabase():
                     host     = settings.get('database-host'),
                     database = settings.get('database-name'),
                     user     = settings.get('database-user'),
-                    password = settings.get('database-password')
+                    password = settings.get('database-password'),
+                    autocommit = True
                 )
 
         return self.settings['databases'][host]
@@ -80,7 +82,7 @@ class myDatabase():
                 cursor.execute(sql)
         except Exception, err:
             self.captureException()
-            logging.error('%s\n%s\n%s\n%s' % (err, sql, args, kwargs))
+            logging.error('%s\n%s\n%s\n%s\n%s' % (err, sql, args, kwargs, cursor.statement))
 
         result = cursor.fetchone()
 
@@ -114,7 +116,7 @@ class myDatabase():
                 cursor.execute(sql)
         except Exception, err:
             self.captureException()
-            logging.error('%s\n%s\n%s\n%s' % (err, sql, args, kwargs))
+            logging.error('%s\n%s\n%s\n%s\n%s' % (err, sql, args, kwargs, cursor.statement))
 
         result = []
         for row in cursor:
@@ -146,7 +148,7 @@ class myDatabase():
                 cursor.execute(sql)
         except Exception, err:
             self.captureException()
-            logging.error('%s\n%s\n%s\n%s' % (err, sql, args, kwargs))
+            logging.error('%s\n%s\n%s\n%s\n%s' % (err, sql, args, kwargs, cursor.statement))
 
         db.commit()
         cursor.close()
@@ -170,7 +172,7 @@ class myDatabase():
                 cursor.execute(sql)
         except Exception, err:
             self.captureException()
-            logging.error('%s\n%s\n%s\n%s' % (err, sql, args, kwargs))
+            logging.error('%s\n%s\n%s\n%s\n%s' % (err, sql, args, kwargs, cursor.statement))
 
         result = cursor.lastrowid
 
@@ -197,6 +199,7 @@ class myDatabase():
                     database = self.settings['database-database'],
                     user     = self.settings['database-user'],
                     password = self.settings['database-password'],
+                    autocommit = True,
                     ssl_cert = os.path.join(self.settings['database-ssl-path'], 'mysql-client-cert.pem'),
                     ssl_key  = os.path.join(self.settings['database-ssl-path'], 'mysql-client-key.pem'),
                     ssl_ca   = os.path.join(self.settings['database-ssl-path'], 'mysql-client-ca.pem'),
@@ -207,7 +210,8 @@ class myDatabase():
                     host     = self.settings['database-host'],
                     database = self.settings['database-database'],
                     user     = self.settings['database-user'],
-                    password = self.settings['database-password']
+                    password = self.settings['database-password'],
+                    autocommit = True
                 )
             cursor = db.cursor(dictionary=True)
 
