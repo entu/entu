@@ -75,7 +75,7 @@ class Entity():
 
         # Propagate sharing
         parent = self.db_get('SELECT sharing FROM entity WHERE id = %s LIMIT 1;', parent_entity_id)
-        self.db_execute('UPDATE entity SET sharing = %s WHERE id = %s LIMIT 1;', parent.sharing, entity_id)
+        self.db_execute('UPDATE entity SET sharing = %s WHERE id = %s LIMIT 1;', parent.get('sharing'), entity_id)
 
         # Insert child relationship and/or default parent child relationship
         sql = """
@@ -141,7 +141,7 @@ class Entity():
 
         # Populate default values
         for default_value in self.db_query('SELECT keyname, defaultvalue FROM property_definition WHERE entity_definition_keyname = %s AND defaultvalue IS NOT null', entity_definition_keyname):
-            self.set_property(entity_id=entity_id, property_definition_keyname=default_value.keyname, value=default_value.defaultvalue)
+            self.set_property(entity_id=entity_id, property_definition_keyname=default_value.get('keyname'), value=default_value.get('defaultvalue'))
 
         # Propagate properties
         sql = """
@@ -445,32 +445,32 @@ class Entity():
 
         value_display = None
 
-        if definition.formula == 1:
+        if definition.get('formula') == 1:
             field = 'value_formula'
-        elif definition.datatype == 'text':
+        elif definition.get('datatype') == 'text':
             field = 'value_text'
             value_display = '%s' % value
             value_display = value_display[:500]
-        elif definition.datatype == 'integer':
+        elif definition.get('datatype') == 'integer':
             field = 'value_integer'
             value_display = '%s' % value
-        elif definition.datatype == 'decimal':
+        elif definition.get('datatype') == 'decimal':
             field = 'value_decimal'
             value = value.replace(',', '.')
             value = float(re.sub(r'[^\.0-9:]', '', value))
             value_display = round(value, 2)
-        elif definition.datatype == 'date':
+        elif definition.get('datatype') == 'date':
             field = 'value_datetime'
             value_display = '%s' % value
-        elif definition.datatype == 'datetime':
+        elif definition.get('datatype') == 'datetime':
             field = 'value_datetime'
             value_display = '%s' % value
-        elif definition.datatype == 'reference':
+        elif definition.get('datatype') == 'reference':
             field = 'value_reference'
             r = self.__get_properties(entity_id=value)
             if r:
                 value_display = self.__get_properties(entity_id=value)[0]['displayname']
-        elif definition.datatype == 'file':
+        elif definition.get('datatype') == 'file':
             uploaded_file = value
             field = 'value_file'
             value_display = uploaded_file['filename'][:500]
@@ -492,11 +492,11 @@ class Entity():
 
                 value = self.db_execute_lastrowid('INSERT INTO file SET md5 = %s, filename = %s, filesize = %s, created_by = %s, created = NOW();', md5, uploaded_file.get('filename', ''), len(uploaded_file.get('body', '')), user_id)
 
-        elif definition.datatype == 'boolean':
+        elif definition.get('datatype') == 'boolean':
             field = 'value_boolean'
             value = 1 if value.lower() == 'true' else 0
             value_display = '%s' % bool(value)
-        elif definition.datatype == 'counter':
+        elif definition.get('datatype') == 'counter':
             field = 'value_counter'
             value_display = '%s' % value
         else:
@@ -514,13 +514,13 @@ class Entity():
                 created_by = %%s;
             """ % field,
             entity_id,
-            definition.keyname,
+            definition.get('keyname'),
             value,
             value_display,
             user_id
         )
 
-        if definition.datatype == 'file' and uploaded_file.get('s3key'):
+        if definition.get('datatype') == 'file' and uploaded_file.get('s3key'):
             self.db_execute('UPDATE file SET s3_key = CONCAT(s3_key, \'/\', %s) WHERE id = %s LIMIT 1;', new_property_id, value)
 
         self.db_execute('UPDATE entity SET changed = NOW(), changed_by = %s WHERE id = %s;', user_id, entity_id)
@@ -878,7 +878,7 @@ class Entity():
 
         self.db_execute('UPDATE property SET value_display = value_string WHERE id = %s', property_id)
 
-        return self.db_get('SELECT value_string FROM property WHERE id = %s', property_id).value_string
+        return self.db_get('SELECT value_string FROM property WHERE id = %s', property_id).get('value_string')
 
     def set_relations(self, entity_id, related_entity_id, relationship_definition_keyname, delete=False, update=False):
         """
@@ -976,7 +976,7 @@ class Entity():
             if not relationship:
                 continue
 
-            ids = [x.related_entity_id for x in relationship if x.related_entity_id]
+            ids = [x.get('related_entity_id') for x in relationship if x.get('related_entity_id')]
             if ids:
                 entities = self.__get_properties(entity_id=ids, full_definition=False, only_public=False)
                 if entities:
@@ -1800,7 +1800,7 @@ class Entity():
         result = []
         for f in self.db_query(sql):
             if f.md5:
-                filename = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), f.md5[0], f.md5)
+                filename = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), f.get('md5')[0], f.get('md5'))
                 if os.path.isfile(filename):
                     with open(filename, 'r') as myfile:
                         filecontent = myfile.read()
@@ -1810,12 +1810,12 @@ class Entity():
                 filecontent = None
 
             result.append({
-                'id': f.id,
-                'created': f.created,
+                'id': f.get('id'),
+                'created': f.get('created'),
                 'file': filecontent,
-                'filename': f.filename,
-                's3key': f.s3_key,
-                'url': f.url
+                'filename': f.get('filename'),
+                's3key': f.get('s3_key'),
+                'url': f.get('url')
             })
 
         return result
@@ -1859,13 +1859,13 @@ class Entity():
             result = self.db_query(sql)
 
         defs = []
-        for d in self.db_query(sql):
+        for d in result:
             defs.append({
-                'keyname': d.keyname,
-                'label': self.__get_system_translation(field='label', entity_definition_keyname=d.keyname),
-                'label_plural': self.__get_system_translation(field='label_plural', entity_definition_keyname=d.keyname),
-                'description': self.__get_system_translation(field='description', entity_definition_keyname=d.keyname),
-                'menugroup': self.__get_system_translation(field='menu', entity_definition_keyname=d.keyname),
+                'keyname': d.get('keyname'),
+                'label': self.__get_system_translation(field='label', entity_definition_keyname=d.get('keyname')),
+                'label_plural': self.__get_system_translation(field='label_plural', entity_definition_keyname=d.get('keyname')),
+                'description': self.__get_system_translation(field='description', entity_definition_keyname=d.get('keyname')),
+                'menugroup': self.__get_system_translation(field='menu', entity_definition_keyname=d.get('keyname')),
             })
 
         return defs
@@ -1889,11 +1889,11 @@ class Entity():
         defs = []
         for d in self.db_query(sql):
             defs.append({
-                'keyname': d.keyname,
-                'label': self.__get_system_translation(field='label', entity_definition_keyname=d.keyname),
-                'label_plural': self.__get_system_translation(field='label_plural', entity_definition_keyname=d.keyname),
-                'description': self.__get_system_translation(field='description', entity_definition_keyname=d.keyname),
-                'menugroup': self.__get_system_translation(field='menu', entity_definition_keyname=d.keyname),
+                'keyname': d.get('keyname'),
+                'label': self.__get_system_translation(field='label', entity_definition_keyname=d.get('keyname')),
+                'label_plural': self.__get_system_translation(field='label_plural', entity_definition_keyname=d.get('keyname')),
+                'description': self.__get_system_translation(field='description', entity_definition_keyname=d.get('keyname')),
+                'menugroup': self.__get_system_translation(field='menu', entity_definition_keyname=d.get('keyname')),
             })
 
         return defs
@@ -1952,7 +1952,7 @@ class Entity():
 
         paths = {}
         for i in self.db_query('SELECT DISTINCT keyname, public_path FROM entity_definition WHERE public_path IS NOT NULL ORDER BY public_path;'):
-            paths[i.public_path] = self.__get_system_translation(field='public', entity_definition_keyname=i.keyname)
+            paths[i.get('public_path')] = self.__get_system_translation(field='public', entity_definition_keyname=i.get('keyname'))
         return paths
 
     def get_public_path(self, entity_id):

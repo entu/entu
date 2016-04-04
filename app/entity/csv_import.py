@@ -50,10 +50,10 @@ class ReadFile(myRequestHandler, Entity):
         if not tmp:
             return
 
-        if not tmp.file:
+        if not tmp.get('file'):
             return
 
-        tmp_file = tmp.file
+        tmp_file = tmp.get('file')
 
         encoding = self.get_argument('encoding', chardet.detect(tmp_file).get('encoding'))
 
@@ -78,7 +78,7 @@ class ReadFile(myRequestHandler, Entity):
 
         self.render('entity/template/csv_read.html',
             file_id = file_id,
-            file_name = tmp.filename,
+            file_name = tmp.get('filename'),
             delimiter = delimiter,
             first_row = first_row,
             row_count = row_count,
@@ -108,10 +108,10 @@ class ImportFile(myRequestHandler, Entity):
         if not tmp:
             return
 
-        if not tmp.file:
+        if not tmp.get('file'):
             return
 
-        tmp_file = tmp.file
+        tmp_file = tmp.get('file')
 
         encoding = self.get_argument('encoding', 'utf-8')
 

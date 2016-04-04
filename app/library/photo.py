@@ -40,9 +40,9 @@ class ShowPhoto(myRequestHandler, Entity):
             tmp_file = self.db_get('SELECT file FROM tmp_file WHERE id = %s LIMIT 1;', ester_file_id)
             if not tmp_file:
                 return self.missing()
-            if not tmp_file.file:
+            if not tmp_file.get('file'):
                 return self.missing()
-            item = json.loads(tmp_file.file)
+            item = json.loads(tmp_file.get('file'))
             self.isbn = item.get('isn', '').split(' ')[0] if type(item.get('isn', '')) is not list else [x.split(' ')[0] for x in item.get('isn', [''])][0]
             if not self.isbn:
                 return self.redirect('/static/images/blank.png')

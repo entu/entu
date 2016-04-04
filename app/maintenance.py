@@ -78,8 +78,8 @@ def customers():
 
     customers = {}
     for c in db_query(sql):
-        if c.property in ['database-host', 'database-name', 'database-user', 'database-password', 'language']:
-            customers.setdefault(c.entity, {})[c.property] = c.value
+        if c.get('property') in ['database-host', 'database-name', 'database-user', 'database-password', 'language']:
+            customers.setdefault(c.get('entity'), {})[c.get('property')] = c.get('value')
 
     return sorted(customers.values(), key=itemgetter('database-name'))
 
@@ -231,11 +231,11 @@ class Maintenance():
         """)
 
         #generate numbers subselect
-        fields_count = self.db_query("""
+        fields_count = self.db_get("""
             SELECT MAX(LENGTH(value) - LENGTH(REPLACE(value, '@', '')) + 1) AS fields
             FROM translation
             WHERE IFNULL(language, %s) = %s;
-        """, self.language, self.language)[0].fields
+        """, self.language, self.language).get('fields')
         numbers_list = []
         for f in range(1, fields_count + 1):
             numbers_list.append('SELECT %s AS n' % f)
@@ -275,24 +275,24 @@ class Maintenance():
 
         i = 0
         for r in rows:
-            if not r.id:
+            if not r.get('id'):
                 continue
-            if not self.db_get('SELECT id FROM entity WHERE LEFT(IFNULL(sort, \'\'), 100) <> LEFT(%s, 100) AND id = %s AND is_deleted = 0 LIMIT 1;', r.val, r.id):
+            if not self.db_get('SELECT id FROM entity WHERE LEFT(IFNULL(sort, \'\'), 100) <> LEFT(%s, 100) AND id = %s AND is_deleted = 0 LIMIT 1;', r.get('val'), r.get('id')):
                 continue
             i += 1
-            self.echo('#%s %s' % (r.id, r.val), 2)
-            self.db_execute('UPDATE entity SET sort = LEFT(%s, 100) WHERE IFNULL(sort, \'\') <> LEFT(%s, 100) AND id = %s AND is_deleted = 0;', r.val, r.val, r.id)
+            self.echo('#%s %s' % (r.get('id'), r.get('val')), 2)
+            self.db_execute('UPDATE entity SET sort = LEFT(%s, 100) WHERE IFNULL(sort, \'\') <> LEFT(%s, 100) AND id = %s AND is_deleted = 0;', r.get('val'), r.get('val'), r.get('id'))
 
         self.echo('updated %s entities for sort' % i, 2)
 
 
     def set_reference_properties(self):
         #generate numbers subselect
-        fields_count = self.db_query("""
+        fields_count = self.db_get("""
             SELECT MAX(LENGTH(value) - LENGTH(REPLACE(value, '@', '')) + 1) AS fields
             FROM translation
             WHERE IFNULL(language, %s) = %s;
-        """, self.language, self.language)[0].fields
+        """, self.language, self.language).get('fields')
         numbers_list = []
         for f in range(1, fields_count + 1):
             numbers_list.append('SELECT %s AS n' % f)
@@ -336,13 +336,13 @@ class Maintenance():
 
         i = 0
         for r in rows:
-            if not r.id:
+            if not r.get('id'):
                 continue
-            if not self.db_get('SELECT id FROM property WHERE LEFT(IFNULL(value_display, \'\'), 500) <> LEFT(%s, 500) AND value_reference = %s AND is_deleted = 0 LIMIT 1;', r.val, r.id):
+            if not self.db_get('SELECT id FROM property WHERE LEFT(IFNULL(value_display, \'\'), 500) <> LEFT(%s, 500) AND value_reference = %s AND is_deleted = 0 LIMIT 1;', r.get('val'), r.get('id')):
                 continue
             i += 1
-            self.echo('#%s %s' % (r.id, r.val), 2)
-            self.db_execute('UPDATE property SET value_display = LEFT(%s, 500) WHERE IFNULL(value_display, \'\') <> LEFT(%s, 500) AND value_reference = %s AND is_deleted = 0;', r.val, r.val, r.id)
+            self.echo('#%s %s' % (r.get('id'), r.get('val')), 2)
+            self.db_execute('UPDATE property SET value_display = LEFT(%s, 500) WHERE IFNULL(value_display, \'\') <> LEFT(%s, 500) AND value_reference = %s AND is_deleted = 0;', r.get('val'), r.get('val'), r.get('id'))
 
         self.echo('updated %s reference properties' % i, 2)
 
@@ -385,16 +385,16 @@ class Maintenance():
 
         i = 0
         for r in rows:
-            formula = self.__calculate_formula(r.id)
-            if r.value_display == formula:
+            formula = self.__calculate_formula(r.get('id'))
+            if r.get('value_display') == formula:
                 continue
             i += 1
-            if r.value_display:
-                self.echo('#%s %s "%s" => "%s"' % (r.id, r.dataproperty, r.value_display, formula), 2)
+            if r.get('value_display'):
+                self.echo('#%s %s "%s" => "%s"' % (r.get('id'), r.get('dataproperty'), r.get('value_display'), formula), 2)
             else:
-                self.echo('#%s %s "%s"' % (r.id, r.dataproperty, formula), 2)
+                self.echo('#%s %s "%s"' % (r.get('id'), r.get('dataproperty'), formula), 2)
 
-            self.db_execute('UPDATE property SET value_display = LEFT(%s, 500) WHERE id = %s;', formula, r.id)
+            self.db_execute('UPDATE property SET value_display = LEFT(%s, 500) WHERE id = %s;', formula, r.get('id'))
 
         self.time = time.time() - start
         if self.time == 0:
@@ -428,8 +428,8 @@ class Maintenance():
         fields      = []
         fieldvalues = {}
 
-        formula_string = formula_property.formula
-        entity_id      = formula_property.entity_id
+        formula_string = formula_property.get('formula')
+        entity_id      = formula_property.get('entity_id')
 
         # get fields from formula string
         for formula in re.findall('{(.*?)}', formula_string):
@@ -586,7 +586,7 @@ class Maintenance():
 
         result = []
         for v in self.db_query(sql):
-            result.append(v.value_display)
+            result.append(v.get('value_display'))
 
         return result
 

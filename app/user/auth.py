@@ -108,8 +108,8 @@ class AuthMobileID(myRequestHandler):
 
             user_file = self.db_get('SELECT file FROM tmp_file WHERE id = %s LIMIT 1;', int(file_id))
             if user_file:
-                if user_file.file:
-                    user = json.loads(user_file.file)
+                if user_file.get('file'):
+                    user = json.loads(user_file.get('file'))
                     session_key = self.user_login(
                         provider        = 'mobileid',
                         provider_id     = user['id'],

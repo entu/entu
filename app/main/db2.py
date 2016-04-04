@@ -612,11 +612,11 @@ class Entity2():
 
         definitions = {}
         for m in self.db_query(sql):
-            definitions.setdefault(m.menu, {})['label'] = m.menu
-            definitions.setdefault(m.menu, {}).setdefault('definitions', []).append({
-                'keyname': m.definition,
-                'label': m.label,
-                'label_plural': m.label_plural,
+            definitions.setdefault(m.get('menu'), {})['label'] = m.get('menu')
+            definitions.setdefault(m.get('menu'), {}).setdefault('definitions', []).append({
+                'keyname': m.get('definition'),
+                'label': m.get('label'),
+                'label_plural': m.get('label_plural'),
             })
 
         return sorted(definitions.values(), key=itemgetter('label'))
@@ -645,7 +645,7 @@ class Entity2():
             WHERE public_path IS NOT NULL
             ORDER BY public_path;
         """, self.__language):
-            paths[i.public_path] = i.label
+            paths[i.get('public_path')] = i.get('label')
         return paths
 
 
@@ -725,8 +725,8 @@ class Entity2():
             return
 
         return {
-            'filename': tmp_file.filename,
-            'file': tmp_file.file
+            'filename': tmp_file.get('filename'),
+            'file': tmp_file.get('file')
         }
 
 

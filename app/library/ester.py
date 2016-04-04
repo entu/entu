@@ -107,7 +107,7 @@ class EsterImport(myRequestHandler, Entity):
             if type(values) is not list:
                 values = [values]
             for value in values:
-                self.set_property(entity_id=entity_id, property_definition_keyname=property_definition.keyname, value=value)
+                self.set_property(entity_id=entity_id, property_definition_keyname=property_definition.get('keyname'), value=value)
 
         self.write(str(entity_id))
 
