@@ -107,8 +107,8 @@ class Entity():
 
         # Insert or update "contains" information
         for row in self.db_query("SELECT entity_id FROM relationship r WHERE r.is_deleted = 0 AND r.relationship_definition_keyname = 'child' AND r.related_entity_id = %s" , entity_id):
-            self.db_execute('INSERT INTO dag_entity SET entity_id = %s, related_entity_id = %s ON DUPLICATE KEY UPDATE distance=1;', row.entity_id, entity_id)
-            self.db_execute('INSERT INTO dag_entity SELECT de.entity_id, %s, de.distance+1 FROM dag_entity AS de WHERE de.related_entity_id = %s ON DUPLICATE KEY UPDATE distance = LEAST(dag_entity.distance, de.distance+1);', entity_id, row.entity_id)
+            self.db_execute('INSERT INTO dag_entity SET entity_id = %s, related_entity_id = %s ON DUPLICATE KEY UPDATE distance=1;', row.get('entity_id'), entity_id)
+            self.db_execute('INSERT INTO dag_entity SELECT de.entity_id, %s, de.distance+1 FROM dag_entity AS de WHERE de.related_entity_id = %s ON DUPLICATE KEY UPDATE distance = LEAST(dag_entity.distance, de.distance+1);', entity_id, row.get('entity_id'))
 
         # Copy user rights
         sql = """
@@ -1300,85 +1300,85 @@ class Entity():
 
             items = {}
             for row in self.db_query(sql):
-                if row.entity_sharing == 'private' and not row.entity_right and not sharing_key:
+                if row.get('entity_sharing') == 'private' and not row.get('entity_right') and not sharing_key:
                     continue
-                if row.entity_sharing in ['domain', 'public'] and row.entity_right not in ['viewer', 'expander', 'editor', 'owner'] and row.property_public != 1 and not sharing_key:
+                if row.get('entity_sharing') in ['domain', 'public'] and row.get('entity_right') not in ['viewer', 'expander', 'editor', 'owner'] and row.get('property_public') != 1 and not sharing_key:
                     continue
 
                 #Entity
-                items.setdefault('item_%s' % row.entity_id, {})['definition_keyname'] = row.entity_definition_keyname
-                items.setdefault('item_%s' % row.entity_id, {})['id'] = row.entity_id
-                items.setdefault('item_%s' % row.entity_id, {})['label'] = self.__get_system_translation(field='label', entity_definition_keyname=row.entity_definition_keyname)
-                items.setdefault('item_%s' % row.entity_id, {})['label_plural'] = self.__get_system_translation(field='label_plural', entity_definition_keyname=row.entity_definition_keyname)
-                items.setdefault('item_%s' % row.entity_id, {})['description'] = self.__get_system_translation(field='description', entity_definition_keyname=row.entity_definition_keyname)
-                items.setdefault('item_%s' % row.entity_id, {})['sort'] = self.__get_system_translation(field='sort', entity_definition_keyname=row.entity_definition_keyname)
-                items.setdefault('item_%s' % row.entity_id, {})['sort_value'] = row.entity_sort_value
-                items.setdefault('item_%s' % row.entity_id, {})['created'] = row.entity_created
-                items.setdefault('item_%s' % row.entity_id, {})['changed'] = row.entity_changed
-                items.setdefault('item_%s' % row.entity_id, {})['displayname'] = self.__get_system_translation(field='displayname', entity_definition_keyname=row.entity_definition_keyname)
-                items.setdefault('item_%s' % row.entity_id, {})['displayinfo'] = self.__get_system_translation(field='displayinfo', entity_definition_keyname=row.entity_definition_keyname)
-                items.setdefault('item_%s' % row.entity_id, {})['displaytable'] = self.__get_system_translation(field='displaytable', entity_definition_keyname=row.entity_definition_keyname)
-                items.setdefault('item_%s' % row.entity_id, {})['sharing'] = row.entity_sharing
-                items.setdefault('item_%s' % row.entity_id, {})['sharing_key'] = row.entity_sharing_key
-                items.setdefault('item_%s' % row.entity_id, {})['right'] = row.entity_right
-                items.setdefault('item_%s' % row.entity_id, {})['ordinal'] = row.entity_created if row.entity_created else datetime.datetime.now()
+                items.setdefault('item_%s' % row.get('entity_id'), {})['definition_keyname'] = row.get('entity_definition_keyname')
+                items.setdefault('item_%s' % row.get('entity_id'), {})['id'] = row.get('entity_id')
+                items.setdefault('item_%s' % row.get('entity_id'), {})['label'] = self.__get_system_translation(field='label', entity_definition_keyname=row.get('entity_definition_keyname'))
+                items.setdefault('item_%s' % row.get('entity_id'), {})['label_plural'] = self.__get_system_translation(field='label_plural', entity_definition_keyname=row.get('entity_definition_keyname'))
+                items.setdefault('item_%s' % row.get('entity_id'), {})['description'] = self.__get_system_translation(field='description', entity_definition_keyname=row.get('entity_definition_keyname'))
+                items.setdefault('item_%s' % row.get('entity_id'), {})['sort'] = self.__get_system_translation(field='sort', entity_definition_keyname=row.get('entity_definition_keyname'))
+                items.setdefault('item_%s' % row.get('entity_id'), {})['sort_value'] = row.get('entity_sort_value')
+                items.setdefault('item_%s' % row.get('entity_id'), {})['created'] = row.get('entity_created')
+                items.setdefault('item_%s' % row.get('entity_id'), {})['changed'] = row.get('entity_changed')
+                items.setdefault('item_%s' % row.get('entity_id'), {})['displayname'] = self.__get_system_translation(field='displayname', entity_definition_keyname=row.get('entity_definition_keyname'))
+                items.setdefault('item_%s' % row.get('entity_id'), {})['displayinfo'] = self.__get_system_translation(field='displayinfo', entity_definition_keyname=row.get('entity_definition_keyname'))
+                items.setdefault('item_%s' % row.get('entity_id'), {})['displaytable'] = self.__get_system_translation(field='displaytable', entity_definition_keyname=row.get('entity_definition_keyname'))
+                items.setdefault('item_%s' % row.get('entity_id'), {})['sharing'] = row.get('entity_sharing')
+                items.setdefault('item_%s' % row.get('entity_id'), {})['sharing_key'] = row.get('entity_sharing_key')
+                items.setdefault('item_%s' % row.get('entity_id'), {})['right'] = row.get('entity_right')
+                items.setdefault('item_%s' % row.get('entity_id'), {})['ordinal'] = row.get('entity_created') if row.get('entity_created') else datetime.datetime.now()
 
                 #Property
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['keyname'] = row.property_keyname
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['fieldset'] = self.__get_system_translation(field='fieldset', property_definition_keyname=row.property_keyname)
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['label'] = self.__get_system_translation(field='label', property_definition_keyname=row.property_keyname)
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['label_plural'] = self.__get_system_translation(field='label_plural', property_definition_keyname=row.property_keyname)
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['description'] = self.__get_system_translation(field='description', property_definition_keyname=row.property_keyname)
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['datatype'] = row.property_datatype
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['dataproperty'] = row.property_dataproperty
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['mandatory'] = bool(row.property_mandatory)
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multilingual'] = bool(row.property_multilingual)
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['multiplicity'] = row.property_multiplicity
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['ordinal'] = row.property_ordinal
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['formula'] = bool(row.property_formula)
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['executable'] = bool(row.property_executable)
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['public'] = bool(row.property_public)
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['readonly'] = bool(row.property_readonly)
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {})['visible'] = bool(row.property_visible)
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {})['keyname'] = row.get('property_keyname')
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {})['fieldset'] = self.__get_system_translation(field='fieldset', property_definition_keyname=row.get('property_keyname'))
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {})['label'] = self.__get_system_translation(field='label', property_definition_keyname=row.get('property_keyname'))
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {})['label_plural'] = self.__get_system_translation(field='label_plural', property_definition_keyname=row.get('property_keyname'))
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {})['description'] = self.__get_system_translation(field='description', property_definition_keyname=row.get('property_keyname'))
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {})['datatype'] = row.get('property_datatype')
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {})['dataproperty'] = row.get('property_dataproperty')
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {})['mandatory'] = bool(row.get('property_mandatory'))
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {})['multilingual'] = bool(row.get('property_multilingual'))
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {})['multiplicity'] = row.get('property_multiplicity')
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {})['ordinal'] = row.get('property_ordinal')
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {})['formula'] = bool(row.get('property_formula'))
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {})['executable'] = bool(row.get('property_executable'))
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {})['public'] = bool(row.get('property_public'))
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {})['readonly'] = bool(row.get('property_readonly'))
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {})['visible'] = bool(row.get('property_visible'))
 
                 #Value
-                value = row.value_display if row.value_display else ''
+                value = row.get('value_display') if row.get('value_display') else ''
 
-                if row.property_formula == 1:
-                    db_value = row.value_formula
-                elif row.property_datatype == 'string':
-                    db_value = row.value_string
-                elif row.property_datatype == 'text':
-                    db_value = row.value_text
-                    value = row.value_text if row.value_text else ''
-                elif row.property_datatype == 'integer':
-                    db_value = row.value_integer
-                elif row.property_datatype == 'decimal':
-                    db_value = row.value_decimal
-                elif row.property_datatype == 'date':
-                    db_value = row.value_datetime
-                elif row.property_datatype == 'datetime':
-                    db_value = row.value_datetime
-                elif row.property_datatype == 'reference':
-                    db_value = row.value_reference
-                elif row.property_datatype == 'file':
-                    db_value = row.value_file
-                elif row.property_datatype == 'boolean':
-                    db_value = row.value_boolean
-                elif row.property_datatype == 'counter':
-                    db_value = row.value_counter
-                elif row.property_datatype == 'counter-value':
-                    db_value = row.value_string
+                if row.get('property_formula') == 1:
+                    db_value = row.get('value_formula')
+                elif row.get('property_datatype') == 'string':
+                    db_value = row.get('value_string')
+                elif row.get('property_datatype') == 'text':
+                    db_value = row.get('value_text')
+                    value = row.get('value_text') if row.get('value_text') else ''
+                elif row.get('property_datatype') == 'integer':
+                    db_value = row.get('value_integer')
+                elif row.get('property_datatype') == 'decimal':
+                    db_value = row.get('value_decimal')
+                elif row.get('property_datatype') == 'date':
+                    db_value = row.get('value_datetime')
+                elif row.get('property_datatype') == 'datetime':
+                    db_value = row.get('value_datetime')
+                elif row.get('property_datatype') == 'reference':
+                    db_value = row.get('value_reference')
+                elif row.get('property_datatype') == 'file':
+                    db_value = row.get('value_file')
+                elif row.get('property_datatype') == 'boolean':
+                    db_value = row.get('value_boolean')
+                elif row.get('property_datatype') == 'counter':
+                    db_value = row.get('value_counter')
+                elif row.get('property_datatype') == 'counter-value':
+                    db_value = row.get('value_string')
                 else:
                     db_value = ''
                     value = 'X'
 
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['id'] = row.value_id
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['ordinal'] = row.value_ordinal
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['value'] = value
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['db_value'] = db_value
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['created'] = row.value_created
-                items.setdefault('item_%s' % row.entity_id, {}).setdefault('properties', {}).setdefault('%s' % row.property_dataproperty, {}).setdefault('values', {}).setdefault('value_%s' % row.value_id, {})['created_by'] = row.value_created_by
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {}).setdefault('values', {}).setdefault('value_%s' % row.get('value_id'), {})['id'] = row.get('value_id')
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {}).setdefault('values', {}).setdefault('value_%s' % row.get('value_id'), {})['ordinal'] = row.get('value_ordinal')
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {}).setdefault('values', {}).setdefault('value_%s' % row.get('value_id'), {})['value'] = value
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {}).setdefault('values', {}).setdefault('value_%s' % row.get('value_id'), {})['db_value'] = db_value
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {}).setdefault('values', {}).setdefault('value_%s' % row.get('value_id'), {})['created'] = row.get('value_created')
+                items.setdefault('item_%s' % row.get('entity_id'), {}).setdefault('properties', {}).setdefault('%s' % row.get('property_dataproperty'), {}).setdefault('values', {}).setdefault('value_%s' % row.get('value_id'), {})['created_by'] = row.get('value_created_by')
 
         if not items:
             if not full_definition:
