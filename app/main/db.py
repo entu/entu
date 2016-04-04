@@ -1100,7 +1100,7 @@ class Entity():
         ids = self.db_query(sql)
         # logging.debug(ids)
 
-        entities = self.__get_properties(entity_id=[x.id for x in ids])
+        entities = self.__get_properties(entity_id=[x.get('id') for x in ids])
         if not entities:
             return []
 
@@ -1199,7 +1199,7 @@ class Entity():
         items = self.db_query(sql)
         if not items:
             return []
-        return [x.id for x in items]
+        return [x.get('id') for x in items]
 
     # def formula_properties(self, entity_id):
     #     sql = """
