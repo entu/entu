@@ -126,7 +126,8 @@ class myDatabase():
         if not sql:
             return
 
-        cursor = self.db(self.request.host).cursor()
+        db = self.db(self.request.host)
+        cursor = db.cursor()
 
         if args:
             cursor.execute(sql, tuple(args))
@@ -135,8 +136,7 @@ class myDatabase():
         else:
             cursor.execute(sql)
 
-        cursor.commit()
-
+        db.commit()
         cursor.close()
 
         return True
@@ -146,7 +146,8 @@ class myDatabase():
         if not sql:
             return
 
-        cursor = self.db(self.request.host).cursor()
+        db = self.db(self.request.host)
+        cursor = db.cursor()
 
         if args:
             cursor.execute(sql, tuple(args))
@@ -156,8 +157,8 @@ class myDatabase():
             cursor.execute(sql)
 
         result = cursor.lastrowid
-        cursor.commit()
 
+        db.commit()
         cursor.close()
 
         return result
