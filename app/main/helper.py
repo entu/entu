@@ -49,7 +49,7 @@ class myDatabase():
         except Exception:
             settings = self.get_app_settings(host)
 
-            if self.settings['database-ssl-path'] and settings.get('database-ssl', 0) === 1:
+            if self.settings['database-ssl-path'] and settings.get('database-ssl', 0) == 1:
                 ssl = {
                     'cert': os.path.join(self.settings['database-ssl-path'], 'mysql-client-cert.pem'),
                     'key': os.path.join(self.settings['database-ssl-path'], 'mysql-client-key.pem'),
