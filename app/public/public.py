@@ -20,7 +20,7 @@ class PublicHandler(myRequestHandler, Entity):
         if not path:
             path = self.db_get('SELECT public_path FROM entity_definition WHERE public_path IS NOT NULL ORDER BY public_path LIMIT 1;')
             if path:
-                return self.redirect('/public-%s' % path.public_path)
+                return self.redirect('/public-%s' % path.get('public_path'))
             else:
                 return self.missing()
 
