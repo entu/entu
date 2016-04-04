@@ -1799,7 +1799,7 @@ class Entity():
 
         result = []
         for f in self.db_query(sql):
-            if f.md5:
+            if f.get('md5'):
                 filename = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), f.get('md5')[0], f.get('md5'))
                 if os.path.isfile(filename):
                     with open(filename, 'r') as myfile:
