@@ -66,7 +66,7 @@ class myDatabase():
 
 
     def db_get(self, sql=None, *args, **kwargs):
-        if nor sql:
+        if not sql:
             return
 
         cursor = self.db(self.request.host).cursor(dictionary=True)
@@ -86,7 +86,7 @@ class myDatabase():
 
 
     def db_query(self, sql=None, *args, **kwargs):
-        if nor sql:
+        if not sql:
             return
 
         cursor = self.db(self.request.host).cursor(dictionary=True)
@@ -106,7 +106,7 @@ class myDatabase():
 
 
     def db_execute(self, sql=None, *args, **kwargs):
-        if nor sql:
+        if not sql:
             return
 
         cursor = self.db(self.request.host).cursor()
@@ -126,7 +126,7 @@ class myDatabase():
 
 
     def db_execute_lastrowid(self, sql=None, *args, **kwargs):
-        if nor sql:
+        if not sql:
             return
 
         cursor = self.db(self.request.host).cursor()

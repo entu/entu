@@ -3,7 +3,6 @@ boto==2.39.0
 chardet==2.3.0
 markdown2==2.3.1
 mistune==0.7.2
-mysql-connector-python==2.0.4
 newrelic==2.62.0.47
 pillow==3.2.0
 pymongo==3.2.2
@@ -14,3 +13,4 @@ simpleaes==1.0
 suds==0.4
 tornado==4.3
 xmltodict==0.10.1
+https://cdn.mysql.com/Downloads/Connector-Python/mysql-connector-python-2.0.4.tar.gz
