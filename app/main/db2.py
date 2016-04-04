@@ -238,11 +238,11 @@ class Entity2():
 
     def get_entities_info(self, entity_id=None, definition=None, parent_entity_id=None, referred_to_entity_id=None, query=None, limit=None, page=None):
         #generate numbers subselect
-        fields_count = self.db_query("""
+        fields_count = self.db_get("""
             SELECT MAX(LENGTH(value) - LENGTH(REPLACE(value, '@', '')) + 1) AS fields
             FROM translation
             WHERE IFNULL(language, %s) = %s;
-        """, self.__language, self.__language)[0].fields
+        """, self.__language, self.__language).get('fields')
         numbers_list = []
         for f in range(1, fields_count + 1):
             numbers_list.append('SELECT %s AS n' % f)
