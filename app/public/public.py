@@ -18,7 +18,7 @@ class PublicHandler(myRequestHandler, Entity):
     def get(self, path=None):
         path = path.strip('/').strip('-')
         if not path:
-            path = self.db.get('SELECT public_path FROM entity_definition WHERE public_path IS NOT NULL ORDER BY public_path LIMIT 1;')
+            path = self.db_get('SELECT public_path FROM entity_definition WHERE public_path IS NOT NULL ORDER BY public_path LIMIT 1;')
             if path:
                 return self.redirect('/public-%s' % path.public_path)
             else:
@@ -48,7 +48,7 @@ class PublicSearchHandler(myRequestHandler, Entity2):
         locale = self.get_user_locale()
         items = []
         if len(search) > 1:
-            entity_definitions = [x.keyname for x in self.db.query('SELECT keyname FROM entity_definition WHERE public_path = %s;', path)]
+            entity_definitions = [x.keyname for x in self.db_query('SELECT keyname FROM entity_definition WHERE public_path = %s;', path)]
 
             entities = self.get_entities_info(query=search, definition=entity_definitions)
             logging.warning(search)
@@ -130,7 +130,7 @@ class PublicAdvancedSearchHandler(myRequestHandler, Entity):
             if sql:
                 sql = 'SELECT DISTINCT entity.id FROM property, entity WHERE entity.id = property.entity_id AND entity.entity_definition_keyname = \'%s\' AND property.property_definition_keyname = \'%s\' AND entity.sharing = \'public\' %s' % (entity_definition_keyname, p['keyname'], sql)
                 logging.debug(sql)
-                ids = [x.id for x in self.db.query(sql)]
+                ids = [x.id for x in self.db_query(sql)]
                 if entity_ids == None:
                     entity_ids = ids
                 entity_ids = ListMatch(entity_ids, ids)
@@ -138,7 +138,7 @@ class PublicAdvancedSearchHandler(myRequestHandler, Entity):
         locale = self.get_user_locale()
         items = []
         if entity_ids:
-            entity_definitions = [x.keyname for x in self.db.query('SELECT keyname FROM entity_definition WHERE public_path = %s;', path)]
+            entity_definitions = [x.keyname for x in self.db_query('SELECT keyname FROM entity_definition WHERE public_path = %s;', path)]
 
             entities = self.get_entities(entity_id=entity_ids, entity_definition_keyname=entity_definitions, only_public=True)
             if entities:
@@ -247,7 +247,7 @@ class SharedEntityWithKeyHandler(myRequestHandler, Entity):
 
 def get_definitions(rh, path):
     entity_definitions = []
-    for entity_definition_keyname in [x.keyname for x in rh.db.query('SELECT keyname FROM entity_definition WHERE public_path = %s;', path)]:
+    for entity_definition_keyname in [x.keyname for x in rh.db_query('SELECT keyname FROM entity_definition WHERE public_path = %s;', path)]:
         entity_definitions.append(rh.get_entities(entity_id=0, entity_definition_keyname=entity_definition_keyname, full_definition=True, limit=1, only_public=True))
     return entity_definitions
 

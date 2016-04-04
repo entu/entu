@@ -22,7 +22,7 @@ class UploadFile(myRequestHandler, Entity):
         if not uploaded_file:
             return
 
-        file_id = self.db.execute_lastrowid('INSERT INTO tmp_file SET filename = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], uploaded_file['body'], self.current_user.get('id'))
+        file_id = self.db_execute_lastrowid('INSERT INTO tmp_file SET filename = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], uploaded_file['body'], self.current_user.get('id'))
 
         # csv.reader(zf.read('0010711996.txt').split('\n'), delimiter='\t')
 
@@ -45,7 +45,7 @@ class ReadFile(myRequestHandler, Entity):
 
         first_row = int(first_row)
 
-        tmp = self.db.get('SELECT file, filename FROM tmp_file WHERE id = %s AND created_by = %s LIMIT 1;', file_id, self.current_user.get('id'))
+        tmp = self.db_get('SELECT file, filename FROM tmp_file WHERE id = %s AND created_by = %s LIMIT 1;', file_id, self.current_user.get('id'))
 
         if not tmp:
             return
@@ -103,7 +103,7 @@ class ImportFile(myRequestHandler, Entity):
 
         first_row = int(first_row)
 
-        tmp = self.db.get('SELECT file FROM tmp_file WHERE id = %s AND created_by = %s LIMIT 1;', file_id, self.current_user.get('id'))
+        tmp = self.db_get('SELECT file FROM tmp_file WHERE id = %s AND created_by = %s LIMIT 1;', file_id, self.current_user.get('id'))
 
         if not tmp:
             return

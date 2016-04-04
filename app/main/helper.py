@@ -18,7 +18,7 @@ import re
 import os
 import string
 import time
-import torndb
+import mysql.connector
 import urllib
 
 
@@ -28,18 +28,12 @@ class myE(Entity):
     __x = None
 
 
+
 class myDatabase():
     _app_settings = None
 
-    @property
-    def db(self):
-        """
-        Returns current hosts DB connection.
 
-        """
-        return self.get_db(self.request.host)
-
-    def get_db(self, host):
+    def db(self, host):
         """
         Returns DB connection.
 
@@ -50,7 +44,7 @@ class myDatabase():
             settings = self.get_app_settings(host)
 
             if self.settings['database-ssl-path'] and settings.get('database-ssl', 0) == 1:
-                self.settings['databases'][host] = torndb.Connection(
+                self.settings['databases'][host] = mysql.connector.connect(
                     host     = settings.get('database-host'),
                     database = settings.get('database-name'),
                     user     = settings.get('database-user'),
@@ -61,7 +55,7 @@ class myDatabase():
                     ssl_verify_cert = True
                 )
             else:
-                self.settings['databases'][host] = torndb.Connection(
+                self.settings['databases'][host] = mysql.connector.connect(
                     host     = settings.get('database-host'),
                     database = settings.get('database-name'),
                     user     = settings.get('database-user'),
@@ -69,6 +63,88 @@ class myDatabase():
                 )
 
         return self.settings['databases'][host]
+
+
+    def db_get(self, sql=None, *args, **kwargs):
+        if nor sql:
+            return
+
+        cursor = self.db(self.request.host).cursor(dictionary=True)
+
+        if args:
+            cursor.execute(sql, tuple(args))
+        else if kwargs:
+            cursor.execute(sql, kwargs)
+        else:
+            cursor.execute(sql)
+
+        result = cursor.fetchone()
+
+        cursor.close()
+
+        return result
+
+
+    def db_query(self, sql=None, *args, **kwargs):
+        if nor sql:
+            return
+
+        cursor = self.db(self.request.host).cursor(dictionary=True)
+
+        if args:
+            cursor.execute(sql, tuple(args))
+        else if kwargs:
+            cursor.execute(sql, kwargs)
+        else:
+            cursor.execute(sql)
+
+        result = cursor.fetchall()
+
+        cursor.close()
+
+        return result
+
+
+    def db_execute(self, sql=None, *args, **kwargs):
+        if nor sql:
+            return
+
+        cursor = self.db(self.request.host).cursor()
+
+        if args:
+            cursor.execute(sql, tuple(args))
+        else if kwargs:
+            cursor.execute(sql, kwargs)
+        else:
+            cursor.execute(sql)
+
+        cursor.commit()
+
+        cursor.close()
+
+        return True
+
+
+    def db_execute_lastrowid(self, sql=None, *args, **kwargs):
+        if nor sql:
+            return
+
+        cursor = self.db(self.request.host).cursor()
+
+        if args:
+            cursor.execute(sql, tuple(args))
+        else if kwargs:
+            cursor.execute(sql, kwargs)
+        else:
+            cursor.execute(sql)
+
+        result = cursor.lastrowid
+        cursor.commit()
+
+        cursor.close()
+
+        return result
+
 
     def app_settings(self, key, default=None, do_something_fun=False):
         if self.get_app_settings():
@@ -82,7 +158,7 @@ class myDatabase():
             logging.debug('Loaded app_settings for %s.' % host)
 
             if self.settings['database-ssl-path']:
-                db = torndb.Connection(
+                db = mysql.connector.connect(
                     host     = self.settings['database-host'],
                     database = self.settings['database-database'],
                     user     = self.settings['database-user'],
@@ -93,12 +169,13 @@ class myDatabase():
                     ssl_verify_cert = True
                 )
             else:
-                db = torndb.Connection(
+                db = mysql.connector.connect(
                     host     = self.settings['database-host'],
                     database = self.settings['database-database'],
                     user     = self.settings['database-user'],
                     password = self.settings['database-password']
                 )
+            cursor = db.cursor(dictionary=True)
 
             sql = """
                 SELECT DISTINCT
@@ -141,9 +218,15 @@ class myDatabase():
                 LEFT JOIN property_definition ON property_definition.entity_definition_keyname = e.entity_definition_keyname AND property_definition.is_deleted = 0
                 LEFT JOIN property ON property.property_definition_keyname = property_definition.keyname AND property.entity_id = e.id AND property.is_deleted = 0;
             """ % self.settings['customergroup']
+
+            query = cursor.execute(sql)
+
             customers = {}
-            for c in db.query(sql):
-                customers.setdefault(c.entity, {})[c.property] = c.value
+            for c in query.fetchall():
+                customers.setdefault(c['entity'], {})[c['property']] = c['value']
+
+            cursor.close()
+            db.close()
 
             self._app_settings = {}
             for c in customers.values():
@@ -170,6 +253,8 @@ class myDatabase():
         except Exception:
             self.settings['mongodbs'][database] = MongoClient(self.settings['mongodb'], serverSelectionTimeoutMS=2000, socketKeepAlive=True, connect=False)[database]
         return self.settings['mongodbs'][database]
+
+
 
 class myUser(myE):
     __user        = None
@@ -219,7 +304,7 @@ class myUser(myE):
         if session.get('user', {}).get('picture'):
             user['picture'] = session.get('user', {}).get('picture')
 
-        person = self.db.get("""
+        person = self.db_get("""
             SELECT
                 property.entity_id,
                 (
@@ -254,7 +339,7 @@ class myUser(myE):
                 user['email'] = person.email
         else:
             if self.app_settings('user-parent'):
-                if not self.db.get('SELECT entity.id FROM entity, property WHERE property.entity_id = entity.id AND entity.is_deleted = 0 AND property.is_deleted = 0 AND property.property_definition_keyname = "person-entu-user" and property.value_string = %s LIMIT 1', user_id):
+                if not self.db_get('SELECT entity.id FROM entity, property WHERE property.entity_id = entity.id AND entity.is_deleted = 0 AND property.is_deleted = 0 AND property.property_definition_keyname = "person-entu-user" and property.value_string = %s LIMIT 1', user_id):
                     new_person_id = self.create_entity(entity_definition_keyname='person', parent_entity_id=self.app_settings('user-parent'), ignore_user=True)
                     self.set_property(entity_id=new_person_id, property_definition_keyname='person-entu-user', value=user_id, ignore_user=True)
                     if user['email']:
@@ -315,7 +400,7 @@ class myUser(myE):
             logging.debug('Expiration time must be less than 1 hour!')
             return
 
-        user = self.db.get("""
+        user = self.db_get("""
             SELECT
                 entity.id,
                 NULL AS user_id,
@@ -371,6 +456,7 @@ class myUser(myE):
 
         logging.debug('Loaded user #%s' % user.get('id'))
         return user
+
 
 
 class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
@@ -572,6 +658,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
         return json.loads(response.body)
 
 
+
 class JSONDateFix(json.JSONEncoder):
     """
     Formats json.dumps() datetime values to YYYY-MM-DD HH:MM:SS. Use it like json.dumps(mydata, cls=JSONDateFix)
@@ -583,6 +670,7 @@ class JSONDateFix(json.JSONEncoder):
         if not isinstance(obj, (basestring, bool)):
             return '%s' % obj
         return json.JSONEncoder.default(self, obj)
+
 
 
 def toURL(s):

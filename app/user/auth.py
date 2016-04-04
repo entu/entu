@@ -56,7 +56,7 @@ class AuthMobileID(myRequestHandler):
             if mobile[:3] != '372':
                 mobile = '+372%s' % mobile
 
-            person = self.db.get("""
+            person = self.db_get("""
                 SELECT
                     p1.value_string AS idcode,
                     p2.value_string AS phone
@@ -80,7 +80,7 @@ class AuthMobileID(myRequestHandler):
 
             try:
                 mid = client.service.MobileAuthenticate('', '', mobile, 'EST', service, text, rnd, 'asynchClientServer', 0, False, False)
-                file_id = self.db.execute_lastrowid('INSERT INTO tmp_file SET filename = %s, file = %s, created = NOW();',
+                file_id = self.db_execute_lastrowid('INSERT INTO tmp_file SET filename = %s, file = %s, created = NOW();',
                     'mobileid-%s' % mid.Sesscode,
                     json.dumps({
                         'id': mid.UserIDCode,
@@ -106,7 +106,7 @@ class AuthMobileID(myRequestHandler):
             if status != 'USER_AUTHENTICATED':
                 return self.write({'status': status})
 
-            user_file = self.db.get('SELECT file FROM tmp_file WHERE id = %s LIMIT 1;', int(file_id))
+            user_file = self.db_get('SELECT file FROM tmp_file WHERE id = %s LIMIT 1;', int(file_id))
             if user_file:
                 if user_file.file:
                     user = json.loads(user_file.file)

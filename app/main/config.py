@@ -20,8 +20,8 @@ class SyncConfig(myRequestHandler, Entity):
 
         # TODO:
         # only alter definitions of configurations, where user has at least editing rights
-        self.db.execute('UPDATE entity_definition SET is_deleted = 1')
-        self.db.execute('UPDATE property_definition SET is_deleted = 1')
+        self.db_execute('UPDATE entity_definition SET is_deleted = 1')
+        self.db_execute('UPDATE property_definition SET is_deleted = 1')
 
         # TODO:
         # only alter definitions of configurations, where user has at least editing rights
@@ -53,7 +53,7 @@ class SyncConfig(myRequestHandler, Entity):
                 e_props['menu'] = self.get_entities(entity_id = e_props['menu'], limit = 1)['displayname']
 
             if e_props['keyname']:
-                self.db.execute("""
+                self.db_execute("""
                     UPDATE `entity_definition`
                     SET ordinal=%s, open_after_add=%s, public_path=%s,
                         estonian_label=%s, estonian_label_plural=%s, estonian_description=%s, estonian_menu=%s, estonian_public=%s, estonian_displayname=%s,
@@ -73,7 +73,7 @@ class SyncConfig(myRequestHandler, Entity):
                     , e_props['keyname']
                     )
             else:
-                self.db.execute("""
+                self.db_execute("""
                     INSERT INTO `entity_definition` (
                         `keyname`,
                         `ordinal`, `open_after_add`, `public_path`,
@@ -135,7 +135,7 @@ class SyncConfig(myRequestHandler, Entity):
                     p_props['search']       = conf_p.get('properties', {}).get('search'       , {}).get('values', [{}])[0].get('db_value', None)
                     p_props['visible']      = conf_p.get('properties', {}).get('visible'      , {}).get('values', [{}])[0].get('db_value', None)
 
-                    p_props['datatype']     = self.db.get('SELECT value_string FROM property WHERE is_deleted = 0 AND property_definition_keyname = \'conf-datatype-name\' AND entity_id = %s;' % p_props['datatype'])['value_string']
+                    p_props['datatype']     = self.db_get('SELECT value_string FROM property WHERE is_deleted = 0 AND property_definition_keyname = \'conf-datatype-name\' AND entity_id = %s;' % p_props['datatype'])['value_string']
                     if not p_props['formula']:
                         p_props['formula']            = 0
                     if not p_props['executable']:
@@ -166,7 +166,7 @@ class SyncConfig(myRequestHandler, Entity):
                         p_props['classifier'] = self.get_entities(entity_id = p_props['classifier'], limit = 1)['displayname']
 
                     if p_props['keyname']:
-                        self.db.execute("""
+                        self.db_execute("""
                             UPDATE `property_definition`
                             SET `entity_definition_keyname`=%s,
                                 `dataproperty`=%s, `datatype`=%s, `defaultvalue`=%s,
@@ -193,7 +193,7 @@ class SyncConfig(myRequestHandler, Entity):
                             )
 
                     else:
-                        self.db.execute("""
+                        self.db_execute("""
                             INSERT INTO `property_definition` (
                                 `keyname`, `entity_definition_keyname`,
                                 `dataproperty`, `datatype`, `defaultvalue`,

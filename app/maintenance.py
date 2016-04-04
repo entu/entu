@@ -5,7 +5,7 @@ newrelic.agent.initialize()
 import os
 import re
 import time
-import torndb
+import mysql.connector
 
 from operator import itemgetter
 from datetime import datetime
@@ -15,18 +15,32 @@ APP_MYSQL_HOST     = os.getenv('MYSQL_HOST', 'localhost')
 APP_MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
 APP_MYSQL_USER     = os.getenv('MYSQL_USER')
 APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
+APP_MYSQL_SSL_PATH = os.getenv('MYSQL_SSL_PATH')
 APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
 APP_FULLRUN        = os.getenv('FULLRUN')
 APP_VERBOSE        = os.getenv('VERBOSE', 1)
 
 
 def customers():
-    db = torndb.Connection(
-        host     = APP_MYSQL_HOST,
-        database = APP_MYSQL_DATABASE,
-        user     = APP_MYSQL_USER,
-        password = APP_MYSQL_PASSWORD,
-    )
+    if APP_MYSQL_SSL_PATH:
+        db = mysql.connector.connect(
+            host     = settings.get('database-host'),
+            database = settings.get('database-name'),
+            user     = settings.get('database-user'),
+            password = settings.get('database-password'),
+            ssl_cert = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-cert.pem'),
+            ssl_key  = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-key.pem'),
+            ssl_ca   = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-ca.pem'),
+            ssl_verify_cert = True
+        )
+    else:
+        db = mysql.connector.connect(
+            host     = settings.get('database-host'),
+            database = settings.get('database-name'),
+            user     = settings.get('database-user'),
+            password = settings.get('database-password')
+        )
+
 
     sql = """
         SELECT DISTINCT
@@ -63,7 +77,7 @@ def customers():
     """ % APP_CUSTOMERGROUP
 
     customers = {}
-    for c in db.query(sql):
+    for c in db_query(sql):
         if c.property in ['database-host', 'database-name', 'database-user', 'database-password', 'language']:
             customers.setdefault(c.entity, {})[c.property] = c.value
 
@@ -78,12 +92,26 @@ class Maintenance():
         self.db_name = db_name
         self.db_user = db_user
         self.db_pass = db_pass
-        self.db = torndb.Connection(
-            host     = db_host,
-            database = db_name,
-            user     = db_user,
-            password = db_pass,
-        )
+
+        if APP_MYSQL_SSL_PATH:
+            self.db = mysql.connector.connect(
+                host     = settings.get('database-host'),
+                database = settings.get('database-name'),
+                user     = settings.get('database-user'),
+                password = settings.get('database-password'),
+                ssl_cert = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-cert.pem'),
+                ssl_key  = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-key.pem'),
+                ssl_ca   = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-ca.pem'),
+                ssl_verify_cert = True
+            )
+        else:
+            self.db = mysql.connector.connect(
+                host     = settings.get('database-host'),
+                database = settings.get('database-name'),
+                user     = settings.get('database-user'),
+                password = settings.get('database-password')
+            )
+
 
         self.language = language
         self.speed = speed
@@ -110,10 +138,80 @@ class Maintenance():
                 UNION SELECT related_entity_id AS id FROM relationship WHERE created >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR);
             """ % { 'hours': self.hours }
 
-        for r in self.db.query(sql):
-            self.changed_entities.append(r.id)
+        cursor = self.db.cursor(dictionary=True)
+
+        cursor.execute(sql)
+
+        result = cursor.fetchall()
+
+        cursor.close()
+
+        for r in result:
+            self.changed_entities.append(r['id'])
 
         self.changed_entities = list(set([x for x in self.changed_entities if x]))
+
+
+    def db_get(self, sql=None, *args, **kwargs):
+        if nor sql:
+            return
+
+        cursor = self.db.cursor(dictionary=True)
+
+        if args:
+            cursor.execute(sql, tuple(args))
+        else if kwargs:
+            cursor.execute(sql, kwargs)
+        else:
+            cursor.execute(sql)
+
+        result = cursor.fetchone()
+
+        cursor.close()
+
+        return result
+
+
+    def db_query(self, sql=None, *args, **kwargs):
+        if nor sql:
+            return
+
+        cursor = self.db.cursor(dictionary=True)
+
+        if args:
+            cursor.execute(sql, tuple(args))
+        else if kwargs:
+            cursor.execute(sql, kwargs)
+        else:
+            cursor.execute(sql)
+
+        result = cursor.fetchall()
+
+        cursor.close()
+
+        return result
+
+
+    def db_execute(self, sql=None, *args, **kwargs):
+        if nor sql:
+            return
+
+        cursor = self.db.cursor()
+
+        if args:
+            cursor.execute(sql, tuple(args))
+        else if kwargs:
+            cursor.execute(sql, kwargs)
+        else:
+            cursor.execute(sql)
+
+        cursor.commit()
+
+        cursor.close()
+
+        return True
+
+
 
 
     def echo(self, msg='', level=0):
@@ -124,7 +222,7 @@ class Maintenance():
 
     def set_sort(self):
         #remove unused sort string
-        self.db.execute("""
+        self.db_execute("""
             UPDATE entity e
             LEFT JOIN translation t ON t.entity_definition_keyname = e.entity_definition_keyname AND t.field = 'sort'
             SET e.sort = NULL
@@ -133,7 +231,7 @@ class Maintenance():
         """)
 
         #generate numbers subselect
-        fields_count = self.db.query("""
+        fields_count = self.db_query("""
             SELECT MAX(LENGTH(value) - LENGTH(REPLACE(value, '@', '')) + 1) AS fields
             FROM translation
             WHERE IFNULL(language, %s) = %s;
@@ -166,7 +264,7 @@ class Maintenance():
             GROUP BY x.id;
         """ % {'numbers_sql': numbers_sql, 'language': self.language, 'changed_entities': ','.join(map(str, self.changed_entities))}
 
-        rows = self.db.query(sql)
+        rows = self.db_query(sql)
 
         count = len(rows)
         if not rows:
@@ -179,18 +277,18 @@ class Maintenance():
         for r in rows:
             if not r.id:
                 continue
-            if not self.db.get('SELECT id FROM entity WHERE LEFT(IFNULL(sort, \'\'), 100) <> LEFT(%s, 100) AND id = %s AND is_deleted = 0 LIMIT 1;', r.val, r.id):
+            if not self.db_get('SELECT id FROM entity WHERE LEFT(IFNULL(sort, \'\'), 100) <> LEFT(%s, 100) AND id = %s AND is_deleted = 0 LIMIT 1;', r.val, r.id):
                 continue
             i += 1
             self.echo('#%s %s' % (r.id, r.val), 2)
-            self.db.execute('UPDATE entity SET sort = LEFT(%s, 100) WHERE IFNULL(sort, \'\') <> LEFT(%s, 100) AND id = %s AND is_deleted = 0;', r.val, r.val, r.id)
+            self.db_execute('UPDATE entity SET sort = LEFT(%s, 100) WHERE IFNULL(sort, \'\') <> LEFT(%s, 100) AND id = %s AND is_deleted = 0;', r.val, r.val, r.id)
 
         self.echo('updated %s entities for sort' % i, 2)
 
 
     def set_reference_properties(self):
         #generate numbers subselect
-        fields_count = self.db.query("""
+        fields_count = self.db_query("""
             SELECT MAX(LENGTH(value) - LENGTH(REPLACE(value, '@', '')) + 1) AS fields
             FROM translation
             WHERE IFNULL(language, %s) = %s;
@@ -227,7 +325,7 @@ class Maintenance():
             GROUP BY x.id;
         """ % {'numbers_sql': numbers_sql, 'language': self.language, 'changed_entities': ','.join(map(str, self.changed_entities))}
 
-        rows = self.db.query(sql)
+        rows = self.db_query(sql)
 
         count = len(rows)
         if not rows:
@@ -240,11 +338,11 @@ class Maintenance():
         for r in rows:
             if not r.id:
                 continue
-            if not self.db.get('SELECT id FROM property WHERE LEFT(IFNULL(value_display, \'\'), 500) <> LEFT(%s, 500) AND value_reference = %s AND is_deleted = 0 LIMIT 1;', r.val, r.id):
+            if not self.db_get('SELECT id FROM property WHERE LEFT(IFNULL(value_display, \'\'), 500) <> LEFT(%s, 500) AND value_reference = %s AND is_deleted = 0 LIMIT 1;', r.val, r.id):
                 continue
             i += 1
             self.echo('#%s %s' % (r.id, r.val), 2)
-            self.db.execute('UPDATE property SET value_display = LEFT(%s, 500) WHERE IFNULL(value_display, \'\') <> LEFT(%s, 500) AND value_reference = %s AND is_deleted = 0;', r.val, r.val, r.id)
+            self.db_execute('UPDATE property SET value_display = LEFT(%s, 500) WHERE IFNULL(value_display, \'\') <> LEFT(%s, 500) AND value_reference = %s AND is_deleted = 0;', r.val, r.val, r.id)
 
         self.echo('updated %s reference properties' % i, 2)
 
@@ -277,7 +375,7 @@ class Maintenance():
             ORDER BY p.id;
         """ % {'changed_entities': ','.join(map(str, self.changed_entities))}
 
-        rows = self.db.query(sql)
+        rows = self.db_query(sql)
         count = len(rows)
 
         if not rows:
@@ -296,7 +394,7 @@ class Maintenance():
             else:
                 self.echo('#%s %s "%s"' % (r.id, r.dataproperty, formula), 2)
 
-            self.db.execute('UPDATE property SET value_display = LEFT(%s, 500) WHERE id = %s;', formula, r.id)
+            self.db_execute('UPDATE property SET value_display = LEFT(%s, 500) WHERE id = %s;', formula, r.id)
 
         self.time = time.time() - start
         if self.time == 0:
@@ -311,7 +409,7 @@ class Maintenance():
             return
 
         # get formula property
-        formula_property = self.db.get("""
+        formula_property = self.db_get("""
             SELECT
                 entity_id,
                 REPLACE(REPLACE(REPLACE(value_formula, '.*.', '..'), '.-child.', '.parent.'), '.-', '.referrer.') AS formula
@@ -487,7 +585,7 @@ class Maintenance():
         }
 
         result = []
-        for v in self.db.query(sql):
+        for v in self.db_query(sql):
             result.append(v.value_display)
 
         return result

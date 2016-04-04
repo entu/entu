@@ -47,7 +47,7 @@ class EsterCheckIfExists(myRequestHandler):
         """ % (self.get_argument('id', default='', strip=True), ester_id)
         # logging.warning(sql)
 
-        entity = self.db.get(sql)
+        entity = self.db_get(sql)
         if entity:
             self.json({
                 'result': entity,
@@ -99,7 +99,7 @@ class EsterImport(myRequestHandler, Entity):
         for field, values in item.iteritems():
             sql = 'SELECT keyname FROM property_definition WHERE dataproperty = \'%s\' COLLATE utf8_general_ci AND entity_definition_keyname = \'%s\' LIMIT 1;' % (field, definition)
 
-            property_definition = self.db.get(sql)
+            property_definition = self.db_get(sql)
             if not property_definition:
                 logging.warning('%s: %s' % (field, values))
                 continue

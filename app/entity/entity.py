@@ -41,8 +41,8 @@ class ShowGroup(myRequestHandler, Entity):
             for ad in self.get_definitions_with_optional_parent(entity_definition_keyname):
                 add_definitions.setdefault(ad.get('related_entity_label'), []).append(ad)
         else:
-            quota_entities_used = self.db.get('SELECT COUNT(*) AS entities FROM entity WHERE is_deleted = 0;').entities
-            quota_size_used = self.db.get('SELECT SUM(filesize) AS size FROM file;').size
+            quota_entities_used = self.db_get('SELECT COUNT(*) AS entities FROM entity WHERE is_deleted = 0;').entities
+            quota_size_used = self.db_get('SELECT SUM(filesize) AS size FROM file;').size
             try:
                 f = open(os.path.join(os.path.dirname(__file__), '..', '..', 'HISTORY.md'), 'r')
                 history = markdown2.markdown('## '.join(f.read().split('## ')[:4]).replace('## ', '#### '))

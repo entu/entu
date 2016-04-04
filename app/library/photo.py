@@ -37,7 +37,7 @@ class ShowPhoto(myRequestHandler, Entity):
                 return self.redirect('https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5('%s' % self.entity_id).hexdigest()))
 
         if ester_file_id:
-            tmp_file = self.db.get('SELECT file FROM tmp_file WHERE id = %s LIMIT 1;', ester_file_id)
+            tmp_file = self.db_get('SELECT file FROM tmp_file WHERE id = %s LIMIT 1;', ester_file_id)
             if not tmp_file:
                 return self.missing()
             if not tmp_file.file:

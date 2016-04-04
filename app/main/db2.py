@@ -122,7 +122,7 @@ class Entity2():
             'search': False,
             'visible': False,
         }
-        for r in self.db.query(sql):
+        for r in self.db_query(sql):
             if r.get('entity_id'):
                 entities.setdefault(r.get('entity_id'), {})['id'] = r.get('entity_id')
             if r.get('pdk') == 'conf-entity-keyname':
@@ -218,7 +218,7 @@ class Entity2():
 
     def get_tag_cloud(self, definition=None, limit=None):
         limit = int(limit) if int(limit) > 0 else 0
-        return self.db.query("""
+        return self.db_query("""
             SELECT value_display AS "Tag",
                    count(1) AS "Count",
                    log(count(1)) AS "Log"
@@ -238,7 +238,7 @@ class Entity2():
 
     def get_entities_info(self, entity_id=None, definition=None, parent_entity_id=None, referred_to_entity_id=None, query=None, limit=None, page=None):
         #generate numbers subselect
-        fields_count = self.db.query("""
+        fields_count = self.db_query("""
             SELECT MAX(LENGTH(value) - LENGTH(REPLACE(value, '@', '')) + 1) AS fields
             FROM translation
             WHERE IFNULL(language, %s) = %s;
@@ -356,7 +356,7 @@ class Entity2():
 
         entity_count = None
         if limit:
-            entity_count = self.db.get('SELECT COUNT(*) AS entity_count FROM (%s) AS x' % entity_sql).entity_count
+            entity_count = self.db_get('SELECT COUNT(*) AS entity_count FROM (%s) AS x' % entity_sql).entity_count
 
             limit = int(limit) if int(limit) > 0 else 0
             if not page:
@@ -400,7 +400,7 @@ class Entity2():
         # logging.warning(sql)
 
         entities = {}
-        for r in self.db.query(sql):
+        for r in self.db_query(sql):
 
             if not r.get('val'):
                 continue
@@ -418,7 +418,7 @@ class Entity2():
 
 
     def get_entity_picture(self, entity_id):
-        f = self.db.get("""
+        f = self.db_get("""
             SELECT
                 entity.entity_definition_keyname AS definition,
                 file.id AS file_id,
@@ -611,7 +611,7 @@ class Entity2():
         # logging.debug(sql)
 
         definitions = {}
-        for m in self.db.query(sql):
+        for m in self.db_query(sql):
             definitions.setdefault(m.menu, {})['label'] = m.menu
             definitions.setdefault(m.menu, {}).setdefault('definitions', []).append({
                 'keyname': m.definition,
@@ -629,7 +629,7 @@ class Entity2():
         """
 
         paths = {}
-        for i in self.db.query("""
+        for i in self.db_query("""
             SELECT DISTINCT
                 keyname,
                 public_path,
@@ -662,7 +662,7 @@ class Entity2():
         if not related_entity_id:
             return
 
-        if not self.db.get("""
+        if not self.db_get("""
                 SELECT entity_id
                 FROM relationship
                 WHERE relationship_definition_keyname = 'owner'
@@ -675,7 +675,7 @@ class Entity2():
         ):
             return
 
-        self.db.execute(
+        self.db_execute(
             """
                 UPDATE relationship SET
                     is_deleted = 1,
@@ -691,7 +691,7 @@ class Entity2():
         )
 
         if right:
-            self.db.execute(
+            self.db_execute(
                 """
                     INSERT INTO relationship SET
                     created = NOW(),
@@ -706,20 +706,20 @@ class Entity2():
                 right
             )
 
-        self.db.execute('UPDATE entity SET changed = NOW() WHERE entity.id = %s;', entity_id )
+        self.db_execute('UPDATE entity SET changed = NOW() WHERE entity.id = %s;', entity_id )
 
 
     def set_tmp_file(self, filename=None, content=None):
         if not filename or not content:
             return
 
-        return self.db.execute_lastrowid('INSERT INTO tmp_file SET filename = %s, file = %s, filesize = LENGTH(file), created = NOW(), created_by = %s;', filename, content, self.__user_id)
+        return self.db_execute_lastrowid('INSERT INTO tmp_file SET filename = %s, file = %s, filesize = LENGTH(file), created = NOW(), created_by = %s;', filename, content, self.__user_id)
 
     def get_tmp_file(self, filename=None):
         if not filename:
             return
 
-        tmp_file = self.db.get('SELECT filename, file FROM tmp_file WHERE filename = %s LIMIT 1;', filename)
+        tmp_file = self.db_get('SELECT filename, file FROM tmp_file WHERE filename = %s LIMIT 1;', filename)
 
         if not tmp_file:
             return
@@ -805,7 +805,7 @@ class Entity2():
             ORDER BY dates.timestamp;
         """ % {'timestamp_constraint': timestamp_constraint, 'definition_constraint': definition_constraint, 'sort_direction': sort_direction, 'limit': limit}
 
-        return self.db.query(sql)
+        return self.db_query(sql)
 
 
     def get_parents(self, id=None):
@@ -827,7 +827,7 @@ class Entity2():
             AND e.id = %(id)s
         """ % {'id': id}
 
-        return self.db.query(sql)
+        return self.db_query(sql)
 
 
     def get_history_timeframe(self, timestamp=None, limit=10):
@@ -889,7 +889,7 @@ class Entity2():
 
         # logging.debug(sql)
 
-        result = self.db.get(sql)
+        result = self.db_get(sql)
         # logging.debug(result)
 
         return result
@@ -959,7 +959,7 @@ class Entity2():
         # logging.debug(sql)
 
         result = {}
-        for r in self.db.query(sql):
+        for r in self.db_query(sql):
             # logging.debug(r)
             result.setdefault(r.get('tstamp').isoformat(), []).append(r)
         # logging.debug(result)

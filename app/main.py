@@ -5,7 +5,6 @@ newrelic.agent.initialize()
 from os import path
 from raven.contrib.tornado import AsyncSentryClient
 
-import torndb
 import tornado.ioloop
 import tornado.locale
 import tornado.web
