@@ -79,6 +79,7 @@ class myDatabase():
             else:
                 cursor.execute(sql)
         except Exception, err:
+            self.captureException()
             logging.error('%s\n%s\n%s\n%s' % (err, sql, args, kwargs))
 
         result = cursor.fetchone()
@@ -112,6 +113,7 @@ class myDatabase():
             else:
                 cursor.execute(sql)
         except Exception, err:
+            self.captureException()
             logging.error('%s\n%s\n%s\n%s' % (err, sql, args, kwargs))
 
         result = []
@@ -143,6 +145,7 @@ class myDatabase():
             else:
                 cursor.execute(sql)
         except Exception, err:
+            self.captureException()
             logging.error('%s\n%s\n%s\n%s' % (err, sql, args, kwargs))
 
         db.commit()
@@ -166,6 +169,7 @@ class myDatabase():
             else:
                 cursor.execute(sql)
         except Exception, err:
+            self.captureException()
             logging.error('%s\n%s\n%s\n%s' % (err, sql, args, kwargs))
 
         result = cursor.lastrowid
