@@ -223,6 +223,7 @@ class myDatabase():
 
             customers = {}
             for c in cursor:
+                logging.debug(c)
                 customers.setdefault(c['entity'], {})[c['property']] = c['value']
 
             cursor.close()
