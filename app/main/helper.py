@@ -72,7 +72,7 @@ class myDatabase():
         cursor = self.db(self.request.host).cursor(dictionary=True)
 
         if args:
-            cursor.execute(sql, tuple(args))
+            cursor.execute(sql, tuple([x for x in args if x]))
         elif kwargs:
             cursor.execute(sql, kwargs)
         else:
@@ -102,7 +102,7 @@ class myDatabase():
         cursor = self.db(self.request.host).cursor(dictionary=True)
 
         if args:
-            cursor.execute(sql, tuple(args))
+            cursor.execute(sql, tuple([x for x in args if x]))
         elif kwargs:
             cursor.execute(sql, kwargs)
         else:
@@ -130,7 +130,7 @@ class myDatabase():
         cursor = db.cursor()
 
         if args:
-            cursor.execute(sql, tuple(args))
+            cursor.execute(sql, tuple([x for x in args if x]))
         elif kwargs:
             cursor.execute(sql, kwargs)
         else:
@@ -150,7 +150,7 @@ class myDatabase():
         cursor = db.cursor()
 
         if args:
-            cursor.execute(sql, tuple(args))
+            cursor.execute(sql, tuple([x for x in args if x]))
         elif kwargs:
             cursor.execute(sql, kwargs)
         else:
