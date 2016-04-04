@@ -1931,14 +1931,14 @@ class Entity():
 
         defs = []
         for d in self.db_query(sql):
-            related_entity = self.get_entities(entity_id=d.related_entity_id, limit=1)
+            related_entity = self.get_entities(entity_id=d.get('related_entity_id'), limit=1)
             defs.append({
-                'keyname': d.keyname,
-                'label': self.__get_system_translation(field='label', entity_definition_keyname=d.keyname),
-                'label_plural': self.__get_system_translation(field='label_plural', entity_definition_keyname=d.keyname),
-                'description': self.__get_system_translation(field='description', entity_definition_keyname=d.keyname),
-                'menugroup': self.__get_system_translation(field='menu', entity_definition_keyname=d.keyname),
-                'related_entity_id': d.related_entity_id,
+                'keyname': d.get('keyname'),
+                'label': self.__get_system_translation(field='label', entity_definition_keyname=d.get('keyname')),
+                'label_plural': self.__get_system_translation(field='label_plural', entity_definition_keyname=d.get('keyname')),
+                'description': self.__get_system_translation(field='description', entity_definition_keyname=d.get('keyname')),
+                'menugroup': self.__get_system_translation(field='menu', entity_definition_keyname=d.get('keyname')),
+                'related_entity_id': d.get('related_entity_id'),
                 'related_entity_label': related_entity.get('displayname') if related_entity else '',
             })
 
