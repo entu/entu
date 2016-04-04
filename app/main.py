@@ -35,7 +35,7 @@ APP_MYSQL_USER     = os.getenv('MYSQL_USER')
 APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
 APP_MYSQL_SSL_PATH = os.getenv('MYSQL_SSL_PATH')
 APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
-APP_SENTRY         = None # os.getenv('SENTRY_DSN')
+APP_SENTRY         = os.getenv('SENTRY_DSN')
 APP_INTERCOM_KEY   = os.getenv('INTERCOM_KEY')
 
 
@@ -130,8 +130,7 @@ if __name__ == '__main__':
     tornado.locale.load_translations(path.join(path.dirname(__file__), 'main', 'translation'))
 
     application = myApplication()
-    if APP_SENTRY:
-        application.sentry_client = AsyncSentryClient(dsn=APP_SENTRY, release=APP_VERSION)
+    application.sentry_client = AsyncSentryClient(dsn=APP_SENTRY, release=APP_VERSION)
 
     server = tornado.httpserver.HTTPServer(application, xheaders=True, max_body_size=1024*1024*1024*5)
 
