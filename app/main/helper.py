@@ -222,7 +222,7 @@ class myDatabase():
             cursor.execute(sql)
 
             customers = {}
-            for c in cursor.fetchall():
+            for c in cursor:
                 customers.setdefault(c['entity'], {})[c['property']] = c['value']
 
             cursor.close()
