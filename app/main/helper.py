@@ -73,7 +73,7 @@ class myDatabase():
 
         if args:
             cursor.execute(sql, tuple(args))
-        else if kwargs:
+        elif kwargs:
             cursor.execute(sql, kwargs)
         else:
             cursor.execute(sql)
@@ -93,7 +93,7 @@ class myDatabase():
 
         if args:
             cursor.execute(sql, tuple(args))
-        else if kwargs:
+        elif kwargs:
             cursor.execute(sql, kwargs)
         else:
             cursor.execute(sql)
@@ -113,7 +113,7 @@ class myDatabase():
 
         if args:
             cursor.execute(sql, tuple(args))
-        else if kwargs:
+        elif kwargs:
             cursor.execute(sql, kwargs)
         else:
             cursor.execute(sql)
@@ -133,7 +133,7 @@ class myDatabase():
 
         if args:
             cursor.execute(sql, tuple(args))
-        else if kwargs:
+        elif kwargs:
             cursor.execute(sql, kwargs)
         else:
             cursor.execute(sql)
