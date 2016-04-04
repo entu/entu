@@ -223,8 +223,7 @@ class myDatabase():
 
             customers = {}
             for c in cursor:
-                logging.debug(c)
-                customers.setdefault(c['entity'], {})[c['property']] = c['value']
+                customers.setdefault(c['entity'], {})[c['property'].decode('utf-8')] = c['value']
 
             cursor.close()
             db.close()
