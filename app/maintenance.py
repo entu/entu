@@ -153,65 +153,79 @@ class Maintenance():
 
 
     def db_get(self, sql=None, *args, **kwargs):
-        if nor sql:
+        if not sql:
             return
 
         cursor = self.db.cursor(dictionary=True)
 
         if args:
             cursor.execute(sql, tuple(args))
-        else if kwargs:
+        elif kwargs:
             cursor.execute(sql, kwargs)
         else:
             cursor.execute(sql)
 
         result = cursor.fetchone()
 
+        if not result:
+            return None
+
+        new_row = {}
+        for key, value in result.iteritems():
+            if isinstance(value, (bytes, bytearray)):
+                new_row[key] = value.decode('utf-8')
+            else:
+                new_row[key] = value
+
         cursor.close()
 
-        return result
+        return new_row
 
 
     def db_query(self, sql=None, *args, **kwargs):
-        if nor sql:
+        if not sql:
             return
 
         cursor = self.db.cursor(dictionary=True)
 
         if args:
             cursor.execute(sql, tuple(args))
-        else if kwargs:
+        elif kwargs:
             cursor.execute(sql, kwargs)
         else:
             cursor.execute(sql)
 
-        result = cursor.fetchall()
-
+        result = []
+        for row in cursor:
+            new_row = {}
+            for key, value in row.iteritems():
+                if isinstance(value, (bytes, bytearray)):
+                    new_row[key] = value.decode('utf-8')
+                else:
+                    new_row[key] = value
+            result.append(new_row)
         cursor.close()
 
         return result
 
 
     def db_execute(self, sql=None, *args, **kwargs):
-        if nor sql:
+        if not sql:
             return
 
         cursor = self.db.cursor()
 
         if args:
             cursor.execute(sql, tuple(args))
-        else if kwargs:
+        elif kwargs:
             cursor.execute(sql, kwargs)
         else:
             cursor.execute(sql)
 
-        cursor.commit()
-
+        self.db.commit()
         cursor.close()
 
         return True
-
-
 
 
     def echo(self, msg='', level=0):
