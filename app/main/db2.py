@@ -452,15 +452,15 @@ class Entity2():
         if not f:
             return
 
-        if not f.md5 and not f.s3_key:
+        if not f.get('md5') and not f.get('s3_key'):
             return
 
-        thumbname = os.path.join('/', 'entu', 'thumbs', self.app_settings('database-name'), '%s' % f.file_id)
+        thumbname = os.path.join('/', 'entu', 'thumbs', self.app_settings('database-name'), '%s' % f.get('file_id'))
         if os.path.isfile(thumbname):
             with open(thumbname, 'r') as myfile:
                 filecontent = myfile.read()
 
-        elif f.s3_key:
+        elif f.get('s3_key'):
             try:
                 AWS_BUCKET     = self.app_settings('auth-s3', '\n', True).split('\n')[0]
                 AWS_ACCESS_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[1]
@@ -474,7 +474,7 @@ class Entity2():
             s3_bucket = s3_conn.get_bucket(AWS_BUCKET, validate=False)
             s3_key    = Key(s3_bucket)
 
-            s3_key.key = f.s3_key
+            s3_key.key = f.get('s3_key')
 
             try:
                 filecontent = self.save_thumb(Image.open(StringIO(s3_key.get_contents_as_string())), thumbname)
@@ -484,8 +484,8 @@ class Entity2():
                     'time': round(self.request.request_time(), 3),
                 }, 404)
 
-        elif f.md5:
-            filename  = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), f.md5[0], f.md5)
+        elif f.get('md5'):
+            filename  = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), f.get('md5')[0], f.get('md5'))
             if os.path.isfile(filename):
                 filecontent = self.save_thumb(Image.open(filename), thumbname)
             else:
@@ -494,7 +494,7 @@ class Entity2():
         else:
             filecontent = None
 
-        return {'definition': f.definition, 'picture': filecontent}
+        return {'definition': f.get('definition'), 'picture': filecontent}
 
 
     def save_thumb(self, im, thumbname, size=(300, 300)):

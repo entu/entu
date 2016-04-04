@@ -1596,14 +1596,14 @@ class Entity():
         defs = []
         for d in self.db_query(sql):
             defs.append({
-                'keyname': d.keyname,
-                'label': self.__get_system_translation(field='label', entity_definition_keyname=d.keyname),
-                'label_plural': self.__get_system_translation(field='label_plural', entity_definition_keyname=d.keyname),
-                'description': self.__get_system_translation(field='description', entity_definition_keyname=d.keyname),
-                'menugroup': self.__get_system_translation(field='menu', entity_definition_keyname=d.keyname),
-                'open_after_add': d.open_after_add,
-                'ordinal': d.ordinal,
-                'actions_add': d.actions_add
+                'keyname': d.get('keyname'),
+                'label': self.__get_system_translation(field='label', entity_definition_keyname=d.get('keyname')),
+                'label_plural': self.__get_system_translation(field='label_plural', entity_definition_keyname=d.get('keyname')),
+                'description': self.__get_system_translation(field='description', entity_definition_keyname=d.get('keyname')),
+                'menugroup': self.__get_system_translation(field='menu', entity_definition_keyname=d.get('keyname')),
+                'open_after_add': d.get('open_after_add'),
+                'ordinal': d.get('ordinal'),
+                'actions_add': d.get('actions_add')
             })
 
         return defs
