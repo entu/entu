@@ -35,7 +35,7 @@ APP_MYSQL_USER     = os.getenv('MYSQL_USER')
 APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
 APP_MYSQL_SSL_PATH = os.getenv('MYSQL_SSL_PATH')
 APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
-# APP_SENTRY         = os.getenv('SENTRY_DSN')
+APP_SENTRY         = None # os.getenv('SENTRY_DSN')
 APP_INTERCOM_KEY   = os.getenv('INTERCOM_KEY')
 
 
