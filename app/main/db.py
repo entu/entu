@@ -1018,7 +1018,7 @@ class Entity():
                 for re in related_entity_id:
                     self.db_execute('INSERT INTO relationship SET relationship_definition_keyname = %s, entity_id = %s, related_entity_id = %s, created = NOW(), created_by = %s;', right, int(e), int(re), user_id)
 
-        self.db_execute('UPDATE entity SET changed = NOW() WHERE entity.id IN (%s);' % ','.join(entity_id))
+        self.db_execute('UPDATE entity SET changed = NOW() WHERE entity.id IN (%s);' % ','.join(map(str, entity_id)))
 
     def set_sharing(self, entity_id, sharing):
         if not entity_id or not sharing:
