@@ -2061,7 +2061,7 @@ class Entity():
 
         menu = {}
         for m in self.db_query(sql):
-            menu.setdefault(m.menu, {})['label'] = m.get('menu')
+            menu.setdefault(m.get('menu'), {})['label'] = m.get('menu')
             menu.setdefault(m.get('menu'), {}).setdefault('items', []).append({'keyname': m.get('definition'), 'title': m.get('label_plural')})
 
         return sorted(menu.values(), key=itemgetter('label'))
