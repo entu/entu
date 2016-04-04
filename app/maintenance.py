@@ -24,10 +24,10 @@ APP_VERBOSE        = os.getenv('VERBOSE', 1)
 def customers():
     if APP_MYSQL_SSL_PATH:
         db = mysql.connector.connect(
-            host     = settings.get('database-host'),
-            database = settings.get('database-name'),
-            user     = settings.get('database-user'),
-            password = settings.get('database-password'),
+            host     = APP_MYSQL_HOST,
+            database = APP_MYSQL_DATABASE,
+            user     = APP_MYSQL_USER,
+            password = APP_MYSQL_PASSWORD,
             ssl_cert = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-cert.pem'),
             ssl_key  = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-key.pem'),
             ssl_ca   = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-ca.pem'),
@@ -35,10 +35,10 @@ def customers():
         )
     else:
         db = mysql.connector.connect(
-            host     = settings.get('database-host'),
-            database = settings.get('database-name'),
-            user     = settings.get('database-user'),
-            password = settings.get('database-password')
+            host     = APP_MYSQL_HOST,
+            database = APP_MYSQL_DATABASE,
+            user     = APP_MYSQL_USER,
+            password = APP_MYSQL_PASSWORD
         )
 
 
@@ -95,10 +95,10 @@ class Maintenance():
 
         if APP_MYSQL_SSL_PATH:
             self.db = mysql.connector.connect(
-                host     = settings.get('database-host'),
-                database = settings.get('database-name'),
-                user     = settings.get('database-user'),
-                password = settings.get('database-password'),
+                host     = self.db_host,
+                database = self.db_name,
+                user     = self.db_user,
+                password = self.db_pass,
                 ssl_cert = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-cert.pem'),
                 ssl_key  = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-key.pem'),
                 ssl_ca   = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-ca.pem'),
@@ -106,10 +106,10 @@ class Maintenance():
             )
         else:
             self.db = mysql.connector.connect(
-                host     = settings.get('database-host'),
-                database = settings.get('database-name'),
-                user     = settings.get('database-user'),
-                password = settings.get('database-password')
+                host     = self.db_host,
+                database = self.db_name,
+                user     = self.db_user,
+                password = self.db_pass
             )
 
 
