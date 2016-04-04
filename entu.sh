@@ -28,6 +28,7 @@ docker run -d \
     --env="MYSQL_DATABASE=" \
     --env="MYSQL_USER=" \
     --env="MYSQL_PASSWORD=" \
+    --env="MYSQL_SSL_PATH=" \
     --env="CUSTOMERGROUP=" \
     --env="NEW_RELIC_APP_NAME=entu" \
     --env="NEW_RELIC_LICENSE_KEY=" \
@@ -38,6 +39,7 @@ docker run -d \
     --env="INTERCOM_KEY=" \
     --volume="/data/entu/files:/entu/files" \
     --volume="/data/entu/thumbs:/entu/thumbs" \
+    --volume="/data/entu/ssl:/entu/ssl:ro" \
     entu:latest python -u /usr/src/entu/app/main.py --logging=error
 
 printf "\n\n"

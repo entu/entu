@@ -34,6 +34,7 @@ APP_MYSQL_HOST     = os.getenv('MYSQL_HOST', 'localhost')
 APP_MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
 APP_MYSQL_USER     = os.getenv('MYSQL_USER')
 APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
+APP_MYSQL_SSL_PATH = os.getenv('MYSQL_SSL_PATH')
 APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
 APP_SENTRY         = os.getenv('SENTRY_DSN')
 APP_INTERCOM_KEY   = os.getenv('INTERCOM_KEY')
@@ -103,6 +104,7 @@ class myApplication(tornado.web.Application):
             'database-database':    APP_MYSQL_DATABASE,
             'database-user':        APP_MYSQL_USER,
             'database-password':    APP_MYSQL_PASSWORD,
+            'database-ssl-path':    APP_MYSQL_SSL_PATH,
             'customergroup':        APP_CUSTOMERGROUP,
             'mongodbs':             {},
             'databases':            {},

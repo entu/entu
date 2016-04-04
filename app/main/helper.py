@@ -15,6 +15,7 @@ import json
 import logging
 import random
 import re
+import os
 import string
 import time
 import torndb
@@ -47,11 +48,22 @@ class myDatabase():
             x = self.settings['databases'][host].get('SELECT 1 FROM DUAL;')
         except Exception:
             settings = self.get_app_settings(host)
+
+            if self.settings['database-ssl-path'] and settings.get('database-ssl', 0) === 1:
+                ssl = {
+                    'cert': os.path.join(self.settings['database-ssl-path'], 'mysql-client-cert.pem'),
+                    'key': os.path.join(self.settings['database-ssl-path'], 'mysql-client-key.pem'),
+                    'ca': os.path.join(self.settings['database-ssl-path'], 'mysql-client-ca.pem')
+                }
+            else:
+                ssl = None
+
             self.settings['databases'][host] = torndb.Connection(
                 host     = settings.get('database-host'),
                 database = settings.get('database-name'),
                 user     = settings.get('database-user'),
                 password = settings.get('database-password'),
+                ssl      = ssl
             )
         return self.settings['databases'][host]
 
@@ -66,11 +78,21 @@ class myDatabase():
         if not self._app_settings:
             logging.debug('Loaded app_settings for %s.' % host)
 
+            if self.settings['database-ssl-path']:
+                ssl = {
+                    'cert': os.path.join(self.settings['database-ssl-path'], 'mysql-client-cert.pem'),
+                    'key': os.path.join(self.settings['database-ssl-path'], 'mysql-client-key.pem'),
+                    'ca': os.path.join(self.settings['database-ssl-path'], 'mysql-client-ca.pem')
+                }
+            else:
+                ssl = None
+
             db = torndb.Connection(
                 host     = self.settings['database-host'],
                 database = self.settings['database-database'],
                 user     = self.settings['database-user'],
                 password = self.settings['database-password'],
+                ssl      = ssl
             )
             sql = """
                 SELECT DISTINCT
@@ -83,12 +105,16 @@ class myDatabase():
                             property_definition.datatype='integer',
                             property.value_integer,
                             IF(
-                                property_definition.datatype='file',
-                                property.value_file,
+                                property_definition.datatype='boolean',
+                                property.value_boolean,
                                 IF(
-                                    property_definition.datatype='text',
-                                    property.value_text,
-                                    property.value_string
+                                    property_definition.datatype='file',
+                                    property.value_file,
+                                    IF(
+                                        property_definition.datatype='text',
+                                        property.value_text,
+                                        property.value_string
+                                    )
                                 )
                             )
                         )
