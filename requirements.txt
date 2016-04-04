@@ -13,4 +13,4 @@ simpleaes==1.0
 suds==0.4
 tornado==4.3
 xmltodict==0.10.1
-https://cdn.mysql.com/Downloads/Connector-Python/mysql-connector-python-2.0.4.tar.gz
+https://cdn.mysql.com/Downloads/Connector-Python/mysql-connector-python-2.1.3.tar.gz

@@ -219,10 +219,10 @@ class myDatabase():
                 LEFT JOIN property ON property.property_definition_keyname = property_definition.keyname AND property.entity_id = e.id AND property.is_deleted = 0;
             """ % self.settings['customergroup']
 
-            query = cursor.execute(sql)
+            cursor.execute(sql)
 
             customers = {}
-            for c in query.fetchall():
+            for c in cursor.fetchall():
                 customers.setdefault(c['entity'], {})[c['property']] = c['value']
 
             cursor.close()
