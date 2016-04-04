@@ -71,12 +71,15 @@ class myDatabase():
 
         cursor = self.db(self.request.host).cursor(dictionary=True)
 
-        if args:
-            cursor.execute(sql, tuple([x for x in args if x]))
-        elif kwargs:
-            cursor.execute(sql, kwargs)
-        else:
-            cursor.execute(sql)
+        try:
+            if args:
+                cursor.execute(sql, tuple([x for x in args if x]))
+            elif kwargs:
+                cursor.execute(sql, kwargs)
+            else:
+                cursor.execute(sql)
+        except Exception, err:
+            logging.error('%s\n%s\n%s\n%s' % (err, sql, args, kwargs))
 
         result = cursor.fetchone()
 
@@ -101,12 +104,15 @@ class myDatabase():
 
         cursor = self.db(self.request.host).cursor(dictionary=True)
 
-        if args:
-            cursor.execute(sql, tuple([x for x in args if x]))
-        elif kwargs:
-            cursor.execute(sql, kwargs)
-        else:
-            cursor.execute(sql)
+        try:
+            if args:
+                cursor.execute(sql, tuple([x for x in args if x]))
+            elif kwargs:
+                cursor.execute(sql, kwargs)
+            else:
+                cursor.execute(sql)
+        except Exception, err:
+            logging.error('%s\n%s\n%s\n%s' % (err, sql, args, kwargs))
 
         result = []
         for row in cursor:
@@ -129,12 +135,15 @@ class myDatabase():
         db = self.db(self.request.host)
         cursor = db.cursor()
 
-        if args:
-            cursor.execute(sql, tuple([x for x in args if x]))
-        elif kwargs:
-            cursor.execute(sql, kwargs)
-        else:
-            cursor.execute(sql)
+        try:
+            if args:
+                cursor.execute(sql, tuple([x for x in args if x]))
+            elif kwargs:
+                cursor.execute(sql, kwargs)
+            else:
+                cursor.execute(sql)
+        except Exception, err:
+            logging.error('%s\n%s\n%s\n%s' % (err, sql, args, kwargs))
 
         db.commit()
         cursor.close()
@@ -149,12 +158,15 @@ class myDatabase():
         db = self.db(self.request.host)
         cursor = db.cursor()
 
-        if args:
-            cursor.execute(sql, tuple([x for x in args if x]))
-        elif kwargs:
-            cursor.execute(sql, kwargs)
-        else:
-            cursor.execute(sql)
+        try:
+            if args:
+                cursor.execute(sql, tuple([x for x in args if x]))
+            elif kwargs:
+                cursor.execute(sql, kwargs)
+            else:
+                cursor.execute(sql)
+        except Exception, err:
+            logging.error('%s\n%s\n%s\n%s' % (err, sql, args, kwargs))
 
         result = cursor.lastrowid
 
