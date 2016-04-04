@@ -40,7 +40,7 @@ class Entity():
         if not self.__translation:
             self.__translation = {}
             for t in self.db_query('SELECT field, value, IFNULL(entity_definition_keyname, \'\') AS entity_definition_keyname, IFNULL(property_definition_keyname, \'\') AS property_definition_keyname FROM translation WHERE language = %s OR language IS NULL ORDER BY language;', self.get_user_locale().code):
-                self.__translation['%s|%s|%s' % (t.entity_definition_keyname, t.property_definition_keyname, t.field)] = t.value
+                self.__translation['%s|%s|%s' % (t.get('entity_definition_keyname'), t.get('property_definition_keyname'), t.get('field'))] = t.get('value')
         return self.__translation.get('%s|%s|%s' % (entity_definition_keyname, property_definition_keyname, field), None)
 
     def create_entity(self, entity_definition_keyname, parent_entity_id=None, ignore_user=False):
