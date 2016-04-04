@@ -356,7 +356,7 @@ class Entity2():
 
         entity_count = None
         if limit:
-            entity_count = self.db_get('SELECT COUNT(*) AS entity_count FROM (%s) AS x' % entity_sql).entity_count
+            entity_count = self.db_get('SELECT COUNT(*) AS entity_count FROM (%s) AS x' % entity_sql).get('entity_count')
 
             limit = int(limit) if int(limit) > 0 else 0
             if not page:
