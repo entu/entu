@@ -778,7 +778,7 @@ class Entity():
             return counter_value
 
 
-        sql ="""
+        property_id = self.db_execute_lastrowid("""
             INSERT INTO property (
                 entity_id,
                 property_definition_keyname,
@@ -842,6 +842,9 @@ class Entity():
             AND relationship.is_deleted = 0
             AND property.is_deleted = 0
             AND counter.type = 'increment';
+        """ % {'entity_id': entity_id, 'user_id': self.__user_id})
+
+        self.db_execute("""
             UPDATE
             counter,
             (
@@ -871,10 +874,7 @@ class Entity():
                 counter.changed_by = '%(user_id)s',
                 counter.changed = NOW()
             WHERE counter.id = X.id;
-        """ % {'entity_id': entity_id, 'user_id': self.__user_id}
-        # logging.debug(sql)
-
-        property_id = self.db_execute_lastrowid(sql)
+        """ % {'entity_id': entity_id, 'user_id': self.__user_id})
 
         self.db_execute('UPDATE property SET value_display = value_string WHERE id = %s', property_id)
 
