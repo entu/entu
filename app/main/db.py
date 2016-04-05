@@ -765,7 +765,7 @@ class Entity():
             return
 
         #Vastuskirja hack
-        if self.db_get('SELECT entity_definition_keyname FROM entity WHERE id = %s', entity_id).entity_definition_keyname == 'reply':
+        if self.db_get('SELECT entity_definition_keyname FROM entity WHERE id = %s', entity_id).get('entity_definition_keyname') == 'reply':
             parent = self.get_relatives(related_entity_id=entity_id, relationship_definition_keyname='child', reverse_relation=True, limit=1).values()[0][0]
             childs = self.get_relatives(entity_id=parent.get('id',None), relationship_definition_keyname='child').values()
             if childs:
