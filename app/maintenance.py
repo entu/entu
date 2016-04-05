@@ -84,7 +84,7 @@ def customers():
     customers = {}
     for c in cursor:
         if c.get('property') in ['database-host', 'database-name', 'database-user', 'database-password', 'language']:
-            customers.setdefault(c.get('entity'), {})[c.get('property')] = c.get('value')
+            customers.setdefault(c['entity'], {})[c['property'].decode('utf-8')] = c['value']
 
     return sorted(customers.values(), key=itemgetter('database-name'))
 
