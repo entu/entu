@@ -72,11 +72,17 @@
                 domain: 'entu.ee'
             });
 
-            woopra.identify({
-                    email: "{{ current_user.get('email') }}",
-                    name: "{{ current_user.get('name') }}",
-                    company: "{{ app_organisation }}"
-            });
+            {% if current_user %}
+                woopra.identify({
+                        email: "{{ current_user.get('email') }}",
+                        name: "{{ current_user.get('name') }}",
+                        company: "{{ app_organisation }}"
+                });
+            {% else %}
+                woopra.identify({
+                        company: "{{ app_organisation }}"
+                });
+            {% end %}
 
             woopra.track();
         </script>
