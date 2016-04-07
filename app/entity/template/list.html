@@ -67,6 +67,12 @@
             open_item(window.location.hash.substring(1));
         });
 
+        $('[data-action]').click(function() {
+            woopra.track($(this).data('action'), {
+                label: $(this).data('action-label')
+            });
+        })
+
         function get_list() {
             if($('#list_end').data('page') < 0) return;
 
@@ -85,12 +91,6 @@
                     query: $('#searchbox').val()
                 });
             }
-
-            $('[data-action]').click(function() {
-                woopra.track($(this).data('action'), {
-                    label: $(this).data('action-label')
-                });
-            })
 
             $.get('/api2/entity', {'query': $('#searchbox').val(), 'definition': '{{ entity_definition_keyname }}', 'limit': limit, 'page': page}, function(data) {
                 for (var e_key in data.result){
