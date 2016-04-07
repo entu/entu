@@ -479,6 +479,9 @@
 
             link = $(this);
             if (confirm('{{ _('confirm_entity_delete').replace('\'', '\\\'') }}'.replace('%s','{{ entity.get('displayname', '').replace('\'', '\\\'') }}'))) {
+
+                woopra.track('delete');
+
                 $.post('/entity/delete-entity', {
                     entity_id: '{{ entity.get('id', '') }}',
                 },
