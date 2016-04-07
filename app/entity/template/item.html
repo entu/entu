@@ -167,6 +167,16 @@
 
         document.title = "{{ page_title.replace('\"', '\\\"') }}";
 
+        woopra.track();
+
+        {% if intercom_key %}
+            window.Intercom('update');
+        {% end %}
+
+        if(typeof _gaq != 'undefined') {
+            _gaq.push(['_trackPageview', '/entity-'+id]);
+        }
+
         make_tables('/api2/entity-{{ entity.get('id') }}/childs', '#childs');
         make_tables('/api2/entity-{{ entity.get('id') }}/referrals', '#referrals');
 
