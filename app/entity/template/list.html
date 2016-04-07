@@ -35,23 +35,26 @@
             $.get('/entity-'+id, function(html) {
                 spinner('open_item');
                 $('#content').html(html);
+
+                woopra.track();
+
+                {% if intercom_key %}
+                    window.Intercom('update');
+                {% end %}
+
+                if(typeof _gaq != 'undefined') {
+                    _gaq.push(['_trackPageview', '/entity-'+id]);
+                }
+
+                if(!skip_push_state) {
+                    window.history.replaceState('entity-'+id, '', '/entity/{{ entity_definition_keyname }}/' + id);
+                };
             });
-            if(!skip_push_state) {
-                window.history.replaceState('entity-'+id, '', '/entity/{{ entity_definition_keyname }}/' + id);
-            };
-            if(typeof _gaq != 'undefined') {
-                _gaq.push(['_trackPageview', '/entity-'+id]);
-            }
         } else {
             $('#toolbar').html($('#list_toolbar_template').html());
             $('#content').html('');
         }
 
-        {% if intercom_key %}
-            window.Intercom('update');
-        {% end %}
-
-        woopra.track();
     };
 
     $(document).ready(function(){
