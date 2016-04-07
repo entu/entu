@@ -87,6 +87,10 @@
             }
             $('#list_end').data('page', -1);
 
+            woopra.track('search', {
+                qery: $('#searchbox').val();
+            });
+
             $.get('/api2/entity', {'query': $('#searchbox').val(), 'definition': '{{ entity_definition_keyname }}', 'limit': limit, 'page': page}, function(data) {
                 for (var e_key in data.result){
                     var $element = $('.listitem-template').clone(true).removeClass('listitem-template').appendTo('#list_items');
