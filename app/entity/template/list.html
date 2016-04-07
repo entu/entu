@@ -13,7 +13,7 @@
                 {% for ck, cv in add_definitions.iteritems() %}
                     <li class="dropdown-header">{{ _('menu_add_under').replace('%s', ck) }}</li>
                     {% for c in sorted(cv, key=itemgetter('label')) %}
-                        <li><a href="javascript:void(0);" class="open-modal-box" data-url="/entity-{{ c['related_entity_id'] }}/add/{{ c['keyname'] }}">{{ c['label'] }}</a></li>
+                        <li><a href="javascript:void(0);" class="open-modal-box" data-url="/entity-{{ c['related_entity_id'] }}/add/{{ c['keyname'] }}" data-action="add" data-action-label="{{ c['label'] }}">{{ c['label'] }}</a></li>
                     {% end %}
                 {% end %}
             </ul>
@@ -92,6 +92,12 @@
                     query: $('#searchbox').val()
                 });
             }
+
+            $('[data-action]').click(function() {
+                woopra.track($(this).data('action'), {
+                    label: $(this).data('action-label')
+                });
+            })
 
             $.get('/api2/entity', {'query': $('#searchbox').val(), 'definition': '{{ entity_definition_keyname }}', 'limit': limit, 'page': page}, function(data) {
                 for (var e_key in data.result){
