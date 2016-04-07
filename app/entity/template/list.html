@@ -50,6 +50,8 @@
         {% if intercom_key %}
             window.Intercom('update');
         {% end %}
+
+        woopra.track();
     };
 
     $(document).ready(function(){

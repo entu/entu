@@ -69,13 +69,16 @@
             })("woopra");
 
             woopra.config({
-                domain: 'entu.ee'
+                domain: 'entu.ee',
+                download_tracking: true,
+                outgoing_tracking: true
             });
 
             {% if current_user %}
                 woopra.identify({
                         email: "{{ current_user.get('email') }}",
                         name: "{{ current_user.get('name') }}",
+                        avatar: "{{ current_user.get('picture') }}",
                         company: "{{ app_organisation }}"
                 });
             {% else %}
