@@ -79,11 +79,11 @@
                         email: "{{ current_user.get('email') }}",
                         name: "{{ current_user.get('name') }}",
                         avatar: "{{ current_user.get('picture') }}",
-                        company: "{{ app_organisation }}"
+                        customer: "{{ app_organisation }}"
                 });
             {% else %}
                 woopra.identify({
-                        company: "{{ app_organisation }}"
+                        customer: "{{ app_organisation }}"
                 });
             {% end %}
 
