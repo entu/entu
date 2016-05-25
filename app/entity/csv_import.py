@@ -55,7 +55,12 @@ class ReadFile(myRequestHandler, Entity):
 
         tmp_file = tmp.get('file')
 
-        encoding = self.get_argument('encoding', chardet.detect(tmp_file).get('encoding'))
+        encoding = self.get_argument('encoding', None)
+        if not encoding:
+            try:
+                encoding = chardet.detect(tmp_file).get('encoding')
+            except Exception as e:
+                encoding = 'utf-8'
 
         if encoding and encoding != 'utf-8':
             try:
