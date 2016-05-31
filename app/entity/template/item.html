@@ -92,7 +92,7 @@
                             {% elif p['datatype'] == 'reference' %}
                                 {{ '<br />'.join(['<a href="#%s">%s</a>' % (v.get('db_value'), v.get('value')) for v in p.get('values', [])]) }}
                             {% elif p['datatype'] == 'string' %}
-                                {{ '<br />'.join(['%s' % linkify(v.get('value'), shorten=True, extra_params='target="_blank"') for v in p.get('values', [])]) }}
+                                {{ mistune.Markdown().render('   \n'.join([ '%s' % linkify(v.get('value'), shorten=True, extra_params='target="_blank"').replace('\n', '   \n') for v in p.get('values', []) ])) }}
                             {% else %}
                                 {{ '<br />'.join(['%s' % v.get('value') for v in p.get('values', [])]) }}
                             {% end %}
