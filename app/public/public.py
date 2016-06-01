@@ -182,6 +182,12 @@ class PublicEntityHandler(myRequestHandler, Entity):
         if not item:
             return self.missing()
 
+        for p in item.get('properties', {}).values():
+            p['has_content'] = false
+            for v in p['values']:
+                if v['value']:
+                    p['has_content'] = true
+
         self.render('public/template/item.html',
             page_title = item['displayname'],
             entity = item,

@@ -24,7 +24,7 @@
         <table class="table table-condensed">
             <tbody>
                 {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
-                    {% if p.get('visible') and p.get('values') and p['dataproperty'] != 'photo' %}
+                    {% if p.get('visible') and p.get('values') and p['dataproperty'] != 'photo' and p['has_content'] %}
                         <tr>
                             <th style="text-align:right; min-width:200px;">
                                 {{ p['label'] }}
@@ -32,14 +32,14 @@
                             <td style="width:100%;">
                                 {% if p['datatype'] == 'file' %}
                                     {% if sharing_key %}
-                                        {{ '<br />'.join(['<a href="/api2/file-%s?key=%s">%s</a>' % (v['db_value'], sharing_key, v['value']) for v in p['values']]) }}
+                                        {{ '<br />'.join(['<a href="/api2/file-%s?key=%s">%s</a>' % (v['db_value'], sharing_key, v['value']) for v in p['values'] if v['value']) }}
                                     {% else %}
-                                        {{ '<br />'.join(['<a href="/api2/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
+                                        {{ '<br />'.join(['<a href="/api2/file-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values'] if v['value']) }}
                                     {% end %}
                                 {% elif p['datatype'] == 'reference' %}
-                                    {{ '<br />'.join(['<a href="entity-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values']]) }}
+                                    {{ '<br />'.join(['<a href="entity-%s">%s</a>' % (v['db_value'], v['value']) for v in p['values'] if v['value']) }}
                                 {% else %}
-                                    {{ '<br />'.join(['%s' % v['value'] for v in p['values']]) }}
+                                    {{ '<br />'.join(['%s' % v['value'] for v in p['values'] if v['value']) }}
                                 {% end %}
                             </td>
                         </tr>
