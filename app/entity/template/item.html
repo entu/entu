@@ -87,12 +87,26 @@
                                 {{ '<br />'.join(['<a id="fileLink%s" href="/api2/file-%s" target="_blank">%s</a> <i style="white-space: nowrap;">%sb@%s</i>' % (v.get('db_value'), v.get('db_value'), v.get('value'), v.get('filesize'), v.get('created')) for v in p.get('values', []) if v]) }}
                             {% elif p['datatype'] == 'html' %}
                                 <div class="html-property" data-property="{{ p['dataproperty'] }}" style="display:block; width:100%;"><img src="{{ static_url('images/spinner_white.gif') }}" id="search-spinner" /></div>
-                            {% elif p['datatype'] == 'text' %}
-                                {{ mistune.Markdown().render('   \n'.join(['%s' % v.get('value').replace('\n', '   \n') for v in p.get('values', [])])) }}
                             {% elif p['datatype'] == 'reference' %}
                                 {{ '<br />'.join(['<a href="#%s">%s</a>' % (v.get('db_value'), v.get('value')) for v in p.get('values', [])]) }}
+                            {% elif p['datatype'] == 'text' %}
+                                <div class="toggle-div" id="toggle-{{ p.id }}">
+                                  <div class="toggle-{{ p.id }}" style="display: block;">
+                                    {{ mistune.Markdown().render('   \n'.join([ '%s' % v.get('value').replace('\n', '   \n') for v in p.get('values', [])])) }}
+                                  </div>
+                                  <div class="toggle-{{ p.id }}" style="display: none;">
+                                    {{ mistune.Markdown().render('   \n'.join([ '%s' % v.get('db_value').replace('\n', '   \n') for v in p.get('values', [])])) }}
+                                  </div>
+                                </div>
                             {% elif p['datatype'] == 'string' %}
-                                {{ mistune.Markdown().render('   \n'.join([ '%s' % linkify(v.get('value'), shorten=True, extra_params='target="_blank"').replace('\n', '   \n') for v in p.get('values', []) ])) }}
+                                <div class="toggle-div" id="toggle-{{ p.id }}">
+                                  <div class="toggle-{{ p.id }}" style="display: block;">
+                                    {{ mistune.Markdown().render('   \n'.join([ '%s' % linkify(v.get('value'), shorten=True, extra_params='target="_blank"').replace('\n', '   \n') for v in p.get('values', []) ])) }}
+                                  </div>
+                                  <div class="toggle-{{ p.id }}" style="display: none;">
+                                    {{ mistune.Markdown().render('   \n'.join([ '%s' % linkify(v.get('db_value'), shorten=True, extra_params='target="_blank"').replace('\n', '   \n') for v in p.get('values', []) ])) }}
+                                  </div>
+                                </div>
                             {% else %}
                                 {{ '<br />'.join(['%s' % v.get('value') for v in p.get('values', [])]) }}
                             {% end %}
@@ -250,6 +264,11 @@
                 spinner(div);
             }, 'json');
         }
+
+        $('.toggle-div').hover(function() {
+            var cls = $(this).get(0).id;
+            $('div.' + cls).toggle();
+        })
 
         $('.toggle-table').css('cursor', 'pointer');
         $('.toggle-table').click(function() {
