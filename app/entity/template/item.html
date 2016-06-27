@@ -167,12 +167,6 @@
 
         document.title = "{{ page_title.replace('\"', '\\\"') }}";
 
-        woopra.track();
-
-        {% if intercom_key %}
-            window.Intercom('update');
-        {% end %}
-
         if(typeof _gaq != 'undefined') {
             _gaq.push(['_trackPageview', '/entity-'+id]);
         }
@@ -319,10 +313,5 @@
             });
         });
 
-        $('[data-action]').click(function() {
-            woopra.track($(this).data('action'), {
-                label: $(this).data('action-label')
-            });
-        })
     });
 </script>

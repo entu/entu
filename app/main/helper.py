@@ -605,7 +605,6 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
         kwargs['app_organisation_id'] = self.app_settings('database-name', '')
         kwargs['app_organisation'] = self.app_settings('name', '')
         kwargs['app_exit_url'] = '%s/exit?next=%s://%s' % (self.settings['auth_url'], self.request.protocol, self.request.host)
-        kwargs['intercom_key'] = self.settings['intercom_key']
         kwargs['motd'] = self.app_settings('motd', '')
         kwargs['feedback'] = self.app_settings('feedback-email', '')
         kwargs['homepage'] = self.app_settings('homepage', '')
