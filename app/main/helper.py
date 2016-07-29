@@ -346,6 +346,9 @@ class myUser(myE):
         if session.get('user', {}).get('picture'):
             user['picture'] = session.get('user', {}).get('picture')
 
+        if self.request.remote_ip:
+            user['ip'] = self.request.remote_ip
+
         person = self.db_get("""
             SELECT
                 property.entity_id,

@@ -119,6 +119,7 @@
                 mixpanel.people.set({
                     "$email": "{{current_user.get('email') }}"
                     "$name": "{{ current_user.get('name') }}"
+                    "$ip": "{{ current_user.get('ip') }}"
                 });
             </script>
         {% end %}
