@@ -171,6 +171,10 @@
             _gaq.push(['_trackPageview', '/entity-'+id]);
         }
 
+        mixpanel.track('Open entity', {
+            "title": "{{ page_title.replace('\"', '\\\"') }}"
+        })
+
         make_tables('/api2/entity-{{ entity.get('id') }}/childs', '#childs');
         make_tables('/api2/entity-{{ entity.get('id') }}/referrals', '#referrals');
 
