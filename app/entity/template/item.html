@@ -172,7 +172,7 @@
         }
 
         mixpanel.track('Open entity', {
-            "title": "{{ page_title.replace('\"', '\\\"') }}"
+            "Entity title": "{{ page_title.replace('\"', '\\\"') }}"
         })
 
         make_tables('/api2/entity-{{ entity.get('id') }}/childs', '#childs');
