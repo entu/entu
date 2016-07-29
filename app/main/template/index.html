@@ -115,15 +115,15 @@
         </script>
         {% if current_user %}
             <script type="text/javascript">
-                mixpanel.register({
-                    "User e-mail": "{{ current_user.get('email') }}",
-                    "User name": "{{ current_user.get('name') }}"
+                mixpanel.identify("{{ current_user.get('email') }}");
+                mixpanel.people.set({
+                    "Name": "{{ current_user.get('name') }}"
                 });
             </script>
         {% end %}
         {% if app_organisation %}
             <script type="text/javascript">
-                mixpanel.register({
+                mixpanel.people.append({
                     "Customer": "{{ app_organisation }}"
                 });
             </script>
