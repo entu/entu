@@ -53,7 +53,7 @@ class myDatabase():
                     autocommit = True,
                     ssl_cert = os.path.join(settings.get('database-ssl'), 'mysql-client-cert.pem'),
                     ssl_key  = os.path.join(settings.get('database-ssl'), 'mysql-client-key.pem'),
-                    ssl_ca   = os.path.join(settings.get('database-ssl'), 'mysql-client-ca.pem'),
+                    ssl_ca   = os.path.join(settings.get('database-ssl'), 'mysql-server-ca.pem'),
                     ssl_verify_cert = True
                 )
             else:
@@ -205,7 +205,7 @@ class myDatabase():
                     autocommit = True,
                     ssl_cert = os.path.join(self.settings['database-ssl-path'], 'mysql-client-cert.pem'),
                     ssl_key  = os.path.join(self.settings['database-ssl-path'], 'mysql-client-key.pem'),
-                    ssl_ca   = os.path.join(self.settings['database-ssl-path'], 'mysql-client-ca.pem'),
+                    ssl_ca   = os.path.join(self.settings['database-ssl-path'], 'mysql-server-ca.pem'),
                     ssl_verify_cert = True
                 )
             else:
