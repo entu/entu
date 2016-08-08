@@ -42,8 +42,8 @@ class myDatabase():
             x = self.settings['databases'][host].get('SELECT 1 FROM DUAL;')
         except Exception:
             settings = self.get_app_settings(host)
-
             if settings.get('database-ssl'):
+                logging.error(os.path.join(settings.get('database-ssl'), 'mysql-client-cert.pem'))
                 self.settings['databases'][host] = mysql.connector.connect(
                     host     = settings.get('database-host'),
                     database = settings.get('database-name'),
@@ -57,6 +57,7 @@ class myDatabase():
                     ssl_verify_cert = True
                 )
             else:
+                logging.error('NO CERT')
                 self.settings['databases'][host] = mysql.connector.connect(
                     host     = settings.get('database-host'),
                     database = settings.get('database-name'),
