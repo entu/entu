@@ -97,6 +97,7 @@ class Maintenance():
         self.db_name = db_name
         self.db_user = db_user
         self.db_pass = db_pass
+        self.db_ssl = db_ssl
 
         if self.db_ssl:
             self.db = mysql.connector.connect(
