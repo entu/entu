@@ -39,7 +39,7 @@ class myDatabase():
 
         """
         try:
-            x = self.settings['databases'][host].get('SELECT 1 FROM DUAL;')
+            x = self.settings['databases'][host].ping(reconnect=False, attempts=1, delay=0)
         except Exception:
             settings = self.get_app_settings(host)
             if settings.get('database-ssl'):
