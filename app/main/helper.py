@@ -43,7 +43,7 @@ class myDatabase():
         except Exception:
             settings = self.get_app_settings(host)
 
-            if self.settings['database-ssl-path'] and settings.get('database-ssl', 0) == 1:
+            if self.settings['database-ssl-path'] and settings.get('database-ssl'):
                 self.settings['databases'][host] = mysql.connector.connect(
                     host     = settings.get('database-host'),
                     database = settings.get('database-name'),
@@ -51,9 +51,9 @@ class myDatabase():
                     password = settings.get('database-password'),
                     use_pure = False,
                     autocommit = True,
-                    ssl_cert = os.path.join(self.settings['database-ssl-path'], 'mysql-client-cert.pem'),
-                    ssl_key  = os.path.join(self.settings['database-ssl-path'], 'mysql-client-key.pem'),
-                    ssl_ca   = os.path.join(self.settings['database-ssl-path'], 'mysql-client-ca.pem'),
+                    ssl_cert = os.path.join(self.settings['database-ssl-path'], settings.get('database-ssl'), 'mysql-client-cert.pem'),
+                    ssl_key  = os.path.join(self.settings['database-ssl-path'], settings.get('database-ssl'), 'mysql-client-key.pem'),
+                    ssl_ca   = os.path.join(self.settings['database-ssl-path'], settings.get('database-ssl'), 'mysql-client-ca.pem'),
                     ssl_verify_cert = True
                 )
             else:
