@@ -847,7 +847,7 @@ class Entity():
             query_re = ' '.join(join_parts)
 
         sql = """
-            SELECT DISTINCT e.id AS id, sp.value_display, spd.*
+            SELECT DISTINCT e.id AS id, e.sort, e.created, sp.value_display, spd.*
             FROM entity AS e
             LEFT JOIN relationship AS r           ON r.entity_id  = e.id
             LEFT JOIN property AS p               ON p.entity_id = e.id
