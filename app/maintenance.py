@@ -83,7 +83,7 @@ def customers():
 
     customers = {}
     for c in cursor:
-        if c.get('property') in ['database-host', 'database-name', 'database-user', 'database-password', 'language']:
+        if c.get('property') in ['database-host', 'database-name', 'database-user', 'database-password', 'database-ssl', 'language']:
             customers.setdefault(c['entity'], {})[c['property'].decode('utf-8')] = c['value']
 
     return sorted(customers.values(), key=itemgetter('database-name'))
@@ -92,13 +92,13 @@ def customers():
 
 
 class Maintenance():
-    def __init__(self, db_host, db_name, db_user, db_pass, language, hours, speed):
+    def __init__(self, db_host, db_name, db_user, db_pass, db_ssl, language, hours, speed):
         self.db_host = db_host
         self.db_name = db_name
         self.db_user = db_user
         self.db_pass = db_pass
 
-        if APP_MYSQL_SSL_PATH:
+        if self.db_ssl:
             self.db = mysql.connector.connect(
                 host     = self.db_host,
                 database = self.db_name,
@@ -106,9 +106,9 @@ class Maintenance():
                 password = self.db_pass,
                 use_pure = False,
                 autocommit = True,
-                ssl_cert = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-cert.pem'),
-                ssl_key  = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-key.pem'),
-                ssl_ca   = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-ca.pem'),
+                ssl_cert = os.path.join(self.db_ssl, 'mysql-client-cert.pem'),
+                ssl_key  = os.path.join(self.db_ssl, 'mysql-client-key.pem'),
+                ssl_ca   = os.path.join(self.db_ssl, 'mysql-client-ca.pem'),
                 ssl_verify_cert = True
             )
         else:
@@ -634,6 +634,7 @@ while True:
             db_name = c.get('database-name'),
             db_user = c.get('database-user'),
             db_pass = c.get('database-password'),
+            db_ssl = c.get('database-ssl'),
             language = c.get('language'),
             hours = 2,
             speed = total_time / total_count
