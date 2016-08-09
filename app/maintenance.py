@@ -32,7 +32,7 @@ def customers():
             autocommit = True,
             ssl_cert = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-cert.pem'),
             ssl_key  = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-key.pem'),
-            ssl_ca   = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-ca.pem'),
+            ssl_ca   = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-server-ca.pem'),
             ssl_verify_cert = True
         )
     else:
@@ -109,7 +109,7 @@ class Maintenance():
                 autocommit = True,
                 ssl_cert = os.path.join(self.db_ssl, 'mysql-client-cert.pem'),
                 ssl_key  = os.path.join(self.db_ssl, 'mysql-client-key.pem'),
-                ssl_ca   = os.path.join(self.db_ssl, 'mysql-client-ca.pem'),
+                ssl_ca   = os.path.join(self.db_ssl, 'mysql-server-ca.pem'),
                 ssl_verify_cert = True
             )
         else:
