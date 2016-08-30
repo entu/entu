@@ -99,11 +99,12 @@
                 Fist parameter: your user's ID number (mandatory)
                 Second parameter: Your user's attributes (optional)
                */
-               driftt.identify("{{ current_user.get('email') }}", {
+               drift.identify("{{ current_user.get('email') }}", {
                     email: "{{ current_user.get('email') }}",
                     name: "{{ current_user.get('name') }}",
                     avatar: "{{ current_user.get('picture') }}",
-                    companyId: "{{ app_organisation }}"
+                    companyId: "{{ app_organisation }}",
+                    tags: [location.hostname.split('.')[0]]
                });
             </script>
         {% end %}
