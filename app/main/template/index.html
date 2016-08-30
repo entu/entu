@@ -102,7 +102,7 @@
                drift.identify("{{ current_user.get('email') }}", {
                     email: "{{ current_user.get('email') }}",
                     name: "{{ current_user.get('name') }}",
-                    avatar: "{{ current_user.get('picture') }}",
+                    avatar_url: "{{ current_user.get('picture') }}",
                     companyId: "{{ app_organisation }}",
                     tags: [location.hostname.split('.')[0]]
                });
