@@ -10,18 +10,6 @@ from main.helper import *
 from main.db import *
 
 
-def utf_8_encoder(unicode_csv_data):
-    for line in unicode_csv_data:
-        yield line.encode('utf-8')
-
-def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
-    # csv.py doesn't do Unicode; encode temporarily as UTF-8:
-    csv_reader = csv.reader(utf_8_encoder(unicode_csv_data), dialect=dialect, **kwargs)
-    for row in csv_reader:
-        # decode UTF-8 back to Unicode, cell by cell:
-        yield [unicode(cell, 'utf-8') for cell in row]
-
-
 class UploadFile(myRequestHandler, Entity):
     """
     """
@@ -36,7 +24,7 @@ class UploadFile(myRequestHandler, Entity):
 
         file_id = self.db_execute_lastrowid('INSERT INTO tmp_file SET filename = %s, file = %s, created_by = %s, created = NOW();', uploaded_file['filename'], uploaded_file['body'], self.current_user.get('id'))
 
-        # csv.unicode_csv_reader(zf.read('0010711996.txt').split('\n'), delimiter='\t')
+        # csv.reader(zf.read('0010711996.txt').split('\n'), delimiter='\t')
 
         self.write(str(file_id))
 
@@ -85,7 +73,7 @@ class ReadFile(myRequestHandler, Entity):
 
         csv_headers = None
         row_count = 0
-        for row in csv.unicode_csv_reader(StringIO.StringIO(tmp_file), delimiter=str(delimiter)):
+        for row in csv.reader(StringIO.StringIO(tmp_file), delimiter=str(delimiter)):
             if not csv_headers:
                 csv_headers = row
             row_count += 1
@@ -142,7 +130,7 @@ class ImportFile(myRequestHandler, Entity):
         properties = item.get('properties', {}).values()
 
         row_num = 0
-        for row in csv.unicode_csv_reader(StringIO.StringIO(tmp_file), delimiter=str(delimiter)):
+        for row in csv.reader(StringIO.StringIO(tmp_file), delimiter=str(delimiter)):
             row_num += 1
             if row_num < first_row:
                 continue
