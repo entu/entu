@@ -54,7 +54,8 @@
                 <div class="pull-right span4">
                     <div class="pull-right span4">
                         <h4 style="margin: 20px 0px 10px 0px;">{{ _('quota') }}</h4>
-                        {{ _('quota_files') % (quota_size_used_human, quota_size_human) }}<span style="float:right; margin-right:20px; color:grey;">{{ _('quota_entities') % '{:,}'.format(quota_entities_used).replace(',', ' ') }}</span>
+                        {{ _('quota_entities') % '{:,}'.format(quota_entities_used).replace(',', ' ') }}<br>
+                        {{ _('quota_files') % (quota_size_used_human, quota_size_human) }}
                         <div class="progress" style="margin-right: 21px; margin-left: 1px; height: 10px;">
                             {% if quota_size_used > quota_size %}
                             <div class="bar bar-success" style="width: {{ round(quota_size * 100 / quota_size_used) }}%;"></div>

@@ -27,8 +27,8 @@ menu_add_under_this,Add under this entity
 menu_duplicate,Duplicate
 
 quota,Usage and Quota
-quota_entities,Entities: %s
-quota_files,Files: %s of %s
+quota_entities,<strong>Entities:</strong> %s
+quota_files,<strong>Files:</strong> %s of %s
 
 search,Search
 search_button,Search
