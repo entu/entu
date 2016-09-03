@@ -53,10 +53,6 @@
             <div id="content-wide">
                 <div class="pull-right span4">
                     <div class="pull-right span4">
-                        <h3 style="margin:0px 0px 0px -20px;">{{ _('version_history') }}</h3>
-                        {{ history }}
-                    </div>
-                    <div class="pull-right span4">
                         <h3 style="margin:20px 0px 10px -20px;">{{ _('quota') }}</h3>
                         {{ _('quota_files') % (quota_size_used_human, quota_size_human) }}<span style="float:right; margin-right:20px; color:grey;">{{ _('quota_entities') % '{:,}'.format(quota_entities_used).replace(',', ' ') }}</span>
                         <div class="progress" style="margin-right:20px; height:7px;">

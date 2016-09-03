@@ -26,7 +26,6 @@ menu_add_under,Lisa %s alla
 menu_add_under_this,Lisa selle objekti alla
 menu_duplicate,Dubleeri
 
-version_history,Viimased muudatused
 quota,Kasutus ja limiit
 quota_entities,Objekte: %s
 quota_files,Faile: %s / %s

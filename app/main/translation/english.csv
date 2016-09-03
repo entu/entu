@@ -26,7 +26,6 @@ menu_add_under,Add under %s
 menu_add_under_this,Add under this entity
 menu_duplicate,Duplicate
 
-version_history,Change Log
 quota,Usage and Quota
 quota_entities,Entities: %s
 quota_files,Files: %s of %s

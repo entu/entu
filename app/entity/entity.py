@@ -8,7 +8,6 @@ import zipfile
 import yaml
 import json
 import time
-import markdown2
 
 from main.helper import *
 from main.db import *
@@ -34,7 +33,6 @@ class ShowGroup(myRequestHandler, Entity):
         quota_entities_used = 0
         quota_size_used = 0
         add_definitions = {}
-        history = ''
 
         if entity_definition_keyname:
             entity_definition = self.get_entity_definition(entity_definition_keyname=entity_definition_keyname)
@@ -45,10 +43,8 @@ class ShowGroup(myRequestHandler, Entity):
             quota_size_used = self.db_get('SELECT SUM(filesize) AS size FROM file;').get('size', 0)
             try:
                 f = open(os.path.join(os.path.dirname(__file__), '..', '..', 'HISTORY.md'), 'r')
-                history = markdown2.markdown('## '.join(f.read().split('## ')[:4]).replace('## ', '#### '))
             except Exception, e:
                 logging.error(e)
-                history = ''
 
 
         self.render('entity/template/start.html',
@@ -58,7 +54,6 @@ class ShowGroup(myRequestHandler, Entity):
             entity_definition_label = entity_definition[0]['label_plural'] if entity_definition else '',
             entity_definition_keyname = entity_definition_keyname,
             add_definitions = add_definitions,
-            history = history,
             quota_entities_used = int(quota_entities_used),
             quota_size = float(self.app_settings('quota-data', 0))*1000000000.0,
             quota_size_human = GetHumanReadableBytes(float(self.app_settings('quota-data', 0))*1000000000.0, 1),

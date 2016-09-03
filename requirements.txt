@@ -1,7 +1,6 @@
 beautifulsoup4==4.5.1
 boto==2.42.0
 chardet==2.3.0
-markdown2==2.3.1
 mistune==0.7.3
 newrelic==2.68.0.50
 pillow==3.3.1
