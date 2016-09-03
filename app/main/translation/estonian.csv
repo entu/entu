@@ -27,8 +27,8 @@ menu_add_under_this,Lisa selle objekti alla
 menu_duplicate,Dubleeri
 
 quota,Kasutus ja limiit
-quota_entities,Objekte: %s
-quota_files,Faile: %s / %s
+quota_entities,<strong>Objekte:</strong> %s
+quota_files,<strong>Faile:</strong> %s / %s
 
 search,Otsi
 search_button,Otsi
