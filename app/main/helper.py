@@ -45,7 +45,6 @@ class myDatabase():
 
             settings = self.get_app_settings(host)
             if settings.get('database-ssl'):
-                logging.error(host + ' ' + os.path.join(settings.get('database-ssl'), 'mysql-client-cert.pem'))
                 self.settings['databases'][host] = mysql.connector.connect(
                     host     = settings.get('database-host'),
                     database = settings.get('database-name'),
@@ -59,7 +58,6 @@ class myDatabase():
                     ssl_verify_cert = True
                 )
             else:
-                logging.error(host + ' NO DB CERT')
                 self.settings['databases'][host] = mysql.connector.connect(
                     host     = settings.get('database-host'),
                     database = settings.get('database-name'),
