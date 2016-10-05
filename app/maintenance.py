@@ -21,7 +21,7 @@ APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
 APP_FULLRUN        = os.getenv('FULLRUN')
 APP_VERBOSE        = os.getenv('VERBOSE', 1)
 
-dbs = []
+dbs = {}
 
 
 
