@@ -12,7 +12,7 @@ from datetime import datetime
 
 
 APP_MYSQL_HOST     = os.getenv('MYSQL_HOST', 'localhost')
-APP_MYSQL_PORT     = os.getenv('MYSQL_PORT', 'localhost')
+APP_MYSQL_PORT     = os.getenv('MYSQL_PORT', 3306)
 APP_MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
 APP_MYSQL_USER     = os.getenv('MYSQL_USER')
 APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
