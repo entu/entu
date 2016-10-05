@@ -283,6 +283,10 @@ class myDatabase():
             self.redirect('http://www.entu.ee')
             return
 
+        if not self._app_settings.get(host).get('database-host') != '10.133.21.181':
+            self.redirect('http://www.entu.ee')
+            return
+
         return self._app_settings.get(host, {})
 
     def mongodb(self, database=None):
