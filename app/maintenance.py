@@ -12,6 +12,7 @@ from datetime import datetime
 
 
 APP_MYSQL_HOST     = os.getenv('MYSQL_HOST', 'localhost')
+APP_MYSQL_PORT     = os.getenv('MYSQL_PORT', 'localhost')
 APP_MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
 APP_MYSQL_USER     = os.getenv('MYSQL_USER')
 APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
@@ -25,6 +26,7 @@ def customers():
     if APP_MYSQL_SSL_PATH:
         db = mysql.connector.connect(
             host     = APP_MYSQL_HOST,
+            port     = APP_MYSQL_PORT,
             database = APP_MYSQL_DATABASE,
             user     = APP_MYSQL_USER,
             password = APP_MYSQL_PASSWORD,
@@ -38,6 +40,7 @@ def customers():
     else:
         db = mysql.connector.connect(
             host     = APP_MYSQL_HOST,
+            port     = APP_MYSQL_PORT,
             database = APP_MYSQL_DATABASE,
             user     = APP_MYSQL_USER,
             password = APP_MYSQL_PASSWORD,
@@ -83,7 +86,7 @@ def customers():
 
     customers = {}
     for c in cursor:
-        if c.get('property') in ['database-host', 'database-name', 'database-user', 'database-password', 'database-ssl', 'language']:
+        if c.get('property') in ['database-host', 'database-port', 'database-name', 'database-user', 'database-password', 'database-ssl', 'language']:
             customers.setdefault(c['entity'], {})[c['property'].decode('utf-8')] = c['value']
 
     return sorted(customers.values(), key=itemgetter('database-name'))
@@ -92,8 +95,9 @@ def customers():
 
 
 class Maintenance():
-    def __init__(self, db_host, db_name, db_user, db_pass, db_ssl, language, hours, speed):
+    def __init__(self, db_host, db_port, db_name, db_user, db_pass, db_ssl, language, hours, speed):
         self.db_host = db_host
+        self.db_port = db_port
         self.db_name = db_name
         self.db_user = db_user
         self.db_pass = db_pass
@@ -102,6 +106,7 @@ class Maintenance():
         if self.db_ssl:
             self.db = mysql.connector.connect(
                 host     = self.db_host,
+                port     = self.db_port,
                 database = self.db_name,
                 user     = self.db_user,
                 password = self.db_pass,
@@ -115,6 +120,7 @@ class Maintenance():
         else:
             self.db = mysql.connector.connect(
                 host     = self.db_host,
+                port     = self.db_port,
                 database = self.db_name,
                 user     = self.db_user,
                 password = self.db_pass,
@@ -632,6 +638,7 @@ while True:
 
         m = Maintenance(
             db_host = c.get('database-host'),
+            db_port = c.get('database-port'),
             db_name = c.get('database-name'),
             db_user = c.get('database-user'),
             db_pass = c.get('database-password'),

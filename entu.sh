@@ -56,6 +56,7 @@ docker run -d \
     --memory="1g" \
     --env="VERSION=$version" \
     --env="MYSQL_HOST=" \
+    --env="MYSQL_PORT=" \
     --env="MYSQL_DATABASE=" \
     --env="MYSQL_USER=" \
     --env="MYSQL_PASSWORD=" \
