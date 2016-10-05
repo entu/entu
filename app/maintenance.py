@@ -636,9 +636,6 @@ while True:
         # if c.get('database-name') != 'saksa':
         #     continue
 
-        if c.get('database-host') != '10.133.21.181':
-            continue
-
         m = Maintenance(
             db_host = c.get('database-host'),
             db_port = c.get('database-port'),
