@@ -110,8 +110,8 @@ class Maintenance():
         try:
             x = dbs[db_name].ping(reconnect=False, attempts=1, delay=0)
             self.db = dbs[db_name]
-        except Exception, err:
-            logging.error(err)
+        except Exception, e:
+            print e
 
             if self.db_ssl:
                 dbs[db_name] = mysql.connector.connect(
