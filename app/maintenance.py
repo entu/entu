@@ -21,6 +21,10 @@ APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
 APP_FULLRUN        = os.getenv('FULLRUN')
 APP_VERBOSE        = os.getenv('VERBOSE', 1)
 
+dbs = []
+
+
+
 
 def customers():
     if APP_MYSQL_SSL_PATH:
@@ -103,31 +107,37 @@ class Maintenance():
         self.db_pass = db_pass
         self.db_ssl = db_ssl
 
-        if self.db_ssl:
-            self.db = mysql.connector.connect(
-                host     = self.db_host,
-                port     = int(self.db_port),
-                database = self.db_name,
-                user     = self.db_user,
-                password = self.db_pass,
-                use_pure = False,
-                autocommit = True,
-                ssl_cert = os.path.join(self.db_ssl, 'mysql-client-cert.pem'),
-                ssl_key  = os.path.join(self.db_ssl, 'mysql-client-key.pem'),
-                ssl_ca   = os.path.join(self.db_ssl, 'mysql-server-ca.pem'),
-                ssl_verify_cert = True
-            )
-        else:
-            self.db = mysql.connector.connect(
-                host     = self.db_host,
-                port     = int(self.db_port),
-                database = self.db_name,
-                user     = self.db_user,
-                password = self.db_pass,
-                use_pure = False,
-                autocommit = True
-            )
+        try:
+            x = dbs[db_name].ping(reconnect=False, attempts=1, delay=0)
+            self.db = dbs[db_name]
+        except Exception, err:
+            logging.error(err)
 
+            if self.db_ssl:
+                dbs[db_name] = mysql.connector.connect(
+                    host     = self.db_host,
+                    port     = int(self.db_port),
+                    database = self.db_name,
+                    user     = self.db_user,
+                    password = self.db_pass,
+                    use_pure = False,
+                    autocommit = True,
+                    ssl_cert = os.path.join(self.db_ssl, 'mysql-client-cert.pem'),
+                    ssl_key  = os.path.join(self.db_ssl, 'mysql-client-key.pem'),
+                    ssl_ca   = os.path.join(self.db_ssl, 'mysql-server-ca.pem'),
+                    ssl_verify_cert = True
+                )
+            else:
+                dbs[db_name] = mysql.connector.connect(
+                    host     = self.db_host,
+                    port     = int(self.db_port),
+                    database = self.db_name,
+                    user     = self.db_user,
+                    password = self.db_pass,
+                    use_pure = False,
+                    autocommit = True
+                )
+            self.db = dbs[db_name]
 
         self.language = language
         self.speed = speed
