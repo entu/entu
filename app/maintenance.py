@@ -26,7 +26,7 @@ def customers():
     if APP_MYSQL_SSL_PATH:
         db = mysql.connector.connect(
             host     = APP_MYSQL_HOST,
-            port     = APP_MYSQL_PORT,
+            port     = int(APP_MYSQL_PORT),
             database = APP_MYSQL_DATABASE,
             user     = APP_MYSQL_USER,
             password = APP_MYSQL_PASSWORD,
@@ -40,7 +40,7 @@ def customers():
     else:
         db = mysql.connector.connect(
             host     = APP_MYSQL_HOST,
-            port     = APP_MYSQL_PORT,
+            port     = int(APP_MYSQL_PORT),
             database = APP_MYSQL_DATABASE,
             user     = APP_MYSQL_USER,
             password = APP_MYSQL_PASSWORD,
@@ -106,7 +106,7 @@ class Maintenance():
         if self.db_ssl:
             self.db = mysql.connector.connect(
                 host     = self.db_host,
-                port     = self.db_port,
+                port     = int(self.db_port),
                 database = self.db_name,
                 user     = self.db_user,
                 password = self.db_pass,
@@ -120,7 +120,7 @@ class Maintenance():
         else:
             self.db = mysql.connector.connect(
                 host     = self.db_host,
-                port     = self.db_port,
+                port     = int(self.db_port),
                 database = self.db_name,
                 user     = self.db_user,
                 password = self.db_pass,

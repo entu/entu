@@ -47,7 +47,7 @@ class myDatabase():
             if settings.get('database-ssl'):
                 self.settings['databases'][host] = mysql.connector.connect(
                     host     = settings.get('database-host'),
-                    port     = settings.get('database-port'),
+                    port     = int(settings.get('database-port')),
                     database = settings.get('database-name'),
                     user     = settings.get('database-user'),
                     password = settings.get('database-password'),
@@ -61,7 +61,7 @@ class myDatabase():
             else:
                 self.settings['databases'][host] = mysql.connector.connect(
                     host     = settings.get('database-host'),
-                    port     = settings.get('database-port'),
+                    port     = int(settings.get('database-port')),
                     database = settings.get('database-name'),
                     user     = settings.get('database-user'),
                     password = settings.get('database-password'),
@@ -201,7 +201,7 @@ class myDatabase():
             if self.settings['database-ssl-path']:
                 db = mysql.connector.connect(
                     host     = self.settings['database-host'],
-                    port     = self.settings['database-port'],
+                    port     = int(self.settings['database-port']),
                     database = self.settings['database-database'],
                     user     = self.settings['database-user'],
                     password = self.settings['database-password'],
@@ -215,7 +215,7 @@ class myDatabase():
             else:
                 db = mysql.connector.connect(
                     host     = self.settings['database-host'],
-                    port     = self.settings['database-port'],
+                    port     = int(self.settings['database-port']),
                     database = self.settings['database-database'],
                     user     = self.settings['database-user'],
                     password = self.settings['database-password'],
