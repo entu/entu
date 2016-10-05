@@ -213,6 +213,12 @@ class myDatabase():
                     ssl_verify_cert = True
                 )
             else:
+                logging.error(self.settings['database-host'])
+                logging.error(int(self.settings['database-port']))
+                logging.error(self.settings['database-database'])
+                logging.error(self.settings['database-user'])
+                logging.error(self.settings['database-password'])
+
                 db = mysql.connector.connect(
                     host     = self.settings['database-host'],
                     port     = int(self.settings['database-port']),
@@ -222,6 +228,7 @@ class myDatabase():
                     use_pure = False,
                     autocommit = True
                 )
+
             cursor = db.cursor(dictionary=True)
 
             sql = """
@@ -283,7 +290,7 @@ class myDatabase():
             self.redirect('http://www.entu.ee')
             return
 
-        if not self._app_settings.get(host).get('database-host') != '10.133.21.181':
+        if not self._app_settings.get(host, {}).get('database-host') != '10.133.21.181':
             self.redirect('http://www.entu.ee')
             return
 
