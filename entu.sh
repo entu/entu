@@ -25,6 +25,7 @@ docker run -d \
     --env="AUTH_URL=https://auth.entu.ee" \
     --env="MONGODB=" \
     --env="MYSQL_HOST=" \
+    --env="MYSQL_PORT=" \
     --env="MYSQL_DATABASE=" \
     --env="MYSQL_USER=" \
     --env="MYSQL_PASSWORD=" \

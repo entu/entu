@@ -30,6 +30,7 @@ APP_COOKIE_DOMAIN  = os.getenv('COOKIE_DOMAIN', '.entu.ee')
 APP_AUTH_URL       = os.getenv('AUTH_URL', 'https://auth.entu.ee')
 APP_MONGODB        = os.getenv('MONGODB', 'mongodb://entu_mongodb:27017/')
 APP_MYSQL_HOST     = os.getenv('MYSQL_HOST', 'localhost')
+APP_MYSQL_PORT     = os.getenv('MYSQL_PORT ', 3306)
 APP_MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
 APP_MYSQL_USER     = os.getenv('MYSQL_USER')
 APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
@@ -98,6 +99,7 @@ class myApplication(tornado.web.Application):
             'slow_request_ms':      1000,
             'mongodb':              APP_MONGODB,
             'database-host':        APP_MYSQL_HOST,
+            'database-port':        APP_MYSQL_PORT,
             'database-database':    APP_MYSQL_DATABASE,
             'database-user':        APP_MYSQL_USER,
             'database-password':    APP_MYSQL_PASSWORD,
