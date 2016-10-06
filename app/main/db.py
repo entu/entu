@@ -926,10 +926,19 @@ class Entity():
                 entity_definition_keyname = [entity_definition_keyname]
             where_parts.append('e.entity_definition_keyname IN (%s)' % ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)]))
 
+        entity_id_list = []
+        validated_eid_list = []
         if entity_id != None:
-            if type(entity_id) is not list:
-                entity_id = [entity_id]
-            where_parts.append('e.id IN (%s)' % ','.join(map(str, entity_id)))
+            if type(entity_id) is list:
+                entity_id_list = entity_id
+            else:
+                entity_id_list = [entity_id]
+            for value in entity_id_list:
+                # try:
+                validated_eid_list.append(int(value))
+                # except ValueError:
+
+            where_parts.append('e.id IN (%s)' % ','.join(map(str, validated_eid_list)))
 
         if self.__user_id and only_public == False:
             where_parts.append('r.is_deleted = 0')
