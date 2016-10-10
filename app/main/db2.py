@@ -352,6 +352,17 @@ class Entity2():
                 %(parent_where)s
                 %(referrer_where)s
                 %(query_where)s
+                UNION SELECT e.id, e.entity_definition_keyname, IFNULL(e.sort, CONCAT('   ', 1000000000000 - e.id)) AS sort, e.changed, UNIX_TIMESTAMP(e.changed) AS changed_ts
+                FROM entity AS e, relationship AS r
+                WHERE r.entity_id = e.id
+                AND e.is_deleted = 0
+                %(definition_where)s
+                %(parent_where)s
+                %(referrer_where)s
+                %(query_where)s
+                AND r.is_deleted = 0
+                AND r.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner')
+                AND r.related_entity_id = -999999
             """ % {'definition_where': definition_where, 'parent_where': parent_where, 'referrer_where': referrer_where, 'query_where': query_where}
 
         entity_count = None
