@@ -559,39 +559,56 @@ class Entity():
                 %(entity_id)s,
                 property_definition2.keyname,
                 CONCAT(
-                IFNULL((
-                    SELECT
-                        value_string
-                    FROM
-                        property,
-                        property_definition,
-                        entity
-                    WHERE property_definition.keyname = property.property_definition_keyname
-                    AND entity.entity_definition_keyname = property_definition.entity_definition_keyname
-                    AND entity.id = property.entity_id
-                    AND property_definition.dataproperty = 'series'
-                    AND entity.id IN (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child')
-                    AND entity.is_deleted = 0
-                    AND property.is_deleted = 0
-                    LIMIT 1
-                ), ''),
-                IFNULL((
-                    SELECT
-                        value_string
-                    FROM
-                        property,
-                        property_definition,
-                        entity
-                    WHERE property_definition.keyname = property.property_definition_keyname
-                    AND entity.entity_definition_keyname = property_definition.entity_definition_keyname
-                    AND entity.id = property.entity_id
-                    AND property_definition.dataproperty='prefix'
-                    AND entity.id IN (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child')
-                    AND entity.is_deleted = 0
-                    AND property.is_deleted = 0
-                    LIMIT 1
-                ), ''),
-                counter.value+counter.increment) AS value,
+                    IFNULL((
+                        SELECT
+                            value_string
+                        FROM
+                            property,
+                            property_definition,
+                            entity
+                        WHERE property_definition.keyname = property.property_definition_keyname
+                        AND entity.entity_definition_keyname = property_definition.entity_definition_keyname
+                        AND entity.id = property.entity_id
+                        AND property_definition.dataproperty = 'series'
+                        AND entity.id IN (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child')
+                        AND entity.is_deleted = 0
+                        AND property.is_deleted = 0
+                        LIMIT 1
+                    ), ''),
+                    IFNULL((
+                        SELECT
+                            value_string
+                        FROM
+                            property,
+                            property_definition,
+                            entity
+                        WHERE property_definition.keyname = property.property_definition_keyname
+                        AND entity.entity_definition_keyname = property_definition.entity_definition_keyname
+                        AND entity.id = property.entity_id
+                        AND property_definition.dataproperty='prefix'
+                        AND entity.id IN (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child')
+                        AND entity.is_deleted = 0
+                        AND property.is_deleted = 0
+                        LIMIT 1
+                    ), ''),
+                    counter.value+counter.increment,
+                    IFNULL((
+                        SELECT
+                            value_string
+                        FROM
+                            property,
+                            property_definition,
+                            entity
+                        WHERE property_definition.keyname = property.property_definition_keyname
+                        AND entity.entity_definition_keyname = property_definition.entity_definition_keyname
+                        AND entity.id = property.entity_id
+                        AND property_definition.dataproperty='postfix'
+                        AND entity.id IN (SELECT entity_id FROM relationship WHERE related_entity_id = %(entity_id)s AND relationship_definition_keyname = 'child')
+                        AND entity.is_deleted = 0
+                        AND property.is_deleted = 0
+                        LIMIT 1
+                    ), '')
+                ) AS value,
                 '%(user_id)s',
                 NOW()
             FROM
