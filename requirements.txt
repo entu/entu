@@ -1,13 +1,13 @@
 beautifulsoup4==4.5.1
-boto==2.43.0
+boto==2.45.0
 chardet==2.3.0
 mistune==0.7.3
-newrelic==2.72.1.53
+newrelic==2.76.0.55
 pillow==3.4.2
-pymongo==3.3.1
+pymongo==3.4.0
 python-dateutil==2.6.0
 pyyaml==3.12
-raven==5.31.0
+raven==5.32.0
 simpleaes==1.0
 suds==0.4
 tornado==4.4.2
