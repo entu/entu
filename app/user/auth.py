@@ -33,6 +33,7 @@ class ShowAuthPage(myRequestHandler):
             self.redirect('%s/%s?next=%s' % (self.settings['auth_url'], self.get_cookie('auth_provider'), redirect_url))
         else:
             self.render('user/template/auth.html',
+                idcard = '%s/id-card?next=%s' % (self.settings['auth_url'], redirect_url),
                 google = '%s/google?next=%s' % (self.settings['auth_url'], redirect_url),
                 facebook = '%s/facebook?next=%s' % (self.settings['auth_url'], redirect_url),
                 live = '%s/live?next=%s' % (self.settings['auth_url'], redirect_url),
