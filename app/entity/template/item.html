@@ -80,9 +80,9 @@
                     <tr>
                         <th style="text-align:right; min-width:200px;{%if not p['public'] %} color:gray;{% end %}{%if p['mandatory'] and not p.get('values') %} background-color:#fff5f5;{% end %}">
                             {%if p.get('values') and len(p.get('values')) > 1 %}
-                                {{ p.get('label_plural', p.get('dataproperty', '')) }}
+                                {%if p.get('label_plural') %}{{ p.get('label_plural') }}{% else %}{{ p.get('dataproperty') }}{% end %}
                             {% else %}
-                                {{ p.get('label', p.get('dataproperty', '')) }}
+                                {%if p.get('label') %}{{ p.get('label') }}{% else %}{{ p.get('dataproperty') }}{% end %}
                             {% end %}
                         </th>
                         <td style="width:100%;{%if not p['public'] %} color:gray;{% end %}{%if p['mandatory'] and not p.get('values') %} background-color:#fff5f5;{% end %}">

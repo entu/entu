@@ -7,9 +7,9 @@
                         {% if idx == 0 %}
                         <th style="{%if not p['public'] %}color:gray;{% end %}{%if p['mandatory'] %}border-right:1px solid red;{% end %}" rowspan="{{ len(p.get('values')) }}">
                             {%if p['multiplicity'] == 1 %}
-                                {{ p.get('label', p.get('dataproperty', '')) }}
+                                {%if p.get('label') %}{{ p.get('label') }}{% else %}{{ p.get('dataproperty') }}{% end %}
                             {% else %}
-                                {{ p.get('label_plural', p.get('dataproperty', '')) }}
+                                {%if p.get('label_plural') %}{{ p.get('label_plural') }}{% else %}{{ p.get('dataproperty') }}{% end %}
                             {% end %}
                         </th>
                         {% end %}
