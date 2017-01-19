@@ -79,7 +79,11 @@
                 {% if p['visible'] and (p.get('values') or p['mandatory']) %}
                     <tr>
                         <th style="text-align:right; min-width:200px;{%if not p['public'] %} color:gray;{% end %}{%if p['mandatory'] and not p.get('values') %} background-color:#fff5f5;{% end %}">
-                            {%if p.get('values') and len(p.get('values')) > 1 %}{{ p['label_plural'] }}{% else %}{{ p['label'] }}{% end %}
+                            {%if p.get('values') and len(p.get('values')) > 1 %}
+                                {{ p.get('label_plural', p.get('dataproperty', '')) }}
+                            {% else %}
+                                {{ p.get('label', p.get('dataproperty', '')) }}
+                            {% end %}
                         </th>
                         <td style="width:100%;{%if not p['public'] %} color:gray;{% end %}{%if p['mandatory'] and not p.get('values') %} background-color:#fff5f5;{% end %}">
                             {% if p['datatype'] == 'file' %}

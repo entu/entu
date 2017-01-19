@@ -6,7 +6,11 @@
                     <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
                         {% if idx == 0 %}
                         <th style="{%if not p['public'] %}color:gray;{% end %}{%if p['mandatory'] %}border-right:1px solid red;{% end %}" rowspan="{{ len(p.get('values')) }}">
-                            {%if p['multiplicity'] == 1 %}{{ p['label'] }}{% else %}{{ p['label_plural'] }}{% end %}
+                            {%if p['multiplicity'] == 1 %}
+                                {{ p.get('label', p.get('dataproperty', '')) }}
+                            {% else %}
+                                {{ p.get('label_plural', p.get('dataproperty', '')) }}
+                            {% end %}
                         </th>
                         {% end %}
                         <td>
