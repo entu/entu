@@ -15,7 +15,7 @@ menu_add,Add new
 menu_edit,Edit/Delete
 menu_relate,Join relative
 menu_rights,Rights
-menu_share,Share
+menu_share,Share link by e-mail
 menu_parents,Parents
 menu_login,Login
 menu_exit,Logout
@@ -69,8 +69,8 @@ created,Created
 changed,Changed
 complete,Complete
 
-share_by_email,Share link by email
-share_to,To (email)
+share_by_email,Share link by e-mail
+share_to,To E-mail
 share_message,Message
 share_send,Send
 

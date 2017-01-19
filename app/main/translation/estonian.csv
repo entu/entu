@@ -15,7 +15,7 @@ menu_add,Lisa
 menu_edit,Muuda/Kustuta
 menu_relate,Seo teisega
 menu_rights,Õigused
-menu_share,Jaga meilitsi
+menu_share,Saada viide e-postiga
 menu_parents,Kuuluvus
 menu_login,Sisene
 menu_exit,Välju
@@ -69,8 +69,8 @@ created,Loodud
 changed,Muudetud
 complete,Täidetud
 
-share_by_email,Saada viide epostiga
-share_to,Kellele (email)
+share_by_email,Saada viide e-postiga
+share_to,Saaja E-post
 share_message,Sõnum
 share_send,Saada
 
