@@ -108,7 +108,7 @@
                         break;
                 }
 
-                if($('#searchbox').val() === '' && data.count <= 1) {
+                if($('#searchbox').val() === '' && data.count <= 1 && !'{{ entity.get('id') }}') {
                     $('#content').css('left', $('#list').css('left'));
                     $('#list').hide();
                 }
