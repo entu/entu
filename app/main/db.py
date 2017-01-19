@@ -1673,12 +1673,28 @@ class Entity():
         """
 
         sql = """
-            SELECT DISTINCT IF(entity_id, (SELECT entity_definition_keyname FROM entity WHERE id = relationship.entity_id LIMIT 1), entity_definition_keyname) AS keyname
-            FROM relationship
-            WHERE relationship_definition_keyname = 'allowed-child'
-            AND related_entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1)
-            AND is_deleted = 0;
-        """  % entity_id
+            SELECT * FROM
+            (
+                SELECT IF(entity_id, (SELECT entity_definition_keyname FROM entity WHERE id = relationship.entity_id LIMIT 1), entity_definition_keyname) AS keyname
+                FROM relationship
+                WHERE relationship_definition_keyname = 'allowed-child'
+                AND related_entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1)
+                AND is_deleted = 0
+            ) AS defs,
+            (
+                SELECT
+                    entity.entity_definition_keyname AS keyname
+                FROM
+                    relationship,
+                    entity
+                WHERE entity.id = relationship.entity_id
+                AND relationship.related_entity_id = %s
+                AND relationship.relationship_definition_keyname IN ('expander', 'editor', 'owner')
+                AND relationship.is_deleted = 0
+                AND entity.is_deleted = 0
+            ) AS rights
+            WHERE rights.keyname = defs.keyname;
+        """  % (entity_id, self.__user_id)
         # logging.debug(sql)
         result = self.db_query(sql)
 
