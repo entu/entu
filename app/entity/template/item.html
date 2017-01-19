@@ -175,11 +175,6 @@
             "Entity title": "{{ page_title.replace('\"', '\\\"') }}"
         })
 
-        if($('#searchbox').val() === '' && $('#list_items listitem').length <= 1) {
-            $('#content').css('left', $('#list').css('left'));
-            $('#list').hide();
-        }
-
         make_tables('/api2/entity-{{ entity.get('id') }}/childs', '#childs');
         make_tables('/api2/entity-{{ entity.get('id') }}/referrals', '#referrals');
 

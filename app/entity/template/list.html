@@ -108,6 +108,11 @@
                         break;
                 }
 
+                if($('#searchbox').val() === '' && data.count <= 1) {
+                    $('#content').css('left', $('#list').css('left'));
+                    $('#list').hide();
+                }
+
                 spinner('list');
             }, 'json');
         }
