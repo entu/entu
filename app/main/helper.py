@@ -402,6 +402,8 @@ class myUser(myE):
 
                     user['id'] = new_person_id
                     logging.debug('Created person #%s' % new_person_id)
+
+                    self.redirect('/entity/person/%s' % new_person_id)
             else:
                 logging.debug('Cant create person - user-parent not configured!')
                 return
