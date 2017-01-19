@@ -40,11 +40,6 @@
                     window.history.replaceState('entity-'+id, '', '/entity/{{ entity_definition_keyname }}/' + id);
                 };
             });
-
-            if($('#searchbox').val() === '' && data.count <= 1) {
-                $('#content').css('left', $('#list').css('left'));
-                $('#list').hide();
-            }
         } else {
             $('#toolbar').html($('#list_toolbar_template').html());
             $('#content').html('');
@@ -111,6 +106,11 @@
                     default:
                         $('#list_search span').html("{{ _('search_result_count2') }}".replace('%s', data.count));
                         break;
+                }
+
+                if($('#searchbox').val() === '' && data.count <= 1 && (window.location.hash || window.location.pathname.replace('/entity/{{ entity_definition_keyname }}', '').replace('/', ''))) {
+                    $('#content').css('left', $('#list').css('left'));
+                    $('#list').hide();
                 }
 
                 spinner('list');
