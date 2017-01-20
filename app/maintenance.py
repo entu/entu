@@ -452,7 +452,7 @@ class Maintenance():
         formula_property = self.db_get("""
             SELECT
                 property.entity_id,
-                REPLACE(REPLACE(REPLACE(property.value_formula, '.*.', '..'), '.-child.', '.parent.'), '.-', '.referrer.') AS formula
+                REPLACE(REPLACE(REPLACE(property.value_formula, '.*.', '..'), '.-child.', '.parent.'), '.-', '.referrer.') AS formula,
                 property_definition.datatype
             FROM property, property_definition
             WHERE property_definition.keyname = property_definition_keyname
