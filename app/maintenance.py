@@ -451,12 +451,14 @@ class Maintenance():
         # get formula property
         formula_property = self.db_get("""
             SELECT
-                entity_id,
-                REPLACE(REPLACE(REPLACE(value_formula, '.*.', '..'), '.-child.', '.parent.'), '.-', '.referrer.') AS formula
-            FROM property
-            WHERE id = %s
-            AND entity_id > 0
-            AND IFNULL(value_formula, '') != ''
+                property.entity_id,
+                REPLACE(REPLACE(REPLACE(property.value_formula, '.*.', '..'), '.-child.', '.parent.'), '.-', '.referrer.') AS formula
+                property_definition.datatype
+            FROM property, property_definition
+            WHERE property_definition.keyname = property_definition_keyname
+            AND property.id = %s
+            AND property.entity_id > 0
+            AND IFNULL(property.value_formula, '') != ''
             LIMIT 1;
         """, property_id)
 
@@ -470,6 +472,7 @@ class Maintenance():
 
         formula_string = formula_property.get('formula')
         entity_id      = formula_property.get('entity_id')
+        datatype       = formula_property.get('datatype')
 
         # get fields from formula string
         for formula in re.findall('{(.*?)}', formula_string):
@@ -517,10 +520,11 @@ class Maintenance():
             for f_key, f_values in fieldvalues.iteritems():
                 pure_formula = pure_formula.replace(f_key, '; '.join([u'%s' % x for x in sorted(f_values)]))
 
-            try:
-                pure_formula = u'%s' % eval(pure_formula, {'__builtins__': None})
-            except Exception, e:
-                pass
+            if datatype in ['decimal', 'integer']:
+                try:
+                    pure_formula = u'%s' % eval(pure_formula, {'__builtins__': None})
+                except Exception, e:
+                    pass
 
             formula_string = formula_string.replace(u'{%s}' % formula, pure_formula)
 
