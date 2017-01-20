@@ -465,7 +465,7 @@ class Maintenance():
         if not formula_property:
             return
 
-        operators   = ['+', '*', '/'] #['+', '-', '*', '/']
+        operators   = [' + ', ' - ', ' * ', ' / ']
         functions   = ['SUM', 'COUNT', 'AVERAGE', 'MIN', 'MAX', 'UNIQUE']
         fields      = []
         fieldvalues = {}
@@ -476,7 +476,7 @@ class Maintenance():
 
         # get fields from formula string
         for formula in re.findall('{(.*?)}', formula_string):
-            for component in re.split('\\%s' % '|\\'.join(operators), ''.join(formula.split())):
+            for component in re.split('\\%s' % '|\\'.join(operators), formula):
                 if not component:
                     continue
                 if component[-1] != ')':
