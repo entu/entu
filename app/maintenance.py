@@ -517,10 +517,10 @@ class Maintenance():
             for f_key, f_values in fieldvalues.iteritems():
                 pure_formula = pure_formula.replace(f_key, '; '.join([u'%s' % x for x in sorted(f_values)]))
 
-            # try:
-            #     pure_formula = u'%s' % eval(pure_formula, {'__builtins__': None})
-            # except Exception, e:
-            #     pass
+            try:
+                pure_formula = u'%s' % eval(pure_formula, {'__builtins__': None})
+            except Exception, e:
+                pass
 
             formula_string = formula_string.replace(u'{%s}' % formula, pure_formula)
 
