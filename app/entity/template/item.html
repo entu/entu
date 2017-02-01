@@ -40,7 +40,7 @@
         </a>
     {% end %}
 </div>
-<table id="entity_meta" style="z-index: 2; position: absolute; top: 180px; right: 15px; background-color: rgb(245, 245, 245); border: rgb(221, 221, 221) solid 1px; border-spacing: 6px; border-collapse: separate;">
+<table id="entity_meta" style="z-index: 2; position: absolute; top: 15px; right: 155px; background-color: rgb(245, 245, 245); border: rgb(221, 221, 221) solid 1px; border-spacing: 6px; border-collapse: separate;">
     <tr>
         <td for="entity_created">{{ _('created') }}</td><td id="entity_created">
             {% if entity.get('properties', {}).get('entu-created-by', {}).get('values', False) %}
