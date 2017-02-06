@@ -22,18 +22,17 @@
     </table>
 {% end %}
 
-<div class="pull-right" style="margin:0px 0px 20px 0px; width:120px; text-align:center; color:#B9B9B9; ">
+<div class="pull-right" style="margin:0px 0px 20px 0px; width:120px; color:#B9B9B9; ">
     <img src="/api2/entity-{{ entity.get('id') }}/picture" id="entity_picture" class="" width="120" style="padding-bottom:4px; width:120px;" /><br />
     <strong style="text-transform:uppercase;">{{ entity['label'] }}</strong>
     {% if public_path %}
         <br />
-        <br />
-        <a class="no-underline" href="/public-{{ public_path[0].get('public_path') }}/entity-{{ entity.get('id') }}" title="/public-{{ public_path[0].get('public_path') }}/entity-{{ entity.get('id') }}" style="display:block; padding:0px 8px;">
+        <a class="no-underline" href="/public-{{ public_path[0].get('public_path') }}/entity-{{ entity.get('id') }}" title="/public-{{ public_path[0].get('public_path') }}/entity-{{ entity.get('id') }}" style="display:block; padding:0px 8px; color:#B9B9B9;">
             <strong>{{ _('public_link') }}</strong>
         </a>
     {% end %}
     
-    {% if entity.get('properties', {}).get('entu-created-by', {}).get('values', False) %}
+    {% if entity.get('properties', {}).get('entu-created-by', {}).get('values', False) or entity.get('properties', {}).get('entu-created-at', {}).get('values', False) %}
         <br />
         <br />
         <strong>{{ _('created') }}</strong>
@@ -51,7 +50,7 @@
         </script>
     {% end %}
 
-    {% if entity.get('properties', {}).get('entu-changed-by', {}).get('values', False) %}
+    {% if entity.get('properties', {}).get('entu-changed-by', {}).get('values', False) or entity.get('properties', {}).get('entu-changed-at', {}).get('values', False) %}
         <br />
         <br />
         <strong>{{ _('changed') }}</strong>
