@@ -33,7 +33,7 @@
         </a>
     {% end %}
     
-    {% if entity.get('properties', {}).get('entu-created-by', {}).get('values', False) or if entity.get('properties', {}).get('entu-created-at', {}).get('values', False) %}
+    {% if entity.get('properties', {}).get('entu-created-by', {}).get('values', False) %}
         <br />
         <br />
         <strong>{{ _('created') }}</strong>
@@ -51,7 +51,7 @@
         </script>
     {% end %}
 
-    {% if entity.get('properties', {}).get('entu-changed-by', {}).get('values', False) or if entity.get('properties', {}).get('entu-changed-at', {}).get('values', False) %}
+    {% if entity.get('properties', {}).get('entu-changed-by', {}).get('values', False) %}
         <br />
         <br />
         <strong>{{ _('changed') }}</strong>
