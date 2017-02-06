@@ -22,54 +22,53 @@
     </table>
 {% end %}
 
-<style>
-#entity_meta {
-    visibility: hidden;
-}
-.pull-right:hover~#entity_meta {
-    visibility: visible;
-}
-</style>
-<div class="pull-right" style="margin:0px 0px 20px 0px; width:120px; text-align:center; text-transform:uppercase; color:#B9B9B9; font-weight:bold;">
+<div class="pull-right" style="margin:0px 0px 20px 0px; width:120px; text-align:center; color:#B9B9B9; ">
     <img src="/api2/entity-{{ entity.get('id') }}/picture" id="entity_picture" class="" width="120" style="padding-bottom:4px; width:120px;" /><br />
-    {{ entity['label'] }}
+    <strong style="text-transform:uppercase;">{{ entity['label'] }}</strong>
     {% if public_path %}
         <br />
-        <a class="no-underline" href="/public-{{ public_path[0].get('public_path') }}/entity-{{ entity.get('id') }}" title="/public-{{ public_path[0].get('public_path') }}/entity-{{ entity.get('id') }}" style="display:block; text-transform:none; font-weight:normal; padding:0px 8px;">
-            {{ _('public_link') }}
+        <br />
+        <a class="no-underline" href="/public-{{ public_path[0].get('public_path') }}/entity-{{ entity.get('id') }}" title="/public-{{ public_path[0].get('public_path') }}/entity-{{ entity.get('id') }}" style="display:block; padding:0px 8px;">
+            <strong>{{ _('public_link') }}</strong>
         </a>
     {% end %}
+    
+    {% if entity.get('properties', {}).get('entu-created-by', {}).get('values', False) or if entity.get('properties', {}).get('entu-created-at', {}).get('values', False) %}
+        <br />
+        <br />
+        <strong>{{ _('created') }}</strong>
+    {% end %}
+    {% if entity.get('properties', {}).get('entu-created-by', {}).get('values', False) %}
+        <br />
+        {{ entity.get('properties', {}).get('entu-created-by', {}).get('values')[0].get('value') }}
+    {% end %}
+    {% if entity.get('properties', {}).get('entu-created-at', {}).get('values', False) %}
+        <br />
+        <span id="entu-created-at"/></span>
+        <script type="text/javascript">
+            var date = new Date("{{ entity.get('properties', {}).get('entu-created-at', {}).get('values',[{'value':''}])[0].get('value') }}".replace(' ', 'T')).toLocaleString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
+            document.getElementById('entu-created-at').textContent = date
+        </script>
+    {% end %}
+
+    {% if entity.get('properties', {}).get('entu-changed-by', {}).get('values', False) or if entity.get('properties', {}).get('entu-changed-at', {}).get('values', False) %}
+        <br />
+        <br />
+        <strong>{{ _('changed') }}</strong>
+    {% end %}
+    {% if entity.get('properties', {}).get('entu-changed-by', {}).get('values', False) %}
+        <br />
+        {{ entity.get('properties', {}).get('entu-changed-by', {}).get('values')[0].get('value') }}
+    {% end %}
+    {% if entity.get('properties', {}).get('entu-changed-at', {}).get('values', False) %}
+        <br />
+        <span id="entu-changed-at"/></span>
+        <script type="text/javascript">
+            var date = new Date("{{ entity.get('properties', {}).get('entu-changed-at', {}).get('values',[{'value':''}])[0].get('value') }}".replace(' ', 'T')).toLocaleString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
+            document.getElementById('entu-changed-at').textContent = date
+        </script>
+    {% end %}
 </div>
-<table id="entity_meta" class="no-print" style="z-index: 2; position: absolute; top: 15px; right: 155px; background-color: rgb(245, 245, 245); border: rgb(221, 221, 221) solid 1px; border-spacing: 6px; border-collapse: separate;">
-    <tr>
-        <td for="entity_created">{{ _('created') }}</td><td id="entity_created">
-            {% if entity.get('properties', {}).get('entu-created-by', {}).get('values', False) %}
-                {{ entity.get('properties', {}).get('entu-created-by', {}).get('values')[0].get('value') }}
-            {% end %}
-            {% if entity.get('properties', {}).get('entu-created-at', {}).get('values', False) %}
-                <div id="entu-created-at"/>
-                <script type="text/javascript">
-                    var date = new Date("{{ entity.get('properties', {}).get('entu-created-at', {}).get('values',[{'value':''}])[0].get('value') }}".replace(' ', 'T')).toLocaleString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
-                    document.getElementById('entu-created-at').textContent = date
-                </script>
-            {% end %}
-        </td>
-    </tr>
-    <tr>
-        <td for="entity_changed">{{ _('changed') }}</td><td id="entity_changed">
-            {% if entity.get('properties', {}).get('entu-changed-by', {}).get('values', False) %}
-                {{ entity.get('properties', {}).get('entu-changed-by', {}).get('values')[0].get('value') }}
-            {% end %}
-            {% if entity.get('properties', {}).get('entu-changed-at', {}).get('values', False) %}
-                <div id="entu-changed-at"/>
-                <script type="text/javascript">
-                    var date = new Date("{{ entity.get('properties', {}).get('entu-changed-at', {}).get('values',[{'value':''}])[0].get('value') }}".replace(' ', 'T')).toLocaleString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
-                    document.getElementById('entu-changed-at').textContent = date
-                </script>
-            {% end %}
-        </td>
-    </tr>
-</table>
 
 <h3 style="margin:0px 140px 8px 0px; line-height:23px;">{{ entity['displayname'] }}</h3>
 <div style="margin-right:140px;">
