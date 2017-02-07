@@ -18,12 +18,13 @@ class API2MetNo(myRequestHandler):
                 arguments[x] = y[0]
 
         http_client = httpclient.AsyncHTTPClient()
-        erply_user_request = yield http_client.fetch(httpclient.HTTPRequest(
+        metno_request = yield http_client.fetch(httpclient.HTTPRequest(
             url='https://api.met.no/weatherapi/' + metno_request + '?' + urllib.urlencode(arguments),
             method='GET'
         ))
 
-        self.write(erply_user_request.body)
+        self.set_header('Content-Type', metno_request.headers['Content-Type'])
+        self.write(metno_request.body)
 
 
 
