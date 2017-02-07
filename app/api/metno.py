@@ -9,7 +9,7 @@ from main.helper import *
 class API2MetNo(myRequestHandler):
     @web.removeslash
     @gen.coroutine
-    def post(self, metno_request):
+    def get(self, metno_request):
         metno_url = 'https://api.met.no/weatherapi/' + metno_request
 
         http_client = httpclient.AsyncHTTPClient()
