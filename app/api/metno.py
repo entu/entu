@@ -24,7 +24,7 @@ class API2MetNo(myRequestHandler):
         ))
 
         self.add_header('Access-Control-Allow-Origin', '*')
-        self.set_header('Content-Type', metno_request.headers['Content-Type'])
+        self.add_header('Content-Type', metno_request.headers['Content-Type'])
         self.write(metno_request.body)
 
 
