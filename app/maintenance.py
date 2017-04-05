@@ -51,7 +51,7 @@ def customers():
             use_pure = False,
             autocommit = True
         )
-    cursor = db.cursor(dictionary=True)
+    cursor = db.cursor(dictionary=True, buffered=True)
 
     sql = """
         SELECT DISTINCT
@@ -164,7 +164,7 @@ class Maintenance():
                 UNION SELECT related_entity_id AS id FROM relationship WHERE created >= DATE_SUB(NOW(), INTERVAL %(hours)s HOUR);
             """ % { 'hours': self.hours }
 
-        cursor = self.db.cursor(dictionary=True)
+        cursor = self.db.cursor(dictionary=True, buffered=True)
 
         cursor.execute(sql)
 
@@ -182,7 +182,7 @@ class Maintenance():
         if not sql:
             return
 
-        cursor = self.db.cursor(dictionary=True)
+        cursor = self.db.cursor(dictionary=True, buffered=True)
 
         if args:
             cursor.execute(sql, tuple(args))
@@ -212,7 +212,7 @@ class Maintenance():
         if not sql:
             return
 
-        cursor = self.db.cursor(dictionary=True)
+        cursor = self.db.cursor(dictionary=True, buffered=True)
 
         if args:
             cursor.execute(sql, tuple(args))
@@ -239,7 +239,7 @@ class Maintenance():
         if not sql:
             return
 
-        cursor = self.db.cursor()
+        cursor = self.db.cursor(buffered=True)
 
         if args:
             cursor.execute(sql, tuple(args))

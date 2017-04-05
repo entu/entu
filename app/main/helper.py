@@ -76,7 +76,7 @@ class myDatabase():
         if not sql:
             return
 
-        cursor = self.db(self.request.host).cursor(dictionary=True)
+        cursor = self.db(self.request.host).cursor(dictionary=True, buffered=True)
 
         try:
             if args:
@@ -110,7 +110,7 @@ class myDatabase():
         if not sql:
             return
 
-        cursor = self.db(self.request.host).cursor(dictionary=True)
+        cursor = self.db(self.request.host).cursor(dictionary=True, buffered=True)
 
         try:
             if args:
@@ -142,7 +142,7 @@ class myDatabase():
             return
 
         db = self.db(self.request.host)
-        cursor = db.cursor()
+        cursor = db.cursor(buffered=True)
 
         try:
             if args:
@@ -166,7 +166,7 @@ class myDatabase():
             return
 
         db = self.db(self.request.host)
-        cursor = db.cursor()
+        cursor = db.cursor(buffered=True)
 
         try:
             if args:
@@ -223,7 +223,7 @@ class myDatabase():
                     autocommit = True
                 )
 
-            cursor = db.cursor(dictionary=True)
+            cursor = db.cursor(dictionary=True, buffered=True)
 
             sql = """
                 SELECT DISTINCT
