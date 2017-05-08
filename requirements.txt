@@ -1,9 +1,9 @@
-beautifulsoup4==4.5.3
+beautifulsoup4==4.6.0
 boto==2.46.1
 chardet==3.0.2
 mistune==0.7.4
-newrelic==2.84.0.64
-pillow==4.1.0
+newrelic==2.86.0.65
+pillow==4.1.1
 pymongo==3.4.0
 python-dateutil==2.6.0
 pyyaml==3.12
@@ -11,5 +11,5 @@ raven==6.0.0
 simpleaes==1.0
 suds==0.4
 tornado==4.5.1
-xmltodict==0.10.2
+xmltodict==0.11.0
 https://cdn.mysql.com/Downloads/Connector-Python/mysql-connector-python-2.1.5.tar.gz
