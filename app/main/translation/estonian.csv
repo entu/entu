@@ -3,6 +3,7 @@ close,Sulge
 log_in,Logi sisse
 log_in_mid,Mobiil-ID
 log_in_mid_phone,Telefoninumber
+log_in_mid_idcode,Isikukood
 log_in_mid_go,Sisene
 log_in_mid_cancel,Tühista
 log_in_mid_message,"Kontrollige, et näete oma mobiiltelefoni ekraanil täpselt sama numbrit ning seejärel sisestage Mobiil-ID PIN1."

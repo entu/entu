@@ -42,7 +42,7 @@
                 <tr id="mobileid-input" style="display:none;">
                     <td colspan="2" style="text-align:center; border-top:none; padding-bottom:10px;" >
                         <form id="mobileid-form" class="input-append" style="margin:0px; padding:0px;">
-                            <input id="mobileid-phone" class="span2" type="text" placeholder="{{ _('log_in_mid_phone') }}" />
+                            <input id="mobileid-idcode" class="span2" type="text" placeholder="{{ _('log_in_mid_idcode') }}" />
                             <button id="mobileid-submit" class="btn" type="submit">{{ _('log_in_mid_go') }}</button>
                         </form>
                     </td>
@@ -101,7 +101,7 @@
             $('.mobileid').click(function() {
                 $('#mobileid-input').toggle();
                 $('#mobileid-input').addClass('info');
-                $('#mobileid-phone').focus();
+                $('#mobileid-idcode').focus();
             });
 
             $('.mobileid').hover(function() {
@@ -114,48 +114,50 @@
 
             mobile_id_inprogress = false;
             $('#mobileid-form').submit(function(e) {
-                if($('#mobileid-phone').val() && !mobile_id_inprogress) {
+                if($('#mobileid-idcode').val() && !mobile_id_inprogress) {
                     mobile_id_inprogress = true;
-                    $.post('/auth/mobileid', {
-                        mobile: $('#mobileid-phone').val(),
-                    }, function(data) {
-                        mobile_id_inprogress = false;
-                        $('#mobileid-code').html('');
-                        if(data){
-                            $('#mobileid-code').html(data.code);
-                            $('#mobileid-code').data('session', data.session);
-                            $('#mobileid-code').data('file', data.file);
+                    $.ajax({
+                        url: 'https://auth.entu.ee/auth/mobile-id',
+                        type: 'POST',
+                        dataType: 'json',
+                        success: function(data) {
+                            $('#mobileid-code').html(data.result.code);
+                            $('#mobileid-code').data('key', data.result.key);
                             $('#login-authenticators').hide();
                             $('#login-mid').show();
                             setTimeout(mobile_id_check, 5000);
-                        } else {
-                            $('#mobileid-phone').select();
+                        },
+                        error: function(data) {
+                            console.log(data);
+                            $('#mobileid-idcode').select();
                             $('#mobileid-form').effect('shake', { times:3 }, 100);
                         }
-                    }, 'json');
+                    });
                 }
                 return false;
             });
 
             function mobile_id_check() {
-                $.post('/auth/mobileid', {
-                    session: $('#mobileid-code').data('session'),
-                    file: $('#mobileid-code').data('file'),
-                }, function(data) {
-                    if(data) {
-                        if(data.url) {
-                            window.location.href = data.url;
-                        } else if(data.in_progress) {
+                $.ajax({
+                    url: 'https://auth.entu.ee/auth/mobile-id/' + $('#mobileid-code').data('key'),
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        if(data.result.redirect) {
+                            window.location.href = data.result.redirect;
+                        } else if(data.result.in_progress) {
                             setTimeout(mobile_id_check, 2000);
-                        } else {
-                            $('#mobileid-cancel').click();
                         }
+                    },
+                    error: function(data) {
+                        console.log(data);
+                        $('#mobileid-cancel').click();
                     }
-                }, 'json');
+                });
             }
 
             $('#mobileid-cancel').click(function() {
-                $('#mobileid-phone').val('')
+                $('#mobileid-idcode').val('')
                 $('#mobileid-input').hide();
                 $('#mobileid-code').html('');
                 $('#login-mid').hide();
