@@ -124,6 +124,7 @@
                         },
                         dataType: 'json',
                         success: function(data) {
+                            console.log(data);
                             $('#mobileid-code').html(data.result.code);
                             $('#mobileid-code').data('key', data.result.key);
                             $('#login-authenticators').hide();
@@ -132,6 +133,7 @@
                         },
                         error: function(data) {
                             console.log(data);
+                            mobile_id_inprogress = false;
                             $('#mobileid-idcode').select();
                             $('#mobileid-form').effect('shake', { times:3 }, 100);
                         }
@@ -146,6 +148,7 @@
                     type: 'GET',
                     dataType: 'json',
                     success: function(data) {
+                        console.log(data);
                         if(data.result.redirect) {
                             window.location.href = data.result.redirect;
                         } else if(data.result.in_progress) {
