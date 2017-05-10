@@ -119,6 +119,9 @@
                     $.ajax({
                         url: 'https://auth.entu.ee/auth/mobile-id',
                         type: 'POST',
+                        data: {
+                            idcode: $('#mobileid-idcode').val(),
+                        },
                         dataType: 'json',
                         success: function(data) {
                             $('#mobileid-code').html(data.result.code);
