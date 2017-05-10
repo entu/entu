@@ -95,6 +95,20 @@
     </div>
     <script>
         $(document).ready(function(){
+            var getUrlParameter = function getUrlParameter(sParam) {
+                var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+                    sURLVariables = sPageURL.split('&'),
+                    sParameterName,
+                    i;
+
+                for (i = 0; i < sURLVariables.length; i++) {
+                    sParameterName = sURLVariables[i].split('=');
+
+                    if (sParameterName[0] === sParam) {
+                        return sParameterName[1] === undefined ? true : sParameterName[1];
+                    }
+                }
+            };
 
             $('#content-wrap .content').css('min-height', $(document).height() - 255 + 'px');
 
@@ -121,6 +135,7 @@
                         type: 'POST',
                         data: {
                             idcode: $('#mobileid-idcode').val(),
+                            next: getUrlParameter('next')
                         },
                         dataType: 'json',
                         success: function(data) {
@@ -153,6 +168,8 @@
                             window.location.href = data.result.redirect;
                         } else if(data.result.in_progress) {
                             setTimeout(mobile_id_check, 2000);
+                        } else {
+                            $('#mobileid-cancel').click();
                         }
                     },
                     error: function(data) {
