@@ -164,11 +164,12 @@
                     dataType: 'json',
                     success: function(data) {
                         console.log(data);
-                        if(data.result.redirect) {
-                            window.location.href = data.result.redirect;
-                        } else if(data.result.in_progress) {
+                        if(data.result.in_progress) {
                             setTimeout(mobile_id_check, 2000);
+                        } else if(data.result.authenticated) {
+                            window.location.href = 'https://auth.entu.ee/auth/mobile-id/' + $('#mobileid-code').data('key') + window.location.search;
                         } else {
+                            console.log(data);
                             $('#mobileid-cancel').click();
                         }
                     },
