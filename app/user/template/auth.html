@@ -95,21 +95,6 @@
     </div>
     <script>
         $(document).ready(function(){
-            var getUrlParameter = function getUrlParameter(sParam) {
-                var sPageURL = decodeURIComponent(window.location.search.substring(1)),
-                    sURLVariables = sPageURL.split('&'),
-                    sParameterName,
-                    i;
-
-                for (i = 0; i < sURLVariables.length; i++) {
-                    sParameterName = sURLVariables[i].split('=');
-
-                    if (sParameterName[0] === sParam) {
-                        return sParameterName[1] === undefined ? true : sParameterName[1];
-                    }
-                }
-            };
-
             $('#content-wrap .content').css('min-height', $(document).height() - 255 + 'px');
 
             $('.mobileid').click(function() {
@@ -131,11 +116,10 @@
                 if($('#mobileid-idcode').val() && !mobile_id_inprogress) {
                     mobile_id_inprogress = true;
                     $.ajax({
-                        url: 'https://auth.entu.ee/auth/mobile-id',
+                        url: '{{ mobileid }}',
                         type: 'POST',
                         data: {
-                            idcode: $('#mobileid-idcode').val(),
-                            next: getUrlParameter('next')
+                            idcode: $('#mobileid-idcode').val()
                         },
                         dataType: 'json',
                         success: function(data) {
@@ -144,7 +128,7 @@
                             $('#mobileid-code').data('key', data.result.key);
                             $('#login-authenticators').hide();
                             $('#login-mid').show();
-                            setTimeout(mobile_id_check, 5000);
+                            setTimeout(mobile_id_check, 7000);
                         },
                         error: function(data) {
                             console.log(data);
@@ -159,7 +143,7 @@
 
             function mobile_id_check() {
                 $.ajax({
-                    url: 'https://auth.entu.ee/auth/mobile-id/' + $('#mobileid-code').data('key'),
+                    url: '{{ mobileid }}/' + $('#mobileid-code').data('key'),
                     type: 'POST',
                     dataType: 'json',
                     success: function(data) {
@@ -167,7 +151,7 @@
                         if(data.result.in_progress) {
                             setTimeout(mobile_id_check, 2000);
                         } else if(data.result.authenticated) {
-                            window.location.href = 'https://auth.entu.ee/auth/mobile-id/' + $('#mobileid-code').data('key') + window.location.search;
+                            window.location.href = '{{ mobileid }}/' + $('#mobileid-code').data('key') + '?next={{ redirect_url }}';
                         } else {
                             console.log(data);
                             $('#mobileid-cancel').click();
