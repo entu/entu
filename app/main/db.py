@@ -70,6 +70,12 @@ class Entity():
         # logging.debug(sql)
         entity_id = self.db_execute_lastrowid(sql, entity_definition_keyname, user_id)
 
+        self.mongodb('entu').maintenance.insert_one({
+            'created_at': datetime.datetime.utcnow(),
+            'db': self.app_settings('database-name'),
+            'entity': entity_id
+        })
+
         if not parent_entity_id:
             return entity_id
 
