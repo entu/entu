@@ -892,7 +892,7 @@ class Entity():
                     'created_at': datetime.datetime.utcnow(),
                     'db': self.app_settings('database-name'),
                     'entity': e,
-                    'action': 'rights_update'
+                    'action': 'rights_added'
                 })
 
             for re in related_entity_id:
@@ -900,7 +900,7 @@ class Entity():
                     'created_at': datetime.datetime.utcnow(),
                     'db': self.app_settings('database-name'),
                     'entity': re,
-                    'action': 'rights_for_update'
+                    'action': 'rights_for_added'
                 })
 
         self.db_execute('UPDATE entity SET changed = NOW() WHERE entity.id IN (%s);' % ','.join(map(str, entity_id)))
