@@ -9,7 +9,6 @@ python-dateutil==2.6.0
 pyyaml==3.12
 raven==6.0.0
 simpleaes==1.0
-suds==0.4
 tornado==4.5.1
 xmltodict==0.11.0
 https://cdn.mysql.com/Downloads/Connector-Python/mysql-connector-python-2.1.5.tar.gz
