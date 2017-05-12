@@ -148,7 +148,7 @@ class Entity():
 
         # Populate default values
         for default_value in self.db_query('SELECT keyname, defaultvalue FROM property_definition WHERE entity_definition_keyname = %s AND defaultvalue IS NOT null', entity_definition_keyname):
-            self.set_property(entity_id=entity_id, property_definition_keyname=default_value.get('keyname'), value=default_value.get('defaultvalue'))
+            self.set_property(entity_id=entity_id, property_definition_keyname=default_value.get('keyname'), value=default_value.get('defaultvalue'), ignore_maintenance=True)
 
         # Propagate properties
         sql = """
@@ -436,7 +436,7 @@ class Entity():
 
         return True
 
-    def set_property(self, entity_id=None, relationship_id=None, property_definition_keyname=None, value=None, old_property_id=None, uploaded_file=None, ignore_user=False):
+    def set_property(self, entity_id=None, relationship_id=None, property_definition_keyname=None, value=None, old_property_id=None, uploaded_file=None, ignore_user=False, ignore_maintenance=False):
         """
         Saves property value. Creates new one if old_property_id = None. Returns new_property_id.
 
@@ -517,12 +517,13 @@ class Entity():
 
         # If no value, then property is deleted, return
         if not value:
-            self.mongodb('entu').maintenance.insert_one({
-                'created_at': datetime.datetime.utcnow(),
-                'db': self.app_settings('database-name'),
-                'entity': entity_id,
-                'action': 'update'
-            })
+            if not ignore_maintenance:
+                self.mongodb('entu').maintenance.insert_one({
+                    'created_at': datetime.datetime.utcnow(),
+                    'db': self.app_settings('database-name'),
+                    'entity': entity_id,
+                    'action': 'update'
+                })
             return
 
         value_display = None
@@ -607,12 +608,13 @@ class Entity():
 
         self.db_execute('UPDATE entity SET changed = NOW(), changed_by = %s WHERE id = %s;', user_id, entity_id)
 
-        self.mongodb('entu').maintenance.insert_one({
-            'created_at': datetime.datetime.utcnow(),
-            'db': self.app_settings('database-name'),
-            'entity': entity_id,
-            'action': 'update'
-        })
+        if not ignore_maintenance:
+            self.mongodb('entu').maintenance.insert_one({
+                'created_at': datetime.datetime.utcnow(),
+                'db': self.app_settings('database-name'),
+                'entity': entity_id,
+                'action': 'update'
+            })
 
         return new_property_id
 
