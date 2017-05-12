@@ -144,7 +144,7 @@ class Entity():
 
         # set creator to owner
         if user_id:
-            self.set_rights(entity_id=entity_id, related_entity_id=user_id, right='owner')
+            self.set_rights(entity_id=entity_id, related_entity_id=user_id, right='owner', ignore_maintenance=True)
 
         # Populate default values
         for default_value in self.db_query('SELECT keyname, defaultvalue FROM property_definition WHERE entity_definition_keyname = %s AND defaultvalue IS NOT null', entity_definition_keyname):
@@ -877,7 +877,7 @@ class Entity():
 
         return rights
 
-    def set_rights(self, entity_id, related_entity_id, right=None, ignore_user=False):
+    def set_rights(self, entity_id, related_entity_id, right=None, ignore_user=False, ignore_maintenance=False):
         if not entity_id or not related_entity_id:
             return
 
@@ -913,21 +913,22 @@ class Entity():
 
         self.db_execute('UPDATE entity SET changed = NOW() WHERE entity.id IN (%s);' % ','.join(map(str, entity_id)))
 
-        for e in entity_id:
-            self.mongodb('entu').maintenance.insert_one({
-                'created_at': datetime.datetime.utcnow(),
-                'db': self.app_settings('database-name'),
-                'entity': e,
-                'action': 'rights'
-            })
+        if not ignore_maintenance:
+            for e in entity_id:
+                self.mongodb('entu').maintenance.insert_one({
+                    'created_at': datetime.datetime.utcnow(),
+                    'db': self.app_settings('database-name'),
+                    'entity': e,
+                    'action': 'rights'
+                })
 
-        for re in related_entity_id:
-            self.mongodb('entu').maintenance.insert_one({
-                'created_at': datetime.datetime.utcnow(),
-                'db': self.app_settings('database-name'),
-                'entity': re,
-                'action': 'rights'
-            })
+            for re in related_entity_id:
+                self.mongodb('entu').maintenance.insert_one({
+                    'created_at': datetime.datetime.utcnow(),
+                    'db': self.app_settings('database-name'),
+                    'entity': re,
+                    'action': 'rights'
+                })
 
 
     def set_sharing(self, entity_id, sharing):
