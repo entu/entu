@@ -524,7 +524,7 @@ class EntityParents(myRequestHandler, Entity):
         if not entity_id or not parent:
             return
 
-        self.set_relations(entity_id=parent, related_entity_id=entity_id, relationship_definition_keyname='child', delete=delete)
+        self.set_parent(entity_id=entity_id, parent=parent, delete=delete)
 
         self.write('OK')
 

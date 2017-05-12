@@ -75,7 +75,7 @@ class Entity():
                 'created_at': datetime.datetime.utcnow(),
                 'db': self.app_settings('database-name'),
                 'entity': entity_id,
-                'action': 'add'
+                'action': 'created'
             })
 
             return entity_id
@@ -218,7 +218,7 @@ class Entity():
             'created_at': datetime.datetime.utcnow(),
             'db': self.app_settings('database-name'),
             'entity': entity_id,
-            'action': 'add'
+            'action': 'created'
         })
 
         for row in self.db_query("SELECT DISTINCT entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND related_entity_id = %s;", entity_id):
@@ -226,7 +226,7 @@ class Entity():
                 'created_at': datetime.datetime.utcnow(),
                 'db': self.app_settings('database-name'),
                 'entity': row.get('entity_id'),
-                'action': 'relations'
+                'action': 'child_created'
             })
 
         for row in self.db_query("SELECT DISTINCT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner') AND entity_id = %s;", entity_id):
@@ -234,7 +234,7 @@ class Entity():
                 'created_at': datetime.datetime.utcnow(),
                 'db': self.app_settings('database-name'),
                 'entity': row.get('related_entity_id'),
-                'action': 'rights'
+                'action': 'rights_for_created'
             })
 
         return entity_id
@@ -369,7 +369,7 @@ class Entity():
                 'created_at': datetime.datetime.utcnow(),
                 'db': self.app_settings('database-name'),
                 'entity': new_entity_id,
-                'action': 'add'
+                'action': 'created'
             })
 
             for row in self.db_query("SELECT DISTINCT entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND related_entity_id = %s;", new_entity_id):
@@ -377,7 +377,7 @@ class Entity():
                     'created_at': datetime.datetime.utcnow(),
                     'db': self.app_settings('database-name'),
                     'entity': row.get('entity_id'),
-                    'action': 'relations'
+                    'action': 'child_created'
                 })
 
             for row in self.db_query("SELECT DISTINCT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner') AND entity_id = %s;", new_entity_id):
@@ -385,7 +385,7 @@ class Entity():
                     'created_at': datetime.datetime.utcnow(),
                     'db': self.app_settings('database-name'),
                     'entity': row.get('related_entity_id'),
-                    'action': 'rights'
+                    'action': 'rights_for_created'
                 })
 
 
@@ -415,7 +415,7 @@ class Entity():
             'created_at': datetime.datetime.utcnow(),
             'db': self.app_settings('database-name'),
             'entity': entity_id,
-            'action': 'delete'
+            'action': 'deleted'
         })
 
         for row in self.db_query("SELECT DISTINCT entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND related_entity_id = %s;", entity_id):
@@ -423,7 +423,7 @@ class Entity():
                 'created_at': datetime.datetime.utcnow(),
                 'db': self.app_settings('database-name'),
                 'entity': row.get('entity_id'),
-                'action': 'relations'
+                'action': 'child_deleted'
             })
 
         for row in self.db_query("SELECT DISTINCT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner') AND entity_id = %s;", entity_id):
@@ -431,7 +431,7 @@ class Entity():
                 'created_at': datetime.datetime.utcnow(),
                 'db': self.app_settings('database-name'),
                 'entity': row.get('related_entity_id'),
-                'action': 'rights'
+                'action': 'rights_for_deleted'
             })
 
         return True
@@ -522,7 +522,7 @@ class Entity():
                     'created_at': datetime.datetime.utcnow(),
                     'db': self.app_settings('database-name'),
                     'entity': entity_id,
-                    'action': 'update'
+                    'action': 'updated'
                 })
             return
 
@@ -613,7 +613,7 @@ class Entity():
                 'created_at': datetime.datetime.utcnow(),
                 'db': self.app_settings('database-name'),
                 'entity': entity_id,
-                'action': 'update'
+                'action': 'updated'
             })
 
         return new_property_id
@@ -759,98 +759,71 @@ class Entity():
 
         return self.db_get('SELECT value_string FROM property WHERE id = %s', property_id).get('value_string')
 
-    def set_relations(self, entity_id, related_entity_id, relationship_definition_keyname, delete=False, update=False):
+    def set_parent(self, entity_id, parent, delete=False):
         """
-        Adds or removes Entity relations. entity_id, related_entity_id, relationship_definition_keyname can be single value or list of values.
+        Adds or removes Entity parent. entity_id and parent can be single value or list of values.
 
         """
+
+        if type(parent) is not list:
+            parent = [parent]
 
         if type(entity_id) is not list:
             entity_id = [entity_id]
 
-        if type(related_entity_id) is not list:
-            related_entity_id = [related_entity_id]
+        for e in parent:
+            for r in entity_id:
+                self.db_execute('UPDATE entity SET changed = NOW() WHERE entity.id = %s;', r)
 
-        if type(relationship_definition_keyname) is not list:
-            relationship_definition_keyname = [relationship_definition_keyname]
-
-        for e in entity_id:
-            for r in related_entity_id:
-                for t in relationship_definition_keyname:
-                    self.db_execute('UPDATE entity SET changed = NOW() WHERE entity.id = %s;', r if t == 'child' else e)
-                    if delete == True:
+                if delete == True:
+                    sql = """
+                        UPDATE relationship SET
+                            deleted_by = %s,
+                            deleted = NOW(),
+                            is_deleted = 1
+                        WHERE relationship_definition_keyname = 'child'
+                        AND entity_id = %s
+                        AND related_entity_id = %s;
+                    """ % (self.__user_id, e, r)
+                    # logging.debug(sql)
+                    self.db_execute(sql)
+                else:
+                    sql = """
+                        SELECT id
+                        FROM relationship
+                        WHERE relationship_definition_keyname = 'child'
+                        AND entity_id = %s
+                        AND related_entity_id = %s
+                        AND is_deleted = 0;
+                    """ % (e, r)
+                    old = self.db_get(sql)
+                    # logging.debug(sql)
+                    if not old:
                         sql = """
-                            UPDATE relationship SET
-                                deleted_by = %s,
-                                deleted = NOW(),
-                                is_deleted = 1
-                            WHERE relationship_definition_keyname = '%s'
-                            AND entity_id = %s
-                            AND related_entity_id = %s;
-                        """ % (self.__user_id, t, e, r)
+                            INSERT INTO relationship SET
+                                relationship_definition_keyname = 'child',
+                                entity_id = %s,
+                                related_entity_id = %s,
+                                created_by = %s,
+                                created = NOW();
+                        """ % (e, r, self.__user_id)
                         # logging.debug(sql)
                         self.db_execute(sql)
-                    elif update == True:
-                        sql = """
-                            UPDATE relationship SET
-                                deleted_by = NULL,
-                                deleted = NULL,
-                                changed_by = %s,
-                                changed = NOW()
-                            WHERE relationship_definition_keyname = '%s'
-                            AND entity_id = %s
-                            AND related_entity_id = %s;
-                        """ % (self.__user_id, t, e, r)
-                        # logging.debug(sql)
-                        old = self.db_execute_rowcount(sql)
-                        if not old:
-                            sql = """
-                                INSERT INTO relationship SET
-                                    relationship_definition_keyname = '%s',
-                                    entity_id = %s,
-                                    related_entity_id = %s,
-                                    created_by = %s,
-                                    created = NOW();
-                            """ % (t, e, r, self.__user_id)
-                            # logging.debug(sql)
-                            self.db_execute(sql)
-                    else:
-                        sql = """
-                            SELECT id
-                            FROM relationship
-                            WHERE relationship_definition_keyname = '%s'
-                            AND entity_id = %s
-                            AND related_entity_id = %s
-                            AND is_deleted = 0;
-                        """ % (t, e, r)
-                        old = self.db_get(sql)
-                        # logging.debug(sql)
-                        if not old:
-                            sql = """
-                                INSERT INTO relationship SET
-                                    relationship_definition_keyname = '%s',
-                                    entity_id = %s,
-                                    related_entity_id = %s,
-                                    created_by = %s,
-                                    created = NOW();
-                            """ % (t, e, r, self.__user_id)
-                            # logging.debug(sql)
-                            self.db_execute(sql)
 
         for e in entity_id:
             self.mongodb('entu').maintenance.insert_one({
                 'created_at': datetime.datetime.utcnow(),
                 'db': self.app_settings('database-name'),
                 'entity': e,
-                'action': 'relations'
+                'action': 'parent_added'
             })
 
-        for re in related_entity_id:
+        for p in parent:
             self.mongodb('entu').maintenance.insert_one({
                 'created_at': datetime.datetime.utcnow(),
                 'db': self.app_settings('database-name'),
-                'entity': re,
-                'action': 'relations'
+                'entity': p,
+                'action': 'child_added'
             })
 
     def get_rights(self, entity_id):
@@ -913,15 +886,13 @@ class Entity():
                 for re in related_entity_id:
                     self.db_execute('INSERT INTO relationship SET relationship_definition_keyname = %s, entity_id = %s, related_entity_id = %s, created = NOW(), created_by = %s;', right, int(e), int(re), user_id)
 
-        self.db_execute('UPDATE entity SET changed = NOW() WHERE entity.id IN (%s);' % ','.join(map(str, entity_id)))
-
         if not ignore_maintenance:
             for e in entity_id:
                 self.mongodb('entu').maintenance.insert_one({
                     'created_at': datetime.datetime.utcnow(),
                     'db': self.app_settings('database-name'),
                     'entity': e,
-                    'action': 'rights'
+                    'action': 'rights_update'
                 })
 
             for re in related_entity_id:
@@ -929,8 +900,11 @@ class Entity():
                     'created_at': datetime.datetime.utcnow(),
                     'db': self.app_settings('database-name'),
                     'entity': re,
-                    'action': 'rights'
+                    'action': 'rights_for_update'
                 })
+
+        self.db_execute('UPDATE entity SET changed = NOW() WHERE entity.id IN (%s);' % ','.join(map(str, entity_id)))
+
 
 
     def set_sharing(self, entity_id, sharing):
