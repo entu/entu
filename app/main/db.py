@@ -221,7 +221,7 @@ class Entity():
             'action': 'add'
         })
 
-        for row in self.db_query("SELECT entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND related_entity_id = %s;", entity_id):
+        for row in self.db_query("SELECT DISTINCT entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND related_entity_id = %s;", entity_id):
             self.mongodb('entu').maintenance.insert_one({
                 'created_at': datetime.datetime.utcnow(),
                 'db': self.app_settings('database-name'),
@@ -229,14 +229,13 @@ class Entity():
                 'action': 'relations'
             })
 
-        for row in self.db_query("SELECT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner') AND entity_id = %s;", entity_id):
+        for row in self.db_query("SELECT DISTINCT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner') AND entity_id = %s;", entity_id):
             self.mongodb('entu').maintenance.insert_one({
                 'created_at': datetime.datetime.utcnow(),
                 'db': self.app_settings('database-name'),
                 'entity': row.get('related_entity_id'),
                 'action': 'rights'
             })
-
 
         return entity_id
 
@@ -366,12 +365,29 @@ class Entity():
                 AND entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1);
             """, new_entity_id, self.__user_id, self.__user_id, new_entity_id)
 
-        self.mongodb('entu').maintenance.insert_one({
-            'created_at': datetime.datetime.utcnow(),
-            'db': self.app_settings('database-name'),
-            'entity': new_entity_id,
-            'action': 'add'
-        })
+            self.mongodb('entu').maintenance.insert_one({
+                'created_at': datetime.datetime.utcnow(),
+                'db': self.app_settings('database-name'),
+                'entity': new_entity_id,
+                'action': 'add'
+            })
+
+            for row in self.db_query("SELECT DISTINCT entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND related_entity_id = %s;", new_entity_id):
+                self.mongodb('entu').maintenance.insert_one({
+                    'created_at': datetime.datetime.utcnow(),
+                    'db': self.app_settings('database-name'),
+                    'entity': row.get('entity_id'),
+                    'action': 'relations'
+                })
+
+            for row in self.db_query("SELECT DISTINCT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner') AND entity_id = %s;", new_entity_id):
+                self.mongodb('entu').maintenance.insert_one({
+                    'created_at': datetime.datetime.utcnow(),
+                    'db': self.app_settings('database-name'),
+                    'entity': row.get('related_entity_id'),
+                    'action': 'rights'
+                })
+
 
     def delete_entity(self, entity_id):
         if not self.db_get("""
@@ -401,6 +417,22 @@ class Entity():
             'entity': entity_id,
             'action': 'delete'
         })
+
+        for row in self.db_query("SELECT DISTINCT entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND related_entity_id = %s;", entity_id):
+            self.mongodb('entu').maintenance.insert_one({
+                'created_at': datetime.datetime.utcnow(),
+                'db': self.app_settings('database-name'),
+                'entity': row.get('entity_id'),
+                'action': 'relations'
+            })
+
+        for row in self.db_query("SELECT DISTINCT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner') AND entity_id = %s;", entity_id):
+            self.mongodb('entu').maintenance.insert_one({
+                'created_at': datetime.datetime.utcnow(),
+                'db': self.app_settings('database-name'),
+                'entity': row.get('related_entity_id'),
+                'action': 'rights'
+            })
 
         return True
 
