@@ -70,13 +70,14 @@ class Entity():
         # logging.debug(sql)
         entity_id = self.db_execute_lastrowid(sql, entity_definition_keyname, user_id)
 
-        self.mongodb('entu').maintenance.insert_one({
-            'created_at': datetime.datetime.utcnow(),
-            'db': self.app_settings('database-name'),
-            'entity': entity_id
-        })
-
         if not parent_entity_id:
+            self.mongodb('entu').maintenance.insert_one({
+                'created_at': datetime.datetime.utcnow(),
+                'db': self.app_settings('database-name'),
+                'entity': entity_id,
+                'action': 'add'
+            })
+
             return entity_id
 
         # Propagate sharing
@@ -213,6 +214,13 @@ class Entity():
                 AND entity_definition_keyname = %s;
             """, entity_id, user_id, user_id, entity_definition_keyname)
 
+        self.mongodb('entu').maintenance.insert_one({
+            'created_at': datetime.datetime.utcnow(),
+            'db': self.app_settings('database-name'),
+            'entity': entity_id,
+            'action': 'add'
+        })
+
         return entity_id
 
     def duplicate_entity(self, entity_id, copies=1, skip_property_definition_keyname=None):
@@ -341,6 +349,13 @@ class Entity():
                 AND entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1);
             """, new_entity_id, self.__user_id, self.__user_id, new_entity_id)
 
+        self.mongodb('entu').maintenance.insert_one({
+            'created_at': datetime.datetime.utcnow(),
+            'db': self.app_settings('database-name'),
+            'entity': new_entity_id,
+            'action': 'add'
+        })
+
     def delete_entity(self, entity_id):
         if not self.db_get("""
                 SELECT entity_id
@@ -362,6 +377,13 @@ class Entity():
 
         # remove "contains" information
         self.db_execute('DELETE FROM dag_entity WHERE entity_id = %s OR related_entity_id = %s;', entity_id, entity_id)
+
+        self.mongodb('entu').maintenance.insert_one({
+            'created_at': datetime.datetime.utcnow(),
+            'db': self.app_settings('database-name'),
+            'entity': entity_id,
+            'action': 'delete'
+        })
 
         return True
 
@@ -446,6 +468,12 @@ class Entity():
 
         # If no value, then property is deleted, return
         if not value:
+            self.mongodb('entu').maintenance.insert_one({
+                'created_at': datetime.datetime.utcnow(),
+                'db': self.app_settings('database-name'),
+                'entity': entity_id,
+                'action': 'update'
+            })
             return
 
         value_display = None
@@ -529,6 +557,13 @@ class Entity():
             self.db_execute('UPDATE file SET s3_key = CONCAT(s3_key, \'/\', %s) WHERE id = %s LIMIT 1;', new_property_id, value)
 
         self.db_execute('UPDATE entity SET changed = NOW(), changed_by = %s WHERE id = %s;', user_id, entity_id)
+
+        self.mongodb('entu').maintenance.insert_one({
+            'created_at': datetime.datetime.utcnow(),
+            'db': self.app_settings('database-name'),
+            'entity': entity_id,
+            'action': 'update'
+        })
 
         return new_property_id
 
