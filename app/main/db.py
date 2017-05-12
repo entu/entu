@@ -786,6 +786,20 @@ class Entity():
                             # logging.debug(sql)
                             self.db_execute(sql)
 
+                self.mongodb('entu').maintenance.insert_one({
+                    'created_at': datetime.datetime.utcnow(),
+                    'db': self.app_settings('database-name'),
+                    'entity': r,
+                    'action': 'relations'
+                })
+
+            self.mongodb('entu').maintenance.insert_one({
+                'created_at': datetime.datetime.utcnow(),
+                'db': self.app_settings('database-name'),
+                'entity': e,
+                'action': 'relations'
+            })
+
     def get_rights(self, entity_id):
         if not entity_id:
             return
@@ -845,6 +859,21 @@ class Entity():
             for e in entity_id:
                 for re in related_entity_id:
                     self.db_execute('INSERT INTO relationship SET relationship_definition_keyname = %s, entity_id = %s, related_entity_id = %s, created = NOW(), created_by = %s;', right, int(e), int(re), user_id)
+
+                    self.mongodb('entu').maintenance.insert_one({
+                        'created_at': datetime.datetime.utcnow(),
+                        'db': self.app_settings('database-name'),
+                        'entity': re,
+                        'action': 'rights'
+                    })
+
+        for e in entity_id:
+            self.mongodb('entu').maintenance.insert_one({
+                'created_at': datetime.datetime.utcnow(),
+                'db': self.app_settings('database-name'),
+                'entity': e,
+                'action': 'rights'
+            })
 
         self.db_execute('UPDATE entity SET changed = NOW() WHERE entity.id IN (%s);' % ','.join(map(str, entity_id)))
 
