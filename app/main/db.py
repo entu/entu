@@ -221,6 +221,23 @@ class Entity():
             'action': 'add'
         })
 
+        for row in self.db_query("SELECT entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND related_entity_id = %s;", entity_id):
+            self.mongodb('entu').maintenance.insert_one({
+                'created_at': datetime.datetime.utcnow(),
+                'db': self.app_settings('database-name'),
+                'entity': row.get('entity_id'),
+                'action': 'relations'
+            })
+
+        for row in self.db_query("SELECT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner') AND entity_id = %s;", entity_id):
+            self.mongodb('entu').maintenance.insert_one({
+                'created_at': datetime.datetime.utcnow(),
+                'db': self.app_settings('database-name'),
+                'entity': row.get('related_entity_id'),
+                'action': 'rights'
+            })
+
+
         return entity_id
 
     def duplicate_entity(self, entity_id, copies=1, skip_property_definition_keyname=None):
