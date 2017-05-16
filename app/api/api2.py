@@ -495,7 +495,7 @@ class API2FileUpload(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 403)
 
-        if APP_UPLOADS_PATH and self.request.headers.get('X-FILE').startswith(APP_UPLOADS_PATH):
+        if self.settings['uploads_path'] and self.request.headers.get('X-FILE').startswith(self.settings['uploads_path']):
             with open(self.request.headers.get('X-FILE'), 'r') as content_file:
                 uploaded_file = content_file.read()
         else:
