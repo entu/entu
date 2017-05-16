@@ -525,7 +525,7 @@ class API2FileUpload(myRequestHandler, Entity):
                     'time': round(self.request.request_time(), 3),
                 }, 400)
 
-        entity_id = self.get_argument('entity', default=None, strip=True)
+        entity_id = self.get_argument('entity', default=self.request.headers.get('X-ENTITY'), strip=True)
         if not entity_id:
             return self.json({
                 'error': 'No entity ID!',
@@ -539,14 +539,14 @@ class API2FileUpload(myRequestHandler, Entity):
         #         'time': round(self.request.request_time(), 3),
         #     }, 404)
 
-        property_definition_keyname = self.get_argument('property', default=None, strip=True)
+        property_definition_keyname = self.get_argument('property', default=self.request.headers.get('X-PROPERTY'), strip=True)
         if not property_definition_keyname:
             return self.json({
                 'error': 'No property!',
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        filename = self.get_argument('filename', default=None, strip=True)
+        filename = self.get_argument('filename', default=self.request.headers.get('X-FILENAME'), strip=True)
         if not filename:
             return self.json({
                 'error': 'No filename!',
