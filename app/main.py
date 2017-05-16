@@ -28,6 +28,7 @@ APP_DEBUG          = str(os.getenv('DEBUG', 'false')).lower() == 'true'
 APP_PORT           = os.getenv('PORT', 3000)
 APP_COOKIE_DOMAIN  = os.getenv('COOKIE_DOMAIN', '.entu.ee')
 APP_AUTH_URL       = os.getenv('AUTH_URL', 'https://auth.entu.ee')
+APP_UPLOADS_PATH   = os.getenv('UPLOADS_PATH')
 APP_MONGODB        = os.getenv('MONGODB', 'mongodb://entu_mongodb:27017/')
 APP_MYSQL_HOST     = os.getenv('MYSQL_HOST', 'localhost')
 APP_MYSQL_PORT     = os.getenv('MYSQL_PORT', 3306)

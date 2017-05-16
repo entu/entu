@@ -495,10 +495,14 @@ class API2FileUpload(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 403)
 
-        if self.request.headers.get('Content-Type', '').startswith('multipart/form-data'):
-            uploaded_file = self.request.files.get('file', [{}])[0].body
+        if APP_UPLOADS_PATH and self.request.headers.get('X-FILE').startswith(APP_UPLOADS_PATH):
+            with open(self.request.headers.get('X-FILE'), 'r') as content_file:
+                uploaded_file = content_file.read()
         else:
-            uploaded_file = self.request.body
+            if self.request.headers.get('Content-Type', '').startswith('multipart/form-data'):
+                uploaded_file = self.request.files.get('file', [{}])[0].body
+            else:
+                uploaded_file = self.request.body
 
         if not uploaded_file:
             return self.json({
