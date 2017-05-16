@@ -221,22 +221,6 @@ class Entity():
             'action': 'created'
         })
 
-        for row in self.db_query("SELECT DISTINCT entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND related_entity_id = %s;", entity_id):
-            self.mongodb('entu').maintenance.insert_one({
-                'created_at': datetime.datetime.utcnow(),
-                'db': self.app_settings('database-name'),
-                'entity': row.get('entity_id'),
-                'action': 'child_created'
-            })
-
-        for row in self.db_query("SELECT DISTINCT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner') AND entity_id = %s;", entity_id):
-            self.mongodb('entu').maintenance.insert_one({
-                'created_at': datetime.datetime.utcnow(),
-                'db': self.app_settings('database-name'),
-                'entity': row.get('related_entity_id'),
-                'action': 'rights_for_created'
-            })
-
         return entity_id
 
     def duplicate_entity(self, entity_id, copies=1, skip_property_definition_keyname=None):
@@ -372,23 +356,6 @@ class Entity():
                 'action': 'created'
             })
 
-            for row in self.db_query("SELECT DISTINCT entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND related_entity_id = %s;", new_entity_id):
-                self.mongodb('entu').maintenance.insert_one({
-                    'created_at': datetime.datetime.utcnow(),
-                    'db': self.app_settings('database-name'),
-                    'entity': row.get('entity_id'),
-                    'action': 'child_created'
-                })
-
-            for row in self.db_query("SELECT DISTINCT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner') AND entity_id = %s;", new_entity_id):
-                self.mongodb('entu').maintenance.insert_one({
-                    'created_at': datetime.datetime.utcnow(),
-                    'db': self.app_settings('database-name'),
-                    'entity': row.get('related_entity_id'),
-                    'action': 'rights_for_created'
-                })
-
-
     def delete_entity(self, entity_id):
         if not self.db_get("""
                 SELECT entity_id
@@ -417,30 +384,6 @@ class Entity():
             'entity': entity_id,
             'action': 'deleted'
         })
-
-        for row in self.db_query("SELECT DISTINCT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND entity_id = %s;", entity_id):
-            self.mongodb('entu').maintenance.insert_one({
-                'created_at': datetime.datetime.utcnow(),
-                'db': self.app_settings('database-name'),
-                'entity': row.get('related_entity_id'),
-                'action': 'parent_deleted'
-            })
-
-        for row in self.db_query("SELECT DISTINCT entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND related_entity_id = %s;", entity_id):
-            self.mongodb('entu').maintenance.insert_one({
-                'created_at': datetime.datetime.utcnow(),
-                'db': self.app_settings('database-name'),
-                'entity': row.get('entity_id'),
-                'action': 'child_deleted'
-            })
-
-        for row in self.db_query("SELECT DISTINCT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner') AND entity_id = %s;", entity_id):
-            self.mongodb('entu').maintenance.insert_one({
-                'created_at': datetime.datetime.utcnow(),
-                'db': self.app_settings('database-name'),
-                'entity': row.get('related_entity_id'),
-                'action': 'rights_for_deleted'
-            })
 
         return True
 
@@ -533,30 +476,6 @@ class Entity():
                     'action': 'updated'
                 })
 
-                for row in self.db_query("SELECT DISTINCT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND entity_id = %s;", entity_id):
-                    self.mongodb('entu').maintenance.insert_one({
-                        'created_at': datetime.datetime.utcnow(),
-                        'db': self.app_settings('database-name'),
-                        'entity': row.get('related_entity_id'),
-                        'action': 'parent_updated'
-                    })
-
-                for row in self.db_query("SELECT DISTINCT entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND related_entity_id = %s;", entity_id):
-                    self.mongodb('entu').maintenance.insert_one({
-                        'created_at': datetime.datetime.utcnow(),
-                        'db': self.app_settings('database-name'),
-                        'entity': row.get('entity_id'),
-                        'action': 'child_updated'
-                    })
-
-                for row in self.db_query("SELECT DISTINCT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner') AND entity_id = %s;", entity_id):
-                    self.mongodb('entu').maintenance.insert_one({
-                        'created_at': datetime.datetime.utcnow(),
-                        'db': self.app_settings('database-name'),
-                        'entity': row.get('related_entity_id'),
-                        'action': 'rights_for_updated'
-                    })
-
             return
 
         value_display = None
@@ -648,30 +567,6 @@ class Entity():
                 'entity': entity_id,
                 'action': 'updated'
             })
-
-            for row in self.db_query("SELECT DISTINCT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND entity_id = %s;", entity_id):
-                self.mongodb('entu').maintenance.insert_one({
-                    'created_at': datetime.datetime.utcnow(),
-                    'db': self.app_settings('database-name'),
-                    'entity': row.get('related_entity_id'),
-                    'action': 'parent_updated'
-                })
-
-            for row in self.db_query("SELECT DISTINCT entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname = 'child' AND related_entity_id = %s;", entity_id):
-                self.mongodb('entu').maintenance.insert_one({
-                    'created_at': datetime.datetime.utcnow(),
-                    'db': self.app_settings('database-name'),
-                    'entity': row.get('entity_id'),
-                    'action': 'child_updated'
-                })
-
-            for row in self.db_query("SELECT DISTINCT related_entity_id FROM relationship WHERE is_deleted = 0 AND relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner') AND entity_id = %s;", entity_id):
-                self.mongodb('entu').maintenance.insert_one({
-                    'created_at': datetime.datetime.utcnow(),
-                    'db': self.app_settings('database-name'),
-                    'entity': row.get('related_entity_id'),
-                    'action': 'rights_for_updated'
-                })
 
         return new_property_id
 
@@ -875,14 +770,6 @@ class Entity():
                 'action': 'parent_changed'
             })
 
-        for p in parent:
-            self.mongodb('entu').maintenance.insert_one({
-                'created_at': datetime.datetime.utcnow(),
-                'db': self.app_settings('database-name'),
-                'entity': p,
-                'action': 'child_changed'
-            })
-
     def get_rights(self, entity_id):
         if not entity_id:
             return
@@ -950,14 +837,6 @@ class Entity():
                     'db': self.app_settings('database-name'),
                     'entity': e,
                     'action': 'rights_changed'
-                })
-
-            for re in related_entity_id:
-                self.mongodb('entu').maintenance.insert_one({
-                    'created_at': datetime.datetime.utcnow(),
-                    'db': self.app_settings('database-name'),
-                    'entity': re,
-                    'action': 'rights_for_changed'
                 })
 
         self.db_execute('UPDATE entity SET changed = NOW() WHERE entity.id IN (%s);' % ','.join(map(str, entity_id)))
