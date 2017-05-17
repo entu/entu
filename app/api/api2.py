@@ -511,8 +511,8 @@ class API2FileUpload(myRequestHandler, Entity):
             uploaded_multipart_file = content_file.read()
 
         uploaded_multipart = cgi.FieldStorage(uploaded_multipart_file)
-            logging.error(uploaded_multipart.list)
-            logging.error(uploaded_multipart)
+        logging.error(uploaded_multipart.list)
+        logging.error(uploaded_multipart)
 
         if not uploaded_file:
             return self.json({
