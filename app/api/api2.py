@@ -501,14 +501,6 @@ class API2FileUpload(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        if not self.request.headers.get('Content-Type', '').startswith('multipart/form-data'):
-            return self.json({
-                'error': 'Expecting multipart/form-data!',
-                'time': round(self.request.request_time(), 3),
-            }, 400)
-
-        logging.error(self.request.headers)
-
         with open(self.request.headers.get('X-FILE'), 'r') as content_file:
             uploaded_file = content_file.read()
 
