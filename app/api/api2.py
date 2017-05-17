@@ -495,14 +495,24 @@ class API2FileUpload(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 403)
 
-        if self.settings['uploads_path'] and self.request.headers.get('X-FILE').startswith(self.settings['uploads_path']):
-            with open(self.request.headers.get('X-FILE'), 'r') as content_file:
-                uploaded_file = content_file.read()
-        else:
-            if self.request.headers.get('Content-Type', '').startswith('multipart/form-data'):
-                uploaded_file = self.request.files.get('file', [{}])[0].body
-            else:
-                uploaded_file = self.request.body
+        if not self.settings['uploads_path'] or not self.request.headers.get('X-FILE').startswith(self.settings['uploads_path']):
+            return self.json({
+                'error': 'Uploads path error!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        if not self.request.headers.get('Content-Type', '').startswith('multipart/form-data'):
+            return self.json({
+                'error': 'Expecting multipart/form-data!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        with open(self.request.headers.get('X-FILE'), 'r') as content_file:
+            uploaded_multipart_file = content_file.read()
+
+        uploaded_multipart = cgi.FieldStorage(uploaded_multipart_file)
+            logging.error(uploaded_multipart.list)
+            logging.error(uploaded_multipart)
 
         if not uploaded_file:
             return self.json({
@@ -510,20 +520,20 @@ class API2FileUpload(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        if not self.request.headers.get('Content-Type', '').startswith('multipart/form-data'):
-            try:
-                file_size = int(self.request.headers.get('Content-Length', 0))
-            except Exception:
-                return self.json({
-                    'error': 'Content-Length header not set!',
-                    'time': round(self.request.request_time(), 3),
-                }, 400)
-
-            if file_size != len(uploaded_file):
-                return self.json({
-                    'error': 'File not complete!',
-                    'time': round(self.request.request_time(), 3),
-                }, 400)
+        # if not self.request.headers.get('Content-Type', '').startswith('multipart/form-data'):
+        #     try:
+        #         file_size = int(self.request.headers.get('Content-Length', 0))
+        #     except Exception:
+        #         return self.json({
+        #             'error': 'Content-Length header not set!',
+        #             'time': round(self.request.request_time(), 3),
+        #         }, 400)
+        #
+        #     if file_size != len(uploaded_file):
+        #         return self.json({
+        #             'error': 'File not complete!',
+        #             'time': round(self.request.request_time(), 3),
+        #         }, 400)
 
         entity_id = self.get_argument('entity', default=self.request.headers.get('X-ENTITY'), strip=True)
         if not entity_id:
