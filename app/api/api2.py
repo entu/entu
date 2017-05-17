@@ -513,7 +513,10 @@ class API2FileUpload(myRequestHandler, Entity):
             uploaded_multipart_file = content_file.read()
 
         uploaded_multipart = cgi.FieldStorage(uploaded_multipart_file)
-        uploaded_file = uploaded_multipart.get('file')
+
+        logging.error(uploaded_multipart.keys())
+
+        uploaded_file = uploaded_multipart['file']
 
         if not uploaded_file:
             return self.json({
@@ -521,7 +524,7 @@ class API2FileUpload(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        entity_id = uploaded_multipart.get('entity', default=None)
+        entity_id = uploaded_multipart['entity']
         if not entity_id:
             return self.json({
                 'error': 'No entity ID!',
@@ -535,7 +538,7 @@ class API2FileUpload(myRequestHandler, Entity):
         #         'time': round(self.request.request_time(), 3),
         #     }, 404)
 
-        property_definition_keyname = uploaded_multipart.get('property', default=None)
+        property_definition_keyname = uploaded_multipart['property']
         if not property_definition_keyname:
             return self.json({
                 'error': 'No property!',
