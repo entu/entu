@@ -512,7 +512,7 @@ class API2FileUpload(myRequestHandler, Entity):
         with open(self.request.headers.get('X-FILE'), 'r') as content_file:
             uploaded_multipart_file = content_file.read()
 
-        uploaded_multipart = cgi.FieldStorage(fp=uploaded_multipart_file)
+        uploaded_multipart = cgi.FieldStorage(fp=uploaded_multipart_file, headers=self.request.headers)
 
         logging.error(uploaded_multipart.keys())
 
