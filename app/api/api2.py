@@ -507,12 +507,13 @@ class API2FileUpload(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
+        logging.error(self.request.headers)
+
         with open(self.request.headers.get('X-FILE'), 'r') as content_file:
             uploaded_multipart_file = content_file.read()
 
         uploaded_multipart = cgi.FieldStorage(uploaded_multipart_file)
-        logging.error(uploaded_multipart.list)
-        logging.error(uploaded_multipart)
+        uploaded_file = uploaded_multipart.get('file')
 
         if not uploaded_file:
             return self.json({
@@ -520,22 +521,7 @@ class API2FileUpload(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        # if not self.request.headers.get('Content-Type', '').startswith('multipart/form-data'):
-        #     try:
-        #         file_size = int(self.request.headers.get('Content-Length', 0))
-        #     except Exception:
-        #         return self.json({
-        #             'error': 'Content-Length header not set!',
-        #             'time': round(self.request.request_time(), 3),
-        #         }, 400)
-        #
-        #     if file_size != len(uploaded_file):
-        #         return self.json({
-        #             'error': 'File not complete!',
-        #             'time': round(self.request.request_time(), 3),
-        #         }, 400)
-
-        entity_id = self.get_argument('entity', default=self.request.headers.get('X-ENTITY'), strip=True)
+        entity_id = uploaded_multipart.get('entity', default=None)
         if not entity_id:
             return self.json({
                 'error': 'No entity ID!',
@@ -549,14 +535,14 @@ class API2FileUpload(myRequestHandler, Entity):
         #         'time': round(self.request.request_time(), 3),
         #     }, 404)
 
-        property_definition_keyname = self.get_argument('property', default=self.request.headers.get('X-PROPERTY'), strip=True)
+        property_definition_keyname = uploaded_multipart.get('property', default=None)
         if not property_definition_keyname:
             return self.json({
                 'error': 'No property!',
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        filename = self.get_argument('filename', default=self.request.headers.get('X-FILENAME'), strip=True)
+        filename = uploaded_multipart.get('filename', default=None)
         if not filename:
             return self.json({
                 'error': 'No filename!',
