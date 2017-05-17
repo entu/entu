@@ -140,11 +140,9 @@
                 }
             }, 'json');
         }
+
         function uploadFile(file, div) {
             var xhr = new XMLHttpRequest();
-            var form = new FormData();
-
-            form.append('file', file);
 
             var status = $('<div class="new-input" style="padding:8px; color:gray;">'+file.name+'<i> - Uploading...</i></div>');
             $('#new-filenames-' + div.data('property_definition_keyname')).append(status);
@@ -168,7 +166,8 @@
             xhr.setRequestHeader('X-ENTITY', $('#database').data('entity_id'));
             xhr.setRequestHeader('X-PROPERTY', div.data('property_definition_keyname'));
             xhr.setRequestHeader('X-FILENAME', file.name);
-            xhr.send(form);
+            xhr.send(file);
+            console.log(file);
         }
 
 
