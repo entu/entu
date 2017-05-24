@@ -35,7 +35,7 @@ def customers():
         password   = APP_MYSQL_PASSWORD,
         use_pure   = False,
         autocommit = True,
-        ssl_ca     = APP_MYSQL_CA_PATH,
+        ssl_ca     = APP_MYSQL_CA_PATH if APP_MYSQL_CA_PATH else None,
         ssl_verify_cert = True if APP_MYSQL_CA_PATH else False
     )
 
@@ -108,7 +108,7 @@ class Maintenance():
                 password   = self.db_pass,
                 use_pure   = False,
                 autocommit = True,
-                ssl_ca     = self.db_ca,
+                ssl_ca     = self.db_ca if self.db_ca else None,
                 ssl_verify_cert = True if self.db_ca else False
             )
 

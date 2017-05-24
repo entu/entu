@@ -52,7 +52,7 @@ class myDatabase():
                 password   = settings.get('database-password'),
                 use_pure   = False,
                 autocommit = True,
-                ssl_ca     = settings.get('database-ca'),
+                ssl_ca     = settings.get('database-ca') if settings.get('database-ca') else None,
                 ssl_verify_cert = True if settings.get('database-ca') else False
             )
 
@@ -193,7 +193,7 @@ class myDatabase():
                 password   = self.settings['database-password'],
                 use_pure   = False,
                 autocommit = True,
-                ssl_ca     = self.settings['database-ca-path'],
+                ssl_ca     = self.settings['database-ca-path'] if self.settings['database-ca-path'] else None,
                 ssl_verify_cert = True if self.settings['database-ca-path'] else False
             )
 
