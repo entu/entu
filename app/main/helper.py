@@ -44,30 +44,17 @@ class myDatabase():
             logging.error(err)
 
             settings = self.get_app_settings(host)
-            if settings.get('database-ssl'):
-                self.settings['databases'][host] = mysql.connector.connect(
-                    host     = settings.get('database-host'),
-                    port     = int(settings.get('database-port')),
-                    database = settings.get('database-name'),
-                    user     = settings.get('database-user'),
-                    password = settings.get('database-password'),
-                    use_pure = False,
-                    autocommit = True,
-                    ssl_cert = os.path.join(settings.get('database-ssl'), 'mysql-client-cert.pem'),
-                    ssl_key  = os.path.join(settings.get('database-ssl'), 'mysql-client-key.pem'),
-                    ssl_ca   = os.path.join(settings.get('database-ssl'), 'mysql-server-ca.pem'),
-                    ssl_verify_cert = True
-                )
-            else:
-                self.settings['databases'][host] = mysql.connector.connect(
-                    host     = settings.get('database-host'),
-                    port     = int(settings.get('database-port')),
-                    database = settings.get('database-name'),
-                    user     = settings.get('database-user'),
-                    password = settings.get('database-password'),
-                    use_pure = False,
-                    autocommit = True
-                )
+            self.settings['databases'][host] = mysql.connector.connect(
+                host       = settings.get('database-host'),
+                port       = int(settings.get('database-port')),
+                database   = settings.get('database-name'),
+                user       = settings.get('database-user'),
+                password   = settings.get('database-password'),
+                use_pure   = False,
+                autocommit = True,
+                ssl_ca     = settings.get('database-ca'),
+                ssl_verify_cert = True if settings.get('database-ca') else False
+            )
 
         return self.settings['databases'][host]
 
@@ -198,30 +185,17 @@ class myDatabase():
         if not self._app_settings:
             logging.debug('Loaded app_settings for %s.' % host)
 
-            if self.settings['database-ssl-path']:
-                db = mysql.connector.connect(
-                    host     = self.settings['database-host'],
-                    port     = int(self.settings['database-port']),
-                    database = self.settings['database-database'],
-                    user     = self.settings['database-user'],
-                    password = self.settings['database-password'],
-                    use_pure = False,
-                    autocommit = True,
-                    ssl_cert = os.path.join(self.settings['database-ssl-path'], 'mysql-client-cert.pem'),
-                    ssl_key  = os.path.join(self.settings['database-ssl-path'], 'mysql-client-key.pem'),
-                    ssl_ca   = os.path.join(self.settings['database-ssl-path'], 'mysql-server-ca.pem'),
-                    ssl_verify_cert = True
-                )
-            else:
-                db = mysql.connector.connect(
-                    host     = self.settings['database-host'],
-                    port     = int(self.settings['database-port']),
-                    database = self.settings['database-database'],
-                    user     = self.settings['database-user'],
-                    password = self.settings['database-password'],
-                    use_pure = False,
-                    autocommit = True
-                )
+            db = mysql.connector.connect(
+                host       = self.settings['database-host'],
+                port       = int(self.settings['database-port']),
+                database   = self.settings['database-database'],
+                user       = self.settings['database-user'],
+                password   = self.settings['database-password'],
+                use_pure   = False,
+                autocommit = True,
+                ssl_ca     = self.settings['database-ca-path'],
+                ssl_verify_cert = True if self.settings['database-ca-path'] else False
+            )
 
             cursor = db.cursor(dictionary=True, buffered=True)
 

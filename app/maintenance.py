@@ -16,7 +16,7 @@ APP_MYSQL_PORT     = os.getenv('MYSQL_PORT', 3306)
 APP_MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
 APP_MYSQL_USER     = os.getenv('MYSQL_USER')
 APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
-APP_MYSQL_SSL_PATH = os.getenv('MYSQL_SSL_PATH')
+APP_MYSQL_CA_PATH  = os.getenv('MYSQL_CA_PATH')
 APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
 APP_FULLRUN        = os.getenv('FULLRUN')
 APP_VERBOSE        = os.getenv('VERBOSE', 1)
@@ -27,30 +27,18 @@ dbs = {}
 
 
 def customers():
-    if APP_MYSQL_SSL_PATH:
-        db = mysql.connector.connect(
-            host     = APP_MYSQL_HOST,
-            port     = int(APP_MYSQL_PORT),
-            database = APP_MYSQL_DATABASE,
-            user     = APP_MYSQL_USER,
-            password = APP_MYSQL_PASSWORD,
-            use_pure = False,
-            autocommit = True,
-            ssl_cert = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-cert.pem'),
-            ssl_key  = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-key.pem'),
-            ssl_ca   = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-server-ca.pem'),
-            ssl_verify_cert = True
-        )
-    else:
-        db = mysql.connector.connect(
-            host     = APP_MYSQL_HOST,
-            port     = int(APP_MYSQL_PORT),
-            database = APP_MYSQL_DATABASE,
-            user     = APP_MYSQL_USER,
-            password = APP_MYSQL_PASSWORD,
-            use_pure = False,
-            autocommit = True
-        )
+    db = mysql.connector.connect(
+        host       = APP_MYSQL_HOST,
+        port       = int(APP_MYSQL_PORT),
+        database   = APP_MYSQL_DATABASE,
+        user       = APP_MYSQL_USER,
+        password   = APP_MYSQL_PASSWORD,
+        use_pure   = False,
+        autocommit = True,
+        ssl_ca     = APP_MYSQL_CA_PATH,
+        ssl_verify_cert = True if APP_MYSQL_CA_PATH else False
+    )
+
     cursor = db.cursor(dictionary=True, buffered=True)
 
     sql = """
@@ -90,22 +78,21 @@ def customers():
 
     customers = {}
     for c in cursor:
-        if c.get('property') in ['database-host', 'database-port', 'database-name', 'database-user', 'database-password', 'database-ssl', 'language']:
+        if c.get('property') in ['database-host', 'database-port', 'database-name', 'database-user', 'database-password', 'database-ca', 'language']:
             customers.setdefault(c['entity'], {})[c['property'].decode('utf-8')] = c['value']
 
     return sorted(customers.values(), key=itemgetter('database-name'))
 
 
 
-
 class Maintenance():
-    def __init__(self, db_host, db_port, db_name, db_user, db_pass, db_ssl, language, hours, speed):
+    def __init__(self, db_host, db_port, db_name, db_user, db_pass, db_ca, language, hours, speed):
         self.db_host = db_host
         self.db_port = db_port
         self.db_name = db_name
         self.db_user = db_user
         self.db_pass = db_pass
-        self.db_ssl = db_ssl
+        self.db_ca = db_ca
 
         try:
             x = dbs[db_name].ping(reconnect=False, attempts=1, delay=0)
@@ -113,30 +100,18 @@ class Maintenance():
         except Exception, e:
             print e
 
-            if self.db_ssl:
-                dbs[db_name] = mysql.connector.connect(
-                    host     = self.db_host,
-                    port     = int(self.db_port),
-                    database = self.db_name,
-                    user     = self.db_user,
-                    password = self.db_pass,
-                    use_pure = False,
-                    autocommit = True,
-                    ssl_cert = os.path.join(self.db_ssl, 'mysql-client-cert.pem'),
-                    ssl_key  = os.path.join(self.db_ssl, 'mysql-client-key.pem'),
-                    ssl_ca   = os.path.join(self.db_ssl, 'mysql-server-ca.pem'),
-                    ssl_verify_cert = True
-                )
-            else:
-                dbs[db_name] = mysql.connector.connect(
-                    host     = self.db_host,
-                    port     = int(self.db_port),
-                    database = self.db_name,
-                    user     = self.db_user,
-                    password = self.db_pass,
-                    use_pure = False,
-                    autocommit = True
-                )
+            dbs[db_name] = mysql.connector.connect(
+                host       = self.db_host,
+                port       = int(self.db_port),
+                database   = self.db_name,
+                user       = self.db_user,
+                password   = self.db_pass,
+                use_pure   = False,
+                autocommit = True,
+                ssl_ca     = self.db_ca,
+                ssl_verify_cert = True if self.db_ca else False
+            )
+
             self.db = dbs[db_name]
 
         self.language = language
@@ -636,7 +611,6 @@ class Maintenance():
 
 
 
-
 total_count = 0.0001
 total_time  = 0.0000
 
@@ -656,7 +630,7 @@ while True:
             db_name = c.get('database-name'),
             db_user = c.get('database-user'),
             db_pass = c.get('database-password'),
-            db_ssl = c.get('database-ssl'),
+            db_ca = c.get('database-ca'),
             language = c.get('language'),
             hours = 2,
             speed = total_time / total_count
