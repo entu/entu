@@ -27,17 +27,28 @@ dbs = {}
 
 
 def customers():
-    db = mysql.connector.connect(
-        host       = APP_MYSQL_HOST,
-        port       = int(APP_MYSQL_PORT),
-        database   = APP_MYSQL_DATABASE,
-        user       = APP_MYSQL_USER,
-        password   = APP_MYSQL_PASSWORD,
-        use_pure   = False,
-        autocommit = True,
-        ssl_ca     = APP_MYSQL_CA_PATH if APP_MYSQL_CA_PATH else None,
-        ssl_verify_cert = True if APP_MYSQL_CA_PATH else False
-    )
+    if APP_MYSQL_CA_PATH:
+        db = mysql.connector.connect(
+            host       = APP_MYSQL_HOST,
+            port       = int(APP_MYSQL_PORT),
+            database   = APP_MYSQL_DATABASE,
+            user       = APP_MYSQL_USER,
+            password   = APP_MYSQL_PASSWORD,
+            use_pure   = False,
+            autocommit = True,
+            ssl_ca     = APP_MYSQL_CA_PATH,
+            ssl_verify_cert = True
+        )
+    els:
+        db = mysql.connector.connect(
+            host       = APP_MYSQL_HOST,
+            port       = int(APP_MYSQL_PORT),
+            database   = APP_MYSQL_DATABASE,
+            user       = APP_MYSQL_USER,
+            password   = APP_MYSQL_PASSWORD,
+            use_pure   = False,
+            autocommit = True
+        )
 
     cursor = db.cursor(dictionary=True, buffered=True)
 
@@ -100,17 +111,28 @@ class Maintenance():
         except Exception, e:
             print e
 
-            dbs[db_name] = mysql.connector.connect(
-                host       = self.db_host,
-                port       = int(self.db_port),
-                database   = self.db_name,
-                user       = self.db_user,
-                password   = self.db_pass,
-                use_pure   = False,
-                autocommit = True,
-                ssl_ca     = self.db_ca if self.db_ca else None,
-                ssl_verify_cert = True if self.db_ca else False
-            )
+            if self.db_ca:
+                dbs[db_name] = mysql.connector.connect(
+                    host       = self.db_host,
+                    port       = int(self.db_port),
+                    database   = self.db_name,
+                    user       = self.db_user,
+                    password   = self.db_pass,
+                    use_pure   = False,
+                    autocommit = True,
+                    ssl_ca     = self.db_ca,
+                    ssl_verify_cert = True
+                )
+            else:
+                dbs[db_name] = mysql.connector.connect(
+                    host       = self.db_host,
+                    port       = int(self.db_port),
+                    database   = self.db_name,
+                    user       = self.db_user,
+                    password   = self.db_pass,
+                    use_pure   = False,
+                    autocommit = True
+                )
 
             self.db = dbs[db_name]
 

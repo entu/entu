@@ -44,17 +44,28 @@ class myDatabase():
             logging.error(err)
 
             settings = self.get_app_settings(host)
-            self.settings['databases'][host] = mysql.connector.connect(
-                host       = settings.get('database-host'),
-                port       = int(settings.get('database-port')),
-                database   = settings.get('database-name'),
-                user       = settings.get('database-user'),
-                password   = settings.get('database-password'),
-                use_pure   = False,
-                autocommit = True,
-                ssl_ca     = settings.get('database-ca') if settings.get('database-ca') else None,
-                ssl_verify_cert = True if settings.get('database-ca') else False
-            )
+            if settings.get('database-ca'):
+                self.settings['databases'][host] = mysql.connector.connect(
+                    host       = settings.get('database-host'),
+                    port       = int(settings.get('database-port')),
+                    database   = settings.get('database-name'),
+                    user       = settings.get('database-user'),
+                    password   = settings.get('database-password'),
+                    use_pure   = False,
+                    autocommit = True,
+                    ssl_ca     = settings.get('database-ca'),
+                    ssl_verify_cert = True
+                )
+            else:
+                self.settings['databases'][host] = mysql.connector.connect(
+                    host       = settings.get('database-host'),
+                    port       = int(settings.get('database-port')),
+                    database   = settings.get('database-name'),
+                    user       = settings.get('database-user'),
+                    password   = settings.get('database-password'),
+                    use_pure   = False,
+                    autocommit = True
+                )
 
         return self.settings['databases'][host]
 
@@ -185,17 +196,28 @@ class myDatabase():
         if not self._app_settings:
             logging.debug('Loaded app_settings for %s.' % host)
 
-            db = mysql.connector.connect(
-                host       = self.settings['database-host'],
-                port       = int(self.settings['database-port']),
-                database   = self.settings['database-database'],
-                user       = self.settings['database-user'],
-                password   = self.settings['database-password'],
-                use_pure   = False,
-                autocommit = True,
-                ssl_ca     = self.settings['database-ca-path'] if self.settings['database-ca-path'] else None,
-                ssl_verify_cert = True if self.settings['database-ca-path'] else False
-            )
+            if self.settings['database-ca-path']:
+                db = mysql.connector.connect(
+                    host       = self.settings['database-host'],
+                    port       = int(self.settings['database-port']),
+                    database   = self.settings['database-database'],
+                    user       = self.settings['database-user'],
+                    password   = self.settings['database-password'],
+                    use_pure   = False,
+                    autocommit = True,
+                    ssl_ca     = self.settings['database-ca-path'],
+                    ssl_verify_cert = True
+                )
+            else:
+                db = mysql.connector.connect(
+                    host       = self.settings['database-host'],
+                    port       = int(self.settings['database-port']),
+                    database   = self.settings['database-database'],
+                    user       = self.settings['database-user'],
+                    password   = self.settings['database-password'],
+                    use_pure   = False,
+                    autocommit = True
+                )
 
             cursor = db.cursor(dictionary=True, buffered=True)
 
