@@ -39,7 +39,7 @@ def customers():
             ssl_ca     = APP_MYSQL_CA_PATH,
             ssl_verify_cert = True
         )
-    els:
+    else:
         db = mysql.connector.connect(
             host       = APP_MYSQL_HOST,
             port       = int(APP_MYSQL_PORT),
