@@ -76,9 +76,11 @@
 <script>
     $(document).ready(function() {
 
-        $("textarea.dtype-text").markdown({
+        $('textarea.dtype-text').markdown({
             autofocus: false,
-            savable: false
+            hideable: true,
+            iconlibrary: 'fa',
+            savable: false,
         })
 
         $('input[type=file]').bootstrapFileInput();
