@@ -78,9 +78,16 @@
 
         $('textarea.dtype-text').markdown({
             autofocus: false,
-            hideable: true,
             iconlibrary: 'fa',
             savable: false,
+            hiddenButtons: [
+                'cmdHeading',
+                'cmdPreview',
+                'cmdPreview'
+            ],
+            fullscreen: {
+                enable: false
+            }
         })
 
         $('input[type=file]').bootstrapFileInput();
