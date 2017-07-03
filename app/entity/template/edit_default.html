@@ -77,7 +77,10 @@
     $(document).ready(function() {
 
         autosize($('textarea'));
-        autosize.update($('textarea'));
+
+        setTimeout(function () {
+            autosize.update($('textarea'));
+        }, 300)
 
         // $('textarea.dtype-text').markdown({
         //     autofocus: false,
