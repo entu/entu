@@ -34,7 +34,7 @@
 
     $(document).ready(function(){
 
-        $('textarea').elastic();
+        autosize($('textarea'));
 
         $('#send-email').click(function() {
             $.post('/api2/entity-{{ entity_id }}/share', { to: $('#email-to').val(), message: $('#email-message').val() }, function(newvalue) {
