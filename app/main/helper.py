@@ -295,7 +295,7 @@ class myDatabase():
         try:
             x = self.settings['mongodbs'][database].server_info()
         except Exception:
-            self.settings['mongodbs'][database] = MongoClient(self.settings['mongodb'], serverSelectionTimeoutMS=2000, socketKeepAlive=True, connect=False)[database]
+            self.settings['mongodbs'][database] = MongoClient(self.settings['mongodb'], ssl=True, sslValidate=False, serverSelectionTimeoutMS=2000, socketKeepAlive=True, connect=False)[database]
         return self.settings['mongodbs'][database]
 
 
