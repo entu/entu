@@ -102,6 +102,7 @@ class myApplication(tornado.web.Application):
             'slow_request_ms':      1000,
             'uploads_path':         APP_UPLOADS_PATH,
             'mongodb':              APP_MONGODB,
+            'mongodb-ca-file':      APP_MONGODB_CA_FILE,
             'database-host':        APP_MYSQL_HOST,
             'database-port':        APP_MYSQL_PORT,
             'database-database':    APP_MYSQL_DATABASE,
