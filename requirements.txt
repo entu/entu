@@ -11,4 +11,4 @@ raven==6.1.0
 simpleaes==1.0
 tornado==4.5.1
 xmltodict==0.11.0
-mysql-connector==2.1.6
+https://cdn.mysql.com/Downloads/Connector-Python/mysql-connector-python-2.1.6.tar.gz
