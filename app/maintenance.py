@@ -101,8 +101,9 @@ def customers():
 
 
 class Maintenance():
-    def __init__(self, db, language, hours, speed):
+    def __init__(self, db, db_name, language, hours, speed):
         self.db = db
+        self.db_name = db_name
         self.language = language
         self.speed = speed
         self.time = 0
@@ -641,6 +642,7 @@ while True:
 
         m = Maintenance(
             db = db,
+            db_name = c.get('database-name'),
             language = c.get('language'),
             hours = 2,
             speed = total_time / total_count
