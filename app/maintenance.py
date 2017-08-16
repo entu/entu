@@ -16,7 +16,7 @@ APP_MYSQL_PORT     = os.getenv('MYSQL_PORT', 3306)
 APP_MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
 APP_MYSQL_USER     = os.getenv('MYSQL_USER')
 APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
-APP_MYSQL_SSL_PATH  = os.getenv('MYSQL_SSL_PATH')
+APP_MYSQL_SSL_PATH = os.getenv('MYSQL_SSL_PATH')
 APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
 APP_FULLRUN        = os.getenv('FULLRUN')
 APP_VERBOSE        = os.getenv('VERBOSE', 1)
@@ -38,7 +38,7 @@ def customers():
             autocommit = True,
             ssl_cert   = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-cert.pem'),
             ssl_key    = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-key.pem'),
-            ssl_ca     = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-ca.pem'),
+            ssl_ca     = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-server-ca.pem'),
             ssl_verify_cert = True
         )
     else:
@@ -124,7 +124,7 @@ class Maintenance():
                     autocommit = True,
                     ssl_cert   = os.path.join(self.db_ssl, 'mysql-client-cert.pem'),
                     ssl_key    = os.path.join(self.db_ssl, 'mysql-client-key.pem'),
-                    ssl_ca     = os.path.join(self.db_ssl, 'mysql-client-ca.pem'),
+                    ssl_ca     = os.path.join(self.db_ssl, 'mysql-server-ca.pem'),
                     ssl_verify_cert = True
                 )
             else:
