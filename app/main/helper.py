@@ -198,7 +198,7 @@ class myDatabase():
         if not self._app_settings:
             logging.debug('Loaded app_settings for %s.' % host)
 
-            if self.settings['database-ssl-path-path']:
+            if self.settings['database-ssl-path']:
                 db = mysql.connector.connect(
                     host       = self.settings['database-host'],
                     port       = int(self.settings['database-port']),
