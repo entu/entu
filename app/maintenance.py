@@ -94,52 +94,15 @@ def customers():
         if c.get('property') in ['database-host', 'database-port', 'database-name', 'database-user', 'database-password', 'database-ssl-path', 'language']:
             customers.setdefault(c['entity'], {})[c['property'].decode('utf-8')] = c['value']
 
+    db.close()
+
     return sorted(customers.values(), key=itemgetter('database-name'))
 
 
 
 class Maintenance():
-    def __init__(self, db_host, db_port, db_name, db_user, db_pass, db_ssl, language, hours, speed):
-        self.db_host = db_host
-        self.db_port = db_port
-        self.db_name = db_name
-        self.db_user = db_user
-        self.db_pass = db_pass
-        self.db_ssl = db_ssl
-
-        try:
-            x = dbs[db_name].ping(reconnect=False, attempts=1, delay=0)
-            self.db = dbs[db_name]
-        except Exception, e:
-            print e
-
-            if self.db_ssl:
-                dbs[db_name] = mysql.connector.connect(
-                    host       = self.db_host,
-                    port       = int(self.db_port),
-                    database   = self.db_name,
-                    user       = self.db_user,
-                    password   = self.db_pass,
-                    use_pure   = False,
-                    autocommit = True,
-                    ssl_cert   = os.path.join(self.db_ssl, 'mysql-client-cert.pem'),
-                    ssl_key    = os.path.join(self.db_ssl, 'mysql-client-key.pem'),
-                    ssl_ca     = os.path.join(self.db_ssl, 'mysql-server-ca.pem'),
-                    ssl_verify_cert = True
-                )
-            else:
-                dbs[db_name] = mysql.connector.connect(
-                    host       = self.db_host,
-                    port       = int(self.db_port),
-                    database   = self.db_name,
-                    user       = self.db_user,
-                    password   = self.db_pass,
-                    use_pure   = False,
-                    autocommit = True
-                )
-
-            self.db = dbs[db_name]
-
+    def __init__(self, db, language, hours, speed):
+        self.db = db
         self.language = language
         self.speed = speed
         self.time = 0
@@ -650,13 +613,34 @@ while True:
         # if c.get('database-name') != 'saksa':
         #     continue
 
+        if c.get('database-ssl-path'):
+            db = mysql.connector.connect(
+                host       = c.get('database-host'),
+                port       = int(c.get('database-port')),
+                database   = c.get('database-name'),
+                user       = c.get('database-user'),
+                password   = c.get('database-password'),
+                use_pure   = False,
+                autocommit = True,
+                ssl_cert   = os.path.join(c.get('database-ssl-path'), 'mysql-client-cert.pem'),
+                ssl_key    = os.path.join(c.get('database-ssl-path'), 'mysql-client-key.pem'),
+                ssl_ca     = os.path.join(c.get('database-ssl-path'), 'mysql-server-ca.pem'),
+                ssl_verify_cert = True
+            )
+        else:
+            db = mysql.connector.connect(
+                host       = c.get('database-host'),
+                port       = int(c.get('database-port')),
+                database   = c.get('database-name'),
+                user       = c.get('database-user'),
+                password   = c.get('database-password'),
+                use_pure   = False,
+                autocommit = True
+            )
+
+
         m = Maintenance(
-            db_host = c.get('database-host'),
-            db_port = c.get('database-port'),
-            db_name = c.get('database-name'),
-            db_user = c.get('database-user'),
-            db_pass = c.get('database-password'),
-            db_ssl = c.get('database-ssl-path'),
+            db = db,
             language = c.get('language'),
             hours = 2,
             speed = total_time / total_count
@@ -671,6 +655,8 @@ while True:
 
         else:
             m.echo('entities not changed', 1)
+
+        db.close()
 
         m.echo('end (%ss)\n' % round(time.time() - start, 1), 1)
 
