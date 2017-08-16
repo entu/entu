@@ -1,7 +1,3 @@
-import newrelic.agent
-newrelic.agent.initialize()
-
-
 from os import path
 from raven.contrib.tornado import AsyncSentryClient
 
