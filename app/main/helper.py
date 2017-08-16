@@ -44,7 +44,7 @@ class myDatabase():
             logging.error(err)
 
             settings = self.get_app_settings(host)
-            if settings.get('database-ca'):
+            if settings.get('database-ssl-path'):
                 self.settings['databases'][host] = mysql.connector.connect(
                     host       = settings.get('database-host'),
                     port       = int(settings.get('database-port')),
@@ -53,7 +53,9 @@ class myDatabase():
                     password   = settings.get('database-password'),
                     use_pure   = False,
                     autocommit = True,
-                    ssl_ca     = settings.get('database-ca'),
+                    ssl_cert   = os.path.join(settings.get('database-ssl-path'), 'mysql-client-cert.pem'),
+                    ssl_key    = os.path.join(settings.get('database-ssl-path'), 'mysql-client-key.pem'),
+                    ssl_ca     = os.path.join(settings.get('database-ssl-path'), 'mysql-client-ca.pem'),
                     ssl_verify_cert = True
                 )
             else:
@@ -196,7 +198,7 @@ class myDatabase():
         if not self._app_settings:
             logging.debug('Loaded app_settings for %s.' % host)
 
-            if self.settings['database-ca-path']:
+            if self.settings['database-ssl-path-path']:
                 db = mysql.connector.connect(
                     host       = self.settings['database-host'],
                     port       = int(self.settings['database-port']),
@@ -205,7 +207,9 @@ class myDatabase():
                     password   = self.settings['database-password'],
                     use_pure   = False,
                     autocommit = True,
-                    ssl_ca     = self.settings['database-ca-path'],
+                    ssl_cert   = os.path.join(self.settings['database-ssl-path'], 'mysql-client-cert.pem'),
+                    ssl_key    = os.path.join(self.settings['database-ssl-path'], 'mysql-client-key.pem'),
+                    ssl_ca     = os.path.join(self.settings['database-ssl-path'], 'mysql-client-ca.pem'),
                     ssl_verify_cert = True
                 )
             else:
