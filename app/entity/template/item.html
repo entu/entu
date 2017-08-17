@@ -34,7 +34,7 @@
             <strong>{{ _('public_link') }}</strong>
         </a>
     {% end %}
-    
+
     {% if entity.get('properties', {}).get('entu-created-by', {}).get('values', False) or entity.get('properties', {}).get('entu-created-at', {}).get('values', False) %}
         <br />
         <br />
@@ -173,10 +173,6 @@
         if(typeof _gaq != 'undefined') {
             _gaq.push(['_trackPageview', '/entity-'+id]);
         }
-
-        mixpanel.track('Open entity', {
-            "Entity title": "{{ page_title.replace('\"', '\\\"') }}"
-        })
 
         make_tables('/api2/entity-{{ entity.get('id') }}/childs', '#childs');
         make_tables('/api2/entity-{{ entity.get('id') }}/referrals', '#referrals');
