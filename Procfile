@@ -1,1 +1,1 @@
-web: python -u ./app/main.py --logging=debug
+web: python -u ./app/main.py --logging=error
