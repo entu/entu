@@ -36,6 +36,7 @@ APP_MYSQL_SSL_KEY  = os.getenv('MYSQL_SSL_KEY')
 APP_MYSQL_SSL_CERT = os.getenv('MYSQL_SSL_CERT')
 APP_MYSQL_SSL_CA   = os.getenv('MYSQL_SSL_CA')
 APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
+APP_FILES_PATH     = os.getenv('FILES_PATH')
 APP_SENTRY         = os.getenv('SENTRY_DSN')
 
 
@@ -125,6 +126,7 @@ class myApplication(tornado.web.Application):
             'database-user':        APP_MYSQL_USER,
             'database-password':    APP_MYSQL_PASSWORD,
             'database-ssl-path':    APP_MYSQL_SSL_PATH,
+            'files-path':           APP_FILES_PATH,
             'customergroup':        APP_CUSTOMERGROUP,
             'mongodbs':             {},
             'databases':            {},

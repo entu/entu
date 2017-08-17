@@ -466,7 +466,7 @@ class Entity2():
         if not f.get('md5') and not f.get('s3_key'):
             return
 
-        thumbname = os.path.join('/', 'entu', 'thumbs', self.app_settings('database-name'), '%s' % f.get('file_id'))
+        thumbname = os.path.join(self.settings['files-path'], 'thumbs', self.app_settings('database-name'), '%s' % f.get('file_id'))
         if os.path.isfile(thumbname):
             with open(thumbname, 'r') as myfile:
                 filecontent = myfile.read()
