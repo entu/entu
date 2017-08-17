@@ -191,6 +191,7 @@ class myDatabase():
         if self.get_app_settings():
             return self.get_app_settings().get(key, default)
 
+
     def get_app_settings(self, host=None):
         if not host:
             host = self.request.host
@@ -286,6 +287,7 @@ class myDatabase():
 
         return self._app_settings.get(host, {})
 
+
     def mongodb(self, database=None):
         """
         Returns MongoDB connection.
@@ -298,7 +300,8 @@ class myDatabase():
 
         try:
             x = self.settings['mongodbs'][database].server_info()
-        except Exception:
+        except Exception, e:
+            logging.error(e)
             self.settings['mongodbs'][database] = MongoClient(self.settings['mongodb'], ssl=True, connect=True)[database]
             logging.error(database + ' mongo')
         return self.settings['mongodbs'][database]
