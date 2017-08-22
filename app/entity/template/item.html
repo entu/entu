@@ -170,6 +170,10 @@
 
         document.title = "{{ page_title.replace('\"', '\\\"') }}";
 
+        {% if intercom_key %}
+            window.Intercom('update');
+        {% end %}
+
         if(typeof _gaq != 'undefined') {
             _gaq.push(['_trackPageview', '/entity-'+id]);
         }

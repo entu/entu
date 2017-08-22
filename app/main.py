@@ -38,6 +38,7 @@ APP_MYSQL_SSL_CA   = os.getenv('MYSQL_SSL_CA')
 APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
 APP_FILES_PATH     = os.getenv('FILES_PATH')
 APP_SENTRY         = os.getenv('SENTRY_DSN')
+APP_INTERCOM_KEY   = os.getenv('INTERCOM_KEY')
 
 
 
@@ -112,6 +113,7 @@ class myApplication(tornado.web.Application):
             'login_url':            '/auth',
             'auth_url':             APP_AUTH_URL,
             'cookie_domain':        APP_COOKIE_DOMAIN,
+            'intercom_key':         APP_INTERCOM_KEY,
             'start_time':           time.time(),
             'request_count':        0,
             'request_time':         0,
