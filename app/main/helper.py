@@ -282,7 +282,7 @@ class myDatabase():
                 self._app_settings[c.get('domain', '')] = c
 
         if not self._app_settings.get(host):
-            self.redirect('http://www.entu.ee')
+            self.redirect('https://www.entu.ee')
             return
 
         return self._app_settings.get(host, {})
@@ -526,6 +526,11 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
     __request_id = None
 
     def prepare(self):
+        if self.request.protocol.upper() == 'HTTP':
+            logging.error(self.request.host + self.request.uri)
+            self.redirect('https://' + self.request.host + self.request.uri)
+            return
+
         try:
             if self.request.method in ['POST', 'PUT'] and self.request.headers.get('Content-Type', '').startswith('application/json'):
                 arguments = self.request.arguments if self.request.arguments else {}
