@@ -302,7 +302,7 @@ class myDatabase():
             x = self.settings['mongodbs'][database].server_info()
         except Exception, e:
             logging.error(e)
-            self.settings['mongodbs'][database] = MongoClient(self.app_settings('mongodb'), ssl=True, connect=True)
+            self.settings['mongodbs'][database] = MongoClient(self.settings['mongodb'], ssl=True, connect=True)
             logging.error(database + ' mongo')
         return self.settings['mongodbs'][database][database]
 
@@ -560,7 +560,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
                 if self.request.headers.get('User-Agent', None):
                     r['browser'] = self.request.headers.get('User-Agent')
 
-            self.__request_id = self.mongodb().request.insert_one(r).inserted_id
+            self.__request_id = self.mongodb('entu').request.insert_one(r).inserted_id
         except Exception, e:
             self.captureException()
             logging.error('Reguest logging error: %s' % e)
@@ -580,7 +580,7 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
             r['ms'] = int(round(request_time * 1000))
             if self.get_status():
                 r['status'] = self.get_status()
-            self.mongodb().request.update({'_id': self.__request_id}, {'$set': r}, upsert=False)
+            self.mongodb('entu').request.update({'_id': self.__request_id}, {'$set': r}, upsert=False)
 
     def timer(self, msg=''):
         logging.debug('TIMER: %0.3f - %s' % (round(self.request.request_time(), 3), msg))
