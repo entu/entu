@@ -276,6 +276,8 @@
         });
 
         $('.counter').click(function() {
+            if(!$('#database').data('entity_id')) { $('.autosave').attr('disabled', true) }
+
             var inputbox = $(this);
             var inputbox_parent = $(this).parent();
             inputbox_parent.html('<img src="{{ static_url('images/spinner_white.gif') }}" class="spinner" />');
@@ -285,14 +287,17 @@
                 parent_entity_id: '{{ parent_entity_id }}',
                 entity_definition_keyname: '{{ entity_definition_keyname }}',
                 property_definition_keyname: inputbox.data('property'),
-            },
-            function(newvalue) {
+            }, 'json').done(function(newvalue) {
                 //alert(JSON.stringify(newvalue));
                 $('#database').data('entity_id', newvalue.entity_id);
                 {% if open_after_add %}$('#modal-box').data('open_entity_id', newvalue.entity_id);{% end %}
                 $('.file_entity_id').val(newvalue.entity_id);
                 inputbox_parent.html('<span style="padding:8px;">'+newvalue.value+'</span>');
-            }, 'json');
+                if(!$('#database').data('entity_id')) { $('.autosave').attr('disabled', false) }
+            }).fail(function(xhr, status, error) {
+                console.log(error);
+                if(!$('#database').data('entity_id')) { $('.autosave').attr('disabled', false) }
+            });
         });
 
         $('.autosave').change(function(e) {
@@ -314,6 +319,8 @@
                 }
             }
             if (String(value) !== String(inputbox.data('value'))) {
+                if(!$('#database').data('entity_id')) { $('.autosave').attr('disabled', true) }
+
                 $.post('/entity/save', {
                     entity_id: $('#database').data('entity_id'),
                     parent_entity_id: '{{ parent_entity_id }}',
@@ -321,8 +328,7 @@
                     property_definition_keyname: inputbox.data('property_definition_keyname'),
                     value_id: inputbox.data('id'),
                     value: value
-                },
-                function(newvalue) {
+                }, 'json').done(function(newvalue) {
                     //alert(JSON.stringify(newvalue));
                     $('#database').data('entity_id', newvalue.entity_id);
                     {% if open_after_add %}$('#modal-box').data('open_entity_id', newvalue.entity_id);{% end %}
@@ -331,7 +337,11 @@
                         inputbox.data('id', newvalue.value_id);
                         inputbox.data('value', value)
                     }
-                }, 'json');
+                    if(!$('#database').data('entity_id')) { $('.autosave').attr('disabled', false) }
+                }).fail(function(xhr, status, error) {
+                    if(!$('#database').data('entity_id')) { $('.autosave').attr('disabled', false) }
+                    console.log(error);
+                });
             }
         });
 
@@ -343,10 +353,11 @@
                 entity_definition_keyname: '{{ entity_definition_keyname }}',
                 property_definition_keyname: inputbox.data('property_definition_keyname'),
                 value_id: inputbox.data('property_id'),
-            },
-            function(newvalue) {
+            }, 'json').done(function(newvalue) {
                 inputbox.parent().remove();
-            }, 'json');
+            }).fail(function(xhr, status, error) {
+                console.log(error);
+            });
         });
 
         $('.is_public').change(function() {
@@ -358,12 +369,13 @@
                 entity_definition_keyname: '{{ entity_definition_keyname }}',
                 is_public: 'true',
                 value: value
-            },
-            function(newvalue) {
+            }, 'json').done(function(newvalue) {
                 //alert(JSON.stringify(newvalue));
                 $('#database').data('entity_id', newvalue.entity_id);
                 $('.file_entity_id').val(newvalue.entity_id);
-            }, 'json');
+            }).fail(function(xhr, status, error) {
+                console.log(error);
+            });
         });
 
         $('.delete-file-row').hover(
