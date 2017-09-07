@@ -276,6 +276,8 @@
         });
 
         $('.counter').click(function() {
+            $('.autosave').attr('readonly', true);
+
             var inputbox = $(this);
             var inputbox_parent = $(this).parent();
             inputbox_parent.html('<img src="{{ static_url('images/spinner_white.gif') }}" class="spinner" />');
@@ -292,10 +294,14 @@
                 {% if open_after_add %}$('#modal-box').data('open_entity_id', newvalue.entity_id);{% end %}
                 $('.file_entity_id').val(newvalue.entity_id);
                 inputbox_parent.html('<span style="padding:8px;">'+newvalue.value+'</span>');
+
+                $('.autosave').attr('readonly', false);
             }, 'json');
         });
 
         $('.autosave').change(function(e) {
+            $('.autosave').attr('readonly', true);
+
             var inputbox = $(this);
             if (inputbox.attr('type') == 'checkbox') {
                 value = inputbox.is(':checked');
@@ -312,6 +318,8 @@
                         $(this).parent('div').hide();
                     }
                 }
+
+                $('.autosave').attr('readonly', false);
             }
             if (String(value) !== String(inputbox.data('value'))) {
                 $.post('/entity/save', {
