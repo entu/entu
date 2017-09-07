@@ -76,6 +76,8 @@
 <script>
     $(document).ready(function() {
 
+        var entityIsSaved = false;
+
         autosize($('textarea'));
 
         setTimeout(function () {
@@ -276,7 +278,7 @@
         });
 
         $('.counter').click(function() {
-            if(!$('#database').data('entity_id')) { $('.autosave').attr('disabled', true) }
+            if(!entityIsSaved) { $('.autosave').attr('disabled', true) }
 
             var inputbox = $(this);
             var inputbox_parent = $(this).parent();
@@ -293,10 +295,12 @@
                 {% if open_after_add %}$('#modal-box').data('open_entity_id', newvalue.entity_id);{% end %}
                 $('.file_entity_id').val(newvalue.entity_id);
                 inputbox_parent.html('<span style="padding:8px;">'+newvalue.value+'</span>');
-                $('.autosave').attr('disabled', false);
+                if(!entityIsSaved) { $('.autosave').attr('disabled', false); }
+                entityIsSaved = true;
             }).fail(function(xhr, status, error) {
                 console.log(error);
-                $('.autosave').attr('disabled', false);
+                if(!entityIsSaved) { $('.autosave').attr('disabled', false); }
+                entityIsSaved = true;
             });
         });
 
@@ -319,7 +323,7 @@
                 }
             }
             if (String(value) !== String(inputbox.data('value'))) {
-                if(!$('#database').data('entity_id')) { $('.autosave').attr('disabled', true) }
+                if(!entityIsSaved) { $('.autosave').attr('disabled', true) }
 
                 $.post('/entity/save', {
                     entity_id: $('#database').data('entity_id'),
@@ -337,9 +341,11 @@
                         inputbox.data('id', newvalue.value_id);
                         inputbox.data('value', value)
                     }
-                    $('.autosave').attr('disabled', false);
+                    if(!entityIsSaved) { $('.autosave').attr('disabled', false); }
+                    entityIsSaved = true;
                 }).fail(function(xhr, status, error) {
-                    $('.autosave').attr('disabled', false);
+                    if(!entityIsSaved) { $('.autosave').attr('disabled', false); }
+                    entityIsSaved = true;
                     console.log(error);
                 });
             }
