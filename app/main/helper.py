@@ -44,7 +44,7 @@ class myDatabase():
             logging.error(err)
 
             settings = self.get_app_settings(host)
-            if self.settings['database-ssl-path']:
+            if settings.get('database-ssl-path'):
                 self.settings['databases'][host] = mysql.connector.connect(
                     host       = settings.get('database-host'),
                     port       = int(settings.get('database-port')),
@@ -53,9 +53,9 @@ class myDatabase():
                     password   = settings.get('database-password'),
                     use_pure   = False,
                     autocommit = True,
-                    ssl_cert   = os.path.join(self.settings['database-ssl-path'], 'mysql-client-cert.pem'),
-                    ssl_key    = os.path.join(self.settings['database-ssl-path'], 'mysql-client-key.pem'),
-                    ssl_ca     = os.path.join(self.settings['database-ssl-path'], 'mysql-server-ca.pem'),
+                    ssl_cert   = os.path.join(settings.get('database-ssl-path'), 'mysql-client-cert.pem'),
+                    ssl_key    = os.path.join(settings.get('database-ssl-path'), 'mysql-client-key.pem'),
+                    ssl_ca     = os.path.join(settings.get('database-ssl-path'), 'mysql-server-ca.pem'),
                     ssl_verify_cert = True
                 )
             else:

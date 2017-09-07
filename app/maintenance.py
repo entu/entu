@@ -630,7 +630,7 @@ while True:
         # if c.get('database-name') != 'saksa':
         #     continue
 
-        if APP_MYSQL_SSL_PATH:
+        if c.get('database-ssl-path'):
             db = mysql.connector.connect(
                 host       = c.get('database-host'),
                 port       = int(c.get('database-port')),
@@ -639,9 +639,9 @@ while True:
                 password   = c.get('database-password'),
                 use_pure   = False,
                 autocommit = True,
-                ssl_cert   = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-cert.pem'),
-                ssl_key    = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-key.pem'),
-                ssl_ca     = os.path.join(APP_MYSQL_SSL_PATH, 'mysql-server-ca.pem'),
+                ssl_cert   = os.path.join(c.get('database-ssl-path'), 'mysql-client-cert.pem'),
+                ssl_key    = os.path.join(c.get('database-ssl-path'), 'mysql-client-key.pem'),
+                ssl_ca     = os.path.join(c.get('database-ssl-path'), 'mysql-server-ca.pem'),
                 ssl_verify_cert = True
             )
         else:
