@@ -318,8 +318,6 @@
                         $(this).parent('div').hide();
                     }
                 }
-
-                $('.autosave').attr('readonly', false);
             }
             if (String(value) !== String(inputbox.data('value'))) {
                 $.post('/entity/save', {
@@ -339,6 +337,8 @@
                         inputbox.data('id', newvalue.value_id);
                         inputbox.data('value', value)
                     }
+
+                    $('.autosave').attr('readonly', false);
                 }, 'json');
             }
         });
