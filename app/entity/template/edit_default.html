@@ -302,10 +302,6 @@
         });
 
         $('.autosave').change(function(e) {
-            if(!$('#database').data('entity_id')) {
-                $('.autosave').attr('readonly', true);
-            }
-
             var inputbox = $(this);
             if (inputbox.attr('type') == 'checkbox') {
                 value = inputbox.is(':checked');
@@ -324,6 +320,10 @@
                 }
             }
             if (String(value) !== String(inputbox.data('value'))) {
+                if(!$('#database').data('entity_id')) {
+                    $('.autosave').attr('readonly', true);
+                }
+
                 $.post('/entity/save', {
                     entity_id: $('#database').data('entity_id'),
                     parent_entity_id: '{{ parent_entity_id }}',
