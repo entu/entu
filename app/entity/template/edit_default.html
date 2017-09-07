@@ -288,7 +288,7 @@
                 entity_definition_keyname: '{{ entity_definition_keyname }}',
                 property_definition_keyname: inputbox.data('property'),
             }, 'json').done(function(newvalue) {
-                alert(JSON.stringify(newvalue));
+                console.log(newvalue);
                 $('#database').data('entity_id', newvalue.entity_id);
                 {% if open_after_add %}$('#modal-box').data('open_entity_id', newvalue.entity_id);{% end %}
                 $('.file_entity_id').val(newvalue.entity_id);
@@ -329,7 +329,7 @@
                     value_id: inputbox.data('id'),
                     value: value
                 }, 'json').done(function(newvalue) {
-                    alert(JSON.stringify(newvalue));
+                    console.log(newvalue);
                     $('#database').data('entity_id', newvalue.entity_id);
                     {% if open_after_add %}$('#modal-box').data('open_entity_id', newvalue.entity_id);{% end %}
                     $('.file_entity_id').val(newvalue.entity_id);
@@ -370,7 +370,7 @@
                 is_public: 'true',
                 value: value
             }, 'json').done(function(newvalue) {
-                //alert(JSON.stringify(newvalue));
+                //console.log(newvalue);
                 $('#database').data('entity_id', newvalue.entity_id);
                 $('.file_entity_id').val(newvalue.entity_id);
             }).fail(function(xhr, status, error) {
