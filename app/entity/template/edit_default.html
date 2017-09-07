@@ -288,15 +288,15 @@
                 entity_definition_keyname: '{{ entity_definition_keyname }}',
                 property_definition_keyname: inputbox.data('property'),
             }, 'json').done(function(newvalue) {
-                //alert(JSON.stringify(newvalue));
+                alert(JSON.stringify(newvalue));
                 $('#database').data('entity_id', newvalue.entity_id);
                 {% if open_after_add %}$('#modal-box').data('open_entity_id', newvalue.entity_id);{% end %}
                 $('.file_entity_id').val(newvalue.entity_id);
                 inputbox_parent.html('<span style="padding:8px;">'+newvalue.value+'</span>');
-                if(!$('#database').data('entity_id')) { $('.autosave').attr('disabled', false) }
+                $('.autosave').attr('disabled', false);
             }).fail(function(xhr, status, error) {
                 console.log(error);
-                if(!$('#database').data('entity_id')) { $('.autosave').attr('disabled', false) }
+                $('.autosave').attr('disabled', false);
             });
         });
 
@@ -329,7 +329,7 @@
                     value_id: inputbox.data('id'),
                     value: value
                 }, 'json').done(function(newvalue) {
-                    //alert(JSON.stringify(newvalue));
+                    alert(JSON.stringify(newvalue));
                     $('#database').data('entity_id', newvalue.entity_id);
                     {% if open_after_add %}$('#modal-box').data('open_entity_id', newvalue.entity_id);{% end %}
                     $('.file_entity_id').val(newvalue.entity_id);
@@ -337,9 +337,9 @@
                         inputbox.data('id', newvalue.value_id);
                         inputbox.data('value', value)
                     }
-                    if(!$('#database').data('entity_id')) { $('.autosave').attr('disabled', false) }
+                    $('.autosave').attr('disabled', false);
                 }).fail(function(xhr, status, error) {
-                    if(!$('#database').data('entity_id')) { $('.autosave').attr('disabled', false) }
+                    $('.autosave').attr('disabled', false);
                     console.log(error);
                 });
             }
