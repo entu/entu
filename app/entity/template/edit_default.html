@@ -276,7 +276,9 @@
         });
 
         $('.counter').click(function() {
-            $('.autosave').attr('readonly', true);
+            if(!$('#database').data('entity_id')) {
+                $('.autosave').attr('readonly', true);
+            }
 
             var inputbox = $(this);
             var inputbox_parent = $(this).parent();
@@ -300,7 +302,9 @@
         });
 
         $('.autosave').change(function(e) {
-            $('.autosave').attr('readonly', true);
+            if(!$('#database').data('entity_id')) {
+                $('.autosave').attr('readonly', true);
+            }
 
             var inputbox = $(this);
             if (inputbox.attr('type') == 'checkbox') {
