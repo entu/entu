@@ -76,8 +76,6 @@
 <script>
     $(document).ready(function() {
 
-        var entityId = $('#database').data('entity_id');
-
         autosize($('textarea'));
 
         setTimeout(function () {
@@ -110,14 +108,14 @@
         function uploadFileS3(file, div) {
             $.ajaxSetup({ cache: false });
             $.post('/api2/file/s3', {
-                entity: entityId,
+                entity: $('#database').data('entity_id'),
                 property: div.data('property_definition_keyname'),
                 filename: file.name,
                 filesize: file.size,
                 filetype: file.type
             }, function(data) {
                 if(data.result) {
-                    entityId = data.result.id;
+                    $('#database').data('entity_id') = data.result.id;
                     var xhr = new XMLHttpRequest();
                     var form = new FormData();
 
@@ -168,7 +166,7 @@
 
             xhr.onreadystatechange = function(ev) {
                 if(xhr.readyState == 4 && xhr.status == 200) {
-                    entityId = JSON.parse(xhr.response).result.id;
+                    $('#database').data('entity_id') = JSON.parse(xhr.response).result.id;
                     status.children('i').html('');
                 }
                 if(xhr.readyState == 4 && xhr.status != 200) {
@@ -178,7 +176,7 @@
             };
 
             xhr.open('POST', '/api2/file', true);
-            xhr.setRequestHeader('X-ENTITY', entityId);
+            xhr.setRequestHeader('X-ENTITY', $('#database').data('entity_id'));
             xhr.setRequestHeader('X-PROPERTY', div.data('property_definition_keyname'));
             xhr.setRequestHeader('X-FILENAME', file.name);
             xhr.send(file);
@@ -192,13 +190,13 @@
                 var status = $('<div class="new-input" style="padding:8px; color:gray;">' + filename + '<i> - Uploading...</i></div>');
                 $('#new-filenames-' + div.data('property_definition_keyname')).append(status);
                 $.post('/api2/file/url', {
-                    entity: entityId,
+                    entity: $('#database').data('entity_id'),
                     property: div.data('property_definition_keyname'),
                     url: links[i].url,
                     filename: links[i].filename,
                     download: links[i].download
                 }, function(data) {
-                    entityId = ata.result.id;
+                    $('#database').data('entity_id') = ata.result.id;
                     status.children('i').html('');
                 }, 'json');
             }
@@ -236,7 +234,7 @@
                     }
                 },
                 formatResult: function(data) {
-                    if(data.id == entityId) return;
+                    if(data.id == $('#database').data('entity_id')) return;
                     if(data.info) {
                         info = '<span>'+data.info+'</span>';
                     } else {
@@ -283,7 +281,7 @@
             inputbox_parent.html('<img src="{{ static_url('images/spinner_white.gif') }}" class="spinner" />');
             $.post('/entity/save', {
                 counter: 'true',
-                entity_id: entityId,
+                entity_id: $('#database').data('entity_id'),
                 parent_entity_id: '{{ parent_entity_id }}',
                 entity_definition_keyname: '{{ entity_definition_keyname }}',
                 property_definition_keyname: inputbox.data('property'),
@@ -317,7 +315,7 @@
             }
             if (String(value) !== String(inputbox.data('value'))) {
                 $.post('/entity/save', {
-                    entity_id: entityId,
+                    entity_id: $('#database').data('entity_id'),
                     parent_entity_id: '{{ parent_entity_id }}',
                     entity_definition_keyname: '{{ entity_definition_keyname }}',
                     property_definition_keyname: inputbox.data('property_definition_keyname'),
@@ -340,7 +338,7 @@
         $('.delete-reference').click(function() {
             var inputbox = $(this);
             $.post('/entity/save', {
-                entity_id: entityId,
+                entity_id: $('#database').data('entity_id'),
                 parent_entity_id: '{{ parent_entity_id }}',
                 entity_definition_keyname: '{{ entity_definition_keyname }}',
                 property_definition_keyname: inputbox.data('property_definition_keyname'),
@@ -355,7 +353,7 @@
             var inputbox = $(this);
             value = inputbox.is(':checked');
             $.post('/entity/save', {
-                entity_id: entityId,
+                entity_id: $('#database').data('entity_id'),
                 parent_entity_id: '{{ parent_entity_id }}',
                 entity_definition_keyname: '{{ entity_definition_keyname }}',
                 is_public: 'true',
