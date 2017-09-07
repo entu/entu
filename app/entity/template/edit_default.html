@@ -278,8 +278,6 @@
         });
 
         $('.counter').click(function() {
-            if(!entityId) { $('.autosave').attr('disabled', true) }
-
             var inputbox = $(this);
             var inputbox_parent = $(this).parent();
             inputbox_parent.html('<img src="{{ static_url('images/spinner_white.gif') }}" class="spinner" />');
@@ -289,18 +287,14 @@
                 parent_entity_id: '{{ parent_entity_id }}',
                 entity_definition_keyname: '{{ entity_definition_keyname }}',
                 property_definition_keyname: inputbox.data('property'),
-            }, 'json').done(function(newvalue) {
-                console.log(newvalue);
-                entityId = newvalue.entity_id;
+            },
+            function(newvalue) {
+                //alert(JSON.stringify(newvalue));
+                $('#database').data('entity_id', newvalue.entity_id);
                 {% if open_after_add %}$('#modal-box').data('open_entity_id', newvalue.entity_id);{% end %}
                 $('.file_entity_id').val(newvalue.entity_id);
                 inputbox_parent.html('<span style="padding:8px;">'+newvalue.value+'</span>');
-                console.log(error);
-                $('.autosave').attr('disabled', false);
-            }).fail(function(xhr, status, error) {
-                console.log(entityId);
-                $('.autosave').attr('disabled', false);
-            });
+            }, 'json');
         });
 
         $('.autosave').change(function(e) {
@@ -322,8 +316,6 @@
                 }
             }
             if (String(value) !== String(inputbox.data('value'))) {
-                if(!entityId) { $('.autosave').attr('disabled', true) }
-
                 $.post('/entity/save', {
                     entity_id: entityId,
                     parent_entity_id: '{{ parent_entity_id }}',
@@ -331,20 +323,17 @@
                     property_definition_keyname: inputbox.data('property_definition_keyname'),
                     value_id: inputbox.data('id'),
                     value: value
-                }, 'json').done(function(newvalue) {
-                    entityId = newvalue.entity_id;
+                },
+                function(newvalue) {
+                    //alert(JSON.stringify(newvalue));
+                    $('#database').data('entity_id', newvalue.entity_id);
                     {% if open_after_add %}$('#modal-box').data('open_entity_id', newvalue.entity_id);{% end %}
                     $('.file_entity_id').val(newvalue.entity_id);
                     if (!inputbox.hasClass('reference')) {
                         inputbox.data('id', newvalue.value_id);
                         inputbox.data('value', value)
                     }
-                    console.log(entityId);
-                    $('.autosave').attr('disabled', false);
-                }).fail(function(xhr, status, error) {
-                    console.log(error);
-                    $('.autosave').attr('disabled', false);
-                });
+                }, 'json');
             }
         });
 
@@ -356,11 +345,10 @@
                 entity_definition_keyname: '{{ entity_definition_keyname }}',
                 property_definition_keyname: inputbox.data('property_definition_keyname'),
                 value_id: inputbox.data('property_id'),
-            }, 'json').done(function(newvalue) {
+            },
+            function(newvalue) {
                 inputbox.parent().remove();
-            }).fail(function(xhr, status, error) {
-                console.log(error);
-            });
+            }, 'json');
         });
 
         $('.is_public').change(function() {
@@ -372,13 +360,12 @@
                 entity_definition_keyname: '{{ entity_definition_keyname }}',
                 is_public: 'true',
                 value: value
-            }, 'json').done(function(newvalue) {
-                //console.log(newvalue);
-                entityId = newvalue.entity_id;
+            },
+            function(newvalue) {
+                //alert(JSON.stringify(newvalue));
+                $('#database').data('entity_id', newvalue.entity_id);
                 $('.file_entity_id').val(newvalue.entity_id);
-            }).fail(function(xhr, status, error) {
-                console.log(error);
-            });
+            }, 'json');
         });
 
         $('.delete-file-row').hover(
