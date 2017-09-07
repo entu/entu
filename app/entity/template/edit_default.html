@@ -278,7 +278,6 @@
         $('.counter').click(function() {
             if(!$('#database').data('entity_id')) {
                 $('.autosave').attr('readonly', true);
-                $('.btn-small').attr('disabled', true);
             }
 
             var inputbox = $(this);
@@ -299,7 +298,6 @@
                 inputbox_parent.html('<span style="padding:8px;">'+newvalue.value+'</span>');
 
                 $('.autosave').attr('readonly', false);
-                $('.btn-small').attr('disabled', false);
             }, 'json');
         });
 
@@ -324,7 +322,6 @@
             if (String(value) !== String(inputbox.data('value'))) {
                 if(!$('#database').data('entity_id')) {
                     $('.autosave').attr('readonly', true);
-                    $('.btn-small').attr('disabled', true);
                 }
 
                 $.post('/entity/save', {
@@ -346,7 +343,6 @@
                     }
 
                     $('.autosave').attr('readonly', false);
-                    $('.btn-small').attr('disabled', false);
                 }, 'json');
             }
         });
