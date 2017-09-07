@@ -115,7 +115,7 @@
                 filetype: file.type
             }, function(data) {
                 if(data.result) {
-                    $('#database').data('entity_id') = data.result.id;
+                    $('#database').data('entity_id', data.result.id);
                     var xhr = new XMLHttpRequest();
                     var form = new FormData();
 
@@ -166,7 +166,7 @@
 
             xhr.onreadystatechange = function(ev) {
                 if(xhr.readyState == 4 && xhr.status == 200) {
-                    $('#database').data('entity_id') = JSON.parse(xhr.response).result.id;
+                    $('#database').data('entity_id', JSON.parse(xhr.response).result.id);
                     status.children('i').html('');
                 }
                 if(xhr.readyState == 4 && xhr.status != 200) {
@@ -196,7 +196,7 @@
                     filename: links[i].filename,
                     download: links[i].download
                 }, function(data) {
-                    $('#database').data('entity_id') = ata.result.id;
+                    $('#database').data('entity_id', data.result.id);
                     status.children('i').html('');
                 }, 'json');
             }
