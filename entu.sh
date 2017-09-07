@@ -31,6 +31,7 @@ docker run -d \
     --env="MYSQL_PASSWORD=" \
     --env="MYSQL_SSL_PATH=" \
     --env="CUSTOMERGROUP=" \
+    --env="NEW_RELIC_FEATURE_FLAG=tornado.instrumentation.r3" \
     --env="NEW_RELIC_APP_NAME=entu" \
     --env="NEW_RELIC_LICENSE_KEY=" \
     --env="NEW_RELIC_LOG=stdout" \
