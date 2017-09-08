@@ -91,7 +91,7 @@ class MainPage(myRequestHandler):
     """
     def get(self):
         if self.current_user and '{CURRENT_USER}' in self.app_settings('path'):
-            self.redirect(self.app_settings('path').replace('{CURRENT_USER}', self.current_user.get('id')))
+            self.redirect(self.app_settings('path').replace('{CURRENT_USER}', '%s' % self.current_user.get('id')))
         else:
             self.redirect(self.app_settings('path'))
 
