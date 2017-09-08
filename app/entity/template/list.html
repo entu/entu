@@ -30,6 +30,9 @@
         $('#toolbar').html('');
         $('#list_items a.active').removeClass('active');
         if(id) {
+            if(id === '%7BCURRENT_USER%7D' && '{{ entity.get('id', '') }}') {
+                id = '{{ entity.get('id', '') }}';
+            }
             spinner('open_item');
             $('#listitem_'+id).addClass('active');
             $.get('/entity-'+id, function(html) {
