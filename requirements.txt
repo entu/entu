@@ -3,7 +3,7 @@ boto==2.48.0
 chardet==3.0.4
 mistune==0.7.4
 mysql-connector==2.1.6
-newrelic==2.92.0.78
+newrelic==2.94.0.79
 pillow==4.2.1
 pymongo==3.5.1
 python-dateutil==2.6.1
