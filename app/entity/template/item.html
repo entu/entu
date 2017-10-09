@@ -185,8 +185,10 @@
             // get and show entity childs
             spinner(div);
             $.get(url, function(data) {
-                for(var d_key in data.result) {
-                    var definition     = data.result[d_key];
+                var defs = Object.keys(data.result).sort()
+
+                for (var i = 0; i < defs.length; i++) {
+                    var definition     = data.result[defs[i]];
                     var entities       = definition.entities;
 
                     var $element       = $('.childs-template').clone(true).removeClass('childs-template').appendTo(div);
