@@ -351,19 +351,22 @@ class API2EntityChilds(myRequestHandler, Entity2):
             page       = self.get_argument('page', default=None, strip=True)
         )
 
+        entities = db_result.get('entities', [])
         result = {}
-        for e in db_result.get('entities', []):
-            result.setdefault(e.get('definition'), {})['definition'] = e.get('definition') if e.get('definition') else None
-            result.setdefault(e.get('definition'), {})['label'] = e.get('label') if e.get('label') else None
-            result.setdefault(e.get('definition'), {})['label_plural'] = e.get('label_plural') if e.get('label_plural') else None
-            result.setdefault(e.get('definition'), {})['table_header'] = e.get('displaytableheader').split('|') if e.get('displaytableheader') else None
-            result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['id'] = e.get('id') if e.get('id') else None
-            result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['sort'] = e.get('sort') if e.get('sort') else None
-            result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['name'] = e.get('displayname') if e.get('displayname') else None
-            result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['info'] = e.get('displayinfo') if e.get('displayinfo') else None
-            result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['table'] = e.get('displaytable').split('|') if e.get('displaytable') else None
-        for r in result.values():
-            r['entities'] = sorted(r.get('entities', {}).values(), key=itemgetter('sort'))
+
+        if len(entities) > 0:
+            for e in sorted(entities, key=itemgetter('label')):
+                result.setdefault(e.get('definition'), {})['definition'] = e.get('definition') if e.get('definition') else None
+                result.setdefault(e.get('definition'), {})['label'] = e.get('label') if e.get('label') else None
+                result.setdefault(e.get('definition'), {})['label_plural'] = e.get('label_plural') if e.get('label_plural') else None
+                result.setdefault(e.get('definition'), {})['table_header'] = e.get('displaytableheader').split('|') if e.get('displaytableheader') else None
+                result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['id'] = e.get('id') if e.get('id') else None
+                result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['sort'] = e.get('sort') if e.get('sort') else None
+                result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['name'] = e.get('displayname') if e.get('displayname') else None
+                result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['info'] = e.get('displayinfo') if e.get('displayinfo') else None
+                result.setdefault(e.get('definition'), {}).setdefault('entities', {}).setdefault(e.get('id'), {})['table'] = e.get('displaytable').split('|') if e.get('displaytable') else None
+            for r in result.values():
+                r['entities'] = sorted(r.get('entities', {}).values(), key=itemgetter('sort'))
 
         self.json({
             'result': result,
