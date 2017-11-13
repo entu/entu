@@ -496,7 +496,7 @@ class Entity2():
                 }, 404)
 
         elif f.get('md5'):
-            filename  = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), f.get('md5')[0], f.get('md5'))
+            filename  = os.path.join(self.settings['files-path'], 'files', self.app_settings('database-name'), f.get('md5')[0], f.get('md5'))
             if os.path.isfile(filename):
                 filecontent = self.save_thumb(Image.open(filename), thumbname)
             else:
