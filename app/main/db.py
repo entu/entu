@@ -516,7 +516,7 @@ class Entity():
                 value = self.db_execute_lastrowid('INSERT INTO file SET s3_key = %s, filename = %s, filesize = %s, created_by = %s, created = NOW();', uploaded_file.get('s3key', ''), uploaded_file.get('filename', ''), uploaded_file.get('filesize', ''), user_id)
             else:
                 md5 = hashlib.md5(uploaded_file.get('body')).hexdigest()
-                directory = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), md5[0])
+                directory = os.path.join(self.settings['files-path'], 'files', self.app_settings('database-name'), md5[0])
                 filename = os.path.join(directory, md5)
 
                 if not os.path.exists(directory):
@@ -1632,7 +1632,7 @@ class Entity():
         result = []
         for f in self.db_query(sql):
             if f.get('md5'):
-                filename = os.path.join('/', 'entu', 'files', self.app_settings('database-name'), f.get('md5')[0], f.get('md5'))
+                filename = os.path.join(self.settings['files-path'], 'files', self.app_settings('database-name'), f.get('md5')[0], f.get('md5'))
                 if os.path.isfile(filename):
                     with open(filename, 'r') as myfile:
                         filecontent = myfile.read()
