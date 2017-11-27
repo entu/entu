@@ -1194,6 +1194,9 @@ class Entity():
 
                 if row.get('property_formula') == 1:
                     db_value = row.get('value_formula')
+                elif row.get('property_dataproperty') == 'entu-api-key':
+                    db_value = '************'
+                    value = '************'
                 elif row.get('property_datatype') == 'string':
                     db_value = row.get('value_string')
                 elif row.get('property_datatype') == 'text':
@@ -1217,8 +1220,6 @@ class Entity():
                     db_value = row.get('value_counter')
                 elif row.get('property_datatype') == 'counter-value':
                     db_value = row.get('value_string')
-                elif row.get('property_dataproperty') == 'entu-api-key':
-                    db_value = '************'
                 else:
                     db_value = ''
                     value = 'X'
