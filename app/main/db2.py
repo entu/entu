@@ -27,7 +27,6 @@ class Entity2():
 
 
     def get_entity_definitions(self, definition_id=None):
-
         definition_sql = ''
         if definition_id:
             definition_sql = 'AND e.id = \'%s\'' % definition_id
@@ -213,7 +212,6 @@ class Entity2():
             e['properties'] = properties2
             entities2[e.get('keyname', e_id)] = dict(entity_template.items() + e.items())
         return entities2
-
 
 
     def get_tag_cloud(self, definition=None, limit=None):
@@ -415,12 +413,14 @@ class Entity2():
 
             if not r.get('val'):
                 continue
+            if r.get('definition') == ''
+
             entities.setdefault(r.get('id'), {})['id'] = r.get('id')
             entities.setdefault(r.get('id'), {})['definition'] = r.get('definition')
             entities.setdefault(r.get('id'), {})['sort'] = r.get('sort')
             entities.setdefault(r.get('id'), {})['changed'] = r.get('changed')
             entities.setdefault(r.get('id'), {})['changed_ts'] = r.get('changed_ts')
-            entities.setdefault(r.get('id'), {})[r.get('field')] = r.get('val')
+            entities.setdefault(r.get('id'), {})[r.get('field')] = '************' if r.get('definition') == 'entu-api-key' else r.get('val')
 
         return {
             'entities': entities.values(),
@@ -726,6 +726,7 @@ class Entity2():
 
         return self.db_execute_lastrowid('INSERT INTO tmp_file SET filename = %s, file = %s, filesize = LENGTH(file), created = NOW(), created_by = %s;', filename, content, self.__user_id)
 
+
     def get_tmp_file(self, filename=None):
         if not filename:
             return
@@ -904,6 +905,7 @@ class Entity2():
         # logging.debug(result)
 
         return result
+
 
     def get_history_events(self, timeframe):
         logging.debug(timeframe)

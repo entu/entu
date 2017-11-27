@@ -24,6 +24,7 @@ class Entity():
     """
     __translation = None
 
+
     @property
     def __user_id(self):
         if not self.current_user:
@@ -32,9 +33,11 @@ class Entity():
             return None
         return self.current_user.get('id')
 
+
     @property
     def __language(self):
         return self.get_user_locale().code
+
 
     def __get_system_translation(self, field, entity_definition_keyname='', property_definition_keyname=''):
         if not self.__translation:
@@ -42,6 +45,7 @@ class Entity():
             for t in self.db_query('SELECT field, value, IFNULL(entity_definition_keyname, \'\') AS entity_definition_keyname, IFNULL(property_definition_keyname, \'\') AS property_definition_keyname FROM translation WHERE language = %s OR language IS NULL ORDER BY language;', self.get_user_locale().code):
                 self.__translation['%s|%s|%s' % (t.get('entity_definition_keyname'), t.get('property_definition_keyname'), t.get('field'))] = t.get('value')
         return self.__translation.get('%s|%s|%s' % (entity_definition_keyname, property_definition_keyname, field), None)
+
 
     def create_entity(self, entity_definition_keyname, parent_entity_id=None, ignore_user=False):
         """
@@ -223,6 +227,7 @@ class Entity():
 
         return entity_id
 
+
     def duplicate_entity(self, entity_id, copies=1, skip_property_definition_keyname=None):
         if not entity_id:
             return
@@ -356,6 +361,7 @@ class Entity():
                 'action': 'created'
             })
 
+
     def delete_entity(self, entity_id):
         if not self.db_get("""
                 SELECT entity_id
@@ -386,6 +392,7 @@ class Entity():
         })
 
         return True
+
 
     def set_property(self, entity_id=None, relationship_id=None, property_definition_keyname=None, value=None, old_property_id=None, uploaded_file=None, ignore_user=False, ignore_maintenance=False):
         """
@@ -570,6 +577,7 @@ class Entity():
 
         return new_property_id
 
+
     def set_counter(self, entity_id):
         """
         Sets counter property.
@@ -711,6 +719,7 @@ class Entity():
 
         return self.db_get('SELECT value_string FROM property WHERE id = %s', property_id).get('value_string')
 
+
     def set_parent(self, entity_id, parent, delete=False):
         """
         Adds or removes Entity parent. entity_id and parent can be single value or list of values.
@@ -770,6 +779,7 @@ class Entity():
                 'action': 'parent_changed'
             })
 
+
     def get_rights(self, entity_id):
         if not entity_id:
             return
@@ -795,6 +805,7 @@ class Entity():
                     rights[right] = entities
 
         return rights
+
 
     def set_rights(self, entity_id, related_entity_id, right=None, ignore_user=False, ignore_maintenance=False):
         if not entity_id or not related_entity_id:
@@ -842,7 +853,6 @@ class Entity():
         self.db_execute('UPDATE entity SET changed = NOW() WHERE entity.id IN (%s);' % ','.join(map(str, entity_id)))
 
 
-
     def set_sharing(self, entity_id, sharing):
         if not entity_id or not sharing:
             return
@@ -859,6 +869,7 @@ class Entity():
         """ % ','.join(map(str, entity_id))
 
         self.db_execute(sql, sharing, self.__user_id)
+
 
     def set_sharing_key(self, entity_id, generate=False):
         if not entity_id:
@@ -883,6 +894,7 @@ class Entity():
         self.db_execute(sql, sharing_key, self.__user_id)
 
         return sharing_key
+
 
     def get_users(self, search=None):
         """
@@ -929,6 +941,7 @@ class Entity():
 
         return entities
 
+
     def get_entities(self, ids_only=False, entity_id=None, search=None, entity_definition_keyname=None, dataproperty=None, limit=None, full_definition=False, only_public=False, sharing_key=None):
         """
         If ids_only = True, then returns list of Entity IDs. Else returns list of Entities (with properties) as dictionary. entity_id, entity_definition and dataproperty can be single value or list of values.
@@ -948,6 +961,7 @@ class Entity():
             return entities[0]
 
         return entities
+
 
     def __get_id_list(self, entity_id=None, search=None, entity_definition_keyname=None, limit=None, only_public=False, sharing_key=None):
         """
@@ -1033,6 +1047,7 @@ class Entity():
             return []
         return [x.get('id') for x in items]
 
+
     # def formula_properties(self, entity_id):
     #     sql = """
     #         SELECT *
@@ -1044,6 +1059,7 @@ class Entity():
     #         ;""" % entity_id
     #     # logging.debug(sql)
     #     return self.db_query(sql)
+
 
     def __get_properties(self, entity_id=None, entity_definition_keyname=None, dataproperty=None, full_definition=False, only_public=False, sharing_key=None):
         """
@@ -1201,6 +1217,8 @@ class Entity():
                     db_value = row.get('value_counter')
                 elif row.get('property_datatype') == 'counter-value':
                     db_value = row.get('value_string')
+                elif row.get('property_dataproperty') == 'entu-api-key':
+                    db_value = '************'
                 else:
                     db_value = ''
                     value = 'X'
@@ -1286,6 +1304,7 @@ class Entity():
 
         return items.values()
 
+
     def __get_displayfields(self, entity_dict):
         """
         Returns Entity displayname, displayinfo, displaytable fields.
@@ -1311,6 +1330,7 @@ class Entity():
             self.db_execute('UPDATE entity SET sort = LEFT(%s, 100) WHERE id = %s', result['sort'], entity_dict.get('id'))
 
         return result
+
 
     def __get_picture_url(self, entity_id, entity_definition_keyname):
         """
@@ -1340,6 +1360,7 @@ class Entity():
             return 'https://secure.gravatar.com/avatar/%s?d=wavatar&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
         else:
             return 'https://secure.gravatar.com/avatar/%s?d=identicon&s=150' % (hashlib.md5(str(entity_id)).hexdigest())
+
 
     def get_definition(self, entity_definition_keyname):
         """
@@ -1404,6 +1425,7 @@ class Entity():
 
         return defs
 
+
     def get_entity_definition(self, entity_definition_keyname):
         """
         Returns entity_definition.
@@ -1439,6 +1461,7 @@ class Entity():
             })
 
         return defs
+
 
     def get_relatives(self, ids_only=False, relationship_ids_only=False, entity_id=None, related_entity_id=None, relationship_definition_keyname=None, reverse_relation=False, entity_definition_keyname=None, full_definition=False, limit=None, only_public=False):
         """
@@ -1581,6 +1604,7 @@ class Entity():
                 items.setdefault('%s' % ent.get('label_plural', ''), []).append(ent)
         return items
 
+
     def get_file(self, file_id, sharing_key=None):
         """
         Returns file object. File properties are id, file, filename.
@@ -1652,6 +1676,7 @@ class Entity():
 
         return result
 
+
     def get_allowed_childs(self, entity_id):
         """
         Returns allowed child definitions.
@@ -1702,6 +1727,7 @@ class Entity():
 
         return defs
 
+
     def get_allowed_parents(self, entity_id):
         """
         Returns allowed parent definitions.
@@ -1745,6 +1771,7 @@ class Entity():
             })
 
         return defs
+
 
     def get_definitions_with_optional_parent(self, entity_definition_keyname):
         """
@@ -1792,6 +1819,7 @@ class Entity():
 
         return defs
 
+
     def get_public_paths(self):
         """
         Returns public paths with labels
@@ -1802,6 +1830,7 @@ class Entity():
         for i in self.db_query('SELECT DISTINCT keyname, public_path FROM entity_definition WHERE public_path IS NOT NULL ORDER BY public_path;'):
             paths[i.get('public_path')] = self.__get_system_translation(field='public', entity_definition_keyname=i.get('keyname'))
         return paths
+
 
     def get_public_path(self, entity_id):
         """
@@ -1821,6 +1850,7 @@ class Entity():
             AND ed.public_path IS NOT NULL
         """ % entity_id)
         return path
+
 
     def get_menu(self):
         """
@@ -1913,6 +1943,8 @@ class Entity():
             menu.setdefault(m.get('menu'), {}).setdefault('items', []).append({'keyname': m.get('definition'), 'title': m.get('label_plural')})
 
         return sorted(menu.values(), key=itemgetter('label'))
+
+
 
 
 def findTags(s, beginning, end):
