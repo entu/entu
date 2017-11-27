@@ -1196,6 +1196,7 @@ class Entity():
                     db_value = row.get('value_formula')
                 elif row.get('property_dataproperty') == 'entu-api-key':
                     db_value = '************'
+                    value = '************'
                 elif row.get('property_datatype') == 'string':
                     db_value = row.get('value_string')
                 elif row.get('property_datatype') == 'text':
