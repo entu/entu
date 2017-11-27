@@ -413,8 +413,6 @@ class Entity2():
 
             if not r.get('val'):
                 continue
-            if r.get('definition') == ''
-
             entities.setdefault(r.get('id'), {})['id'] = r.get('id')
             entities.setdefault(r.get('id'), {})['definition'] = r.get('definition')
             entities.setdefault(r.get('id'), {})['sort'] = r.get('sort')
