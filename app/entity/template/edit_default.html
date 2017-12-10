@@ -75,6 +75,12 @@
     </tbody>
 </table>
 
+<style>
+  .toggle.android { border-radius: 0px;}
+  .toggle.android .toggle-handle { border-radius: 0px; }
+  .toggle.android .toggle-on { line-height: inherit !important; }
+  .toggle.android .toggle-off { line-height: inherit !important; }
+</style>
 <script>
     $(document).ready(function() {
 
@@ -82,6 +88,7 @@
 
         $('input.dtype-boolean').bootstrapToggle({
             size:'mini',
+            style: 'android',
             on: '{{ _('boolean_true') }}',
             off:'{{ _('boolean_false') }}',
             onstyle: 'success',
