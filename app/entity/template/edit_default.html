@@ -33,7 +33,7 @@
                                 {% elif p['datatype'] in ['text', 'html'] %}
                                     <textarea class="autosave {% if p['can_add_new'] and idx+1 == len(p.get('values')) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['value'] }}">{{ v['value'] }}</textarea>
                                 {% elif p['datatype'] == 'boolean' %}
-                                    <input type="checkbox" class="autosave {% if p['can_add_new'] and idx+1 == len(p.get('values')) %}can_add_new{% end %} dtype-{{ p['datatype'] }} js-switch" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" {% if v.get('db_value', 0) == 1 %} checked{% end %} style="margin:8px;" />
+                                    <input type="checkbox" class="autosave {% if p['can_add_new'] and idx+1 == len(p.get('values')) %}can_add_new{% end %} dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" data-id="{{ v['id'] }}" data-value="{{ v['db_value'] }}" data-toggle="toggle" {% if v.get('db_value', 0) == 1 %} checked{% end %} style="margin:8px;" />
                                 {% elif p['datatype'] == 'file' %}
                                     {% if not v['id'] %}
                                         <div id="new-filenames-{{ p['keyname'] }}" style="padding:0px;"></div>
@@ -77,9 +77,6 @@
     $(document).ready(function() {
 
         autosize($('textarea'));
-
-        var elem = document.querySelector('.js-switch');
-        var init = new Switchery(elem);
 
         setTimeout(function () {
             autosize.update($('textarea'));
