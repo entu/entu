@@ -1,11 +1,11 @@
 beautifulsoup4==4.6.0
 boto==2.48.0
 chardet==3.0.4
-mistune==0.8.1
+mistune==0.8.3
 mysql-connector==2.1.6
-newrelic==2.96.0.80
+newrelic==2.98.0.81
 pillow==4.3.0
-pymongo==3.5.1
+pymongo==3.6.0
 python-dateutil==2.6.1
 pyyaml==3.12
 raven==6.3.0
