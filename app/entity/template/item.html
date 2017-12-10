@@ -94,7 +94,6 @@
                                 {{ mistune.Markdown().render('   \n'.join(['%s' % v.get('value').replace('\n', '   \n') for v in p.get('values', [])])) }}
                             {% elif p['datatype'] == 'boolean' %}
                                 {{ '<br />'.join([_('boolean_true') if v.get('db_value') == True else _('boolean_false') for v in p.get('values', [])]) }}
-                                {{ _('menu_add_under') }}
                             {% elif p['datatype'] == 'reference' %}
                                 {{ '<br />'.join(['<a href="#%s">%s</a>' % (v.get('db_value'), v.get('value')) for v in p.get('values', [])]) }}
                             {% elif p['datatype'] == 'string' %}
