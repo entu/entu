@@ -28,6 +28,8 @@
     function open_item(id, skip_push_state) {
         $('#content').html('');
         $('#toolbar').html('');
+        $('#modal-box').modal('hide');
+        $('#modal-box').html('');
         $('#list_items a.active').removeClass('active');
         if(id) {
             if(id === '%7BCURRENT_USER%7D' && '{{ current_user.get('id', '') }}') {
