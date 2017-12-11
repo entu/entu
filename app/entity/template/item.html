@@ -172,9 +172,6 @@
 
         document.title = "{{ page_title.replace('\"', '\\\"') }}";
 
-        $('#modal-box').modal('hide');
-        $('#modal-box').html('');
-
         {% if intercom_key %}
             window.Intercom('update');
         {% end %}
