@@ -282,7 +282,10 @@ class myDatabase():
                 self._app_settings[c.get('domain', '')] = c
 
         if not self._app_settings.get(host):
-            self.redirect('https://www.entu.ee')
+            self.set_status(404)
+            self.render('main/template/404.html',
+                page_title = '404'
+            )
             return
 
         return self._app_settings.get(host, {})
