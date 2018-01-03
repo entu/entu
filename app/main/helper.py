@@ -285,7 +285,7 @@ class myDatabase():
             self.set_status(404)
             self.render('main/template/404.html',
                 page_title = '404',
-                no_app_settings = true
+                no_app_settings = True
             )
             return
 
