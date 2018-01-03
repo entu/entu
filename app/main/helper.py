@@ -282,11 +282,7 @@ class myDatabase():
                 self._app_settings[c.get('domain', '')] = c
 
         if not self._app_settings.get(host):
-            self.set_status(404)
-            self.render('main/template/404.html',
-                page_title = '404',
-                no_app_settings = True
-            )
+            self.send_error(404)
             return
 
         return self._app_settings.get(host, {})
@@ -626,20 +622,19 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
 
         """
         kwargs['app_title'] = 'Entu'
-        if not kwargs.get('no_app_settings'):
-            kwargs['app_organisation_id'] = self.app_settings('database-name', '')
-            kwargs['app_organisation'] = self.app_settings('name', '')
-            kwargs['app_exit_url'] = '%s/exit?next=%s://%s' % (self.settings['auth_url'], self.request.protocol, self.request.host)
-            kwargs['intercom_key'] = self.settings['intercom_key']
-            kwargs['motd'] = self.app_settings('motd', '')
-            kwargs['feedback'] = self.app_settings('feedback-email', '')
-            kwargs['homepage'] = self.app_settings('homepage', '')
-            kwargs['tagcloud'] = self.app_settings('tagcloud', '')
-            kwargs['app_logo'] = 'https://entu.entu.ee/api2/file-%s' % self.app_settings('photo') if self.app_settings('photo') else '/static/images/favicons/apple-touch-icon-144-precomposed.png'
-            kwargs['page_title'] = '%s - %s' % (kwargs['app_title'], kwargs['page_title']) if kwargs.get('page_title') else '%s - %s' % (kwargs['app_title'], self.app_settings('name', ''))
-            kwargs['google_analytics_code'] = self.app_settings('analytics-code')
-            kwargs['google_auth_client_id'] = ('%s\n\n' % self.app_settings('auth-google', '', True)).split('\n')[0]
-            kwargs['google_auth_api_id'] = ('%s\n\n' % self.app_settings('auth-google', '', True)).split('\n')[2]
+        kwargs['app_organisation_id'] = self.app_settings('database-name', '')
+        kwargs['app_organisation'] = self.app_settings('name', '')
+        kwargs['app_exit_url'] = '%s/exit?next=%s://%s' % (self.settings['auth_url'], self.request.protocol, self.request.host)
+        kwargs['intercom_key'] = self.settings['intercom_key']
+        kwargs['motd'] = self.app_settings('motd', '')
+        kwargs['feedback'] = self.app_settings('feedback-email', '')
+        kwargs['homepage'] = self.app_settings('homepage', '')
+        kwargs['tagcloud'] = self.app_settings('tagcloud', '')
+        kwargs['app_logo'] = 'https://entu.entu.ee/api2/file-%s' % self.app_settings('photo') if self.app_settings('photo') else '/static/images/favicons/apple-touch-icon-144-precomposed.png'
+        kwargs['page_title'] = '%s - %s' % (kwargs['app_title'], kwargs['page_title']) if kwargs.get('page_title') else '%s - %s' % (kwargs['app_title'], self.app_settings('name', ''))
+        kwargs['google_analytics_code'] = self.app_settings('analytics-code')
+        kwargs['google_auth_client_id'] = ('%s\n\n' % self.app_settings('auth-google', '', True)).split('\n')[0]
+        kwargs['google_auth_api_id'] = ('%s\n\n' % self.app_settings('auth-google', '', True)).split('\n')[2]
 
         web.RequestHandler.render(self, template_name, **kwargs)
 
