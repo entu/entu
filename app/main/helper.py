@@ -282,11 +282,11 @@ class myDatabase():
                 self._app_settings[c.get('domain', '')] = c
 
         if not self._app_settings.get(host):
-            web.RequestHandler.set_status(self, 404)
-            web.RequestHandler.render(self, 'main/template/404.html', {
-                'app_title': 'Entu',
-                'page_title': '404'
-            })
+            self.set_status(404)
+            web.RequestHandler.render('main/template/404.html',
+                app_title = 'Entu',
+                page_title = '404'
+            )
             return
 
         return self._app_settings.get(host, {})
