@@ -95,6 +95,13 @@
             height: 20
         });
 
+        tippy('tr', {
+            placement: 'top',
+            animation: 'scale',
+            duration: 300,
+            arrow: true
+        });
+
         setTimeout(function () {
             autosize.update($('textarea'));
         }, 300)
