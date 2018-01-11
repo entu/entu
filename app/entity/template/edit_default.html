@@ -3,7 +3,7 @@
         {% for p in sorted(entity.get('properties', {}).values(), key=itemgetter('ordinal')) %}
             {% for idx, v in enumerate(p.get('values')) %}
                 {% if p['visible'] and p['keyname'][:2] != 'x_' %}
-                    <tr{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
+                    <tr>
                         {% if idx == 0 %}
                         <th style="{%if not p['public'] %}color:gray;{% end %}{%if p['mandatory'] %}border-right:1px solid red;{% end %}" rowspan="{{ len(p.get('values')) }}">
                             {%if p['multiplicity'] == 1 %}
@@ -13,7 +13,7 @@
                             {% end %}
                         </th>
                         {% end %}
-                        <td>
+                        <td{% if p['description'] %} title="{{ p['description'] }}"{% end %}>
                             {% if p['readonly'] and p['datatype'] != 'counter-value' %}
                                 {% if v['value'] %}
                                     <span style="padding:8px !important; font-style:italic; color:gray; display:block;">{{ v['value'] }} </span>
