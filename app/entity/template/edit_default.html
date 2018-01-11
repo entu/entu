@@ -11,7 +11,7 @@
                             {% else %}
                                 {%if p.get('label_plural') %}{{ p.get('label_plural') }}{% else %}{{ p.get('dataproperty') }}{% end %}
                             {% end %}
-                            {% if p['description'] %}<i class="fa fa-question-circle-o" title="{{ p['description'] }}"></i>{% end %}
+                            {% if p['description'] %}<i class="fa fa-question-circle-o" title="{{ p['description'] }}" style="color: #afafaf"></i>{% end %}
                         </th>
                         {% end %}
                         <td>
@@ -96,7 +96,7 @@
             height: 20
         });
 
-        $('i[title]').tooltip();
+        $('i[title]').tooltip({ placement: 'right' });
 
         setTimeout(function () {
             autosize.update($('textarea'));
