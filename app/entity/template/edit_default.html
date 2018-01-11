@@ -11,6 +11,7 @@
                             {% else %}
                                 {%if p.get('label_plural') %}{{ p.get('label_plural') }}{% else %}{{ p.get('dataproperty') }}{% end %}
                             {% end %}
+                            {% if p['description'] %}<i class="fa fa-question-circle-o" title="{{ p['description'] }}"></i>{% end %}
                         </th>
                         {% end %}
                         <td>
@@ -18,7 +19,6 @@
                                 {% if v['value'] %}
                                     <span style="padding:8px !important; font-style:italic; color:gray; display:block;">{{ v['value'] }} </span>
                                 {% end %}
-                                {% if p['description'] %}<i class="fa fa-question-circle-o" title="{{ p['description'] }}"></i>{% end %}
                             {% else %}
                                 {% if p['datatype'] in ['string', 'datetime', 'date', 'integer', 'decimal'] or (p['datatype'] == 'counter-value' and v['value'] and not p['readonly']) %}
                                     {% if p.get('select', None) %}
@@ -96,7 +96,7 @@
             height: 20
         });
 
-        $('tr[title]').tooltip();
+        $('i[title]').tooltip();
 
         setTimeout(function () {
             autosize.update($('textarea'));
