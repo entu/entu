@@ -8,7 +8,7 @@ pillow==5.0.0
 pymongo==3.6.0
 python-dateutil==2.6.1
 pyyaml==3.12
-raven==6.4.0
+raven==6.5.0
 simpleaes==1.0
 tornado==4.5.3
 xmltodict==0.11.0
