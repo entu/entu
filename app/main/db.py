@@ -75,13 +75,6 @@ class Entity():
         entity_id = self.db_execute_lastrowid(sql, entity_definition_keyname, user_id)
 
         if not parent_entity_id:
-            self.mongodb('entu').maintenance.insert_one({
-                'created_at': datetime.datetime.utcnow(),
-                'db': self.app_settings('database-name'),
-                'entity': entity_id,
-                'action': 'created'
-            })
-
             return entity_id
 
         # Propagate sharing
@@ -148,11 +141,11 @@ class Entity():
 
         # set creator to owner
         if user_id:
-            self.set_rights(entity_id=entity_id, related_entity_id=user_id, right='owner', ignore_maintenance=True)
+            self.set_rights(entity_id=entity_id, related_entity_id=user_id, right='owner')
 
         # Populate default values
         for default_value in self.db_query('SELECT keyname, defaultvalue FROM property_definition WHERE entity_definition_keyname = %s AND defaultvalue IS NOT null', entity_definition_keyname):
-            self.set_property(entity_id=entity_id, property_definition_keyname=default_value.get('keyname'), value=default_value.get('defaultvalue'), ignore_maintenance=True)
+            self.set_property(entity_id=entity_id, property_definition_keyname=default_value.get('keyname'), value=default_value.get('defaultvalue'))
 
         # Propagate properties
         sql = """
@@ -217,13 +210,6 @@ class Entity():
                 WHERE dataproperty = 'entu-created-by'
                 AND entity_definition_keyname = %s;
             """, entity_id, user_id, user_id, entity_definition_keyname)
-
-        self.mongodb('entu').maintenance.insert_one({
-            'created_at': datetime.datetime.utcnow(),
-            'db': self.app_settings('database-name'),
-            'entity': entity_id,
-            'action': 'created'
-        })
 
         return entity_id
 
@@ -354,13 +340,6 @@ class Entity():
                 AND entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1);
             """, new_entity_id, self.__user_id, self.__user_id, new_entity_id)
 
-            self.mongodb('entu').maintenance.insert_one({
-                'created_at': datetime.datetime.utcnow(),
-                'db': self.app_settings('database-name'),
-                'entity': new_entity_id,
-                'action': 'created'
-            })
-
 
     def delete_entity(self, entity_id):
         if not self.db_get("""
@@ -384,17 +363,10 @@ class Entity():
         # remove "contains" information
         self.db_execute('DELETE FROM dag_entity WHERE entity_id = %s OR related_entity_id = %s;', entity_id, entity_id)
 
-        self.mongodb('entu').maintenance.insert_one({
-            'created_at': datetime.datetime.utcnow(),
-            'db': self.app_settings('database-name'),
-            'entity': entity_id,
-            'action': 'deleted'
-        })
-
         return True
 
 
-    def set_property(self, entity_id=None, relationship_id=None, property_definition_keyname=None, value=None, old_property_id=None, uploaded_file=None, ignore_user=False, ignore_maintenance=False):
+    def set_property(self, entity_id=None, relationship_id=None, property_definition_keyname=None, value=None, old_property_id=None, uploaded_file=None, ignore_user=False):
         """
         Saves property value. Creates new one if old_property_id = None. Returns new_property_id.
 
@@ -475,14 +447,6 @@ class Entity():
 
         # If no value, then property is deleted, return
         if not value:
-            if not ignore_maintenance:
-                self.mongodb('entu').maintenance.insert_one({
-                    'created_at': datetime.datetime.utcnow(),
-                    'db': self.app_settings('database-name'),
-                    'entity': entity_id,
-                    'action': 'updated'
-                })
-
             return
 
         value_display = None
@@ -566,14 +530,6 @@ class Entity():
             self.db_execute('UPDATE file SET s3_key = CONCAT(s3_key, \'/\', %s) WHERE id = %s LIMIT 1;', new_property_id, value)
 
         self.db_execute('UPDATE entity SET changed = NOW(), changed_by = %s WHERE id = %s;', user_id, entity_id)
-
-        if not ignore_maintenance:
-            self.mongodb('entu').maintenance.insert_one({
-                'created_at': datetime.datetime.utcnow(),
-                'db': self.app_settings('database-name'),
-                'entity': entity_id,
-                'action': 'updated'
-            })
 
         return new_property_id
 
@@ -771,14 +727,6 @@ class Entity():
                         # logging.debug(sql)
                         self.db_execute(sql)
 
-        for e in entity_id:
-            self.mongodb('entu').maintenance.insert_one({
-                'created_at': datetime.datetime.utcnow(),
-                'db': self.app_settings('database-name'),
-                'entity': e,
-                'action': 'parent_changed'
-            })
-
 
     def get_rights(self, entity_id):
         if not entity_id:
@@ -807,7 +755,7 @@ class Entity():
         return rights
 
 
-    def set_rights(self, entity_id, related_entity_id, right=None, ignore_user=False, ignore_maintenance=False):
+    def set_rights(self, entity_id, related_entity_id, right=None, ignore_user=False):
         if not entity_id or not related_entity_id:
             return
 
@@ -840,15 +788,6 @@ class Entity():
             for e in entity_id:
                 for re in related_entity_id:
                     self.db_execute('INSERT INTO relationship SET relationship_definition_keyname = %s, entity_id = %s, related_entity_id = %s, created = NOW(), created_by = %s;', right, int(e), int(re), user_id)
-
-        if not ignore_maintenance:
-            for e in entity_id:
-                self.mongodb('entu').maintenance.insert_one({
-                    'created_at': datetime.datetime.utcnow(),
-                    'db': self.app_settings('database-name'),
-                    'entity': e,
-                    'action': 'rights_changed'
-                })
 
         self.db_execute('UPDATE entity SET changed = NOW() WHERE entity.id IN (%s);' % ','.join(map(str, entity_id)))
 
