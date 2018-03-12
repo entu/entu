@@ -34,33 +34,11 @@ APP_MYSQL_PORT     = os.getenv('MYSQL_PORT', 3306)
 APP_MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
 APP_MYSQL_USER     = os.getenv('MYSQL_USER')
 APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
-APP_MYSQL_SSL_PATH = os.getenv('MYSQL_SSL_PATH')
-APP_MYSQL_SSL_KEY  = os.getenv('MYSQL_SSL_KEY')
-APP_MYSQL_SSL_CERT = os.getenv('MYSQL_SSL_CERT')
 APP_MYSQL_SSL_CA   = os.getenv('MYSQL_SSL_CA')
 APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
 APP_FILES_PATH     = os.getenv('FILES_PATH')
 APP_SENTRY         = os.getenv('SENTRY_DSN')
 APP_INTERCOM_KEY   = os.getenv('INTERCOM_KEY')
-
-
-
-# Write down MySQL certs from env
-if APP_MYSQL_SSL_PATH:
-    if not os.path.exists(APP_MYSQL_SSL_PATH):
-        os.makedirs(APP_MYSQL_SSL_PATH)
-if APP_MYSQL_SSL_PATH and APP_MYSQL_SSL_KEY:
-    with open(os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-key.pem'), 'w') as text_file:
-        text_file.write(APP_MYSQL_SSL_KEY)
-
-if APP_MYSQL_SSL_PATH and APP_MYSQL_SSL_CERT:
-    with open(os.path.join(APP_MYSQL_SSL_PATH, 'mysql-client-cert.pem'), 'w') as text_file:
-        text_file.write(APP_MYSQL_SSL_CERT)
-
-if APP_MYSQL_SSL_PATH and APP_MYSQL_SSL_CA:
-    with open(os.path.join(APP_MYSQL_SSL_PATH, 'mysql-server-ca.pem'), 'w') as text_file:
-        text_file.write(APP_MYSQL_SSL_CA)
-
 
 
 # List of controllers to load.
@@ -132,7 +110,7 @@ class myApplication(tornado.web.Application):
             'database-database':    APP_MYSQL_DATABASE,
             'database-user':        APP_MYSQL_USER,
             'database-password':    APP_MYSQL_PASSWORD,
-            'database-ssl-path':    APP_MYSQL_SSL_PATH,
+            'database-ssl-ca':      APP_MYSQL_SSL_CA,
             'files-path':           APP_FILES_PATH,
             'customergroup':        APP_CUSTOMERGROUP,
             'mongodbs':             {},

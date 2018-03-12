@@ -1,15 +1,14 @@
 #!/bin/bash
 
-mkdir -p /data/entu/code /data/entu/ssl /data/entu/files /data/entu/thumbs
+mkdir -p /data/entu/code /data/entu/files /data/entu/thumbs /data/entu/uploads
 cd /data/entu/code
 
-git clone -q https://github.com/argoroots/Entu.git ./
+git clone -q https://github.com/entu/entu.git ./
 git checkout -q master
 git pull
 
 printf "\n\n"
-version=`date +"%y%m%d.%H%M%S"`
-docker build --quiet --pull --tag=entu:$version ./ && docker tag entu:$version entu:latest
+docker build --quiet --pull --tag=entu ./
 
 printf "\n\n"
 docker stop entu
@@ -18,20 +17,20 @@ docker run -d \
     --net="entu" \
     --name="entu" \
     --restart="always" \
-    --cpu-shares=1024 \
-    --env="VERSION=$version" \
     --env="PORT=80" \
     --env="DEBUG=false" \
-    --env="AUTH_URL=https://auth.entu.ee" \
+    --env="AUTH_URL=" \
     --env="MONGODB=" \
+    --env="UPLOADS_PATH=/entu/uploads/" \
     --env="MYSQL_HOST=" \
-    --env="MYSQL_PORT=" \
+    --env="MYSQL_PORT=3306" \
     --env="MYSQL_DATABASE=" \
     --env="MYSQL_USER=" \
     --env="MYSQL_PASSWORD=" \
-    --env="MYSQL_SSL_PATH=" \
+    --env="MYSQL_SSL_CA=" \
+    --env="FILES_PATH=/entu" \
     --env="CUSTOMERGROUP=" \
-    --env="NEW_RELIC_APP_NAME=entu" \
+    --env="NEW_RELIC_APP_NAME=" \
     --env="NEW_RELIC_LICENSE_KEY=" \
     --env="NEW_RELIC_FEATURE_FLAG=tornado.instrumentation.r3" \
     --env="NEW_RELIC_LOG=stdout" \
@@ -41,35 +40,5 @@ docker run -d \
     --env="INTERCOM_KEY=" \
     --volume="/data/entu/files:/entu/files" \
     --volume="/data/entu/thumbs:/entu/thumbs" \
-    --volume="/data/entu/ssl:/entu/ssl:ro" \
+    --volume="/data/entu/uploads:/entu/uploads" \
     entu:latest python -u /usr/src/entu/app/main.py --logging=error
-
-printf "\n\n"
-docker exec nginx /etc/init.d/nginx reload
-
-printf "\n\n"
-docker stop entu_maintenance
-docker rm entu_maintenance
-docker run -d \
-    --net="entu" \
-    --name="entu_maintenance" \
-    --restart="always" \
-    --cpu-shares=512 \
-    --memory="1g" \
-    --env="VERSION=$version" \
-    --env="MYSQL_HOST=" \
-    --env="MYSQL_PORT=" \
-    --env="MYSQL_DATABASE=" \
-    --env="MYSQL_USER=" \
-    --env="MYSQL_PASSWORD=" \
-    --env="CUSTOMERGROUP=" \
-    --env="VERBOSE=0" \
-    --env="NEW_RELIC_APP_NAME=entu-maintenance" \
-    --env="NEW_RELIC_LICENSE_KEY=" \
-    --env="NEW_RELIC_LOG=stdout" \
-    --env="NEW_RELIC_LOG_LEVEL=error" \
-    --env="NEW_RELIC_NO_CONFIG_FILE=true" \
-    entu:latest python -u /usr/src/entu/app/maintenance.py
-
-printf "\n\n"
-docker exec entu pip list --outdated

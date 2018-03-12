@@ -107,7 +107,7 @@ def customers():
 
     customers = {}
     for c in cursor:
-        if c.get('property') in ['database-host', 'database-port', 'database-name', 'database-user', 'database-password', 'database-ssl-path', 'language']:
+        if c.get('property') in ['database-host', 'database-port', 'database-name', 'database-user', 'database-password', 'database-ssl-ca', 'language']:
             customers.setdefault(c['entity'], {})[c['property'].decode('utf-8')] = c['value']
 
     db.close()
@@ -630,7 +630,7 @@ while True:
         # if c.get('database-name') != 'saksa':
         #     continue
 
-        if c.get('database-ssl-path'):
+        if c.get('database-ssl-ca'):
             db = mysql.connector.connect(
                 host       = c.get('database-host'),
                 port       = int(c.get('database-port')),
@@ -639,9 +639,7 @@ while True:
                 password   = c.get('database-password'),
                 use_pure   = False,
                 autocommit = True,
-                ssl_cert   = os.path.join(c.get('database-ssl-path'), 'mysql-client-cert.pem'),
-                ssl_key    = os.path.join(c.get('database-ssl-path'), 'mysql-client-key.pem'),
-                ssl_ca     = os.path.join(c.get('database-ssl-path'), 'mysql-server-ca.pem'),
+                ssl_ca     = c.get('database-ssl-ca'),
                 ssl_verify_cert = True
             )
         else:
