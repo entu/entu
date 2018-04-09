@@ -62,6 +62,13 @@ class ReadFile(myRequestHandler, Entity):
                 logging.error(encoding)
                 logging.error(e)
                 pass
+        else:
+            try:
+                tmp_file = tmp_file.encode('utf-8')
+            except Exception, e:
+                logging.error(encoding)
+                logging.error(e)
+                pass
 
         if not delimiter:
             delimiter = ',' if tmp_file.count(',') > tmp_file.count(';') else ';'
