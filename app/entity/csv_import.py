@@ -3,7 +3,6 @@ from tornado import web
 
 import csv
 import StringIO
-import chardet
 import logging
 
 from main.helper import *
@@ -55,14 +54,7 @@ class ReadFile(myRequestHandler, Entity):
 
         tmp_file = tmp.get('file')
 
-        encoding = self.get_argument('encoding', None)
-        if not encoding:
-            try:
-                encoding = chardet.detect(tmp_file).get('encoding')
-            except Exception as e:
-                logging.error(e)
-                encoding = 'utf-8'
-
+        encoding = self.get_argument('encoding', 'utf-8')
         if encoding and encoding != 'utf-8':
             try:
                 tmp_file = tmp_file.decode(encoding).encode('utf-8')

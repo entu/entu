@@ -1,6 +1,5 @@
 beautifulsoup4==4.6.0
 boto==2.48.0
-chardet==3.0.4
 mistune==0.8.3
 mysql-connector==2.1.6
 newrelic==3.0.0.89
