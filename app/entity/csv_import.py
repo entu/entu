@@ -60,12 +60,15 @@ class ReadFile(myRequestHandler, Entity):
             try:
                 encoding = chardet.detect(tmp_file).get('encoding')
             except Exception as e:
+                logging.error(e)
                 encoding = 'utf-8'
 
         if encoding and encoding != 'utf-8':
             try:
                 tmp_file = tmp_file.decode(encoding).encode('utf-8')
             except Exception, e:
+                logging.error(encoding)
+                logging.error(e)
                 pass
 
         if not delimiter:
