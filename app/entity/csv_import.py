@@ -121,11 +121,19 @@ class ImportFile(myRequestHandler, Entity):
         tmp_file = tmp.get('file')
 
         encoding = self.get_argument('encoding', 'utf-8')
-
         if encoding and encoding != 'utf-8':
             try:
                 tmp_file = tmp_file.decode(encoding).encode('utf-8')
             except Exception, e:
+                logging.error(encoding)
+                logging.error(e)
+                pass
+        else:
+            try:
+                tmp_file = tmp_file.encode('utf-8')
+            except Exception, e:
+                logging.error(encoding)
+                logging.error(e)
                 pass
 
         item = self.get_entities(entity_id=0, entity_definition_keyname=entity_definition_keyname, limit=1, full_definition=True)
