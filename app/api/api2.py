@@ -501,15 +501,6 @@ class API2FileUpload(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        with open(self.request.headers.get('X-FILE'), 'r') as content_file:
-            uploaded_file = content_file.read()
-
-        if not uploaded_file:
-            return self.json({
-                'error': 'No file!',
-                'time': round(self.request.request_time(), 3),
-            }, 400)
-
         entity_id = self.request.headers.get('X-ENTITY')
         if not entity_id:
             return self.json({
@@ -538,7 +529,7 @@ class API2FileUpload(myRequestHandler, Entity):
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        new_property_id = self.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value={'filename': filename, 'body': uploaded_file})
+        new_property_id = self.set_property(entity_id=entity_id, property_definition_keyname=property_definition_keyname, value={'filename': filename, 'path': self.request.headers.get('X-FILE')})
         if new_property_id:
             properties = {property_definition_keyname: [{'id': new_property_id, 'value': filename}]}
         else:

@@ -11,6 +11,7 @@ import math
 import os
 import random
 import re
+import shutil
 import string
 import time
 
@@ -486,17 +487,23 @@ class Entity():
             elif uploaded_file.get('s3key'):
                 value = self.db_execute_lastrowid('INSERT INTO file SET s3_key = %s, filename = %s, filesize = %s, created_by = %s, created = NOW();', uploaded_file.get('s3key', ''), uploaded_file.get('filename', ''), uploaded_file.get('filesize', ''), user_id)
             else:
-                md5 = hashlib.md5(uploaded_file.get('body')).hexdigest()
+                uploadedfilename = uploaded_file.get('path')
+                hash_md5 = hashlib.md5()
+                with open(uploadedfilename, 'rb') as f:
+                    for chunk in iter(lambda: f.read(4096), b''):
+                        hash_md5.update(chunk)
+                md5 = hash_md5.hexdigest()
+
                 directory = os.path.join(self.settings['files-path'], 'files', self.app_settings('database-name'), md5[0])
                 filename = os.path.join(directory, md5)
+                filesize = os.path.getsize(uploadedfilename)
 
                 if not os.path.exists(directory):
                     os.makedirs(directory)
-                f = open(filename, 'w')
-                f.write(uploaded_file.get('body', ''))
-                f.close()
 
-                value = self.db_execute_lastrowid('INSERT INTO file SET md5 = %s, filename = %s, filesize = %s, created_by = %s, created = NOW();', md5, uploaded_file.get('filename', ''), len(uploaded_file.get('body', '')), user_id)
+                shutil.copy2(uploadedfilename, filename)
+
+                value = self.db_execute_lastrowid('INSERT INTO file SET md5 = %s, filename = %s, filesize = %s, created_by = %s, created = NOW();', md5, uploaded_file.get('filename', ''), filesize, user_id)
 
         elif definition.get('datatype') == 'boolean':
             field = 'value_boolean'
