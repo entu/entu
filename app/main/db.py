@@ -1682,7 +1682,7 @@ class Entity():
         """
 
         sql = """
-            SELECT * FROM
+            SELECT DISTINCT * FROM
             (
                 SELECT IF(entity_id, (SELECT entity_definition_keyname FROM entity WHERE id = relationship.entity_id LIMIT 1), entity_definition_keyname) AS keyname
                 FROM relationship
