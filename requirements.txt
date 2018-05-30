@@ -2,12 +2,10 @@ beautifulsoup4==4.6.0
 boto==2.48.0
 mistune==0.8.3
 mysql-connector==2.1.6
-newrelic==3.2.0.91
 pillow==5.1.0
 pymongo==3.6.1
 python-dateutil==2.7.2
 pyyaml==3.12
-raven==6.6.0
 simpleaes==1.0
 tornado==4.5.3
 xmltodict==0.11.0

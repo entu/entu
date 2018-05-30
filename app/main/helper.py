@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from pymongo import MongoClient
-from raven.contrib.tornado import SentryMixin
 from SimpleAES import SimpleAES
 from tornado import httpclient
 from tornado import locale
@@ -84,7 +83,6 @@ class myDatabase():
             else:
                 cursor.execute(sql)
         except Exception, err:
-            self.captureException()
             logging.error('%s\n%s\n%s\n%s\n%s' % (err, sql, args, kwargs, cursor.statement))
 
         result = cursor.fetchone()
@@ -118,7 +116,6 @@ class myDatabase():
             else:
                 cursor.execute(sql)
         except Exception, err:
-            self.captureException()
             logging.error('%s\n%s\n%s\n%s\n%s' % (err, sql, args, kwargs, cursor.statement))
 
         result = []
@@ -150,7 +147,6 @@ class myDatabase():
             else:
                 cursor.execute(sql)
         except Exception, err:
-            self.captureException()
             logging.error('%s\n%s\n%s\n%s\n%s' % (err, sql, args, kwargs, cursor.statement))
 
         db.commit()
@@ -174,7 +170,6 @@ class myDatabase():
             else:
                 cursor.execute(sql)
         except Exception, err:
-            self.captureException()
             logging.error('%s\n%s\n%s\n%s\n%s' % (err, sql, args, kwargs, cursor.statement))
 
         result = cursor.lastrowid
@@ -324,7 +319,6 @@ class myUser(myE):
             logging.debug('No session!')
             return None
         except Exception, e:
-            self.captureException()
             logging.error(e)
             return None
 
@@ -512,7 +506,7 @@ class myUser(myE):
 
 
 
-class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
+class myRequestHandler(web.RequestHandler, myDatabase, myUser):
     """
     Rewriten tornado.web.RequestHandler methods.
 
@@ -534,7 +528,6 @@ class myRequestHandler(SentryMixin, web.RequestHandler, myDatabase, myUser):
                     arguments.setdefault(key, []).append('%s' % value)
                 self.request.arguments = arguments
         except Exception, e:
-            self.captureException()
             logging.error('Reguest arguments error: %s' % e)
 
         try:

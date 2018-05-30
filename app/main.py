@@ -1,8 +1,4 @@
-import newrelic.agent
-newrelic.agent.initialize()
-
 from os import path
-from raven.contrib.tornado import AsyncSentryClient
 
 import tornado.ioloop
 import tornado.locale
@@ -37,7 +33,6 @@ APP_MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
 APP_MYSQL_SSL_CA   = os.getenv('MYSQL_SSL_CA')
 APP_CUSTOMERGROUP  = os.getenv('CUSTOMERGROUP')
 APP_FILES_PATH     = os.getenv('FILES_PATH')
-APP_SENTRY         = os.getenv('SENTRY_DSN')
 APP_INTERCOM_KEY   = os.getenv('INTERCOM_KEY')
 
 
@@ -138,7 +133,6 @@ if __name__ == '__main__':
     tornado.locale.load_translations(path.join(path.dirname(__file__), 'main', 'translation'))
 
     application = myApplication()
-    application.sentry_client = AsyncSentryClient(dsn=APP_SENTRY, release=APP_VERSION)
 
     server = tornado.httpserver.HTTPServer(application, xheaders=True, max_body_size=1024*1024*1024*5)
 
