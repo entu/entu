@@ -20,7 +20,7 @@ from main.db import *
 # global variables (and list of all used environment variables)
 APP_VERSION        = os.getenv('VERSION', tornado.version)
 APP_DEBUG          = str(os.getenv('DEBUG', 'false')).lower() == 'true'
-APP_PORT           = os.getenv('PORT', 3000)
+APP_PORT           = os.getenv('PORT', 80)
 APP_COOKIE_DOMAIN  = os.getenv('COOKIE_DOMAIN', '.entu.ee')
 APP_AUTH_URL       = os.getenv('AUTH_URL', 'https://auth.entu.ee')
 APP_UPLOADS_PATH   = os.getenv('UPLOADS_PATH')

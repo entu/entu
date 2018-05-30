@@ -18,6 +18,16 @@ class ShowStatus(myRequestHandler):
             }, 500)
 
 
+class ShowStatus2(myRequestHandler):
+    @web.removeslash
+    def get(self):
+        self.json({
+            'result': True,
+            'time': round(self.request.request_time(), 3)
+        })
+
+
 handlers = [
-    (r'/status', ShowStatus)
+    (r'/status', ShowStatus),
+    (r'/status2', ShowStatus2)
 ]
