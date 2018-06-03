@@ -4,7 +4,7 @@ mistune==0.8.3
 mysql-connector==2.1.6
 pillow==5.1.0
 pymongo==3.6.1
-python-dateutil==2.7.2
+python-dateutil==2.7.3
 pyyaml==3.12
 simpleaes==1.0
 tornado==4.5.3
