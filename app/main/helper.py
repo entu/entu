@@ -556,7 +556,6 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
             self.__request_id = self.mongodb('entu').request.insert_one(r).inserted_id
         except Exception, e:
-            self.captureException()
             logging.error('Reguest logging error: %s' % e)
 
     def on_finish(self):
