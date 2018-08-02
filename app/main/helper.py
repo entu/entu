@@ -698,7 +698,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
             data['from'] = 'no-reply@entu.ee'
 
         http_client = httpclient.HTTPClient()
-        response = http_client.fetch('https://api.mailgun.net/v2/%s/messages' % self.app_settings('auth-mailgun', '\n').split('\n')[0],
+        response = http_client.fetch('https://api.eu.mailgun.net/v2/%s/messages' % self.app_settings('auth-mailgun', '\n').split('\n')[0],
             method = 'POST',
             auth_username = 'api',
             auth_password = self.app_settings('auth-mailgun', '\n').split('\n')[1],
