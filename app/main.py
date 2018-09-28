@@ -1,6 +1,3 @@
-import newrelic.agent
-newrelic.agent.initialize()
-
 from os import path
 
 import tornado.ioloop
