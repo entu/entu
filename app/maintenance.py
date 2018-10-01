@@ -49,21 +49,16 @@ def customers():
 
     sql = """
         SELECT DISTINCT
-            e.id AS entity,
+            (
+                SELECT value_string
+                FROM property
+                WHERE is_deleted = 0
+                AND property_definition_keyname = 'customer-database-name'
+                AND entity_id = e.id
+                LIMIT 1
+            ) AS db,
             property_definition.dataproperty AS property,
-            IF(
-                property_definition.datatype='decimal',
-                property.value_decimal,
-                IF(
-                    property_definition.datatype='integer',
-                    property.value_integer,
-                    IF(
-                        property_definition.datatype='file',
-                        property.value_file,
-                        property.value_string
-                    )
-                )
-            ) AS value
+            property.value_string AS value
         FROM (
             SELECT
                 entity.id,
@@ -77,7 +72,7 @@ def customers():
             AND relationship.relationship_definition_keyname = 'child'
             AND relationship.entity_id IN (%s)
         ) AS e
-        LEFT JOIN property_definition ON property_definition.entity_definition_keyname = e.entity_definition_keyname AND property_definition.is_deleted = 0
+        LEFT JOIN property_definition ON property_definition.entity_definition_keyname = e.entity_definition_keyname AND property_definition.is_deleted = 0 AND property_definition.dataproperty IN ('database-host', 'database-port', 'database-name', 'database-user', 'database-password', 'database-ssl-ca', 'language')
         LEFT JOIN property ON property.property_definition_keyname = property_definition.keyname AND property.entity_id = e.id AND property.is_deleted = 0;
     """ % APP_CUSTOMERGROUP
     cursor.execute(sql)
@@ -85,7 +80,7 @@ def customers():
     customers = {}
     for c in cursor:
         if c.get('property') in ['database-host', 'database-port', 'database-name', 'database-user', 'database-password', 'database-ssl-ca', 'language']:
-            customers.setdefault(c['database-name'].decode('utf-8'), {})[c['property'].decode('utf-8')] = c['value']
+            customers.setdefault(c['db'].decode('utf-8'), {})[c['property'].decode('utf-8')] = c['value']
 
     db.close()
 
