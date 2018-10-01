@@ -85,7 +85,7 @@ def customers():
     customers = {}
     for c in cursor:
         if c.get('property') in ['database-host', 'database-port', 'database-name', 'database-user', 'database-password', 'database-ssl-ca', 'language']:
-            customers.setdefault(c['entity'], {})[c['property'].decode('utf-8')] = c['value']
+            customers.setdefault(c['database-name'].decode('utf-8'), {})[c['property'].decode('utf-8')] = c['value']
 
     db.close()
 
