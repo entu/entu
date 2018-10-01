@@ -636,7 +636,7 @@ while True:
             db = db,
             db_name = c.get('database-name'),
             language = c.get('language'),
-            hours = 2,
+            hours = 1,
             speed = total_time / total_count
         )
 
