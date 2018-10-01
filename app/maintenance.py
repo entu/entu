@@ -58,7 +58,19 @@ def customers():
                 LIMIT 1
             ) AS db,
             property_definition.dataproperty AS property,
-            property.value_string AS value
+            IF(
+                property_definition.datatype='decimal',
+                property.value_decimal,
+                IF(
+                    property_definition.datatype='integer',
+                    property.value_integer,
+                    IF(
+                        property_definition.datatype='file',
+                        property.value_file,
+                        property.value_string
+                    )
+                )
+            ) AS value
         FROM (
             SELECT
                 entity.id,
