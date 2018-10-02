@@ -74,6 +74,7 @@ class myDatabase():
             return
 
         cursor = self.db(self.request.host).cursor(dictionary=True, buffered=True)
+        cursor.execute('SET SESSION MAX_EXECUTION_TIME=30000;')
 
         try:
             if args:
@@ -107,6 +108,7 @@ class myDatabase():
             return
 
         cursor = self.db(self.request.host).cursor(dictionary=True, buffered=True)
+        cursor.execute('SET SESSION MAX_EXECUTION_TIME=30000;')
 
         try:
             if args:
