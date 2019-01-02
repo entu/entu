@@ -1,10 +1,10 @@
-beautifulsoup4==4.6.3
+beautifulsoup4==4.7.0
 boto==2.49.0
-mistune==0.8.3
+mistune==0.8.4
 mysql-connector==2.1.6
-pillow==5.2.0
-pymongo==3.7.1
-python-dateutil==2.7.3
+pillow==5.4.0
+pymongo==3.7.2
+python-dateutil==2.7.5
 pyyaml==3.13
 simpleaes==1.0
 tornado==5.1.1
