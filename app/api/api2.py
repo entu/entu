@@ -1235,7 +1235,7 @@ handlers = [
     (r'/api2/definition', API2DefinitionList),
     (r'/api2/definition-(.*)', API2Definition),
     (r'/api2/email', API2Email),
-    (r'/api2/email_webhook', API2EmailWebHook),
+    (r'/api2/email-webhook', API2EmailWebHook),
     (r'/api2/user/auth', API2UserAuth),
     (r'/api2/user/auth/(.*)/(.*)', API2UserAuthTokenProvider),
     (r'/api2/user/auth/(.*)', API2UserAuthToken),
