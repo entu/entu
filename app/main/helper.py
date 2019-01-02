@@ -706,6 +706,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
             auth_password = self.app_settings('auth-mailgun', '\n').split('\n')[1],
             body = urllib.urlencode(data, True)
         )
+        logging.error(response.body)
         return json.loads(response.body)
 
 
