@@ -894,6 +894,13 @@ class API2Email(myRequestHandler, Entity2):
 
 
 
+class API2EmailWebHook(myRequestHandler, Entity2):
+    def post(self):
+        logging.error(self.request.arguments)
+
+
+
+
 class API2DefinitionList(myRequestHandler, Entity2):
     @web.removeslash
     def get(self):
@@ -1228,6 +1235,7 @@ handlers = [
     (r'/api2/definition', API2DefinitionList),
     (r'/api2/definition-(.*)', API2Definition),
     (r'/api2/email', API2Email),
+    (r'/api2/email_webhook', API2EmailWebHook),
     (r'/api2/user/auth', API2UserAuth),
     (r'/api2/user/auth/(.*)/(.*)', API2UserAuthTokenProvider),
     (r'/api2/user/auth/(.*)', API2UserAuthToken),
