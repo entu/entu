@@ -1,3 +1,9 @@
+-- Create syntax for TABLE '_template'
+CREATE TABLE `_template` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
+
 -- Create syntax for TABLE 'counter'
 CREATE TABLE `counter` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -29,34 +35,6 @@ CREATE TABLE `dag_entity` (
   CONSTRAINT `de_fk_re` FOREIGN KEY (`related_entity_id`) REFERENCES `entity` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
--- Create syntax for TABLE 'dag_formula'
-CREATE TABLE `dag_formula` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `property_id` int(11) unsigned DEFAULT NULL,
-  `related_property_id` int(11) unsigned DEFAULT NULL,
-  `entity_id` int(11) unsigned DEFAULT NULL,
-  `relationship_definition_keyname` varchar(25) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
-  `reverse_relationship` tinyint(1) unsigned DEFAULT NULL,
-  `entity_definition_keyname` varchar(25) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
-  `dataproperty` varchar(24) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
-  `created` datetime DEFAULT NULL,
-  `created_by` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
-  `deleted` datetime DEFAULT NULL,
-  `is_deleted` tinyint(1) unsigned NOT NULL DEFAULT '0',
-  `deleted_by` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `fd_fk_p` (`property_id`),
-  KEY `fd_fk_e` (`entity_id`),
-  KEY `fd_fk_rdk` (`relationship_definition_keyname`),
-  KEY `fd_fk_edk` (`entity_definition_keyname`),
-  KEY `dataproperty` (`dataproperty`),
-  KEY `is_deleted` (`is_deleted`,`relationship_definition_keyname`),
-  CONSTRAINT `fd_fk_e` FOREIGN KEY (`entity_id`) REFERENCES `entity` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fd_fk_edk` FOREIGN KEY (`entity_definition_keyname`) REFERENCES `entity_definition` (`keyname`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fd_fk_p` FOREIGN KEY (`property_id`) REFERENCES `property` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fd_fk_rdk` FOREIGN KEY (`relationship_definition_keyname`) REFERENCES `relationship_definition` (`keyname`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
-
 -- Create syntax for TABLE 'entity'
 CREATE TABLE `entity` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -64,6 +42,7 @@ CREATE TABLE `entity` (
   `entity_definition_keyname` varchar(25) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `public` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `sharing` enum('public','link','domain','private') COLLATE utf8_estonian_ci NOT NULL DEFAULT 'private',
+  `sharing_key` varchar(64) COLLATE utf8_estonian_ci DEFAULT NULL,
   `sort` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
   `created` datetime DEFAULT NULL,
   `created_by` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
@@ -79,6 +58,7 @@ CREATE TABLE `entity` (
   KEY `deleted` (`deleted`),
   KEY `public` (`public`),
   KEY `sharing` (`sharing`),
+  KEY `sharing_key` (`sharing_key`),
   CONSTRAINT `e_fk_ed` FOREIGN KEY (`entity_definition_keyname`) REFERENCES `entity_definition` (`keyname`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
@@ -108,10 +88,11 @@ CREATE TABLE `entity_definition` (
 -- Create syntax for TABLE 'file'
 CREATE TABLE `file` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `md5` varchar(32) COLLATE utf8_estonian_ci DEFAULT NULL,
   `filename` varchar(500) COLLATE utf8_estonian_ci DEFAULT NULL,
   `filesize` int(13) unsigned DEFAULT NULL,
-  `file` longblob,
-  `is_link` tinyint(1) DEFAULT '0',
+  `url` varchar(2048) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `s3_key` varchar(2048) COLLATE utf8_estonian_ci DEFAULT NULL,
   `created` datetime DEFAULT NULL,
   `created_by` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
   `changed` datetime DEFAULT NULL,
@@ -290,23 +271,3 @@ CREATE TABLE `translation` (
   CONSTRAINT `translation_ibfk_2` FOREIGN KEY (`property_definition_keyname`) REFERENCES `property_definition` (`keyname`) ON UPDATE CASCADE,
   CONSTRAINT `translation_ibfk_3` FOREIGN KEY (`relationship_definition_keyname`) REFERENCES `relationship_definition` (`keyname`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- Create syntax for TABLE 'user'
-CREATE TABLE `user` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `provider` varchar(20) COLLATE utf8_estonian_ci DEFAULT NULL,
-  `provider_id` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
-  `name` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
-  `email` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
-  `picture` varchar(1000) COLLATE utf8_estonian_ci DEFAULT NULL,
-  `language` varchar(10) COLLATE utf8_estonian_ci DEFAULT NULL,
-  `hide_menu` tinyint(1) NOT NULL DEFAULT '0',
-  `session` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
-  `access_token` varchar(1000) COLLATE utf8_estonian_ci DEFAULT NULL,
-  `login_count` int(11) NOT NULL DEFAULT '0',
-  `created` datetime DEFAULT NULL,
-  `changed` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `provider` (`provider`,`provider_id`),
-  KEY `session` (`session`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
