@@ -113,10 +113,6 @@ action_add_csv_first_row,Alusta reast
 action_add_csv_do_import,Impordi %s rida
 action_add_csv_encoding,Kooditabel
 
-action_add_cmdi,CMDI XML
-action_add_cmdi_placeholder,"Paste oma CMDI XML siia"
-action_add_cmdi_help,"Donec pharetra, sem quis pellentesque convallis, ligula neque dignissim tellus, non laoreet dolor neque nec felis. Etiam id eleifend nunc."
-
 user_preferences,Kasutaja seaded
 user_name,Nimi
 user_language,Keel

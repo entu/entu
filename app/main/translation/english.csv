@@ -113,10 +113,6 @@ action_add_csv_first_row,First row
 action_add_csv_do_import,Import %s rows
 action_add_csv_encoding,Encoding
 
-action_add_cmdi,CMDI XML
-action_add_cmdi_placeholder,"Paste your CMDI XML here"
-action_add_cmdi_help,"Donec pharetra, sem quis pellentesque convallis, ligula neque dignissim tellus, non laoreet dolor neque nec felis. Etiam id eleifend nunc."
-
 user_preferences,User preferences
 user_name,Name
 user_language,Language

@@ -16,7 +16,6 @@
             <div id="{{ action }}" class="tab-pane{% if idx == 0 %} active{% end %}" >
                 {% if action == 'default' %}{% include 'edit_default.html' %}{% end %}
                 {% if action == 'ester' %}{% include '../../library/template/ester.html' %}{% end %}
-                {% if action == 'cmdi' %}{% include '../../importers/template/cmdi.html' %}{% end %}
                 {% if action == 'csv' %}{% include 'csv.html' %}{% end %}
             </div>
         {% end %}
