@@ -1,12 +1,13 @@
+import cgi
+import datetime
 import hmac
 import json
-import datetime
 import logging
 import mimetypes
-import urllib
-import cgi
 import random
 import string
+import urllib
+import yaml
 
 from hashlib import sha1
 from operator import itemgetter
@@ -896,7 +897,8 @@ class API2Email(myRequestHandler, Entity2):
 
 class API2EmailWebHook(myRequestHandler, Entity2):
     def post(self):
-        logging.error(self.request.arguments)
+        body = yaml.safe_dump(self.request.arguments, default_flow_style=False, allow_unicode=True)
+        logging.error(body)
 
 
 
