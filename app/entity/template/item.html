@@ -97,7 +97,7 @@
                             {% elif p['datatype'] == 'reference' %}
                                 {{ '<br />'.join(['<a href="#%s">%s</a>' % (v.get('db_value'), v.get('value')) for v in p.get('values', [])]) }}
                             {% elif '-share-email' in p['dataproperty'] %}
-                                {{ '<br />'.join(['<a href="javascript:void(0);" class="toolbar-item open-modal-box" data-url="/entity-%s/share?email=%s">%s</a>' % (entity.get('id'), v.get('db_value'), v.get('value')) for v in p.get('values', [])]) }}
+                                {{ '<br />'.join(['<a href="javascript:void(0);" class="open-modal-box" data-url="/entity-%s/share?email=%s">%s</a>' % (entity.get('id'), v.get('db_value'), v.get('value')) for v in p.get('values', [])]) }}
                             {% elif p['datatype'] == 'string' %}
                                 {{ mistune.Markdown().render('   \n'.join([ '%s' % linkify(v.get('value'), shorten=True, extra_params='target="_blank"').replace('\n', '   \n') for v in p.get('values', []) ])) }}
                             {% else %}
