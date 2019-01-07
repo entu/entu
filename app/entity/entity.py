@@ -442,7 +442,8 @@ class ShareByEmail(myRequestHandler, Entity):
 
         """
         self.render('entity/template/email.html',
-            entity_id = entity_id
+            entity_id = entity_id,
+            email = self.get_argument('email', '')
         )
 
 
