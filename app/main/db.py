@@ -1801,7 +1801,7 @@ class Entity():
             AND property_definition.classifying_entity_definition_keyname IN (%s)
             AND relationship.is_deleted = 0
             AND property_definition.is_deleted = 0
-            AND property_definition.dataproperty NOT LIKE 'entu-%'
+            AND property_definition.dataproperty NOT LIKE 'entu-%%'
         """  % (self.__user_id, ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)]))
         # logging.debug(sql)
 
