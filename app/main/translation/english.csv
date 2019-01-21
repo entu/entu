@@ -27,6 +27,7 @@ menu_fullscreen,Fullscreen
 menu_preferences,Preferences
 menu_add_under,Add under %s
 menu_add_under_this,Add under this entity
+menu_add_reference,Refer under %s
 menu_duplicate,Duplicate
 
 quota,Usage and Quota

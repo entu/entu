@@ -162,6 +162,10 @@ class ShowEntity(myRequestHandler, Entity):
         for ad in self.get_definitions_with_optional_parent(item.get('definition_keyname')):
             add_definitions.setdefault(ad.get('related_entity_label'), []).append(ad)
 
+        add_relations = {}
+        for ad in self.get_definitions_with_optional_relative(item.get('definition_keyname')):
+            add_relations.setdefault(ad.get('related_entity_label'), []).append(ad)
+
         self.render('entity/template/item.html',
             page_title = item['displayname'],
             entity = item,
@@ -169,6 +173,7 @@ class ShowEntity(myRequestHandler, Entity):
             allowed_childs = allowed_childs,
             allowed_parents = allowed_parents,
             add_definitions = add_definitions,
+            add_relations = add_relations,
             public_path = self.get_public_path(entity_id),
         )
 

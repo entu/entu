@@ -1745,7 +1745,7 @@ class Entity():
             WHERE relationship.entity_definition_keyname = entity_definition.keyname
             AND rights.entity_id = relationship.related_entity_id
             AND relationship.relationship_definition_keyname = 'optional-parent'
-            AND rights.relationship_definition_keyname iN ('expander', 'editor', 'owner')
+            AND rights.relationship_definition_keyname IN ('expander', 'editor', 'owner')
             AND rights.related_entity_id = %s
             AND rights.is_deleted = 0
             AND entity_definition.keyname IN (%s)
@@ -1760,6 +1760,61 @@ class Entity():
                 'keyname': d.get('keyname'),
                 'label': self.__get_system_translation(field='label', entity_definition_keyname=d.get('keyname')),
                 'label_plural': self.__get_system_translation(field='label_plural', entity_definition_keyname=d.get('keyname')),
+                'description': self.__get_system_translation(field='description', entity_definition_keyname=d.get('keyname')),
+                'menugroup': self.__get_system_translation(field='menu', entity_definition_keyname=d.get('keyname')),
+                'related_entity_id': d.get('related_entity_id'),
+                'related_entity_label': related_entity.get('displayname') if related_entity else '',
+            })
+
+        return defs
+
+
+    def get_definitions_with_optional_relative(self, entity_definition_keyname):
+        """
+        Returns allowed entity definitions what have default parent.
+
+        """
+        if not entity_definition_keyname:
+            return {}
+
+        if entity_definition_keyname:
+            if type(entity_definition_keyname) is not list:
+                entity_definition_keyname = [entity_definition_keyname]
+
+        sql = """
+            SELECT DISTINCT
+                entity_definition.keyname,
+                relationship.related_entity_id,
+                property_definition.property
+            FROM
+            	property_definition,
+                entity_definition,
+                relationship,
+                relationship AS rights
+            WHERE entity_definition.keyname = property_definition.entity_definition_keyname
+            AND relationship.entity_definition_keyname = entity_definition.keyname
+            AND rights.entity_id = relationship.related_entity_id
+            AND relationship.relationship_definition_keyname = 'optional-parent'
+            AND rights.relationship_definition_keyname IN ('expander', 'editor', 'owner')
+            AND rights.related_entity_id = %s
+            AND rights.is_deleted = 0
+            AND property_definition.classifying_entity_definition_keyname IN (%s)
+            AND relationship.is_deleted = 0
+            AND property_definition.is_deleted = 0
+            AND property_definition.dataproperty NOT LIKE 'entu-%'
+        """  % (self.__user_id, ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)]))
+        # logging.debug(sql)
+
+        defs = []
+        for d in self.db_query(sql):
+            related_entity = self.get_entities(entity_id=d.get('related_entity_id'), limit=1)
+            defs.append({
+                'keyname': d.get('keyname'),
+                'proprty': d.get('proprty'),
+                'label': self.__get_system_translation(field='label', entity_definition_keyname=d.get('keyname')),
+                'label_plural': self.__get_system_translation(field='label_plural', entity_definition_keyname=d.get('keyname')),
+                'proprty_label': self.__get_system_translation(field='label', property_definition_keyname=d.get('property')),
+                'proprty_label_plural': self.__get_system_translation(field='label_plural', property_definition_keyname=d.get('property')),
                 'description': self.__get_system_translation(field='description', entity_definition_keyname=d.get('keyname')),
                 'menugroup': self.__get_system_translation(field='menu', entity_definition_keyname=d.get('keyname')),
                 'related_entity_id': d.get('related_entity_id'),

@@ -27,6 +27,7 @@ menu_fullscreen,Täisekraan
 menu_preferences,Seaded
 menu_add_under,Lisa %s alla
 menu_add_under_this,Lisa selle objekti alla
+menu_add_reference,Viita lisades %s alla
 menu_duplicate,Dubleeri
 
 quota,Kasutus ja limiit
