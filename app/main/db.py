@@ -1810,11 +1810,11 @@ class Entity():
             related_entity = self.get_entities(entity_id=d.get('related_entity_id'), limit=1)
             defs.append({
                 'keyname': d.get('keyname'),
-                'proprty': d.get('proprty'),
+                'property': d.get('property'),
                 'label': self.__get_system_translation(field='label', entity_definition_keyname=d.get('keyname')),
                 'label_plural': self.__get_system_translation(field='label_plural', entity_definition_keyname=d.get('keyname')),
-                'proprty_label': self.__get_system_translation(field='label', property_definition_keyname=d.get('property')),
-                'proprty_label_plural': self.__get_system_translation(field='label_plural', property_definition_keyname=d.get('property')),
+                'property_label': self.__get_system_translation(field='label', property_definition_keyname=d.get('property')),
+                'property_label_plural': self.__get_system_translation(field='label_plural', property_definition_keyname=d.get('property')),
                 'description': self.__get_system_translation(field='description', entity_definition_keyname=d.get('keyname')),
                 'menugroup': self.__get_system_translation(field='menu', entity_definition_keyname=d.get('keyname')),
                 'related_entity_id': d.get('related_entity_id'),
