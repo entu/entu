@@ -163,8 +163,8 @@ class ShowEntity(myRequestHandler, Entity):
             add_definitions.setdefault(ad.get('related_entity_label'), []).append(ad)
 
         add_relations = {}
-        for ad in self.get_definitions_with_optional_relative(item.get('definition_keyname')):
-            add_relations.setdefault(ad.get('related_entity_label'), []).append(ad)
+        for ar in self.get_definitions_with_optional_relative(item.get('definition_keyname')):
+            add_relations.setdefault(ar.get('related_entity_label'), []).append(ar)
 
         self.render('entity/template/item.html',
             page_title = item['displayname'],
