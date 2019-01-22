@@ -132,7 +132,7 @@
 
                 {% for rk, rv in add_relations.iteritems() %}
                     <li class="dropdown-header">{{ _('menu_add_reference').replace('%s', rk) }}</li>
-                    {% for c in sorted(rv, key=itemgetter('label')) %}
+                    {% for c in sorted(rv, key=itemgetter('property', 'label')) %}
                         <li><a href="javascript:void(0);" class="open-modal-box" data-url="/entity-{{ c['related_entity_id'] }}/add/{{ c['keyname'] }}?property={{ c['property'] }}&value={{ entity['id'] }}" data-action="add" data-action-label="{{ c['label'] }}">{{ c['label'] }} · {{ c['property_label'] }}</a></li>
                     {% end %}
                 {% end %}
