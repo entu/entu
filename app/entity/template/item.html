@@ -179,11 +179,6 @@
 <script>
     $(document).ready(function(){
 
-        $('table.sortable').on('sorted', function (x) {
-            console.log('sorted')
-            console.log(x)
-        })
-
         document.title = "{{ page_title.replace('\"', '\\\"') }}";
 
         {% if intercom_key %}
@@ -275,7 +270,7 @@
 
                     setTimeout(function ( ){
                         $('th[data-defaultsort="asc"]').trigger('click');
-                    }, 2000);
+                    }, 1000);
 
                     $element.show();
                 }
