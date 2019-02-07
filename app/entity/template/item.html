@@ -224,7 +224,7 @@
                             var $th = $element.find('.childs-th-template').clone(true).removeClass('childs-th-template').appendTo($element.children('table').children('thead').children('tr'));
 
                             if (!sortColumnAdded) {
-                                $td.attr('data-defaultsort', 'asc');
+                                $th.attr('data-defaultsort', 'asc');
                                 sortColumnAdded = true;
                             }
 
