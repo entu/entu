@@ -266,7 +266,7 @@
                     $element.find('.childs-tr-template').remove();
 
                     //show it
-                    $.bootstrapSortable(true, 'reversed');
+                    $.bootstrapSortable({ sign: 'reversed', applyLast: true });
                     $element.show();
                 }
                 spinner(div);
@@ -282,7 +282,7 @@
         $('#toolbar').html($('#toolbar_template').html());
         $('#toolbar_template').html('')
 
-        $.bootstrapSortable(true, 'reversed');
+        $.bootstrapSortable({ sign: 'reversed', applyLast: true });
 
         change_fullscreen_icon();
 
