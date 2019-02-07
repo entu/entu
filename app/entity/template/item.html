@@ -218,8 +218,16 @@
                         $th.html('');
                         $th.attr('style', 'width:25px; vertical-align:middle; border-top: 1px solid #DDDDDD;');
                         $th.show();
+
+                        var sortColumnAdded = false
                         for(th_key in definition.table_header) {
                             var $th = $element.find('.childs-th-template').clone(true).removeClass('childs-th-template').appendTo($element.children('table').children('thead').children('tr'));
+
+                            if (!sortColumnAdded) {
+                                $td.attr('data-defaultsort', 'asc');
+                                sortColumnAdded = true;
+                            }
+
                             $th.html(definition.table_header[th_key]);
                             $th.show();
                         }
@@ -240,13 +248,8 @@
                             $td.children('a').attr('href', '#'+definition.entities[tr_key].id);
                             $td.attr('style', 'width: 25px;');
 
-                            var sortColumnAdded = false
                             for(td_key in definition.entities[tr_key].table) {
                                 var $td = $tr.children('.childs-td-template').clone(true).removeClass('childs-td-template').appendTo($tr);
-                                if (!sortColumnAdded) {
-                                    $td.attr('data-defaultsort', 'asc');
-                                    sortColumnAdded = true;
-                                }
                                 $td.attr('data-value', definition.entities[tr_key].table[td_key]);
                                 $td.children('a').html(definition.entities[tr_key].table[td_key]);
                                 $td.children('a').attr('href', '#'+definition.entities[tr_key].id);
