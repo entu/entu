@@ -272,7 +272,11 @@
 
                     //show it
                     $.bootstrapSortable({ sign: 'reversed', applyLast: true });
-                    $('th[data-defaultsort="asc"]').trigger('click');
+
+                    setTimeout(function ( ){
+                        $('th[data-defaultsort="asc"]').trigger('click');
+                    }, 2000);
+
                     $element.show();
                 }
                 spinner(div);
