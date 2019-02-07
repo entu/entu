@@ -240,8 +240,13 @@
                             $td.children('a').attr('href', '#'+definition.entities[tr_key].id);
                             $td.attr('style', 'width: 25px;');
 
+                            var sortColumnAdded = false
                             for(td_key in definition.entities[tr_key].table) {
                                 var $td = $tr.children('.childs-td-template').clone(true).removeClass('childs-td-template').appendTo($tr);
+                                if (!sortColumnAdded) {
+                                    $td.attr('data-defaultsort', 'asc');
+                                    sortColumnAdded = true;
+                                }
                                 $td.attr('data-value', definition.entities[tr_key].table[td_key]);
                                 $td.children('a').html(definition.entities[tr_key].table[td_key]);
                                 $td.children('a').attr('href', '#'+definition.entities[tr_key].id);
