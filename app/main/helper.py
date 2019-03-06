@@ -77,7 +77,7 @@ class myDatabase():
         try:
             cursor.execute('SET SESSION MAX_EXECUTION_TIME=30000;')
         except Exception, err:
-            logging.error('Can\'t set MAX_EXECUTION_TIME')
+            # logging.error('Can\'t set MAX_EXECUTION_TIME')
 
         try:
             if args:
@@ -114,7 +114,7 @@ class myDatabase():
         try:
             cursor.execute('SET SESSION MAX_EXECUTION_TIME=30000;')
         except Exception, err:
-            logging.error('Can\'t set MAX_EXECUTION_TIME')
+            # logging.error('Can\'t set MAX_EXECUTION_TIME')
 
         try:
             if args:
