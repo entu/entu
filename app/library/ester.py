@@ -29,7 +29,7 @@ class EsterCheckIfExists(myRequestHandler):
 
         sql = """
             SELECT
-                '%s' AS id,
+                '%s' AS ester_id,
                 property.entity_id AS entity,
                 entity.entity_definition_keyname AS definition
             FROM
@@ -44,7 +44,7 @@ class EsterCheckIfExists(myRequestHandler):
             AND entity.is_deleted = 0
             AND property_definition.is_deleted = 0
             LIMIT 1;
-        """ % (self.get_argument('id', default='', strip=True), ester_id)
+        """ % (ester_id, ester_id)
         # logging.warning(sql)
 
         entity = self.db_get(sql)
@@ -70,16 +70,16 @@ class EsterImport(myRequestHandler, Entity):
             }, 403)
             return
 
-        id = self.get_argument('id', default=None, strip=True)
+        ester_id = self.get_argument('ester_id', default=None, strip=True)
         entity = self.get_argument('entity', default=None, strip=True)
         definition = self.get_argument('definition', default=None, strip=True)
 
-        if not id or not entity or not definition:
+        if not ester_id or not entity or not definition:
             return
 
         http_client = httpclient.AsyncHTTPClient()
         ester_request = yield http_client.fetch(httpclient.HTTPRequest(
-            url='https://ester.entu.eu/item/%s?f=human' % id,
+            url='https://i9lyebbfnd.execute-api.eu-central-1.amazonaws.com/prod?q=%s&f=human' % ester_id,
             method='GET',
             request_timeout=60
         ))
@@ -93,7 +93,7 @@ class EsterImport(myRequestHandler, Entity):
             }, 500)
             return
 
-        item = ester['result']
+        item = ester[0]
         entity_id = self.create_entity(entity_definition_keyname=definition, parent_entity_id=entity)
 
         for field, values in item.iteritems():
