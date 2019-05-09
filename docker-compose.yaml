@@ -1,0 +1,44 @@
+version: '3'
+services:
+    entu:
+        build:
+            context: https://github.com/entu/entu.git
+        container_name: entu
+        command: python -u /usr/src/entu/app/main.py --logging=error
+        restart: always
+        environment:
+            PORT: 80
+            DEBUG: false
+            AUTH_URL: https://auth.entu.ee/auth
+            UPLOADS_PATH: /entu/uploads/
+            FILES_PATH: /entu
+            MYSQL_HOST:
+            MYSQL_PORT:
+            MYSQL_DATABASE:
+            MYSQL_USER:
+            MYSQL_PASSWORD:
+            MONGODB:
+            CUSTOMERGROUP:
+            INTERCOM_KEY:
+        volumes:
+            - /data/entu/files:/entu/files
+            - /data/entu/thumbs:/entu/thumbs
+            - /data/entu/uploads:/entu/uploads
+            - /data/rds-combined-ca-bundle.pem:/entu/ssl/rds-combined-ca-bundle.pem:ro
+
+    maintenance:
+        build:
+            context: https://github.com/entu/entu.git
+        container_name: maintenance
+        command: python -u /usr/src/entu/app/maintenance.py
+        restart: always
+        environment:
+            MYSQL_HOST:
+            MYSQL_PORT:
+            MYSQL_DATABASE:
+            MYSQL_USER:
+            MYSQL_PASSWORD:
+            CUSTOMERGROUP:
+            VERBOSE: 1
+        volumes:
+            - /data/rds-combined-ca-bundle.pem:/entu/ssl/rds-combined-ca-bundle.pem:ro
