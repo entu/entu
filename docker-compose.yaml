@@ -42,3 +42,23 @@ services:
             VERBOSE: 1
         volumes:
             - /data/rds-combined-ca-bundle.pem:/entu/ssl/rds-combined-ca-bundle.pem:ro
+
+    nginx:
+        image: 'nginx:1.14'
+        container_name: nginx
+        restart: always
+        ports:
+            - '80:80'
+            - '443:443'
+        volumes:
+            - /data/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+            - /data/nginx/ssl/dhparams.pem:/etc/nginx/dhparams.pem:ro
+            - /data/nginx/ssl/id.crt:/etc/nginx/id.crt:ro
+            - /data/nginx/sites:/etc/nginx/conf.d:ro
+            - /data/nginx/log:/var/log/nginx
+            - /data/letsencrypt/certs/archive:/etc/nginx/letsencrypt/archive:ro
+            - /data/letsencrypt/certs/live:/etc/nginx/letsencrypt/live:ro
+            - /data/letsencrypt/static:/etc/nginx/letsencrypt/static:ro
+            - /data/entu/uploads:/entu/uploads
+        depends_on:
+            - entu
