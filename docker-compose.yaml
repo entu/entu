@@ -53,7 +53,6 @@ services:
         volumes:
             - /data/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
             - /data/nginx/ssl/dhparams.pem:/etc/nginx/dhparams.pem:ro
-            - /data/nginx/ssl/id.crt:/etc/nginx/id.crt:ro
             - /data/nginx/sites:/etc/nginx/conf.d:ro
             - /data/nginx/log:/var/log/nginx
             - /data/letsencrypt/certs/archive:/etc/nginx/letsencrypt/archive:ro
