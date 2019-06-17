@@ -41,11 +41,6 @@ class ShowGroup(myRequestHandler, Entity):
         else:
             quota_entities_used = self.db_get('SELECT COUNT(*) AS entities FROM entity WHERE is_deleted = 0;').get('entities', 0)
             quota_size_used = self.db_get('SELECT SUM(filesize) AS size FROM file;').get('size', 0)
-            try:
-                f = open(os.path.join(os.path.dirname(__file__), '..', '..', 'HISTORY.md'), 'r')
-            except Exception, e:
-                logging.error(e)
-
 
         self.render('entity/template/start.html',
             page_title = entity_definition[0]['label_plural'] if entity_definition else '',
