@@ -38,9 +38,7 @@ APP_INTERCOM_KEY   = os.getenv('INTERCOM_KEY')
 
 # List of controllers to load.
 app_controllers = [
-    'api.api',
     'api.api2',
-    'api.erply',
     'entity.csv_import',
     'entity.entity',
     'library.ester',
