@@ -84,12 +84,12 @@
             select_sharing($(this));
         });
 
-        $('.share').click(function() {
+        $('.share').on('click', function() {
             select_sharing($(this));
             $.post('/entity-{{ entity_id }}/rights', { sharing: $(this).data('value') });
         });
 
-        $('#generate-sharing-link').click(function() {
+        $('#generate-sharing-link').on('click', function() {
             $('#generate-sharing-link').hide();
             $.post('/entity-{{ entity_id }}/rights', { generate_link: true }, function(data) {
                 $('#sharing-link').html(data);
@@ -99,7 +99,7 @@
             });
         });
 
-        $('#delete-sharing-link').click(function() {
+        $('#delete-sharing-link').on('click', function() {
             $('#delete-sharing-link').hide();
             $.post('/entity-{{ entity_id }}/rights', { delete_link: true }, function(data) {
                 $('#sharing-link').html('');
@@ -135,7 +135,7 @@
             $(this).parent('tr').children('.rights-title').html($(this).data('title'));
         });
 
-        $('.rights-icon').click(function() {
+        $('.rights-icon').on('click', function() {
             select_right($(this));
             set_right($(this).parent('tr').data('id'), $(this).data('value'));
         });

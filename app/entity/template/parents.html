@@ -93,7 +93,7 @@
             });
         });
 
-        $('.delete-parent').click(function() {
+        $('.delete-parent').on('click', function() {
             if (confirm("{{ _('confirm_parent_delete').replace('\"', '\\\"') }}".replace('%s', $(this).data('name')))) {
                 var tr = $(this).parent().parent()
                 var parent = $(this).data('id');

@@ -89,7 +89,7 @@
         $(document).ready(function(){
             $('#content-wrap .content').css('min-height', $(document).height() - 255 + 'px');
 
-            $('.mobileid').click(function() {
+            $('.mobileid').on('click', function() {
                 $('#mobileid-input').toggle();
                 $('#mobileid-input').addClass('info');
                 $('#mobileid-idcode').focus();
@@ -154,7 +154,7 @@
                 });
             }
 
-            $('#mobileid-cancel').click(function() {
+            $('#mobileid-cancel').on('click', function() {
                 $('#mobileid-idcode').val('')
                 $('#mobileid-input').hide();
                 $('#mobileid-code').html('');

@@ -31,7 +31,7 @@
     $(document).ready(function() {
         $.bootstrapSortable({ sign: 'reversed', applyLast: true });
 
-        $('tbody tr').click(function () {
+        $('tbody tr').on('click', function () {
             window.open($(this).data('url'),'_blank');
         });
         $('tbody tr').css('cursor', 'pointer');

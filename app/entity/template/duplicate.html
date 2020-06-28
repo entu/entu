@@ -39,7 +39,7 @@
 <script>
     $(document).ready(function(){
 
-        $('#duplicate-count').keyup(function() {
+        $('#duplicate-count').on('keyup', function() {
             check_status();
         });
 
@@ -61,7 +61,7 @@
             }
         }
 
-        $('#duplicate').click(function() {
+        $('#duplicate').on('click', function() {
             if($.isNumeric($('#duplicate-count').val())) {
                 $('#duplicate').addClass('disabled');
                 var data = { 'count': $('#duplicate-count').val(), 'properties[]' : []};

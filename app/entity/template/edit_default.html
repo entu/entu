@@ -289,7 +289,7 @@
             inputbox.unbind('keypress');
         });
 
-        $('.counter').click(function() {
+        $('.counter').on('click', function() {
             if(!$('#database').data('entity_id')) {
                 $('.autosave').attr('readonly', true);
                 $('.btn-small').attr('disabled', true);
@@ -365,7 +365,7 @@
             }
         });
 
-        $('.delete-reference').click(function() {
+        $('.delete-reference').on('click', function() {
             var inputbox = $(this);
             $.post('/entity/save', {
                 entity_id: $('#database').data('entity_id'),
@@ -414,7 +414,7 @@
             }
         );
 
-        $('.dropbox-open').click(function() {
+        $('.dropbox-open').on('click', function() {
             var input = $(this);
             Dropbox.choose({
                 linkType: 'direct',
@@ -435,7 +435,7 @@
 
         {% if google_auth_api_id %}
 
-        $('.google-open').click(function() {
+        $('.google-open').on('click', function() {
             var input = $(this);
 
             var DEVELOPER_KEY = '{{ google_auth_api_id }}';
@@ -492,7 +492,7 @@
         {% end %}
 
 
-        $('.url-open').click(function() {
+        $('.url-open').on('click', function() {
             var input = $(this);
             var url = $.trim(window.prompt('{{ _('add_files_url_prompt') }}'));
             var links = [];
@@ -506,7 +506,7 @@
             }
         });
 
-        $('.delete-file').click(function() {
+        $('.delete-file').on('click', function() {
 
             link = $(this);
             if (confirm("{{ _('confirm_file_delete').replace('\"', '\\\"') }}".replace('%s',link.prev().html()))) {
@@ -520,7 +520,7 @@
             };
         });
 
-        $('#delete-entity').click(function() {
+        $('#delete-entity').on('click', function() {
 
             link = $(this);
             if (confirm('{{ _('confirm_entity_delete').replace('\'', '\\\'') }}'.replace('%s','{{ entity.get('displayname', '').replace('\'', '\\\'') }}'))) {

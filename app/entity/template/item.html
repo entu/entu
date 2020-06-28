@@ -279,7 +279,7 @@
         }
 
         $('.toggle-table').css('cursor', 'pointer');
-        $('.toggle-table').click(function() {
+        $('.toggle-table').on('click', function() {
             $(this).next('table').toggle();
             $(this).toggleClass('no-print');
         });
@@ -301,7 +301,7 @@
             }
         }
 
-        $('#toolbar-item-fullscreen').click(function() {
+        $('#toolbar-item-fullscreen').on('click', function() {
             if($('#content').hasClass('fullscreen')) {
                 if($('#content').hasClass('menu-hidden')) {
                     $('#menu_hidden').show();
@@ -326,7 +326,7 @@
             change_fullscreen_icon();
         });
 
-        $('.open-modal-box').click(function() {
+        $('.open-modal-box').on('click', function() {
             url = $(this).data('url');
             $.get(url, function(html) {
                 document.body.style.cursor = 'wait';

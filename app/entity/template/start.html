@@ -103,7 +103,7 @@
                     menu_hide();
                 });
 
-                $('#menu_hidden').click(function() {
+                $('#menu_hidden').on('click', function() {
                     menu_show();
                 });
 
@@ -126,7 +126,7 @@
                 };
             {% end %}
 
-            $('.open-modal-box').click(function() {
+            $('.open-modal-box').on('click', function() {
                 url = $(this).data('url');
                 $.get(url, function(html) {
                     document.body.style.cursor = 'wait';
@@ -149,7 +149,7 @@
 
             $('.accordion').accordion('option', 'active', $('#menu').find("a[href='"+window.location.pathname+"']").parent('div').data('idx'))
 
-            $(window).resize(function(){
+            $(window).on('resize', function(){
                 $('#menu_accordion').accordion('refresh');
                 redirectToMobile();
             });

@@ -117,7 +117,7 @@
             });
         });
 
-        $('#csv-submit').click(function() {
+        $('#csv-submit').on('click', function() {
             if(!$(this).hasClass('disabled')) {
                 $('#csv-submit').hide();
                 $('#csv-spinner').show()
