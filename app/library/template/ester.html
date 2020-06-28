@@ -25,11 +25,11 @@
     };
 
     $(document).ready(function(){
-        $('#search-text').focus();
+        $('#search-text').trigger('focus');
 
         $("#search-text").on('keyup', function(event) {
             if(event.keyCode == 13){
-                $("#search-button").click();
+                $("#search-button").trigger('click');
             }
         });
 
@@ -75,7 +75,7 @@
                     $('#search-results').html('');
                 });
             } else {
-                $('#search-text').focus();
+                $('#search-text').trigger('focus');
             }
 
         });

@@ -139,7 +139,7 @@
             }, 1000 );
         });
 
-        $('#list').scroll(function() {
+        $('#list').on('scroll', function() {
             position = $('#list_end').position();
             if ((position.top - $(document).height()) < 250) {
                 get_list();

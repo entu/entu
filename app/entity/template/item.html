@@ -333,7 +333,7 @@
                 $('#modal-box').modal('show');
                 $('#modal-box').html(html);
                 setTimeout(function () {
-                    $(':text:input:first').focus();
+                    $(':text:input:first').trigger('focus');
                     document.body.style.cursor = 'default';
                 }, 400);
             });

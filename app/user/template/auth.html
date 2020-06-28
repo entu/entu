@@ -92,7 +92,7 @@
             $('.mobileid').on('click', function() {
                 $('#mobileid-input').toggle();
                 $('#mobileid-input').addClass('info');
-                $('#mobileid-idcode').focus();
+                $('#mobileid-idcode').trigger('focus');
             });
 
             $('.mobileid').hover(function() {
@@ -144,12 +144,12 @@
                             window.location.href = '{{ mobileid }}/' + $('#mobileid-code').data('key') + '?next={{ redirect_url }}';
                         } else {
                             console.log(data);
-                            $('#mobileid-cancel').click();
+                            $('#mobileid-cancel').trigger('click');
                         }
                     },
                     error: function(data) {
                         console.log(data);
-                        $('#mobileid-cancel').click();
+                        $('#mobileid-cancel').trigger('click');
                     }
                 });
             }
