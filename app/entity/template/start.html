@@ -34,9 +34,9 @@
         </div>
         <div id="menu">
             <div id="menu_accordion" class="accordion">
-                {% for m in menu %}
+                {% for idx, m in menu %}
                     <h3><a href="#">{{ m['label'] }}</a></h3>
-                    <div>
+                    <div data-idx="{{ idx }}">
                         {% for i in sorted(m.get('items', []), key=itemgetter('title')) %}
                             <a href="/entity/{{ i['keyname'] }}">{{ i['title'] }}</a>
                         {% end %}
@@ -147,10 +147,7 @@
                 $(this).addClass('active')
             });
 
-            $('#menu').find("a[href='"+window.location.pathname+"']").parent('.ui-accordion-header').each(function(){
-                $(this).addClass('ui-accordion-header-active')
-                $(this).addClass('ui-state-active')
-            });
+            $('.accordion').accordion('activate', $('#menu').find("a[href='"+window.location.pathname+"']").parent('div').data('idx'))
 
             $(window).resize(function(){
                 $('#menu_accordion').accordion('refresh');
