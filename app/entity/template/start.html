@@ -140,12 +140,13 @@
             });
 
             $('.accordion').accordion({
-                navigation: true,
-                fillSpace: true
+                collapsible: true,
+                heightStyle: 'fill',
+                navigation: true
             });
             $('#menu').find("a[href='"+window.location.pathname+"']").each(function(){
                 $(this).addClass('active')
-            })
+            });
 
             $(window).resize(function(){
                 $('#menu_accordion').accordion('resize');
