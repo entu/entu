@@ -34,7 +34,7 @@
         </div>
         <div id="menu">
             <div id="menu_accordion" class="accordion">
-                {% for idx, m in menu %}
+                {% for idx, m in enumerate(menu) %}
                     <h3><a href="#">{{ m['label'] }}</a></h3>
                     <div data-idx="{{ idx }}">
                         {% for i in sorted(m.get('items', []), key=itemgetter('title')) %}
