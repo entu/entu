@@ -83,7 +83,7 @@
 
         $('select').select2();
 
-        $('#first_row').change(function() {
+        $('#first_row').on('change', function() {
             if ($(this).val() < 1) {
                 $(this).val(1);
             }
@@ -93,7 +93,7 @@
             $('#csv-submit').html('{{ _('action_add_csv_do_import') % '@@' }}'.replace('@@', {{ row_count }}-$(this).val()+1))
         });
 
-        $('.resubmit').change(function() {
+        $('.resubmit').on('change', function() {
             if(delimiter) {
                 $.post('/action/csv/read', {
                     file_id: {{ file_id }},
@@ -108,7 +108,7 @@
             };
         });
 
-        $('.csv-field').change(function() {
+        $('.csv-field').on('change', function() {
             $('#csv-submit').addClass('disabled');
             $('.csv-field').each(function() {
                 if($(this).val()) {

@@ -108,7 +108,7 @@
 
         $('input[type=file]').bootstrapFileInput();
 
-        $('.dtype-file').change(function() {
+        $('.dtype-file').on('change', function() {
             for (var i=0; i<this.files.length; i++) {
                 {% if s3upload %}
                     uploadFileS3(this.files[i], $(this));
@@ -262,10 +262,10 @@
             });
         });
 
-        $('.dtype-datetime').change(function() {
+        $('.dtype-datetime').on('change', function() {
             $(this).val(format_date($(this).val(), 'yyyy-MM-dd HH:mm'));
         });
-        $('.dtype-date').change(function() {
+        $('.dtype-date').on('change', function() {
             $(this).val(format_date($(this).val(), 'yyyy-MM-dd'));
         });
         function format_date(dinput, format) {
@@ -277,7 +277,7 @@
             return result;
         }
 
-        $('.can_add_new').keypress(function() {
+        $('.can_add_new').on('keypress', function() {
             var inputbox = $(this);
             var newinput = inputbox.clone(true);
             newinput.val('');
@@ -317,7 +317,7 @@
             }, 'json');
         });
 
-        $('.autosave').change(function(e) {
+        $('.autosave').on('change', function(e) {
             var inputbox = $(this);
             if (inputbox.attr('type') == 'checkbox') {
                 value = inputbox.is(':checked');
@@ -379,7 +379,7 @@
             }, 'json');
         });
 
-        $('.is_public').change(function() {
+        $('.is_public').on('change', function() {
             var inputbox = $(this);
             value = inputbox.is(':checked');
             $.post('/entity/save', {

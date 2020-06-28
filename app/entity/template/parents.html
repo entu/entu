@@ -85,7 +85,7 @@
             },
         });
 
-        $('#add-new-parent').change(function(e) {
+        $('#add-new-parent').on('change', function(e) {
             var value = e.added;
             $(this).select2('val', '');
             $.post('/entity-{{ entity_id }}/parents', { parent: value.id}, function() {

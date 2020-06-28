@@ -15,10 +15,10 @@
     $(document).ready(function(){
 
 
-        $('.dtype-datetime').change(function() {
+        $('.dtype-datetime').on('change', function() {
             $(this).val(format_date($(this).val(), 'yyyy-MM-dd HH:mm'));
         });
-        $('.dtype-date').change(function() {
+        $('.dtype-date').on('change', function() {
             $(this).val(format_date($(this).val(), 'yyyy-MM-dd'));
         });
         function format_date(dinput, format) {

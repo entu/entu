@@ -13,7 +13,7 @@
 
     $(document).ready(function(){
 
-        $('.csv-file').change(function() {
+        $('.csv-file').on('change', function() {
             $('#csv-form').hide();
             $('#csv-spinner').show()
             $('#csv-form').submit();

@@ -193,7 +193,7 @@
             },
         });
 
-        $('#add-new-person').change(function(e) {
+        $('#add-new-person').on('change', function(e) {
             var value = e.added;
             $(this).select2('val', '');
             set_right(value.id, 'viewer');

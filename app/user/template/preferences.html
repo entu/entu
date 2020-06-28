@@ -64,7 +64,7 @@
 
 <script>
     $(document).ready(function(){
-        $('.autosave').change(function() {
+        $('.autosave').on('change', function() {
             var inputbox = $(this);
             property = inputbox.attr('name');
             if (inputbox.attr('type') == 'checkbox') {
