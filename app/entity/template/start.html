@@ -147,7 +147,7 @@
                 $(this).addClass('active')
             });
 
-            $('.accordion').accordion('activate', $('#menu').find("a[href='"+window.location.pathname+"']").parent('div').data('idx'))
+            $('.accordion').accordion('option', 'active', $('#menu').find("a[href='"+window.location.pathname+"']").parent('div').data('idx'))
 
             $(window).resize(function(){
                 $('#menu_accordion').accordion('refresh');
