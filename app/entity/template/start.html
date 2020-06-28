@@ -141,15 +141,19 @@
 
             $('.accordion').accordion({
                 collapsible: true,
-                heightStyle: 'fill',
-                navigation: true
+                heightStyle: 'fill'
             });
             $('#menu').find("a[href='"+window.location.pathname+"']").each(function(){
                 $(this).addClass('active')
             });
 
+            $('#menu').find("a[href='"+window.location.pathname+"']").parent('.ui-accordion-header').each(function(){
+                $(this).addClass('ui-accordion-header-active')
+                $(this).addClass('ui-state-active')
+            });
+
             $(window).resize(function(){
-                $('#menu_accordion').accordion('resize');
+                $('#menu_accordion').accordion('refresh');
                 redirectToMobile();
             });
 
