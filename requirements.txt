@@ -1,4 +1,4 @@
-beautifulsoup4==4.9.0
+beautifulsoup4==4.9.1
 boto==2.49.0
 mistune==0.8.4
 mysql-connector==2.2.9
