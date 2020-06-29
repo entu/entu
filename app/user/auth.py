@@ -25,8 +25,6 @@ class ShowAuthPage(myRequestHandler):
                 mobileid = '%s/mobile-id' % self.settings['auth_url'],
                 idcard = '%s/id-card?next=%s' % (self.settings['auth_url'], redirect_url),
                 google = '%s/google?next=%s' % (self.settings['auth_url'], redirect_url),
-                facebook = '%s/facebook?next=%s' % (self.settings['auth_url'], redirect_url),
-                live = '%s/live?next=%s' % (self.settings['auth_url'], redirect_url),
                 taat = '%s/taat?next=%s' % (self.settings['auth_url'], redirect_url)
             )
 
