@@ -301,7 +301,7 @@ class myDatabase():
             x = self.settings['mongodbs'][database].server_info()
         except Exception, e:
             logging.error(e)
-            self.settings['mongodbs'][database] = MongoClient(self.settings['mongodb'], ssl=True, connect=True)
+            self.settings['mongodbs'][database] = MongoClient(self.settings['mongodb'], connect=True)
             logging.error(database + ' mongo')
         return self.settings['mongodbs'][database][database]
 
