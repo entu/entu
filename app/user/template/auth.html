@@ -42,17 +42,9 @@
                 <tr id="mobileid-input" style="display:none;">
                     <td colspan="2" style="text-align:center; border-top:none; padding-bottom:10px;" >
                         <form id="mobileid-form" style="margin:0px; padding:0px;">
-                            <label for="mobileid-idcode">{{ _('log_in_mid_idcode') }}</label>
-                            <div class="input-append">
-                                <span class="add-on">EE</span>
-                                <input id="mobileid-idcode" class="span2" type="text" />
-                            </div>
-                            <label for="mobileid-phone">{{ _('log_in_mid_phone') }}</label>
-                            <div class="input-append">
-                                <span class="add-on">+372</span>
-                                <input id="mobileid-phone" class="span2" type="text" />
-                            </div>
-                            <button id="mobileid-submit" class="btn span2" type="submit">{{ _('log_in_mid_go') }}</button>
+                            <input id="mobileid-idcode" class="span3" type="text" placeholder="{{ _('log_in_mid_idcode') }}" />
+                            <input id="mobileid-phone" class="span3" type="text" placeholder="{{ _('log_in_mid_phone') }}" />
+                            <button id="mobileid-submit" class="btn" type="submit">{{ _('log_in_mid_go') }}</button>
                         </form>
                     </td>
                 </tr>
