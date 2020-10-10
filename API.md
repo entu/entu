@@ -106,7 +106,7 @@ signature|string|No||Base64 encoded HMAC signature of policy (signed with key wh
 
 Argument|Type|Required|Default|Description
 :--|:-:|:-:|:--|:--
-entity|integer|Yes||ID of the entity where to but this file
+entity|integer|Yes||ID of the entity where to put this file
 property|string|Yes||Property definition of the new file property
 filename|string|Yes||File name
 user|string|No||User ID
@@ -124,7 +124,7 @@ signature|string|No||Base64 encoded HMAC signature of policy (signed with key wh
 #### POST - get Amazon S3 upload url and formdata
 Argument|Type|Required|Default|Description
 :--|:-:|:-:|:--|:--
-entity|integer|Yes||ID of the entity where to but this file
+entity|integer|Yes||ID of the entity where to put this file
 property|string|Yes||Property definition of the new file property
 filename|string|Yes||File name
 user|string|No||User ID
@@ -140,7 +140,7 @@ Append file to returned formdata (result.s3.data) and post all to S3 url (result
 #### POST - Upload file from url
 Argument|Type|Required|Default|Description
 :--|:-:|:-:|:--|:--
-entity|integer|Yes||ID of the entity where to but this file
+entity|integer|Yes||ID of the entity where to put this file
 property|string|Yes||Property definition of the new file property
 url|string|Yes||Url where to get file
 download|true/false|No||If true downloads file to Entu, otherwise creates just link
