@@ -43,6 +43,7 @@
                     <td colspan="2" style="text-align:center; border-top:none; padding-bottom:10px;" >
                         <form id="mobileid-form" class="input-append" style="margin:0px; padding:0px;">
                             <input id="mobileid-idcode" class="span2" type="text" placeholder="{{ _('log_in_mid_idcode') }}" />
+                            <input id="mobileid-phone" class="span2" type="text" placeholder="{{ _('log_in_mid_phone') }}" />
                             <button id="mobileid-submit" class="btn" type="submit">{{ _('log_in_mid_go') }}</button>
                         </form>
                     </td>
@@ -97,13 +98,14 @@
 
             mobile_id_inprogress = false;
             $('#mobileid-form').submit(function(e) {
-                if($('#mobileid-idcode').val() && !mobile_id_inprogress) {
+                if($('#mobileid-idcode').val() && $('#mobileid-phone').val() && !mobile_id_inprogress) {
                     mobile_id_inprogress = true;
                     $.ajax({
                         url: '{{ mobileid }}',
                         type: 'POST',
                         data: {
-                            idcode: $('#mobileid-idcode').val()
+                            idcode: $('#mobileid-idcode').val(),
+                            phone: $('#mobileid-phone').val()
                         },
                         dataType: 'json',
                         success: function(data) {
@@ -148,6 +150,7 @@
 
             $('#mobileid-cancel').on('click', function() {
                 $('#mobileid-idcode').val('')
+                $('#mobileid-phone').val('')
                 $('#mobileid-input').hide();
                 $('#mobileid-code').html('');
                 $('#login-mid').hide();
