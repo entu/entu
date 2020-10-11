@@ -101,8 +101,8 @@
 
             mobile_id_inprogress = false;
             $('#mobileid-form').submit(function(e) {
-                $('#mobileid-idcode').val(parseInt($('#mobileid-idcode').val()));
-                $('#mobileid-phone').val(parseInt($('#mobileid-phone').val()));
+                $('#mobileid-idcode').val(parseInt($('#mobileid-idcode').val()) || '');
+                $('#mobileid-phone').val(parseInt($('#mobileid-phone').val()) || '');
 
                 if(!$('#mobileid-idcode').val() || $('#mobileid-idcode').val().length !== 10) {
                     $('#mobileid-idcode').select();
