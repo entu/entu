@@ -43,7 +43,10 @@
                     <td colspan="2" style="text-align:center; border-top:none; padding-bottom:10px;" >
                         <form id="mobileid-form" style="margin:0px; padding:0px;">
                             <input id="mobileid-idcode" class="span3" type="text" placeholder="{{ _('log_in_mid_idcode') }}" />
-                            <input id="mobileid-phone" class="span3" type="text" placeholder="{{ _('log_in_mid_phone') }}" />
+                            <div class="input-prepend">
+                                <span class="add-on">+372</span>
+                                <input id="mobileid-phone" class="span3" type="text" placeholder="{{ _('log_in_mid_phone') }}" />
+                            </div>
                             <button id="mobileid-submit" class="btn" type="submit">{{ _('log_in_mid_go') }}</button>
                         </form>
                     </td>
@@ -105,7 +108,7 @@
                         type: 'POST',
                         data: {
                             idcode: $('#mobileid-idcode').val(),
-                            phone: $('#mobileid-phone').val()
+                            phone: '+372' + $('#mobileid-phone').val()
                         },
                         dataType: 'json',
                         success: function(data) {
