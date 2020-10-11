@@ -6,4 +6,4 @@ RUN apt-get update && apt-get install -y build-essential gcc libmysqlclient-dev 
 
 ADD ./ /usr/src/entu
 
-RUN cd /usr/src/entu && pip install -r requirements.txt
+RUN cd /usr/src/entu && pip install -q -r requirements.txt
