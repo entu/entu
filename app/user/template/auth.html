@@ -101,6 +101,19 @@
 
             mobile_id_inprogress = false;
             $('#mobileid-form').submit(function(e) {
+                $('#mobileid-idcode').val(parseInt($('#mobileid-idcode').val()));
+                $('#mobileid-phone').val(parseInt($('#mobileid-phone').val()));
+
+                if(!$('#mobileid-idcode').val() || $('#mobileid-idcode').val().length !== 10) {
+                    $('#mobileid-idcode').select();
+                    return false;
+                }
+
+                if(!$('#mobileid-phone').val() || $('#mobileid-phone').val().length < 5 || $('#mobileid-phone').val().length > 8) {
+                    $('#mobileid-phone').select();
+                    return false;
+                }
+
                 if($('#mobileid-idcode').val() && $('#mobileid-phone').val() && !mobile_id_inprogress) {
                     mobile_id_inprogress = true;
                     $.ajax({
@@ -122,7 +135,6 @@
                             console.log(data);
                             mobile_id_inprogress = false;
                             $('#mobileid-idcode').select();
-                            $('#mobileid-form').effect('shake', { times:3 }, 100);
                         }
                     });
                 }
