@@ -170,6 +170,7 @@ class ShowEntity(myRequestHandler, Entity):
             add_definitions = add_definitions,
             add_relations = add_relations,
             public_path = self.get_public_path(entity_id),
+            GetHumanReadableBytes = GetHumanReadableBytes
         )
 
 
