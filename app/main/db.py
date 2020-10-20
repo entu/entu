@@ -1960,3 +1960,17 @@ def findTags(s, beginning, end):
     if not s:
         return []
     return re.compile('%s(.*?)%s' % (beginning, end), re.DOTALL).findall(s)
+
+
+
+
+def GetHumanReadableBytes(size, precision = 2):
+    size = int(size)
+
+    suffixes = ['B','KB','MB','GB','TB']
+    suffixIndex = 0
+    while size >= 1000:
+        suffixIndex += 1 #increment the index of the suffix
+        size = size / 1000.0 #apply the division
+
+    return '%.*f%s' % (precision, size, suffixes[suffixIndex])
