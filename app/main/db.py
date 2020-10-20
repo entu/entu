@@ -1249,6 +1249,7 @@ class Entity():
                             continue
                         items[key]['properties'][p_key]['values'][f_key]['md5'] = file_result.get('md5')
                         items[key]['properties'][p_key]['values'][f_key]['filesize'] = file_result.get('filesize')
+                        items[key]['properties'][p_key]['values'][f_key]['human_filesize'] = GetHumanReadableBytes(file_result.get('filesize'))
                         items[key]['properties'][p_key]['values'][f_key]['created'] = file_result.get('created')
 
         return items.values()

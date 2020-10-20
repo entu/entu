@@ -87,7 +87,7 @@
                         <td style="width:100%;{%if not p['public'] %} color:gray;{% end %}{%if p['mandatory'] and not p.get('values') %} background-color:#fff5f5;{% end %}">
                             {% if p['datatype'] == 'file' %}
                                 <!-- <p>Meta: {{ p }}</p> -->
-                                {{ '<br />'.join(['<a id="fileLink%s" href="/api2/file-%s" target="_blank">%s</a> <i style="white-space: nowrap;">%sb@%s</i>' % (v.get('db_value'), v.get('db_value'), v.get('value'), v.get('filesize'), v.get('created')) for v in p.get('values', []) if v]) }}
+                                {{ '<br />'.join(['<a id="fileLink%s" href="/api2/file-%s" target="_blank">%s</a> <i style="white-space: nowrap;">%s</i>' % (v.get('db_value'), v.get('db_value'), v.get('value'), v.get('human_filesize')) for v in p.get('values', []) if v]) }}
                             {% elif p['datatype'] == 'html' %}
                                 <div class="html-property" data-property="{{ p['dataproperty'] }}" style="display:block; width:100%;"><img src="{{ static_url('images/spinner_white.gif') }}" id="search-spinner" /></div>
                             {% elif p['datatype'] == 'text' %}
