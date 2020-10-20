@@ -544,11 +544,11 @@ class API2AmazonFileUpload(myRequestHandler, Entity):
             filetype = 'binary/octet-stream'
 
         filesize = self.get_argument('filesize', 0, True)
-        if int(filesize) > 4294967295:
-            return self.json({
-                'error': 'Max file size is 4294967295 bytes!',
-                'time': round(self.request.request_time(), 3),
-            }, 400)
+        # if int(filesize) > 4294967295:
+        #     return self.json({
+        #         'error': 'Max file size is 4294967295 bytes!',
+        #         'time': round(self.request.request_time(), 3),
+        #     }, 400)
 
         key = '%s_2/%s' % (self.app_settings('database-name'), entity_id)
 
