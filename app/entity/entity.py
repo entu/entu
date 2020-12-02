@@ -173,57 +173,6 @@ class ShowEntity(myRequestHandler, Entity):
         )
 
 
-class DownloadFile(myRequestHandler, Entity):
-    @web.authenticated
-    def get(self, file_ids=None, url=None):
-        """
-        Download file.
-
-        """
-        file_ids = file_ids.split('/')[0]
-        files = self.get_file(file_ids)
-
-        if not files:
-            return self.missing()
-        if len(files) < 1:
-            return self.missing()
-
-        if len(files) > 1:
-            sf = StringIO()
-            zf = zipfile.ZipFile(sf, 'w', zipfile.ZIP_DEFLATED)
-            links = []
-            for f in files:
-                if f.get('file'):
-                    if f.get('url'):
-                        links.append('<a href="%s" target="_blank">%s</a>' % (f.get('url'), f.get('filename').encode('utf-8')))
-                    else:
-                        zf.writestr('files/%s' % f.get('filename'), f.get('file'))
-                        links.append('<a href="%s" target="_blank">%s</a>' % ('files/%s' % f.get('filename').encode('utf-8'), f.get('filename').encode('utf-8')))
-            if links:
-                linksfile = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<style type="text/css">body {margin:50px 100px; font-family:sans-serif; font-size:13px;} a {display: block; margin-top:10px;}</style>\n</head>\n<body>\n%s\n</body>\n</html>' % '\n'.join(links)
-                zf.writestr('index.html', linksfile)
-            zf.close()
-            mime = 'application/octet-stream'
-            filename = '%s.zip' % file_ids
-            outfile = sf.getvalue()
-        else:
-            f = files[0]
-            if not f.get('file') and not f.get('url'):
-                return self.missing()
-            if f.get('url'):
-                return self.redirect(f.get('url'))
-
-            mimetypes.init()
-            mime = mimetypes.types_map.get('.%s' % f.get('filename').lower().split('.')[-1], 'application/octet-stream')
-
-            filename = f.get('filename')
-            outfile = f.get('file')
-
-        self.add_header('Content-Type', mime)
-        self.add_header('Content-Disposition', 'inline; filename="%s"' % filename)
-        self.write(outfile)
-
-
 class ShowEntityEdit(myRequestHandler, Entity):
     @web.authenticated
     def get(self, entity_id=None):
@@ -572,88 +521,6 @@ class ShowHTMLproperty(myRequestHandler, Entity):
         self.write('\n'.join([x.get('value', '') for x in item.get('properties', {}).get(dataproperty, {}).get('values') if x.get('value', '')]))
 
 
-class DownloadEntity(myRequestHandler, Entity):
-    @web.authenticated
-    def get(self, entity_id):
-        """
-        Download Entity as ZIP file
-
-        """
-
-        item = self.get_entities(entity_id=entity_id, limit=1, full_definition=False)
-        if not item:
-            return
-
-        files = self.__get_files(entity_id)
-
-        f = StringIO()
-        zf = zipfile.ZipFile(f, 'w', zipfile.ZIP_DEFLATED)
-        for file in files:
-            filename = '%s/%s' % (file.get('path').strip('/'), file.get('name'))
-            info = zipfile.ZipInfo(filename, date_time=file.get('date'))
-            info.compress_type=zipfile.ZIP_DEFLATED
-            info.create_system=0
-            zf.writestr(info, file.get('file'))
-        zf.close()
-
-        self.add_header('Content-Type', 'application/octet-stream')
-        self.add_header('Content-Disposition', 'inline; filename="%s.zip"' % item.get('displayname'))
-        self.write(f.getvalue())
-
-
-        self.write(str(files))
-
-
-    def __get_files(self, entity_id, path = ''):
-        """
-        Return Entity properties as YAML file and all files (from file properties)
-
-        """
-
-        item = self.get_entities(entity_id=entity_id, limit=1, full_definition=False)
-        if not item:
-            return
-
-        result = []
-        path = '%s/%s #%s - %s' % (path, item.get('label').replace('/', '_'), item.get('id'), item.get('displayname').replace('/', '_'))
-
-        itemyaml = {}
-        itemyaml['created'] = str(item.get('created'))
-        itemyaml['changed'] = str(item.get('changed')) if item.get('changed') else str(item.get('created'))
-        for p in sorted(item.get('properties', {}).values(), key=itemgetter('ordinal')):
-            for v in sorted(p.get('values', []), key=itemgetter('ordinal')):
-                if v.get('value'):
-                    itemyaml.setdefault('properties', {}).setdefault(p.get('dataproperty','').lower(), []).append(u'%s' % v.get('value'))
-
-            if len(itemyaml.get('properties', {}).get(p.get('dataproperty','').lower(), [])) == 1:
-                itemyaml['properties'][p.get('dataproperty','').lower()] = itemyaml.get('properties', {}).get(p.get('dataproperty','').lower(), [])[0]
-
-
-            if p.get('datatype') == 'file':
-                for f in self.get_file([x.get('db_value') for x in p.get('values', []) if x.get('db_value')]):
-                    result.append({
-                        'path': '%s/%s' % (path, p.get('label_plural', p.get('label', p.get('keyname',''))).replace('/', '_')),
-                        'name': f.get('filename'),
-                        'date': f.get('created').timetuple() if f.get('created') else time.localtime(time.time()),
-                        'file': f.get('file')
-                    })
-
-        result.append({
-            'path': path,
-            'name': 'entity.yaml',
-            'date': item.get('changed').timetuple() if item.get('changed') else time.localtime(time.time()),
-            'file': yaml.safe_dump(itemyaml, default_flow_style=False, allow_unicode=True)
-        })
-
-        for definition, relatives in self.get_relatives(entity_id=entity_id, relationship_definition_keyname='child').iteritems():
-            for r in relatives:
-                relatives_result = self.__get_files(r.get('id'), path)
-                if relatives_result:
-                    result = result + relatives_result
-
-        return result
-
-
 handlers = [
     ('/test', TestBug),
     ('/entity/save', SaveEntity),
@@ -662,7 +529,6 @@ handlers = [
     ('/entity/search', GetEntities),
     ('/entity/users', GetUsers),
     (r'/entity/table/(.*)', ShowTableView),
-    (r'/entity/file-(.*)', DownloadFile),
     (r'/entity-(.*)/edit', ShowEntityEdit),
     (r'/entity-(.*)/relate', ShowEntityRelate),
     (r'/entity-(.*)/add/(.*)', ShowEntityAdd),
@@ -671,7 +537,6 @@ handlers = [
     (r'/entity-(.*)/parents', EntityParents),
     (r'/entity-(.*)/duplicate', EntityDuplicate),
     (r'/entity-(.*)/html-(.*)', ShowHTMLproperty),
-    (r'/entity-(.*)/download', DownloadEntity),
     (r'/entity-(.*)', ShowEntity),
     (r'/entity(.*)', ShowGroup),
 ]

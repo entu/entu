@@ -218,33 +218,6 @@ class SharedEntityWithKeyHandler(myRequestHandler, Entity):
         )
 
 
-# class PublicFileHandler(myRequestHandler, Entity):
-#     """
-#     Download public file.
-
-#     """
-#     def get(self, file_id=None, url=None):
-#         try:
-#             file_id = int(file_id.split('/')[0])
-#         except:
-#             return self.missing()
-
-#         sharing_key = self.get_argument('key', default=None, strip=True)
-
-#         files = self.get_file(file_id=file_id, sharing_key=sharing_key)
-#         if not files:
-#             return self.missing()
-
-#         f = files[0]
-
-#         mimetypes.init()
-#         mime = mimetypes.types_map.get('.%s' % f.get('filename').lower().split('.')[-1], 'application/octet-stream')
-
-#         self.add_header('Content-Type', mime)
-#         self.add_header('Content-Disposition', 'inline; filename="%s"' % f.get('filename'))
-#         self.write(f.get('file'))
-
-
 def get_definitions(rh, path):
     entity_definitions = []
     for entity_definition_keyname in [x.get('keyname') for x in rh.db_query('SELECT keyname FROM entity_definition WHERE public_path = %s;', path)]:
@@ -256,7 +229,6 @@ handlers = [
     (r'/public-(.*)/search2', PublicAdvancedSearchHandler),
     (r'/public-(.*)/search(.*)', PublicSearchHandler),
     (r'/public-(.*)/entity-(.*)', PublicEntityHandler),
-    # (r'/public/file-(.*)', PublicFileHandler),
     (r'/public(.*)', PublicHandler),
     (r'/shared/(.*)/(.*)', SharedEntityWithKeyHandler),
 ]
