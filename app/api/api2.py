@@ -426,18 +426,20 @@ class API2File(myRequestHandler, Entity):
         self.add_header('Content-Disposition', 'inline; filename="%s"' % filename)
 
         with open(filecontent, 'rb') as myfile:
-            chunk = f.read(1024 * 1024)
-            if not chunk:
-                break
-            try:
-                self.write(chunk) # write the chunk to response
-                self.flush() # send the chunk to client
-            except iostream.StreamClosedError:
-                # this means the client has closed the connection so break the loop
-                break
-            finally:
-                # deleting the chunk is very important because if many clients are downloading files at the same time, the chunks in memory will keep increasing and will eat up the RAM
-                del chunk
+            while True:
+                chunk = f.read(1024 * 1024)
+
+                if not chunk:
+                    break
+                try:
+                    self.write(chunk) # write the chunk to response
+                    self.flush() # send the chunk to client
+                except iostream.StreamClosedError:
+                    # this means the client has closed the connection so break the loop
+                    break
+                finally:
+                    # deleting the chunk is very important because if many clients are downloading files at the same time, the chunks in memory will keep increasing and will eat up the RAM
+                    del chunk
 
 
 
