@@ -425,7 +425,7 @@ class API2File(myRequestHandler, Entity):
         self.add_header('Content-Type', mime)
         self.add_header('Content-Disposition', 'inline; filename="%s"' % filename)
 
-        with open(filecontent, 'rb') as myfile:
+        with open(filecontent, 'rb') as f:
             while True:
                 chunk = f.read(1024 * 1024)
 
