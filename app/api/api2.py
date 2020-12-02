@@ -14,6 +14,7 @@ from operator import itemgetter
 
 from tornado import gen
 from tornado import httpclient
+from tornado import iostream
 
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
@@ -402,27 +403,41 @@ class API2File(myRequestHandler, Entity):
             s3_url    = s3_key.generate_url(expires_in=3600, query_auth=True)
             return self.redirect(s3_url)
 
-        if not files[0].get('file'):
+        filecontent = files[0].get('file')
+
+        if not filecontent:
             return self.json({
                 'error': 'No file!',
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
-        mimetypes.init()
-        mime = mimetypes.types_map.get('.%s' % files[0].get('filename').lower().split('.')[-1], 'application/octet-stream')
+        if not os.path.isfile(filecontent):
+            return self.json({
+                'error': 'Unable to read file from disk!',
+                'time': round(self.request.request_time(), 3),
+            }, 404)
 
         filename = files[0].get('filename')
 
+        mimetypes.init()
+        mime = mimetypes.types_map.get('.%s' % filename.lower().split('.')[-1], 'application/octet-stream')
+
         self.add_header('Content-Type', mime)
         self.add_header('Content-Disposition', 'inline; filename="%s"' % filename)
-        self.write(files[0].get('file'))
 
-    @web.removeslash
-    def delete(self, file_id=None):
-        #
-        # Delete file (with given ID)
-        #
-        pass
+        with open(filecontent, 'rb') as myfile:
+            chunk = f.read(1024 * 1024)
+            if not chunk:
+                break
+            try:
+                self.write(chunk) # write the chunk to response
+                self.flush() # send the chunk to client
+            except iostream.StreamClosedError:
+                # this means the client has closed the connection so break the loop
+                break
+            finally:
+                # deleting the chunk is very important because if many clients are downloading files at the same time, the chunks in memory will keep increasing and will eat up the RAM
+                del chunk
 
 
 
