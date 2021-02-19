@@ -388,8 +388,19 @@ class myUser(myE):
 
         if person:
             user['id'] = person.get('entity_id')
+
             if person.get('email'):
                 user['email'] = person.get('email')
+
+            person_name = self.db_get("""
+                SELECT
+                    (SELECT value_string FROM property WHERE entity_id = %s AND property_definition_keyname = 'person-forename') AS forename,
+                    (SELECT value_string FROM property WHERE entity_id = %s AND property_definition_keyname = 'person-surname') AS surname
+            """, user['id'], user['id'])
+
+            if person_name.get('forename') or person_name.get('surname'):
+                user['name'] = (person_name.get('forename') + ' ' + person_name.get('forename')).trim()
+
         else:
             if self.app_settings('user-parent'):
                 if not self.db_get('SELECT entity.id FROM entity, property WHERE property.entity_id = entity.id AND entity.is_deleted = 0 AND property.is_deleted = 0 AND property.property_definition_keyname = "person-entu-user" and property.value_string = %s LIMIT 1', user_id):
