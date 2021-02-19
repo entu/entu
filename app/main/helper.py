@@ -394,8 +394,8 @@ class myUser(myE):
 
             person_name = self.db_get("""
                 SELECT
-                    (SELECT value_string FROM property WHERE entity_id = %s AND property_definition_keyname = 'person-forename') AS forename,
-                    (SELECT value_string FROM property WHERE entity_id = %s AND property_definition_keyname = 'person-surname') AS surname
+                    (SELECT value_string FROM property WHERE entity_id = %s AND is_deleted = 0 AND property_definition_keyname = 'person-forename' LIMIT 1) AS forename,
+                    (SELECT value_string FROM property WHERE entity_id = %s AND is_deleted = 0 AND property_definition_keyname = 'person-surname' LIMIT 1) AS surname
             """, user['id'], user['id'])
 
             if person_name.get('forename') or person_name.get('surname'):
