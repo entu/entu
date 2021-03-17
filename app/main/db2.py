@@ -821,35 +821,56 @@ class Entity2():
     def get_parents(self, id=None, depth=1):
         """
         Return array of parent entity id's
+        Return array of parent entity id's, definitions, distances, and access rights
         """
         if not id:
             return
 
+        if not self.__user_id:
+            return
+
         sql = """
-            SELECT de.related_entity_id AS id, parent.entity_definition_keyname AS definition, distance
-            FROM dag_entity de
-            LEFT JOIN entity parent ON child.id = de.related_entity_id
-            WHERE entity_id = %(id)s
-            AND distance <= %(depth)s
-        """ % {'id': id, 'depth': depth}
+                SELECT de.entity_id AS id
+                    , parent.entity_definition_keyname AS definition
+                    , distance, r.relationship_definition_keyname AS access
+                FROM dag_entity de
+                LEFT JOIN entity parent
+                    ON parent.id = de.entity_id
+                LEFT JOIN relationship r
+                    ON r.entity_id = parent.id
+                    AND r.relationship_definition_keyname IN ('owner', 'expander', 'editor', 'viewer')
+                    AND r.related_entity_id = %(user)s
+                WHERE de.related_entity_id = %(id)s
+                AND distance <= %(depth)s
+            """ % {'id': id, 'depth': depth, 'user': self.__user_id}
 
         return self.db_query(sql)
 
 
     def get_childs(self, id=None, depth=1):
         """
-        Return array of child entity id's and definitions
+        Return array of child entity id's, definitions, distances, and access rights
         """
         if not id:
             return
 
+        if not self.__user_id:
+            return
+
         sql = """
-            SELECT de.related_entity_id AS id, child.entity_definition_keyname AS definition, distance
-            FROM dag_entity de
-            LEFT JOIN entity child ON child.id = de.related_entity_id
-            WHERE entity_id = %(id)s
-            AND distance <= %(depth)s
-        """ % {'id': id, 'depth': depth}
+                SELECT de.related_entity_id AS id
+                    , child.entity_definition_keyname AS definition
+                    , distance, r.relationship_definition_keyname AS access
+                FROM dag_entity de
+                LEFT JOIN entity child
+                    ON child.id = de.related_entity_id
+                LEFT JOIN relationship r
+                    ON r.entity_id = child.id
+                    AND r.relationship_definition_keyname IN ('owner', 'expander', 'editor', 'viewer')
+                    AND r.related_entity_id = %(user)s
+                WHERE de.entity_id = %(id)s
+                AND distance <= %(depth)s
+            """ % {'id': id, 'depth': depth, 'user': self.__user_id}
 
         return self.db_query(sql)
 
