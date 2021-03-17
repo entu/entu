@@ -810,6 +810,38 @@ class API2EntityRights(myRequestHandler, Entity2):
 
 
 
+class API2EntityRightsPropagate(myRequestHandler, Entity2):
+    def post(self, entity_id):
+        if not self.current_user:
+            return self.json({
+                'error': 'Forbidden!',
+                'time': round(self.request.request_time(), 3),
+            }, 403)
+
+        if not entity_id:
+            return self.json({
+                'error': 'No entity ID!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        related_entity_id = self.get_argument('entity', default=None, strip=True)
+        if not related_entity_id:
+            return self.json({
+                'error': 'Entity ID must be set!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
+        # Add function to recursively propagate current rights to entity's (width entity_id) childs for given person (related_entity_id)
+        # response = self.set_entity_right(entity_id=entity_id, related_entity_id=related_entity_id, right=right)
+
+        self.json({
+            'result': response,
+            'time': round(self.request.request_time(), 3),
+        })
+
+
+
+
 class API2EntityShare(myRequestHandler, Entity):
     def post(self, entity_id):
         if not self.current_user:
@@ -1244,6 +1276,7 @@ handlers = [
     (r'/api2/entity-(.*)/referrals', API2EntityReferrals),
     (r'/api2/entity-(.*)/picture', API2EntityPicture),
     (r'/api2/entity-(.*)/rights', API2EntityRights),
+    (r'/api2/entity-(.*)/rights/propagate', API2EntityRightsPropagate),
     (r'/api2/entity-(.*)/share', API2EntityShare),
     (r'/api2/entity-(.*)/parents', API2EntityParents),
     (r'/api2/entity-(.*)', API2Entity),
