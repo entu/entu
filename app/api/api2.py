@@ -288,8 +288,16 @@ class API2EntityChilds(myRequestHandler, Entity2):
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
+        try:
+            id = int(entity_id)
+        except Exception, e:
+            return self.json({
+                'error': 'Entity ID has to be a number!',
+                'time': round(self.request.request_time(), 3),
+            }, 400)
+
         db_result = self.get_entities_info(
-            parent_entity_id = entity_id,
+            parent_entity_id = id,
             definition = self.get_argument('definition', default=None, strip=True),
             query      = self.get_argument('query', default=None, strip=True),
             limit      = self.get_argument('limit', default=None, strip=True),
