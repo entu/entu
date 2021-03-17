@@ -818,7 +818,7 @@ class Entity2():
         return self.db_query(sql)
 
 
-    def get_parents(self, id=None):
+    def get_parents(self, id=None, depth=1):
         """
         Return array of parent entity id's
         """
@@ -826,16 +826,30 @@ class Entity2():
             return
 
         sql = """
-            SELECT ep.id AS id, ep.entity_definition_keyname AS definition
-            FROM relationship r
-            LEFT JOIN entity e ON e.id = r.related_entity_id
-            LEFT JOIN entity ep ON ep.id = r.entity_id
-            WHERE r.is_deleted = 0
-            AND e.is_deleted = 0
-            AND ep.is_deleted = 0
-            AND r.relationship_definition_keyname = 'child'
-            AND e.id = %(id)s
-        """ % {'id': id}
+            SELECT de.related_entity_id AS id, parent.entity_definition_keyname AS definition, distance
+            FROM dag_entity de
+            LEFT JOIN entity parent ON child.id = de.related_entity_id
+            WHERE entity_id = %(id)s
+            AND distance <= %(depth)s
+        """ % {'id': id, 'depth': depth}
+
+        return self.db_query(sql)
+
+
+    def get_childs(self, id=None, depth=1):
+        """
+        Return array of child entity id's and definitions
+        """
+        if not id:
+            return
+
+        sql = """
+            SELECT de.related_entity_id AS id, child.entity_definition_keyname AS definition, distance
+            FROM dag_entity de
+            LEFT JOIN entity child ON child.id = de.related_entity_id
+            WHERE entity_id = %(id)s
+            AND distance <= %(depth)s
+        """ % {'id': id, 'depth': depth}
 
         return self.db_query(sql)
 
