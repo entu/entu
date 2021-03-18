@@ -818,6 +818,86 @@ class Entity2():
         return self.db_query(sql)
 
 
+    def dag_create_edge(self, parent_entity_id, child_entity_id):
+        """
+        Join new parent-child and aggregate dependent distances
+        https://en.wikipedia.org/wiki/Directed_acyclic_graph
+        """
+        if not self.__user_id:
+            return
+        if not parent_entity_id:
+            return
+        if not child_entity_id:
+            return
+
+        # Explicitly set distance = 1 for parent-child
+        sql = """
+            INSERT INTO dag_entity (entity_id, distance, related_entity_id)
+            VALUES (%(parent)s, 1, %(child)s)
+            ON DUPLICATE KEY UPDATE distance = 1
+        """ % {'parent': parent_entity_id, 'child': child_entity_id}
+        self.db_query(sql)
+
+        # Set distances between (parents of parent, child)
+        # Set distances between (parent, childs of child)
+        # Set distances between (parents of parent, childs of child)
+        sql = """
+            INSERT IGNORE INTO dag_entity (entity_id, distance, related_entity_id)
+            SELECT * FROM
+            (
+                -- distances between (parents of parent, child)
+                SELECT pp.entity_id AS parents, pp.distance + 1 AS distance, dag.related_entity_id AS child
+                FROM dag_entity dag
+                LEFT JOIN dag_entity pp ON pp.related_entity_id = dag.entity_id
+                WHERE pp.related_entity_id IS NOT NULL
+                AND dag.entity_id = @parent AND dag.related_entity_id = @child
+
+                UNION ALL
+
+                -- distances between (parent, childs of child)
+                SELECT dag.entity_id AS parent, cc.distance + 1 AS distance, cc.related_entity_id AS childs
+                FROM dag_entity dag
+                LEFT JOIN dag_entity cc ON cc.entity_id = dag.related_entity_id
+                WHERE cc.entity_id IS NOT NULL
+                AND dag.entity_id = @parent AND dag.related_entity_id = @child
+
+                UNION ALL
+
+                -- distances between (parents of parent, childs of child)
+                SELECT pp.entity_id AS parents, pp.distance + 1 + cc.distance AS distance, cc.related_entity_id AS childs
+                FROM dag_entity dag
+                LEFT JOIN dag_entity pp ON pp.related_entity_id = dag.entity_id
+                LEFT JOIN dag_entity cc ON cc.entity_id = dag.related_entity_id
+                WHERE pp.related_entity_id IS NOT NULL AND cc.entity_id IS NOT NULL
+                AND dag.entity_id = @parent AND dag.related_entity_id = @child
+            ) newdag
+            ON DUPLICATE KEY UPDATE dag_entity.distance = least(dag_entity.distance, newdag.distance)
+        """ % {'parent': parent_entity_id, 'child': child_entity_id}
+        self.db_query(sql)
+
+
+    def dag_remove_edge(self, parent_entity_id, child_entity_id):
+        """
+        Remove parent-child relationship and remap the grapf
+        """
+        if not self.__user_id:
+            return
+        if not parent_entity_id:
+            return
+        if not child_entity_id:
+            return
+
+        # remove all involved edges
+        sql = """
+        """ % {'parent': parent_entity_id, 'child': child_entity_id}
+        self.db_query(sql)
+
+        # Remap and join affected parent and child nodes
+        sql = """
+        """ % {'parent': parent_entity_id, 'child': child_entity_id}
+        self.db_query(sql)
+
+
     def get_parents(self, id=None, depth=1):
         """
         Return array of parent entity id's
