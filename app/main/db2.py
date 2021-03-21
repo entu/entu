@@ -845,31 +845,31 @@ class Entity2():
             INSERT IGNORE INTO dag_entity (entity_id, distance, related_entity_id)
             SELECT * FROM
             (
-                -- distances between (parents of parent, child)
+            -- distances between (parents of parent, child)
                 SELECT pp.entity_id AS parents, pp.distance + 1 AS distance, dag.related_entity_id AS child
                 FROM dag_entity dag
                 LEFT JOIN dag_entity pp ON pp.related_entity_id = dag.entity_id
                 WHERE pp.related_entity_id IS NOT NULL
-                AND dag.entity_id = @parent AND dag.related_entity_id = @child
+                AND dag.entity_id = %(parent)s AND dag.related_entity_id = %(child)s
 
                 UNION ALL
 
-                -- distances between (parent, childs of child)
+            -- distances between (parent, childs of child)
                 SELECT dag.entity_id AS parent, cc.distance + 1 AS distance, cc.related_entity_id AS childs
                 FROM dag_entity dag
                 LEFT JOIN dag_entity cc ON cc.entity_id = dag.related_entity_id
                 WHERE cc.entity_id IS NOT NULL
-                AND dag.entity_id = @parent AND dag.related_entity_id = @child
+                AND dag.entity_id = %(parent)s AND dag.related_entity_id = %(child)s
 
                 UNION ALL
 
-                -- distances between (parents of parent, childs of child)
+            -- distances between (parents of parent, childs of child)
                 SELECT pp.entity_id AS parents, pp.distance + 1 + cc.distance AS distance, cc.related_entity_id AS childs
                 FROM dag_entity dag
                 LEFT JOIN dag_entity pp ON pp.related_entity_id = dag.entity_id
                 LEFT JOIN dag_entity cc ON cc.entity_id = dag.related_entity_id
                 WHERE pp.related_entity_id IS NOT NULL AND cc.entity_id IS NOT NULL
-                AND dag.entity_id = @parent AND dag.related_entity_id = @child
+                AND dag.entity_id = %(parent)s AND dag.related_entity_id = %(child)s
             ) newdag
             ON DUPLICATE KEY UPDATE dag_entity.distance = least(dag_entity.distance, newdag.distance)
         """ % {'parent': parent_entity_id, 'child': child_entity_id}
@@ -887,13 +887,68 @@ class Entity2():
         if not child_entity_id:
             return
 
-        # remove all involved edges
+        # DELETE parents of parent -x- childs of child
         sql = """
+            DELETE dag
+            FROM dag_entity pp
+            LEFT JOIN dag_entity cc
+                    ON cc.entity_id = _child
+            LEFT JOIN dag_entity dag
+                    ON dag.entity_id = pp.entity_id
+                    AND dag.related_entity_id = cc.related_entity_id
+            WHERE pp.related_entity_id = _parent
+                AND dag.distance > pp.distance + cc.distance
+        """ % {'parent': parent_entity_id, 'child': child_entity_id}
+        self.db_query(sql)
+
+        # DELETE parents of parent -x- child
+        sql = """
+            DELETE dag
+            FROM dag_entity pp
+            LEFT JOIN dag_entity dag
+                    ON dag.entity_id = pp.entity_id
+                    AND dag.related_entity_id = _child
+            WHERE pp.related_entity_id = _parent
+                AND dag.distance > pp.distance
+        """ % {'parent': parent_entity_id, 'child': child_entity_id}
+        self.db_query(sql)
+
+        # DELETE parent -x- childs of child
+        sql = """
+            DELETE dag
+            FROM dag_entity cc
+            LEFT JOIN dag_entity dag
+                    ON dag.related_entity_id = cc.related_entity_id
+                    AND dag.entity_id = _parent
+            WHERE cc.entity_id = _child
+                AND dag.distance > cc.distance
+        """ % {'parent': parent_entity_id, 'child': child_entity_id}
+        self.db_query(sql)
+
+        # DELETE parent -x- child
+        sql = """
+            DELETE
+            FROM dag_entity
+            WHERE entity_id = _parent
+                AND related_entity_id = _child
         """ % {'parent': parent_entity_id, 'child': child_entity_id}
         self.db_query(sql)
 
         # Remap and join affected parent and child nodes
+        #       parents of    parent -x- childs of child
+        #       with common    child -x- parent
         sql = """
+            INSERT IGNORE INTO dag_entity
+            SELECT ppc.entity_id, ppc.distance+ccp.distance, ccp.related_entity_id
+            FROM dag_entity pp
+            LEFT JOIN dag_entity cc
+                    ON cc.entity_id = @child
+            LEFT JOIN dag_entity ppc
+                    ON ppc.entity_id = pp.entity_id
+            LEFT JOIN dag_entity ccp
+                    ON ccp.related_entity_id = cc.related_entity_id
+            WHERE pp.related_entity_id = @parent
+                AND ppc.related_entity_id = ccp.entity_id
         """ % {'parent': parent_entity_id, 'child': child_entity_id}
         self.db_query(sql)
 
