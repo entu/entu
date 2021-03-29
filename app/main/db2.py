@@ -955,7 +955,6 @@ class Entity2():
 
     def get_parents(self, id=None, depth=1):
         """
-        Return array of parent entity id's
         Return array of parent entity id's, definitions, distances, and access rights
         """
         if not id:

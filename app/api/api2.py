@@ -1229,7 +1229,7 @@ class API2EntityParents(myRequestHandler, Entity2):
             id = int(entity_id)
         except Exception, e:
             return self.json({
-                'error': 'Id has to be a number!',
+                'error': 'Entity ID has to be a number!',
                 'time': round(self.request.request_time(), 3),
             }, 400)
 
