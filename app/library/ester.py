@@ -97,7 +97,7 @@ class EsterImport(myRequestHandler, Entity):
         entity_id = self.create_entity(entity_definition_keyname=definition, parent_entity_id=entity)
 
         for field, values in item.iteritems():
-            sql = 'SELECT keyname FROM property_definition WHERE dataproperty = \'%s\' COLLATE utf8_general_ci AND entity_definition_keyname = \'%s\' LIMIT 1;' % (field, definition)
+            sql = 'SELECT keyname FROM property_definition WHERE dataproperty = \'%s\' AND entity_definition_keyname = \'%s\' LIMIT 1;' % (field, definition)
 
             property_definition = self.db_get(sql)
             if not property_definition:
