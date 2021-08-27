@@ -310,6 +310,8 @@ class Maintenance():
             SET entity.search = x.search;
         """ % {'changed_entities': ','.join(map(str, self.changed_entities))})
 
+        self.echo('updated entities search', 2)
+
 
     def set_reference_properties(self):
         #generate numbers subselect
@@ -673,6 +675,7 @@ while True:
             m.set_formula_properties()
             m.set_reference_properties()
             m.set_sort()
+            m.set_search()
 
         else:
             m.echo('entities not changed', 1)
