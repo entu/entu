@@ -291,6 +291,26 @@ class Maintenance():
         self.echo('updated %s entities for sort' % i, 2)
 
 
+    def set_search(self):
+        self.db_execute("""
+            UPDATE entity
+            INNER JOIN (
+                SELECT
+                    p.entity_id,
+                    GROUP_CONCAT(p.value_display ORDER BY pd.ordinal SEPARATOR ' ') AS search
+                FROM
+                    property AS p,
+                    property_definition AS pd
+                WHERE pd.keyname = p.property_definition_keyname
+                AND p.is_deleted = 0
+                AND pd.search = 1
+                AND p.entity_id IN (%(changed_entities)s)
+                GROUP BY p.entity_id
+            ) AS x ON x.entity_id = entity.id AND entity.id IN (%(changed_entities)s)
+            SET entity.search = x.search;
+        """ % {'changed_entities': ','.join(map(str, self.changed_entities))})
+
+
     def set_reference_properties(self):
         #generate numbers subselect
         fields_count = self.db_get("""
