@@ -62,7 +62,7 @@ class MainPage(myRequestHandler):
         elif self.app_settings('path'):
             self.redirect(self.app_settings('path'))
         else:
-            logging.error('MainPage redirect failed for ' self.request.method + ' ' + self.request.host + self.request.uri)
+            logging.error('MainPage redirect failed for ' + self.request.method + ' ' + self.request.host + self.request.uri)
 
 class PageNotFound(myRequestHandler):
     """
