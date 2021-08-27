@@ -59,9 +59,10 @@ class MainPage(myRequestHandler):
     def get(self):
         if self.current_user and '{CURRENT_USER}' in self.app_settings('path'):
             self.redirect(self.app_settings('path').replace('{CURRENT_USER}', '%s' % self.current_user.get('id')))
-        else:
+        else if self.app_settings('path'):
             self.redirect(self.app_settings('path'))
-
+        else:
+            logging.error('MainPage redirect failed for ' self.request.method + ' ' + self.request.host + self.request.uri)
 
 class PageNotFound(myRequestHandler):
     """
