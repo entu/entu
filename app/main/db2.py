@@ -288,15 +288,10 @@ class Entity2():
         if query:
             if self.__user_id:
                 for q in StrToList(query):
-                    query_where += """
-                        AND e.search LIKE '%%%%%s%%%%'
-                        )
-                    """ % q
+                    query_where += "AND e.search LIKE '%%%s%%'" % q
             else:
                 for q in StrToList(query):
-                    query_where += """
-                        AND e.search LIKE '%%%%%s%%%%'
-                    """ % q
+                    query_where += "AND e.search LIKE '%%%s%%'" % q
 
         if self.__user_id:
             entity_sql = """
