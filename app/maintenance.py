@@ -301,7 +301,7 @@ class Maintenance():
             INNER JOIN (
                 SELECT
                     p.entity_id,
-                    GROUP_CONCAT(DISTINCT p.value_display ORDER BY pd.ordinal SEPARATOR ' ') AS search
+                    GROUP_CONCAT(DISTINCT p.value_display ORDER BY pd.ordinal SEPARATOR '\n') AS search
                 FROM
                     property AS p,
                     property_definition AS pd
@@ -320,7 +320,7 @@ class Maintenance():
             INNER JOIN (
                 SELECT
                     p.entity_id,
-                    GROUP_CONCAT(DISTINCT p.value_display ORDER BY pd.ordinal SEPARATOR ' ') AS search
+                    GROUP_CONCAT(DISTINCT p.value_display ORDER BY pd.ordinal SEPARATOR '\n') AS search
                 FROM
                     property AS p,
                     property_definition AS pd
