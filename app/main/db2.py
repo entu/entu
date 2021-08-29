@@ -727,7 +727,7 @@ class Entity2():
         Let the list be no longer than 'limit' different timestamps.
         """
 
-        definition_constraint = ' AND entity_definition_keyname = "%s"' % definition if definition else ''
+        definition_constraint = ' AND entity_definition_keyname = \'%s\'' % definition if definition else ''
         timestamp_constraint = ' HAVING timestamp > %s' % timestamp if timestamp else ''
         sort_direction = 'ASC' if timestamp else 'DESC'
 
