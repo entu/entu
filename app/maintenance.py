@@ -330,7 +330,7 @@ class Maintenance():
             SET entity.public_search = x.search;
         """ % {'changed_entities': ','.join(map(str, self.changed_entities))})
 
-        self.echo('updated %s entities for search' % len(changed_entities), 2)
+        self.echo('updated %s entities for search' % len(self.changed_entities), 2)
 
 
     def set_reference_properties(self):
