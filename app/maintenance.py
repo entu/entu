@@ -292,13 +292,16 @@ class Maintenance():
 
 
     def set_search(self):
+        #set group_concat_max_len
+        self.db_execute("SET SESSION group_concat_max_len = 10000;")
+
         #update search
         self.db_execute("""
             UPDATE entity
             INNER JOIN (
                 SELECT
                     p.entity_id,
-                    GROUP_CONCAT(p.value_display ORDER BY pd.ordinal SEPARATOR ' ') AS search
+                    GROUP_CONCAT(DISTINCT p.value_display ORDER BY pd.ordinal SEPARATOR ' ') AS search
                 FROM
                     property AS p,
                     property_definition AS pd
@@ -317,7 +320,7 @@ class Maintenance():
             INNER JOIN (
                 SELECT
                     p.entity_id,
-                    GROUP_CONCAT(p.value_display ORDER BY pd.ordinal SEPARATOR ' ') AS search
+                    GROUP_CONCAT(DISTINCT p.value_display ORDER BY pd.ordinal SEPARATOR ' ') AS search
                 FROM
                     property AS p,
                     property_definition AS pd
