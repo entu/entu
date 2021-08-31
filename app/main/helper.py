@@ -63,7 +63,7 @@ class myDatabase():
                     use_pure   = False,
                     autocommit = True
                 )
-            logging.error(settings.get('database-name') + ' mysql')
+            logging.error('MySQL - ' + settings.get('database-name'))
 
 
         return self.settings['databases'][host]
@@ -305,7 +305,7 @@ class myDatabase():
             x = self.settings['mongodbs'][database].server_info()
         except Exception, e:
             self.settings['mongodbs'][database] = MongoClient(self.settings['mongodb'], connect=True)
-            logging.error(database + ' mongodb')
+            logging.error('Mongo - ' + database)
         return self.settings['mongodbs'][database][database]
 
 
