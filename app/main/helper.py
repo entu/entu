@@ -285,7 +285,10 @@ class myDatabase():
                 self._app_settings[c.get('domain', '')] = c
 
         if not self._app_settings.get(host):
-            self.send_error(404)
+            try:
+                self.send_error(404)
+            except Exception, e:
+                pass
             return
 
         return self._app_settings.get(host, {})
