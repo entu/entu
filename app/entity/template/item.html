@@ -84,7 +84,7 @@
                                 {%if p.get('label') %}{{ p.get('label') }}{% else %}{{ p.get('dataproperty') }}{% end %}
                             {% end %}
                         </th>
-                        <td style="width:100%;{%if not p['public'] %} color:gray;{% end %}{%if p['mandatory'] and not p.get('values') %} background-color:#fff5f5;{% end %}">
+                        <td style="width:100%;{%if not p['public'] %} color:gray;{% end %}{%if p['mandatory'] and not p.get('values') %} background-color:#fff5f5;{% end %}" class="value-datatype-{{ p['datatype'] }}"=>
                             {% if p['datatype'] == 'file' %}
                                 <!-- <p>Meta: {{ p }}</p> -->
                                 {{ '<br />'.join(['<a id="fileLink%s" href="/api2/file-%s" target="_blank">%s</a> <i style="white-space: nowrap;color:gray;">%s</i>' % (v.get('db_value'), v.get('db_value'), v.get('value'), v.get('human_filesize')) for v in p.get('values', []) if v]) }}
@@ -345,5 +345,6 @@
             });
         });
 
+        $('.value-datatype-text a').attr('target', '_blank');
     });
 </script>
