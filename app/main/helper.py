@@ -63,7 +63,7 @@ class myDatabase():
                     use_pure   = False,
                     autocommit = True
                 )
-            logging.error(self.settings['databases'][host]['database'] + ' mysql')
+            logging.error(settings.get('database-name') + ' mysql')
 
 
         return self.settings['databases'][host]
