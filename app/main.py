@@ -68,7 +68,12 @@ class PageNotFound(myRequestHandler):
     """
     """
     def get(self, page=None):
-        self.missing()
+        logging.error('404 - ' + self.request.method + ' ' + self.request.host + self.request.uri)
+
+        try:
+            self.missing()
+        except Exception, e:
+            pass
 
 
 class myApplication(tornado.web.Application):
