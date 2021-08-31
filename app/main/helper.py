@@ -40,8 +40,6 @@ class myDatabase():
         try:
             x = self.settings['databases'][host].ping(reconnect=False, attempts=1, delay=0)
         except Exception, err:
-            logging.error(err)
-
             settings = self.get_app_settings(host)
             if settings.get('database-ssl-ca'):
                 self.settings['databases'][host] = mysql.connector.connect(
@@ -65,6 +63,8 @@ class myDatabase():
                     use_pure   = False,
                     autocommit = True
                 )
+            logging.error(self.settings['databases'][host]['database'] + ' mysql')
+
 
         return self.settings['databases'][host]
 
@@ -304,9 +304,8 @@ class myDatabase():
         try:
             x = self.settings['mongodbs'][database].server_info()
         except Exception, e:
-            logging.error(e)
             self.settings['mongodbs'][database] = MongoClient(self.settings['mongodb'], connect=True)
-            logging.error(database + ' mongo')
+            logging.error(database + ' mongodb')
         return self.settings['mongodbs'][database][database]
 
 
