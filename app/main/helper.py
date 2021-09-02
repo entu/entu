@@ -406,7 +406,7 @@ class myUser(myE):
             """, user['id'], user['id'])
 
             if person_name.get('forename') or person_name.get('surname'):
-                user['name'] = person_name.get('forename') + (' ' + person_name.get('surname') if person_name.get('surname') else '')
+                user['name'] = (person_name.get('forename') if person_name.get('forename') else '') + (' ' + person_name.get('surname') if person_name.get('surname') else '')
 
         else:
             if self.app_settings('user-parent'):
