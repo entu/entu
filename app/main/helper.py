@@ -410,7 +410,7 @@ class myUser(myE):
 
         else:
             if self.app_settings('user-parent'):
-                if not self.db_get('SELECT entity.id FROM entity, property WHERE property.entity_id = entity.id AND entity.is_deleted = 0 AND property.is_deleted = 0 AND property.property_definition_keyname = "person-entu-user" and property.value_string = %s LIMIT 1', user_id):
+                if not self.db_get('SELECT entity.id FROM entity, property WHERE property.entity_id = entity.id AND entity.is_deleted = 0 AND property.is_deleted = 0 AND property.property_definition_keyname = \'person-entu-user\' and property.value_string = %s LIMIT 1', user_id):
                     new_person_id = self.create_entity(entity_definition_keyname='person', parent_entity_id=self.app_settings('user-parent'), ignore_user=True)
                     self.set_property(entity_id=new_person_id, property_definition_keyname='person-entu-user', value=user_id, ignore_user=True)
                     if user['email']:
