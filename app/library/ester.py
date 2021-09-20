@@ -77,20 +77,24 @@ class EsterImport(myRequestHandler, Entity):
         if not ester_id or not entity or not definition:
             return
 
-        http_client = httpclient.AsyncHTTPClient()
-        ester_request = yield http_client.fetch(httpclient.HTTPRequest(
-            url='https://ester.entu.eu/?q=%s&f=human' % ester_id,
-            method='GET',
-            request_timeout=60
-        ))
-
+        ester_url = 'https://ester.entu.eu/?q=%s&f=human' % ester_id
         try:
+            http_client = httpclient.AsyncHTTPClient()
+            ester_request = yield http_client.fetch(httpclient.HTTPRequest(
+                url=ester_url,
+                method='GET',
+                request_timeout=60
+            ))
+
             ester = json.loads(ester_request.body)
         except Exception:
+            logging.error('Ester error: ' + ester_url)
+
             self.json({
                 'error': 'Ester proxy failed!',
                 'time': round(self.request.request_time(), 3),
             }, 500)
+
             return
 
         item = ester[0]
