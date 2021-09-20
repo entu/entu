@@ -681,10 +681,13 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
         Show 404 (page not found) error to user.
 
         """
-        self.set_status(404)
-        self.render('main/template/404.html',
-            page_title = '404'
-        )
+        try:
+            self.set_status(404)
+            self.render('main/template/404.html',
+                page_title = '404'
+            )
+        except Exception:
+            pass
 
     def mail_send(self, to, subject='', message='', html=False, campaign=None, tag=None):
         """

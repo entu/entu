@@ -64,6 +64,7 @@ class MainPage(myRequestHandler):
         else:
             logging.error('MainPage redirect failed for ' + self.request.method + ' ' + self.request.host + self.request.uri)
 
+
 class PageNotFound(myRequestHandler):
     """
     """
@@ -72,7 +73,7 @@ class PageNotFound(myRequestHandler):
 
         try:
             self.missing()
-        except Exception, e:
+        except Exception:
             pass
 
 
