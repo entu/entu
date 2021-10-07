@@ -126,7 +126,6 @@ class myApplication(tornado.web.Application):
         logging.warning('Tornado %s started to listen %s' % (APP_VERSION, APP_PORT))
 
         # init application
-        # logging.debug('App settings:\n%s' % yaml.safe_dump(settings, default_flow_style=False, allow_unicode=True))
         tornado.web.Application.__init__(self, handlers, **settings)
 
 
