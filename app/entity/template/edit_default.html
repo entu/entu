@@ -37,8 +37,6 @@
                                     <div id="new-filenames-{{ p['keyname'] }}" style="padding:0px;"></div>
                                     <div class="edit" style="height:23px;">
                                         <input type="file" title="{{ _('add_files_computer') }}" class="dtype-{{ p['datatype'] }}" data-property_definition_keyname="{{ p['keyname'] }}" multiple>
-                                        <div class="google-open btn btn-small pull-right" data-property_definition_keyname="{{ p['keyname'] }}">{{ _('add_files_google') }}</div>
-                                        <div class="dropbox-open btn btn-small pull-right" data-property_definition_keyname="{{ p['keyname'] }}" style="margin-right:10px;">{{ _('add_files_dropbox') }}</div>
                                         <div class="url-open btn btn-small pull-right" data-property_definition_keyname="{{ p['keyname'] }}" style="margin-right:10px;">{{ _('add_files_url') }}</div>
                                     </div>
                                 {% else %}
@@ -413,84 +411,6 @@
                 $('.delete-reference').hide();
             }
         );
-
-        $('.dropbox-open').on('click', function() {
-            var input = $(this);
-            Dropbox.choose({
-                linkType: 'direct',
-                multiselect: true,
-                success: function(files) {
-                    var links = [];
-                    for(i in files) {
-                        links.push({
-                            url: files[i].link,
-                            filename: files[i].name,
-                            download: true
-                        });
-                    }
-                    uploadFromLink(input, links, true);
-                }
-            });
-        });
-
-        {% if google_auth_api_id %}
-
-        $('.google-open').on('click', function() {
-            var input = $(this);
-
-            var DEVELOPER_KEY = '{{ google_auth_api_id }}';
-            var CLIENT_ID = '{{ google_auth_client_id }}';
-            var SCOPE = ['https://www.googleapis.com/auth/drive.readonly', 'https://www.googleapis.com/auth/photos', 'https://www.googleapis.com/auth/photos.upload', 'https://www.googleapis.com/auth/youtube'];
-            var OAUTH_TOKEN;
-
-            gapi.load('auth', {'callback': function() {
-                window.gapi.auth.authorize({
-                    'client_id': CLIENT_ID,
-                    'scope': SCOPE,
-                    'immediate': false
-                }, function(authResult) {
-                    OAUTH_TOKEN = authResult.access_token;
-                    if(OAUTH_TOKEN) {
-                        gapi.load('picker', {'callback': function() {
-                            var picker = new google.picker.PickerBuilder()
-                                .setDeveloperKey(DEVELOPER_KEY)
-                                .setOAuthToken(OAUTH_TOKEN)
-                                .addView(google.picker.ViewId.DOCS)
-                                .addView(google.picker.ViewId.PHOTOS)
-                                .addView(google.picker.ViewId.YOUTUBE)
-                                .addView(google.picker.ViewId.WEBCAM)
-                                .addView(google.picker.ViewId.RECENTLY_PICKED)
-                                .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
-                                .setCallback(function(data) {
-                                    if (data[google.picker.Response.ACTION] == google.picker.Action.PICKED) {
-                                        var files = data[google.picker.Response.DOCUMENTS];
-                                        var links = [];
-                                        for(i in files) {
-                                            links.push({
-                                                url: files[i][google.picker.Document.URL],
-                                                filename: files[i][google.picker.Document.NAME],
-                                                download: false
-                                            });
-                                        }
-                                        uploadFromLink(input, links, false);
-                                    }
-                                })
-                                .build();
-                            picker.setVisible(true);
-                            $('iframe.picker').css('z-index', '7777');
-                            $('div.picker-dialog-bg').css('z-index', '8888');
-                            $('div.picker-dialog').css('z-index', '9999');
-                        }});
-                    }
-                });
-            }});
-
-        });
-
-        {% else %}
-        $('.google-open').hide();
-        {% end %}
-
 
         $('.url-open').on('click', function() {
             var input = $(this);

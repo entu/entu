@@ -49,8 +49,6 @@ boolean_true,Yes
 boolean_false,No
 
 add_files_computer,Add from Computer
-add_files_dropbox,Add from Dropbox
-add_files_google,Link to Google Drive
 add_files_url,Add from URL
 add_files_url_prompt,Enter URL
 
