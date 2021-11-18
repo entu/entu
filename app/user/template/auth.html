@@ -53,26 +53,26 @@
                 </tr>
                 <tr>
                     <td style="padding:0px; vertical-align:middle; width:100px;">
-                        <a class="no-underline" href="{{ idcard }}" style="padding:7px 5px; display:block; text-align:right;"><i class="fa fa-id-card-o" style="font-size:18px; line-height:24px; color:#3D89F7;"></i></a>
+                        <a class="no-underline auth-link" data-provider="ID-Card" href="{{ idcard }}" style="padding:7px 5px; display:block; text-align:right;"><i class="fa fa-id-card-o" style="font-size:18px; line-height:24px; color:#3D89F7;"></i></a>
                     </td>
                     <td style="padding:0px; vertical-align:middle; border-left:none;">
-                        <a class="no-underline" href="{{ idcard }}" style="padding:7px 5px; display:block; color:black; font-weight:bold;">{{ _('log_in_idcard') }}</a>
+                        <a class="no-underline auth-link" data-provider="ID-Card" href="{{ idcard }}" style="padding:7px 5px; display:block; color:black; font-weight:bold;">{{ _('log_in_idcard') }}</a>
                     </td>
                 </tr>
                 <tr>
                     <td style="padding:0px; vertical-align:middle; width:100px;">
-                        <a class="no-underline" href="{{ google }}" style="padding:7px 5px; display:block; text-align:right;"><i class="fa fa-google-plus-square" style="font-size:24px; line-height:24px; color:#DC2400;"></i></a>
+                        <a class="no-underline auth-link" data-provider="Google" href="{{ google }}" style="padding:7px 5px; display:block; text-align:right;"><i class="fa fa-google-plus-square" style="font-size:24px; line-height:24px; color:#DC2400;"></i></a>
                     </td>
                     <td style="padding:0px; vertical-align:middle; border-left:none;">
-                        <a class="no-underline" href="{{ google }}" style="padding:7px 5px; display:block; color:black; font-weight:bold;">Google</a>
+                        <a class="no-underline auth-link" data-provider="Google" href="{{ google }}" style="padding:7px 5px; display:block; color:black; font-weight:bold;">Google</a>
                     </td>
                 </tr>
                 <tr>
                     <td style="padding:0px; vertical-align:middle; width:100px;">
-                        <a class="no-underline" href="{{ taat }}" style="padding:7px 3px; display:block; text-align:right;"><i class="fa fa-university" style="font-size:19px; line-height:19px; color:#369a21;"></i></a>
+                        <a class="no-underline auth-link" data-provider="Taat" href="{{ taat }}" style="padding:7px 3px; display:block; text-align:right;"><i class="fa fa-university" style="font-size:19px; line-height:19px; color:#369a21;"></i></a>
                     </td>
                     <td style="padding:0px; vertical-align:middle; border-left:none;">
-                        <a class="no-underline" href="{{ taat }}" style="padding:7px 5px; display:block; color:black; font-weight:bold;">TAAT</a>
+                        <a class="no-underline auth-link" data-provider="Taat" href="{{ taat }}" style="padding:7px 5px; display:block; color:black; font-weight:bold;">TAAT</a>
                     </td>
                 </tr>
             </table>
@@ -84,6 +84,10 @@
     <script>
         $(document).ready(function(){
             $('#content-wrap .content').css('min-height', $(document).height() - 255 + 'px');
+
+            $('.auth-link').on('click', function() {
+                plausible('Authentication', { props: { provider: $(this).data('provider') } })
+            });
 
             $('.mobileid').on('click', function() {
                 $('#mobileid-input').toggle();
@@ -115,6 +119,8 @@
                 }
 
                 if($('#mobileid-idcode').val() && $('#mobileid-phone').val() && !mobile_id_inprogress) {
+                    plausible('Authentication', { props: { provider: 'Mobile-ID' } })
+
                     mobile_id_inprogress = true;
                     $.ajax({
                         url: '{{ mobileid }}',
