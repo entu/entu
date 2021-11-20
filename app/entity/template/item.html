@@ -180,6 +180,8 @@
 
         document.title = "{{ page_title.replace('\"', '\\\"') }}";
 
+        plausible('Customer', { props: { id: '{{ app_organisation_id }}', organisation: '{{ app_organisation }}' } })
+
         {% if intercom_key %}
             window.Intercom('update');
         {% end %}
