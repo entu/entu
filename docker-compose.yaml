@@ -1,44 +1,75 @@
-version: "3"
+version: '3'
 services:
     entu:
-        build:
-            context: https://github.com/entu/entu.git
-        container_name: entu
-        command: python -u /usr/src/entu/app/main.py --logging=error
+        build: .
+        working_dir: /entu
+        command: python -u app/main.py --logging=error
         restart: always
+        ports:
+            - 8080:80
         environment:
             PORT: 80
             DEBUG: false
             AUTH_URL: https://auth.entu.ee/auth
-            UPLOADS_PATH: /entu/uploads/
-            FILES_PATH: /entu
-            MYSQL_HOST:
-            MYSQL_PORT:
-            MYSQL_DATABASE:
-            MYSQL_USER:
-            MYSQL_PASSWORD:
+            UPLOADS_PATH: /entu_files/uploads/
+            FILES_PATH: /entu_files
+            MYSQL_HOST: mysql
+            MYSQL_DATABASE: entu
+            MYSQL_USER: entu_user
+            MYSQL_PASSWORD: entu_pass
             MONGODB:
             CUSTOMERGROUP:
             INTERCOM_KEY:
+        depends_on:
+            - files
+            - mysql
+            - mongo
         volumes:
-            - /data/entu/files:/entu/files
-            - /data/entu/thumbs:/entu/thumbs
-            - /data/entu/uploads:/entu/uploads
-            - /data/rds-combined-ca-bundle.pem:/entu/ssl/rds-combined-ca-bundle.pem:ro
+            - .:/entu
+            - files:/entu_files
 
     maintenance:
-        build:
-            context: https://github.com/entu/entu.git
-        container_name: maintenance
-        command: python -u /usr/src/entu/app/maintenance.py
+        build: .
+        working_dir: /entu
+        command: python -u app/maintenance.py
         restart: always
         environment:
-            MYSQL_HOST:
-            MYSQL_PORT:
-            MYSQL_DATABASE:
-            MYSQL_USER:
-            MYSQL_PASSWORD:
+            MYSQL_HOST: mysql
+            MYSQL_DATABASE: entu
+            MYSQL_USER: entu_user
+            MYSQL_PASSWORD: entu_pass
             CUSTOMERGROUP:
             VERBOSE: 1
+        depends_on:
+            - mysql
         volumes:
-            - /data/rds-combined-ca-bundle.pem:/entu/ssl/rds-combined-ca-bundle.pem:ro
+            - .:/entu
+
+    mysql:
+        image: mysql:8.0
+        restart: always
+        ports:
+            - 4002:3306
+        environment:
+            MYSQL_DATABASE: entu
+            MYSQL_USER: entu_user
+            MYSQL_PASSWORD: entu_pass
+            MYSQL_RANDOM_ROOT_PASSWORD: '1'
+        volumes:
+            - mysql:/var/lib/mysql
+
+    mongo:
+        image: mongo:4.4
+        restart: always
+        ports:
+            - 27017:27017
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: entu_user
+            MONGO_INITDB_ROOT_PASSWORD: entu_pass
+        volumes:
+            - mongo:/data/db
+
+volumes:
+    files:
+    mysql:
+    mongo:
