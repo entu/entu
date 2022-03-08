@@ -182,10 +182,6 @@
 
         plausible('Customer', { props: { id: '{{ app_organisation_id }}', organisation: '{{ app_organisation }}' } })
 
-        {% if intercom_key %}
-            window.Intercom('update');
-        {% end %}
-
         if(typeof _gaq != 'undefined') {
             _gaq.push(['_trackPageview', '/entity-'+id]);
         }

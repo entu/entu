@@ -19,7 +19,6 @@ services:
             MYSQL_PASSWORD: entu_pass
             MONGODB:
             CUSTOMERGROUP:
-            INTERCOM_KEY:
         depends_on:
             - files
             - mysql

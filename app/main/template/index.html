@@ -66,40 +66,6 @@
         <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
         <script>plausible('Customer', { props: { id: '{{ app_organisation_id }}', organisation: '{{ app_organisation }}' } })</script>
 
-        <!-- Intercom -->
-        {% if intercom_key %}
-            <script>
-                {% if current_user %}
-                    window.intercomSettings = {
-                        app_id: "{{ intercom_key }}",
-                        user_id: "{{ current_user.get('email') }}",
-                        name: "{{ current_user.get('name') }}",
-                        email: "{{ current_user.get('email') }}",
-                        // created_at: "{{ current_user.get('created_at') }}",
-                        // customer: "{{ app_organisation }}",
-                        company: {
-                            id: "{{ app_organisation_id }}",
-                            name: "{{ app_organisation }}"
-                            // created_at: 1234567890,
-                            // (optional): Insert name of the plan current company is on
-                            // plan: 'pro',
-                            // (optional): Insert amount current company spends a month
-                            // monthly_spend: 10,
-                            // (optional): Add any custom attributes, e.g.,
-                            // upgraded_at: "{{ current_user.get('created_at') }}"
-                        }
-                    };
-                {% else %}
-                    window.intercomSettings = {
-                        app_id: "{{ intercom_key }}"
-                    };
-                {% end %}
-            </script>
-            <script>
-                (function(){var w=window;var ic=w.Intercom;if(typeof ic==="function"){ic('reattach_activator');ic('update',intercomSettings);}else{var d=document;var i=function(){i.c(arguments)};i.q=[];i.c=function(args){i.q.push(args)};w.Intercom=i;function l(){var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://widget.intercom.io/widget/{{ intercom_key }}';var x=d.getElementsByTagName('script')[0];x.parentNode.insertBefore(s,x);}if(w.attachEvent){w.attachEvent('onload',l);}else{w.addEventListener('load',l,false);}}})()
-            </script>
-        {% end %}
-
         {% block head %}{% end %}
     </head>
     <body>
