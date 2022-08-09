@@ -197,8 +197,8 @@ class myDatabase():
         if not host:
             host = self.request.host
 
-        if host == 'entu.ee':
-            self.redirect('https://www.entu.ee')
+        if host == 'entu.ee' or host == 'www.entu.ee':
+            self.redirect('https://www.entu.app')
             return
 
         if not self._app_settings:
