@@ -1201,6 +1201,7 @@ class Entity():
             for d in self.get_definition(entity_definition_keyname=value['definition_keyname']):
                 if not value.get('id', None):
                     items[key]['displayname'] = d['entity_label']
+                    items[key]['description'] = d['entity_description']
                 items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['keyname'] = d['property_keyname']
                 items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['fieldset'] = d['property_fieldset']
                 items[key].setdefault('properties', {}).setdefault('%s' % d['property_dataproperty'], {})['label'] = d['property_label']
