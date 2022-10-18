@@ -143,11 +143,11 @@
                 collapsible: true,
                 heightStyle: 'fill'
             });
-            $('#menu').find("a[href='"+window.location.pathname+"']").each(function(){
+            $('#menu').find("a[href='" + window.location.pathname.split('/').splice(0, 3).join('/') + "']").each(function(){
                 $(this).addClass('active')
             });
 
-            $('.accordion').accordion('option', 'active', $('#menu').find("a[href='"+window.location.pathname+"']").parent('div').data('idx'))
+            $('.accordion').accordion('option', 'active', $('#menu').find("a[href='" + window.location.pathname.split('/').splice(0, 3).join('/') + "']").parent('div').data('idx') || 0);
 
             $(window).on('resize', function(){
                 $('#menu_accordion').accordion('refresh');
