@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from pymongo import MongoClient
-from SimpleAES import SimpleAES
 from tornado import httpclient
 from tornado import locale
 from tornado import web
@@ -12,12 +11,11 @@ import hashlib
 import hmac
 import json
 import logging
+import mysql.connector
 import random
 import re
-import os
 import string
 import time
-import mysql.connector
 import urllib
 
 

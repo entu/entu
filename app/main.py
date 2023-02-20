@@ -6,11 +6,12 @@ import tornado.web
 import tornado.httpserver
 import tornado.options
 
-import os
-import yaml
+import hashlib
 import logging
+import os
+import random
 import string
-import datetime, time
+import time
 
 
 from main.helper import *
@@ -90,6 +91,7 @@ class myApplication(tornado.web.Application):
             'template_path':        path.join(path.dirname(__file__), '..', 'app'),
             'static_path':          path.join(path.dirname(__file__), '..', 'static'),
             'xsrf_coocies':         True,
+            'cookie_secret':        str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest()),
             'login_url':            '/auth',
             'auth_url':             APP_AUTH_URL,
             'auth_id':              APP_AUTH_ID,
