@@ -104,11 +104,10 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
 
     @web.asynchronous
     def _got_token(self, response):
-        access_token = response.body
-        logging.warning('access_token: %s' % access_token)
+        logging.warning('response: %s' % response)
 
         try:
-            access_token = json.loads(access_token)
+            access_token = json.loads(response.body)
             if 'error' in access_token:
                 logging.error('Auth error: %s' % access_token['error'])
                 return self.redirect(get_redirect(self))
@@ -125,6 +124,8 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
 
     @web.asynchronous
     def _got_user(self, response):
+        logging.warning('response: %s' % response)
+
         try:
             user = json.loads(response.body)
             if 'error' in user:
