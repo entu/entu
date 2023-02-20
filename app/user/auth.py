@@ -68,27 +68,20 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
         set_redirect(self)
 
         self.oauth2_provider = {
-            'provider':     'oauth',
             'id':           self.settings['auth_id'],
             'secret':       self.settings['auth_secret'],
-            'auth_url':     'https://oauth.ee/auth?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s&response_type=code',
+            'auth_url':     'https://oauth.ee/auth?client_id=%(id)s&redirect_uri=%(redirect)s&scope=openid&state=%(state)s&response_type=code',
             'token_url':    'https://oauth.ee/token',
             'info_url':     'https://oauth.ee/user',
-            'scope':        'openid',
-            'user_id':      '%(id)s',
-            'user_email':   '%(email)s',
-            'user_name':    '%(name)s'
+            'scope':        'openid'
         }
 
         self._OAUTH_AUTHORIZE_URL = self.oauth2_provider['auth_url']
 
-        url = self.request.protocol + '://' + self.request.host + '/auth/' + self.oauth2_provider['provider']
-
         if not self.get_argument('code', None):
             return self.redirect(self.oauth2_provider['auth_url'] % {
                 'id':       self.oauth2_provider['id'],
-                'redirect': url,
-                'scope':    self.oauth2_provider['scope'],
+                'redirect': self.request.protocol + '://' + self.request.host + '/auth/oauth',
                 'state':    ''.join(random.choice(string.ascii_letters + string.digits) for x in range(16)),
             })
 
@@ -111,6 +104,7 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
     @web.asynchronous
     def _got_token(self, response):
         access_token = response.body
+        logging.warning('access_token: %s' % access_token)
         try:
             access_token = json.loads(access_token)
             if 'error' in access_token:
@@ -118,15 +112,8 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 return self.redirect(get_redirect(self))
             access_token = access_token['access_token']
         except:
-            try:
-                access_token = urlparse.parse_qs(access_token)
-                if 'error' in access_token:
-                    logging.error('Auth error: %s' % access_token['error'])
-                    return self.redirect(get_redirect(self))
-                access_token = access_token['access_token'][0]
-            except:
-                logging.error('Auth error')
-                return self.redirect(get_redirect(self))
+            logging.error('Auth error')
+            return self.redirect(get_redirect(self))
 
         httpclient.AsyncHTTPClient().fetch(self.oauth2_provider['info_url'],
             headers = {'Authorization': 'Bearer %s' % access_token},
