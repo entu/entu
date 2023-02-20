@@ -423,7 +423,7 @@ class EntityRights(myRequestHandler, Entity):
         self.render('entity/template/rights.html',
             entity_id = entity_id,
             sharing = entity.get('sharing'),
-            sharing_link = '%s://%s/shared/%s/%s' % (self.request.protocol, self.request.host, entity_id, entity.get('sharing_key')) if entity.get('sharing_key') else None,
+            sharing_link = 'https://%s/shared/%s/%s' % (self.request.host, entity_id, entity.get('sharing_key')) if entity.get('sharing_key') else None,
             rights = sorted(rights, key=itemgetter('name')),
         )
 
@@ -439,7 +439,7 @@ class EntityRights(myRequestHandler, Entity):
 
         elif entity_id and self.get_argument('generate_link', None):
             sharing_key = self.set_sharing_key(entity_id=entity_id, generate=True)
-            self.write('%s://%s/shared/%s/%s' % (self.request.protocol, self.request.host, entity_id, sharing_key))
+            self.write('https://%s/shared/%s/%s' % (self.request.host, entity_id, sharing_key))
 
         elif entity_id and self.get_argument('delete_link', None):
             self.set_sharing_key(entity_id=entity_id, generate=False)

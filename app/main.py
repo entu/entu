@@ -22,7 +22,6 @@ from main.db import *
 APP_VERSION        = os.getenv('VERSION', tornado.version)
 APP_DEBUG          = str(os.getenv('DEBUG', 'false')).lower() == 'true'
 APP_PORT           = os.getenv('PORT', 80)
-APP_COOKIE_DOMAIN  = os.getenv('COOKIE_DOMAIN', '.entu.ee')
 APP_AUTH_URL       = os.getenv('AUTH_URL', '/auth')
 APP_AUTH_ID        = os.getenv('AUTH_ID')
 APP_AUTH_SECRET    = os.getenv('AUTH_SECRET')
@@ -95,7 +94,6 @@ class myApplication(tornado.web.Application):
             'auth_url':             APP_AUTH_URL,
             'auth_id':              APP_AUTH_ID,
             'auth_secret':          APP_AUTH_SECRET,
-            'cookie_domain':        APP_COOKIE_DOMAIN,
             'start_time':           time.time(),
             'request_count':        0,
             'request_time':         0,
