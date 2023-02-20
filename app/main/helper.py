@@ -328,6 +328,8 @@ class myUser(myE):
 
         logging.warning(session_key)
         logging.warning(redirect_url)
+        logging.warning(remote_ip)
+        logging.warning(browser)
 
         self.db_execute('INSERT INTO session SET key = %s, email = %s, ip = %s, browser = %s, created = NOW();',
             # insert
