@@ -326,10 +326,30 @@ class myUser(myE):
         """
         session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
 
-        self.db_execute('INSERT INTO session SET session_key = %s, email = %s, ip = %s, browser = %s, redirect_url = %s, created = NOW();',
+        self.db_execute("""
+            INSERT INTO session SET
+                session_key = %s,
+                email = %s,
+                ip = %s,
+                browser = %s,
+                redirect_url = %s,
+                created = NOW()
+            ON DUPLICATE KEY UPDATE
+                session_key = %s,
+                ip = %s,
+                browser = %s,
+                redirect_url = %s,
+                login_count = login_count + 1,
+                changed = NOW();
+        """,
             # insert
             session_key,
             email,
+            ip,
+            browser,
+            redirect_url,
+            # update
+            session_key,
             ip,
             browser,
             redirect_url
