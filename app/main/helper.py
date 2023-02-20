@@ -334,6 +334,9 @@ class myUser(myE):
             self.request.headers.get('User-Agent', None)
         )
 
+        logging.warning(session_key)
+        logging.warning(redirect_url)
+
         return {'session_key': session_key, 'redirect_url': redirect_url}
 
 
