@@ -153,15 +153,6 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
         self.redirect(session_dict.redirect_url)
 
 
-class AuthRedirect(myRequestHandler):
-    """
-    Redirect.
-
-    """
-    def get(self):
-        self.user_login_redirect(profile_id=self.get_argument('user', None, True), redirect_key=self.get_argument('key', None, True))
-
-
 def set_redirect(rh):
     """
     Saves requested URL to cookie, then (after authentication) we know where to go.
@@ -184,7 +175,6 @@ def get_redirect(rh):
 
 handlers = [
     ('/auth', ShowAuthPage),
-    ('/auth/redirect', AuthRedirect),
     ('/auth/oauth', AuthOAuth2),
     ('/exit', Exit),
 ]

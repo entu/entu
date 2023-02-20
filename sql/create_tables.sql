@@ -302,19 +302,12 @@ CREATE TABLE `translation` (
 -- Create syntax for TABLE 'session'
 CREATE TABLE `session` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `provider` varchar(20) COLLATE utf8_estonian_ci DEFAULT NULL,
-  `provider_id` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
-  `name` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `key` varchar(32) COLLATE utf8_estonian_ci DEFAULT NULL,
   `email` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
-  `picture` varchar(1000) COLLATE utf8_estonian_ci DEFAULT NULL,
-  `language` varchar(10) COLLATE utf8_estonian_ci DEFAULT NULL,
-  `hide_menu` tinyint(1) NOT NULL DEFAULT '0',
-  `session` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
-  `access_token` varchar(1000) COLLATE utf8_estonian_ci DEFAULT NULL,
   `login_count` int(11) NOT NULL DEFAULT '0',
   `created` datetime DEFAULT NULL,
   `changed` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `provider` (`provider`,`provider_id`),
-  KEY `session` (`session`)
+  UNIQUE KEY `email` (`email`),
+  KEY `key` (`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;

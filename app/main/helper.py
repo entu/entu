@@ -324,35 +324,17 @@ class myUser(myE):
         Starts session. Creates new (or updates old) user.
 
         """
-        redirect_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
         session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
 
-        self.db_execute_lastrowid('INSERT INTO session SET email = %s, ip = %s, browser = %s, session_key = %s, redirect_url = %s, redirect_key = %s, created = NOW();',
+        self.db_execute_lastrowid('INSERT INTO session SET key = %s, email = %s, ip = %s, browser = %s, created = NOW();',
             # insert
+            session_key,
             email,
             self.request.remote_ip,
-            self.request.headers.get('User-Agent', None),
-            session_key,
-            redirect_url,
-            redirect_key
+            self.request.headers.get('User-Agent', None)
         )
 
         return {'session_key': session_key, 'redirect_url': redirect_url}
-
-
-    def user_login_redirect(self, session_id=None, redirect_key=None):
-        if not redirect_key or not session_id:
-            return self.redirect('/')
-
-        user = self.db_get('SELECT session_key, redirect_url FROM session WHERE id = %s AND redirect_key = %s LIMIT 1;', session_id, redirect_key)
-        if not user:
-            return self.redirect('/')
-
-        self.db_execute('UPDATE session SET redirect_url = NULL, redirect_key = NULL WHERE id = %s AND redirect_key = %s;', session_id, redirect_key)
-
-        self.clear_cookie('session')
-        self.set_cookie(name='session', value=user.session_key, expires_days=14)
-        self.redirect(user.redirect_url)
 
 
     def get_user_by_session_key(self, session_key):
