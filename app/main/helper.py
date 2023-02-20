@@ -319,7 +319,7 @@ class myUser(myE):
     __signature   = None
 
 
-    def user_login(self, email=None, redirect_url=None):
+    def user_login(self, email=None, redirect_url=None, remote_ip=None, browser=None):
         """
         Starts session. Creates new (or updates old) user.
 
@@ -333,8 +333,8 @@ class myUser(myE):
             # insert
             session_key,
             email,
-            self.request.remote_ip,
-            self.request.headers.get('User-Agent', '')
+            remote_ip,
+            browser
         )
 
         return {'session_key': session_key, 'redirect_url': redirect_url}

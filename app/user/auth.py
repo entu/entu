@@ -132,6 +132,8 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
         session_dict = self.user_login(
             email        = user.get('email'),
             redirect_url = get_redirect(self),
+            remote_ip    = self.request.remote_ip,
+            browser      = self.request.headers.get('User-Agent')
         )
 
         self.clear_cookie('session')
