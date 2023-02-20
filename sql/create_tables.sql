@@ -304,6 +304,8 @@ CREATE TABLE `session` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `key` varchar(32) COLLATE utf8_estonian_ci DEFAULT NULL,
   `email` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `ip` varchar(64) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `browser` varchar(255) COLLATE utf8_estonian_ci DEFAULT NULL,
   `login_count` int(11) NOT NULL DEFAULT '0',
   `created` datetime DEFAULT NULL,
   `changed` datetime DEFAULT NULL,

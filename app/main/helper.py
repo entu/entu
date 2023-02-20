@@ -326,16 +326,16 @@ class myUser(myE):
         """
         session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
 
-        self.db_execute_lastrowid('INSERT INTO session SET key = %s, email = %s, ip = %s, browser = %s, created = NOW();',
+        logging.warning(session_key)
+        logging.warning(redirect_url)
+
+        self.db_execute('INSERT INTO session SET key = %s, email = %s, ip = %s, browser = %s, created = NOW();',
             # insert
             session_key,
             email,
             self.request.remote_ip,
-            self.request.headers.get('User-Agent', None)
+            self.request.headers.get('User-Agent', '')
         )
-
-        logging.warning(session_key)
-        logging.warning(redirect_url)
 
         return {'session_key': session_key, 'redirect_url': redirect_url}
 

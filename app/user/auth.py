@@ -103,9 +103,6 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
 
     @web.asynchronous
     def _got_token(self, response):
-        logging.warning('ssl version: %s' % ssl.OPENSSL_VERSION)
-        logging.warning('response: %s' % response)
-
         try:
             access_token = json.loads(response.body)
             if 'error' in access_token:
@@ -124,8 +121,6 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
 
     @web.asynchronous
     def _got_user(self, response):
-        logging.warning('response: %s' % response)
-
         try:
             user = json.loads(response.body)
             if 'error' in user:
