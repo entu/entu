@@ -326,6 +326,7 @@ class myUser(myE):
         """
         session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
 
+        logging.warning(email)
         logging.warning(session_key)
         logging.warning(redirect_url)
         logging.warning(remote_ip)

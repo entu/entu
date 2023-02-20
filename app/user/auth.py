@@ -129,6 +129,8 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
         except:
             return
 
+        logging.warning(user)
+
         session_dict = self.user_login(
             email        = user.get('email'),
             redirect_url = get_redirect(self),
