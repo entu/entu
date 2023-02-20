@@ -301,7 +301,7 @@ class SaveEntity(myRequestHandler, Entity):
             for link, filename in self.external_files.iteritems():
                 self.value.append(filename)
                 if external_download:
-                    httpclient.AsyncHTTPClient().fetch(link, method = 'GET', request_timeout = 3600, callback=self._got_external_file)
+                    httpclient.AsyncHTTPClient().fetch(link, method='GET', request_timeout=3600, callback=self._got_external_file)
                 else:
                     self.new_property_id = self.set_property(entity_id=self.entity_id, property_definition_keyname=self.property_definition_keyname, value={'filename': filename, 'url': link})
             if external_download:
