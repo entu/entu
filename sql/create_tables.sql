@@ -306,6 +306,7 @@ CREATE TABLE `session` (
   `email` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
   `ip` varchar(64) COLLATE utf8_estonian_ci DEFAULT NULL,
   `browser` varchar(255) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `redirect_url` varchar(255) COLLATE utf8_estonian_ci DEFAULT NULL,
   `login_count` int(11) NOT NULL DEFAULT '0',
   `created` datetime DEFAULT NULL,
   `changed` datetime DEFAULT NULL,
