@@ -326,12 +326,6 @@ class myUser(myE):
         """
         session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
 
-        logging.warning(session_key)
-        logging.warning(email)
-        logging.warning(ip)
-        logging.warning(browser)
-        logging.warning(redirect_url)
-
         self.db_execute('INSERT INTO session SET session_key = %s, email = %s, ip = %s, browser = %s, redirect_url = %s, created = NOW();',
             # insert
             session_key,
