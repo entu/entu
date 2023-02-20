@@ -23,6 +23,8 @@ APP_DEBUG          = str(os.getenv('DEBUG', 'false')).lower() == 'true'
 APP_PORT           = os.getenv('PORT', 80)
 APP_COOKIE_DOMAIN  = os.getenv('COOKIE_DOMAIN', '.entu.ee')
 APP_AUTH_URL       = os.getenv('AUTH_URL', 'https://auth.entu.ee')
+APP_AUTH_ID        = os.getenv('AUTH_ID')
+APP_AUTH_SECRET    = os.getenv('AUTH_SECRET')
 APP_UPLOADS_PATH   = os.getenv('UPLOADS_PATH')
 APP_MONGODB        = os.getenv('MONGODB', 'mongodb://entu_mongodb:27017/')
 APP_MYSQL_HOST     = os.getenv('MYSQL_HOST', 'localhost')
@@ -90,6 +92,8 @@ class myApplication(tornado.web.Application):
             'xsrf_coocies':         True,
             'login_url':            '/auth',
             'auth_url':             APP_AUTH_URL,
+            'auth_id':              APP_AUTH_ID,
+            'auth_secret':          APP_AUTH_SECRET,
             'cookie_domain':        APP_COOKIE_DOMAIN,
             'start_time':           time.time(),
             'request_count':        0,

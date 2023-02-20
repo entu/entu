@@ -69,8 +69,8 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
 
         self.oauth2_provider = {
             'provider':     'oauth',
-            'key':          self.app_settings('auth-google', '\n', True).split('\n')[0],
-            'secret':       self.app_settings('auth-google', '\n', True).split('\n')[1],
+            'id':           self.settings['auth_id'],
+            'secret':       self.settings['auth_secret'],
             'auth_url':     'https://oauth.ee/auth?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s&response_type=code',
             'token_url':    'https://oauth.ee/token',
             'info_url':     'https://oauth.ee/user?access_token=%(token)s',
@@ -86,7 +86,7 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
 
         if not self.get_argument('code', None):
             return self.redirect(self.oauth2_provider['auth_url'] % {
-                'id':       self.oauth2_provider['key'],
+                'id':       self.oauth2_provider['id'],
                 'redirect': url,
                 'scope':    self.oauth2_provider['scope'],
                 'state':    ''.join(random.choice(string.ascii_letters + string.digits) for x in range(16)),
@@ -100,7 +100,7 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
             method = 'POST',
             headers = {'Content-Type': 'application/x-www-form-urlencoded'},
             body = urllib.urlencode({
-                'client_id':        self.oauth2_provider['key'],
+                'client_id':        self.oauth2_provider['id'],
                 'client_secret':    self.oauth2_provider['secret'],
                 'redirect_uri':     url,
                 'code':             self.get_argument('code', None),
