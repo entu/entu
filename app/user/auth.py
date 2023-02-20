@@ -73,7 +73,7 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
             'secret':       self.settings['auth_secret'],
             'auth_url':     'https://oauth.ee/auth?client_id=%(id)s&redirect_uri=%(redirect)s&scope=%(scope)s&state=%(state)s&response_type=code',
             'token_url':    'https://oauth.ee/token',
-            'info_url':     'https://oauth.ee/user?access_token=%(token)s',
+            'info_url':     'https://oauth.ee/user',
             'scope':        'openid',
             'user_id':      '%(id)s',
             'user_email':   '%(email)s',
@@ -98,11 +98,10 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
 
         httpclient.AsyncHTTPClient().fetch(self.oauth2_provider['token_url'],
             method = 'POST',
-            headers = {'Content-Type': 'application/x-www-form-urlencoded'},
-            body = urllib.urlencode({
+            headers = {'Content-Type': 'application/json'},
+            body = json.dumps({
                 'client_id':        self.oauth2_provider['id'],
                 'client_secret':    self.oauth2_provider['secret'],
-                'redirect_uri':     url,
                 'code':             self.get_argument('code', None),
                 'grant_type':       'authorization_code',
             }),
@@ -129,7 +128,8 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 logging.error('Auth error')
                 return self.redirect(get_redirect(self))
 
-        httpclient.AsyncHTTPClient().fetch(self.oauth2_provider['info_url'] %  {'token': access_token },
+        httpclient.AsyncHTTPClient().fetch(self.oauth2_provider['info_url'],
+            headers = {'Authorization': 'Bearer %s' % access_token},
             callback = self._got_user
         )
 
