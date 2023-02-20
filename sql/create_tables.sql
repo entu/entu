@@ -302,7 +302,7 @@ CREATE TABLE `translation` (
 -- Create syntax for TABLE 'session'
 CREATE TABLE `session` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `key` varchar(32) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `session_key` varchar(64) COLLATE utf8_estonian_ci DEFAULT NULL,
   `email` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
   `ip` varchar(64) COLLATE utf8_estonian_ci DEFAULT NULL,
   `browser` varchar(255) COLLATE utf8_estonian_ci DEFAULT NULL,
@@ -311,5 +311,5 @@ CREATE TABLE `session` (
   `changed` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
-  KEY `key` (`key`)
+  KEY `session_key` (`session_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;

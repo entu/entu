@@ -319,7 +319,7 @@ class myUser(myE):
     __signature   = None
 
 
-    def user_login(self, email=None, redirect_url=None, remote_ip=None, browser=None):
+    def user_login(self, email=None, redirect_url=None, ip=None, browser=None):
         """
         Starts session. Creates new (or updates old) user.
 
@@ -329,14 +329,14 @@ class myUser(myE):
         logging.warning(email)
         logging.warning(session_key)
         logging.warning(redirect_url)
-        logging.warning(remote_ip)
+        logging.warning(ip)
         logging.warning(browser)
 
-        self.db_execute('INSERT INTO session SET key = %s, email = %s, ip = %s, browser = %s, created = NOW();',
+        self.db_execute('INSERT INTO session SET session_key = %s, email = %s, ip = %s, browser = %s, created = NOW();',
             # insert
             session_key,
             email,
-            remote_ip,
+            ip,
             browser
         )
 
