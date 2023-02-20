@@ -98,6 +98,7 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 'code':             self.get_argument('code', None),
                 'grant_type':       'authorization_code',
             }),
+            validate_cert = False,
             callback = self._got_token,
         )
 
@@ -105,6 +106,7 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
     def _got_token(self, response):
         access_token = response.body
         logging.warning('access_token: %s' % access_token)
+
         try:
             access_token = json.loads(access_token)
             if 'error' in access_token:
@@ -117,6 +119,7 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
 
         httpclient.AsyncHTTPClient().fetch(self.oauth2_provider['info_url'],
             headers = {'Authorization': 'Bearer %s' % access_token},
+            validate_cert = False,
             callback = self._got_user
         )
 

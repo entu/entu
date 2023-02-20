@@ -558,10 +558,6 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
     Rewriten tornado.web.RequestHandler methods.
 
     """
-    __timer_start = None
-    __timer_last = None
-    __request_id = None
-
     def prepare(self):
         if self.request.protocol.upper() == 'HTTP':
             logging.error(self.request.host + self.request.uri)
@@ -576,51 +572,6 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
                 self.request.arguments = arguments
         except Exception, e:
             logging.error('Reguest arguments error: %s' % e)
-
-        try:
-            r = {}
-            r['date'] = datetime.datetime.utcnow()
-            if self.request.method:
-                r['method'] = self.request.method
-            if self.request.host:
-                r['host'] = self.request.host
-            if self.request.path:
-                r['path'] = self.request.path
-            if self.request.arguments:
-                for argument, value in self.request.arguments.iteritems():
-                    a = argument.replace('.', '_')
-                    r.setdefault('arguments', {})[a] = value
-                    if len(r.get('arguments', {}).get(a, [])) < 2:
-                        r['arguments'][a] = r['arguments'][a][0]
-            if self.get_current_user():
-                if self.get_current_user().get('id'):
-                    r['user'] = self.get_current_user().get('id')
-            if self.request.remote_ip:
-                r['ip'] = self.request.remote_ip
-            if self.request.headers:
-                if self.request.headers.get('User-Agent', None):
-                    r['browser'] = self.request.headers.get('User-Agent')
-
-            self.__request_id = self.mongodb('entu').request.insert_one(r).inserted_id
-        except Exception, e:
-            logging.error('Reguest logging error: %s' % e)
-
-    def on_finish(self):
-        request_time = self.request.request_time()
-
-        if request_time > (float(self.settings['slow_request_ms'])/1000.0):
-            self.settings['slow_request_count'] += 1
-            self.settings['slow_request_time'] += request_time
-        else:
-            self.settings['request_count'] += 1
-            self.settings['request_time'] += request_time
-
-        if self.__request_id:
-            r = {}
-            r['ms'] = int(round(request_time * 1000))
-            if self.get_status():
-                r['status'] = self.get_status()
-            self.mongodb('entu').request.update({'_id': self.__request_id}, {'$set': r}, upsert=False)
 
     def timer(self, msg=''):
         logging.debug('TIMER: %0.3f - %s' % (round(self.request.request_time(), 3), msg))
