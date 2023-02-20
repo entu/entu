@@ -3,7 +3,7 @@ boto==2.49.0
 mistune==0.8.4
 protobuf==3.17.3
 mysql-connector-python==8.0.23
-pillow==6.2.2
+pillow==9.3.0
 python-dateutil==2.8.2
 pyyaml==5.4.1
 simpleaes==1.0
