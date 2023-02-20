@@ -11,59 +11,16 @@ import ssl
 from main.helper import *
 
 
-class ShowAuthPage(myRequestHandler):
-    """
-    Show Log in page.
-
-    """
-    def get(self):
-        self.clear_all_cookies()
-        self.clear_all_cookies(domain=self.settings['cookie_domain'])
-
-        redirect_url = self.get_argument('next', '', strip=True)
-        if redirect_url:
-            if 'http' not in redirect_url:
-                redirect_url = self.request.protocol + '://' + self.request.host + redirect_url
-
-        if self.get_cookie('auth_provider'):
-            self.redirect('%s/%s?next=%s' % (self.settings['auth_url'], self.get_cookie('auth_provider'), redirect_url))
-        else:
-            self.render('user/template/auth.html',
-                redirect_url = redirect_url,
-                mobileid = '%s/mobile-id' % self.settings['auth_url'],
-                idcard = '%s/id-card?next=%s' % (self.settings['auth_url'], redirect_url),
-                google = '%s/google?next=%s' % (self.settings['auth_url'], redirect_url),
-                taat = '%s/taat?next=%s' % (self.settings['auth_url'], redirect_url)
-            )
-
-
-class Exit(myRequestHandler):
-    """
-    Log out.
-
-    """
-    def get(self):
-        redirect_url = '/'
-        if self.current_user:
-            if self.current_user.provider == 'google':
-                redirect_url = 'https://www.google.com/accounts/logout'
-            elif self.current_user.provider == 'facebook':
-                redirect_url = 'https://www.facebook.com/logout.php?access_token=%s&confirm=1&next=%s://%s/status' % (self.current_user.access_token, self.request.protocol, self.request.host)
-            elif self.current_user.provider == 'live':
-                redirect_url = 'https://login.live.com/oauth20_logout.srf?client_id=%s&redirect_uri=%s://%s/status' % (self.app_settings('auth-live', '\n', True).split('\n')[0], self.request.protocol, self.request.host)
-
-            self.user_logout()
-
-        self.redirect(redirect_url)
-
-
-class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
+class OAuth_ee(myRequestHandler, auth.OAuth2Mixin):
     """
     OAuth.ee authentication.
 
     """
     @web.asynchronous
     def get(self):
+        self.clear_all_cookies()
+        self.clear_all_cookies(domain=self.settings['cookie_domain'])
+
         set_redirect(self)
 
         self.oauth2_provider = {
@@ -162,7 +119,5 @@ def get_redirect(rh):
 
 
 handlers = [
-    ('/auth', ShowAuthPage),
-    ('/auth/oauth', AuthOAuth2),
-    ('/exit', Exit),
+    ('/auth', OAuth_ee)
 ]

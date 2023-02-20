@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from pymongo import MongoClient
 from tornado import httpclient
 from tornado import locale
 from tornado import web
@@ -292,24 +291,6 @@ class myDatabase():
         return self._app_settings.get(host, {})
 
 
-    def mongodb(self, database=None):
-        """
-        Returns MongoDB connection.
-        """
-        if not database:
-            database = self.app_settings('database-name')
-
-        if database == 'www':
-            database = 'entu'
-
-        try:
-            x = self.settings['mongodbs'][database].server_info()
-        except Exception, e:
-            self.settings['mongodbs'][database] = MongoClient(self.settings['mongodb'], connect=True)
-            logging.error('Mongo - ' + database)
-        return self.settings['mongodbs'][database][database]
-
-
 
 class myUser(myE):
     __user        = None
@@ -366,10 +347,7 @@ class myUser(myE):
             return self.__user
 
         try:
-            session = self.mongodb('entu').session.find_one({'key': session_key})
-        except IndexError:
-            logging.debug('No session!')
-            return None
+            session = self.db_get('SELECT id, session_key, email, created FROM session WHERE session_key = %s LIMIT 1', session_key)
         except Exception, e:
             logging.error(e)
             return None
@@ -378,25 +356,21 @@ class myUser(myE):
             logging.debug('No session!')
             return None
 
-        if session.get('user', {}).get('email'):
-            user_id = session.get('user', {}).get('email')
+        if session.get('email'):
+            user_id = session.get('email')
         else:
-            user_id = '%s-%s' % (session.get('user', {}).get('provider'), session.get('user', {}).get('id'))
+            logging.debug('No email!')
+            return None
 
         user = {
-            'user_id': str(session.get('id')),
-            'name': session.get('user', {}).get('name'),
+            'user_id': session.get('id'),
+            'name': None,
             'language': 'estonian',
             'hide_menu': 0,
-            'email': session.get('user', {}).get('email'),
-            'provider': session.get('user', {}).get('provider'),
-            'created_at': session.get('user', {}).get('created'),
-            'access_token': None,
-            'session_key': session.get('key'),
-            'api_key': None
+            'email': session.get('email')
         }
-        if session.get('user', {}).get('picture'):
-            user['picture'] = session.get('user', {}).get('picture')
+        if session.get('picture'):
+            user['picture'] = session.get('picture')
 
         if self.request.remote_ip:
             user['ip'] = self.request.remote_ip

@@ -10,14 +10,13 @@ services:
         environment:
             PORT: 80
             DEBUG: false
-            AUTH_URL: https://auth.entu.ee/auth
+            AUTH_URL: /auth
             UPLOADS_PATH: /entu_files/uploads/
             FILES_PATH: /entu_files
             MYSQL_HOST: mysql
             MYSQL_DATABASE: entu
             MYSQL_USER: entu_user
             MYSQL_PASSWORD: entu_pass
-            MONGODB:
             CUSTOMERGROUP:
         depends_on:
             - files
