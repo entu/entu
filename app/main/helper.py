@@ -319,25 +319,26 @@ class myUser(myE):
     __signature   = None
 
 
-    def user_login(self, email=None, redirect_url=None, ip=None, browser=None):
+    def user_login(self, email=None, ip=None, browser=None, redirect_url=None):
         """
         Starts session. Creates new (or updates old) user.
 
         """
         session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
 
-        logging.warning(email)
         logging.warning(session_key)
-        logging.warning(redirect_url)
+        logging.warning(email)
         logging.warning(ip)
         logging.warning(browser)
+        logging.warning(redirect_url)
 
-        self.db_execute('INSERT INTO session SET session_key = %s, email = %s, ip = %s, browser = %s, created = NOW();',
+        self.db_execute('INSERT INTO session SET session_key = %s, email = %s, ip = %s, browser = %s, redirect_url = %s, created = NOW();',
             # insert
             session_key,
             email,
             ip,
-            browser
+            browser,
+            redirect_url
         )
 
         return {'session_key': session_key, 'redirect_url': redirect_url}

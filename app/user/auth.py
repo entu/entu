@@ -129,13 +129,11 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
         except:
             return
 
-        logging.warning(user)
-
         session_dict = self.user_login(
             email        = user.get('email'),
-            redirect_url = get_redirect(self),
-            remote_ip    = self.request.remote_ip,
-            browser      = self.request.headers.get('User-Agent')
+            ip           = self.request.remote_ip,
+            browser      = self.request.headers.get('User-Agent'),
+            redirect_url = get_redirect(self)
         )
 
         self.clear_cookie('session')
