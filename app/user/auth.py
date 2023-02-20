@@ -19,7 +19,6 @@ class OAuth_ee(myRequestHandler, auth.OAuth2Mixin):
     @web.asynchronous
     def get(self):
         self.clear_all_cookies()
-        self.clear_all_cookies(domain=self.settings['cookie_domain'])
 
         set_redirect(self)
 
@@ -94,7 +93,7 @@ class OAuth_ee(myRequestHandler, auth.OAuth2Mixin):
         )
 
         self.clear_cookie('session')
-        self.set_cookie(name='session', value=session_dict['session_key'], expires_days=14, domain=self.settings['cookie_domain'])
+        self.set_cookie(name='session', value=session_dict['session_key'], expires_days=14)
         self.redirect(session_dict['redirect_url'])
 
 
