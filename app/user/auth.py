@@ -37,7 +37,7 @@ class OAuth_ee(myRequestHandler, auth.OAuth2Mixin):
         if not self.get_argument('code', None):
             return self.redirect(self.oauth2_provider['auth_url'] % {
                 'id':       self.oauth2_provider['id'],
-                'redirect': self.request.protocol + '://' + self.request.host + '/auth/oauth',
+                'redirect': self.request.protocol + '://' + self.request.host + '/auth',
                 'state':    ''.join(random.choice(string.ascii_letters + string.digits) for x in range(16)),
             })
 
