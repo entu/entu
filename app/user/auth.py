@@ -97,7 +97,6 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
                 'code':             self.get_argument('code', None),
                 'grant_type':       'authorization_code',
             }),
-            ssl_options = ssl.SSLContext(validate_cert=False),
             callback = self._got_token,
         )
 
@@ -118,7 +117,6 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
 
         httpclient.AsyncHTTPClient().fetch(self.oauth2_provider['info_url'],
             headers = {'Authorization': 'Bearer %s' % access_token},
-            ssl_options = ssl.SSLContext(validate_cert=False),
             callback = self._got_user
         )
 
