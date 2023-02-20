@@ -320,6 +320,49 @@ class myUser(myE):
     __policy      = None
     __signature   = None
 
+
+    def user_login(self, provider=None, provider_id=None, email=None, name=None, picture=None, access_token=None, redirect_url=None):
+        """
+        Starts session. Creates new (or updates old) user.
+
+        """
+        redirect_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
+        session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
+
+        session_id = self.db_execute_lastrowid('INSERT INTO session SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, ip = %s, browser = %s, session_key = %s, access_token = %s, redirect_url = %s, redirect_key = %s, created = NOW();',
+            # insert
+            provider,
+            provider_id,
+            email,
+            name,
+            picture,
+            self.app_settings('language', 'english'),
+            self.request.remote_ip,
+            self.request.headers.get('User-Agent', None),
+            session_key,
+            access_token,
+            redirect_url,
+            redirect_key
+        )
+
+        return {'id': session_id, 'host': self.request.host, 'redirect_key': redirect_key}
+
+
+    def user_login_redirect(self, session_id=None, redirect_key=None):
+        if not redirect_key or not session_id:
+            return self.redirect('/')
+
+        user = self.db_get('SELECT session_key, redirect_url FROM session WHERE id = %s AND redirect_key = %s LIMIT 1;', session_id, redirect_key)
+        if not user:
+            return self.redirect('/')
+
+        self.db_execute('UPDATE session SET redirect_url = NULL, redirect_key = NULL WHERE id = %s AND redirect_key = %s;', session_id, redirect_key)
+
+        self.clear_cookie('session')
+        self.set_cookie(name='session', value=user.session_key, expires_days=14)
+        self.redirect(user.redirect_url)
+
+
     def get_user_by_session_key(self, session_key):
         if not session_key:
             return None
@@ -434,6 +477,7 @@ class myUser(myE):
 
             logging.debug('Loaded user #%s' % user.get('id'))
             return user
+
 
     def get_user_by_signature(self):
         user_id = self.get_argument('user', default=None, strip=True)
@@ -603,7 +647,6 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
     def timer(self, msg=''):
         logging.debug('TIMER: %0.3f - %s' % (round(self.request.request_time(), 3), msg))
-
 
     def get_current_user(self):
         """

@@ -46,7 +46,6 @@ app_controllers = [
     'main.status',
     'public.public',
     'user.auth',
-    'user.user',
 ]
 
 
