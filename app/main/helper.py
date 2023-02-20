@@ -319,7 +319,7 @@ class myUser(myE):
     __signature   = None
 
 
-    def user_login(self, provider=None, provider_id=None, email=None, name=None, picture=None, access_token=None, redirect_url=None):
+    def user_login(self, email=None, redirect_url=None):
         """
         Starts session. Creates new (or updates old) user.
 
@@ -327,23 +327,17 @@ class myUser(myE):
         redirect_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
         session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
 
-        session_id = self.db_execute_lastrowid('INSERT INTO session SET provider = %s, provider_id = %s, email = %s, name = %s, picture = %s, language = %s, ip = %s, browser = %s, session_key = %s, access_token = %s, redirect_url = %s, redirect_key = %s, created = NOW();',
+        self.db_execute_lastrowid('INSERT INTO session SET email = %s, ip = %s, browser = %s, session_key = %s, redirect_url = %s, redirect_key = %s, created = NOW();',
             # insert
-            provider,
-            provider_id,
             email,
-            name,
-            picture,
-            self.app_settings('language', 'english'),
             self.request.remote_ip,
             self.request.headers.get('User-Agent', None),
             session_key,
-            access_token,
             redirect_url,
             redirect_key
         )
 
-        return {'id': session_id, 'host': self.request.host, 'redirect_key': redirect_key}
+        return {'session_key': session_key, 'redirect_url': redirect_url}
 
 
     def user_login_redirect(self, session_id=None, redirect_key=None):

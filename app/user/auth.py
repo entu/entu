@@ -137,7 +137,6 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
     def _got_user(self, response):
         try:
             user = json.loads(response.body)
-            access_token = response.effective_url.split('access_token=')[1]
             if 'error' in user:
                 logging.error('Auth error: %s' % user['error'])
                 return self.redirect(get_redirect(self))
@@ -145,15 +144,13 @@ class AuthOAuth2(myRequestHandler, auth.OAuth2Mixin):
             return
 
         session_dict = self.user_login(
-            provider        = self.oauth2_provider['provider'],
-            provider_id     = user.get('id'),
-            email           = user.get('email'),
-            name            = user.get('name'),
-            access_token    = access_token,
-            redirect_url    = get_redirect(self),
+            email        = user.get('email'),
+            redirect_url = get_redirect(self),
         )
 
-        self.redirect('https://%(host)s/auth/redirect?key=%(redirect_key)s&user=%(id)s' % session_dict)
+        self.clear_cookie('session')
+        self.set_cookie(name='session', value=session_dict.session_key, expires_days=14)
+        self.redirect(session_dict.redirect_url)
 
 
 class AuthRedirect(myRequestHandler):
