@@ -88,7 +88,7 @@ class myApplication(tornado.web.Application):
             'debug':                APP_DEBUG,
             'template_path':        path.join(path.dirname(__file__), '..', 'app'),
             'static_path':          path.join(path.dirname(__file__), '..', 'static'),
-            'xsrf_cookies':         True,
+            'xsrf_cookies':         False,
             'cookie_secret':        str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest()),
             'login_url':            '/auth',
             'auth_url':             APP_AUTH_URL,
