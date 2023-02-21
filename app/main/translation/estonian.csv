@@ -1,14 +1,5 @@
 help,Abi
 close,Sulge
-log_in,Logi sisse
-log_in_mid,Mobiil-ID
-log_in_mid_phone,Telefoninumber
-log_in_mid_idcode,Isikukood
-log_in_mid_go,Sisene
-log_in_mid_cancel,Tühista
-log_in_mid_message,"Kontrollige, et näete oma mobiiltelefoni ekraanil täpselt sama numbrit ning seejärel sisestage Mobiil-ID PIN1."
-log_in_idcard,ID-kaart
-log_in_info,Entu.ee kasutab autentimiseks ülaltoodud teenusepakkujaid. Teie kasutajanime ega parooli meile ei edastata.
 feedback,Tagasiside
 homepage,Kuidas otsida?
 
@@ -24,7 +15,6 @@ menu_help,Abiinfo
 menu_download,Lae alla
 menu_print,Trüki
 menu_fullscreen,Täisekraan
-menu_preferences,Seaded
 menu_add_under,Lisa %s alla
 menu_add_under_this,Lisa selle objekti alla
 menu_add_reference,Viita lisades %s alla
@@ -112,48 +102,3 @@ action_add_csv_delimiter,Väljade eraldaja
 action_add_csv_first_row,Alusta reast
 action_add_csv_do_import,Impordi %s rida
 action_add_csv_encoding,Kooditabel
-
-user_preferences,Kasutaja seaded
-user_name,Nimi
-user_language,Keel
-user_timezone,Ajavöönd
-user_accounts,Kontod
-user_hide_menu,Peida objektide menüü
-
-
-
-
-test,Küsimustik
-test_submit,Saada vastused
-
-application,Sisseastumisavaldus
-application_signup_info,"Sisseastumisavalduse esitamiseks on sul vaja sisse logida. Kui sul on olemas @artun.ee konto, sisene kindlasti sellega. Kui sul seda ei ole, saad sa luua sisseastuja konto. Konto parool saadetakse sulle meilitsi. Kui oled parooli unustanud, siis kasuta uue konto loomise vormi ja sulle saadetakse uus parool."
-
-application_signup_email_head,Mul pole kontot ega parooli. Soovin luua konto...
-application_signup_email,E-post
-application_signup_email_submit,Saada kutse meilile
-application_signup_email_error,Sisestage e-posti aadress!
-application_signup_email_success,Kutse saadeti sulle meilile!
-application_signup_email_subject,Sisseastuja konto
-application_signup_email_message,"Tere tulemast Eesti Kunstiakadeemiasse!
-
-Meil on hea meel, et oled otsustanud asuda õppima meie akadeemiasse.
-
-Sinu konto Eesti Kunstiakadeemia sisseastumisavalduse esitamiseks on loodud.
-Konto parool on: %s
-
-Sisseastumisavalduse saad täita aadressil http://entu.artun.ee/application
-
-Täname!"
-
-
-application_signup_password_head,Mul on sisseastuja parool. Sisenen sellega...
-application_signup_password,Parool
-application_signup_password_submit,Sisene
-application_signup_password_error,Vale parool!
-
-application_signup_account_head,Mul on @artun.ee konto. Sisenen sellega...
-
-application_subscribe,Kandideerin
-application_subscribe_max_reached,Lubatud on valida maksimaalselt neli eriala!
-application_submit,Esita avaldus

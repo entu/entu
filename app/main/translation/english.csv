@@ -1,14 +1,5 @@
 help,Help
 close,Close
-log_in,Log In
-log_in_mid,Mobile-ID
-log_in_mid_phone,Phone number
-log_in_mid_idcode,ID code
-log_in_mid_go,Go
-log_in_mid_cancel,Cancel
-log_in_mid_message,"Kontrollige, et näete oma mobiiltelefoni ekraanil täpselt sama numbrit ning seejärel sisestage Mobiil-ID PIN1."
-log_in_idcard,ID-card
-log_in_info,Entu.ee uses those providers for user authentication. We don't get nor save Your password.
 feedback,Feedback
 homepage,Manual
 
@@ -24,7 +15,6 @@ menu_help,Help
 menu_download,Download
 menu_print,Print
 menu_fullscreen,Fullscreen
-menu_preferences,Preferences
 menu_add_under,Add under %s
 menu_add_under_this,Add under this entity
 menu_add_reference,Refer under %s
@@ -112,10 +102,3 @@ action_add_csv_delimiter,Delimiter
 action_add_csv_first_row,First row
 action_add_csv_do_import,Import %s rows
 action_add_csv_encoding,Encoding
-
-user_preferences,User preferences
-user_name,Name
-user_language,Language
-user_timezone,Timezone
-user_accounts,Accounts
-user_hide_menu,Hide entities menu

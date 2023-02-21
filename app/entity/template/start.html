@@ -13,8 +13,6 @@
         <li class="dropdown">
             <a href="#" class="dropdown-toggle header-menu-item toolbar-item">{{ current_user.get('name') }}<img src="/api2/entity-{{ current_user.get('id') }}/picture" style="margin: -8px -8px -8px 10px;height:36px; width:36px;" ></a>
             <ul class="dropdown-menu" style="margin-right:5px; mrgin-top:0px;">
-                <!--li><a href="javascript:void(0);" class="open-modal-box" data-url="/user/preferences"><i class="fa fa-cog"></i> {{ _('menu_preferences') }}</a></li>
-                <li class="divider"></li-->
                 <li><a href="{{ app_exit_url }}" id="logout"><i class="fa fa-off" style="font-size:14px;"></i> {{ _('menu_exit') }}</a></li>
             </ul>
         </li>
