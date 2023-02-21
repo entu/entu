@@ -45,7 +45,6 @@ class EsterCheckIfExists(myRequestHandler):
             AND property_definition.is_deleted = 0
             LIMIT 1;
         """ % (self.get_argument('ester_id', default='', strip=True), ester_id)
-        # logging.warning(sql)
 
         entity = self.db_get(sql)
         if entity:

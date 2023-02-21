@@ -43,7 +43,6 @@ app_controllers = [
     'entity.entity',
     'library.ester',
     'library.photo',
-    'main.config',
     'main.status',
     'public.public',
     'user.auth',

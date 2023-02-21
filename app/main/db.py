@@ -61,7 +61,6 @@ class Entity():
                 return
             user_id = self.__user_id
 
-        # logging.debug('creating %s under entity %s' % (entity_definition_keyname, parent_entity_id))
         if not entity_definition_keyname:
             return
 
@@ -72,7 +71,6 @@ class Entity():
                 created_by = %s,
                 created = NOW();
         """
-        # logging.debug(sql)
         entity_id = self.db_execute_lastrowid(sql, entity_definition_keyname, user_id)
 
         if not parent_entity_id:
@@ -107,13 +105,11 @@ class Entity():
                 %s,
                 NOW();
         """
-        # logging.debug(sql)
         self.db_execute(sql, entity_id, user_id, entity_definition_keyname, parent_entity_id, entity_id, user_id)
 
         # Insert or update "contains" information
         for row in self.db_query("SELECT entity_id FROM relationship r WHERE r.is_deleted = 0 AND r.relationship_definition_keyname = 'child' AND r.related_entity_id = %s" , entity_id):
             self.db_execute('INSERT INTO dag_entity SET entity_id = %s, related_entity_id = %s ON DUPLICATE KEY UPDATE distance=1;', row.get('entity_id'), entity_id)
-            # self.db_execute('INSERT INTO dag_entity SELECT de.entity_id, %s, de.distance+1 FROM dag_entity AS de WHERE de.related_entity_id = %s ON DUPLICATE KEY UPDATE distance = LEAST(dag_entity.distance, de.distance+1);', entity_id, row.get('entity_id'))
 
         # Copy user rights
         sql = """
@@ -137,7 +133,6 @@ class Entity():
             AND       rr.is_deleted = 0
             AND       rr.relationship_definition_keyname IN ('viewer', 'expander', 'editor', 'owner');
         """
-        # logging.debug(sql)
         self.db_execute(sql, entity_id, user_id, entity_id)
 
         # set creator to owner
@@ -194,7 +189,6 @@ class Entity():
             AND r.is_deleted = 0
             ;
         """
-        # logging.debug(sql)
         self.db_execute(sql, entity_id, user_id, parent_entity_id)
 
         self.db_execute("""
@@ -711,7 +705,6 @@ class Entity():
                         AND entity_id = %s
                         AND related_entity_id = %s;
                     """ % (self.__user_id, e, r)
-                    # logging.debug(sql)
                     self.db_execute(sql)
                 else:
                     sql = """
@@ -723,7 +716,6 @@ class Entity():
                         AND is_deleted = 0;
                     """ % (e, r)
                     old = self.db_get(sql)
-                    # logging.debug(sql)
                     if not old:
                         sql = """
                             INSERT INTO relationship SET
@@ -733,7 +725,6 @@ class Entity():
                                 created_by = %s,
                                 created = NOW();
                         """ % (e, r, self.__user_id)
-                        # logging.debug(sql)
                         self.db_execute(sql)
 
 
@@ -879,9 +870,7 @@ class Entity():
                OR e.sharing IN ('domain', 'public')
             ) ORDER BY e.sort, e.created DESC;
         """ % {'user_id': self.__user_id, 'query_re': query_re}
-        # logging.debug(sql)
         ids = self.db_query(sql)
-        # logging.debug(ids)
 
         entities = self.__get_properties(entity_id=[x.get('id') for x in ids])
         if not entities:
@@ -949,9 +938,7 @@ class Entity():
             else:
                 entity_id_list = [entity_id]
             for value in entity_id_list:
-                # try:
                 validated_eid_list.append(int(value))
-                # except ValueError:
 
             where_parts.append('e.id IN (%s)' % ','.join(map(str, validated_eid_list)))
 
@@ -988,25 +975,11 @@ class Entity():
         sql_parts.append(' ORDER BY e.sort, e.created DESC%s;' % limit)
 
         sql = ''.join(sql_parts)
-        # logging.debug(sql)
 
         items = self.db_query(sql)
         if not items:
             return []
         return [x.get('id') for x in items]
-
-
-    # def formula_properties(self, entity_id):
-    #     sql = """
-    #         SELECT *
-    #         FROM property p
-    #         WHERE p.entity_id = %s
-    #         AND p.value_formula is not null
-    #         AND p.is_deleted = 0
-    #         ORDER BY p.id
-    #         ;""" % entity_id
-    #     # logging.debug(sql)
-    #     return self.db_query(sql)
 
 
     def __get_properties(self, entity_id=None, entity_definition_keyname=None, dataproperty=None, full_definition=False, only_public=False, sharing_key=None):
@@ -1092,7 +1065,6 @@ class Entity():
                     entity_definition.keyname,
                     entity.created DESC;
             """ % {'language': self.get_user_locale().code, 'public': public, 'idlist': ','.join(map(str, entity_id)), 'datapropertysql': datapropertysql, 'rights': rights}
-            # logging.debug(sql)
 
             items = {}
             for row in self.db_query(sql):
@@ -1345,7 +1317,6 @@ class Entity():
             WHERE entity_definition.keyname = property_definition.entity_definition_keyname
             AND entity_definition.keyname IN (%s)
         """ % ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])
-        # logging.debug(sql)
 
         defs = []
         for r in self.db_query(sql):
@@ -1396,7 +1367,6 @@ class Entity():
                 entity_definition
             WHERE keyname IN (%s);
         """  % ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)])
-        # logging.debug(sql)
 
         defs = []
         for d in self.db_query(sql):
@@ -1535,7 +1505,6 @@ class Entity():
             sql += ' LIMIT %d' % limit
 
         sql += ';'
-        # logging.debug(sql)
 
         if ids_only == True:
             items = []
@@ -1602,7 +1571,6 @@ class Entity():
             %(user_where)s
             AND p.is_deleted = 0
             """ % {'file_id': ','.join(map(str, file_id)), 'user_where': user_where}
-        # logging.debug(sql)
 
         result = []
         for f in self.db_query(sql):
@@ -1643,7 +1611,6 @@ class Entity():
             AND relationship.is_deleted = 0
             ORDER BY entity_definition.keyname
         """  % entity_id
-        # logging.debug(sql)
         result = self.db_query(sql)
 
         if not result:
@@ -1658,7 +1625,6 @@ class Entity():
                 AND relationship.entity_definition_keyname = (SELECT entity_definition_keyname FROM entity WHERE id = %s LIMIT 1)
                 AND relationship.is_deleted = 0
             """  % entity_id
-            # logging.debug(sql)
             result = self.db_query(sql)
 
         defs = []
@@ -1703,7 +1669,6 @@ class Entity():
             ) AS rights
             WHERE rights.keyname = defs.keyname;
         """  % (entity_id, self.__user_id)
-        # logging.debug(sql)
         result = self.db_query(sql)
 
         defs = []
@@ -1748,7 +1713,6 @@ class Entity():
             AND entity_definition.keyname IN (%s)
             AND relationship.is_deleted = 0
         """  % (self.__user_id, ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)]))
-        # logging.debug(sql)
 
         defs = []
         for d in self.db_query(sql):
@@ -1800,7 +1764,6 @@ class Entity():
             AND property_definition.is_deleted = 0
             AND property_definition.dataproperty NOT LIKE 'entu-%%'
         """  % (self.__user_id, ','.join(['\'%s\'' % x for x in map(str, entity_definition_keyname)]))
-        # logging.debug(sql)
 
         defs = []
         for d in self.db_query(sql):
@@ -1936,7 +1899,6 @@ class Entity():
                 menu,
                 label_plural;
         """ % user_select
-        # logging.debug(sql)
 
         menu = {}
         for m in self.db_query(sql):

@@ -444,7 +444,7 @@ class myUser(myE):
 
                     self.redirect('/entity/person/%s' % new_person_id)
             else:
-                logging.debug('Cant create person - user-parent not configured!')
+                logging.error('Cant create person - user-parent not configured!')
                 return
 
         if user.get('id'):
@@ -462,12 +462,6 @@ class myUser(myE):
 
         if self.__user and self.__user_id == user_id and self.__policy == policy and  self.__signature == signature:
             return self.__user
-
-        # encoded_policy = json.dumps({
-        #     'expiration': (datetime.datetime.utcnow()+datetime.timedelta(minutes=5)).strftime('%Y-%m-%dT%H:%M:%SZ'),
-        #     'conditions': []
-        # }).encode('utf-8').encode('base64').replace('\n','')
-        # logging.debug(encoded_policy)
 
         try:
             policy_dict = json.loads(policy.decode('base64').decode('utf-8'))

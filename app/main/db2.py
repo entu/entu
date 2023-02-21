@@ -71,7 +71,6 @@ class Entity2():
             %(definition)s
             AND IFNULL(p.language, '%(language)s') = '%(language)s'
         """ % {'definition': definition_sql, 'language': self.__language}
-        # logging.warning(sql)
 
         entities = {}
         entity_template = {
@@ -381,7 +380,6 @@ class Entity2():
             ) AS x
             GROUP BY x.id, x.sort, x.definition, x.field;
         """ % {'numbers_sql': numbers_sql, 'entity_sql': entity_sql, 'language': self.__language}
-        # logging.warning(sql)
 
         entities = {}
         for r in self.db_query(sql):
@@ -592,7 +590,6 @@ class Entity2():
                 menu,
                 label_plural;
         """ % user_select
-        # logging.debug(sql)
 
         definitions = {}
         for m in self.db_query(sql):
@@ -816,8 +813,6 @@ class Entity2():
 
 
     def get_history_timeframe(self, timestamp=None, limit=10):
-        # logging.debug(timestamp)
-        # logging.debug(limit)
 
         if timestamp:
             timestamp = "'" + timestamp + "'"
@@ -872,16 +867,13 @@ class Entity2():
                ORDER BY tstamp DESC LIMIT %(limit)i) AS lts;
             """ % {'user_id': self.__user_id, 'timestamp': timestamp, 'limit': int(limit)}
 
-        # logging.debug(sql)
 
         result = self.db_get(sql)
-        # logging.debug(result)
 
         return result
 
 
     def get_history_events(self, timeframe):
-        logging.debug(timeframe)
         from_timestamp = timeframe.from_ts.isoformat()
         to_timestamp = timeframe.to_ts.isoformat()
 
@@ -942,12 +934,9 @@ class Entity2():
             ORDER BY lts.tstamp DESC ;
             """ % {'user_id': self.__user_id, 'from_timestamp': from_timestamp, 'to_timestamp': to_timestamp}
 
-        # logging.debug(sql)
 
         result = {}
         for r in self.db_query(sql):
-            # logging.debug(r)
             result.setdefault(r.get('tstamp').isoformat(), []).append(r)
-        # logging.debug(result)
 
         return {'from':from_timestamp, 'to':to_timestamp, 'events':sorted(result.items())}
