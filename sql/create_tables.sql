@@ -301,16 +301,18 @@ CREATE TABLE `translation` (
 
 -- Create syntax for TABLE 'session'
 CREATE TABLE `session` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `session_key` varchar(64) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `uuid` varchar(36) COLLATE utf8_estonian_ci DEFAULT NULL,
   `email` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
-  `ip` varchar(64) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `name` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `provider` varchar(10) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `provider_id` varchar(100) COLLATE utf8_estonian_ci DEFAULT NULL,
+  `ip` varchar(45) COLLATE utf8_estonian_ci DEFAULT NULL,
   `browser` varchar(255) COLLATE utf8_estonian_ci DEFAULT NULL,
   `redirect_url` varchar(255) COLLATE utf8_estonian_ci DEFAULT NULL,
   `login_count` int(11) NOT NULL DEFAULT '0',
   `created` datetime DEFAULT NULL,
   `changed` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `email` (`email`),
-  KEY `session_key` (`session_key`)
+  UNIQUE KEY `email_uuid` (`email`, `uuid`),
+  KEY `uuid` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;

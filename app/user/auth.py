@@ -85,16 +85,21 @@ class OAuth_ee(myRequestHandler, auth.OAuth2Mixin):
         except:
             return
 
-        session_dict = self.user_login(
+        redirect_url = get_redirect(self)
+
+        session = self.user_login(
             email        = user.get('email'),
+            name         = user.get('name'),
+            provider     = user.get('provider'),
+            provider_id  = user.get('id'),
             ip           = self.request.remote_ip,
             browser      = self.request.headers.get('User-Agent'),
-            redirect_url = get_redirect(self)
+            redirect_url = redirect_url
         )
 
         self.clear_cookie('session')
-        self.set_cookie(name='session', value=session_dict['session_key'], expires_days=14)
-        self.redirect(session_dict['redirect_url'])
+        self.set_cookie(name='session', value=session, expires_days=14)
+        self.redirect(redirect_url)
 
 
 def set_redirect(rh):

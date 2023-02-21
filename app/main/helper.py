@@ -11,11 +11,10 @@ import hmac
 import json
 import logging
 import mysql.connector
-import random
 import re
-import string
 import time
 import urllib
+import uuid
 
 
 from main.db import *
@@ -300,23 +299,28 @@ class myUser(myE):
     __signature   = None
 
 
-    def user_login(self, email=None, ip=None, browser=None, redirect_url=None):
+    def user_login(self, email=None, name=None, provider=None, provider_id=None, ip=None, browser=None, redirect_url=None):
         """
         Starts session. Creates new (or updates old) user.
 
         """
-        session_key = str(''.join(random.choice(string.ascii_letters + string.digits) for x in range(32)) + hashlib.md5(str(time.time())).hexdigest())
+        session_key = str(uuid.uuid4())
 
         self.db_execute("""
             INSERT INTO session SET
-                session_key = %s,
+                uuid = %s,
                 email = %s,
+                name = %s,
+                provider = %s,
+                provvider_id = %s,
                 ip = %s,
                 browser = %s,
                 redirect_url = %s,
                 created = NOW()
             ON DUPLICATE KEY UPDATE
-                session_key = %s,
+                name = %s,
+                provider = %s,
+                provvider_id = %s,
                 ip = %s,
                 browser = %s,
                 redirect_url = %s,
@@ -326,17 +330,22 @@ class myUser(myE):
             # insert
             session_key,
             email,
+            name,
+            provider,
+            provider_id,
             ip,
             browser,
             redirect_url,
             # update
-            session_key,
+            name,
+            provider,
+            provider_id,
             ip,
             browser,
             redirect_url
         )
 
-        return {'session_key': session_key, 'redirect_url': redirect_url}
+        return session_key
 
 
     def get_user_by_session_key(self, session_key):
@@ -347,7 +356,7 @@ class myUser(myE):
             return self.__user
 
         try:
-            session = self.db_get('SELECT id, session_key, email, created FROM session WHERE session_key = %s LIMIT 1', session_key)
+            session = self.db_get('SELECT uuid, email, name FROM session WHERE uuid = %s LIMIT 1', session_key)
         except Exception, e:
             logging.error(e)
             return None
@@ -363,14 +372,12 @@ class myUser(myE):
             return None
 
         user = {
-            'user_id': session.get('id'),
-            'name': None,
+            'user_id': session.get('uuid'),
+            'email': session.get('email'),
+            'name': session.get('name'),
             'language': 'estonian',
             'hide_menu': 0,
-            'email': session.get('email')
         }
-        if session.get('picture'):
-            user['picture'] = session.get('picture')
 
         if self.request.remote_ip:
             user['ip'] = self.request.remote_ip
@@ -490,9 +497,6 @@ class myUser(myE):
             SELECT
                 entity.id,
                 NULL AS user_id,
-                NULL AS name,
-                'estonian' AS language,
-                NULL AS hide_menu,
                 (
                     SELECT value_string
                     FROM
@@ -505,9 +509,9 @@ class myUser(myE):
                     ORDER BY property.id
                     LIMIT 1
                 ) AS email,
-                NULL AS provider,
-                NULL AS access_token,
-                NULL AS session_key,
+                NULL AS name,
+                'estonian' AS language,
+                NULL AS hide_menu,
                 property.value_string AS api_key
             FROM
                 property_definition,
