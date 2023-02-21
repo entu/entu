@@ -88,10 +88,10 @@ class OAuth_ee(myRequestHandler, auth.OAuth2Mixin):
         redirect_url = get_redirect(self)
 
         session = self.user_login(
-            email        = user.get('email'),
-            name         = user.get('name'),
-            provider     = user.get('provider'),
-            provider_id  = user.get('id'),
+            email        = user.get('email', ''),
+            name         = user.get('name', ''),
+            provider     = user.get('provider', ''),
+            provider_id  = user.get('id', ''),
             ip           = self.request.remote_ip,
             browser      = self.request.headers.get('User-Agent'),
             redirect_url = redirect_url
