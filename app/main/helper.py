@@ -299,7 +299,7 @@ class myUser(myE):
     __signature   = None
 
 
-    def user_login(self, email=None, name=None, provider=None, provider_id=None, ip=None, browser=None, redirect_url=None):
+    def user_login(self, email, name=None, provider=None, provider_id=None, ip=None, browser=None, redirect_url=None):
         """
         Starts session. Creates new (or updates old) user.
 
