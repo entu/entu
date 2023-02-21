@@ -306,22 +306,13 @@ class myUser(myE):
         """
         session_key = str(uuid.uuid4())
 
-        logging.warning(session_key)
-        logging.warning(email)
-        logging.warning(name)
-        logging.warning(provider)
-        logging.warning(provider_id)
-        logging.warning(ip)
-        logging.warning(browser)
-        logging.warning(redirect_url)
-
         self.db_execute("""
             INSERT INTO session SET
                 uuid = %s,
                 email = %s,
                 name = %s,
                 provider = %s,
-                provvider_id = %s,
+                provider_id = %s,
                 ip = %s,
                 browser = %s,
                 redirect_url = %s,
@@ -329,7 +320,7 @@ class myUser(myE):
             ON DUPLICATE KEY UPDATE
                 name = %s,
                 provider = %s,
-                provvider_id = %s,
+                provider_id = %s,
                 ip = %s,
                 browser = %s,
                 redirect_url = %s,
