@@ -356,7 +356,7 @@ class myUser(myE):
             return self.__user
 
         try:
-            session = self.db_get('SELECT uuid, email, name FROM session WHERE uuid = %s LIMIT 1', session_key)
+            session = self.db_get('SELECT uuid, email, name FROM session WHERE uuid = %s AND created >= CURDATE() - INTERVAL 7 DAY LIMIT 1', session_key)
         except Exception, e:
             logging.error(e)
             return None
