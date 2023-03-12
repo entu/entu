@@ -26,8 +26,8 @@ class OAuth_ee(myRequestHandler, auth.OAuth2Mixin):
             'id':           self.settings['auth_id'],
             'secret':       self.settings['auth_secret'],
             'auth_url':     'https://oauth.ee/auth?client_id=%(id)s&redirect_uri=%(redirect)s&scope=openid&state=%(state)s&response_type=code',
-            'token_url':    'https://oauth.ee/token',
-            'info_url':     'https://oauth.ee/user',
+            'token_url':    'https://oauth.ee/api/token',
+            'info_url':     'https://oauth.ee/api/user',
             'scope':        'openid'
         }
 
