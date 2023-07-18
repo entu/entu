@@ -1,3 +1,7 @@
+* {
+    background-color: #fff !important
+}
+
 #content,
 .container {
     bottom: 0 !important;
@@ -11,18 +15,14 @@
     top: 0 !important
 }
 
-#list_search,
+footer,
+#modal-box,
 #menu,
 #menu_hidden,
 #list,
-#modal-box,
+#list_search,
 #drift-widget-container,
-.navbar,
-footer,
-.no-print {
+.no-print,
+.navbar {
     display: none !important
-}
-
-* {
-    background-color: #fff !important
 }
