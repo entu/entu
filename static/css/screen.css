@@ -86,7 +86,7 @@
 #list,
 #list_search,
 #menu_hidden {
-    border-right: 1px solid #222;
+    border-right: 1px solid #b9b9b9;
     position: fixed
 }
 
@@ -104,7 +104,6 @@
 }
 
 #list_search input {
-    border: none;
     font-size: 12px;
     line-height: 12px;
     margin: 0 auto;
@@ -153,7 +152,7 @@
 
 #menu .accordion div a.active {
     background: #4096ee;
-    border-bottom: 1px solid #3d4548
+    color: #3d4548
 }
 
 #menu .accordion h3 {
@@ -393,7 +392,10 @@ a.toolbar-item i {
 
 button,
 input,
-textarea {
+textarea,
+button:focus,
+input:focus,
+textarea:focus {
     border: none;
     box-shadow: none;
     outline: 0;
