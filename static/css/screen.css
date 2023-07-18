@@ -100,7 +100,9 @@
     width: 260px
 }
 
-#list_search input {
+#list_search input,
+#list_search input:focus {
+    box-shadow: none;
     font-size: 12px;
     line-height: 12px;
     margin: 0 auto;
@@ -148,8 +150,9 @@
 }
 
 #menu .accordion div a.active {
-    background: #4096ee;
-    color: #3d4548
+    background: #fff;
+    color: #3d4548;
+    opacity: .6
 }
 
 #menu .accordion h3 {
