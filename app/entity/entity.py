@@ -5,7 +5,6 @@ import os
 import logging
 import mimetypes
 import zipfile
-import yaml
 import json
 import time
 
