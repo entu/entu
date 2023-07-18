@@ -21,6 +21,7 @@
     background: #fbfbfb;
     bottom: 0;
     left: 201px;
+    overflow-y: auto;
     top: 51px;
     width: 300px
 }
