@@ -21,6 +21,7 @@
     background: #fbfbfb;
     bottom: 0;
     left: 201px;
+    overflow-y: auto;
     top: 51px;
     width: 300px
 }
@@ -94,7 +95,7 @@
 }
 
 #list_search {
-    background: #f0f0f0;
+    background: #fff;
     border-bottom: 1px solid #b9b9b9;
     height: 43px;
     padding: 9px 20px 0;
