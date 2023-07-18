@@ -74,7 +74,7 @@
 }
 
 #list a.active {
-    background: linear-gradient(top, #b9b9b9 0, #eee 3%, #eee 97%, #b9b9b9 100%)
+    background: #eee
 }
 
 #list img.spinner {
@@ -151,7 +151,7 @@
 }
 
 #menu .accordion div a.active {
-    background: linear-gradient(top, #7abcff 0, #60abf8 44%, #4096ee 100%);
+    background: #4096ee;
     border-bottom: 1px solid #3d4548
 }
 
@@ -323,11 +323,6 @@
     width: 700px !important
 }
 
-.navbar-inner {
-    background: linear-gradient(#eee, #c8c8c8) !important;
-    border-bottom: 1px solid #727272 !important
-}
-
 .no-underline:hover {
     text-decoration: none !important
 }
@@ -398,6 +393,8 @@ a.toolbar-item i {
 button,
 input,
 textarea {
+    border: none;
+    box-shadow: none;
     outline: 0
 }
 
