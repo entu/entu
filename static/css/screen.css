@@ -21,6 +21,7 @@
     background: #fbfbfb;
     bottom: 0;
     left: 201px;
+    margin-top: 52px;
     overflow-y: auto;
     top: 51px;
     width: 300px
@@ -88,10 +89,6 @@
 #menu_hidden {
     border-right: 1px solid #b9b9b9;
     position: fixed
-}
-
-#list_items {
-    margin-top: 52px
 }
 
 #list_search {
