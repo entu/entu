@@ -1,5 +1,4 @@
 from operator import itemgetter
-from PIL import Image
 from StringIO import StringIO
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
@@ -437,12 +436,7 @@ class Entity2():
         if not f.get('md5') and not f.get('s3_key'):
             return
 
-        thumbname = os.path.join(self.settings['files-path'], 'thumbs', self.app_settings('database-name'), '%s' % f.get('file_id'))
-        if os.path.isfile(thumbname):
-            with open(thumbname, 'r') as myfile:
-                filecontent = myfile.read()
-
-        elif f.get('s3_key'):
+        if f.get('s3_key'):
             try:
                 AWS_BUCKET     = self.app_settings('auth-s3', '\n', True).split('\n')[0]
                 AWS_ACCESS_KEY = self.app_settings('auth-s3', '\n', True).split('\n')[1]
@@ -459,52 +453,17 @@ class Entity2():
             s3_key.key = f.get('s3_key')
 
             try:
-                filecontent = self.save_thumb(Image.open(StringIO(s3_key.get_contents_as_string())), thumbname)
+                filecontent = s3_key.get_contents_as_string()
             except Exception, e:
                 return self.json({
                     'error': e,
                     'time': round(self.request.request_time(), 3),
                 }, 404)
 
-        elif f.get('md5'):
-            filename  = os.path.join(self.settings['files-path'], 'files', self.app_settings('database-name'), f.get('md5')[0], f.get('md5'))
-            if os.path.isfile(filename):
-                filecontent = self.save_thumb(Image.open(filename), thumbname)
-            else:
-                filecontent = None
-
         else:
             filecontent = None
 
         return {'definition': f.get('definition'), 'picture': filecontent}
-
-
-    def save_thumb(self, im, thumbname, size=(300, 300)):
-        try:
-            if not os.path.exists(os.path.dirname(thumbname)):
-                os.makedirs(os.path.dirname(thumbname))
-
-            if im.size[0] < size[0] and im.size[1] < size[1]:
-                aspect = float(im.size[0])/float(im.size[1])
-                c = (aspect, 1) if aspect > 0 else (1, aspect)
-                im = im.resize((int(im.size[0]*size[0]/im.size[0]*c[0]), int(im.size[1]*size[1]/im.size[1]*c[1])), Image.ANTIALIAS)
-            else:
-                im.thumbnail(size, Image.ANTIALIAS)
-
-            im_bg = Image.new('RGB', size, (255, 255, 255))
-            try:
-                im_bg.paste(im, ((size[0] - im.size[0]) / 2, (size[1] - im.size[1]) / 2), im)
-            except Exception:
-                im_bg.paste(im, ((size[0] - im.size[0]) / 2, (size[1] - im.size[1]) / 2))
-
-            im_bg.save(thumbname, 'JPEG', quality=75)
-
-            with open(thumbname, 'r') as myfile:
-                thumb = myfile.read()
-
-            return thumb
-        except Exception, e:
-            logging.error('%s - %s' % (self.app_settings('database-name'), e))
 
 
     def get_menu(self):
