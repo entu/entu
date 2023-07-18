@@ -121,6 +121,7 @@
 }
 
 #menu {
+    background: #44494d;
     border-right: 1px solid #222;
     bottom: 0;
     position: fixed;
@@ -165,6 +166,7 @@
 
 #menu .accordion h3 a,
 #menu .accordion h3 a:focus {
+    background: #33393d;
     border-bottom: 1px solid #3d4548;
     border-top: 1px solid #3d4548;
     color: #fff;
@@ -174,14 +176,12 @@
     text-decoration: none
 }
 
-#menu .accordion h3.ui-state-active a,
-button,
-input,
-textarea {
+#menu .accordion h3.ui-state-active a {
     outline: 0
 }
 
 #menu_hidden {
+    background: #44494d;
     bottom: 0;
     color: #fff;
     display: none;
@@ -342,6 +342,7 @@ textarea {
 .select2-no-results,
 .select2-searching,
 .select2-selection-limit {
+    background: 0 0 !important;
     border: none !important;
     color: #454a4e !important;
     font-size: 12px;
@@ -394,6 +395,12 @@ a.toolbar-item i {
     font-size: 20px
 }
 
+button,
+input,
+textarea {
+    outline: 0
+}
+
 input[disabled],
 input[readonly],
 select[disabled],
@@ -414,6 +421,7 @@ table.edit-form td .new-input {
 }
 
 table.edit-form td .select2-choice {
+    background: 0 0 !important;
     border: none !important;
     height: 20px;
     line-height: 20px;
@@ -423,6 +431,7 @@ table.edit-form td .select2-choice {
 table.edit-form td .select2-choice .select2-arrow,
 table.edit-form td .select2-choices,
 table.edit-form td .select2-search-choice {
+    background: 0 0 !important;
     border: none !important
 }
 
