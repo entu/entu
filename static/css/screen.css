@@ -104,9 +104,9 @@
 }
 
 #list_search input {
-    border: 1px solid gray;
-    font-size: 11px;
-    line-height: 11px;
+    border: none;
+    font-size: 12px;
+    line-height: 12px;
     margin: 0 auto;
     padding: 0 10px;
     width: 240px
@@ -383,7 +383,7 @@
 }
 
 a.toolbar-item {
-    border-left: 1px solid #b9b9b9;
+    border-left: 1px solid #d4d4d4;
     padding: 14.5px 16px !important
 }
 
