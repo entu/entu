@@ -1,6 +1,6 @@
 FROM python:2.7
 
-CMD python ./app/main.py
+CMD python -u ./app/main.py --logging=error
 
 WORKDIR /usr/src/entu
 COPY ./ ./
