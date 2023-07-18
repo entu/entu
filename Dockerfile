@@ -1,4 +1,4 @@
-FROM python:2.7-slim-jessie
+FROM python:2.7
 
 CMD ["python", "/usr/src/entu/app/main.py"]
 
