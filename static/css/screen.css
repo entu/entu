@@ -281,6 +281,7 @@
 }
 
 .modal-body {
+    flex-grow: 1;
     max-height: none !important;
     padding: 0 !important
 }
@@ -392,7 +393,8 @@ textarea[readonly] {
 }
 
 table.edit-form {
-    border: none;
+    border-radius: 0;
+    border-width: 0 0 1px 0;
     margin: 0;
     padding: 0;
     vertical-align: middle
