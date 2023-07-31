@@ -391,6 +391,13 @@ textarea[readonly] {
     background: #fafafa
 }
 
+table.edit-form {
+    border: none;
+    margin: 0;
+    padding: 0;
+    vertical-align: middle
+}
+
 table.edit-form td {
     padding: 0;
     vertical-align: middle
