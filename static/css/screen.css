@@ -5,7 +5,7 @@
 
 #content,
 #content-wide {
-    overflow: scroll;
+    overflow: auto;
     padding: 15px;
     position: fixed;
     right: 0;
@@ -279,7 +279,6 @@
 
 .modal-body {
     margin: 51px 0 42px;
-    max-height: none !important;
     padding: 0 !important
 }
 
@@ -288,7 +287,6 @@
     padding-left: 10px
 }
 
-.modal-body,
 .modal-header,
 .modal-header h3 {
     overflow: hidden !important
@@ -411,7 +409,6 @@ textarea[readonly] {
 }
 
 table.edit-form td {
-    overflow: hidden !important;
     padding: 0;
     vertical-align: middle
 }
