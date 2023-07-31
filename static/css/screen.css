@@ -5,7 +5,7 @@
 
 #content,
 #content-wide {
-    overflow: scroll;
+    overflow: auto;
     padding: 15px;
     position: fixed;
     right: 0;
@@ -102,6 +102,7 @@
 
 #list_search input,
 #list_search input:focus {
+    border: 1px solid #b9b9b9 !important;
     box-shadow: none;
     font-size: 12px;
     line-height: 12px;
@@ -272,13 +273,14 @@
 
 .modal {
     bottom: 0 !important;
+    display: flex;
+    flex-direction: column;
     margin: -4px 0 -4px -400px !important;
     top: 0 !important;
     width: 800px !important
 }
 
 .modal-body {
-    margin: 51px 0 42px;
     max-height: none !important;
     padding: 0 !important
 }
@@ -288,39 +290,18 @@
     padding-left: 10px
 }
 
-.modal-body,
-.modal-header,
-.modal-header h3 {
-    overflow: hidden !important
-}
-
-.modal-footer {
-    bottom: 0 !important;
-    position: fixed;
-    width: 770px !important;
-    z-index: 10000
-}
-
 .modal-header {
     background: #f5f5f5 !important;
-    border-bottom: none;
-    height: 30px !important;
-    position: fixed;
-    top: 0 !important;
-    width: 770px !important;
-    z-index: 10000
-}
-
-.modal-header .close {
-    padding-top: 3px
+    padding: 14px 15px 15px;
 }
 
 .modal-header h3 {
-    line-height: 30px;
-    margin: 0;
-    padding: 0;
-    white-space: nowrap;
-    width: 700px !important
+    overflow: hidden !important;
+    white-space: nowrap
+}
+
+.navbar-inner {
+    box-shadow: none
 }
 
 .no-underline:hover {
@@ -410,8 +391,14 @@ textarea[readonly] {
     background: #fafafa
 }
 
+table.edit-form {
+    border: none;
+    margin: 0;
+    padding: 0;
+    vertical-align: middle
+}
+
 table.edit-form td {
-    overflow: hidden !important;
     padding: 0;
     vertical-align: middle
 }
