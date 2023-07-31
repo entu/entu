@@ -322,6 +322,10 @@
     width: 700px !important
 }
 
+.navbar-inner {
+    box-shadow: none
+}
+
 .no-underline:hover {
     text-decoration: none !important
 }
