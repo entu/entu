@@ -393,7 +393,6 @@ textarea[readonly] {
 }
 
 table.edit-form {
-    border: none;
     border-radius: 0;
     border-width: 0 0 1px 0;
     margin: 0;
