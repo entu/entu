@@ -281,7 +281,6 @@
 }
 
 .modal-body {
-    margin: 51px 0 42px;
     max-height: none !important;
     padding: 0 !important
 }
@@ -291,38 +290,14 @@
     padding-left: 10px
 }
 
-.modal-header,
-.modal-header h3 {
-    overflow: hidden !important
-}
-
-.modal-footer {
-    bottom: 0 !important;
-    position: fixed;
-    width: 770px !important;
-    z-index: 10000
-}
-
 .modal-header {
     background: #f5f5f5 !important;
-    border-bottom: none;
-    height: 30px !important;
-    position: fixed;
-    top: 0 !important;
-    width: 770px !important;
-    z-index: 10000
-}
-
-.modal-header .close {
-    padding-top: 3px
+    padding: 14px 15px 15px;
 }
 
 .modal-header h3 {
-    line-height: 30px;
-    margin: 0;
-    padding: 0;
-    white-space: nowrap;
-    width: 700px !important
+    overflow: hidden !important;
+    white-space: nowrap
 }
 
 .navbar-inner {
