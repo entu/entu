@@ -129,10 +129,6 @@
     width: 200px
 }
 
-#menu .accordion {
-    border-bottom: 1px solid #222
-}
-
 #menu .accordion div {
     border-top: 1px solid #222;
     display: block;
