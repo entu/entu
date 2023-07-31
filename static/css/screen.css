@@ -399,9 +399,9 @@ textarea,
 button:focus,
 input:focus,
 textarea:focus {
-    border: none;
-    box-shadow: none;
-    outline: 0
+    border: none !important;
+    box-shadow: none !important;
+    outline: 0 !important
 }
 
 input[disabled],
