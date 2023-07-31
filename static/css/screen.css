@@ -302,7 +302,7 @@
 }
 
 .navbar-inner {
-    box-shadow: none
+    box-shadow: none !important
 }
 
 .no-underline:hover {
