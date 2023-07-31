@@ -102,6 +102,7 @@
 
 #list_search input,
 #list_search input:focus {
+    border: 1px solid #b9b9b9;
     box-shadow: none;
     font-size: 12px;
     line-height: 12px;
