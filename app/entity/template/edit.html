@@ -30,3 +30,10 @@
 </div>
 
 <div id="database" data-entity_id="{{ entity.get('id', '') }}" style="display:hidden;"></div>
+
+
+<script>
+    $(window).on('resize', function(){
+        $('#menu_accordion').accordion('refresh');
+    });
+</script>

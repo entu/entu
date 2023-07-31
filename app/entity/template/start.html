@@ -69,7 +69,6 @@
     </div>
 
     <script>
-
         function spinner(event_name) {
             var event_names = $('#spinner').data('events');
             if(!event_names) event_names = [];
@@ -149,12 +148,7 @@
 
             $(window).on('resize', function(){
                 $('#menu_accordion').accordion('refresh');
-                redirectToMobile();
             });
-
-            function redirectToMobile() {
-                // if($(window).width() < 700) window.location.href = window.location.href.replace('/entity', '/mobile/#')
-            }
         });
     </script>
 {% end %}

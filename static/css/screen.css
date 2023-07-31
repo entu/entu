@@ -102,7 +102,7 @@
 
 #list_search input,
 #list_search input:focus {
-    border: 1px solid #b9b9b9;
+    border: 1px solid #b9b9b9 !important;
     box-shadow: none;
     font-size: 12px;
     line-height: 12px;
@@ -273,6 +273,8 @@
 
 .modal {
     bottom: 0 !important;
+    display: flex;
+    flex-direction: column;
     margin: -4px 0 -4px -400px !important;
     top: 0 !important;
     width: 800px !important
@@ -280,6 +282,7 @@
 
 .modal-body {
     margin: 51px 0 42px;
+    max-height: none !important;
     padding: 0 !important
 }
 
