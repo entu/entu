@@ -5,5 +5,5 @@ protobuf==3.17.3
 mysql-connector-python==8.0.23
 python-dateutil==2.8.2
 simpleaes==1.0
-tornado==5.1.1
+tornado==6.3.3
 xmltodict==0.12.0
