@@ -596,6 +596,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
         Includes app title, logo etc to template and renders it.
 
         """
+        print('XXXXX ' + self.app_settings('use-new-entu', '') + ' YYYYY')
         kwargs['app_title'] = 'Entu'
         kwargs['app_use_new_entu'] = self.app_settings('use-new-entu', False)
         kwargs['app_organisation_id'] = self.app_settings('database-name', '')
