@@ -604,7 +604,6 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
         """
         kwargs['app_title'] = 'Entu'
-        kwargs['app_use_new_entu'] = self.app_settings('use-new-entu', '')
         kwargs['app_organisation_id'] = self.app_settings('database-name', '')
         kwargs['app_organisation'] = self.app_settings('name', '')
         kwargs['app_exit_url'] = '%s?next=https://%s' % (self.settings['auth_url'], self.request.host)
