@@ -563,6 +563,9 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
         except Exception, e:
             logging.error('Reguest arguments error: %s' % e)
 
+        logging.warning(self.app_settings('database-name', ''))
+        logging.warning(self.app_settings('use-new-entu', ''))
+
     def timer(self, msg=''):
         logging.debug('TIMER: %0.3f - %s' % (round(self.request.request_time(), 3), msg))
 
