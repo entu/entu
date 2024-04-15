@@ -549,10 +549,10 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
     """
     def prepare(self):
-        logging.warning('RequestHandler prepare')
-        logging.warning(self.request.host)
-        logging.warning(self.app_settings('database-name', ''))
-        logging.warning(self.app_settings('use-new-entu', ''))
+        logging.error('RequestHandler prepare')
+        logging.error(self.request.host)
+        logging.error(self.app_settings('database-name', ''))
+        logging.error(self.app_settings('use-new-entu', ''))
 
         if self.request.protocol.upper() == 'HTTP':
             logging.error(self.request.host + self.request.uri)
