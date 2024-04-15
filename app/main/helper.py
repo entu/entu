@@ -549,10 +549,8 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
     """
     def prepare(self):
-        logging.error('RequestHandler prepare')
-        logging.error(self.request.host)
-        logging.error(self.app_settings('database-name', ''))
-        logging.error(self.app_settings('use-new-entu', ''))
+        if self.app_settings('use-new-entu', '') == 1:
+            self.redirect('https://entu.app/' + self.app_settings('database-name', ''))
 
         if self.request.protocol.upper() == 'HTTP':
             logging.error(self.request.host + self.request.uri)
@@ -602,7 +600,6 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
         """
         kwargs['app_title'] = 'Entu'
-        kwargs['app_use_new_entu'] = self.app_settings('use-new-entu', '')
         kwargs['app_organisation_id'] = self.app_settings('database-name', '')
         kwargs['app_organisation'] = self.app_settings('name', '')
         kwargs['app_exit_url'] = '%s?next=https://%s' % (self.settings['auth_url'], self.request.host)
