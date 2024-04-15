@@ -550,7 +550,10 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
     """
     def prepare(self):
         if self.app_settings('use-new-entu', '') == 1:
-            self.redirect('https://entu.app/' + self.app_settings('database-name', ''))
+            entu_app_url = 'https://entu.app/%s' % self.app_settings('database-name', '')
+
+            logging.error('Redirecting to %s' % entu_app_url)
+            self.redirect(entu_app_url)
 
         if self.request.protocol.upper() == 'HTTP':
             logging.error(self.request.host + self.request.uri)
