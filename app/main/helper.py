@@ -549,7 +549,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
     """
     def prepare(self):
-        if self.app_settings('use-new-entu', '') == '1':
+        if self.app_settings('use-new-entu', '') == '1' and not self.request.uri.startswith('/api2/'):
             entu_app_url = 'https://entu.app/%s' % self.app_settings('database-name', '')
 
             logging.error('Redirecting to %s' % entu_app_url)
