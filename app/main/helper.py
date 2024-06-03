@@ -549,7 +549,7 @@ class myRequestHandler(web.RequestHandler, myDatabase, myUser):
 
     """
     def prepare(self):
-        if self.request.uri.startswith('/api2/') and not (self.request.host + self.request.uri).startswith('vabamu.entu.ee/api2/changed'):
+        if self.request.uri.startswith('/api2/') and not (self.request.host + self.request.uri).startswith('vabamu.entu.ee/api2/changed') and not self.request.uri.endswith('/picture'):
             logging.error('API ' + self.request.method + ': ' + self.request.host + self.request.uri)
 
         if self.app_settings('use-new-entu', '') == '1' and not self.request.uri.startswith('/api2/'):
